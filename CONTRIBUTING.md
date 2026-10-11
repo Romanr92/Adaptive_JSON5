@@ -30,3 +30,7 @@ Original contributions use the repository's Apache-2.0 license. Document the
 source, immutable version and license of any dependency, generated data or
 fixture before adding it. No contribution agreement or external project workflow
 is introduced by this repository setup.
+
+Read [licensing guidance](docs/licensing.md) and retain applicable upstream notices
+when contributing copied or adapted material. Repository copyright attribution is
+recorded in [NOTICE](NOTICE); third-party rights remain with their owners.

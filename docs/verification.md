@@ -1,5 +1,15 @@
 # Development setup verification
 
+## Setup follow-up, 2026-10-12
+
+- Latest published licensing/setup unit workflow: [passed](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/38180963812).
+- Latest published formatting workflow: [passed](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/38180964060).
+- Local library/example-data configuration and metadata-package installation passed.
+  LICENSE, NOTICE, licensing/provenance documents and the GoogleTest notice retain
+  their directory structure in the installation.
+- Getting-started commands now use the visible component preset names.
+- No production C++ parser or demonstration executable is present.
+
 The repository has no production C++ or parser API. Its three GoogleTest units
 verify the C++17 baseline and selected exception/RTTI flags only:
 

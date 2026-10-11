@@ -27,17 +27,17 @@ Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host unit
 CMake downloads and builds the pinned host-only GoogleTest dependency on the first test configuration:
 
 ```sh
-cmake --preset dev
-cmake --build --preset dev
-ctest --preset dev
-cmake --preset dev-exceptions
-cmake --build --preset dev-exceptions
-ctest --preset dev-exceptions
+cmake --preset debug-unit-tests
+cmake --build --preset debug-unit-tests
+ctest --preset debug-unit-tests
+cmake --preset debug-unit-tests-exceptions
+cmake --build --preset debug-unit-tests-exceptions
+ctest --preset debug-unit-tests-exceptions
 ```
 
 Exceptions and RTTI default OFF; the second preset enables exceptions. Run
 Windows commands in a Visual Studio developer terminal when using its compiler.
-See [native development](docs/development.md) for installed GoogleTest, formatting
+See [native development](docs/development.md) for offline GoogleTest, formatting
 and toolchain configuration. Automated checks are **GoogleTest unit tests and
 clang-format 18 only**. GoogleTest is host-only and never a parser runtime dependency.
 

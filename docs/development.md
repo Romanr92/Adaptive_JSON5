@@ -19,12 +19,12 @@ nor build GoogleTest. GoogleTest is not installed with the library.
 ## Unit commands
 
 ```sh
-cmake --preset dev
-cmake --build --preset dev
-ctest --preset dev
-cmake --preset dev-exceptions
-cmake --build --preset dev-exceptions
-ctest --preset dev-exceptions
+cmake --preset debug-unit-tests
+cmake --build --preset debug-unit-tests
+ctest --preset debug-unit-tests
+cmake --preset debug-unit-tests-exceptions
+cmake --build --preset debug-unit-tests-exceptions
+ctest --preset debug-unit-tests-exceptions
 ```
 
 The initial three GoogleTest cases check C++17, exception and RTTI build settings.
@@ -47,7 +47,7 @@ policy; a configurable test build is not evidence of an implemented parser.
 ## VS Code
 
 The tracked `.vscode/` setup is adapted from AdaptivePi. Install the recommended
-extensions, open this repository folder and select the `dev` CMake preset and
+extensions, open this repository folder and select the `debug-unit-tests` CMake preset and
 your native compiler. CMake Tools supplies IntelliSense and the executable path.
 Tasks provide configure, build and unit tests for both exception modes, plus
 formatting check/fix. Formatting on save uses `clang-format` on PATH; install
@@ -55,7 +55,7 @@ version 18 and override `clang-format.executable` in your user settings if neede
 
 Select `adaptive_json5_unit_tests` as the CMake launch target before debugging.
 Use the Windows configuration for MSVC, or the Linux/macOS configuration with
-GDB/LLDB installed. Choose the matching `dev` build preset in CMake Tools. For a
+GDB/LLDB installed. Choose the matching `debug-unit-tests` build preset in CMake Tools. For a
 single case, add `--gtest_filter=SuiteName.TestName` to the launch arguments.
 Build tasks configure through CMake, including the host-only GoogleTest fetch.
 Keep personal toolchain paths in user settings or `CMakeUserPresets.json`.
