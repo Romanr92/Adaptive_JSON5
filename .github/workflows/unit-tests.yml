@@ -20,15 +20,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Obtain pinned host-only GoogleTest
-        uses: actions/checkout@v7
-        with:
-          repository: google/googletest
-          ref: 52eb8108c5bdec04579160ae17225d66034bd723
-          path: third_party/googletest
-          persist-credentials: false
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=${{ github.workspace }}/third_party/googletest -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }} -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }} -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       - name: Build unit tests
         run: cmake --build build --config Debug --parallel
       - name: Run unit tests

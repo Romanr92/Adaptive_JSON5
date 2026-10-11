@@ -11,7 +11,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED = {".git", "build", "out", "install", "generated", "vendor", "third_party", "node_modules"}
+EXCLUDED = {".git", "build", "out", "install", "generated", "vendor", "third_party", "gtest", "node_modules"}
 SUFFIXES = {".h", ".hpp", ".c", ".cpp", ".cc", ".cxx"}
 
 
@@ -72,3 +72,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

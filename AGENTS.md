@@ -54,3 +54,7 @@ implemented or verified without actual evidence.
 The non-throwing error contract is mandatory: all library failures use explicit
 result/error values in every supported compiler exception mode. Do not introduce
 throwing error APIs or hidden exception-dependent recovery.
+
+GoogleTest is acquired and built through CMake FetchContent for host unit tests
+only. Keep the immutable revision and offline source override; tests-disabled
+consumer builds must not acquire or link the host test framework.

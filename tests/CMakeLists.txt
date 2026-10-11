@@ -1,17 +1,4 @@
-if(NOT ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR)
-    find_package(GTest 1.17.0 EXACT CONFIG REQUIRED)
-else()
-    if(NOT EXISTS "${ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR}/CMakeLists.txt")
-        message(FATAL_ERROR "ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR must point to an existing GoogleTest checkout")
-    endif()
-    # Local test dependency only. CMake never downloads it.
-    set(BUILD_GMOCK OFF CACHE BOOL "Build GoogleMock" FORCE)
-    set(INSTALL_GTEST OFF CACHE BOOL "Install GoogleTest" FORCE)
-    set(gtest_force_shared_crt ON CACHE BOOL "Use the host project's MSVC runtime" FORCE)
-    add_subdirectory("${ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/googletest" EXCLUDE_FROM_ALL)
-    adaptive_json5_configure_target(gtest)
-    adaptive_json5_configure_target(gtest_main)
-endif()
+include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
 
 add_executable(adaptive_json5_unit_tests build_configuration_tests.cpp)
 target_link_libraries(adaptive_json5_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)

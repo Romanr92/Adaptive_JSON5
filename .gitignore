@@ -76,3 +76,6 @@ __pycache__/
 node_modules/
 .vscode/
 third_party/
+
+# CMake-acquired host-only GoogleTest sources
+/tools/gtest/

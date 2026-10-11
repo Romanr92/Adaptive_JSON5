@@ -6,21 +6,23 @@ Tools. Ninja is optional. No WSL or consumer SDK is needed for host development.
 
 ## Test dependency
 
-GoogleTest 1.17.0 is a host-only test dependency, pinned in CI to
-`52eb8108c5bdec04579160ae17225d66034bd723`. Explicitly check it out as shown in
-the README, or supply an existing checkout through
-`ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR`. Relative paths are resolved from the root
-source directory. With that option empty, CMake requires an already installed
-exact GoogleTest 1.17.0 package through `find_package`. No download happens during
-configure, and tests-disabled builds need no GoogleTest.
+CMake FetchContent downloads and builds GoogleTest 1.17.0 at immutable revision
+`52eb8108c5bdec04579160ae17225d66034bd723` into `tools/gtest` when host tests
+are enabled. The first configuration requires Git and network access; subsequent
+configurations reuse the checkout without checking for updates.
+
+For offline work, supply an existing 1.17.0 checkout through
+`-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=path/to/googletest`. Relative paths are
+resolved from the root source directory. Tests-disabled builds neither acquire
+nor build GoogleTest. GoogleTest is not installed with the library.
 
 ## Unit commands
 
 ```sh
-cmake --preset dev -DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=third_party/googletest
+cmake --preset dev
 cmake --build --preset dev
 ctest --preset dev
-cmake --preset dev-exceptions -DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=third_party/googletest
+cmake --preset dev-exceptions
 cmake --build --preset dev-exceptions
 ctest --preset dev-exceptions
 ```
@@ -36,7 +38,7 @@ traceability, parameterization and Arrange/Act/Expect comments.
 | `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root; OFF as subproject | Host GoogleTest units |
 | `ADAPTIVE_JSON5_ENABLE_EXCEPTIONS` | OFF | Exception mode for selected project targets |
 | `ADAPTIVE_JSON5_ENABLE_RTTI` | OFF | RTTI mode for selected project targets |
-| `ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR` | Empty | Local source checkout; otherwise installed package |
+| `ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR` | Empty | Offline source override; otherwise CMake FetchContent |
 
 C++17 and compiler options apply to selected targets. Parent flags are not
 overwritten. Future production targets must use the reviewed exception/runtime

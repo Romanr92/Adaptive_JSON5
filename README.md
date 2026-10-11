@@ -24,15 +24,13 @@ boundary. AdaptivePi is inspiration and an optional consumer example.
 ## Start development
 
 Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host units.
-Obtain the test dependency explicitly; CMake never downloads dependencies:
+CMake downloads and builds the pinned host-only GoogleTest dependency on the first test configuration:
 
 ```sh
-git clone https://github.com/google/googletest.git third_party/googletest
-git -C third_party/googletest checkout 52eb8108c5bdec04579160ae17225d66034bd723
-cmake --preset dev -DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=third_party/googletest
+cmake --preset dev
 cmake --build --preset dev
 ctest --preset dev
-cmake --preset dev-exceptions -DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=third_party/googletest
+cmake --preset dev-exceptions
 cmake --build --preset dev-exceptions
 ctest --preset dev-exceptions
 ```
