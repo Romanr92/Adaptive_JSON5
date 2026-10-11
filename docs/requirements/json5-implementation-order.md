@@ -3,7 +3,8 @@
 Copyright 2026 Razvan-Stefan Roman. Project additions are Apache-2.0.
 Specification-derived explanations retain the source notices linked below.
 
-Status: **Draft; no production parser is implemented.** Reviewed 2026-10-12.
+Status: **Documented implementation baseline; no user review required.**
+Specification checked 2026-10-12. No production parser is implemented.
 This is the sequential core-parser checklist. IDs P001–P041 are local project
 identifiers, not numbers issued by the JSON5 authors. Each prerequisite has a
 smaller number: implement in ascending order; no step requires a later one.
@@ -432,3 +433,8 @@ modified official standard. The JSON5 specification is MIT-licensed; retain
 [its notice](../../LICENSES/JSON5-Specification-MIT.txt). The referenced ES5
 implementation explanations retain [Ecma's document notice](../../LICENSES/ECMA-262-5.1-Document.txt).
 The project license does not replace either source's permissions.
+
+User approval is not a prerequisite for these documented requirements. Implement
+specification-derived behavior as cited; preserve MUST/SHOULD/MAY distinctions.
+Project additions remain explicitly identified and are authorized by the current
+user scope. Baseline status is not evidence of implementation or passing tests.

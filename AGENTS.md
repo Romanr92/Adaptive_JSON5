@@ -63,3 +63,8 @@ For core parser work, follow the [official-specification implementation sequence
 P001–P041 are ordered so all prerequisites come earlier; existing J5 IDs remain
 unchanged for issue and requirement traceability. Optional schema/editor/CLI work
 does not block this core parser sequence.
+
+The P001–P041 specification-derived parser checklist is the documented baseline
+and requires no user review or approval before implementation work. Follow official
+source semantics and marked project additions. Record implementation and unit
+evidence separately; this authorization does not permit agents to write production C++.

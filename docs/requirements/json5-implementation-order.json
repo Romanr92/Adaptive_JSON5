@@ -16,7 +16,8 @@
         "J5-091",
         "J5-101"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P002",
@@ -32,7 +33,8 @@
         "J5-043",
         "J5-045"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P003",
@@ -49,7 +51,8 @@
         "J5-051",
         "J5-101"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P004",
@@ -65,7 +68,8 @@
         "J5-041",
         "J5-044"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P005",
@@ -79,7 +83,8 @@
       "existing_requirements": [
         "J5-009"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P006",
@@ -95,7 +100,8 @@
         "J5-019",
         "J5-052"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P007",
@@ -111,7 +117,8 @@
         "J5-017",
         "J5-044"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P008",
@@ -127,7 +134,8 @@
         "J5-011",
         "J5-025"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P009",
@@ -141,7 +149,8 @@
       "existing_requirements": [
         "J5-012"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P010",
@@ -155,7 +164,8 @@
       "existing_requirements": [
         "J5-012"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P011",
@@ -172,7 +182,8 @@
         "J5-012",
         "J5-024"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P012",
@@ -187,7 +198,8 @@
       "existing_requirements": [
         "J5-013"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P013",
@@ -204,7 +216,8 @@
         "J5-029",
         "J5-040"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P014",
@@ -219,7 +232,8 @@
       "existing_requirements": [
         "J5-014"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P015",
@@ -234,7 +248,8 @@
         "J5-015",
         "J5-016"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P016",
@@ -248,7 +263,8 @@
       "existing_requirements": [
         "J5-016"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P017",
@@ -264,7 +280,8 @@
         "J5-015",
         "J5-018"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P018",
@@ -280,7 +297,8 @@
       "existing_requirements": [
         "J5-016"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P019",
@@ -295,7 +313,8 @@
       "existing_requirements": [
         "J5-017"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P020",
@@ -310,7 +329,8 @@
       "existing_requirements": [
         "J5-017"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P021",
@@ -333,7 +353,8 @@
         "J5-017",
         "J5-018"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P022",
@@ -347,7 +368,8 @@
       "existing_requirements": [
         "J5-019"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P023",
@@ -363,7 +385,8 @@
         "J5-020",
         "J5-033"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P024",
@@ -378,7 +401,8 @@
       "existing_requirements": [
         "J5-023"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P025",
@@ -393,7 +417,8 @@
         "J5-021",
         "J5-022"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P026",
@@ -407,7 +432,8 @@
       "existing_requirements": [
         "J5-022"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P027",
@@ -421,7 +447,8 @@
       "existing_requirements": [
         "J5-022"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P028",
@@ -442,7 +469,8 @@
         "J5-024",
         "J5-027"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P029",
@@ -461,7 +489,8 @@
         "J5-038",
         "J5-040"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P030",
@@ -481,7 +510,8 @@
         "J5-039",
         "J5-040"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P031",
@@ -499,7 +529,8 @@
         "J5-048",
         "J5-049"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P032",
@@ -519,7 +550,8 @@
         "J5-023",
         "J5-028"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P033",
@@ -538,7 +570,8 @@
         "J5-027",
         "J5-048"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P034",
@@ -553,7 +586,8 @@
         "J5-013",
         "J5-030"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P035",
@@ -573,7 +607,8 @@
         "J5-020",
         "J5-031"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P036",
@@ -588,7 +623,8 @@
         "J5-032",
         "J5-033"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P037",
@@ -607,7 +643,8 @@
         "J5-026",
         "J5-051"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P038",
@@ -627,7 +664,8 @@
         "J5-038",
         "J5-052"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P039",
@@ -647,7 +685,8 @@
         "J5-044",
         "J5-045"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P040",
@@ -704,7 +743,8 @@
         "J5-098",
         "J5-099"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     },
     {
       "id": "P041",
@@ -720,7 +760,9 @@
         "J5-027",
         "J5-100"
       ],
-      "status": "Draft"
+      "status": "documented baseline; implementation pending",
+      "user_review_required": false
     }
-  ]
+  ],
+  "user_review_required": false
 }
