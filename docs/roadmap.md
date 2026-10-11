@@ -67,3 +67,8 @@ generic core. No vendor-specific embedded port or deployment workflow is require
 The [original proposal](requirements/proposals/json5-parser-repository.md) remains
 historical Draft input. [Active requirements](requirements.md) and
 [scope ADR](adr/0001-project-scope.md) record later user decisions.
+
+For core parser work, follow the [official-specification implementation sequence](requirements/json5-implementation-order.md).
+P001–P041 are ordered so all prerequisites come earlier; existing J5 IDs remain
+unchanged for issue and requirement traceability. Optional schema/editor/CLI work
+does not block this core parser sequence.

@@ -58,3 +58,8 @@ throwing error APIs or hidden exception-dependent recovery.
 GoogleTest is acquired and built through CMake FetchContent for host unit tests
 only. Keep the immutable revision and offline source override; tests-disabled
 consumer builds must not acquire or link the host test framework.
+
+For core parser work, follow the [official-specification implementation sequence](docs/requirements/json5-implementation-order.md).
+P001–P041 are ordered so all prerequisites come earlier; existing J5 IDs remain
+unchanged for issue and requirement traceability. Optional schema/editor/CLI work
+does not block this core parser sequence.

@@ -22,3 +22,8 @@ is reproduced in LICENSES/GoogleTest-BSD-3-Clause.txt and applies to GoogleTest,
 not to this project's original material.
 
 These notices are informational and do not modify any license terms.
+
+The JSON5 implementation checklist explains JSON5 1.0.0 (MIT, Copyright (c)
+2017 Aseem Kishore, Jordan Tucker) and referenced ECMAScript 5.1 lexical rules
+(Copyright © 2011 Ecma International). Their notices are retained under LICENSES.
+The explanation is project-authored; the official standards are not modified.

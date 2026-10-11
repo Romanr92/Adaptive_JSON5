@@ -1,0 +1,726 @@
+{
+  "version": 1,
+  "source": "JSON5 1.0.0 / March 2018",
+  "review_date": "2026-10-12",
+  "requirements": [
+    {
+      "id": "P001",
+      "title": "Independent C++17 build",
+      "requirement": "Provide the library component and GoogleTest units as separate native C++17 targets; no OS or host-tool dependency enters the core.",
+      "dependencies": [],
+      "basis": "Project",
+      "unit_acceptance": "Compile the configuration units; keep production implementation reserved for the developer.",
+      "existing_requirements": [
+        "J5-001",
+        "J5-002",
+        "J5-091",
+        "J5-101"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P002",
+      "title": "Non-throwing result foundation",
+      "requirement": "Define success/error alternatives with stable minimal error code and byte offset; returning any failure shall not require allocation or throw.",
+      "dependencies": [
+        "P001"
+      ],
+      "basis": "Project",
+      "unit_acceptance": "Unit-test minimal result construction in exceptions OFF/ON; no parser needed.",
+      "existing_requirements": [
+        "J5-003",
+        "J5-043",
+        "J5-045"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P003",
+      "title": "Fallible storage and accounting",
+      "requirement": "Provide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.",
+      "dependencies": [
+        "P002"
+      ],
+      "basis": "Project",
+      "unit_acceptance": "Fail each primitive allocation and verify explicit outcomes and balanced release.",
+      "existing_requirements": [
+        "J5-040",
+        "J5-046",
+        "J5-051",
+        "J5-101"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P004",
+      "title": "Explicit input cursor",
+      "requirement": "Consume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.",
+      "dependencies": [
+        "P002"
+      ],
+      "basis": "Project",
+      "unit_acceptance": "Empty, embedded-zero and truncated buffers; no terminating NUL assumption.",
+      "existing_requirements": [
+        "J5-004",
+        "J5-041",
+        "J5-044"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P005",
+      "title": "Unicode source decoding",
+      "requirement": "Decode the project UTF-8 transport to source characters without replacement; retain byte-to-source mapping.",
+      "dependencies": [
+        "P004"
+      ],
+      "basis": "Project transport; JSON5 \u00a79.1",
+      "unit_acceptance": "Malformed, overlong, surrogate-encoded and out-of-range UTF-8; supplementary characters.",
+      "existing_requirements": [
+        "J5-009"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P006",
+      "title": "Character classification",
+      "requirement": "Establish documented Unicode data for source classification used by whitespace and IdentifierName; classification has no locale dependency.",
+      "dependencies": [
+        "P005"
+      ],
+      "basis": "JSON5 \u00a7\u00a71,9; ES5 \u00a7\u00a76,7.6; Project version policy",
+      "unit_acceptance": "Category boundaries, non-ASCII and non-BMP handling; document supported Unicode version.",
+      "existing_requirements": [
+        "J5-006",
+        "J5-019",
+        "J5-052"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P007",
+      "title": "Line terminators",
+      "requirement": "Recognize LF, CR, CRLF, U+2028 and U+2029 as line terminator sequences; keep CRLF as one sequence for location/continuation purposes.",
+      "dependencies": [
+        "P005"
+      ],
+      "basis": "JSON5 \u00a7\u00a75.1,7\u20139; ES5 \u00a77.3",
+      "unit_acceptance": "Each sequence and EOF after CR; assert source spans.",
+      "existing_requirements": [
+        "J5-011",
+        "J5-017",
+        "J5-044"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P008",
+      "title": "Whitespace",
+      "requirement": "Skip HT, VT, FF, SP, NBSP, BOM and other Unicode Zs whitespace, together with line terminators, between tokens.",
+      "dependencies": [
+        "P006",
+        "P007"
+      ],
+      "basis": "JSON5 \u00a7\u00a78,9.1",
+      "unit_acceptance": "Each admitted space before/after tokens; BOM both leading and between tokens.",
+      "existing_requirements": [
+        "J5-011",
+        "J5-025"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P009",
+      "title": "Line comments",
+      "requirement": "Skip // comments until a line terminator or EOF; comments are trivia rather than values.",
+      "dependencies": [
+        "P007"
+      ],
+      "basis": "JSON5 \u00a7\u00a77,9.1",
+      "unit_acceptance": "All terminators, empty comment and EOF comment; validate non-ASCII source.",
+      "existing_requirements": [
+        "J5-012"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P010",
+      "title": "Block comments",
+      "requirement": "Skip /* comments through the first */; do not nest comments, and report unterminated comments.",
+      "dependencies": [
+        "P005"
+      ],
+      "basis": "JSON5 \u00a7\u00a77,9.1",
+      "unit_acceptance": "First closer, embedded opener and EOF at every suffix position.",
+      "existing_requirements": [
+        "J5-012"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P011",
+      "title": "Trivia composition",
+      "requirement": "Permit any sequence of admitted spaces, line terminators and comments before/after tokens, without joining split tokens.",
+      "dependencies": [
+        "P008",
+        "P009",
+        "P010"
+      ],
+      "basis": "JSON5 \u00a7\u00a77\u20139",
+      "unit_acceptance": "Mixed trivia; comments between tokens; 1/*x*/2 remains two tokens.",
+      "existing_requirements": [
+        "J5-012",
+        "J5-024"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P012",
+      "title": "Punctuation tokens",
+      "requirement": "Recognize exactly the structural punctuators { } [ ] : , outside strings/comments.",
+      "dependencies": [
+        "P004",
+        "P011"
+      ],
+      "basis": "JSON5 \u00a79.1",
+      "unit_acceptance": "Every punctuator, adjacent punctuators and original spans.",
+      "existing_requirements": [
+        "J5-013"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P013",
+      "title": "String storage",
+      "requirement": "Provide owned length-aware decoded-unit storage, preserving UTF-16 escape units including lone surrogates; define allocation-failure behavior.",
+      "dependencies": [
+        "P003",
+        "P005"
+      ],
+      "basis": "Project representation; JSON5 \u00a75.1",
+      "unit_acceptance": "Empty, NUL, supplementary scalar and unpaired unit round-trips without UTF-8 substitution.",
+      "existing_requirements": [
+        "J5-018",
+        "J5-029",
+        "J5-040"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P014",
+      "title": "Quoted string boundaries",
+      "requirement": "Recognize single/double-quoted strings with matching closing delimiters; allow the other quote and ordinary source characters, rejecting raw CR/LF and unterminated strings.",
+      "dependencies": [
+        "P007",
+        "P013"
+      ],
+      "basis": "JSON5 \u00a7\u00a75,9.1",
+      "unit_acceptance": "Both delimiters, opposite quote, raw tab/control characters, raw CR/LF and EOF.",
+      "existing_requirements": [
+        "J5-014"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P015",
+      "title": "Simple character escapes",
+      "requirement": "Decode escaped quotes, reverse solidus, b/f/n/r/t/v and zero; zero is valid only when not followed by a decimal digit.",
+      "dependencies": [
+        "P014"
+      ],
+      "basis": "JSON5 \u00a75.1",
+      "unit_acceptance": "Each decoded unit; accept zero at quote/EOF boundary only where the complete string is valid; reject zero followed by any digit.",
+      "existing_requirements": [
+        "J5-015",
+        "J5-016"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P016",
+      "title": "Hexadecimal string escapes",
+      "requirement": "Decode x followed by exactly two hexadecimal digits, in either hex-letter case; reject incomplete or nonhex escapes.",
+      "dependencies": [
+        "P014"
+      ],
+      "basis": "JSON5 \u00a75.1",
+      "unit_acceptance": "Lower/upper hex letters, boundary bytes and every truncation.",
+      "existing_requirements": [
+        "J5-016"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P017",
+      "title": "Unicode string escapes",
+      "requirement": "Decode u followed by exactly four hexadecimal digits; preserve individual units and support escaped surrogate pairs.",
+      "dependencies": [
+        "P013",
+        "P014"
+      ],
+      "basis": "JSON5 \u00a75.1",
+      "unit_acceptance": "BMP, paired/lone/reversed surrogate units and malformed/truncated hex.",
+      "existing_requirements": [
+        "J5-015",
+        "J5-018"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P018",
+      "title": "Non-escape characters",
+      "requirement": "For permitted characters without a special escape production, omit the reverse solidus and retain the character; reject escaped digits 1\u20139.",
+      "dependencies": [
+        "P015",
+        "P016",
+        "P017"
+      ],
+      "basis": "JSON5 \u00a75.1; ES5 \u00a77.8.4",
+      "unit_acceptance": "a/e/slash/space yield those characters; 8/9 fail; x/u cannot fall back after malformed escape.",
+      "existing_requirements": [
+        "J5-016"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P019",
+      "title": "String line continuations",
+      "requirement": "Remove the reverse solidus and the following complete line terminator sequence from the decoded string.",
+      "dependencies": [
+        "P007",
+        "P014"
+      ],
+      "basis": "JSON5 \u00a75.1",
+      "unit_acceptance": "LF, CR, CRLF, U+2028/U+2029 join unchanged surrounding text.",
+      "existing_requirements": [
+        "J5-017"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P020",
+      "title": "Raw separator warnings",
+      "requirement": "Accept unescaped U+2028/U+2029 in strings and produce a warning without changing successful parsing.",
+      "dependencies": [
+        "P002",
+        "P014"
+      ],
+      "basis": "JSON5 \u00a75.2 SHOULD; Project adopts warning",
+      "unit_acceptance": "Both raw separators, escaped equivalents, original warning spans and successful value.",
+      "existing_requirements": [
+        "J5-017"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P021",
+      "title": "Complete string lexer",
+      "requirement": "Compose all string alternatives, validate delimiters and input consumption, and report lexical failures atomically.",
+      "dependencies": [
+        "P015",
+        "P016",
+        "P017",
+        "P018",
+        "P019",
+        "P020"
+      ],
+      "basis": "JSON5 \u00a7\u00a75,9.1",
+      "unit_acceptance": "Combine escapes/continuations; truncation at each byte; no partial successful string.",
+      "existing_requirements": [
+        "J5-014",
+        "J5-015",
+        "J5-016",
+        "J5-017",
+        "J5-018"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P022",
+      "title": "IdentifierName tokens",
+      "requirement": "Recognize ES5 IdentifierName, including $, _, admitted Unicode starts/parts, ZWNJ/ZWJ continuation and reserved-word names.",
+      "dependencies": [
+        "P006"
+      ],
+      "basis": "JSON5 \u00a7\u00a73,9.1; ES5 \u00a77.6",
+      "unit_acceptance": "Category representatives, digit-first rejection and reserved-word tokens.",
+      "existing_requirements": [
+        "J5-019"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P023",
+      "title": "Identifier Unicode escapes",
+      "requirement": "Decode identifier uXXXX escapes before checking start/part legality and member-name equality.",
+      "dependencies": [
+        "P017",
+        "P022"
+      ],
+      "basis": "JSON5 \u00a79.1; ES5 \u00a77.6",
+      "unit_acceptance": "Escaped valid names, illegal escaped start/part and equal decoded names.",
+      "existing_requirements": [
+        "J5-020",
+        "J5-033"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P024",
+      "title": "Null and boolean classification",
+      "requirement": "Classify lowercase null, true and false as value literals; preserve their admissibility as object IdentifierName tokens.",
+      "dependencies": [
+        "P022",
+        "P023"
+      ],
+      "basis": "JSON5 \u00a7\u00a72,9.1",
+      "unit_acceptance": "Exact spellings versus case/suffix variants; key-versus-value context classified without parsing containers.",
+      "existing_requirements": [
+        "J5-023"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P025",
+      "title": "Decimal numeric tokens",
+      "requirement": "Recognize decimal integer, fraction and exponent alternatives, including leading/trailing decimal points and optional leading sign; reject illegal leading zeros and missing exponent digits.",
+      "dependencies": [
+        "P004"
+      ],
+      "basis": "JSON5 \u00a7\u00a76,9.1; ES5 \u00a77.8.3",
+      "unit_acceptance": "0/-0/+1/.5/5./5.e2/1E-2; reject 01, ., 1e and doubled signs.",
+      "existing_requirements": [
+        "J5-021",
+        "J5-022"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P026",
+      "title": "Hexadecimal numeric tokens",
+      "requirement": "Recognize signed or unsigned 0x/0X with one or more hexadecimal digits; reject incomplete prefix and invalid suffix.",
+      "dependencies": [
+        "P025"
+      ],
+      "basis": "JSON5 \u00a76",
+      "unit_acceptance": "Both prefixes/cases/signs; 0x, 0x1z and hex fractions fail.",
+      "existing_requirements": [
+        "J5-022"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P027",
+      "title": "Non-finite numeric tokens",
+      "requirement": "Recognize Infinity and NaN with permitted leading signs and exact case.",
+      "dependencies": [
+        "P025"
+      ],
+      "basis": "JSON5 \u00a76",
+      "unit_acceptance": "Infinity/+Infinity/-Infinity and NaN/+NaN/-NaN; lowercase and suffix variants fail.",
+      "existing_requirements": [
+        "J5-022"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P028",
+      "title": "Token completion",
+      "requirement": "Reject illegal suffixes and unsupported octal/binary/separator forms; never silently discard bytes or split invalid numeric/identifier spellings into accepted prefixes.",
+      "dependencies": [
+        "P012",
+        "P021",
+        "P023",
+        "P024",
+        "P025",
+        "P026",
+        "P027"
+      ],
+      "basis": "JSON5 \u00a79; Project no extensions",
+      "unit_acceptance": "truex, 1foo, 0x1z, 0b1, 1_0 and split-token trivia; valid punctuation boundaries.",
+      "existing_requirements": [
+        "J5-024",
+        "J5-027"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P029",
+      "title": "Owned numeric representation",
+      "requirement": "Retain exact numeric spellings and represent signed decimal/hex and non-finite values without unintended floating-point rounding.",
+      "dependencies": [
+        "P003",
+        "P025",
+        "P026",
+        "P027"
+      ],
+      "basis": "Project; JSON5 \u00a710 permits numeric limits",
+      "unit_acceptance": "Integers beyond 2^53, huge exponents, negative zero and failure-safe owned storage.",
+      "existing_requirements": [
+        "J5-034",
+        "J5-038",
+        "J5-040"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P030",
+      "title": "Owned value/container model",
+      "requirement": "Provide distinct null/boolean/string/number/array/object alternatives, ordered array elements and observable ordered duplicate object members.",
+      "dependencies": [
+        "P003",
+        "P013",
+        "P029"
+      ],
+      "basis": "JSON5 \u00a7\u00a71\u20134; Project object/ownership choices",
+      "unit_acceptance": "Construct/inspect/move each variant before recursive parsing exists; explicit wrong-type results.",
+      "existing_requirements": [
+        "J5-028",
+        "J5-030",
+        "J5-031",
+        "J5-039",
+        "J5-040"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P031",
+      "title": "Resource guards",
+      "requirement": "Validate limits and account for depth, nodes, members, strings, numeric spelling/exponents, bytes and work before parser growth; cleanup remains bounded.",
+      "dependencies": [
+        "P002",
+        "P003",
+        "P030"
+      ],
+      "basis": "Project; JSON5 \u00a710 MAY limits",
+      "unit_acceptance": "Below/equal/above bounds and deterministic allocation/work exhaustion without recursive parser dependency.",
+      "existing_requirements": [
+        "J5-047",
+        "J5-048",
+        "J5-049"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P032",
+      "title": "Primitive value dispatcher",
+      "requirement": "Convert completed string, number, null and boolean tokens into owned values; reject other identifiers in value position.",
+      "dependencies": [
+        "P021",
+        "P024",
+        "P028",
+        "P029",
+        "P030",
+        "P031"
+      ],
+      "basis": "JSON5 \u00a7\u00a72,9.2",
+      "unit_acceptance": "Each primitive root, unknown identifiers and allocation failure; containers still explicitly unsupported at this stage.",
+      "existing_requirements": [
+        "J5-023",
+        "J5-028"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P033",
+      "title": "Recursive container engine",
+      "requirement": "Implement bounded value-dispatch frames for arrays and objects together, with empty containers, nesting and punctuation expectations.",
+      "dependencies": [
+        "P012",
+        "P030",
+        "P031",
+        "P032"
+      ],
+      "basis": "JSON5 \u00a7\u00a73,4,9.2",
+      "unit_acceptance": "Empty arrays/objects and mixed nesting; allocate/check frames before descent; this step intentionally resolves mutual recursion together.",
+      "existing_requirements": [
+        "J5-013",
+        "J5-027",
+        "J5-048"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P034",
+      "title": "Array element grammar",
+      "requirement": "Complete array element/separator states, heterogeneous ordered elements and one optional trailing comma; reject holes and misplaced separators.",
+      "dependencies": [
+        "P033"
+      ],
+      "basis": "JSON5 \u00a7\u00a74,9.2",
+      "unit_acceptance": "[], mixed values, nested values, [1,]; reject [,], [1,,2] and missing commas.",
+      "existing_requirements": [
+        "J5-013",
+        "J5-030"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P035",
+      "title": "Object member grammar",
+      "requirement": "Complete quoted/identifier name, colon, value and separator states; permit one trailing comma and retain decoded names and every member.",
+      "dependencies": [
+        "P021",
+        "P023",
+        "P024",
+        "P033"
+      ],
+      "basis": "JSON5 \u00a7\u00a73,9.2",
+      "unit_acceptance": "Empty/nested objects, reserved-word/escaped keys and mixed values; reject missing name/colon/value/comma and doubled commas.",
+      "existing_requirements": [
+        "J5-013",
+        "J5-019",
+        "J5-020",
+        "J5-031"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P036",
+      "title": "Duplicate-name policy",
+      "requirement": "Keep all decoded duplicate members by default; optional rejection reports both occurrences. Compare exact decoded names without normalization/case folding.",
+      "dependencies": [
+        "P035"
+      ],
+      "basis": "Project; JSON5 \u00a73 allows implementation choices",
+      "unit_acceptance": "Quoted/bare/escaped collisions, distinct case and normalization forms, nested object independence.",
+      "existing_requirements": [
+        "J5-032",
+        "J5-033"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P037",
+      "title": "Complete document entry point",
+      "requirement": "Accept one root value of any supported type surrounded by trivia; reject empty/trivia-only input, extra roots and trailing nontrivia.",
+      "dependencies": [
+        "P011",
+        "P032",
+        "P034",
+        "P035",
+        "P036"
+      ],
+      "basis": "JSON5 \u00a7\u00a72,9.2,10",
+      "unit_acceptance": "Every root type, trailing EOF comment, {} {} and junk; atomic errors and reusable context.",
+      "existing_requirements": [
+        "J5-026",
+        "J5-051"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P038",
+      "title": "Checked numeric operations",
+      "requirement": "Provide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.",
+      "dependencies": [
+        "P029",
+        "P030",
+        "P037"
+      ],
+      "basis": "Project",
+      "unit_acceptance": "All destination bounds, nonintegral values, huge exponent, nonfinite and mathematical/lexical integer distinctions.",
+      "existing_requirements": [
+        "J5-035",
+        "J5-036",
+        "J5-037",
+        "J5-038",
+        "J5-052"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P039",
+      "title": "Owned document and diagnostics",
+      "requirement": "Expose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.",
+      "dependencies": [
+        "P020",
+        "P030",
+        "P037"
+      ],
+      "basis": "Project",
+      "unit_acceptance": "Overwrite input, move/destroy documents, CRLF/non-BMP offsets, failure injection and minimal error fallback.",
+      "existing_requirements": [
+        "J5-040",
+        "J5-041",
+        "J5-043",
+        "J5-044",
+        "J5-045"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P040",
+      "title": "Whole-grammar unit evidence",
+      "requirement": "Map every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures and both exception modes.",
+      "dependencies": [
+        "P001",
+        "P002",
+        "P003",
+        "P004",
+        "P005",
+        "P006",
+        "P007",
+        "P008",
+        "P009",
+        "P010",
+        "P011",
+        "P012",
+        "P013",
+        "P014",
+        "P015",
+        "P016",
+        "P017",
+        "P018",
+        "P019",
+        "P020",
+        "P021",
+        "P022",
+        "P023",
+        "P024",
+        "P025",
+        "P026",
+        "P027",
+        "P028",
+        "P029",
+        "P030",
+        "P031",
+        "P032",
+        "P033",
+        "P034",
+        "P035",
+        "P036",
+        "P037",
+        "P038",
+        "P039"
+      ],
+      "basis": "Project acceptance of JSON5 \u00a710",
+      "unit_acceptance": "No skipped grammar branches; fresh explicit unit evidence for accepted/rejected input and decoded content.",
+      "existing_requirements": [
+        "J5-027",
+        "J5-094",
+        "J5-095",
+        "J5-097",
+        "J5-098",
+        "J5-099"
+      ],
+      "status": "Draft"
+    },
+    {
+      "id": "P041",
+      "title": "Full-support claim",
+      "requirement": "Document language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.",
+      "dependencies": [
+        "P040"
+      ],
+      "basis": "JSON5 \u00a7\u00a710,A; Project release evidence",
+      "unit_acceptance": "Review production-to-unit matrix, all preceding contracts and actual native results.",
+      "existing_requirements": [
+        "J5-008",
+        "J5-027",
+        "J5-100"
+      ],
+      "status": "Draft"
+    }
+  ]
+}

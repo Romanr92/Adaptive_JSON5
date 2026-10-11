@@ -36,3 +36,8 @@ regeneration procedure. These future dependencies are not selected by this setup
 The copied formatter rules originate at AdaptivePi revision
 `1134cbfea9b587649e32d58c9305fe211fd7f4af`. See [NOTICE](../NOTICE)
 and [licensing guidance](licensing.md) for preserved notices and redistribution.
+
+The ordered parser checklist derives language rules from JSON5 1.0.0 (March 2018)
+and ECMAScript 5.1 (June 2011). Specification notices are retained in
+`LICENSES/JSON5-Specification-MIT.txt` and `LICENSES/ECMA-262-5.1-Document.txt`.
+These are document attributions, not parser runtime dependencies.

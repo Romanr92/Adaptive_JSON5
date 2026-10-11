@@ -90,3 +90,8 @@ their own applicable notices and recorded versions.
 
 See [licensing and redistribution](docs/licensing.md) and [NOTICE](NOTICE) for
 attribution and distribution obligations.
+
+For core parser work, follow the [official-specification implementation sequence](docs/requirements/json5-implementation-order.md).
+P001–P041 are ordered so all prerequisites come earlier; existing J5 IDs remain
+unchanged for issue and requirement traceability. Optional schema/editor/CLI work
+does not block this core parser sequence.
