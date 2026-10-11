@@ -1,3 +1,5 @@
+// Adapted from Romanr92/adaptive-pi; changed for Adaptive_JSON5 native development. See NOTICE.
+// SPDX-License-Identifier: Apache-2.0
 {
   "Header guard": {
     "scope": "cpp",

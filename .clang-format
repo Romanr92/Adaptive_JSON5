@@ -1,3 +1,5 @@
+# Copied from Romanr92/adaptive-pi; formatting rules unchanged. See NOTICE.
+# SPDX-License-Identifier: Apache-2.0
 BasedOnStyle: LLVM
 
 IndentWidth: 2

@@ -1,3 +1,4 @@
+# Adapted from Romanr92/adaptive-pi; changed for Adaptive_JSON5 native development and scope. See NOTICE. SPDX-License-Identifier: Apache-2.0.
 include(FetchContent)
 
 # Host-only dependency. This module is included only when unit tests are enabled.

@@ -1,0 +1,24 @@
+Adaptive_JSON5
+
+Copyright 2026 Razvan-Stefan Roman
+
+Repository-authored code, configuration, documentation and original example
+fixtures are provided under the Apache License, Version 2.0 (see LICENSE).
+Copyright in contributions remains with their respective owners.
+
+This project incorporates or adapts development configuration and workflow
+material from Romanr92/adaptive-pi, under Apache-2.0:
+https://github.com/Romanr92/adaptive-pi
+Reference revision: 1134cbfea9b587649e32d58c9305fe211fd7f4af
+
+Material: .clang-format, .vscode settings/extensions/tasks/launch/snippet,
+CMake dependency/preset patterns and the teach-requirement/write-unit-tests
+skills. The formatter rules are copied unchanged; other material is adapted for
+native JSON5 development, host-only tests, repository-specific names, presets,
+paths and scope. No AdaptivePi production C++ is included.
+
+GoogleTest is acquired separately for host unit tests. Its BSD-3-Clause notice
+is reproduced in LICENSES/GoogleTest-BSD-3-Clause.txt and applies to GoogleTest,
+not to this project's original material.
+
+These notices are informational and do not modify any license terms.

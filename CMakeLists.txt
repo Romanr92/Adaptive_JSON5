@@ -83,5 +83,6 @@ install(EXPORT AdaptiveJSON5Targets FILE AdaptiveJSON5Targets.cmake
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5ConfigVersion.cmake
     DESTINATION ${adaptive_json5_package_dir})
-install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5)
+install(FILES LICENSE NOTICE docs/licensing.md docs/dependencies.md
+    LICENSES/GoogleTest-BSD-3-Clause.txt DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5)
 endif()

@@ -3,6 +3,8 @@ name: write-unit-tests
 description: Write or update Adaptive_JSON5 GoogleTest units with J5 traceability, boundary/failure coverage and suitable parameterization. Applies to test-only C++ and test build setup; never authorizes production C++ changes.
 ---
 
+<!-- Adapted from Romanr92/adaptive-pi; changed for Adaptive_JSON5 native development and scope. See NOTICE. SPDX-License-Identifier: Apache-2.0. -->
+
 # Write Adaptive_JSON5 GoogleTest units
 
 Read `AGENTS.md`, relevant J5 entries in `docs/requirements.md`,

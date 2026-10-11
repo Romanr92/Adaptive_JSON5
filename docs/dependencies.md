@@ -6,7 +6,7 @@ repository material uses Apache-2.0; see [LICENSE](../LICENSE).
 | Material | Immutable version | License | Purpose |
 | --- | --- | --- | --- |
 | GoogleTest | 1.17.0, `52eb8108c5bdec04579160ae17225d66034bd723` | BSD-3-Clause; upstream LICENSE retained in FetchContent checkout | Host-only unit-test framework, never shipped with the parser |
-| clang-format | 18.1.8 development package | LLVM licensing; supplied by development installation | C++ formatting only |
+| clang-format | 18.1.8 development package | Apache-2.0 WITH LLVM-exception for upstream LLVM; installed package may include additional notices | C++ formatting only |
 | Original supplied proposal | 2026-10-11 snapshot | User-provided project document | Historical Draft input in docs/requirements/proposals |
 | Adapted repository skills | Source file SHAs recorded below | AdaptivePi repository Apache-2.0 context; independently rewritten here | Teaching and GoogleTest workflow |
 
@@ -32,3 +32,7 @@ paths, presets, exclusions and the header-guard prefix match this repository.
 Before adding Unicode tables, grammar/schema fixtures, a schema engine or editor
 dependencies, record its source, immutable version, license, notices and any
 regeneration procedure. These future dependencies are not selected by this setup.
+
+The copied formatter rules originate at AdaptivePi revision
+`1134cbfea9b587649e32d58c9305fe211fd7f4af`. See [NOTICE](../NOTICE)
+and [licensing guidance](licensing.md) for preserved notices and redistribution.

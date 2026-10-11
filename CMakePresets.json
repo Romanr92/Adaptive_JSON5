@@ -190,5 +190,11 @@
         "noTestsAction": "error"
       }
     }
-  ]
+  ],
+  "vendor": {
+    "adaptive-json5.org/provenance/1.0": {
+      "notice": "Adapted from Romanr92/adaptive-pi; changed for native component builds. See NOTICE.",
+      "license": "Apache-2.0"
+    }
+  }
 }

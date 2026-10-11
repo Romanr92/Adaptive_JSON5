@@ -83,5 +83,10 @@ The command-line executable will be implemented later; no production C++ is adde
 
 ## License
 
+Copyright 2026 Razvan-Stefan Roman.
+
 [Apache-2.0](LICENSE). Incorporated dependencies, Unicode data and fixtures retain
 their own applicable notices and recorded versions.
+
+See [licensing and redistribution](docs/licensing.md) and [NOTICE](NOTICE) for
+attribution and distribution obligations.

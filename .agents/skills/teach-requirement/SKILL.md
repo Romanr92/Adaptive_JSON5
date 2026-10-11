@@ -3,6 +3,8 @@ name: teach-requirement
 description: Explain an Adaptive_JSON5 J5 requirement and teach its design and unit verification. Use for requirement meaning, API design, implementation guidance or review; guide production C++ changes without editing production files.
 ---
 
+<!-- Adapted from Romanr92/adaptive-pi; changed for Adaptive_JSON5 native development and scope. See NOTICE. SPDX-License-Identifier: Apache-2.0. -->
+
 # Teach an Adaptive_JSON5 requirement
 
 Read `AGENTS.md`, `README.md`, the requested entry in `docs/requirements.md`, its
