@@ -44,7 +44,23 @@ C++17 and compiler options apply to selected targets. Parent flags are not
 overwritten. Future production targets must use the reviewed exception/runtime
 policy; a configurable test build is not evidence of an implemented parser.
 
-## Formatting
+## VS Code
+
+The tracked `.vscode/` setup is adapted from AdaptivePi. Install the recommended
+extensions, open this repository folder and select the `dev` CMake preset and
+your native compiler. CMake Tools supplies IntelliSense and the executable path.
+Tasks provide configure, build and unit tests for both exception modes, plus
+formatting check/fix. Formatting on save uses `clang-format` on PATH; install
+version 18 and override `clang-format.executable` in your user settings if needed.
+
+Select `adaptive_json5_unit_tests` as the CMake launch target before debugging.
+Use the Windows configuration for MSVC, or the Linux/macOS configuration with
+GDB/LLDB installed. Choose the matching `dev` build preset in CMake Tools. For a
+single case, add `--gtest_filter=SuiteName.TestName` to the launch arguments.
+Build tasks configure through CMake, including the host-only GoogleTest fetch.
+Keep personal toolchain paths in user settings or `CMakeUserPresets.json`.
+
+## Formatting commands
 
 Use Python 3.9+ and clang-format 18:
 

@@ -1,0 +1,141 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Configure (dev)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build (dev)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Configure (dev)",
+      "dependsOrder": "sequence",
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Unit tests (dev)",
+      "type": "process",
+      "command": "ctest",
+      "args": [
+        "--preset",
+        "dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Build (dev)",
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Configure (dev-exceptions)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "dev-exceptions"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build (dev-exceptions)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "dev-exceptions"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Configure (dev-exceptions)",
+      "dependsOrder": "sequence",
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ]
+    },
+    {
+      "label": "Unit tests (dev-exceptions)",
+      "type": "process",
+      "command": "ctest",
+      "args": [
+        "--preset",
+        "dev-exceptions"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Build (dev-exceptions)",
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Formatting (check)",
+      "type": "process",
+      "command": "python",
+      "args": [
+        "tools/format.py",
+        "--check"
+      ],
+      "linux": {
+        "command": "python3"
+      },
+      "osx": {
+        "command": "python3"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Formatting (fix)",
+      "type": "process",
+      "command": "python",
+      "args": [
+        "tools/format.py",
+        "--fix"
+      ],
+      "linux": {
+        "command": "python3"
+      },
+      "osx": {
+        "command": "python3"
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

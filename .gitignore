@@ -74,7 +74,7 @@ install/
 __pycache__/
 *.pyc
 node_modules/
-.vscode/
+.vscode/*.local.json
 third_party/
 
 # CMake-acquired host-only GoogleTest sources

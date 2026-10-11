@@ -1,0 +1,91 @@
+{
+  "python.analysis.exclude": [
+    "**/build/**",
+    "**/tools/gtest/**"
+  ],
+  "python.analysis.indexing": false,
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/tools/gtest/**": true
+  },
+  "cmake.useCMakePresets": "always",
+  "cmake.configurePreset": "dev",
+  "cmake.buildBeforeRun": true,
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.autocomplete": "default",
+  "C_Cpp.clang_format_style": "file",
+  "C_Cpp.formatting": "clangFormat",
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "[cpp]": {
+    "editor.defaultFormatter": "xaver.clang-format",
+    "editor.formatOnSave": true
+  },
+  "cmake.options.statusBarVisibility": "visible",
+  "cmake.options.advanced": {
+    "folder": {
+      "statusBarVisibility": "hidden"
+    },
+    "configurePreset": {
+      "statusBarVisibility": "visible"
+    },
+    "build": {
+      "statusBarVisibility": "visible"
+    },
+    "buildPreset": {
+      "statusBarVisibility": "hidden"
+    },
+    "buildTarget": {
+      "statusBarVisibility": "hidden"
+    },
+    "debug": {
+      "statusBarVisibility": "hidden"
+    },
+    "launchTarget": {
+      "statusBarVisibility": "visible"
+    },
+    "launch": {
+      "statusBarVisibility": "visible"
+    },
+    "testPreset": {
+      "statusBarVisibility": "hidden"
+    },
+    "test": {
+      "statusBarVisibility": "hidden"
+    },
+    "packagePreset": {
+      "statusBarVisibility": "hidden"
+    },
+    "package": {
+      "statusBarVisibility": "hidden"
+    },
+    "cpackPreset": {
+      "statusBarVisibility": "hidden"
+    },
+    "cpack": {
+      "statusBarVisibility": "hidden"
+    },
+    "workflowPreset": {
+      "statusBarVisibility": "hidden"
+    },
+    "workflow": {
+      "statusBarVisibility": "hidden"
+    }
+  },
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "clang-format.executable": "clang-format",
+  "[json]": {
+    "editor.tabSize": 2
+  },
+  "[jsonc]": {
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.tabSize": 2
+  },
+  "[markdown]": {
+    "editor.tabSize": 2
+  }
+}

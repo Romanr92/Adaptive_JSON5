@@ -24,6 +24,11 @@ Workflow action versions are recorded in their files. Test dependency acquisitio
 tests, with an offline source override. This follows AdaptivePi’s Dependencies.cmake
 pattern, adapted to an immutable revision and this repository’s build policies.
 
+The VS Code workspace settings and snippet are adapted from AdaptivePi’s
+`.vscode/` files at commit `1134cbfea9b587649e32d58c9305fe211fd7f4af`.
+Native GoogleTest tasks/debugging replace its QEMU/Yocto configuration; formatter
+paths, presets, exclusions and the header-guard prefix match this repository.
+
 Before adding Unicode tables, grammar/schema fixtures, a schema engine or editor
 dependencies, record its source, immutable version, license, notices and any
 regeneration procedure. These future dependencies are not selected by this setup.
