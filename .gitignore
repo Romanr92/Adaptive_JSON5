@@ -66,3 +66,13 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Local developer presets and installation staging
+CMakeUserPresets.json
+out/
+install/
+__pycache__/
+*.pyc
+node_modules/
+.vscode/
+third_party/

@@ -1,0 +1,26 @@
+name: Implementation task
+description: Define a focused requirement-backed change.
+title: "[Implementation] "
+labels: [enhancement]
+body:
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirement IDs and prerequisites
+      description: List J5 IDs and prerequisite issues.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Behavior and scope
+      description: Describe the externally observable result and optional component boundaries.
+    validations:
+      required: true
+  - type: textarea
+    id: unit_acceptance
+    attributes:
+      label: Unit-test acceptance criteria
+      description: State normal, invalid and boundary cases with expected values or explicit errors.
+    validations:
+      required: true

@@ -1,0 +1,60 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Native development with unit tests",
+      "binaryDir": "${sourceDir}/build/dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "ON",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF"
+      }
+    },
+    {
+      "name": "dev-exceptions",
+      "displayName": "Native development with exceptions enabled",
+      "inherits": "dev",
+      "binaryDir": "${sourceDir}/build/dev-exceptions",
+      "cacheVariables": {
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "ON"
+      }
+    },
+    {
+      "name": "library",
+      "displayName": "Library without unit tests",
+      "binaryDir": "${sourceDir}/build/library",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev", "configuration": "Debug" },
+    { "name": "dev-exceptions", "configurePreset": "dev-exceptions", "configuration": "Debug" },
+    { "name": "library", "configurePreset": "library", "configuration": "Release" }
+  ],
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error" }
+    },
+    {
+      "name": "dev-exceptions",
+      "configurePreset": "dev-exceptions",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error" }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+name: Bug report
+description: Report an incorrect result or build problem.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: Include the affected syntax mode, API and requirement ID when known.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include exact input bytes or a small C++ example and the result.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Version and build configuration
+      description: Commit/version, OS, compiler, exception setting and enabled components.
+    validations:
+      required: true
