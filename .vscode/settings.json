@@ -18,7 +18,7 @@
   "C_Cpp.formatting": "clangFormat",
   "editor.detectIndentation": false,
   "editor.insertSpaces": true,
-  "editor.tabSize": 4,
+  "editor.tabSize": 2,
   "[cpp]": {
     "editor.defaultFormatter": "xaver.clang-format",
     "editor.formatOnSave": true
