@@ -69,6 +69,9 @@ historical Draft input. [Active requirements](requirements.md) and
 [scope ADR](adr/0001-project-scope.md) record later user decisions.
 
 For core parser work, follow the [official-specification implementation sequence](requirements/json5-implementation-order.md).
-P001–P041 are ordered so all prerequisites come earlier; existing J5 IDs remain
+P001–P066 are ordered so all prerequisites come earlier; existing J5 IDs remain
 unchanged for issue and requirement traceability. Optional schema/editor/CLI work
 does not block this core parser sequence.
+
+The sequential baseline now includes optional schema P042–P055, CLI/example
+P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.

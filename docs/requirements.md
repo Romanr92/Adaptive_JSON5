@@ -274,6 +274,9 @@ cross-compilation, deployment or universal-platform support.
 | J5-101 — OS-agnostic embedded integration | The core C++17 reader/value/conversion library shall be OS-agnostic and usable on embedded devices after compilation into a compatible consuming project. It shall require no POSIX/Windows services, files, processes, sockets, environment, locale, clocks, OS threads, exception/RTTI runtime or implicit global heap. Library-owned allocation shall support caller-supplied fallible storage and explicit budgets. Document the required C/C++ runtime subset, static initialization, stack/work needs, byte-order/alignment/data-model assumptions and target limitations. Host GoogleTest, optional schema-engine dependencies, CLI and editor shall not enter the embedded parser target. MICROSAR is an example only; no dedicated vendor port, SDK or workflow is required. | Host GoogleTest units shall exercise caller-storage exhaustion/cleanup, deterministic no-OS seams, no-exception/no-RTTI configurations and data-model boundaries as production APIs are implemented. Provide generic caller-owned CMake toolchain guidance and document actual compiler/runtime support. Host units do not establish device execution, universal compiler support or certification. | J5-001–003, J5-040, J5-042, J5-045–049, J5-052 | Explicit user requirement and clarification; P |
 
 For core parser work, follow the [official-specification implementation sequence](requirements/json5-implementation-order.md).
-P001–P041 are ordered so all prerequisites come earlier; existing J5 IDs remain
+P001–P066 are ordered so all prerequisites come earlier; existing J5 IDs remain
 unchanged for issue and requirement traceability. Optional schema/editor/CLI work
 does not block this core parser sequence.
+
+The sequential baseline now includes optional schema P042–P055, CLI/example
+P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.

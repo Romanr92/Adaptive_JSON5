@@ -5,7 +5,7 @@ Specification-derived explanations retain the source notices linked below.
 
 Status: **Documented implementation baseline; no user review required.**
 Specification checked 2026-10-12. No production parser is implemented.
-This is the sequential core-parser checklist. IDs P001–P041 are local project
+This is the sequential core-parser checklist. IDs P001–P066 are local project
 identifiers, not numbers issued by the JSON5 authors. Each prerequisite has a
 smaller number: implement in ascending order; no step requires a later one.
 Acceptance at an early step is a unit-level component check, not a finished-parser
@@ -438,3 +438,225 @@ User approval is not a prerequisite for these documented requirements. Implement
 specification-derived behavior as cited; preserve MUST/SHOULD/MAY distinctions.
 Project additions remain explicitly identified and are authorized by the current
 user scope. Baseline status is not evidence of implementation or passing tests.
+
+## Optional schema, CLI and VS Code implementation sequence
+
+P001–P041 remain the independent JSON5 core. P042–P055 add strict JSON and the
+optional Draft-07 validator; P056–P059 add CLI/example tools; P060–P066 add the
+VS Code extension. No step requires a larger-numbered step. These are documented
+baseline requirements and need no user review. Source behavior is governed by
+[Draft-07 Core](https://json-schema.org/draft-07/draft-handrews-json-schema-01),
+[Draft-07 Validation](https://json-schema.org/draft-07/draft-handrews-json-schema-validation-01)
+and [VS Code's extension API](https://code.visualstudio.com/api/language-extensions/language-server-extension-guide).
+CLI commands, component architecture and ordering are project choices. Existing
+J5 contracts contain detailed semantic acceptance and authority links. No upstream
+schema, test corpus or extension code is copied by this documentation change.
+
+Schema compilation is staged deliberately: component shape/reference units first,
+complete evaluation next, then public meta-schema-checked compilation. This avoids
+requiring a finished validator to implement its first building blocks.
+The schema component remains independently selected within library configuration;
+these requirements do not introduce additional top-level build switches.
+Handwritten consumer validation remains a supported alternative to choosing the
+schema component; it is consumer-specific code, not another generic schema engine.
+
+### P042 — Strict JSON syntax mode
+
+Add explicit strict JSON mode for schema documents: quoted keys/double-quoted strings, JSON escapes/numbers/whitespace, no comments/trailing commas/non-finite forms; reject BOM by default with documented optional leading-BOM handling.
+
+- Prerequisites: P041.
+- Existing contracts: J5-005, J5-010, J5-015, J5-021, J5-025.
+- Unit acceptance: Paired JSON/JSON5 fixtures, all JSON grammar branches and mode-specific rejection.
+
+### P043 — Independent schema component and outcomes
+
+Define an optional Draft-07 schema target/API with owned compilation/evaluation state, explicit non-throwing outcomes and bounded work storage. Parser-only consumers acquire no schema dependency. Declare instance-domain handling for duplicate names, non-finite values and unpaired surrogates.
+
+- Prerequisites: P042.
+- Existing contracts: J5-053, J5-063, J5-065, J5-066, J5-068.
+- Unit acceptance: API/storage units and unsupported-instance versus invalid-instance/error categories; no complete validator assumed yet.
+
+### P044 — Schema locations and offline reference registry
+
+Implement URI base identities, pointer escaping and caller-registered local/external resources; no implicit network/filesystem resolution. Compile owned reference graphs with unresolved-reference errors.
+
+- Prerequisites: P043.
+- Existing contracts: J5-055, J5-064, J5-066, J5-067.
+- Unit acceptance: Nested $id, relative/absolute references, fragment and ~0/~1 pointers, input/registry destruction.
+
+### P045 — Exact schema equality
+
+Provide type-aware deep equality using exact numeric equivalence, ordered arrays and order-independent unique-name objects.
+
+- Prerequisites: P043.
+- Existing contracts: J5-059, J5-061.
+- Unit acceptance: Equivalent decimal/hex/exponent values; bool versus number; nested/reordered containers.
+
+### P046 — Bounded schema evaluation engine
+
+Evaluate boolean schemas and object schemas with per-type applicability; track branches/references/budgets and recursion progress. Apply Draft-07 $ref behavior, including ignored assertion siblings, without nonprogressing loops.
+
+- Prerequisites: P044, P045.
+- Existing contracts: J5-053, J5-056, J5-063, J5-065.
+- Unit acceptance: True/false schemas, recursive instance progress, cyclic references, cleanup/cancellation and minimal errors.
+
+### P047 — Type and equality assertions
+
+Implement type, enum and const, including type unions and mathematical integer semantics independent of token spelling.
+
+- Prerequisites: P045, P046.
+- Existing contracts: J5-057, J5-059, J5-061.
+- Unit acceptance: Positive/negative/nonapplicable-type cases and exact numeric parity.
+
+### P048 — Numeric assertions
+
+Implement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum without floating rounding.
+
+- Prerequisites: P047.
+- Existing contracts: J5-057, J5-059.
+- Unit acceptance: Exact fractional divisibility, huge numbers, every inclusive/exclusive bound.
+
+### P049 — String assertions and regex budget
+
+Implement minLength/maxLength in Unicode characters and pattern with the documented compatible regex behavior; reject unsupported conversion/domain and enforce regex work limits.
+
+- Prerequisites: P046.
+- Existing contracts: J5-057, J5-060, J5-065.
+- Unit acceptance: Supplementary characters, unpaired-unit policy, unanchored patterns, malformed patterns and budget exhaustion.
+
+### P050 — Array assertions
+
+Implement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems and contains.
+
+- Prerequisites: P045, P046.
+- Existing contracts: J5-057, J5-061.
+- Unit acceptance: Empty/tuple arrays, nested schemas, deep exact uniqueness and matching/nonmatching contains cases.
+
+### P051 — Object assertions
+
+Implement minProperties, maxProperties, required, properties, patternProperties, additionalProperties, dependencies (property/schema) and propertyNames.
+
+- Prerequisites: P046, P049.
+- Existing contracts: J5-057.
+- Unit acceptance: Missing fields, overlapping patterns, dynamic names, dependent schemas, unknown fields and type applicability.
+
+### P052 — Logical and conditional assertions
+
+Implement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and distinguishing operational failure from assertion mismatch.
+
+- Prerequisites: P047, P048, P049, P050, P051.
+- Existing contracts: J5-057, J5-065.
+- Unit acceptance: Zero/one/multiple matching branches, nested conditions and failures during branch evaluation.
+
+### P053 — Annotations and extension handling
+
+Expose title/description/default/examples/readOnly/writeOnly and unknown-keyword metadata with valid-branch annotation semantics; never insert defaults or mutate instances. Baseline format/contentEncoding/contentMediaType remain annotations; optional assertions require explicit supported capabilities.
+
+- Prerequisites: P052.
+- Existing contracts: J5-058, J5-062, J5-069.
+- Unit acceptance: No mutation, failed/not-branch annotation suppression, unknown schema keywords versus unknown instance properties.
+
+### P054 — Public schema compilation and diagnostics
+
+Complete strict-JSON boolean/object schema compilation with the Draft-07 meta-schema, keyword shape/pattern checks and dialect errors. Return instance/schema pointers, keyword and available source spans; support bounded fail-fast/collect-all.
+
+- Prerequisites: P044, P052, P053.
+- Existing contracts: J5-054, J5-063, J5-064.
+- Unit acceptance: Bootstrap shape checks are component units before this step; final public compiler validates the meta-schema with the completed engine and separates every failure class.
+
+### P055 — Schema conformance and packaging
+
+Run pinned required Draft-07 unit fixtures with offline registered resources, exact-number/Unicode/failure regressions and owned concurrent work contexts. Document dependencies, capabilities and exported schema targets.
+
+- Prerequisites: P054.
+- Existing contracts: J5-053, J5-065, J5-066, J5-067, J5-068, J5-069, J5-096.
+- Unit acceptance: Required keyword/reference matrix, OFF/ON exception units, provenance and parser-only independence.
+
+### P056 — CLI dispatch and bounded readers
+
+Prepare optional host command dispatch for file/stdin syntax selection and configured limits; read via injectable bounded I/O interfaces. Define generic validation commands without consumer-specific fields.
+
+- Prerequisites: P042.
+- Existing contracts: J5-070.
+- Unit acceptance: Argument and fake I/O units; file errors, unsupported flags and input budget handling; schema flags initially report unavailable.
+
+### P057 — CLI validation and diagnostic protocol
+
+Connect parser and optional compiled-schema validation; provide readable and versioned strict-JSON diagnostics/capabilities. Exit 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure. Encode surrogate/non-finite data safely.
+
+- Prerequisites: P055, P056.
+- Existing contracts: J5-070, J5-071.
+- Unit acceptance: Dispatch/result mapping units, strict-JSON output round-trip, missing schema component and OOM fallback.
+
+### P058 — File-driven example executable
+
+Implement optional adaptive_json5_examples against examples/manifest.json with run/inspect/validate commands, matched expectations and requirement-specific observations; unsupported capabilities never count as passing. Preserve the distinct direct-validation and demonstration-run exit contracts documented in examples/README.md.
+
+- Prerequisites: P057.
+- Existing contracts: J5-070, J5-071, J5-094.
+- Unit acceptance: Injected readers/reporters, valid/intentional-invalid examples and mismatch/resource outcomes; no e2e CI gate.
+
+### P059 — Host-tool packaging
+
+Expose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/version it independently, documenting library/executable/test presets. Parser and embedded consumers require no CLI/editor runtime.
+
+- Prerequisites: P058.
+- Existing contracts: J5-002, J5-007, J5-070, J5-092, J5-093.
+- Unit acceptance: CMake target/options review, documented usage and unit capability/version output.
+
+### P060 — VS Code extension package
+
+Prepare a separate extension package with JSON5 language identity/file associations, pinned dependencies, native backend selection and supported versions; do not make it a library dependency.
+
+- Prerequisites: P057.
+- Existing contracts: J5-072.
+- Unit acceptance: Package/contribution configuration units; reproducible packaging instructions, no new host-test CI gate.
+
+### P061 — Editor grammar and position mapping
+
+Use grammar fixtures and runtime diagnostics consistently; map original byte spans to documented editor positions, including astral Unicode, combining marks, CRLF and continuations.
+
+- Prerequisites: P060.
+- Existing contracts: J5-074, J5-075.
+- Unit acceptance: Tokenization and range-adapter units with shared parser fixtures.
+
+### P062 — Versioned live documents and provisional recovery
+
+Support unsaved document versions, cancellation and stale-result suppression; provide explicitly provisional recovery for completion/hover without accepting incomplete runtime documents.
+
+- Prerequisites: P061.
+- Existing contracts: J5-076, J5-077.
+- Unit acceptance: Rapid edits/reopen/cancellation and incomplete token/container unit cases.
+
+### P063 — Offline workspace schema associations
+
+Associate file patterns with repository-local schemas per workspace root, without inserting $schema in instances. Resolve registered resources offline; remote access requires explicit configuration.
+
+- Prerequisites: P055, P062.
+- Existing contracts: J5-073, J5-081.
+- Unit acceptance: Two roots, relative references, changed associations and fake network that fails if called.
+
+### P064 — Schema completions
+
+Suggest applicable property names and enum/const/default/example values, required-field hints and quoting-aware insertion, avoiding normal duplicate properties.
+
+- Prerequisites: P053, P063.
+- Existing contracts: J5-078.
+- Unit acceptance: Nested/referenced/conditional/union schemas and incomplete-input insertion units.
+
+### P065 — Hover and runtime-parity diagnostics
+
+Show applicable descriptions/types/constraints and agree with runtime exact-number/assertion semantics; expose duplicate, Unicode, root and lexical numeric profile rules separately from generic grammar.
+
+- Prerequisites: P057, P064.
+- Existing contracts: J5-079, J5-080.
+- Unit acceptance: Hover metadata and parser/schema/profile parity units including mathematical versus lexical integer policies.
+
+### P066 — Editor release evidence
+
+Document extension/backend versions and executed tokenization/live-document/range/completion/hover/parity units. Distinguish unit evidence from unexecuted VS Code host acceptance; do not claim unsupported features.
+
+- Prerequisites: P065.
+- Existing contracts: J5-082, J5-100.
+- Unit acceptance: Complete editor-feature-to-unit mapping and unit/format checks only.
+
