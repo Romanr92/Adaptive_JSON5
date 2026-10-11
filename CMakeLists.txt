@@ -5,6 +5,7 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 option(ADAPTIVE_JSON5_BUILD_TESTS "Build host GoogleTest unit tests" ${PROJECT_IS_TOP_LEVEL})
+option(ADAPTIVE_JSON5_BUILD_EXAMPLES "Expose example data target (CLI implementation pending)" OFF)
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project unit targets" OFF)
 option(ADAPTIVE_JSON5_ENABLE_RTTI "Enable RTTI in project unit targets" OFF)
 set(ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR "" CACHE PATH "Existing GoogleTest 1.17.0 source checkout")
@@ -60,6 +61,10 @@ if(ADAPTIVE_JSON5_BUILD_TESTS)
 endif()
 
 set(adaptive_json5_package_dir ${CMAKE_INSTALL_LIBDIR}/cmake/AdaptiveJSON5)
+if(ADAPTIVE_JSON5_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
+
 configure_package_config_file(cmake/AdaptiveJSON5Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake
     INSTALL_DESTINATION ${adaptive_json5_package_dir})

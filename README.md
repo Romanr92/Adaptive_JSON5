@@ -69,6 +69,11 @@ not a supported parser release.
 
 ## Documentation and work
 
+The [examples folder](examples/README.md) contains JSON/JSON5 inputs, intentional
+failures, an optional schema and a planned requirement demonstration manifest.
+Enable `ADAPTIVE_JSON5_BUILD_EXAMPLES` to expose its data target in CMake.
+The command-line executable will be implemented later; no production C++ is added.
+
 - [Original proposal Markdown](docs/requirements/proposals/json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
 - [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.
 - [Roadmap](docs/roadmap.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.

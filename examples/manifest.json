@@ -1,0 +1,1339 @@
+{
+  "format_version": 1,
+  "status": "planned demonstration data; no executable implemented",
+  "cases": [
+    {
+      "id": "strict",
+      "input": "valid/strict.json",
+      "syntax": "json",
+      "expect": {
+        "parse": "success",
+        "exit": 0
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "features",
+      "input": "valid/features.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "unicode",
+      "input": "valid/unicode.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0,
+        "observations": [
+          "paired and raw emoji equivalent",
+          "unpaired surrogate units preserved; checked UTF-8 export fails",
+          "NUL retained",
+          "raw separator warning without parse failure"
+        ]
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "duplicates",
+      "input": "valid/duplicates.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0,
+        "observations": [
+          "source order and all five members preserved",
+          "three decoded name occurrences; reject policy fails with both locations"
+        ]
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "exact-numbers",
+      "input": "valid/exact-numbers.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0,
+        "observations": [
+          "number spelling and precision preserved",
+          "checked conversions report range/nonintegral/nonfinite errors"
+        ]
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "bom",
+      "input": "valid/bom.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "root-string",
+      "input": "valid/root-string.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "trailing-root",
+      "input": "invalid/trailing-root.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "array-hole",
+      "input": "invalid/array-hole.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "token-suffix",
+      "input": "invalid/token-suffix.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "unterminated-string",
+      "input": "invalid/unterminated-string.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "invalid-escape",
+      "input": "invalid/invalid-escape.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "leading-zero",
+      "input": "invalid/leading-zero.json",
+      "syntax": "json",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "device.schema",
+      "input": "schema/device.schema.json",
+      "syntax": "json",
+      "expect": {
+        "parse": "success",
+        "exit": 0
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred."
+    },
+    {
+      "id": "device-valid",
+      "input": "schema/device-valid.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 0,
+        "validation": "success",
+        "observations": [
+          "label default remains annotation; no field insertion"
+        ]
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred.",
+      "schema": "schema/device.schema.json"
+    },
+    {
+      "id": "device-invalid",
+      "input": "schema/device-invalid.json5",
+      "syntax": "json5",
+      "expect": {
+        "parse": "success",
+        "exit": 1,
+        "validation": "failure"
+      },
+      "notes": "Expected outcomes are planned; no parser execution has occurred.",
+      "schema": "schema/device.schema.json"
+    },
+    {
+      "id": "json5-in-strict-mode",
+      "input": "valid/features.json5",
+      "syntax": "json",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    },
+    {
+      "id": "bom-in-strict-mode",
+      "input": "valid/bom.json5",
+      "syntax": "json",
+      "expect": {
+        "parse": "error",
+        "exit": 1
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "requirement": "J5-001",
+      "title": "Standalone C++ library",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-002",
+      "title": "Build components",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-003",
+      "title": "Exception-independent API",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-004",
+      "title": "Input boundary",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-005",
+      "title": "Syntax selection",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-006",
+      "title": "Unicode data baseline",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-007",
+      "title": "License and provenance",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-008",
+      "title": "Public contracts",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-009",
+      "title": "UTF-8 source",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-010",
+      "title": "JSON whitespace",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-011",
+      "title": "JSON5 whitespace",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-012",
+      "title": "Comments",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-013",
+      "title": "Structural tokens",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-014",
+      "title": "Quoted strings",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-015",
+      "title": "JSON escapes",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-016",
+      "title": "JSON5 escapes",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-017",
+      "title": "Continuations and separators",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-018",
+      "title": "Surrogate fidelity",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-019",
+      "title": "Unquoted member names",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-020",
+      "title": "Escaped identifiers",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-021",
+      "title": "JSON numbers",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-022",
+      "title": "JSON5 numbers",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-023",
+      "title": "Primitive literals",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-024",
+      "title": "Token boundaries",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-025",
+      "title": "BOM policy",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-026",
+      "title": "Complete input",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-027",
+      "title": "Language completeness",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-028",
+      "title": "Value types",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-029",
+      "title": "Length-aware strings",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-030",
+      "title": "Ordered arrays",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-031",
+      "title": "Observable object members",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-032",
+      "title": "Duplicate policy",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-033",
+      "title": "Name equality",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-034",
+      "title": "Exact number storage",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-035",
+      "title": "Checked integer conversion",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-036",
+      "title": "Value and spelling queries",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-037",
+      "title": "Floating conversion",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-038",
+      "title": "Special numbers",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-039",
+      "title": "Checked access",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-040",
+      "title": "Document lifetime",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-041",
+      "title": "Source spans",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-042",
+      "title": "Pure memory parsing",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-043",
+      "title": "Structured errors",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-044",
+      "title": "Diagnostic locations",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-045",
+      "title": "Failure-safe reporting",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-046",
+      "title": "Fallible allocation",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-047",
+      "title": "Configurable limits",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-048",
+      "title": "Bounded traversal",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-049",
+      "title": "Work budgets",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-050",
+      "title": "Concurrency",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-051",
+      "title": "Atomic results and reuse",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-052",
+      "title": "Deterministic semantics",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-053",
+      "title": "Schema dialect",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-054",
+      "title": "Schema compilation",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-055",
+      "title": "Identifiers and references",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-056",
+      "title": "Reference semantics",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-057",
+      "title": "Assertion coverage",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-058",
+      "title": "Annotations and defaults",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-059",
+      "title": "Exact numeric validation",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-060",
+      "title": "String and pattern semantics",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-061",
+      "title": "Structural equality",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-062",
+      "title": "Extension keywords",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-063",
+      "title": "Validation outcomes",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-064",
+      "title": "Schema diagnostics",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-065",
+      "title": "Evaluation budgets",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-066",
+      "title": "Compiled-schema lifetime",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-067",
+      "title": "Pure evaluation",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-068",
+      "title": "Component independence",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-069",
+      "title": "Optional assertions",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-070",
+      "title": "Validation CLI",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-071",
+      "title": "Machine diagnostics",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-072",
+      "title": "Editor packaging",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-073",
+      "title": "External schema association",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-074",
+      "title": "Grammar agreement",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-075",
+      "title": "Location mapping",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-076",
+      "title": "Live document versions",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-077",
+      "title": "Incomplete-input assistance",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-078",
+      "title": "Schema completion",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-079",
+      "title": "Hover and schema diagnostics",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-080",
+      "title": "Consumer-policy diagnostics",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-081",
+      "title": "Offline operation",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-082",
+      "title": "Editor unit coverage",
+      "demonstration": "editor unit/configuration evidence; applicable shared file cases",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/unicode.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-083",
+      "title": "Manifest profile boundary",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-084",
+      "title": "Versioned schema artifact",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-085",
+      "title": "Field and policy coverage",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-086",
+      "title": "Unknown versus dynamic names",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-087",
+      "title": "Numeric-policy configuration",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-088",
+      "title": "String and path boundaries",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-089",
+      "title": "Defaults and arguments",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-090",
+      "title": "Result/error mapping",
+      "demonstration": "optional consumer profile fixtures and adapter units; not yet supplied",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-091",
+      "title": "Native portability",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-092",
+      "title": "Reusable package",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-093",
+      "title": "Versioned consumption",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-094",
+      "title": "Grammar unit regression coverage",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-095",
+      "title": "Pinned syntax fixtures",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-096",
+      "title": "Draft-07 unit conformance fixtures",
+      "demonstration": "optional schema scenarios plus complete keyword/reference unit suite",
+      "starter_inputs": [
+        "schema/device.schema.json",
+        "schema/device-valid.json5",
+        "schema/device-invalid.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-097",
+      "title": "Deterministic robustness unit cases",
+      "demonstration": "file cases plus API/unit assertions",
+      "starter_inputs": [
+        "valid/strict.json",
+        "valid/features.json5",
+        "valid/unicode.json5",
+        "valid/duplicates.json5",
+        "valid/exact-numbers.json5",
+        "invalid/trailing-root.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-098",
+      "title": "Fault-injection evidence",
+      "demonstration": "file inputs plus deterministic allocator/limit/cancellation/concurrency harness",
+      "starter_inputs": [
+        "valid/features.json5",
+        "valid/exact-numbers.json5",
+        "invalid/unterminated-string.json5"
+      ],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-099",
+      "title": "Portable unit build matrix",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-100",
+      "title": "Release completeness",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    },
+    {
+      "requirement": "J5-101",
+      "title": "OS-agnostic embedded integration",
+      "demonstration": "unit/build/documentation evidence",
+      "starter_inputs": [],
+      "status": "planned; not complete coverage"
+    }
+  ]
+}

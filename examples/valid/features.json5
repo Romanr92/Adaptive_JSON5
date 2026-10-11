@@ -1,0 +1,14 @@
+// JSON5 features; this file must fail strict JSON mode.
+{
+  /* Names, strings, numbers and trailing commas */
+  unquoted: 'single quotes',
+  $name: "double quotes",
+  café: 'Unicode name',
+  true: 'reserved-word member name',
+  escaped\u004eame: 'decoded name',
+  escapes: '\x41\v\0\a\e\ ',
+  continued: 'first\
+second',
+  numbers: [+1, -0, .5, 5., 0xFF, -0x10, 2e+3, Infinity, -Infinity, NaN],
+  nested: { list: [null, true, false,], },
+}
