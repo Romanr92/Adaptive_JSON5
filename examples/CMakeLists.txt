@@ -18,3 +18,15 @@ add_custom_target(adaptive_json5_example_files SOURCES
     schema/device-valid.json5
     schema/device-invalid.json5
 )
+
+# The developer will add main.cpp after the parser API exists.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
+    if(NOT TARGET AdaptiveJSON5::parser)
+        message(FATAL_ERROR "The example executable requires the implemented AdaptiveJSON5::parser target")
+    endif()
+    add_executable(adaptive_json5_examples main.cpp)
+    target_link_libraries(adaptive_json5_examples PRIVATE AdaptiveJSON5::parser)
+    adaptive_json5_configure_target(adaptive_json5_examples)
+else()
+    message(STATUS "Example executable pending production C++; exposing example data only")
+endif()

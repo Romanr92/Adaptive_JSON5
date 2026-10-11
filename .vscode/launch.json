@@ -7,7 +7,7 @@
       "request": "launch",
       "program": "${command:cmake.launchTargetPath}",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "Build (dev)",
+      "preLaunchTask": "Build (debug-unit-tests)",
       "args": [],
       "stopAtEntry": false,
       "console": "integratedTerminal"
@@ -18,7 +18,7 @@
       "request": "launch",
       "program": "${command:cmake.launchTargetPath}",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "Build (dev)",
+      "preLaunchTask": "Build (debug-unit-tests)",
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,

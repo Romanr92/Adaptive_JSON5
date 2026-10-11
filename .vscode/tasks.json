@@ -2,12 +2,12 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Configure (dev)",
+      "label": "Configure (debug-library)",
       "type": "process",
       "command": "cmake",
       "args": [
         "--preset",
-        "dev"
+        "debug-library"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -15,50 +15,146 @@
       "problemMatcher": []
     },
     {
-      "label": "Build (dev)",
+      "label": "Build (debug-library)",
       "type": "process",
       "command": "cmake",
       "args": [
         "--build",
         "--preset",
-        "dev"
+        "debug-library"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "dependsOn": "Configure (dev)",
-      "dependsOrder": "sequence",
       "problemMatcher": [
         "$gcc",
         "$msCompile"
       ],
+      "dependsOn": "Configure (debug-library)",
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "Configure (release-library)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "release-library"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build (release-library)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "release-library"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "dependsOn": "Configure (release-library)",
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "Configure (debug-example)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "debug-example"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build (debug-example)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug-example"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "dependsOn": "Configure (debug-example)",
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "Configure (debug-unit-tests)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "debug-unit-tests"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build (debug-unit-tests)",
+      "type": "process",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "--preset",
+        "debug-unit-tests"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "dependsOn": "Configure (debug-unit-tests)",
+      "dependsOrder": "sequence",
       "group": {
         "kind": "build",
         "isDefault": true
       }
     },
     {
-      "label": "Unit tests (dev)",
+      "label": "Unit tests (debug-unit-tests)",
       "type": "process",
       "command": "ctest",
       "args": [
         "--preset",
-        "dev"
+        "debug-unit-tests"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "dependsOn": "Build (dev)",
-      "dependsOrder": "sequence",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "dependsOn": "Build (debug-unit-tests)",
+      "dependsOrder": "sequence"
     },
     {
-      "label": "Configure (dev-exceptions)",
+      "label": "Configure (debug-unit-tests-exceptions)",
       "type": "process",
       "command": "cmake",
       "args": [
         "--preset",
-        "dev-exceptions"
+        "debug-unit-tests-exceptions"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -66,38 +162,38 @@
       "problemMatcher": []
     },
     {
-      "label": "Build (dev-exceptions)",
+      "label": "Build (debug-unit-tests-exceptions)",
       "type": "process",
       "command": "cmake",
       "args": [
         "--build",
         "--preset",
-        "dev-exceptions"
+        "debug-unit-tests-exceptions"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "dependsOn": "Configure (dev-exceptions)",
-      "dependsOrder": "sequence",
       "problemMatcher": [
         "$gcc",
         "$msCompile"
-      ]
+      ],
+      "dependsOn": "Configure (debug-unit-tests-exceptions)",
+      "dependsOrder": "sequence"
     },
     {
-      "label": "Unit tests (dev-exceptions)",
+      "label": "Unit tests (debug-unit-tests-exceptions)",
       "type": "process",
       "command": "ctest",
       "args": [
         "--preset",
-        "dev-exceptions"
+        "debug-unit-tests-exceptions"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "dependsOn": "Build (dev-exceptions)",
-      "dependsOrder": "sequence",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "dependsOn": "Build (debug-unit-tests-exceptions)",
+      "dependsOrder": "sequence"
     },
     {
       "label": "Formatting (check)",

@@ -88,3 +88,29 @@ the consuming project supplies them. No particular SDK or vendor port is mandate
 GitHub Actions provides the same host GoogleTest suite on Windows/MSVC,
 Linux/GCC and macOS/Clang with exceptions OFF/ON and RTTI OFF, plus formatting.
 No integration, fuzz, sanitizer, benchmark, coverage or static-analysis gate is added.
+
+## Component switches and bottom toolbar
+
+Three independent component switches select what to prepare/build:
+
+| Switch | Default | Current scaffold behavior |
+| --- | --- | --- |
+| `ADAPTIVE_JSON5_BUILD_LIBRARY` | ON | Export/install development library metadata; parser C++ pending |
+| `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example data and future `examples/main.cpp` target; executable C++ pending |
+| `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root, OFF as subproject | Fetch/build/run host GoogleTest units |
+
+Select `Debug: Library`, `Release: Library`, `Debug: Example executable`,
+`Debug: Unit Tests` or `Debug: Unit Tests (exceptions ON)` in the bottom CMake
+configuration-preset control. Then select its matching build preset and press
+Build. Test presets are provided for unit configurations. CMake Tools must be
+installed/enabled and the repository opened as a folder. If controls are hidden,
+run **CMake: Select Configure Preset** once and check that VS Code's status bar is
+shown. Tracked settings keep configure/build/test presets and actions visible.
+
+Native generator/compiler selection follows your environment; no Linux compiler,
+Ninja, WSL or SDK is hardcoded. Use personal presets for toolchain overrides.
+The `dev`, `dev-exceptions` and `library` aliases keep earlier commands working.
+Example/library selections currently configure infrastructure only and explicitly
+report the missing executable; they do not produce a working parser or demo.
+When both library and tests are OFF, no install package or GoogleTest is produced.
+The metadata interface remains available internally for test build settings.

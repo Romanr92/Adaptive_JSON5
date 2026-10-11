@@ -5,7 +5,8 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 option(ADAPTIVE_JSON5_BUILD_TESTS "Build host GoogleTest unit tests" ${PROJECT_IS_TOP_LEVEL})
-option(ADAPTIVE_JSON5_BUILD_EXAMPLES "Expose example data target (CLI implementation pending)" OFF)
+option(ADAPTIVE_JSON5_BUILD_LIBRARY "Build/export the library component" ON)
+option(ADAPTIVE_JSON5_BUILD_EXECUTABLE "Build the host example executable when implemented" OFF)
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project unit targets" OFF)
 option(ADAPTIVE_JSON5_ENABLE_RTTI "Enable RTTI in project unit targets" OFF)
 set(ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR "" CACHE PATH "Existing GoogleTest 1.17.0 source checkout")
@@ -61,9 +62,14 @@ if(ADAPTIVE_JSON5_BUILD_TESTS)
 endif()
 
 set(adaptive_json5_package_dir ${CMAKE_INSTALL_LIBDIR}/cmake/AdaptiveJSON5)
-if(ADAPTIVE_JSON5_BUILD_EXAMPLES)
+if(ADAPTIVE_JSON5_BUILD_EXECUTABLE)
+    if(CMAKE_CROSSCOMPILING)
+        message(FATAL_ERROR "The example executable is host-only; disable ADAPTIVE_JSON5_BUILD_EXECUTABLE for embedded builds")
+    endif()
     add_subdirectory(examples)
 endif()
+
+if(ADAPTIVE_JSON5_BUILD_LIBRARY)
 
 configure_package_config_file(cmake/AdaptiveJSON5Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake
@@ -78,3 +84,4 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5ConfigVersion.cmake
     DESTINATION ${adaptive_json5_package_dir})
 install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5)
+endif()

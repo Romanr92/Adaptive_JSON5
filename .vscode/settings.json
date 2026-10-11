@@ -10,7 +10,7 @@
     "**/tools/gtest/**": true
   },
   "cmake.useCMakePresets": "always",
-  "cmake.configurePreset": "dev",
+  "cmake.configurePreset": "debug-unit-tests",
   "cmake.buildBeforeRun": true,
   "C_Cpp.intelliSenseEngine": "default",
   "C_Cpp.autocomplete": "default",
@@ -35,13 +35,13 @@
       "statusBarVisibility": "visible"
     },
     "buildPreset": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "visible"
     },
     "buildTarget": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "visible"
     },
     "debug": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "visible"
     },
     "launchTarget": {
       "statusBarVisibility": "visible"
@@ -50,10 +50,10 @@
       "statusBarVisibility": "visible"
     },
     "testPreset": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "visible"
     },
     "test": {
-      "statusBarVisibility": "hidden"
+      "statusBarVisibility": "visible"
     },
     "packagePreset": {
       "statusBarVisibility": "hidden"

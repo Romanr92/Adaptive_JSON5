@@ -7,54 +7,188 @@
   },
   "configurePresets": [
     {
-      "name": "dev",
-      "displayName": "Native development with unit tests",
-      "binaryDir": "${sourceDir}/build/dev",
+      "name": "debug-library",
+      "displayName": "Debug: Library",
+      "binaryDir": "${sourceDir}/build/debug-library",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "ADAPTIVE_JSON5_BUILD_TESTS": "ON",
-        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
       }
+    },
+    {
+      "name": "release-library",
+      "displayName": "Release: Library",
+      "binaryDir": "${sourceDir}/build/release-library",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "debug-example",
+      "displayName": "Debug: Example executable",
+      "binaryDir": "${sourceDir}/build/debug-example",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "ON",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "debug-unit-tests",
+      "displayName": "Debug: Unit Tests",
+      "binaryDir": "${sourceDir}/build/debug-unit-tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "OFF",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "ON",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "debug-unit-tests-exceptions",
+      "displayName": "Debug: Unit Tests (exceptions ON)",
+      "binaryDir": "${sourceDir}/build/debug-unit-tests-exceptions",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "OFF",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "ON",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "ON",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "dev",
+      "displayName": "Compatibility: dev",
+      "inherits": "debug-unit-tests",
+      "binaryDir": "${sourceDir}/build/dev"
     },
     {
       "name": "dev-exceptions",
-      "displayName": "Native development with exceptions enabled",
-      "inherits": "dev",
-      "binaryDir": "${sourceDir}/build/dev-exceptions",
-      "cacheVariables": {
-        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "ON"
-      }
+      "displayName": "Compatibility: dev-exceptions",
+      "inherits": "debug-unit-tests-exceptions",
+      "binaryDir": "${sourceDir}/build/dev-exceptions"
     },
     {
       "name": "library",
-      "displayName": "Library without unit tests",
-      "binaryDir": "${sourceDir}/build/library",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
-        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF"
-      }
+      "displayName": "Compatibility: library",
+      "inherits": "release-library",
+      "binaryDir": "${sourceDir}/build/library"
     }
   ],
   "buildPresets": [
-    { "name": "dev", "configurePreset": "dev", "configuration": "Debug" },
-    { "name": "dev-exceptions", "configurePreset": "dev-exceptions", "configuration": "Debug" },
-    { "name": "library", "configurePreset": "library", "configuration": "Release" }
+    {
+      "name": "debug-library",
+      "displayName": "Build: Debug: Library",
+      "configurePreset": "debug-library",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release-library",
+      "displayName": "Build: Release: Library",
+      "configurePreset": "release-library",
+      "configuration": "Release"
+    },
+    {
+      "name": "debug-example",
+      "displayName": "Build: Debug: Example executable",
+      "configurePreset": "debug-example",
+      "configuration": "Debug"
+    },
+    {
+      "name": "debug-unit-tests",
+      "displayName": "Build: Debug: Unit Tests",
+      "configurePreset": "debug-unit-tests",
+      "configuration": "Debug"
+    },
+    {
+      "name": "debug-unit-tests-exceptions",
+      "displayName": "Build: Debug: Unit Tests (exceptions ON)",
+      "configurePreset": "debug-unit-tests-exceptions",
+      "configuration": "Debug"
+    },
+    {
+      "name": "dev",
+      "displayName": "Build: Compatibility: dev",
+      "configurePreset": "dev",
+      "configuration": "Debug"
+    },
+    {
+      "name": "dev-exceptions",
+      "displayName": "Build: Compatibility: dev-exceptions",
+      "configurePreset": "dev-exceptions",
+      "configuration": "Debug"
+    },
+    {
+      "name": "library",
+      "displayName": "Build: Compatibility: library",
+      "configurePreset": "library",
+      "configuration": "Release"
+    }
   ],
   "testPresets": [
+    {
+      "name": "debug-unit-tests",
+      "configurePreset": "debug-unit-tests",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "debug-unit-tests-exceptions",
+      "configurePreset": "debug-unit-tests-exceptions",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
     {
       "name": "dev",
       "configurePreset": "dev",
       "configuration": "Debug",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error" }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
     },
     {
       "name": "dev-exceptions",
       "configurePreset": "dev-exceptions",
       "configuration": "Debug",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error" }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
     }
   ]
 }
