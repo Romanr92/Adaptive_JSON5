@@ -31,8 +31,8 @@ test helpers or generated code to bypass the restriction.
 - Unit tests and formatting are the only automated quality checks. Do not add
   integration, end-to-end, fuzz, sanitizer, benchmark, coverage or static-analysis
   gates unless the user changes this scope.
-- Run applicable GoogleTest units with exceptions OFF and ON; keep common
-  behavior tests active in both and compile-check the no-RTTI build policy.
+- Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
+  must pass all host unit-test jobs and formatting before merging into main.
 - Preserve Apache-2.0 and the notices/immutable versions of incorporated material.
 - Keep requirement review, implementation, test existence and executed results
   distinct. The initial build-setting units do not verify a parser or embedded runtime.

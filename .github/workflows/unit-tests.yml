@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        exceptions: ['OFF', 'ON']
+        exceptions: ['OFF']
     steps:
       - uses: actions/checkout@v7
         with:

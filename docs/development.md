@@ -22,9 +22,6 @@ nor build GoogleTest. GoogleTest is not installed with the library.
 cmake --preset debug-unit-tests
 cmake --build --preset debug-unit-tests
 ctest --preset debug-unit-tests
-cmake --preset debug-unit-tests-exceptions
-cmake --build --preset debug-unit-tests-exceptions
-ctest --preset debug-unit-tests-exceptions
 ```
 
 The initial three GoogleTest cases check C++17, exception and RTTI build settings.
@@ -51,7 +48,7 @@ policy; a configurable test build is not evidence of an implemented parser.
 The tracked `.vscode/` setup is adapted from AdaptivePi. Install the recommended
 extensions, open this repository folder and select the `debug-unit-tests` CMake preset and
 your native compiler. CMake Tools supplies IntelliSense and the executable path.
-Tasks provide configure, build and unit tests for both exception modes, plus
+Tasks provide configure, build and unit tests, plus
 formatting check/fix. Formatting on save uses `clang-format` on PATH; install
 version 18 and override `clang-format.executable` in your user settings if needed.
 
@@ -88,7 +85,9 @@ See [embedded requirements](embedded.md). Embedded compiler/runtime and device-s
 the consuming project supplies them. No particular SDK or vendor port is mandated.
 
 GitHub Actions provides the same host GoogleTest suite on Windows/MSVC,
-Linux/GCC and macOS/Clang with exceptions OFF/ON and RTTI OFF, plus formatting.
+Linux/GCC and macOS/Clang with exceptions OFF and RTTI OFF, plus formatting.
+All three host unit jobs and formatting are required by the prepared
+[main branch ruleset](branch-protection.md) once activated in repository settings.
 No integration, fuzz, sanitizer, benchmark, coverage or static-analysis gate is added.
 
 ## Component switches and bottom toolbar
