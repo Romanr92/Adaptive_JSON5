@@ -17,7 +17,9 @@
         "J5-101"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 1,
+      "completion_issue": 68
     },
     {
       "id": "P002",
@@ -27,14 +29,15 @@
         "P001"
       ],
       "basis": "Project",
-      "unit_acceptance": "Unit-test minimal result construction in exceptions OFF/ON; no parser needed.",
+      "unit_acceptance": "Unit-test minimal result construction in exceptions OFF; no parser needed.",
       "existing_requirements": [
         "J5-003",
         "J5-043",
         "J5-045"
       ],
-      "status": "implemented; local unit verification passed (Windows/GCC, exceptions OFF/ON, RTTI OFF)",
-      "user_review_required": false
+      "status": "implemented; 40 result cases and 3 build cases passed; issue #2 completed",
+      "user_review_required": false,
+      "issue_number": 2
     },
     {
       "id": "P003",
@@ -51,8 +54,9 @@
         "J5-051",
         "J5-101"
       ],
-      "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "status": "implemented; merged PR #75; 39 storage cases and formatting passed; issue #3 completed",
+      "user_review_required": false,
+      "issue_number": 3
     },
     {
       "id": "P004",
@@ -69,7 +73,8 @@
         "J5-044"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 4
     },
     {
       "id": "P005",
@@ -78,13 +83,14 @@
       "dependencies": [
         "P004"
       ],
-      "basis": "Project transport; JSON5 \u00a79.1",
+      "basis": "Project transport; JSON5 §9.1",
       "unit_acceptance": "Malformed, overlong, surrogate-encoded and out-of-range UTF-8; supplementary characters.",
       "existing_requirements": [
         "J5-009"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 5
     },
     {
       "id": "P006",
@@ -93,7 +99,7 @@
       "dependencies": [
         "P005"
       ],
-      "basis": "JSON5 \u00a7\u00a71,9; ES5 \u00a7\u00a76,7.6; Project version policy",
+      "basis": "JSON5 §§1,9; ES5 §§6,7.6; Project version policy",
       "unit_acceptance": "Category boundaries, non-ASCII and non-BMP handling; document supported Unicode version.",
       "existing_requirements": [
         "J5-006",
@@ -101,7 +107,8 @@
         "J5-052"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 6
     },
     {
       "id": "P007",
@@ -110,7 +117,7 @@
       "dependencies": [
         "P005"
       ],
-      "basis": "JSON5 \u00a7\u00a75.1,7\u20139; ES5 \u00a77.3",
+      "basis": "JSON5 §§5.1,7–9; ES5 §7.3",
       "unit_acceptance": "Each sequence and EOF after CR; assert source spans.",
       "existing_requirements": [
         "J5-011",
@@ -118,7 +125,8 @@
         "J5-044"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 7
     },
     {
       "id": "P008",
@@ -128,14 +136,15 @@
         "P006",
         "P007"
       ],
-      "basis": "JSON5 \u00a7\u00a78,9.1",
+      "basis": "JSON5 §§8,9.1",
       "unit_acceptance": "Each admitted space before/after tokens; BOM both leading and between tokens.",
       "existing_requirements": [
         "J5-011",
         "J5-025"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 8
     },
     {
       "id": "P009",
@@ -144,13 +153,14 @@
       "dependencies": [
         "P007"
       ],
-      "basis": "JSON5 \u00a7\u00a77,9.1",
+      "basis": "JSON5 §§7,9.1",
       "unit_acceptance": "All terminators, empty comment and EOF comment; validate non-ASCII source.",
       "existing_requirements": [
         "J5-012"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 9
     },
     {
       "id": "P010",
@@ -159,13 +169,14 @@
       "dependencies": [
         "P005"
       ],
-      "basis": "JSON5 \u00a7\u00a77,9.1",
+      "basis": "JSON5 §§7,9.1",
       "unit_acceptance": "First closer, embedded opener and EOF at every suffix position.",
       "existing_requirements": [
         "J5-012"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 10
     },
     {
       "id": "P011",
@@ -176,14 +187,15 @@
         "P009",
         "P010"
       ],
-      "basis": "JSON5 \u00a7\u00a77\u20139",
+      "basis": "JSON5 §§7–9",
       "unit_acceptance": "Mixed trivia; comments between tokens; 1/*x*/2 remains two tokens.",
       "existing_requirements": [
         "J5-012",
         "J5-024"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 11
     },
     {
       "id": "P012",
@@ -193,13 +205,14 @@
         "P004",
         "P011"
       ],
-      "basis": "JSON5 \u00a79.1",
+      "basis": "JSON5 §9.1",
       "unit_acceptance": "Every punctuator, adjacent punctuators and original spans.",
       "existing_requirements": [
         "J5-013"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 12
     },
     {
       "id": "P013",
@@ -209,7 +222,7 @@
         "P003",
         "P005"
       ],
-      "basis": "Project representation; JSON5 \u00a75.1",
+      "basis": "Project representation; JSON5 §5.1",
       "unit_acceptance": "Empty, NUL, supplementary scalar and unpaired unit round-trips without UTF-8 substitution.",
       "existing_requirements": [
         "J5-018",
@@ -217,7 +230,8 @@
         "J5-040"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 13
     },
     {
       "id": "P014",
@@ -227,13 +241,14 @@
         "P007",
         "P013"
       ],
-      "basis": "JSON5 \u00a7\u00a75,9.1",
+      "basis": "JSON5 §§5,9.1",
       "unit_acceptance": "Both delimiters, opposite quote, raw tab/control characters, raw CR/LF and EOF.",
       "existing_requirements": [
         "J5-014"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 14
     },
     {
       "id": "P015",
@@ -242,14 +257,15 @@
       "dependencies": [
         "P014"
       ],
-      "basis": "JSON5 \u00a75.1",
+      "basis": "JSON5 §5.1",
       "unit_acceptance": "Each decoded unit; accept zero at quote/EOF boundary only where the complete string is valid; reject zero followed by any digit.",
       "existing_requirements": [
         "J5-015",
         "J5-016"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 15
     },
     {
       "id": "P016",
@@ -258,13 +274,14 @@
       "dependencies": [
         "P014"
       ],
-      "basis": "JSON5 \u00a75.1",
+      "basis": "JSON5 §5.1",
       "unit_acceptance": "Lower/upper hex letters, boundary bytes and every truncation.",
       "existing_requirements": [
         "J5-016"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 16
     },
     {
       "id": "P017",
@@ -274,31 +291,33 @@
         "P013",
         "P014"
       ],
-      "basis": "JSON5 \u00a75.1",
+      "basis": "JSON5 §5.1",
       "unit_acceptance": "BMP, paired/lone/reversed surrogate units and malformed/truncated hex.",
       "existing_requirements": [
         "J5-015",
         "J5-018"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 17
     },
     {
       "id": "P018",
       "title": "Non-escape characters",
-      "requirement": "For permitted characters without a special escape production, omit the reverse solidus and retain the character; reject escaped digits 1\u20139.",
+      "requirement": "For permitted characters without a special escape production, omit the reverse solidus and retain the character; reject escaped digits 1–9.",
       "dependencies": [
         "P015",
         "P016",
         "P017"
       ],
-      "basis": "JSON5 \u00a75.1; ES5 \u00a77.8.4",
+      "basis": "JSON5 §5.1; ES5 §7.8.4",
       "unit_acceptance": "a/e/slash/space yield those characters; 8/9 fail; x/u cannot fall back after malformed escape.",
       "existing_requirements": [
         "J5-016"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 18
     },
     {
       "id": "P019",
@@ -308,13 +327,14 @@
         "P007",
         "P014"
       ],
-      "basis": "JSON5 \u00a75.1",
+      "basis": "JSON5 §5.1",
       "unit_acceptance": "LF, CR, CRLF, U+2028/U+2029 join unchanged surrounding text.",
       "existing_requirements": [
         "J5-017"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 19
     },
     {
       "id": "P020",
@@ -324,13 +344,14 @@
         "P002",
         "P014"
       ],
-      "basis": "JSON5 \u00a75.2 SHOULD; Project adopts warning",
+      "basis": "JSON5 §5.2 SHOULD; Project adopts warning",
       "unit_acceptance": "Both raw separators, escaped equivalents, original warning spans and successful value.",
       "existing_requirements": [
         "J5-017"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 20
     },
     {
       "id": "P021",
@@ -344,7 +365,7 @@
         "P019",
         "P020"
       ],
-      "basis": "JSON5 \u00a7\u00a75,9.1",
+      "basis": "JSON5 §§5,9.1",
       "unit_acceptance": "Combine escapes/continuations; truncation at each byte; no partial successful string.",
       "existing_requirements": [
         "J5-014",
@@ -354,7 +375,8 @@
         "J5-018"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 21
     },
     {
       "id": "P022",
@@ -363,13 +385,14 @@
       "dependencies": [
         "P006"
       ],
-      "basis": "JSON5 \u00a7\u00a73,9.1; ES5 \u00a77.6",
+      "basis": "JSON5 §§3,9.1; ES5 §7.6",
       "unit_acceptance": "Category representatives, digit-first rejection and reserved-word tokens.",
       "existing_requirements": [
         "J5-019"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 22
     },
     {
       "id": "P023",
@@ -379,14 +402,15 @@
         "P017",
         "P022"
       ],
-      "basis": "JSON5 \u00a79.1; ES5 \u00a77.6",
+      "basis": "JSON5 §9.1; ES5 §7.6",
       "unit_acceptance": "Escaped valid names, illegal escaped start/part and equal decoded names.",
       "existing_requirements": [
         "J5-020",
         "J5-033"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 23
     },
     {
       "id": "P024",
@@ -396,13 +420,14 @@
         "P022",
         "P023"
       ],
-      "basis": "JSON5 \u00a7\u00a72,9.1",
+      "basis": "JSON5 §§2,9.1",
       "unit_acceptance": "Exact spellings versus case/suffix variants; key-versus-value context classified without parsing containers.",
       "existing_requirements": [
         "J5-023"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 24
     },
     {
       "id": "P025",
@@ -411,14 +436,15 @@
       "dependencies": [
         "P004"
       ],
-      "basis": "JSON5 \u00a7\u00a76,9.1; ES5 \u00a77.8.3",
+      "basis": "JSON5 §§6,9.1; ES5 §7.8.3",
       "unit_acceptance": "0/-0/+1/.5/5./5.e2/1E-2; reject 01, ., 1e and doubled signs.",
       "existing_requirements": [
         "J5-021",
         "J5-022"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 25
     },
     {
       "id": "P026",
@@ -427,13 +453,14 @@
       "dependencies": [
         "P025"
       ],
-      "basis": "JSON5 \u00a76",
+      "basis": "JSON5 §6",
       "unit_acceptance": "Both prefixes/cases/signs; 0x, 0x1z and hex fractions fail.",
       "existing_requirements": [
         "J5-022"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 26
     },
     {
       "id": "P027",
@@ -442,13 +469,14 @@
       "dependencies": [
         "P025"
       ],
-      "basis": "JSON5 \u00a76",
+      "basis": "JSON5 §6",
       "unit_acceptance": "Infinity/+Infinity/-Infinity and NaN/+NaN/-NaN; lowercase and suffix variants fail.",
       "existing_requirements": [
         "J5-022"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 27
     },
     {
       "id": "P028",
@@ -463,14 +491,15 @@
         "P026",
         "P027"
       ],
-      "basis": "JSON5 \u00a79; Project no extensions",
+      "basis": "JSON5 §9; Project no extensions",
       "unit_acceptance": "truex, 1foo, 0x1z, 0b1, 1_0 and split-token trivia; valid punctuation boundaries.",
       "existing_requirements": [
         "J5-024",
         "J5-027"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 28
     },
     {
       "id": "P029",
@@ -482,7 +511,7 @@
         "P026",
         "P027"
       ],
-      "basis": "Project; JSON5 \u00a710 permits numeric limits",
+      "basis": "Project; JSON5 §10 permits numeric limits",
       "unit_acceptance": "Integers beyond 2^53, huge exponents, negative zero and failure-safe owned storage.",
       "existing_requirements": [
         "J5-034",
@@ -490,7 +519,8 @@
         "J5-040"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 29
     },
     {
       "id": "P030",
@@ -501,7 +531,7 @@
         "P013",
         "P029"
       ],
-      "basis": "JSON5 \u00a7\u00a71\u20134; Project object/ownership choices",
+      "basis": "JSON5 §§1–4; Project object/ownership choices",
       "unit_acceptance": "Construct/inspect/move each variant before recursive parsing exists; explicit wrong-type results.",
       "existing_requirements": [
         "J5-028",
@@ -511,7 +541,8 @@
         "J5-040"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 30
     },
     {
       "id": "P031",
@@ -522,7 +553,7 @@
         "P003",
         "P030"
       ],
-      "basis": "Project; JSON5 \u00a710 MAY limits",
+      "basis": "Project; JSON5 §10 MAY limits",
       "unit_acceptance": "Below/equal/above bounds and deterministic allocation/work exhaustion without recursive parser dependency.",
       "existing_requirements": [
         "J5-047",
@@ -530,7 +561,8 @@
         "J5-049"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 31
     },
     {
       "id": "P032",
@@ -544,14 +576,15 @@
         "P030",
         "P031"
       ],
-      "basis": "JSON5 \u00a7\u00a72,9.2",
+      "basis": "JSON5 §§2,9.2",
       "unit_acceptance": "Each primitive root, unknown identifiers and allocation failure; containers still explicitly unsupported at this stage.",
       "existing_requirements": [
         "J5-023",
         "J5-028"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 32
     },
     {
       "id": "P033",
@@ -563,7 +596,7 @@
         "P031",
         "P032"
       ],
-      "basis": "JSON5 \u00a7\u00a73,4,9.2",
+      "basis": "JSON5 §§3,4,9.2",
       "unit_acceptance": "Empty arrays/objects and mixed nesting; allocate/check frames before descent; this step intentionally resolves mutual recursion together.",
       "existing_requirements": [
         "J5-013",
@@ -571,7 +604,8 @@
         "J5-048"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 33
     },
     {
       "id": "P034",
@@ -580,14 +614,15 @@
       "dependencies": [
         "P033"
       ],
-      "basis": "JSON5 \u00a7\u00a74,9.2",
+      "basis": "JSON5 §§4,9.2",
       "unit_acceptance": "[], mixed values, nested values, [1,]; reject [,], [1,,2] and missing commas.",
       "existing_requirements": [
         "J5-013",
         "J5-030"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 34
     },
     {
       "id": "P035",
@@ -599,7 +634,7 @@
         "P024",
         "P033"
       ],
-      "basis": "JSON5 \u00a7\u00a73,9.2",
+      "basis": "JSON5 §§3,9.2",
       "unit_acceptance": "Empty/nested objects, reserved-word/escaped keys and mixed values; reject missing name/colon/value/comma and doubled commas.",
       "existing_requirements": [
         "J5-013",
@@ -608,7 +643,8 @@
         "J5-031"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 35
     },
     {
       "id": "P036",
@@ -617,14 +653,15 @@
       "dependencies": [
         "P035"
       ],
-      "basis": "Project; JSON5 \u00a73 allows implementation choices",
+      "basis": "Project; JSON5 §3 allows implementation choices",
       "unit_acceptance": "Quoted/bare/escaped collisions, distinct case and normalization forms, nested object independence.",
       "existing_requirements": [
         "J5-032",
         "J5-033"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 37
     },
     {
       "id": "P037",
@@ -637,14 +674,15 @@
         "P035",
         "P036"
       ],
-      "basis": "JSON5 \u00a7\u00a72,9.2,10",
+      "basis": "JSON5 §§2,9.2,10",
       "unit_acceptance": "Every root type, trailing EOF comment, {} {} and junk; atomic errors and reusable context.",
       "existing_requirements": [
         "J5-026",
         "J5-051"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 38
     },
     {
       "id": "P038",
@@ -665,7 +703,8 @@
         "J5-052"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 39
     },
     {
       "id": "P039",
@@ -686,7 +725,8 @@
         "J5-045"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 40
     },
     {
       "id": "P040",
@@ -733,7 +773,7 @@
         "P038",
         "P039"
       ],
-      "basis": "Project acceptance of JSON5 \u00a710",
+      "basis": "Project acceptance of JSON5 §10",
       "unit_acceptance": "No skipped grammar branches; fresh explicit unit evidence for accepted/rejected input and decoded content.",
       "existing_requirements": [
         "J5-027",
@@ -744,7 +784,8 @@
         "J5-099"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 41
     },
     {
       "id": "P041",
@@ -753,7 +794,7 @@
       "dependencies": [
         "P040"
       ],
-      "basis": "JSON5 \u00a7\u00a710,A; Project release evidence",
+      "basis": "JSON5 §§10,A; Project release evidence",
       "unit_acceptance": "Review production-to-unit matrix, all preceding contracts and actual native results.",
       "existing_requirements": [
         "J5-008",
@@ -761,7 +802,8 @@
         "J5-100"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 42
     },
     {
       "id": "P042",
@@ -780,7 +822,8 @@
         "J5-025"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 43
     },
     {
       "id": "P043",
@@ -799,7 +842,8 @@
         "J5-068"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 44
     },
     {
       "id": "P044",
@@ -817,7 +861,8 @@
         "J5-067"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 45
     },
     {
       "id": "P045",
@@ -833,7 +878,8 @@
         "J5-061"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 46
     },
     {
       "id": "P046",
@@ -852,7 +898,8 @@
         "J5-065"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 47
     },
     {
       "id": "P047",
@@ -870,7 +917,8 @@
         "J5-061"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 48
     },
     {
       "id": "P048",
@@ -886,7 +934,8 @@
         "J5-059"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 49
     },
     {
       "id": "P049",
@@ -903,7 +952,8 @@
         "J5-065"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 50
     },
     {
       "id": "P050",
@@ -920,7 +970,8 @@
         "J5-061"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 51
     },
     {
       "id": "P051",
@@ -936,7 +987,8 @@
         "J5-057"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 52
     },
     {
       "id": "P052",
@@ -956,7 +1008,8 @@
         "J5-065"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 53
     },
     {
       "id": "P053",
@@ -973,7 +1026,8 @@
         "J5-069"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 54
     },
     {
       "id": "P054",
@@ -992,7 +1046,8 @@
         "J5-064"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 55
     },
     {
       "id": "P055",
@@ -1002,7 +1057,7 @@
         "P054"
       ],
       "basis": "Project component contract; sources and existing J5 contracts below",
-      "unit_acceptance": "Required keyword/reference matrix, OFF/ON exception units, provenance and parser-only independence.",
+      "unit_acceptance": "Required keyword/reference matrix, exceptions-OFF units, provenance and parser-only independence.",
       "existing_requirements": [
         "J5-053",
         "J5-065",
@@ -1013,7 +1068,8 @@
         "J5-096"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 56
     },
     {
       "id": "P056",
@@ -1028,7 +1084,8 @@
         "J5-070"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 57
     },
     {
       "id": "P057",
@@ -1045,7 +1102,8 @@
         "J5-071"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 58
     },
     {
       "id": "P058",
@@ -1062,7 +1120,8 @@
         "J5-094"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 59
     },
     {
       "id": "P059",
@@ -1081,7 +1140,8 @@
         "J5-093"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 60
     },
     {
       "id": "P060",
@@ -1096,7 +1156,8 @@
         "J5-072"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 61
     },
     {
       "id": "P061",
@@ -1112,7 +1173,8 @@
         "J5-075"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 62
     },
     {
       "id": "P062",
@@ -1128,7 +1190,8 @@
         "J5-077"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 63
     },
     {
       "id": "P063",
@@ -1145,7 +1208,8 @@
         "J5-081"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 64
     },
     {
       "id": "P064",
@@ -1161,7 +1225,8 @@
         "J5-078"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 65
     },
     {
       "id": "P065",
@@ -1178,7 +1243,8 @@
         "J5-080"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 66
     },
     {
       "id": "P066",
@@ -1194,8 +1260,83 @@
         "J5-100"
       ],
       "status": "documented baseline; implementation pending",
-      "user_review_required": false
+      "user_review_required": false,
+      "issue_number": 67
     }
   ],
-  "user_review_required": false
+  "user_review_required": false,
+  "issue_mapping": {
+    "P001": 1,
+    "P002": 2,
+    "P003": 3,
+    "P004": 4,
+    "P005": 5,
+    "P006": 6,
+    "P007": 7,
+    "P008": 8,
+    "P009": 9,
+    "P010": 10,
+    "P011": 11,
+    "P012": 12,
+    "P013": 13,
+    "P014": 14,
+    "P015": 15,
+    "P016": 16,
+    "P017": 17,
+    "P018": 18,
+    "P019": 19,
+    "P020": 20,
+    "P021": 21,
+    "P022": 22,
+    "P023": 23,
+    "P024": 24,
+    "P025": 25,
+    "P026": 26,
+    "P027": 27,
+    "P028": 28,
+    "P029": 29,
+    "P030": 30,
+    "P031": 31,
+    "P032": 32,
+    "P033": 33,
+    "P034": 34,
+    "P035": 35,
+    "P036": 37,
+    "P037": 38,
+    "P038": 39,
+    "P039": 40,
+    "P040": 41,
+    "P041": 42,
+    "P042": 43,
+    "P043": 44,
+    "P044": 45,
+    "P045": 46,
+    "P046": 47,
+    "P047": 48,
+    "P048": 49,
+    "P049": 50,
+    "P050": 51,
+    "P051": 52,
+    "P052": 53,
+    "P053": 54,
+    "P054": 55,
+    "P055": 56,
+    "P056": 57,
+    "P057": 58,
+    "P058": 59,
+    "P059": 60,
+    "P060": 61,
+    "P061": 62,
+    "P062": 63,
+    "P063": 64,
+    "P064": 65,
+    "P065": 66,
+    "P066": 67,
+    "BUILD": 68,
+    "RUNTIME": 69,
+    "PROFILE": 70,
+    "ADAPTER": 71,
+    "RELEASE": 72
+  },
+  "quality_scope": "One GoogleTest job and one formatting job on pull requests; exceptions OFF and RTTI OFF."
 }

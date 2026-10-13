@@ -1,0 +1,428 @@
+{
+  "snapshot_date": "2026-10-13",
+  "purpose": "Historical issue scope before the user-requested rewrite to concrete P implementation steps; not the current backlog.",
+  "issues": [
+    {
+      "number": 35,
+      "title": "[35] Document supported builds and complete a truthful release checklist",
+      "body": "## Goal\n\nPublish supported C++17 compiler/exception configurations and release documents covering actual implemented APIs, standards/Unicode versions, matrices, limits, licensing, packaging/editor instructions and known deviations.\n\n## Requirements\n\n`J5-099`, `J5-100` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #1 — Define the public C++17 API and draft behavior contracts\n- #32 — Provide portable reusable CMake packages and pinned build metadata\n- #33 — Complete parser grammar, truncation and failure-injection unit coverage\n- #34 — Complete Draft-07 and editor component unit-test traceability\n\n## Acceptance criteria\n\n- [ ] Record selected supported native compiler/toolchain versions and actual unit-test/formatting results for exceptions-off/on configurations; identify unverified/unsupported combinations explicitly.\n- [ ] Requirement, grammar and schema-keyword matrices link owning issues and implemented unit cases; Draft/Agreed/Implemented/Verified states stay distinct.\n- [ ] Release checklist documents public contracts, dependency/source versions, allocator/ABI options, reproducible packaging, offline use and optional components/example scope.\n- [ ] Do not claim full grammar/schema/editor support while unresolved gaps remain, or claim fuzz/sanitizer/integration/target/deployment/benchmark evidence that was not requested/executed.\n- [ ] Keep original broader verification intentions visible as superseded/deferred and explain the current unit-test/formatting acceptance scope.\n- [ ] Record J5-101 embedded port/runtime status separately from host unit passes; OS-agnostic embedded support must remain a reviewed core capability, not an assumed certification claim.\n- [ ] Parser-only releases are allowed. Schema/editor/CLI prerequisites apply only when those optional components are shipped; optional consumer examples never block a generic core release.\n\n## Notes\n\nThe original Yocto/QEMU/installed-consumer/sanitizer matrix and performance measurement obligations are superseded or deferred. Optional consumer examples may ship separately and are not a dependency for releasing the generic parser.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. All library errors are explicit non-throwing outcomes. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I34; implementation order: 35.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:docs",
+        "requirements:draft"
+      ],
+      "milestone": 7
+    },
+    {
+      "number": 34,
+      "title": "[34] Complete Draft-07 and editor component unit-test traceability",
+      "body": "## Goal\n\nRun pinned required Draft-07 suite fixtures through unit tests with offline registered references, and trace editor service unit coverage for highlighting, live diagnostics, completion, hover, mapping and native parity.\n\n## Requirements\n\n`J5-096`, `J5-082` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #18 — Implement the required Draft-07 assertion vocabulary\n- #19 — Implement exact schema numeric semantics and deep equality\n- #20 — Implement Unicode schema string lengths and bounded regex semantics\n- #21 — Implement schema metadata, extensions and optional assertion capabilities\n- #22 — Implement structured schema outcomes and source-aware assertion diagnostics\n- #23 — Implement bounded schema evaluation, owned compiled graphs and pure validation\n- #25 — Package VS Code support with workspace-local offline schema associations\n- #26 — Implement editor grammar parity, byte-to-position mapping and document versions\n- #27 — Implement incomplete-document recovery and schema-aware completion\n- #28 — Implement schema hover, runtime-parity diagnostics and explicit consumer policies\n\n## Acceptance criteria\n\n- [ ] Record Draft-07 suite revision, required/optional selection, counts and failures; required assertion/reference cases cannot be silently skipped or reclassified optional.\n- [ ] Offline registry fixtures supply suite references and add exact numeric, Unicode and parser/editor parity regressions missing from upstream cases.\n- [ ] Editor unit fixtures cover all service behaviors with explicit backend/extension compatibility metadata; mock document versions, associations and cancellation.\n- [ ] Coverage records distinguish executed unit evidence from manual/deferred installed-editor/Remote SSH acceptance; screenshots/README claims are not parity evidence.\n\n## Notes\n\nInstalled VS Code, Remote SSH and end-to-end jobs from J5-082 are deferred under the user's current test scope; no other test category is introduced.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. All library errors are explicit non-throwing outcomes. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I33; implementation order: 34.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:tests",
+        "requirements:draft"
+      ],
+      "milestone": 7
+    },
+    {
+      "number": 33,
+      "title": "[33] Complete parser grammar, truncation and failure-injection unit coverage",
+      "body": "## Goal\n\nComplete deterministic in-process unit coverage of grammar/value/location/resource contracts, using pinned compatible upstream fixtures and minimized known regressions without introducing broader test categories.\n\n## Requirements\n\n`J5-094`, `J5-095`, `J5-097`, `J5-098` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #8 — Complete the reader and maintain a grammar coverage matrix\n- #10 — Implement decoded-key equality and selectable duplicate policy\n- #11 — Implement exact numbers and checked numeric conversions\n- #12 — Implement structured diagnostics, source spans and minimal failure reporting\n- #13 — Implement recoverable allocation and atomic reusable contexts\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #15 — Implement deterministic semantics and independent concurrent contexts\n- #23 — Implement bounded schema evaluation, owned compiled graphs and pure validation\n\n## Acceptance criteria\n\n- [ ] Trace each grammar requirement to valid/invalid/truncated cross-mode units that assert exact decoded values/locations; representative tokens are truncated at every byte.\n- [ ] Vendor licensed pinned representative official JSON5/JSONTestSuite cases as unit data, documenting optional-case and duplicate/precision/Unicode/limit semantics instead of adopting reference output blindly.\n- [ ] Fixed whitespace/comment/escape transformation units preserve expected values; deterministic deep/wide/boundary regressions return stable failures without crashes/uncontrolled loops.\n- [ ] In-process units fail each representative parser/conversion/schema/reporting allocation and limit/cancellation boundary in supported exception modes, verifying cleanup/no partial success.\n- [ ] Required checks remain unit tests and formatting.\n\n## Notes\n\nAutomatic differential/reference-tool runs, fuzzing, sanitizers and benchmarking from the source proposal are deferred/superseded by the user's unit-test/formatting scope. Do not claim executed evidence for them.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. All library errors are explicit non-throwing outcomes. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I32; implementation order: 33.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:tests",
+        "requirements:draft"
+      ],
+      "milestone": 7
+    },
+    {
+      "number": 32,
+      "title": "[32] Provide portable reusable CMake packages and pinned build metadata",
+      "body": "## Goal\n\nSupport generic compatible hosted and embedded C++17 projects with namespaced parser/schema exported targets, add_subdirectory and installed find_package use, offline dependencies and immutable release/build-option records.\n\n## Requirements\n\n`J5-091`, `J5-092`, `J5-093` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #2 — Add portable component builds, unit-test tooling and dependency provenance\n- #15 — Implement deterministic semantics and independent concurrent contexts\n- #16 — Establish the optional Draft-07 component and schema compilation\n- #23 — Implement bounded schema evaluation, owned compiled graphs and pure validation\n- #31 — Ensure OS-agnostic integration into embedded projects\n\n## Acceptance criteria\n\n- [ ] Document supported native MSVC/GCC/Clang toolchains and standard CMake cross-compilation without imposing WSL, a Yocto SDK, AdaptivePi deployment or ARM64 runtime.\n- [ ] Parser-only and schema-enabled target/package metadata is relocatable, target-scoped and does not alter parent flags, enable tests or implicitly fetch dependencies.\n- [ ] Compile the selected unit-test targets on documented supported compilers; record any known platform/compiler restriction rather than asserting universal implementation support.\n- [ ] Release metadata pins source/dependency revisions and records compatible exception/allocator/ABI-impacting options; host tools/editor remain separate.\n\n## Notes\n\nJ5-091's original application-specific platform requirement is superseded by the user's generic-library direction. No deployment or installed-consumer integration-test job is added.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. All library errors are explicit non-throwing outcomes. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I31; implementation order: 32.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:build",
+        "requirements:draft"
+      ],
+      "milestone": 7
+    },
+    {
+      "number": 31,
+      "title": "[31] Ensure OS-agnostic integration into embedded projects",
+      "body": "## Goal\n\nMake the generic C++17 core usable on embedded devices after compilation into a compatible consuming project, without requiring an operating system. Document the runtime/storage and generic CMake toolchain boundary. MICROSAR is one example only; no dedicated vendor port, SDK or workflow is required.\n\n## Requirements\n\n`J5-101` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #1 — Define the public C++17 API and draft behavior contracts\n- #2 — Add portable component builds, unit-test tooling and dependency provenance\n- #13 — Implement recoverable allocation and atomic reusable contexts\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #15 — Implement deterministic semantics and independent concurrent contexts\n\n## Acceptance criteria\n\n- [ ] Document the required C/C++ runtime subset, compiler/runtime support, alignment/byte-order/data-model assumptions, static initialization and bounded stack/work storage.\n- [ ] Core targets require no POSIX/Windows APIs, files/processes/network, OS threads, locale/environment/clock, exception/RTTI runtime, default global heap, GoogleTest or optional host component dependencies.\n- [ ] Support caller-supplied fallible storage and deterministic budgets; GoogleTest units exercise fixed storage, exhaustion/cleanup, no-OS adapters and data-model boundaries as production APIs are implemented.\n- [ ] Provide generic caller-owned CMake toolchain guidance with tests and host components excluded. A consuming project can compile/link the core using its compatible embedded toolchain without a vendor-specific port workflow.\n- [ ] Return errors as explicit non-throwing outcomes in every supported compiler exception mode; document actual embedded support without claiming host units establish every device runtime, real-time guarantees or certification.\n\n## Notes\n\nProduction C++ is implemented by the developer; agents may prepare CMake, GoogleTest and documentation. This adds generic embedded usability to hosted portability, not a dedicated MICROSAR product.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. All library errors are explicit non-throwing outcomes. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: IE01; implementation order: 31.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:build",
+        "requirements:draft"
+      ],
+      "milestone": 7
+    },
+    {
+      "number": 30,
+      "title": "[30] Document optional profile numeric/string policies and consumer result mapping",
+      "body": "## Goal\n\nShow how a standalone consumer adapter applies lexical integer/string/path policies, preserves arguments and owned data, implements consumer defaults and maps explicit core/schema errors into its own result type.\n\nThis consumer example is optional and does not block the generic library.\n\n## Requirements\n\n`J5-087`, `J5-088`, `J5-089`, `J5-090` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #9 — Implement the owned value model and checked access\n- #11 — Implement exact numbers and checked numeric conversions\n- #13 — Implement recoverable allocation and atomic reusable contexts\n- #19 — Implement exact schema numeric semantics and deep equality\n- #22 — Implement structured schema outcomes and source-aware assertion diagnostics\n- #23 — Implement bounded schema evaluation, owned compiled graphs and pure validation\n- #29 — Add an optional versioned consumer schema and profile example\n\n## Acceptance criteria\n\n- [ ] Example units compare mathematical-integral and explicit lexical policies on decimal/exponent/fraction/hex/plus spellings; booleans, true fractions and nonfinite values fail integer fields.\n- [ ] NUL/unpaired-surrogate and lexical traversal fixtures reject at the profile boundary without changing valid bytes or claiming filesystem security checks.\n- [ ] Owned fake-consumer units preserve empty/ordered arguments, derive argv[0] outside the parser and distinguish consumer defaults from schema annotations without mutating parsed data.\n- [ ] Fake result mapping distinguishes malformed/encoding/duplicate/version/field/conversion/resource errors and adds no ara::core/AdaptivePi dependency.\n\n## Notes\n\nKeep consumer-specific defaults unresolved until separately agreed. Filesystem existence/permissions/symlink containment and service management remain consumer responsibilities.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I30; implementation order: 30.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:examples",
+        "requirements:draft",
+        "optional:consumer-example"
+      ],
+      "milestone": 6
+    },
+    {
+      "number": 29,
+      "title": "[29] Add an optional versioned consumer schema and profile example",
+      "body": "## Goal\n\nDemonstrate an isolated external consumer profile using JSON5, object-root and duplicate rejection plus a descriptive strict-JSON Draft-07 schema, using the proposal's AdaptivePi manifest snapshot only as a reference example.\n\nThis consumer example is optional and does not block the generic library.\n\n## Requirements\n\n`J5-083`, `J5-084`, `J5-085`, `J5-086` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #10 — Implement decoded-key equality and selectable duplicate policy\n- #18 — Implement the required Draft-07 assertion vocabulary\n- #19 — Implement exact schema numeric semantics and deep equality\n- #20 — Implement Unicode schema string lengths and bounded regex semantics\n- #21 — Implement schema metadata, extensions and optional assertion capabilities\n- #22 — Implement structured schema outcomes and source-aware assertion diagnostics\n- #25 — Package VS Code support with workspace-local offline schema associations\n- #27 — Implement incomplete-document recovery and schema-aware completion\n- #28 — Implement schema hover, runtime-parity diagnostics and explicit consumer policies\n\n## Acceptance criteria\n\n- [ ] Example units show generic primitive/duplicate parsing separately from configured profile rejection.\n- [ ] Compile the vendored version-1 example schema with the local meta-schema and check a complete valid example plus per-field missing/type/null/pattern/bound/conditional failures.\n- [ ] Fixed objects reject unknown fields while dynamic environment names follow their name rule and require string values.\n- [ ] Document local editor association, snapshot revision and all unresolved consumer assumptions; no core application fields, services, filesystem layout or dependency are introduced.\n\n## Notes\n\nOptional reference example only; the user requested a generic library. Do not claim agreed AdaptivePi compatibility or create AdaptivePi infrastructure work.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I29; implementation order: 29.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:examples",
+        "requirements:draft",
+        "optional:consumer-example"
+      ],
+      "milestone": 6
+    },
+    {
+      "number": 28,
+      "title": "[28] Implement schema hover, runtime-parity diagnostics and explicit consumer policies",
+      "body": "## Goal\n\nShow relevant descriptions/types/constraints in hover, align editor assertion outcomes with the native validator and keep duplicate/root/Unicode/numeric-spelling policies distinct from generic syntax.\n\n## Requirements\n\n`J5-079`, `J5-080` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #10 — Implement decoded-key equality and selectable duplicate policy\n- #11 — Implement exact numbers and checked numeric conversions\n- #19 — Implement exact schema numeric semantics and deep equality\n- #20 — Implement Unicode schema string lengths and bounded regex semantics\n- #22 — Implement structured schema outcomes and source-aware assertion diagnostics\n- #26 — Implement editor grammar parity, byte-to-position mapping and document versions\n- #27 — Implement incomplete-document recovery and schema-aware completion\n\n## Acceptance criteria\n\n- [ ] Language-service units cover field/enum hover, unknown fields and conditional failures.\n- [ ] Shared fixture units compare editor/native outcomes for 1, 1.0, 1e0, 1e-1, large integers and source ranges.\n- [ ] Generic and explicit consumer profile units distinguish syntax acceptance from root/duplicate/Unicode/spelling rejection; decoded duplicates are errors under reject policy.\n- [ ] No AdaptivePi-specific policy becomes the generic parser or editor default.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I28; implementation order: 28.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": 5
+    },
+    {
+      "number": 27,
+      "title": "[27] Implement incomplete-document recovery and schema-aware completion",
+      "body": "## Goal\n\nProvide provisional editing assistance for malformed/incomplete text and context/style-aware schema property/value completion without treating recovered trees as successful runtime parses.\n\n## Requirements\n\n`J5-077`, `J5-078` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #9 — Implement the owned value model and checked access\n- #17 — Implement offline URI/reference resolution and recursive schema semantics\n- #18 — Implement the required Draft-07 assertion vocabulary\n- #21 — Implement schema metadata, extensions and optional assertion capabilities\n- #25 — Package VS Code support with workspace-local offline schema associations\n- #26 — Implement editor grammar parity, byte-to-position mapping and document versions\n\n## Acceptance criteria\n\n- [ ] Language-service units request assistance inside unfinished objects, arrays, strings and escapes; native parser units reject the same incomplete documents.\n- [ ] Root/nested/referenced/type-union/conditional schemas suggest applicable names and enum/const/example/default values with required-field indicators.\n- [ ] Existing properties suppress ordinary duplicate insertion; quoting and insertion text remain valid for each completion context.\n- [ ] Every recovered tree/result is marked provisional and cannot be returned as a runtime successful document/validation.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I27; implementation order: 27.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": 5
+    },
+    {
+      "number": 26,
+      "title": "[26] Implement editor grammar parity, byte-to-position mapping and document versions",
+      "body": "## Goal\n\nAlign complete-document editor tokenization/diagnostics with both supported grammars, accurately map original source bytes to editor positions and discard cancelled/outdated responses.\n\n## Requirements\n\n`J5-074`, `J5-075`, `J5-076` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #8 — Complete the reader and maintain a grammar coverage matrix\n- #12 — Implement structured diagnostics, source spans and minimal failure reporting\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #24 — Implement the validation CLI and versioned machine diagnostics\n- #25 — Package VS Code support with workspace-local offline schema associations\n\n## Acceptance criteria\n\n- [ ] Language-service units reuse grammar fixtures for Unicode identifiers/whitespace, escapes, continuations, controls and numeric forms with syntax-mode expectations.\n- [ ] Position units cover astral/combining text, CRLF, continued strings, errors before/after multibyte text and valid EOF ranges using the documented protocol encoding.\n- [ ] Mock rapid edits, reopen/schema changes, cancellation and out-of-order backend responses; stale results never replace a newer document version.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I26; implementation order: 26.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": 5
+    },
+    {
+      "number": 25,
+      "title": "[25] Package VS Code support with workspace-local offline schema associations",
+      "body": "## Goal\n\nProvide a reproducible extension or compatible documented setup with an explicit language ID, supported VS Code versions and local schemas selected by workspace file patterns, including multiple roots and offline operation.\n\n## Requirements\n\n`J5-072`, `J5-073`, `J5-081` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #2 — Add portable component builds, unit-test tooling and dependency provenance\n- #17 — Implement offline URI/reference resolution and recursive schema semantics\n- #23 — Implement bounded schema evaluation, owned compiled graphs and pure validation\n- #24 — Implement the validation CLI and versioned machine diagnostics\n\n## Acceptance criteria\n\n- [ ] Unit-test association/configuration resolution for two roots, relative local references and file patterns; do not insert schema metadata into instance documents.\n- [ ] Unit fakes confirm local completion/validation needs no background network fetch; optional remote loading requires explicit configuration and runtime-compatible reference identities.\n- [ ] Document installation, reproducible packaging, supported versions and optional Remote SSH setup without imposing a remote development environment.\n- [ ] Unrelated language associations stay unchanged; host/editor dependencies do not enter core targets.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I25; implementation order: 25.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": 5
+    },
+    {
+      "number": 24,
+      "title": "[24] Implement the validation CLI and versioned machine diagnostics",
+      "body": "## Goal\n\nBuild an optional portable host CLI for file/stdin validation with explicit syntax/schema/profile/limit choices and readable plus versioned strict-JSON diagnostic/capability output.\n\n## Requirements\n\n`J5-070`, `J5-071` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #22 — Implement structured schema outcomes and source-aware assertion diagnostics\n- #23 — Implement bounded schema evaluation, owned compiled graphs and pure validation\n\n## Acceptance criteria\n\n- [ ] Unit-test command parsing, bounded reader abstractions and execution with fake I/O: 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure.\n- [ ] Cover malformed input, invalid schemas, unreadable-file fake, unsupported options, limits and cancellation.\n- [ ] Machine output round-trips through strict-JSON units and escapes arbitrary Unicode/control content; include locations/pointers/severity/version/capabilities and minimal OOM output.\n- [ ] Package CLI separately so library users and cross-compiled targets require no host-tool runtime.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I24; implementation order: 24.\n\n### File-driven requirement demonstration executable\n\nPrepare and later implement optional host target `adaptive_json5_examples`, using `examples/manifest.json` and original JSON/JSON5 fixtures. See `examples/README.md` for the proposed run/inspect/validate commands. Production C++ remains reserved for the developer.\n\n- Compare actual parse/validation/inspection observations with case-specific expectations; correctly rejected intentional failures count as matched cases.\n- Show owned ordered values, exact number spellings, checked conversions, duplicate policies, spans, warnings and explicit non-throwing errors.\n- Provide readable and versioned strict-JSON diagnostics, including safe tagged representations for non-finite numbers and surrogate units.\n- Account for all J5-001–101 IDs without claiming that file fixtures prove build, allocator, lifetime, concurrency, editor or embedded requirements. Use dedicated harness/unit/build evidence for those contracts.\n- Report planned/unsupported demonstrations explicitly; do not silently mark them passing. Keep schema-enabled scenarios conditional on the optional component.\n- Test dispatch, fixture loading, expectation comparison and outcome mapping as GoogleTest units with injected I/O. Add no integration/e2e CI gate.\n- Keep example CLI opt-in and separate from the embedded parser target. `adaptive_json5_example_files` is currently data-only.\n",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:cli",
+        "requirements:draft"
+      ],
+      "milestone": 5
+    },
+    {
+      "number": 23,
+      "title": "[23] Implement bounded schema evaluation, owned compiled graphs and pure validation",
+      "body": "## Goal\n\nAccount for schema reference/branch/equality/regex/error work and own compiled reference graphs independently of temporary input/registry buffers. Validation uses separate work contexts and performs no external operations.\n\n## Requirements\n\n`J5-065`, `J5-066`, `J5-067` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #13 — Implement recoverable allocation and atomic reusable contexts\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #15 — Implement deterministic semantics and independent concurrent contexts\n- #17 — Implement offline URI/reference resolution and recursive schema semantics\n- #20 — Implement Unicode schema string lengths and bounded regex semantics\n- #22 — Implement structured schema outcomes and source-aware assertion diagnostics\n\n## Acceptance criteria\n\n- [ ] Unit cases bound branch-heavy schemas, repeated references, expensive patterns, deep uniqueItems, cancellation and injected allocation failures, checking cleanup.\n- [ ] Destroy registry/input temporaries and move/reuse compiled schemas before validation; document any explicitly retained resolver lifetime.\n- [ ] Independent concurrent work-context units share immutable compiled schemas safely.\n- [ ] Fakes demonstrate validation performs no network/filesystem/process/environment-expansion calls; external loading occurs only at explicit compilation/resolution boundaries.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I23; implementation order: 23.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 22,
+      "title": "[22] Implement structured schema outcomes and source-aware assertion diagnostics",
+      "body": "## Goal\n\nDistinguish validation/assertion/schema/reference/unsupported/operational outcomes and emit bounded fail-fast/collect-all diagnostics with instance pointers, schema URI/locations, keywords and source spans.\n\n## Requirements\n\n`J5-063`, `J5-064` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #12 — Implement structured diagnostics, source spans and minimal failure reporting\n- #19 — Implement exact schema numeric semantics and deep equality\n- #20 — Implement Unicode schema string lengths and bounded regex semantics\n- #21 — Implement schema metadata, extensions and optional assertion capabilities\n\n## Acceptance criteria\n\n- [ ] Unit cases distinguish every outcome and diagnostic-count boundary; an assertion failure followed by allocation/cancellation failure cannot hide the operational error.\n- [ ] Nested arrays and slash/tilde/empty/Unicode names use correct RFC 6901 escaping.\n- [ ] Externally registered reference failures identify the originating schema URI/keyword, and instance pointers map to original source bytes where available.\n- [ ] Minimal allocation-free reporting remains usable when diagnostic paths or text cannot be built.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I22; implementation order: 22.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 21,
+      "title": "[21] Implement schema metadata, extensions and optional assertion capabilities",
+      "body": "## Goal\n\nRetain applicable schema annotations for tooling without mutating instances, follow Draft-07 unknown-keyword handling and expose format/content assertions only through explicit supported capabilities.\n\n## Requirements\n\n`J5-058`, `J5-062`, `J5-069` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #16 — Establish the optional Draft-07 component and schema compilation\n- #17 — Implement offline URI/reference resolution and recursive schema semantics\n- #18 — Implement the required Draft-07 assertion vocabulary\n\n## Acceptance criteria\n\n- [ ] Unit cases verify instance equality before/after validation and no insertion/conversion from defaults/examples.\n- [ ] Metadata includes title/description/default/examples/readOnly/writeOnly/comment with references/branches and no misleading inactive defaults.\n- [ ] Unknown schema keywords do not become assertions and remain distinct from unknown instance fields; optional typo warnings are nonassertive.\n- [ ] Baseline format/contentEncoding/contentMediaType remain annotations; requested unsupported assertion modes return explicit errors, and advertised options have units.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I21; implementation order: 21.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 20,
+      "title": "[20] Implement Unicode schema string lengths and bounded regex semantics",
+      "body": "## Goal\n\nCount Unicode characters rather than UTF-8 bytes and provide documented Draft-07-compatible pattern/property-name matching with explicit invalid/unsupported patterns and Unicode-instance outcomes.\n\n## Requirements\n\n`J5-060` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #5 — Implement lossless quoted strings, escapes and continuations\n- #9 — Implement the owned value model and checked access\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #18 — Implement the required Draft-07 assertion vocabulary\n\n## Acceptance criteria\n\n- [ ] Unit cases cover astral/combining characters, decoded escapes and NUL for lengths and property names.\n- [ ] Anchored/unanchored and interoperable required regex fixtures follow the documented dialect; invalid or unsupported patterns produce structured compilation/operational outcomes.\n- [ ] Unpaired surrogate instances never pass through replacement decoding; regex work has a documented budget mechanism.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I20; implementation order: 20.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 19,
+      "title": "[19] Implement exact schema numeric semantics and deep equality",
+      "body": "## Goal\n\nUse exact finite mathematical values for integer/bounds/multipleOf and type-aware deep equality for const/enum/uniqueItems, with explicit schema-instance rejection of duplicate members and nonfinite numbers.\n\n## Requirements\n\n`J5-059`, `J5-061` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #10 — Implement decoded-key equality and selectable duplicate policy\n- #11 — Implement exact numbers and checked numeric conversions\n- #18 — Implement the required Draft-07 assertion vocabulary\n\n## Acceptance criteria\n\n- [ ] Unit cases compare 1/1.0/1e0/0x1, 1e-1, large/close values, negative zero and exact decimal multipleOf without floating rounding.\n- [ ] Explicit NaN/Infinity fail at the instance boundary rather than as invalid parser syntax.\n- [ ] Deep equality respects type, order-sensitive arrays and order-independent uniquely named objects; booleans never equal numbers.\n- [ ] Duplicate-member instances receive their own boundary outcome, and nested/reordered object/array fixtures exercise enum/const/uniqueItems.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I19; implementation order: 19.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 18,
+      "title": "[18] Implement the required Draft-07 assertion vocabulary",
+      "body": "## Goal\n\nImplement all required type, number, string, array, object, composition and conditional assertions with nested/interacting and nonapplicable-type behavior; numerical/equality/regex precision is completed by the following issues.\n\n## Requirements\n\n`J5-057` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #9 — Implement the owned value model and checked access\n- #11 — Implement exact numbers and checked numeric conversions\n- #17 — Implement offline URI/reference resolution and recursive schema semantics\n\n## Acceptance criteria\n\n- [ ] Unit fixtures cover type/type arrays, enum/const; multipleOf and all bounds; length/pattern; items/tuple/additionalItems/min/max/uniqueItems/contains.\n- [ ] Object fixtures cover properties/patternProperties/additionalProperties/required/propertyNames/min/maxProperties and property/schema dependencies.\n- [ ] Composition fixtures cover allOf/anyOf/oneOf/not and if/then/else including branches, interactions and nonapplicable types.\n- [ ] Required keyword matrix links positive/negative/boundary units; no required assertion may be silently skipped or relabelled optional.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I18; implementation order: 18.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 17,
+      "title": "[17] Implement offline URI/reference resolution and recursive schema semantics",
+      "body": "## Goal\n\nCompile references through an explicit registry/resolver with Draft-07 URI scopes, JSON Pointers and ref-sibling semantics, supporting progressing recursion and rejecting nonprogressing cycles/resource exhaustion.\n\n## Requirements\n\n`J5-055`, `J5-056` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #14 — Implement configurable limits, bounded traversal and cancellation\n- #16 — Establish the optional Draft-07 component and schema compilation\n\n## Acceptance criteria\n\n- [ ] Unit registry fixtures cover nested IDs, relative/absolute references, escaped pointers, fragments and registered external schemas without network retrieval.\n- [ ] Unresolved references have distinct outcomes; ref assertion siblings are ignored as Draft-07 requires.\n- [ ] Recursive list/tree cases progress through instances; reference-only cycles and exhausted budgets return operational errors rather than hanging or fabricated assertion failures.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I17; implementation order: 17.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 16,
+      "title": "[16] Establish the optional Draft-07 component and schema compilation",
+      "body": "## Goal\n\nSelect/implement a separately buildable Draft-07 engine that preserves core precision/exception/resource contracts, explicitly reports its dialect and compiles strict-JSON boolean/object schemas against a vendored meta-schema.\n\n## Requirements\n\n`J5-053`, `J5-054`, `J5-068` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #2 — Add portable component builds, unit-test tooling and dependency provenance\n- #8 — Complete the reader and maintain a grammar coverage matrix\n- #12 — Implement structured diagnostics, source spans and minimal failure reporting\n- #13 — Implement recoverable allocation and atomic reusable contexts\n- #14 — Implement configurable limits, bounded traversal and cancellation\n\n## Acceptance criteria\n\n- [ ] Unit cases cover true/false schemas, invalid roots, wrong keyword shapes, malformed patterns and unsupported dialect requests.\n- [ ] Record the Draft-07 meta-schema URI, immutable revision and notices; compilation needs no live download.\n- [ ] Parser-only targets expose no schema dependencies; schema dependencies and supported exception/allocation paths are inventoried.\n- [ ] Maintain an explicit required-keyword coverage matrix, with unsupported work recorded until later issues complete it.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I16; implementation order: 16.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": 4
+    },
+    {
+      "number": 15,
+      "title": "[15] Implement deterministic semantics and independent concurrent contexts",
+      "body": "## Goal\n\nRemove shared mutable global state and hidden locale/environment options, defining independent parser/document concurrency and immutable-schema use with separate work contexts.\n\n## Requirements\n\n`J5-050`, `J5-052` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #13 — Implement recoverable allocation and atomic reusable contexts\n- #14 — Implement configurable limits, bounded traversal and cancellation\n\n## Acceptance criteria\n\n- [ ] Unit cases concurrently run independent valid/failing parser contexts and repeat equivalent input/options/version results.\n- [ ] Changed supported locales and environment settings cannot alter values or primary error categories; decimal parsing still follows the grammar.\n- [ ] Document unsupported sharing of mutable contexts and add equivalent immutable-schema concurrent units when schema lifetime support lands.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I15; implementation order: 15.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 3
+    },
+    {
+      "number": 14,
+      "title": "[14] Implement configurable limits, bounded traversal and cancellation",
+      "body": "## Goal\n\nValidate and account for named input/storage/diagnostic/work budgets across parse, conversion, comparison and cleanup, with explicit cancellation or deterministic work exhaustion.\n\n## Requirements\n\n`J5-047`, `J5-048`, `J5-049` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #11 — Implement exact numbers and checked numeric conversions\n- #13 — Implement recoverable allocation and atomic reusable contexts\n\n## Acceptance criteria\n\n- [ ] Unit cases exercise below/equal/above boundaries for bytes, depth, nodes/members, decoded units, numeric token/exponent size, owned bytes and diagnostics.\n- [ ] Invalid option combinations and checked arithmetic overflow fail before processing; no truncation can manufacture success.\n- [ ] Deep partial construction/destruction, adversarial duplicate sets and large numbers stay within checked stack/work budgets.\n- [ ] Cancellation at multiple work boundaries yields distinct operational outcomes and bounded cleanup; document calibrated defaults and accounting.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I14; implementation order: 14.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 3
+    },
+    {
+      "number": 13,
+      "title": "[13] Implement recoverable allocation and atomic reusable contexts",
+      "body": "## Goal\n\nRoute library-controlled allocations through a fallible mechanism and ensure every failed operation releases temporary resources, publishes no success/partial document and leaves contexts reusable.\n\n## Requirements\n\n`J5-046`, `J5-051` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #12 — Implement structured diagnostics, source spans and minimal failure reporting\n\n## Acceptance criteria\n\n- [ ] In-process allocation-injection units fail each reachable allocation in representative success/failure paths, including owned-result and diagnostic construction.\n- [ ] Allocation accounting shows no leaked temporary blocks; retained success-result storage and allocator lifetimes are documented.\n- [ ] Alternate valid, malformed and allocation-failing operations in one context and assert unambiguous success/error results in both exception modes.\n- [ ] Audit containers/dependencies so unsupported throw/abort-on-OOM paths are not advertised as recoverable.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I13; implementation order: 13.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 3
+    },
+    {
+      "number": 12,
+      "title": "[12] Implement structured diagnostics, source spans and minimal failure reporting",
+      "body": "## Goal\n\nRetain original byte spans and stable structured error categories with documented line/column conventions, including allocation-free fallback code/location reporting.\n\n## Requirements\n\n`J5-041`, `J5-043`, `J5-044`, `J5-045` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #9 — Implement the owned value model and checked access\n- #10 — Implement decoded-key equality and selectable duplicate policy\n- #11 — Implement exact numbers and checked numeric conversions\n\n## Acceptance criteria\n\n- [ ] Unit cases distinguish syntax, encoding, duplicate, access, numeric, configured-limit and allocation errors without parsing prose.\n- [ ] Check exact offsets/ranges for LF/CR/CRLF, Unicode separators, multibyte text, escaped strings, duplicate occurrences, invalid UTF-8 and end-of-input.\n- [ ] Moved documents retain spans after input destruction; any retained source ownership/cost is explicit and configurable.\n- [ ] An exhausted allocator still yields a usable minimal stable error code/location if rich messages or pointer construction fail.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I12; implementation order: 12.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 11,
+      "title": "[11] Implement exact numbers and checked numeric conversions",
+      "body": "## Goal\n\nOwn original numeric tokens and exact finite mathematical information, expose integrality separately from lexical spelling, and provide explicit checked integer/floating conversion outcomes.\n\n## Requirements\n\n`J5-034`, `J5-035`, `J5-036`, `J5-037`, `J5-038` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #7 — Implement strict/JSON5 number tokens, literals and token boundaries\n- #9 — Implement the owned value model and checked access\n\n## Acceptance criteria\n\n- [ ] Unit cases preserve spellings around 2^53, signed/unsigned limits, long integers/fractions, huge exponents and overflowing hex tokens.\n- [ ] Integer conversions report wrong type/nonintegral/out of range without rounding/wrapping; include 0x10000000000000001, bounds/adjacent values and negative unsigned inputs.\n- [ ] 1, 1.0, 1e0, 0x1, +1 and close fractions distinguish value and spelling without a double intermediary.\n- [ ] Floating conversion documents rounding/overflow/underflow and remains locale independent without mutating exact storage.\n- [ ] Negative zero and explicit signed Infinity/NaN remain distinguishable from finite conversion overflow; strict mode rejects nonfinite syntax.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I11; implementation order: 11.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 10,
+      "title": "[10] Implement decoded-key equality and selectable duplicate policy",
+      "body": "## Goal\n\nUse exact decoded key content, without normalization/case folding, for generic preserve-all and explicit reject-duplicates behavior. Report both colliding source occurrences.\n\n## Requirements\n\n`J5-032`, `J5-033` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #6 — Implement Unicode IdentifierName keys and escaped identifiers\n- #9 — Implement the owned value model and checked access\n\n## Acceptance criteria\n\n- [ ] Unit cases cover bare/quoted/escaped collisions at root and nested objects; equal names in separate objects do not collide.\n- [ ] Generic default preserves all duplicates; configured rejection returns no successful document and reports both occurrences.\n- [ ] Differing case and canonically equivalent differently encoded keys remain distinct; injected hash collisions cannot replace equality checks.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I10; implementation order: 10.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 9,
+      "title": "[09] Implement the owned value model and checked access",
+      "body": "## Goal\n\nProvide owned distinct value types, length-aware strings/names, ordered arrays and every source object member, with checked access and explicit lifetimes in a pure in-memory API.\n\n## Requirements\n\n`J5-028`, `J5-029`, `J5-030`, `J5-031`, `J5-039`, `J5-040`, `J5-042` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #8 — Complete the reader and maintain a grammar coverage matrix\n\n## Acceptance criteria\n\n- [ ] Unit cases distinguish null/absent, boolean/number and all value categories; wrong-type, missing-member, ambiguous duplicate lookup and out-of-range index return explicit outcomes.\n- [ ] Empty/NUL content and repeated object members remain observable; array/member source order is preserved.\n- [ ] Destroy/overwrite input and move documents before inspecting values/names/tokens; views follow documented lifetime rules.\n- [ ] Checked UTF-8 export succeeds for valid pairs and fails explicitly for unpaired units, without substitution.\n- [ ] The core has no filesystem, process, environment-expansion or network dependencies.\n\n## Notes\n\nStorage design can start with I01; complete acceptance follows the reader. Numeric conversion and duplicate policies are supplied by the next issues.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I09; implementation order: 09.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 8,
+      "title": "[08] Complete the reader and maintain a grammar coverage matrix",
+      "body": "## Goal\n\nConnect token and structural parsing so exactly one root of any valid type is consumed, followed only by permitted trivia, and trace every JSON5/strict-JSON grammar production to unit tests.\n\n## Requirements\n\n`J5-026`, `J5-027` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #3 — Implement UTF-8 validation, Unicode whitespace and BOM policy\n- #4 — Implement comments and object/array punctuation in both modes\n- #5 — Implement lossless quoted strings, escapes and continuations\n- #6 — Implement Unicode IdentifierName keys and escaped identifiers\n- #7 — Implement strict/JSON5 number tokens, literals and token boundaries\n\n## Acceptance criteria\n\n- [ ] Unit cases cover primitive/container roots, trailing permitted comments, empty/whitespace/comment-only input, additional roots and junk after a valid prefix.\n- [ ] Grammar matrix includes Unicode, malformed and representative every-byte truncation cases with decoded-value/location assertions and cross-mode expectations.\n- [ ] Document remaining grammar gaps and prevent a full-support claim until all productions are covered.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I08; implementation order: 08.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 7,
+      "title": "[07] Implement strict/JSON5 number tokens, literals and token boundaries",
+      "body": "## Goal\n\nRecognize exact grammar spellings and complete boundaries for numbers and primitive literals without eager floating-point conversion or case folding.\n\n## Requirements\n\n`J5-021`, `J5-022`, `J5-023`, `J5-024` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #4 — Implement comments and object/array punctuation in both modes\n- #5 — Implement lossless quoted strings, escapes and continuations\n- #6 — Implement Unicode IdentifierName keys and escaped identifiers\n\n## Acceptance criteria\n\n- [ ] Strict-number units cover integer/fraction/exponent forms and reject leading plus/zeros, missing digits, hex and nonfinite literals.\n- [ ] JSON5-number units cover signed decimal/hex, leading/trailing decimal points, exponents, NaN/Infinity and reject octal/binary/separators/malformed signs/case.\n- [ ] Lowercase true/false/null parse; lookalikes and unknown identifiers in value position fail.\n- [ ] Boundary fixtures such as truex, 1foo, 0x1z and trivia inserted inside a token fail instead of accepting prefixes; huge finite tokens remain syntax-valid within limits.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I07; implementation order: 07.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 6,
+      "title": "[06] Implement Unicode IdentifierName keys and escaped identifiers",
+      "body": "## Goal\n\nImplement the referenced JSON5 IdentifierName grammar with reserved words, Unicode positional properties and decoded identifier escapes; strict JSON continues to require quoted keys.\n\n## Requirements\n\n`J5-019`, `J5-020` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #3 — Implement UTF-8 validation, Unicode whitespace and BOM policy\n- #5 — Implement lossless quoted strings, escapes and continuations\n\n## Acceptance criteria\n\n- [ ] Unit fixtures cover dollar/underscore, reserved-word names, non-ASCII letters, combining continuation marks and ZWNJ/ZWJ.\n- [ ] Digit-first names, unrelated punctuation and escapes decoding to illegal start/continuation characters fail.\n- [ ] Quoted, bare and escaped spellings yield the same decoded key where equivalent; strict mode rejects unquoted names.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I06; implementation order: 06.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 5,
+      "title": "[05] Implement lossless quoted strings, escapes and continuations",
+      "body": "## Goal\n\nDecode JSON and complete JSON5 string grammar into a lossless representation, preserving escaped UTF-16 units and distinguishing checked Unicode export from parse acceptance.\n\n## Requirements\n\n`J5-014`, `J5-015`, `J5-016`, `J5-017`, `J5-018` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #3 — Implement UTF-8 validation, Unicode whitespace and BOM policy\n- #4 — Implement comments and object/array punctuation in both modes\n\n## Acceptance criteria\n\n- [ ] Unit cases cover quoting, raw controls, forbidden raw CR/LF, truncation, every JSON escape and JSON5 x/v/zero/non-escape behavior; a/e decode as letters and forbidden digit escapes fail.\n- [ ] LF, CR, CRLF, U+2028 and U+2029 continuations join content correctly; raw separators preserve content and produce nonfatal JSON5 warnings.\n- [ ] Paired/unpaired surrogate units and pair order are preserved without substitution; valid raw non-BMP characters agree with paired escapes.\n- [ ] Fixtures assert exact decoded units/lengths and locations, with strict-mode distinctions.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I05; implementation order: 05.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 4,
+      "title": "[04] Implement comments and object/array punctuation in both modes",
+      "body": "## Goal\n\nImplement JSON5 comment placement/termination and container punctuation, including the single JSON5 trailing comma while strict JSON rejects extensions.\n\n## Requirements\n\n`J5-012`, `J5-013` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #3 — Implement UTF-8 validation, Unicode whitespace and BOM policy\n\n## Acceptance criteria\n\n- [ ] Unit cases cover EOF line comments, all line endings, unterminated block comments, attempted nesting and quoted comment delimiters.\n- [ ] Empty/nested containers and a single trailing comma parse as specified; holes, doubled commas, missing separators and misplaced colons fail at precise token locations.\n- [ ] Run each discriminating fixture in both syntax modes.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I04; implementation order: 04.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 3,
+      "title": "[03] Implement UTF-8 validation, Unicode whitespace and BOM policy",
+      "body": "## Goal\n\nEstablish documented reproducible Unicode data and validate every source byte in both modes, including comments and trailing trivia. Implement mode-specific whitespace and the explicit strict-JSON leading-BOM option.\n\n## Requirements\n\n`J5-006`, `J5-009`, `J5-010`, `J5-011`, `J5-025` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #1 — Define the public C++17 API and draft behavior contracts\n- #2 — Add portable component builds, unit-test tooling and dependency provenance\n\n## Acceptance criteria\n\n- [ ] Unit cases reject overlong UTF-8, encoded surrogates, invalid/truncated sequences and values beyond U+10FFFF at token, comment and trailing positions.\n- [ ] Unit cases cover JSON whitespace, JSON5 named/Zs spaces and BOM at leading/interior boundaries; strict JSON ignores at most one leading BOM only when configured.\n- [ ] Record table Unicode version, provenance and reproducible generation/vendor process; representative historical and newer property memberships do not depend on process locale.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I03; implementation order: 03.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 2
+    },
+    {
+      "number": 2,
+      "title": "[02] Add portable component builds, unit-test tooling and dependency provenance",
+      "body": "## Goal\n\nProvide CMake 3.25 configuration for independently selectable parser, schema, host tools and tests, with a minimal parser build and unit-test/formatting workflow. Retain Apache-2.0 and track licensed dependencies, data and fixtures.\n\n## Requirements\n\n`J5-002`, `J5-007` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\n- #1 — Define the public C++17 API and draft behavior contracts\n\n## Acceptance criteria\n\n- [ ] Parser-only configuration does not enable schema, CLI, editor or tests implicitly and requires no network access.\n- [ ] Compiler settings are target-scoped and portable across selected MSVC, GCC and Clang C++17 environments.\n- [ ] Provide documented commands and CI checks only for unit tests and formatting; no fuzz, sanitizer, integration, end-to-end or benchmark jobs.\n- [ ] License and provenance files retain Apache-2.0 and list pinned incorporated source/data/fixtures with their upstream notices.\n\n## Notes\n\nThe proposal's MIT suggestion does not override the existing Apache-2.0 license.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I02; implementation order: 02.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:build",
+        "requirements:draft"
+      ],
+      "milestone": 1
+    },
+    {
+      "number": 1,
+      "title": "[01] Define the public C++17 API and draft behavior contracts",
+      "body": "## Goal\n\nAll library errors must be returned through non-throwing explicit result/error values, including syntax, conversion/access, allocation and limit failures. This applies even when the consuming project enables exceptions.\n\nDefine reviewed C++17 public API contracts and types for explicit bytes/length, syntax defaults, results, ownership, exact numbers, errors and allocation before a developer implements the production reader. Agent work is documentation and planned GoogleTest cases only; production C++ belongs to the developer.\n\n## Requirements\n\n`J5-001`, `J5-003`, `J5-004`, `J5-005`, `J5-008` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\nNone. Start here; settle public behavior before dependent implementation.\n\n## Acceptance criteria\n\n- [x] Public headers use portable standard C++17 and expose no AdaptivePi, WSL, host-tool or editor types.\n  - Reviewed 2026-10-13 for the current `error.hpp` and `result.hpp` inventory: standard-library dependencies only; each header independently compiles as the first/only include with Windows/GCC 15.2.0, C++17, `-pedantic-errors`, RTTI OFF and exceptions OFF/ON. Review future declarations against the same boundary. This does not declare full J5-001 platform-matrix or embedded-runtime verification.\n- [ ] Document exact-length/read-only/non-NUL-terminated input semantics and mode/result defaults; add API/configuration GoogleTest cases as the corresponding declarations become available. Complete parse behavior is verified by subsequent grammar issues.\n- [x] Specify equivalent recoverable outcomes in exception OFF/ON builds and prohibit invalid-input assert/abort/throw; complete runtime cases land with the implemented reader.\n  - Specified 2026-10-13 in the local `docs/architecture.md` recoverable-error contract: explicit category mapping, equivalent compiler-mode behavior, allocation-free minimal reporting, checked access and atomic failure/cleanup. P002 has local result-container evidence; parser, conversion/access, allocation-exhaustion and resource-limit runtime verification remain pending. Documentation changes await the repository commit.\n- [ ] Document syntax defaults, ownership/views, duplicate policy, conversions, error categories, limits and thread-safety; unresolved choices remain Draft.\n\n## Notes\n\nCompatible C++17 projects are the supported goal; do not promise every historical C++ implementation.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I01; implementation order: 01.",
+      "state": "open",
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": 1
+    }
+  ]
+}

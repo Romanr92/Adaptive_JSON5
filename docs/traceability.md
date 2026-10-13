@@ -1,6 +1,10 @@
 # Requirement traceability
 
-Every requirement has an owning implementation issue. All functional contracts
+Every requirement has an owning implementation issue. Issues #2 onward follow
+P002–P066; completion issues #68–#72 retain build/runtime/consumer/release work.
+Issue #1's declaration/contracts work and P002/P003 are complete at component
+scope; broader J5 contracts remain Draft. The P004 cursor is still pending.
+ All functional contracts
 remain **Draft**; none is declared fully implemented or verified by this setup.
 The configuration, P002 result/error and input/options units provide partial evidence
 for their owning requirements. Test existence, a passing execution and complete
