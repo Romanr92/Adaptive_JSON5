@@ -120,6 +120,112 @@ These establish result-container behavior and selected compiler settings.
 Invalid-input, allocation-exhaustion, conversion/access and resource-limit
 runtime recovery are verified by later units as their implementations arrive.
 
+## Public ownership, value and policy contracts
+
+This section completes Issue #1's public-contract specification scope for
+J5-008. The semantic obligations come from the active requirements. Except for
+the existing input/options and result/error declarations, the value, storage,
+conversion and parser APIs described below are planned, not implemented.
+
+### Ownership and views
+
+Under J5-028–031 and J5-040–042, a successful parsed document owns its values,
+decoded strings/member names and original number spellings independently of
+the input buffer. Caller input can be released or overwritten after parsing
+returns without changing a successful document. Source text retained for
+tooling must have explicit ownership and an accounted, configurable storage cost.
+Arrays and object-member enumeration retain source order; names and strings
+are length-aware, including embedded zero units.
+
+Input views borrow caller storage only during the reading operation. Pointers
+returned by result inspection borrow the result's active alternative and must
+not outlive that storage. For future document views, the owning-document
+lifetime, move/destruction effects and any invalidation rules must be defined
+before those views are exposed. No pointers into temporary parsing buffers may
+escape as document data. Address stability across document moves is **Draft**;
+it is not inferred from the existing result's move constructor.
+
+### Duplicate policy
+
+J5-031–033 specify preserve-all as the generic default. Every member remains
+observable in source order, including repeated decoded names. An explicit
+reject-duplicates policy reports the colliding occurrences and returns failure
+before publishing a successful document. Names compare by exact decoded
+content, without normalization, case folding or hash-only equality. Convenience
+lookup must explicitly report ambiguity rather than silently choosing or
+concealing a preserved duplicate.
+
+The duplicate-policy declarations and lookup signatures are **Draft**. Current
+`parse_options` contains only syntax selection; no duplicate-policy field or
+working duplicate parser is present yet.
+
+### Numbers, conversions and checked access
+
+J5-034–039 require owned original number spelling and an exact finite-value
+representation. Mathematical integrality is separate from lexical spelling;
+eager conversion through `double` must not determine integer acceptance.
+Integer conversion reports wrong type, non-integral value and destination
+overflow explicitly, without rounding or wrapping. Booleans and non-finite
+values are not silently treated as integers.
+
+Floating conversion is explicit and locale-independent, preserves the stored
+number and documents rounding, overflow and underflow outcomes. Finite tokens
+that overflow a requested destination remain distinct from explicit Infinity
+or NaN, and negative-zero sign/spelling is retained. The exact representation,
+destination-specific policies and detailed conversion-reason API are **Draft**;
+the current minimal `numeric_conversion` category alone does not specify every
+conversion sub-outcome.
+
+J5-018 and J5-029 require lossless decoded UTF-16 units, including unpaired
+surrogates, and checked UTF-8 export that fails rather than replacing unsupported
+units. Wrong-type access, absent members, ambiguous duplicates and out-of-range
+indices return explicit outcomes. These string/value access and conversion APIs
+are pending; current checked access applies to result alternatives only.
+
+### Storage, limits and cleanup
+
+J5-046–049 and J5-101 require caller-supplied fallible storage and explicit
+budgets for library-owned allocations, with no implicit global-heap or OS
+dependency. Storage must remain available until all associated owned objects
+have been destroyed and their allocations released. Allocator declarations,
+alignment/capacity accounting and the exact runtime subset are **Draft** and
+are developed in the storage foundation.
+
+The named limits cover input bytes, nesting, nodes/members, decoded string
+units, numeric token/exponent lengths, owned allocation bytes and diagnostic
+count. Limits and option combinations are validated before processing;
+arithmetic is checked, and data is never silently truncated to fit a budget.
+Parsing, conversion, comparison and error cleanup must remain within stack/work
+budgets, including cleanup of partially built deep data. Exhaustion reports
+`resource_limit` or `allocation_failure` as appropriate, rather than a syntax
+failure. Long operations use documented cancellation or deterministic work
+budgets; their exact public representation remains **Draft**.
+
+Concrete limit defaults and precise charging/reset rules are **Draft**. No
+unlimited or arbitrary numeric default is implied, and the current
+`parse_options` has no limit fields. These choices must be settled and tested
+before the corresponding processing API is advertised as supported.
+
+### Thread-safety and deterministic behavior
+
+J5-050–052 require independent parser contexts/documents to operate concurrently
+without shared mutable global state. Sharing a mutable work context requires
+caller synchronization unless a later API explicitly supports it. A shared
+storage provider must satisfy its own concurrency contract; the core does not
+add OS locks or threads to make an unsafe provider safe.
+
+Existing result/input/options objects follow ordinary C++ synchronization rules:
+read-only inspection must not race with mutation, moving, destruction or changes
+to borrowed bytes/payloads. Mutable `value_if()` access supplies no synchronization.
+Future same-document concurrent access and context reuse/invalidation details
+are **Draft** until their declarations and implementation are available.
+
+Parsing and conversion do not depend on process locale, clocks, environment or
+hidden global settings. Identical input/options, storage outcomes and documented
+data versions produce equivalent values and stable primary error categories.
+Concurrency and deterministic processing units follow those implementations;
+current result units do not prove parser concurrency or device execution.
+
 ## Decisions still to make
 
 - Fallible allocator interface, owned document layout and view lifetimes.

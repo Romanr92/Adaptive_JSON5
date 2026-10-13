@@ -1,5 +1,20 @@
 # Development setup verification
 
+## Issue #1 public-contract documentation, 2026-10-13
+
+The existing [architecture document](architecture.md#public-ownership-value-and-policy-contracts)
+now covers syntax defaults, input/result lifetimes, owned documents and views,
+duplicate preservation/rejection, exact numbers and checked conversions, error
+categories, caller storage, named limits, cleanup, concurrency and determinism.
+Unresolved signatures, document-move view stability, allocator details,
+conversion policies and numeric limit defaults are explicitly Draft.
+
+This completes the remaining documentation acceptance item for Issue #1. It
+does not implement these future APIs, change J5 statuses or establish a parser
+release. The previous 51-case OFF/ON unit evidence applies to current
+declarations only. No new production changes or test executions were needed
+for this documentation update.
+
 ## Issue #1 input/options declarations, 2026-10-13
 
 The developer's `input.hpp` and `options.hpp` define borrowed immutable input

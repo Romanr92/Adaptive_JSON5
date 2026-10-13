@@ -2,7 +2,7 @@
 
 Every requirement has an owning implementation issue. All functional contracts
 remain **Draft**; none is declared fully implemented or verified by this setup.
-The configuration units and P002 result/error units provide partial evidence
+The configuration, P002 result/error and input/options units provide partial evidence
 for their owning requirements. Test existence, a passing execution and complete
 requirement coverage are distinct.
 
