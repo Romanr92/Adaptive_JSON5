@@ -99,6 +99,9 @@ Tracking: [#4](https://github.com/Romanr92/Adaptive_JSON5/issues/4).
 
 Consume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.
 
+Implementation: developer-authored `cursor.hpp`.
+Local unit evidence: 8 cursor cases (6 boundary/read, 1 span, 1 location) passed on Windows/GCC with exceptions OFF and ON and RTTI OFF on 2026-10-13; see [verification notes](../verification.md). This component evidence does not complete full parser input acceptance or establish a remote matrix.
+
 - Prerequisites: P002.
 - Basis: Project.
 - Unit acceptance: Empty, embedded-zero and truncated buffers; no terminating NUL assumption.

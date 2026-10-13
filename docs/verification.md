@@ -1,5 +1,18 @@
 # Development setup verification
 
+## Individual CTest case registration, 2026-10-13
+
+CMake now uses `gtest_discover_tests` to register each GoogleTest case, including
+parameterized cases, separately. The four former executable entry names remain
+group labels selectable with `ctest -L`; `-R` selects individual case names.
+Historical executable-level totals below describe the registration at that time.
+
+The Zed `launch-tests` workflow rebuilt and passed all 98 individual cases with
+exceptions OFF and RTTI OFF. The exceptions-ON preset also rebuilt and passed
+all 98 cases with RTTI OFF. No production C++ or test assertions changed.
+The formatting check could not run because the installed clang-format executable
+failed its `--version` invocation; formatting remains unverified for this change.
+
 ## Issue #1 public-contract documentation, 2026-10-13
 
 The existing [architecture document](architecture.md#public-ownership-value-and-policy-contracts)
@@ -61,6 +74,35 @@ This evidence covers the current header inventory only; the full native compiler
 matrix, embedded runtime and broader J5-001 verification remain pending. No
 production files changed, no new quality gate was added and broader J5 statuses
 remain Draft.
+
+## P004 cursor units, 2026-10-13
+
+The developer's `cursor.hpp` provides explicit length bounding, forward consumption,
+arbitrary remaining-bounded lookahead (`peek(delta)`), clamped advance, and subrange
+span slicing (`span_from`) over borrowed `input_view` buffers. The agent added only
+test C++ (`tests/cursor_tests.cpp`), test build setup (`tests/CMakeLists.txt`), and
+traceability/verification updates.
+
+`tests/cursor_tests.cpp` exercises 8 GoogleTest cases across 3 requirements:
+- `J5_004_Cursor`: default-constructed cursor immediate end state; empty non-null
+  view immediate end state; exact length consumption without terminating NUL
+  assumption; reading across embedded zero bytes; bounded lookahead (`peek`);
+  advance clamped at buffer end.
+- `J5_041_Cursor`: source span extraction up to current offset with boundary clamps.
+- `J5_044_Cursor`: exact zero-based byte offset preservation throughout consumption.
+
+| Local native Windows configuration | Executed result |
+| --- | --- |
+| GCC 15.2.0, C++17, exceptions OFF, RTTI OFF | All 4 CTest test executables passed (98 total test cases across suites, 16 in `api_configuration_units`) |
+| GCC 15.2.0, C++17, exceptions ON, RTTI OFF | All 4 CTest test executables passed (98 total test cases across suites, 16 in `api_configuration_units`) |
+| clang-format 18.1.8 | Passed for all 14 C++ files (`python tools/format.py --check`) |
+
+Both configurations used Ninja, CMake 4.4.4 and the pinned GoogleTest revision.
+Reproduce with `cmake --build --preset debug-unit-tests` and `ctest --preset debug-unit-tests`,
+followed by the corresponding `debug-unit-tests-exceptions` preset commands.
+
+P004's cursor component has local executed unit evidence. Broader J5-004, J5-041,
+and J5-044 parser diagnostics, token spans, and full input acceptance remain Draft.
 
 ## P003 storage and accounting units, 2026-10-13
 
