@@ -17,7 +17,7 @@ For each implementation change:
 
 1. State the behavior and requirement IDs it implements.
 2. Add meaningful unit cases for normal behavior, boundaries and explicit errors.
-3. Run the unit suite with exceptions OFF and ON, then check clang-format 18.
+3. Run the unit suite with exceptions OFF and RTTI OFF, then check clang-format 18.
 4. Update requirement-to-test mappings and public documentation as applicable.
 5. Submit a focused pull request using the template.
 

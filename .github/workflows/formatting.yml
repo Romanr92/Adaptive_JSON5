@@ -1,8 +1,11 @@
 name: formatting
 
 on:
-  push:
   pull_request:
+
+concurrency:
+  group: formatting-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
