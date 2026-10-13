@@ -1,0 +1,1593 @@
+{
+  "captured_on": "2026-10-13",
+  "repository": "Romanr92/Adaptive_JSON5",
+  "notice": "Pre-change live issue snapshot; historical bodies and states do not establish implementation or verification.",
+  "issues": [
+    {
+      "number": 72,
+      "title": "Finish release records and reconcile documentation with implemented components",
+      "body": "## Requirement to implement\n\nReplace stale no-production-code claims now that result/error headers exist. Reconcile README, architecture, development, verification, requirement sequence, traceability and issue ownership. Record actual supported compiler/toolchain versions and executed GoogleTest/formatting results; preserve historical results as historical. Document source/Unicode/schema versions, limits/deviations, allocator/ABI options, licensing, offline consumption and packaging for components actually shipped. Keep optional schema/CLI/editor/consumer releases separate from a core release.\n\n## Unit-test behavior and evidence\n\nCheck every shipped behavior against named executed GoogleTest cases and every shipped source against the existing formatting check. Keep implemented code, test inventory and executed evidence distinct. Record unsupported/unexecuted compiler/device/editor combinations. Required CI remains one exceptions-OFF GoogleTest job and one formatting job on pull requests.\n\n## Acceptance criteria\n\n- [ ] Documentation matches the implemented and shipped components.\n- [ ] Named executed GoogleTest results and formatting evidence are recorded.\n\nFor implementation tasks, documentation covers the behavior and limits, implementation supplies the stated behavior, and unit tests cover the named cases. All required builds use exceptions OFF and RTTI OFF; pull requests require one passing GoogleTest job and one passing formatting job.\n\n## Dependencies and traceability\n\nP040: #41, P041: #42. \n\nJ5-008, J5-099, J5-100. Carries the original #35 release work. P055, P059 and P066 apply only if schema, host tools or editor are shipped; optional consumer examples do not block the core.\n\nOriginal issue scope is retained in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Production C++ remains reserved for the developer.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:docs",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 7,
+        "title": "7. Portable packaging and release"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/72",
+      "created_at": "2026-10-13T10:14:12Z",
+      "updated_at": "2026-10-13T10:31:26Z",
+      "closed_at": null
+    },
+    {
+      "number": 71,
+      "title": "Finish optional consumer numeric/string policies and result mapping",
+      "body": "## Requirement to implement\n\nImplement a separate consumer adapter selecting mathematical or lexical integer rules, NUL/surrogate/path spelling rules and consumer defaults. Preserve owned input values, empty/ordered arguments and original bytes. Derive argv[0] in the adapter. Map syntax, encoding, duplicate, version, field, conversion and resource failures into the consumer result type without importing ara APIs, filesystem checks or service management into the parser.\n\n## Unit-test behavior and evidence\n\nCompare 1, 1.0, 1e0, 0x1, +1, fractions, booleans and nonfinite values under each policy. Cover NUL/unpaired-surrogate and lexical traversal rejection, ordered/empty arguments, defaults versus schema annotations and each result mapping using fake consumer/I/O units.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nFor implementation tasks, documentation covers the behavior and limits, implementation supplies the stated behavior, and unit tests cover the named cases. All required builds use exceptions OFF and RTTI OFF; pull requests require one passing GoogleTest job and one passing formatting job.\n\n## Dependencies and traceability\n\nP038: #39, P054: #55, P065: #66. Also depends on the optional profile example #70.\n\nJ5-087, J5-088, J5-089, J5-090. Optional adapter work retained from original #30. Consumer defaults must be explicitly documented before implementation; lexical path validation is not filesystem security verification.\n\nOriginal issue scope is retained in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Production C++ remains reserved for the developer.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:examples",
+        "requirements:draft",
+        "optional:consumer-example"
+      ],
+      "milestone": {
+        "number": 6,
+        "title": "6. Optional consumer example"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/71",
+      "created_at": "2026-10-13T10:14:10Z",
+      "updated_at": "2026-10-13T10:31:24Z",
+      "closed_at": null
+    },
+    {
+      "number": 70,
+      "title": "Finish the optional versioned consumer schema example",
+      "body": "## Requirement to implement\n\nSupply the optional version-1 consumer schema and complete valid/invalid example documents outside the core. Use object-root and duplicate-rejection policy only at this profile boundary. Document the reference snapshot revision and unresolved consumer assumptions. Reject unknown fields in fixed objects; apply explicit name/type rules to dynamic environment entries. Configure workspace-local editor association without inserting schema metadata into instances.\n\n## Unit-test behavior and evidence\n\nCompile the local versioned schema against the local Draft-07 meta-schema. Test a valid example and per-field missing/type/null/pattern/bound/conditional failures, unknown fixed fields and dynamic-name/value rules. Contrast generic primitive/duplicate parsing with profile rejection.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nFor implementation tasks, documentation covers the behavior and limits, implementation supplies the stated behavior, and unit tests cover the named cases. All required builds use exceptions OFF and RTTI OFF; pull requests require one passing GoogleTest job and one passing formatting job.\n\n## Dependencies and traceability\n\nP036: #37, P054: #55, P063: #64, P065: #66. \n\nJ5-083, J5-084, J5-085, J5-086. Optional consumer work retained from original #29; it does not block a generic parser release or introduce AdaptivePi dependencies.\n\nOriginal issue scope is retained in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Production C++ remains reserved for the developer.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:examples",
+        "requirements:draft",
+        "optional:consumer-example"
+      ],
+      "milestone": {
+        "number": 6,
+        "title": "6. Optional consumer example"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/70",
+      "created_at": "2026-10-13T10:14:09Z",
+      "updated_at": "2026-10-13T10:31:21Z",
+      "closed_at": null
+    },
+    {
+      "number": 69,
+      "title": "Finish pure-memory parsing, concurrent contexts and embedded runtime contracts",
+      "body": "## Requirement to implement\n\nKeep parse/value/conversion operations independent of filesystem, network, processes, locale, clocks and OS thread APIs. Share only immutable data; keep mutable parse/work contexts caller-owned. Document the required C++17 runtime, alignment, byte order, integer-size assumptions, initialization and bounded stack/work storage. Connect caller-supplied fallible storage and caller-owned embedded CMake toolchains without requiring a global heap, exceptions, RTTI or host tools.\n\n## Unit-test behavior and evidence\n\nRun repeated equivalent parses under changed supported locale/environment settings. Run independent valid/failing contexts concurrently using host test threads. Exercise fixed storage, exhaustion and cleanup through no-OS adapters; document unsupported data models/toolchains explicitly. Host passes do not establish device certification or universal embedded support.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nFor implementation tasks, documentation covers the behavior and limits, implementation supplies the stated behavior, and unit tests cover the named cases. All required builds use exceptions OFF and RTTI OFF; pull requests require one passing GoogleTest job and one passing formatting job.\n\n## Dependencies and traceability\n\nP003: #3, P031: #31, P037: #38, P038: #39, P039: #40. \n\nJ5-042, J5-050, J5-052, J5-101. Retains the original concurrency and embedded completion work (#15 and #31). Host GoogleTest may use threads; the core must not require OS thread facilities.\n\nOriginal issue scope is retained in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Production C++ remains reserved for the developer.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 3,
+        "title": "3. Resource and failure contracts"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/69",
+      "created_at": "2026-10-13T10:14:08Z",
+      "updated_at": "2026-10-13T10:31:19Z",
+      "closed_at": null
+    },
+    {
+      "number": 68,
+      "title": "Finish the C++17 library target and install the public headers",
+      "body": "## Requirement to implement\n\nCreate a usable namespaced library target for the existing result/error component; publish build/install include paths and C++17 requirements. Install error.hpp and result.hpp, then extend the same package with parser and optional schema targets when implemented. Keep tests OFF for subproject/consumer builds, avoid implicit dependency downloads, and keep host tools separate. Apply exceptions-OFF and RTTI-OFF flags to project targets without changing parent flags. Record pinned source/dependency versions and ABI-affecting options.\n\n## Unit-test behavior and evidence\n\nLink the existing GoogleTest result suite through the real library target instead of a direct include-directory workaround. Run it with exceptions OFF and RTTI OFF. Record development configure/build/install results for tests-disabled and optional-component configurations; do not add an integration CI gate.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nFor implementation tasks, documentation covers the behavior and limits, implementation supplies the stated behavior, and unit tests cover the named cases. All required builds use exceptions OFF and RTTI OFF; pull requests require one passing GoogleTest job and one passing formatting job.\n\n## Dependencies and traceability\n\nP002: #2. \n\nJ5-001, J5-002, J5-007, J5-091, J5-092, J5-093. Finishes the remaining production-target part of P001 and the original build/package issues #2 and #32. A header-only foundation can use an INTERFACE library; no dummy implementation source is needed.\n\nOriginal issue scope is retained in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Production C++ remains reserved for the developer.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:build",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 7,
+        "title": "7. Portable packaging and release"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/68",
+      "created_at": "2026-10-13T10:14:07Z",
+      "updated_at": "2026-10-13T10:31:16Z",
+      "closed_at": null
+    },
+    {
+      "number": 67,
+      "title": "P066: Editor release evidence",
+      "body": "## Requirement to implement\n\nDocument extension/backend versions and executed tokenization/live-document/range/completion/hover/parity units. Distinguish unit evidence from unexecuted VS Code host acceptance; do not claim unsupported features.\n\n## Unit-test behavior\n\nComplete editor-feature-to-unit mapping and unit/format checks only.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP065: #66.\n\nP066 → J5-082, J5-100. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:tests",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/67",
+      "created_at": "2026-10-13T10:13:06Z",
+      "updated_at": "2026-10-13T10:30:47Z",
+      "closed_at": null
+    },
+    {
+      "number": 66,
+      "title": "P065: Hover and runtime-parity diagnostics",
+      "body": "## Requirement to implement\n\nShow applicable descriptions/types/constraints and agree with runtime exact-number/assertion semantics; expose duplicate, Unicode, root and lexical numeric profile rules separately from generic grammar.\n\n## Unit-test behavior\n\nHover metadata and parser/schema/profile parity units including mathematical versus lexical integer policies.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP057: #58, P064: #65.\n\nP065 → J5-079, J5-080. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/66",
+      "created_at": "2026-10-13T10:13:05Z",
+      "updated_at": "2026-10-13T10:30:45Z",
+      "closed_at": null
+    },
+    {
+      "number": 65,
+      "title": "P064: Schema completions",
+      "body": "## Requirement to implement\n\nSuggest applicable property names and enum/const/default/example values, required-field hints and quoting-aware insertion, avoiding normal duplicate properties.\n\n## Unit-test behavior\n\nNested/referenced/conditional/union schemas and incomplete-input insertion units.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP053: #54, P063: #64.\n\nP064 → J5-078. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/65",
+      "created_at": "2026-10-13T10:13:04Z",
+      "updated_at": "2026-10-13T10:30:43Z",
+      "closed_at": null
+    },
+    {
+      "number": 64,
+      "title": "P063: Offline workspace schema associations",
+      "body": "## Requirement to implement\n\nAssociate file patterns with repository-local schemas per workspace root, without inserting $schema in instances. Resolve registered resources offline; remote access requires explicit configuration.\n\n## Unit-test behavior\n\nTwo roots, relative references, changed associations and fake network that fails if called.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP055: #56, P062: #63.\n\nP063 → J5-073, J5-081. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/64",
+      "created_at": "2026-10-13T10:13:03Z",
+      "updated_at": "2026-10-13T10:30:41Z",
+      "closed_at": null
+    },
+    {
+      "number": 63,
+      "title": "P062: Versioned live documents and provisional recovery",
+      "body": "## Requirement to implement\n\nSupport unsaved document versions, cancellation and stale-result suppression; provide explicitly provisional recovery for completion/hover without accepting incomplete runtime documents.\n\n## Unit-test behavior\n\nRapid edits/reopen/cancellation and incomplete token/container unit cases.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP061: #62.\n\nP062 → J5-076, J5-077. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/63",
+      "created_at": "2026-10-13T10:13:02Z",
+      "updated_at": "2026-10-13T10:30:38Z",
+      "closed_at": null
+    },
+    {
+      "number": 62,
+      "title": "P061: Editor grammar and position mapping",
+      "body": "## Requirement to implement\n\nUse grammar fixtures and runtime diagnostics consistently; map original byte spans to documented editor positions, including astral Unicode, combining marks, CRLF and continuations.\n\n## Unit-test behavior\n\nTokenization and range-adapter units with shared parser fixtures.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP060: #61.\n\nP061 → J5-074, J5-075. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/62",
+      "created_at": "2026-10-13T10:13:02Z",
+      "updated_at": "2026-10-13T10:30:36Z",
+      "closed_at": null
+    },
+    {
+      "number": 61,
+      "title": "P060: VS Code extension package",
+      "body": "## Requirement to implement\n\nPrepare a separate extension package with JSON5 language identity/file associations, pinned dependencies, native backend selection and supported versions; do not make it a library dependency.\n\n## Unit-test behavior\n\nPackage/contribution configuration units; reproducible packaging instructions, no new host-test CI gate.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP057: #58.\n\nP060 → J5-072. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:editor",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/61",
+      "created_at": "2026-10-13T10:13:01Z",
+      "updated_at": "2026-10-13T10:30:34Z",
+      "closed_at": null
+    },
+    {
+      "number": 60,
+      "title": "P059: Host-tool packaging",
+      "body": "## Requirement to implement\n\nExpose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/version it independently, documenting library/executable/test presets. Parser and embedded consumers require no CLI/editor runtime.\n\n## Unit-test behavior\n\nCMake target/options review, documented usage and unit capability/version output.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP058: #59.\n\nP059 → J5-002, J5-007, J5-070, J5-092, J5-093. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:cli",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/60",
+      "created_at": "2026-10-13T10:13:00Z",
+      "updated_at": "2026-10-13T10:30:31Z",
+      "closed_at": null
+    },
+    {
+      "number": 59,
+      "title": "P058: File-driven example executable",
+      "body": "## Requirement to implement\n\nImplement optional adaptive_json5_examples against examples/manifest.json with run/inspect/validate commands, matched expectations and requirement-specific observations; unsupported capabilities never count as passing. Preserve the distinct direct-validation and demonstration-run exit contracts documented in examples/README.md.\n\n## Unit-test behavior\n\nInjected readers/reporters, valid/intentional-invalid examples and mismatch/resource outcomes; no e2e CI gate.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP057: #58.\n\nP058 → J5-070, J5-071, J5-094. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:cli",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/59",
+      "created_at": "2026-10-13T10:12:59Z",
+      "updated_at": "2026-10-13T10:30:29Z",
+      "closed_at": null
+    },
+    {
+      "number": 58,
+      "title": "P057: CLI validation and diagnostic protocol",
+      "body": "## Requirement to implement\n\nConnect parser and optional compiled-schema validation; provide readable and versioned strict-JSON diagnostics/capabilities. Exit 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure. Encode surrogate/non-finite data safely.\n\n## Unit-test behavior\n\nDispatch/result mapping units, strict-JSON output round-trip, missing schema component and OOM fallback.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP055: #56, P056: #57.\n\nP057 → J5-070, J5-071. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:cli",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/58",
+      "created_at": "2026-10-13T10:12:58Z",
+      "updated_at": "2026-10-13T10:30:26Z",
+      "closed_at": null
+    },
+    {
+      "number": 57,
+      "title": "P056: CLI dispatch and bounded readers",
+      "body": "## Requirement to implement\n\nPrepare optional host command dispatch for file/stdin syntax selection and configured limits; read via injectable bounded I/O interfaces. Define generic validation commands without consumer-specific fields.\n\n## Unit-test behavior\n\nArgument and fake I/O units; file errors, unsupported flags and input budget handling; schema flags initially report unavailable.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP042: #43.\n\nP056 → J5-070. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:cli",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 5,
+        "title": "5. Host CLI and VS Code"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/57",
+      "created_at": "2026-10-13T10:12:58Z",
+      "updated_at": "2026-10-13T10:30:24Z",
+      "closed_at": null
+    },
+    {
+      "number": 56,
+      "title": "P055: Schema conformance and packaging",
+      "body": "## Requirement to implement\n\nRun pinned required Draft-07 unit fixtures with offline registered resources, exact-number/Unicode/failure regressions and owned concurrent work contexts. Document dependencies, capabilities and exported schema targets.\n\n## Unit-test behavior\n\nRequired keyword/reference matrix, exceptions-OFF units, provenance and parser-only independence.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP054: #55.\n\nP055 → J5-053, J5-065, J5-066, J5-067, J5-068, J5-069, J5-096. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:tests",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/56",
+      "created_at": "2026-10-13T10:12:57Z",
+      "updated_at": "2026-10-13T10:30:22Z",
+      "closed_at": null
+    },
+    {
+      "number": 55,
+      "title": "P054: Public schema compilation and diagnostics",
+      "body": "## Requirement to implement\n\nComplete strict-JSON boolean/object schema compilation with the Draft-07 meta-schema, keyword shape/pattern checks and dialect errors. Return instance/schema pointers, keyword and available source spans; support bounded fail-fast/collect-all.\n\n## Unit-test behavior\n\nBootstrap shape checks are component units before this step; final public compiler validates the meta-schema with the completed engine and separates every failure class.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP044: #45, P052: #53, P053: #54.\n\nP054 → J5-054, J5-063, J5-064. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/55",
+      "created_at": "2026-10-13T10:12:56Z",
+      "updated_at": "2026-10-13T10:30:19Z",
+      "closed_at": null
+    },
+    {
+      "number": 54,
+      "title": "P053: Annotations and extension handling",
+      "body": "## Requirement to implement\n\nExpose title/description/default/examples/readOnly/writeOnly and unknown-keyword metadata with valid-branch annotation semantics; never insert defaults or mutate instances. Baseline format/contentEncoding/contentMediaType remain annotations; optional assertions require explicit supported capabilities.\n\n## Unit-test behavior\n\nNo mutation, failed/not-branch annotation suppression, unknown schema keywords versus unknown instance properties.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP052: #53.\n\nP053 → J5-058, J5-062, J5-069. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/54",
+      "created_at": "2026-10-13T10:12:55Z",
+      "updated_at": "2026-10-13T10:30:17Z",
+      "closed_at": null
+    },
+    {
+      "number": 53,
+      "title": "P052: Logical and conditional assertions",
+      "body": "## Requirement to implement\n\nImplement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and distinguishing operational failure from assertion mismatch.\n\n## Unit-test behavior\n\nZero/one/multiple matching branches, nested conditions and failures during branch evaluation.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP047: #48, P048: #49, P049: #50, P050: #51, P051: #52.\n\nP052 → J5-057, J5-065. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/53",
+      "created_at": "2026-10-13T10:12:54Z",
+      "updated_at": "2026-10-13T10:30:15Z",
+      "closed_at": null
+    },
+    {
+      "number": 52,
+      "title": "P051: Object assertions",
+      "body": "## Requirement to implement\n\nImplement minProperties, maxProperties, required, properties, patternProperties, additionalProperties, dependencies (property/schema) and propertyNames.\n\n## Unit-test behavior\n\nMissing fields, overlapping patterns, dynamic names, dependent schemas, unknown fields and type applicability.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP046: #47, P049: #50.\n\nP051 → J5-057. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/52",
+      "created_at": "2026-10-13T10:12:54Z",
+      "updated_at": "2026-10-13T10:30:13Z",
+      "closed_at": null
+    },
+    {
+      "number": 51,
+      "title": "P050: Array assertions",
+      "body": "## Requirement to implement\n\nImplement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems and contains.\n\n## Unit-test behavior\n\nEmpty/tuple arrays, nested schemas, deep exact uniqueness and matching/nonmatching contains cases.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP045: #46, P046: #47.\n\nP050 → J5-057, J5-061. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/51",
+      "created_at": "2026-10-13T10:12:53Z",
+      "updated_at": "2026-10-13T10:30:11Z",
+      "closed_at": null
+    },
+    {
+      "number": 50,
+      "title": "P049: String assertions and regex budget",
+      "body": "## Requirement to implement\n\nImplement minLength/maxLength in Unicode characters and pattern with the documented compatible regex behavior; reject unsupported conversion/domain and enforce regex work limits.\n\n## Unit-test behavior\n\nSupplementary characters, unpaired-unit policy, unanchored patterns, malformed patterns and budget exhaustion.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP046: #47.\n\nP049 → J5-057, J5-060, J5-065. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/50",
+      "created_at": "2026-10-13T10:12:52Z",
+      "updated_at": "2026-10-13T10:30:08Z",
+      "closed_at": null
+    },
+    {
+      "number": 49,
+      "title": "P048: Numeric assertions",
+      "body": "## Requirement to implement\n\nImplement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum without floating rounding.\n\n## Unit-test behavior\n\nExact fractional divisibility, huge numbers, every inclusive/exclusive bound.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP047: #48.\n\nP048 → J5-057, J5-059. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/49",
+      "created_at": "2026-10-13T10:12:51Z",
+      "updated_at": "2026-10-13T10:30:06Z",
+      "closed_at": null
+    },
+    {
+      "number": 48,
+      "title": "P047: Type and equality assertions",
+      "body": "## Requirement to implement\n\nImplement type, enum and const, including type unions and mathematical integer semantics independent of token spelling.\n\n## Unit-test behavior\n\nPositive/negative/nonapplicable-type cases and exact numeric parity.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP045: #46, P046: #47.\n\nP047 → J5-057, J5-059, J5-061. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/48",
+      "created_at": "2026-10-13T10:12:50Z",
+      "updated_at": "2026-10-13T10:30:03Z",
+      "closed_at": null
+    },
+    {
+      "number": 47,
+      "title": "P046: Bounded schema evaluation engine",
+      "body": "## Requirement to implement\n\nEvaluate boolean schemas and object schemas with per-type applicability; track branches/references/budgets and recursion progress. Apply Draft-07 $ref behavior, including ignored assertion siblings, without nonprogressing loops.\n\n## Unit-test behavior\n\nTrue/false schemas, recursive instance progress, cyclic references, cleanup/cancellation and minimal errors.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP044: #45, P045: #46.\n\nP046 → J5-053, J5-056, J5-063, J5-065. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/47",
+      "created_at": "2026-10-13T10:12:49Z",
+      "updated_at": "2026-10-13T10:30:01Z",
+      "closed_at": null
+    },
+    {
+      "number": 46,
+      "title": "P045: Exact schema equality",
+      "body": "## Requirement to implement\n\nProvide type-aware deep equality using exact numeric equivalence, ordered arrays and order-independent unique-name objects.\n\n## Unit-test behavior\n\nEquivalent decimal/hex/exponent values; bool versus number; nested/reordered containers.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP043: #44.\n\nP045 → J5-059, J5-061. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/46",
+      "created_at": "2026-10-13T10:12:49Z",
+      "updated_at": "2026-10-13T10:29:59Z",
+      "closed_at": null
+    },
+    {
+      "number": 45,
+      "title": "P044: Schema locations and offline reference registry",
+      "body": "## Requirement to implement\n\nImplement URI base identities, pointer escaping and caller-registered local/external resources; no implicit network/filesystem resolution. Compile owned reference graphs with unresolved-reference errors.\n\n## Unit-test behavior\n\nNested $id, relative/absolute references, fragment and ~0/~1 pointers, input/registry destruction.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP043: #44.\n\nP044 → J5-055, J5-064, J5-066, J5-067. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/45",
+      "created_at": "2026-10-13T10:12:48Z",
+      "updated_at": "2026-10-13T10:29:56Z",
+      "closed_at": null
+    },
+    {
+      "number": 44,
+      "title": "P043: Independent schema component and outcomes",
+      "body": "## Requirement to implement\n\nDefine an optional Draft-07 schema target/API with owned compilation/evaluation state, explicit non-throwing outcomes and bounded work storage. Parser-only consumers acquire no schema dependency. Declare instance-domain handling for duplicate names, non-finite values and unpaired surrogates.\n\n## Unit-test behavior\n\nAPI/storage units and unsupported-instance versus invalid-instance/error categories; no complete validator assumed yet.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP042: #43.\n\nP043 → J5-053, J5-063, J5-065, J5-066, J5-068. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:schema",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 4,
+        "title": "4. Optional Draft-07 validator"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/44",
+      "created_at": "2026-10-13T10:12:47Z",
+      "updated_at": "2026-10-13T10:29:54Z",
+      "closed_at": null
+    },
+    {
+      "number": 43,
+      "title": "P042: Strict JSON syntax mode",
+      "body": "## Requirement to implement\n\nAdd explicit strict JSON mode for schema documents: quoted keys/double-quoted strings, JSON escapes/numbers/whitespace, no comments/trailing commas/non-finite forms; reject BOM by default with documented optional leading-BOM handling.\n\n## Unit-test behavior\n\nPaired JSON/JSON5 fixtures, all JSON grammar branches and mode-specific rejection.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP041: #42.\n\nP042 → J5-005, J5-010, J5-015, J5-021, J5-025. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/43",
+      "created_at": "2026-10-13T10:12:46Z",
+      "updated_at": "2026-10-13T10:29:52Z",
+      "closed_at": null
+    },
+    {
+      "number": 42,
+      "title": "P041: Full-support claim",
+      "body": "## Requirement to implement\n\nDocument language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.\n\n## Unit-test behavior\n\nReview production-to-unit matrix, all preceding contracts and actual native results.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP040: #41.\n\nP041 → J5-008, J5-027, J5-100. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:docs",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 7,
+        "title": "7. Portable packaging and release"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/42",
+      "created_at": "2026-10-13T10:12:45Z",
+      "updated_at": "2026-10-13T10:29:50Z",
+      "closed_at": null
+    },
+    {
+      "number": 41,
+      "title": "P040: Whole-grammar unit evidence",
+      "body": "## Requirement to implement\n\nMap every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures and both exception modes.\n\n## Unit-test behavior\n\nNo skipped grammar branches; fresh explicit unit evidence for accepted/rejected input and decoded content.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP001 configuration baseline (already tested; remaining library target: #68), P002: #2, P003: #3, P004: #4, P005: #5, P006: #6, P007: #7, P008: #8, P009: #9, P010: #10, P011: #11, P012: #12, P013: #13, P014: #14, P015: #15, P016: #16, P017: #17, P018: #18, P019: #19, P020: #20, P021: #21, P022: #22, P023: #23, P024: #24, P025: #25, P026: #26, P027: #27, P028: #28, P029: #29, P030: #30, P031: #31, P032: #32, P033: #33, P034: #34, P035: #35, P036: #37, P037: #38, P038: #39, P039: #40.\n\nP040 → J5-027, J5-094, J5-095, J5-097, J5-098, J5-099. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:tests",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 7,
+        "title": "7. Portable packaging and release"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/41",
+      "created_at": "2026-10-13T10:12:45Z",
+      "updated_at": "2026-10-13T10:29:48Z",
+      "closed_at": null
+    },
+    {
+      "number": 40,
+      "title": "P039: Owned document and diagnostics",
+      "body": "## Requirement to implement\n\nExpose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.\n\n## Unit-test behavior\n\nOverwrite input, move/destroy documents, CRLF/non-BMP offsets, failure injection and minimal error fallback.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP020: #20, P030: #30, P037: #38.\n\nP039 → J5-040, J5-041, J5-043, J5-044, J5-045. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/40",
+      "created_at": "2026-10-13T10:12:44Z",
+      "updated_at": "2026-10-13T10:29:46Z",
+      "closed_at": null
+    },
+    {
+      "number": 39,
+      "title": "P038: Checked numeric operations",
+      "body": "## Requirement to implement\n\nProvide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.\n\n## Unit-test behavior\n\nAll destination bounds, nonintegral values, huge exponent, nonfinite and mathematical/lexical integer distinctions.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP029: #29, P030: #30, P037: #38.\n\nP038 → J5-035, J5-036, J5-037, J5-038, J5-052. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/39",
+      "created_at": "2026-10-13T10:12:43Z",
+      "updated_at": "2026-10-13T10:29:44Z",
+      "closed_at": null
+    },
+    {
+      "number": 38,
+      "title": "Core 9 — Document API, conversions, diagnostics and grammar tests (P037–P041)",
+      "body": "## Scope — Public parser and release\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P037 One complete root value with leading/trailing trivia and no surplus content. (original #38)\n- [ ] P038 Non-throwing checked numeric conversions/comparisons. (original #39)\n- [ ] P039 Owned document and stable source spans/diagnostics. (original #40)\n- [ ] P040 Positive/negative/boundary/truncation grammar-wide GoogleTests. (original #41)\n- [ ] P041 Minimal release evidence: supported JSON5/Unicode versions, limits and deviations; no extended documentation deliverable. (original #42)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nAll grammar productions, input lifetime/moves, byte offsets, numeric bounds, allocation/resource failures, single-root rules.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/38",
+      "created_at": "2026-10-13T10:12:41Z",
+      "updated_at": "2026-10-13T20:17:55Z",
+      "closed_at": null
+    },
+    {
+      "number": 37,
+      "title": "P036: Duplicate-name policy",
+      "body": "## Requirement to implement\n\nKeep all decoded duplicate members by default; optional rejection reports both occurrences. Compare exact decoded names without normalization/case folding.\n\n## Unit-test behavior\n\nQuoted/bare/escaped collisions, distinct case and normalization forms, nested object independence.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP035: #35.\n\nP036 → J5-032, J5-033. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/37",
+      "created_at": "2026-10-13T10:12:23Z",
+      "updated_at": "2026-10-13T10:29:39Z",
+      "closed_at": null
+    },
+    {
+      "number": 35,
+      "title": "P035: Object member grammar",
+      "body": "## Requirement to implement\n\nComplete quoted/identifier name, colon, value and separator states; permit one trailing comma and retain decoded names and every member.\n\n## Unit-test behavior\n\nEmpty/nested objects, reserved-word/escaped keys and mixed values; reject missing name/colon/value/comma and doubled commas.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP021: #21, P023: #23, P024: #24, P033: #33.\n\nP035 → J5-013, J5-019, J5-020, J5-031. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/35",
+      "created_at": "2026-10-11T22:15:36Z",
+      "updated_at": "2026-10-13T10:29:37Z",
+      "closed_at": null
+    },
+    {
+      "number": 34,
+      "title": "P034: Array element grammar",
+      "body": "## Requirement to implement\n\nComplete array element/separator states, heterogeneous ordered elements and one optional trailing comma; reject holes and misplaced separators.\n\n## Unit-test behavior\n\n[], mixed values, nested values, [1,]; reject [,], [1,,2] and missing commas.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP033: #33.\n\nP034 → J5-013, J5-030. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/34",
+      "created_at": "2026-10-11T22:15:32Z",
+      "updated_at": "2026-10-13T10:29:35Z",
+      "closed_at": null
+    },
+    {
+      "number": 33,
+      "title": "Core 8 — Recursive containers, arrays and objects (P033–P036)",
+      "body": "## Scope — Container parser\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P033 Recursive bounded containers and empty structures. (original #33)\n- [ ] P034 Array elements, separators and trailing comma. (original #34)\n- [ ] P035 Quoted/bare object member keys, values and trailing comma. (original #35)\n- [ ] P036 Duplicate-name handling: preserve all by default, optional exact-decoded-name rejection. (original #36)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nMixed nesting, empty/trailing-comma cases, missing separators, holes, duplicate escaped keys, bounded depth.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/33",
+      "created_at": "2026-10-11T22:15:27Z",
+      "updated_at": "2026-10-13T20:17:52Z",
+      "closed_at": null
+    },
+    {
+      "number": 32,
+      "title": "P032: Primitive value dispatcher",
+      "body": "## Requirement to implement\n\nConvert completed string, number, null and boolean tokens into owned values; reject other identifiers in value position.\n\n## Unit-test behavior\n\nEach primitive root, unknown identifiers and allocation failure; containers still explicitly unsupported at this stage.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP021: #21, P024: #24, P028: #28, P029: #29, P030: #30, P031: #31.\n\nP032 → J5-023, J5-028. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/32",
+      "created_at": "2026-10-11T22:15:22Z",
+      "updated_at": "2026-10-13T10:29:30Z",
+      "closed_at": null
+    },
+    {
+      "number": 31,
+      "title": "P031: Resource guards",
+      "body": "## Requirement to implement\n\nValidate limits and account for depth, nodes, members, strings, numeric spelling/exponents, bytes and work before parser growth; cleanup remains bounded.\n\n## Unit-test behavior\n\nBelow/equal/above bounds and deterministic allocation/work exhaustion without recursive parser dependency.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP002: #2, P003: #3, P030: #30.\n\nP031 → J5-047, J5-048, J5-049. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 3,
+        "title": "3. Resource and failure contracts"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/31",
+      "created_at": "2026-10-11T22:15:16Z",
+      "updated_at": "2026-10-13T20:18:58Z",
+      "closed_at": "2026-10-13T20:18:58Z"
+    },
+    {
+      "number": 30,
+      "title": "P030: Owned value/container model",
+      "body": "## Requirement to implement\n\nProvide distinct null/boolean/string/number/array/object alternatives, ordered array elements and observable ordered duplicate object members.\n\n## Unit-test behavior\n\nConstruct/inspect/move each variant before recursive parsing exists; explicit wrong-type results.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP003: #3, P013: #13, P029: #29.\n\nP030 → J5-028, J5-030, J5-031, J5-039, J5-040. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/30",
+      "created_at": "2026-10-11T22:13:31Z",
+      "updated_at": "2026-10-13T20:18:55Z",
+      "closed_at": "2026-10-13T20:18:55Z"
+    },
+    {
+      "number": 29,
+      "title": "Core 7 — Owned numbers, values, guards and primitive dispatch (P029–P032)",
+      "body": "## Scope — Value model\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P029 Preserve exact numeric spellings and negative zero. (original #29)\n- [ ] P030 Owned typed value/array/object model and member ordering. (original #30)\n- [ ] P031 Bounds and resource limits before growth. (original #31)\n- [ ] P032 Dispatch primitive tokens into owned values. (original #32)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nBig integers, nonfinite forms, moves/destruction, every limit boundary, allocation failures and wrong-type errors.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/29",
+      "created_at": "2026-10-11T22:13:27Z",
+      "updated_at": "2026-10-13T20:17:49Z",
+      "closed_at": null
+    },
+    {
+      "number": 28,
+      "title": "P028: Token completion",
+      "body": "## Requirement to implement\n\nReject illegal suffixes and unsupported octal/binary/separator forms; never silently discard bytes or split invalid numeric/identifier spellings into accepted prefixes.\n\n## Unit-test behavior\n\ntruex, 1foo, 0x1z, 0b1, 1_0 and split-token trivia; valid punctuation boundaries.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP012: #12, P021: #21, P023: #23, P024: #24, P025: #25, P026: #26, P027: #27.\n\nP028 → J5-024, J5-027. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/28",
+      "created_at": "2026-10-11T22:13:23Z",
+      "updated_at": "2026-10-13T20:18:53Z",
+      "closed_at": "2026-10-13T20:18:53Z"
+    },
+    {
+      "number": 27,
+      "title": "P027: Non-finite numeric tokens",
+      "body": "## Requirement to implement\n\nRecognize Infinity and NaN with permitted leading signs and exact case.\n\n## Unit-test behavior\n\nInfinity/+Infinity/-Infinity and NaN/+NaN/-NaN; lowercase and suffix variants fail.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP025: #25.\n\nP027 → J5-022. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/27",
+      "created_at": "2026-10-11T22:13:18Z",
+      "updated_at": "2026-10-13T20:18:50Z",
+      "closed_at": "2026-10-13T20:18:50Z"
+    },
+    {
+      "number": 26,
+      "title": "P026: Hexadecimal numeric tokens",
+      "body": "## Requirement to implement\n\nRecognize signed or unsigned 0x/0X with one or more hexadecimal digits; reject incomplete prefix and invalid suffix.\n\n## Unit-test behavior\n\nBoth prefixes/cases/signs; 0x, 0x1z and hex fractions fail.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP025: #25.\n\nP026 → J5-022. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/26",
+      "created_at": "2026-10-11T22:13:14Z",
+      "updated_at": "2026-10-13T20:18:48Z",
+      "closed_at": "2026-10-13T20:18:48Z"
+    },
+    {
+      "number": 25,
+      "title": "Core 6 — Decimal, hexadecimal, non-finite tokens and token completion (P025–P028)",
+      "body": "## Scope — Numeric lexer\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P025 Decimal syntaxes, fractions, exponents and signs; reject leading zeros. (original #25)\n- [ ] P026 Hexadecimal signed/unsigned literals. (original #26)\n- [ ] P027 Exact-case signed Infinity and NaN. (original #27)\n- [ ] P028 Full-token validation and invalid-suffix rejection. (original #28)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nAll advertised valid spellings, illegal forms, boundaries, exponents, signs, truncated inputs and separated tokens.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/25",
+      "created_at": "2026-10-11T22:13:10Z",
+      "updated_at": "2026-10-13T20:17:46Z",
+      "closed_at": null
+    },
+    {
+      "number": 24,
+      "title": "P024: Null and boolean classification",
+      "body": "## Requirement to implement\n\nClassify lowercase null, true and false as value literals; preserve their admissibility as object IdentifierName tokens.\n\n## Unit-test behavior\n\nExact spellings versus case/suffix variants; key-versus-value context classified without parsing containers.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP022: #22, P023: #23.\n\nP024 → J5-023. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/24",
+      "created_at": "2026-10-11T22:13:06Z",
+      "updated_at": "2026-10-13T20:18:46Z",
+      "closed_at": "2026-10-13T20:18:46Z"
+    },
+    {
+      "number": 23,
+      "title": "P023: Identifier Unicode escapes",
+      "body": "## Requirement to implement\n\nDecode identifier uXXXX escapes before checking start/part legality and member-name equality.\n\n## Unit-test behavior\n\nEscaped valid names, illegal escaped start/part and equal decoded names.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP017: #17, P022: #22.\n\nP023 → J5-020, J5-033. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/23",
+      "created_at": "2026-10-11T22:13:02Z",
+      "updated_at": "2026-10-13T20:18:43Z",
+      "closed_at": "2026-10-13T20:18:43Z"
+    },
+    {
+      "number": 22,
+      "title": "Core 5 — IdentifierName, escaped identifiers and literal tokens (P022–P024)",
+      "body": "## Scope — Identifiers and literals\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P022 ES5 IdentifierName including $, _, Unicode, ZWNJ/ZWJ and reserved-word keys. (original #22)\n- [ ] P023 Decode identifier Unicode escapes before legal-character/name equality checks. (original #23)\n- [ ] P024 Lowercase null/true/false as values and valid identifier keys. (original #24)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nUnicode starts/parts, illegal escapes, escaped collisions, digit-first, reserved words, case/suffix boundaries.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/22",
+      "created_at": "2026-10-11T22:12:58Z",
+      "updated_at": "2026-10-13T20:17:44Z",
+      "closed_at": null
+    },
+    {
+      "number": 21,
+      "title": "P021: Complete string lexer",
+      "body": "## Requirement to implement\n\nCompose all string alternatives, validate delimiters and input consumption, and report lexical failures atomically.\n\n## Unit-test behavior\n\nCombine escapes/continuations; truncation at each byte; no partial successful string.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP015: #15, P016: #16, P017: #17, P018: #18, P019: #19, P020: #20.\n\nP021 → J5-014, J5-015, J5-016, J5-017, J5-018. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/21",
+      "created_at": "2026-10-11T22:12:54Z",
+      "updated_at": "2026-10-13T20:18:41Z",
+      "closed_at": "2026-10-13T20:18:41Z"
+    },
+    {
+      "number": 20,
+      "title": "P020: Raw separator warnings",
+      "body": "## Requirement to implement\n\nAccept unescaped U+2028/U+2029 in strings and produce a warning without changing successful parsing.\n\n## Unit-test behavior\n\nBoth raw separators, escaped equivalents, original warning spans and successful value.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP002: #2, P014: #14.\n\nP020 → J5-017. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/20",
+      "created_at": "2026-10-11T22:12:51Z",
+      "updated_at": "2026-10-13T20:18:38Z",
+      "closed_at": "2026-10-13T20:18:38Z"
+    },
+    {
+      "number": 19,
+      "title": "P019: String line continuations",
+      "body": "## Requirement to implement\n\nRemove the reverse solidus and the following complete line terminator sequence from the decoded string.\n\n## Unit-test behavior\n\nLF, CR, CRLF, U+2028/U+2029 join unchanged surrounding text.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP007: #7, P014: #14.\n\nP019 → J5-017. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/19",
+      "created_at": "2026-10-11T22:12:47Z",
+      "updated_at": "2026-10-13T20:18:36Z",
+      "closed_at": "2026-10-13T20:18:36Z"
+    },
+    {
+      "number": 18,
+      "title": "Core 4 — Remaining string lexing and completion (P018–P021)",
+      "body": "## Scope — Strings and escapes\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P018 Identity escapes, reject forbidden escaped digits and malformed x/u. (original #18)\n- [ ] P019 Line continuations for all supported line terminators. (original #19)\n- [ ] P020 Raw U+2028/U+2029 warnings while retaining successful string parsing. (original #20)\n- [ ] P021 Compose complete atomic string lexer. (original #21)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nEscape variants; continuations; warning spans; exhaustive truncations and no partial success.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/18",
+      "created_at": "2026-10-11T22:12:43Z",
+      "updated_at": "2026-10-13T20:17:41Z",
+      "closed_at": null
+    },
+    {
+      "number": 17,
+      "title": "P017: Unicode string escapes",
+      "body": "## Requirement to implement\n\nDecode u followed by exactly four hexadecimal digits; preserve individual units and support escaped surrogate pairs.\n\n## Unit-test behavior\n\nBMP, paired/lone/reversed surrogate units and malformed/truncated hex.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP013: #13, P014: #14.\n\nP017 → J5-015, J5-018. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/17",
+      "created_at": "2026-10-11T22:12:39Z",
+      "updated_at": "2026-10-13T20:18:33Z",
+      "closed_at": "2026-10-13T20:18:33Z"
+    },
+    {
+      "number": 16,
+      "title": "P016: Hexadecimal string escapes",
+      "body": "## Requirement to implement\n\nDecode x followed by exactly two hexadecimal digits, in either hex-letter case; reject incomplete or nonhex escapes.\n\n## Unit-test behavior\n\nLower/upper hex letters, boundary bytes and every truncation.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP014: #14.\n\nP016 → J5-016. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/16",
+      "created_at": "2026-10-11T22:12:35Z",
+      "updated_at": "2026-10-13T20:18:31Z",
+      "closed_at": "2026-10-13T20:18:31Z"
+    },
+    {
+      "number": 15,
+      "title": "P015: Simple character escapes",
+      "body": "## Requirement to implement\n\nDecode escaped quotes, reverse solidus, b/f/n/r/t/v and zero; zero is valid only when not followed by a decimal digit.\n\n## Unit-test behavior\n\nEach decoded unit; accept zero at quote/EOF boundary only where the complete string is valid; reject zero followed by any digit.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP014: #14.\n\nP015 → J5-015, J5-016. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/15",
+      "created_at": "2026-10-11T22:12:31Z",
+      "updated_at": "2026-10-13T20:18:28Z",
+      "closed_at": "2026-10-13T20:18:28Z"
+    },
+    {
+      "number": 14,
+      "title": "P014: Quoted string boundaries",
+      "body": "## Requirement to implement\n\nRecognize single/double-quoted strings with matching closing delimiters; allow the other quote and ordinary source characters, rejecting raw CR/LF and unterminated strings.\n\n## Unit-test behavior\n\nBoth delimiters, opposite quote, raw tab/control characters, raw CR/LF and EOF.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP007: #7, P013: #13.\n\nP014 → J5-014. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/14",
+      "created_at": "2026-10-11T22:12:27Z",
+      "updated_at": "2026-10-13T20:18:26Z",
+      "closed_at": "2026-10-13T20:18:26Z"
+    },
+    {
+      "number": 13,
+      "title": "Core 3 — String storage, delimiters and basic escapes (P013–P017)",
+      "body": "## Scope — Strings and escapes\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P013 Owned length-aware string storage preserving UTF-16 escape units and lone surrogates. (original #13)\n- [ ] P014 Single/double quotes, unescaped characters, delimiter and EOF errors. (original #14)\n- [ ] P015 Simple escapes and constrained \\0. (original #15)\n- [ ] P016 Exactly two hex digits after \\x. (original #16)\n- [ ] P017 Exactly four hex digits after \\u, including surrogate units. (original #17)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nNUL, opposite quotes, every escape and truncation, pair/lone/reversed surrogates, malformed hex.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/13",
+      "created_at": "2026-10-11T22:12:24Z",
+      "updated_at": "2026-10-13T20:17:38Z",
+      "closed_at": null
+    },
+    {
+      "number": 12,
+      "title": "P012: Punctuation tokens",
+      "body": "## Requirement to implement\n\nRecognize exactly the structural punctuators { } [ ] : , outside strings/comments.\n\n## Unit-test behavior\n\nEvery punctuator, adjacent punctuators and original spans.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP004: #4, P011: #11.\n\nP012 → J5-013. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/12",
+      "created_at": "2026-10-11T22:12:20Z",
+      "updated_at": "2026-10-13T20:18:23Z",
+      "closed_at": "2026-10-13T20:18:23Z"
+    },
+    {
+      "number": 11,
+      "title": "P011: Trivia composition",
+      "body": "## Requirement to implement\n\nPermit any sequence of admitted spaces, line terminators and comments before/after tokens, without joining split tokens.\n\n## Unit-test behavior\n\nMixed trivia; comments between tokens; 1/*x*/2 remains two tokens.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP008: #8, P009: #9, P010: #10.\n\nP011 → J5-012, J5-024. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/11",
+      "created_at": "2026-10-11T22:12:16Z",
+      "updated_at": "2026-10-13T20:18:21Z",
+      "closed_at": "2026-10-13T20:18:21Z"
+    },
+    {
+      "number": 10,
+      "title": "P010: Block comments",
+      "body": "## Requirement to implement\n\nSkip /* comments through the first */; do not nest comments, and report unterminated comments.\n\n## Unit-test behavior\n\nFirst closer, embedded opener and EOF at every suffix position.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP005: #5.\n\nP010 → J5-012. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/10",
+      "created_at": "2026-10-11T22:12:08Z",
+      "updated_at": "2026-10-13T20:18:19Z",
+      "closed_at": "2026-10-13T20:18:19Z"
+    },
+    {
+      "number": 9,
+      "title": "Core 2 — Comments, trivia composition and punctuation (P009–P012)",
+      "body": "## Scope — Lexer and trivia\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P009 Line comments to EOF or line terminator. (original #9)\n- [ ] P010 Non-nesting block comments and unterminated-comment errors. (original #10)\n- [ ] P011 Mixed trivia without joining independent tokens. (original #11)\n- [ ] P012 Structural punctuators and byte spans. (original #12)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nEach terminator; comment truncations; consecutive trivia; split tokens; punctuation inside and outside strings/comments.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/9",
+      "created_at": "2026-10-11T22:12:04Z",
+      "updated_at": "2026-10-13T20:17:35Z",
+      "closed_at": null
+    },
+    {
+      "number": 8,
+      "title": "P008: Whitespace",
+      "body": "## Requirement to implement\n\nSkip HT, VT, FF, SP, NBSP, BOM and other Unicode Zs whitespace, together with line terminators, between tokens.\n\n## Unit-test behavior\n\nEach admitted space before/after tokens; BOM both leading and between tokens.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP006: #6, P007: #7.\n\nP008 → J5-011, J5-025. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/8",
+      "created_at": "2026-10-11T22:12:00Z",
+      "updated_at": "2026-10-13T20:18:17Z",
+      "closed_at": "2026-10-13T20:18:17Z"
+    },
+    {
+      "number": 7,
+      "title": "P007: Line terminators",
+      "body": "## Requirement to implement\n\nRecognize LF, CR, CRLF, U+2028 and U+2029 as line terminator sequences; keep CRLF as one sequence for location/continuation purposes.\n\n## Unit-test behavior\n\nEach sequence and EOF after CR; assert source spans.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP005: #5.\n\nP007 → J5-011, J5-017, J5-044. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/7",
+      "created_at": "2026-10-11T22:11:56Z",
+      "updated_at": "2026-10-13T20:18:14Z",
+      "closed_at": "2026-10-13T20:18:14Z"
+    },
+    {
+      "number": 6,
+      "title": "P006: Character classification",
+      "body": "## Requirement to implement\n\nEstablish documented Unicode data for source classification used by whitespace and IdentifierName; classification has no locale dependency.\n\n## Unit-test behavior\n\nCategory boundaries, non-ASCII and non-BMP handling; document supported Unicode version.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP005: #5.\n\nP006 → J5-006, J5-019, J5-052. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplementation pending. Existing example files and design documents are preparation, not evidence that this behavior is implemented.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/6",
+      "created_at": "2026-10-11T22:11:53Z",
+      "updated_at": "2026-10-13T20:18:12Z",
+      "closed_at": "2026-10-13T20:18:12Z"
+    },
+    {
+      "number": 5,
+      "title": "Core 1 — UTF-8 source decoding, classification and whitespace (P005–P008)",
+      "body": "## Scope — Unicode and source characters\nImplement the following **consecutive existing requirements**, preserving their originally specified behavior; see the linked original issues for exact acceptance cases:\n- [ ] P005 Decode UTF-8 with byte offsets; reject malformed, overlong, surrogate and out-of-range encodings. (original #5)\n- [ ] P006 Locale-independent ES5/JSON5 character classification, including non-BMP identifiers and Unicode version. (original #6)\n- [ ] P007 LF, CR, CRLF, U+2028 and U+2029 with correct source ranges. (original #7)\n- [ ] P008 JSON5 whitespace including Unicode Zs, NBSP and BOM. (original #8)\n\n## Responsibilities and workflow\n- **Developer (Romanr92):** production C++ implementation and technical decisions.\n- **AI:** generate/maintain the unit tests against the specified behavior, independently of the implementation. Never modify production C++.\n- Developer runs tests, diagnoses defects, and approves the PR. Exceptions OFF and RTTI OFF remain mandatory.\n- No per-requirement implementation documentation or traceability report. Only minimal public API/limits/known deviations and release README.\n\n## Unit-test coverage\nMalformed UTF-8; supplementary characters; category boundaries; each terminator, EOF and whitespace location.\n\n## Done when\n- [ ] All P-requirements listed above implemented, with no silent omissions.\n- [ ] Corresponding positive, negative, boundary and failure-mode GoogleTests implemented and passing.\n- [ ] Formatting and required PR CI checks pass with exceptions/RTTI OFF.\n- [ ] Developer reviewed the code and tests; PR merged.\n\nSupersedes the former individual implementation issues in this range. Optional schema, CLI, editor and consumer features are outside the core 10-working-day target.",
+      "state": "open",
+      "state_reason": null,
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/5",
+      "created_at": "2026-10-11T22:11:49Z",
+      "updated_at": "2026-10-13T20:17:32Z",
+      "closed_at": null
+    },
+    {
+      "number": 4,
+      "title": "P004: Explicit input cursor",
+      "body": "## Requirement to implement\n\nConsume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.\n\n## Unit-test behavior\n\nEmpty, embedded-zero and truncated buffers; no terminating NUL assumption.\n\n## Acceptance criteria\n\n- [ ] Documentation.\n- [ ] Implementation.\n- [ ] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP002: #2.\n\nP004 → J5-004, J5-041, J5-044. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nThe borrowed `input_view` and syntax options declarations are implemented and tested in merged PR #73. P004 remains open: the bounded reading cursor, end-position checks, original-byte location tracking and empty/embedded-zero/truncated-buffer read tests are not implemented by those declarations.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "completed",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 2,
+        "title": "2. JSON5 and strict JSON reader"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/4",
+      "created_at": "2026-10-11T22:11:45Z",
+      "updated_at": "2026-10-13T12:42:22Z",
+      "closed_at": "2026-10-13T12:42:22Z"
+    },
+    {
+      "number": 3,
+      "title": "P003: Fallible storage and accounting",
+      "body": "## Requirement to implement\n\nProvide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.\n\n## Unit-test behavior\n\nFail each primitive allocation and verify explicit outcomes and balanced release.\n\n## Acceptance criteria\n\n- [x] Documentation.\n- [x] Implementation.\n- [x] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP002: #2.\n\nP003 → J5-040, J5-046, J5-051, J5-101. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplemented in `checked_size.hpp`, `storage.hpp` and `owned_block.hpp`; merged in [PR #75](https://github.com/Romanr92/Adaptive_JSON5/pull/75). Thirty-nine storage GoogleTest cases cover checked arithmetic, callback validation, allocation failures, balanced ownership/cleanup and provider reuse. The PR's exceptions-OFF [unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/38393536312) and [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/38393536255) passed. See [verification notes](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/verification.md). Parser integration and broader J5 contracts remain assigned to later steps.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "completed",
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 3,
+        "title": "3. Resource and failure contracts"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/3",
+      "created_at": "2026-10-11T22:11:41Z",
+      "updated_at": "2026-10-13T12:27:51Z",
+      "closed_at": "2026-10-13T11:55:51Z"
+    },
+    {
+      "number": 2,
+      "title": "P002: Non-throwing result foundation",
+      "body": "## Requirement to implement\n\nDefine success/error alternatives with stable minimal error code and byte offset; returning any failure shall not require allocation or throw.\n\n## Unit-test behavior\n\nUnit-test minimal result construction in exceptions OFF; no parser needed.\n\n## Acceptance criteria\n\n- [x] Documentation.\n- [x] Implementation.\n- [x] Unit tests.\n\nDocumentation describes the implemented behavior, public/internal contracts and limits. Implementation supplies the behavior above in the appropriate core or optional component. Unit tests cover the cases above and record actual results; all required builds use exceptions OFF and RTTI OFF. The pull request must pass one GoogleTest job and one formatting job.\n\n## Dependencies and traceability\n\nP001 configuration baseline (already tested; remaining library target: #68).\n\nP002 → J5-003, J5-043, J5-045. [Ordered requirement sequence](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements/json5-implementation-order.md).\n\n## Current status\n\nImplemented in `include/adaptive_json5/error.hpp` and `result.hpp`. Forty result cases and three configuration cases passed; see [verification](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/verification.md) and the [passing PR unit run](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/38378235113). This closes P002 only; broader parser/error/resource contracts remain assigned to later steps.\n\nPrevious issue scope is preserved in [the backlog snapshot](https://github.com/Romanr92/Adaptive_JSON5/blob/codex/concrete-implementation-backlog/docs/issue-backlog-before-p-sequence.json). Its unfinished requirements have been redistributed across this implementation sequence and completion issues #68–#72.\n\nProduction C++ remains the developer's responsibility. Agents may prepare CMake, GoogleTest, documentation and issue organization. Optional schema, CLI, editor and consumer work do not block a parser-only release.\n",
+      "state": "closed",
+      "state_reason": "completed",
+      "assignees": [],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 1,
+        "title": "1. Portable foundations"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/2",
+      "created_at": "2026-10-11T22:11:37Z",
+      "updated_at": "2026-10-13T10:28:37Z",
+      "closed_at": "2026-10-13T10:28:37Z"
+    },
+    {
+      "number": 1,
+      "title": "[01] Define the public C++17 API and draft behavior contracts",
+      "body": "## Goal\n\nAll library errors must be returned through non-throwing explicit result/error values, including syntax, conversion/access, allocation and limit failures. This applies even when the consuming project enables exceptions.\n\nDefine reviewed C++17 public API contracts and types for explicit bytes/length, syntax defaults, results, ownership, exact numbers, errors and allocation before a developer implements the production reader. Agent work is documentation and planned GoogleTest cases only; production C++ belongs to the developer.\n\n## Requirements\n\n`J5-001`, `J5-003`, `J5-004`, `J5-005`, `J5-008` — [active requirements](https://github.com/Romanr92/Adaptive_JSON5/blob/main/docs/requirements.md).\n\nStatus: Draft. Issue creation does not approve or verify these contracts.\n\n## Prerequisites\n\nNone. Start here; settle public behavior before dependent implementation.\n\n## Acceptance criteria\n\n- [x] Public headers use portable standard C++17 and expose no AdaptivePi, WSL, host-tool or editor types.\n  - Reviewed 2026-10-13 for the current `error.hpp` and `result.hpp` inventory: standard-library dependencies only; each header independently compiles as the first/only include with Windows/GCC 15.2.0, C++17, `-pedantic-errors`, RTTI OFF and exceptions OFF/ON. Review future declarations against the same boundary. This does not declare full J5-001 platform-matrix or embedded-runtime verification.\n- [x] Document exact-length/read-only/non-NUL-terminated input semantics and mode/result defaults; add API/configuration GoogleTest cases as the corresponding declarations become available. Complete parse behavior is verified by subsequent grammar issues.\n  - Completed 2026-10-13: developer-authored `input_view`, `syntax_mode` and `parse_options`; input/options contract in local `docs/architecture.md`; 8 API declaration cases passed with Windows/GCC C++17, exceptions OFF/ON and RTTI OFF. All 51 current cases passed in each mode. New headers independently compile without extensions. Parser cursor, grammar behavior and full J5-004/J5-005 verification remain pending; these documentation/test changes await commit.\n- [x] Specify equivalent recoverable outcomes in exception OFF/ON builds and prohibit invalid-input assert/abort/throw; complete runtime cases land with the implemented reader.\n  - Specified 2026-10-13 in the local `docs/architecture.md` recoverable-error contract: explicit category mapping, equivalent compiler-mode behavior, allocation-free minimal reporting, checked access and atomic failure/cleanup. P002 has local result-container evidence; parser, conversion/access, allocation-exhaustion and resource-limit runtime verification remain pending. Documentation changes await the repository commit.\n- [x] Document syntax defaults, ownership/views, duplicate policy, conversions, error categories, limits and thread-safety; unresolved choices remain Draft.\n  - Documented 2026-10-13 in the existing local `docs/architecture.md`: owned document/view lifetime obligations, preserve-all duplicate defaults, exact conversion and checked-access semantics, fallible caller storage, named budgets, cleanup, concurrency and determinism. Unresolved declarations, move/view stability, allocator details, conversion policies and limit defaults are explicitly Draft. This completes API-definition documentation, not parser implementation or full J5 verification; changes await commit.\n\n## Notes\n\nCompatible C++17 projects are the supported goal; do not promise every historical C++ implementation.\n\nAutomated quality checks: GoogleTest unit tests and formatting only. Production C++ is implemented by the developer; agents may prepare CMake, tests, documentation and requirements.\n\nBacklog key: I01; implementation order: 01.",
+      "state": "closed",
+      "state_reason": "completed",
+      "assignees": [
+        "Romanr92"
+      ],
+      "labels": [
+        "enhancement",
+        "component:core",
+        "requirements:draft"
+      ],
+      "milestone": {
+        "number": 1,
+        "title": "1. Portable foundations"
+      },
+      "comments": 0,
+      "html_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/1",
+      "created_at": "2026-10-11T22:11:17Z",
+      "updated_at": "2026-10-13T10:27:51Z",
+      "closed_at": "2026-10-13T10:27:51Z"
+    }
+  ]
+}

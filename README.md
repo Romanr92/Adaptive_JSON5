@@ -10,14 +10,20 @@ The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
 numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
-**Status: P002 result/error foundation implemented; no parser API is available.**
-The developer's public headers provide minimal errors, value/status results,
-borrowed input descriptions and syntax-option declarations.
-GoogleTest covers their behavior and the build settings; local exceptions
-OFF/ON results are recorded in [verification notes](docs/verification.md).
-The repository also supplies CMake/package scaffolding, formatting,
-documentation and an ordered issue backlog. Parser conformance remains pending.
-Production C++ implementation is reserved for the developer; see [AGENTS.md](AGENTS.md).
+**Status: result/error, input/options, storage primitives and bounded cursor have
+merged component implementations; no complete parser API is available.**
+GoogleTest inventories and historical executed results are recorded in
+[verification notes](docs/verification.md). Parser/schema/CLI conformance remains
+pending. Production C++ and public headers are reserved for Romanr92; AI creates
+unit tests. See [AGENTS.md](AGENTS.md).
+
+The [consolidation plan](docs/issue-consolidation-plan.md) retains full schema
+P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.
+Existing anchors group consecutive steps with at most three issues per subsystem.
+Schema/CLI remain optional for consumers, while required in this delivery scope.
+No per-issue documentation report is required; essential public API, limits,
+ownership, provenance and usage contracts remain. Ten working days is a checkpoint,
+not a credible full-completion promise; the plan states estimate assumptions.
 
 Native Windows, Linux and macOS development requires no WSL. The planned parser
 will require neither AdaptivePi, an operating-system service, Node.js, VS Code nor

@@ -1,7 +1,7 @@
 {
-  "version": 2,
+  "version": 3,
   "source": "JSON5 parser sequence plus optional project schema/CLI/editor sequence",
-  "review_date": "2026-10-12",
+  "review_date": "2026-10-13",
   "requirements": [
     {
       "id": "P001",
@@ -19,7 +19,8 @@
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
       "issue_number": 1,
-      "completion_issue": 68
+      "completion_issue": 68,
+      "original_issue_number": 1
     },
     {
       "id": "P002",
@@ -37,7 +38,8 @@
       ],
       "status": "implemented; 40 result cases and 3 build cases passed; issue #2 completed",
       "user_review_required": false,
-      "issue_number": 2
+      "issue_number": 2,
+      "original_issue_number": 2
     },
     {
       "id": "P003",
@@ -56,7 +58,8 @@
       ],
       "status": "implemented; merged PR #75; 39 storage cases and formatting passed; issue #3 completed",
       "user_review_required": false,
-      "issue_number": 3
+      "issue_number": 3,
+      "original_issue_number": 3
     },
     {
       "id": "P004",
@@ -72,9 +75,10 @@
         "J5-041",
         "J5-044"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "implemented cursor; merged developer PR #76; broader J5 contracts remain Draft",
       "user_review_required": false,
-      "issue_number": 4
+      "issue_number": 4,
+      "original_issue_number": 4
     },
     {
       "id": "P005",
@@ -90,7 +94,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 5
+      "issue_number": 5,
+      "original_issue_number": 5,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P006",
@@ -108,7 +114,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 6
+      "issue_number": 5,
+      "original_issue_number": 6,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P007",
@@ -126,7 +134,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 7
+      "issue_number": 5,
+      "original_issue_number": 7,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P008",
@@ -144,7 +154,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 8
+      "issue_number": 5,
+      "original_issue_number": 8,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P009",
@@ -160,7 +172,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 9
+      "issue_number": 9,
+      "original_issue_number": 9,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P010",
@@ -176,7 +190,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 10
+      "issue_number": 9,
+      "original_issue_number": 10,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P011",
@@ -195,7 +211,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 11
+      "issue_number": 9,
+      "original_issue_number": 11,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P012",
@@ -212,7 +230,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 12
+      "issue_number": 9,
+      "original_issue_number": 12,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P013",
@@ -231,7 +251,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 13
+      "issue_number": 13,
+      "original_issue_number": 13,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P014",
@@ -248,7 +270,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 14
+      "issue_number": 13,
+      "original_issue_number": 14,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P015",
@@ -265,7 +289,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 15
+      "issue_number": 13,
+      "original_issue_number": 15,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P016",
@@ -281,7 +307,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 16
+      "issue_number": 13,
+      "original_issue_number": 16,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P017",
@@ -299,7 +327,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 17
+      "issue_number": 13,
+      "original_issue_number": 17,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P018",
@@ -317,7 +347,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 18
+      "issue_number": 18,
+      "original_issue_number": 18,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P019",
@@ -334,7 +366,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 19
+      "issue_number": 18,
+      "original_issue_number": 19,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P020",
@@ -351,7 +385,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 20
+      "issue_number": 18,
+      "original_issue_number": 20,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P021",
@@ -376,7 +412,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 21
+      "issue_number": 18,
+      "original_issue_number": 21,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P022",
@@ -392,7 +430,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 22
+      "issue_number": 22,
+      "original_issue_number": 22,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P023",
@@ -410,7 +450,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 23
+      "issue_number": 22,
+      "original_issue_number": 23,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P024",
@@ -427,7 +469,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 24
+      "issue_number": 22,
+      "original_issue_number": 24,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P025",
@@ -444,7 +488,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 25
+      "issue_number": 25,
+      "original_issue_number": 25,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P026",
@@ -460,7 +506,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 26
+      "issue_number": 25,
+      "original_issue_number": 26,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P027",
@@ -476,7 +524,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 27
+      "issue_number": 25,
+      "original_issue_number": 27,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P028",
@@ -499,7 +549,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 28
+      "issue_number": 25,
+      "original_issue_number": 28,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P029",
@@ -520,7 +572,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 29
+      "issue_number": 29,
+      "original_issue_number": 29,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P030",
@@ -542,7 +596,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 30
+      "issue_number": 29,
+      "original_issue_number": 30,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P031",
@@ -562,7 +618,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 31
+      "issue_number": 29,
+      "original_issue_number": 31,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P032",
@@ -584,7 +642,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 32
+      "issue_number": 29,
+      "original_issue_number": 32,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P033",
@@ -605,7 +665,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 33
+      "issue_number": 33,
+      "original_issue_number": 33,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P034",
@@ -622,7 +684,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 34
+      "issue_number": 33,
+      "original_issue_number": 34,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P035",
@@ -644,7 +708,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 35
+      "issue_number": 33,
+      "original_issue_number": 35,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P036",
@@ -661,7 +727,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 37
+      "issue_number": 33,
+      "original_issue_number": 37,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P037",
@@ -682,7 +750,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 38
+      "issue_number": 38,
+      "original_issue_number": 38,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P038",
@@ -704,7 +774,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 39
+      "issue_number": 38,
+      "original_issue_number": 39,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P039",
@@ -726,7 +798,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 40
+      "issue_number": 38,
+      "original_issue_number": 40,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P040",
@@ -785,7 +859,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 41
+      "issue_number": 38,
+      "original_issue_number": 41,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P041",
@@ -803,7 +879,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 42
+      "issue_number": 38,
+      "original_issue_number": 42,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P042",
@@ -823,7 +901,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 43
+      "issue_number": 38,
+      "original_issue_number": 43,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P043",
@@ -843,7 +923,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 44
+      "issue_number": 44,
+      "original_issue_number": 44,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P044",
@@ -862,7 +944,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 45
+      "issue_number": 44,
+      "original_issue_number": 45,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P045",
@@ -879,7 +963,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 46
+      "issue_number": 44,
+      "original_issue_number": 46,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P046",
@@ -899,7 +985,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 47
+      "issue_number": 44,
+      "original_issue_number": 47,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P047",
@@ -918,7 +1006,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 48
+      "issue_number": 48,
+      "original_issue_number": 48,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P048",
@@ -935,7 +1025,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 49
+      "issue_number": 48,
+      "original_issue_number": 49,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P049",
@@ -953,7 +1045,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 50
+      "issue_number": 48,
+      "original_issue_number": 50,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P050",
@@ -971,7 +1065,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 51
+      "issue_number": 48,
+      "original_issue_number": 51,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P051",
@@ -988,7 +1084,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 52
+      "issue_number": 48,
+      "original_issue_number": 52,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P052",
@@ -1009,7 +1107,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 53
+      "issue_number": 53,
+      "original_issue_number": 53,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P053",
@@ -1027,7 +1127,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 54
+      "issue_number": 53,
+      "original_issue_number": 54,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P054",
@@ -1047,7 +1149,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 55
+      "issue_number": 53,
+      "original_issue_number": 55,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P055",
@@ -1069,7 +1173,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 56
+      "issue_number": 53,
+      "original_issue_number": 56,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P056",
@@ -1085,7 +1191,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 57
+      "issue_number": 57,
+      "original_issue_number": 57,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P057",
@@ -1103,7 +1211,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 58
+      "issue_number": 57,
+      "original_issue_number": 58,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P058",
@@ -1121,7 +1231,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 59
+      "issue_number": 57,
+      "original_issue_number": 59,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P059",
@@ -1141,7 +1253,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 60
+      "issue_number": 57,
+      "original_issue_number": 60,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P060",
@@ -1157,7 +1271,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 61
+      "issue_number": 61,
+      "original_issue_number": 61,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P061",
@@ -1174,7 +1290,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 62
+      "issue_number": 61,
+      "original_issue_number": 62,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P062",
@@ -1191,7 +1309,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 63
+      "issue_number": 61,
+      "original_issue_number": 63,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P063",
@@ -1209,7 +1329,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 64
+      "issue_number": 64,
+      "original_issue_number": 64,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P064",
@@ -1226,7 +1348,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 65
+      "issue_number": 64,
+      "original_issue_number": 65,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P065",
@@ -1244,7 +1368,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 66
+      "issue_number": 66,
+      "original_issue_number": 66,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     },
     {
       "id": "P066",
@@ -1261,7 +1387,9 @@
       ],
       "status": "documented baseline; implementation pending",
       "user_review_required": false,
-      "issue_number": 67
+      "issue_number": 66,
+      "original_issue_number": 67,
+      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
     }
   ],
   "user_review_required": false,
@@ -1338,5 +1466,6 @@
     "ADAPTER": 71,
     "RELEASE": 72
   },
-  "quality_scope": "One GoogleTest job and one formatting job on pull requests; exceptions OFF and RTTI OFF."
+  "quality_scope": "One GoogleTest job and one formatting job on pull requests; exceptions OFF and RTTI OFF.",
+  "issue_consolidation_plan": "../issue-consolidation-plan.md"
 }
