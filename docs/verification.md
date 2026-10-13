@@ -1,5 +1,113 @@
 # Development setup verification
 
+## Issue #1 public-contract documentation, 2026-10-13
+
+The existing [architecture document](architecture.md#public-ownership-value-and-policy-contracts)
+now covers syntax defaults, input/result lifetimes, owned documents and views,
+duplicate preservation/rejection, exact numbers and checked conversions, error
+categories, caller storage, named limits, cleanup, concurrency and determinism.
+Unresolved signatures, document-move view stability, allocator details,
+conversion policies and numeric limit defaults are explicitly Draft.
+
+This completes the remaining documentation acceptance item for Issue #1. It
+does not implement these future APIs, change J5 statuses or establish a parser
+release. The previous 51-case OFF/ON unit evidence applies to current
+declarations only. No new production changes or test executions were needed
+for this documentation update.
+
+## Issue #1 input/options declarations, 2026-10-13
+
+The developer's `input.hpp` and `options.hpp` define borrowed immutable input
+and JSON5/strict-JSON selection with a JSON5 default. The existing
+[architecture contract](architecture.md#input-and-syntax-options-contract)
+documents exact byte lengths, caller lifetimes, non-NUL input, embedded zero
+bytes, empty descriptions and explicit result-state construction.
+
+Five `J5_004_InputView` units and three `J5_005_ParseOptions` units execute in
+the new `adaptive_json5_api_unit_tests` binary (`api_configuration_units` CTest
+entry). They verify declaration behavior only: no parser reads, syntax
+acceptance, malformed/truncated-input handling or read-boundary implementation
+is claimed. P004's cursor and P042's strict grammar remain pending.
+
+Both native Windows/GCC 15.2.0 C++17 configurations passed: exceptions OFF/ON,
+RTTI OFF, with 51 GoogleTest cases per mode (8 API, 40 result, 3 configuration)
+in three CTest entries. Compile-time checks also ensure result types have no
+public default construction. Both new headers independently passed first/only
+include compilation with `-pedantic-errors` in both modes. clang-format 18.1.8
+passed for all eight C++ files; the agent formatted test sources only.
+
+This completes Issue #1's input/defaults specification and available-declaration
+unit acceptance item. It does not establish full J5-004/J5-005 behavior or the
+native compiler matrix. Requirement statuses remain Draft.
+
+## Issue #1 recoverable-error specification, 2026-10-13
+
+The [architecture error contract](architecture.md#recoverable-error-contract)
+now specifies equivalent outcomes in exceptions OFF/ON builds, category mapping,
+checked inspection, allocation-free minimal reporting, no invalid-input
+assert/abort/throw, cleanup and failure atomicity. This is completion of an API
+specification acceptance item, not executed evidence for future parser,
+conversion, access or storage operations. Existing P002 execution results apply
+to result containers only. No production changes or additional test runs were
+needed for this documentation change; linked J5 statuses remain Draft.
+
+## Issue #1 current public-header review, 2026-10-13
+
+Reviewed `error.hpp` and `result.hpp` for standard C++17 declarations and absence
+of OS, vendor, AdaptivePi, WSL, host-test and editor dependencies. Each header
+passed an independent first/only-include compile check with native Windows GCC
+15.2.0, `-std=c++17 -pedantic-errors -fno-rtti`, in exceptions OFF and ON modes.
+This evidence covers the current header inventory only; the full native compiler
+matrix, embedded runtime and broader J5-001 verification remain pending. No
+production files changed, no new quality gate was added and broader J5 statuses
+remain Draft.
+
+## P003 storage and accounting units, 2026-10-13
+
+The developer's `checked_size.hpp`, `storage.hpp` and `owned_block.hpp` provide
+overflow-checked size arithmetic, caller-supplied storage callback types,
+move-only `owned_block` RAII handles, and `allocate_block` / `allocate_array`
+fallible allocation primitives. The agent added only test C++
+(`tests/storage_tests.cpp`), test build setup (`tests/CMakeLists.txt`) and
+traceability/verification documentation for this step.
+
+`tests/storage_tests.cpp` exercises 39 GoogleTest cases across 9 test suites:
+- `checked_add` and `checked_multiply` parameterized across zero, one, small
+  values, maximum unsigned limits and overflow boundaries returning
+  `error_code::resource_limit` with no byte offset.
+- `storage_callbacks` default construction and callback signature contracts.
+- Allocation-point failure injection via a test `counting_provider`, verifying
+  explicit `error_code::allocation_failure` outcomes and zero outstanding bytes.
+- Missing callback validation rejecting null allocate or deallocate pointers.
+- Alignment validation rejecting zero or non-power-of-two alignments with
+  `error_code::resource_limit` without calling the provider.
+- `allocate_array` calculating exact byte sizes and aborting on size overflow
+  before calling the provider.
+- `owned_block` default construction owning nothing, single balanced release
+  matching original address, bytes and alignment upon destruction, move
+  construction transferring ownership without double release, and zero-byte
+  allocation producing an empty block without invoking the provider.
+- Operation atomicity and provider reuse (J5-051) verifying that an oversized
+  allocation failure leaves the provider intact and reusable for subsequent
+  successful allocations.
+
+| Local native Windows configuration | Executed result |
+| --- | --- |
+| GCC 15.2.0, C++17, exceptions OFF, RTTI OFF | All 4 CTest test executables passed (90 total test cases across suites, 39 in `storage_units`) |
+| GCC 15.2.0, C++17, exceptions ON, RTTI OFF | All 4 CTest test executables passed (90 total test cases across suites, 39 in `storage_units`) |
+| clang-format 18.1.8 | Passed for all 12 C++ files (`python tools/format.py --check`) |
+
+Both configurations used Ninja, CMake 4.4.4 and the pinned GoogleTest revision
+with `-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=tools/gtest`. Reproduce with
+`cmake --build --preset debug-unit-tests` and `ctest --preset debug-unit-tests`,
+followed by the corresponding `debug-unit-tests-exceptions` preset commands. The
+new CTest entry is `storage_units`, running `adaptive_json5_storage_unit_tests`.
+
+P003's current storage and accounting primitives have local executed unit evidence.
+Broader J5-040, J5-046, J5-051 and J5-101 contracts remain Draft because parser
+integration, dynamic document containers and embedded device verification remain
+pending. No remote compiler matrix or hardware target run was performed.
+
 ## P002 result/error units, 2026-10-13
 
 The developer's `error.hpp` and `result.hpp` now provide minimal errors,

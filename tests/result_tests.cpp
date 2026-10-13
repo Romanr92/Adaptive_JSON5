@@ -116,6 +116,8 @@ namespace
   static_assert(std::is_nothrow_move_constructible_v<owned_result>);
 
   // Value-bearing assignment is deliberately outside the current P002 API.
+  static_assert(!std::is_default_constructible_v<int_result>);
+  static_assert(!std::is_default_constructible_v<adaptive_json5::status_result>);
   static_assert(!std::is_copy_assignable_v<int_result>);
   static_assert(!std::is_move_assignable_v<int_result>);
 
