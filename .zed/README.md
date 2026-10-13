@@ -50,17 +50,30 @@ See [Zed task keybindings](https://zed.dev/docs/tasks#custom-keybindings-for-tas
 
 ## Formatting on save
 
-C and C++ buffers are formatted on save by the external `clang-format` command.
-Install the repository's required version, 18.1.8, and ensure it is on Zed's PATH:
+C and C++ buffers are formatted on save using `tools/zed_format.py`. The project
+settings launch Python and locate the helper from the edited buffer's absolute
+path, so the checkout can move and Zed's working directory does not matter.
+The helper selects the repository's `.clang-format` and finds clang-format
+18.1.8 in local build storage or on PATH. Windows, Linux and macOS executable
+names are handled automatically. No machine-specific formatter paths are tracked.
+
+Python 3.9+ must be available to Zed as `python`. If your system provides only
+`python3`, install/configure a `python` launcher or change the formatter command
+to `python3` in your local editor settings. Prepare the pinned local formatter
+from the repository root on each machine:
 
 ```sh
-python -m pip install clang-format==18.1.8
+python -m pip install --target build/format-tools clang-format==18.1.8
 ```
 
-The formatter receives the buffer on standard input and returns formatted text
-to Zed. `--assume-filename={buffer_path}` lets it find the repository's
-`.clang-format` starting from the edited file's directory. No in-place formatter
-flag is used. The original user-settings backup remains under `user-config/`.
+Deleting the build directory removes this local tool; repeat the install command.
+Alternatively, install clang-format 18.1.8 on PATH. An unsupported formatter
+version produces an explicit error instead of silently changing the style.
+
+The helper receives the unsaved buffer on stdin and returns formatted text on
+stdout. It neither reads nor rewrites the edited file. `{buffer_path}` identifies
+the checkout and supplies the assumed filename. No in-place formatter flag is
+used. The original user-settings backup remains under `user-config/`.
 
 See [Zed's formatter settings](https://zed.dev/docs/reference/all-settings#formatter).
 
@@ -70,7 +83,9 @@ The root `.clangd` selects `build/debug-unit-tests/compile_commands.json` and
 C++17. Configure the unit-test preset with your native toolchain to generate
 that database. Zed's clangd arguments allow querying the Windows Scoop GCC
 compiler used by this checkout for its target and standard-library include
-paths. This is editor configuration, not a parser dependency or quality gate.
+paths. Both Scoop `gcc` and `mingw` compiler paths are allowed, since the
+current compilation database uses `mingw`. This is editor configuration,
+not a parser dependency or quality gate.
 Other toolchains may need their own narrowly scoped `--query-driver` argument
 in user settings. See [clangd system headers](https://clangd.llvm.org/guides/system-headers).
 

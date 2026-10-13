@@ -21,26 +21,26 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-003 | Exception-independent API | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_003_BuildConfiguration.AppliesSelectedExceptionMode`; `J5_003_Result.StatusSuccessHasNoError`; `J5_003_Result.ValueSuccessHasNoError`; `J5_003_Result.MutableAccessUpdatesStoredValue`; `J5_003_Result.CopyConstructionPreservesAlternatives`; `J5_003_Result.MoveConstructionPreservesAlternatives`; `J5_003_Result.SupportsMoveOnlyValueOwnership`; `J5_003_Result.SameTypeAlternativesRemainDistinct`; `J5_003_Result.StatusCopyAndMovePreserveFailure`; `J5_003_Result.StatusAssignmentTransitionsBothWays`; `J5_003_Result.BalancesSuccessAlternativeLifetimes`; `J5_003_Result.BalancesErrorAlternativeLifetimes` |
 | J5-004 | Input boundary | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_004_InputView.DefaultsToEmptyBuffer`; `J5_004_InputView.AllowsNonNullEmptyBuffer`; `J5_004_InputView.DescribesReadOnlyNonTerminatedPrefix`; `J5_004_InputView.RetainsEmbeddedZeroInByteCount`; `J5_004_InputView.BorrowsCallerStorageWithoutCopying`; `J5_004_Cursor.DefaultConstructedIsAtEnd`; `J5_004_Cursor.EmptyNonNullViewIsAtEnd`; `J5_004_Cursor.ConsumesExactLengthWithoutTerminatingNul`; `J5_004_Cursor.ReadsAcrossEmbeddedZeroBytes`; `J5_004_Cursor.PeekLookaheadBoundsAgainstRemaining`; `J5_004_Cursor.AdvanceClampsAtEnd` |
 | J5-005 | Syntax selection | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_005_ParseOptions.DefaultsToJson5`; `J5_005_ParseOptions.SelectsJson5Explicitly`; `J5_005_ParseOptions.SelectsStrictJsonExplicitly` |
-| J5-006 | Unicode data baseline | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
+| J5-006 | Unicode data baseline | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) | `J5_006_UnicodeTableMembership.MatchesDocumentedCategories`; `J5_006_UnicodeTables.RangesAreSortedMergedScalars`; `J5_006_UnicodeLookup.SearchesFullInterval` |
 | J5-007 | License and provenance | Draft | [#2](https://github.com/Romanr92/Adaptive_JSON5/issues/2) |  |
 | J5-008 | Public contracts | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) |  |
-| J5-009 | UTF-8 source | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
+| J5-009 | UTF-8 source | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) | `J5_009_Utf8Valid.DecodesScalarAndOriginalByteSpan`; `J5_009_Utf8Truncated.RejectsEveryTruncatedMultibytePrefix`; `J5_009_Utf8Invalid.ReportsEncodingErrorWithoutAdvancing`; `J5_009_Utf8.EmptyInputReturnsEof`; `J5_009_Utf8.DecodesEveryAsciiByte`; `J5_009_Utf8.RejectsEveryForbiddenLeadingByte`; `J5_009_Utf8.DecodesMixedWidthsAndRepeatedEof`; `J5_009_Utf8.RejectsEveryInvalidContinuationByte`; `J5_009_LineTerminatorEncoding.PreservesErrorAndCursor`; `J5_009_LineTerminatorEncodingTail.ReportsMalformedByteAfterCrSeparately`; `J5_009_WhitespaceEncoding.ReportsOriginalOffsetAndRollsBackRun` |
 | J5-010 | JSON whitespace | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
-| J5-011 | JSON5 whitespace | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
+| J5-011 | JSON5 whitespace | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) | `J5_011_LineTerminator.RecognizesExactSpanOrLeavesInput`; `J5_011_LineTerminatorEof.ReturnsNoSequenceAtEnd`; `J5_011_LineTerminatorEof.CrDoesNotReadPastView`; `J5_011_LineTerminatorGrouping.ConsumesAdjacentSequencesSeparately`; `J5_011_Whitespace.ClassifiesAndSkipsExactRun`; `J5_011_WhitespaceEof.HandlesEmptyAndExactLengthViews`; `J5_011_WhitespaceRun.CountsMixedLinesAndStopsAtSupplementaryToken` |
 | J5-012 | Comments | Draft | [#4](https://github.com/Romanr92/Adaptive_JSON5/issues/4) |  |
 | J5-013 | Structural tokens | Draft | [#4](https://github.com/Romanr92/Adaptive_JSON5/issues/4) |  |
 | J5-014 | Quoted strings | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
 | J5-015 | JSON escapes | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
 | J5-016 | JSON5 escapes | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
-| J5-017 | Continuations and separators | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
+| J5-017 | Continuations and separators | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) | `J5_011_LineTerminatorGrouping.ConsumesAdjacentSequencesSeparately` |
 | J5-018 | Surrogate fidelity | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
-| J5-019 | Unquoted member names | Draft | [#6](https://github.com/Romanr92/Adaptive_JSON5/issues/6) |  |
+| J5-019 | Unquoted member names | Draft | [#6](https://github.com/Romanr92/Adaptive_JSON5/issues/6) | `J5_019_UnicodeClassifier.ClassifiesDecodedScalar` |
 | J5-020 | Escaped identifiers | Draft | [#6](https://github.com/Romanr92/Adaptive_JSON5/issues/6) |  |
 | J5-021 | JSON numbers | Draft | [#7](https://github.com/Romanr92/Adaptive_JSON5/issues/7) |  |
 | J5-022 | JSON5 numbers | Draft | [#7](https://github.com/Romanr92/Adaptive_JSON5/issues/7) |  |
 | J5-023 | Primitive literals | Draft | [#7](https://github.com/Romanr92/Adaptive_JSON5/issues/7) |  |
 | J5-024 | Token boundaries | Draft | [#7](https://github.com/Romanr92/Adaptive_JSON5/issues/7) |  |
-| J5-025 | BOM policy | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
+| J5-025 | BOM policy | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) | `J5_025_Json5Whitespace.SkipsLeadingAndInteriorBom` |
 | J5-026 | Complete input | Draft | [#8](https://github.com/Romanr92/Adaptive_JSON5/issues/8) |  |
 | J5-027 | Language completeness | Draft | [#8](https://github.com/Romanr92/Adaptive_JSON5/issues/8) |  |
 | J5-028 | Value types | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
@@ -59,7 +59,7 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-041 | Source spans | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_041_Cursor.SpansSubrangeUpToCurrentOffset` |
 | J5-042 | Pure memory parsing | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
 | J5-043 | Structured errors | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_043_LocatedResult.PreservesCategoryAndOffset`; `J5_043_UnlocatedResult.DistinguishesMissingLocationFromByteZero` |
-| J5-044 | Diagnostic locations | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_044_Cursor.PreservesExactByteOffsetForDiagnostics` |
+| J5-044 | Diagnostic locations | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_044_Cursor.PreservesExactByteOffsetForDiagnostics`; `J5_011_LineTerminator.RecognizesExactSpanOrLeavesInput`; `J5_009_LineTerminatorEncoding.PreservesErrorAndCursor` |
 | J5-045 | Failure-safe reporting | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_045_Result.ReportsAllocationFailureWithoutRichDiagnostics` |
 | J5-046 | Fallible allocation | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) | `J5_046_CheckedSize/CheckedAddUnits.ReportsExactSumOrResourceLimit`; `J5_046_CheckedSize/CheckedMultiplyUnits.ReportsExactProductOrResourceLimit`; `J5_046_Storage.DefaultHasNoProvider`; `J5_046_Storage.ReportsFailureAsNullWithoutOutstandingStorage`; `J5_046_Storage.BalancesReleaseAfterInjectedFailure`; `J5_046_OwnedBlock/OwnedBlockAllocationPointUnits.ReportsFailureAndBalancesRelease`; `J5_046_OwnedBlock/OwnedBlockAlignmentUnits.RejectsInvalidAlignmentBeforeProviderCall`; `J5_046_OwnedBlock.RejectsMissingCallbacks`; `J5_046_OwnedBlock.AllocatesArrayWithExactSize`; `J5_046_OwnedBlock.ArrayOverflowReportsResourceLimitWithoutProviderCall` |
 | J5-047 | Configurable limits | Draft | [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14) |  |

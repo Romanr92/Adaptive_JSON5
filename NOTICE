@@ -27,3 +27,11 @@ The JSON5 implementation checklist explains JSON5 1.0.0 (MIT, Copyright (c)
 2017 Aseem Kishore, Jordan Tucker) and referenced ECMAScript 5.1 lexical rules
 (Copyright © 2011 Ecma International). Their notices are retained under LICENSES.
 The explanation is project-authored; the official standards are not modified.
+
+The generated Unicode property tables incorporate Unicode Character Database
+17.0.0 and historical 3.0.0 data, Copyright 1991-2026 Unicode, Inc.
+The Unicode 17.0.0 ReadMe additionally retains its 2025 Unicode, Inc. notice.
+The complete Unicode License V3 notice is preserved in
+LICENSES/Unicode-License-V3.txt and embedded in unicode_tables.hpp.
+Original data inputs are unchanged; generated category unions/ranges and their
+regeneration procedure are documented in tools/unicode-data/README.md.

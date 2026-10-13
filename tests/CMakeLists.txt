@@ -38,3 +38,54 @@ gtest_discover_tests(adaptive_json5_api_unit_tests
     EXTRA_ARGS --gtest_fail_if_no_test_linked
     NO_PRETTY_VALUES
     PROPERTIES LABELS api_configuration_units)
+
+# Contract-first P005 units intentionally require the developer's utf8.hpp.
+add_executable(adaptive_json5_utf8_unit_tests utf8_tests.cpp)
+target_include_directories(adaptive_json5_utf8_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_utf8_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_utf8_unit_tests)
+
+gtest_discover_tests(adaptive_json5_utf8_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS utf8_units)
+
+add_executable(adaptive_json5_unicode_table_unit_tests unicode_tables_tests.cpp)
+target_include_directories(adaptive_json5_unicode_table_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_unicode_table_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_unicode_table_unit_tests)
+
+gtest_discover_tests(adaptive_json5_unicode_table_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS unicode_table_units)
+
+add_executable(adaptive_json5_unicode_unit_tests unicode_tests.cpp)
+target_include_directories(adaptive_json5_unicode_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_unicode_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_unicode_unit_tests)
+
+gtest_discover_tests(adaptive_json5_unicode_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS unicode_units TIMEOUT 10)
+
+add_executable(adaptive_json5_line_terminator_unit_tests line_terminator_tests.cpp)
+target_include_directories(adaptive_json5_line_terminator_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_line_terminator_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_line_terminator_unit_tests)
+
+gtest_discover_tests(adaptive_json5_line_terminator_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS line_terminator_units TIMEOUT 10)
+
+add_executable(adaptive_json5_whitespace_unit_tests whitespace_tests.cpp)
+target_include_directories(adaptive_json5_whitespace_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_whitespace_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_whitespace_unit_tests)
+
+gtest_discover_tests(adaptive_json5_whitespace_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS whitespace_units TIMEOUT 10)

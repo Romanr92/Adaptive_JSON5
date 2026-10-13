@@ -1,0 +1,19 @@
+{
+  "17.0.0/UnicodeData.txt": {
+    "url": "https://www.unicode.org/Public/17.0.0/ucd/UnicodeData.txt",
+    "sha256": "2e1efc1dcb59c575eedf5ccae60f95229f706ee6d031835247d843c11d96470c"
+  },
+  "3.0.0/UnicodeData.txt": {
+    "url": "https://www.unicode.org/Public/3.0-Update/UnicodeData-3.0.0.txt",
+    "sha256": "f41d967bc458ee106f0c3948bfad71cd0860d96c49304e3fd02eaf2bbae4b6d9"
+  },
+  "17.0.0/ReadMe.txt": {
+    "url": "https://www.unicode.org/Public/17.0.0/ucd/ReadMe.txt",
+    "sha256": "9fe1a90bd32659d7953616283dc2bffaa165518aae9ace026040c42c559ba606"
+  },
+  "../../LICENSES/Unicode-License-V3.txt": {
+    "url": "https://www.unicode.org/license.txt",
+    "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "retrieved": "2026-10-13"
+  }
+}
