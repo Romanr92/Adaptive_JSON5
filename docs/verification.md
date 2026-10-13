@@ -62,6 +62,35 @@ matrix, embedded runtime and broader J5-001 verification remain pending. No
 production files changed, no new quality gate was added and broader J5 statuses
 remain Draft.
 
+## P004 cursor units, 2026-10-13
+
+The developer's `cursor.hpp` provides explicit length bounding, forward consumption,
+arbitrary remaining-bounded lookahead (`peek(delta)`), clamped advance, and subrange
+span slicing (`span_from`) over borrowed `input_view` buffers. The agent added only
+test C++ (`tests/cursor_tests.cpp`), test build setup (`tests/CMakeLists.txt`), and
+traceability/verification updates.
+
+`tests/cursor_tests.cpp` exercises 8 GoogleTest cases across 3 requirements:
+- `J5_004_Cursor`: default-constructed cursor immediate end state; empty non-null
+  view immediate end state; exact length consumption without terminating NUL
+  assumption; reading across embedded zero bytes; bounded lookahead (`peek`);
+  advance clamped at buffer end.
+- `J5_041_Cursor`: source span extraction up to current offset with boundary clamps.
+- `J5_044_Cursor`: exact zero-based byte offset preservation throughout consumption.
+
+| Local native Windows configuration | Executed result |
+| --- | --- |
+| GCC 15.2.0, C++17, exceptions OFF, RTTI OFF | All 4 CTest test executables passed (98 total test cases across suites, 16 in `api_configuration_units`) |
+| GCC 15.2.0, C++17, exceptions ON, RTTI OFF | All 4 CTest test executables passed (98 total test cases across suites, 16 in `api_configuration_units`) |
+| clang-format 18.1.8 | Passed for all 14 C++ files (`python tools/format.py --check`) |
+
+Both configurations used Ninja, CMake 4.4.4 and the pinned GoogleTest revision.
+Reproduce with `cmake --build --preset debug-unit-tests` and `ctest --preset debug-unit-tests`,
+followed by the corresponding `debug-unit-tests-exceptions` preset commands.
+
+P004's cursor component has local executed unit evidence. Broader J5-004, J5-041,
+and J5-044 parser diagnostics, token spans, and full input acceptance remain Draft.
+
 ## P003 storage and accounting units, 2026-10-13
 
 The developer's `checked_size.hpp`, `storage.hpp` and `owned_block.hpp` provide

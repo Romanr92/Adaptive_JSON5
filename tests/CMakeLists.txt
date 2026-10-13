@@ -20,7 +20,7 @@ target_link_libraries(adaptive_json5_storage_unit_tests PRIVATE AdaptiveJSON5::b
 adaptive_json5_configure_target(adaptive_json5_storage_unit_tests)
 add_test(NAME storage_units COMMAND adaptive_json5_storage_unit_tests --gtest_fail_if_no_test_linked)
 
-add_executable(adaptive_json5_api_unit_tests input_view_tests.cpp parse_options_tests.cpp)
+add_executable(adaptive_json5_api_unit_tests input_view_tests.cpp parse_options_tests.cpp cursor_tests.cpp)
 target_include_directories(adaptive_json5_api_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(adaptive_json5_api_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
 adaptive_json5_configure_target(adaptive_json5_api_unit_tests)
