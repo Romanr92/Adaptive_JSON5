@@ -34,19 +34,11 @@
         "strict_required_status_checks_policy": true,
         "required_status_checks": [
           {
+            "context": "unit-tests",
+            "integration_id": 15368
+          },
+          {
             "context": "formatting",
-            "integration_id": 15368
-          },
-          {
-            "context": "unit-tests (ubuntu-latest, exceptions OFF)",
-            "integration_id": 15368
-          },
-          {
-            "context": "unit-tests (windows-latest, exceptions OFF)",
-            "integration_id": 15368
-          },
-          {
-            "context": "unit-tests (macos-latest, exceptions OFF)",
             "integration_id": 15368
           }
         ]

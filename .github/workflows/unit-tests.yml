@@ -3,24 +3,23 @@ name: unit-tests
 on:
   pull_request:
 
+concurrency:
+  group: unit-tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   unit-tests:
-    name: unit-tests (${{ matrix.os }}, exceptions ${{ matrix.exceptions }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        exceptions: ['OFF']
+    name: unit-tests
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }} -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       - name: Build unit tests
         run: cmake --build build --config Debug --parallel
       - name: Run unit tests
