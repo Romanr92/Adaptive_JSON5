@@ -2,7 +2,7 @@
 
 Every requirement has an owning implementation issue. All functional contracts
 remain **Draft**; none is declared fully implemented or verified by this setup.
-The configuration units and P002 result/error units provide partial evidence
+The configuration, P002 result/error and input/options units provide partial evidence
 for their owning requirements. Test existence, a passing execution and complete
 requirement coverage are distinct.
 
@@ -15,8 +15,8 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-001 | Standalone C++ library | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_001_BuildConfiguration.UsesCxx17OrNewer` |
 | J5-002 | Build components | Draft | [#2](https://github.com/Romanr92/Adaptive_JSON5/issues/2) |  |
 | J5-003 | Exception-independent API | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_003_BuildConfiguration.AppliesSelectedExceptionMode`; `J5_003_Result.StatusSuccessHasNoError`; `J5_003_Result.ValueSuccessHasNoError`; `J5_003_Result.MutableAccessUpdatesStoredValue`; `J5_003_Result.CopyConstructionPreservesAlternatives`; `J5_003_Result.MoveConstructionPreservesAlternatives`; `J5_003_Result.SupportsMoveOnlyValueOwnership`; `J5_003_Result.SameTypeAlternativesRemainDistinct`; `J5_003_Result.StatusCopyAndMovePreserveFailure`; `J5_003_Result.StatusAssignmentTransitionsBothWays`; `J5_003_Result.BalancesSuccessAlternativeLifetimes`; `J5_003_Result.BalancesErrorAlternativeLifetimes` |
-| J5-004 | Input boundary | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) |  |
-| J5-005 | Syntax selection | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) |  |
+| J5-004 | Input boundary | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_004_InputView.DefaultsToEmptyBuffer`; `J5_004_InputView.AllowsNonNullEmptyBuffer`; `J5_004_InputView.DescribesReadOnlyNonTerminatedPrefix`; `J5_004_InputView.RetainsEmbeddedZeroInByteCount`; `J5_004_InputView.BorrowsCallerStorageWithoutCopying` |
+| J5-005 | Syntax selection | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_005_ParseOptions.DefaultsToJson5`; `J5_005_ParseOptions.SelectsJson5Explicitly`; `J5_005_ParseOptions.SelectsStrictJsonExplicitly` |
 | J5-006 | Unicode data baseline | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
 | J5-007 | License and provenance | Draft | [#2](https://github.com/Romanr92/Adaptive_JSON5/issues/2) |  |
 | J5-008 | Public contracts | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) |  |
