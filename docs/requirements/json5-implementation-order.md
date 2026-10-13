@@ -66,6 +66,9 @@ evidence does not complete the broader J5 contracts or establish a remote matrix
 
 Provide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.
 
+Implementation: developer-authored `checked_size.hpp`, `storage.hpp` and `owned_block.hpp`.
+Local unit evidence: 39 storage cases passed on Windows/GCC with exceptions OFF and ON and RTTI OFF on 2026-10-13; see [verification notes](../verification.md). This component evidence does not complete broader J5-040, J5-046, J5-051 and J5-101 contracts or establish a remote matrix.
+
 - Prerequisites: P002.
 - Basis: Project.
 - Unit acceptance: Fail each primitive allocation and verify explicit outcomes and balanced release.

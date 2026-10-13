@@ -62,6 +62,52 @@ matrix, embedded runtime and broader J5-001 verification remain pending. No
 production files changed, no new quality gate was added and broader J5 statuses
 remain Draft.
 
+## P003 storage and accounting units, 2026-10-13
+
+The developer's `checked_size.hpp`, `storage.hpp` and `owned_block.hpp` provide
+overflow-checked size arithmetic, caller-supplied storage callback types,
+move-only `owned_block` RAII handles, and `allocate_block` / `allocate_array`
+fallible allocation primitives. The agent added only test C++
+(`tests/storage_tests.cpp`), test build setup (`tests/CMakeLists.txt`) and
+traceability/verification documentation for this step.
+
+`tests/storage_tests.cpp` exercises 39 GoogleTest cases across 9 test suites:
+- `checked_add` and `checked_multiply` parameterized across zero, one, small
+  values, maximum unsigned limits and overflow boundaries returning
+  `error_code::resource_limit` with no byte offset.
+- `storage_callbacks` default construction and callback signature contracts.
+- Allocation-point failure injection via a test `counting_provider`, verifying
+  explicit `error_code::allocation_failure` outcomes and zero outstanding bytes.
+- Missing callback validation rejecting null allocate or deallocate pointers.
+- Alignment validation rejecting zero or non-power-of-two alignments with
+  `error_code::resource_limit` without calling the provider.
+- `allocate_array` calculating exact byte sizes and aborting on size overflow
+  before calling the provider.
+- `owned_block` default construction owning nothing, single balanced release
+  matching original address, bytes and alignment upon destruction, move
+  construction transferring ownership without double release, and zero-byte
+  allocation producing an empty block without invoking the provider.
+- Operation atomicity and provider reuse (J5-051) verifying that an oversized
+  allocation failure leaves the provider intact and reusable for subsequent
+  successful allocations.
+
+| Local native Windows configuration | Executed result |
+| --- | --- |
+| GCC 15.2.0, C++17, exceptions OFF, RTTI OFF | All 4 CTest test executables passed (90 total test cases across suites, 39 in `storage_units`) |
+| GCC 15.2.0, C++17, exceptions ON, RTTI OFF | All 4 CTest test executables passed (90 total test cases across suites, 39 in `storage_units`) |
+| clang-format 18.1.8 | Passed for all 12 C++ files (`python tools/format.py --check`) |
+
+Both configurations used Ninja, CMake 4.4.4 and the pinned GoogleTest revision
+with `-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=tools/gtest`. Reproduce with
+`cmake --build --preset debug-unit-tests` and `ctest --preset debug-unit-tests`,
+followed by the corresponding `debug-unit-tests-exceptions` preset commands. The
+new CTest entry is `storage_units`, running `adaptive_json5_storage_unit_tests`.
+
+P003's current storage and accounting primitives have local executed unit evidence.
+Broader J5-040, J5-046, J5-051 and J5-101 contracts remain Draft because parser
+integration, dynamic document containers and embedded device verification remain
+pending. No remote compiler matrix or hardware target run was performed.
+
 ## P002 result/error units, 2026-10-13
 
 The developer's `error.hpp` and `result.hpp` now provide minimal errors,
