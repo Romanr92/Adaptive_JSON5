@@ -40,8 +40,15 @@ Their exact installed artifacts retain their own licenses; copying or bundling
 any of them requires checking that artifact's license and notices. A recommendation
 or tool invocation is not an ownership or licensing grant for the tool.
 
-Future external Unicode tables, syntax/schema corpora and schema/editor dependencies
-are not presently imported. Record their exact source/version/license/notices before
+Unicode data 17.0.0 and 3.0.0 is now incorporated as generated classification
+tables. Preserve [Unicode License V3](../LICENSES/Unicode-License-V3.txt) with
+the data or accompanying documentation; the generated header embeds the notice.
+Original input files and their provenance remain in `tools/unicode-data/`.
+Unicode's license applies to that material; it does not replace Apache-2.0 for
+the project's original code.
+
+Future syntax/schema corpora and schema/editor dependencies are not presently
+imported. Record their exact source/version/license/notices before
 incorporation; standards links and original examples do not grant redistribution
 rights to upstream test suites. Add required texts and distribution rules when such
 material is selected. Do not claim that all future dependencies are Apache-2.0.
