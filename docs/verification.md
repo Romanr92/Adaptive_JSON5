@@ -1,5 +1,52 @@
 # Development setup verification
 
+## Issue #1 input/options declarations, 2026-10-13
+
+The developer's `input.hpp` and `options.hpp` define borrowed immutable input
+and JSON5/strict-JSON selection with a JSON5 default. The existing
+[architecture contract](architecture.md#input-and-syntax-options-contract)
+documents exact byte lengths, caller lifetimes, non-NUL input, embedded zero
+bytes, empty descriptions and explicit result-state construction.
+
+Five `J5_004_InputView` units and three `J5_005_ParseOptions` units execute in
+the new `adaptive_json5_api_unit_tests` binary (`api_configuration_units` CTest
+entry). They verify declaration behavior only: no parser reads, syntax
+acceptance, malformed/truncated-input handling or read-boundary implementation
+is claimed. P004's cursor and P042's strict grammar remain pending.
+
+Both native Windows/GCC 15.2.0 C++17 configurations passed: exceptions OFF/ON,
+RTTI OFF, with 51 GoogleTest cases per mode (8 API, 40 result, 3 configuration)
+in three CTest entries. Compile-time checks also ensure result types have no
+public default construction. Both new headers independently passed first/only
+include compilation with `-pedantic-errors` in both modes. clang-format 18.1.8
+passed for all eight C++ files; the agent formatted test sources only.
+
+This completes Issue #1's input/defaults specification and available-declaration
+unit acceptance item. It does not establish full J5-004/J5-005 behavior or the
+native compiler matrix. Requirement statuses remain Draft.
+
+## Issue #1 recoverable-error specification, 2026-10-13
+
+The [architecture error contract](architecture.md#recoverable-error-contract)
+now specifies equivalent outcomes in exceptions OFF/ON builds, category mapping,
+checked inspection, allocation-free minimal reporting, no invalid-input
+assert/abort/throw, cleanup and failure atomicity. This is completion of an API
+specification acceptance item, not executed evidence for future parser,
+conversion, access or storage operations. Existing P002 execution results apply
+to result containers only. No production changes or additional test runs were
+needed for this documentation change; linked J5 statuses remain Draft.
+
+## Issue #1 current public-header review, 2026-10-13
+
+Reviewed `error.hpp` and `result.hpp` for standard C++17 declarations and absence
+of OS, vendor, AdaptivePi, WSL, host-test and editor dependencies. Each header
+passed an independent first/only-include compile check with native Windows GCC
+15.2.0, `-std=c++17 -pedantic-errors -fno-rtti`, in exceptions OFF and ON modes.
+This evidence covers the current header inventory only; the full native compiler
+matrix, embedded runtime and broader J5-001 verification remain pending. No
+production files changed, no new quality gate was added and broader J5 statuses
+remain Draft.
+
 ## P002 result/error units, 2026-10-13
 
 The developer's `error.hpp` and `result.hpp` now provide minimal errors,

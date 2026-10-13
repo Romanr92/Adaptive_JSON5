@@ -11,7 +11,8 @@ numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
 **Status: P002 result/error foundation implemented; no parser API is available.**
-The developer's public headers provide minimal errors and value/status results.
+The developer's public headers provide minimal errors, value/status results,
+borrowed input descriptions and syntax-option declarations.
 GoogleTest covers their behavior and the build settings; local exceptions
 OFF/ON results are recorded in [verification notes](docs/verification.md).
 The repository also supplies CMake/package scaffolding, formatting,
