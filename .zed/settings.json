@@ -7,6 +7,30 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "languages": {
+    "C++": {
+      "tab_size": 2,
+      "hard_tabs": false,
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "clang-format",
+          "arguments": ["--style=file", "--fallback-style=none", "--assume-filename={buffer_path}"]
+        }
+      }
+    },
+    "C": {
+      "tab_size": 2,
+      "hard_tabs": false,
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "clang-format",
+          "arguments": ["--style=file", "--fallback-style=none", "--assume-filename={buffer_path}"]
+        }
+      }
+    }
+  },
   "agent_servers": {
     "github-copilot-cli": {
       "type": "registry"

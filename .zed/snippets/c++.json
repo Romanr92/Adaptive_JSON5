@@ -1,0 +1,14 @@
+{
+  "Header guard": {
+    "prefix": "hguard",
+    "body": [
+      "#ifndef ${1:FILE_NAME_HPP}_",
+      "#define ${1}_",
+      "",
+      "$0",
+      "",
+      "#endif // ${1}_"
+    ],
+    "description": "Header guard: enter the uppercase filename with dots replaced by underscores; trailing underscore is automatic"
+  }
+}
