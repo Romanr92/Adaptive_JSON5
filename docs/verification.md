@@ -1,5 +1,36 @@
 # Development setup verification
 
+## P001 starting point, 2026-10-13
+
+Reviewed P001 (independent C++17 build) and its J5-001, J5-002, J5-091 and
+J5-101 links. No production files or requirement statuses changed.
+
+Local native Windows results with GCC 15.2.0, Ninja, CMake 4.4.4 and GoogleTest
+at `52eb8108c5bdec04579160ae17225d66034bd723`:
+
+| Configuration | Executed result |
+| --- | --- |
+| `debug-unit-tests`, exceptions OFF, RTTI OFF | Build passed; all three configuration units listed below passed |
+| `debug-unit-tests-exceptions`, exceptions ON, RTTI OFF | Build passed; the same three units passed |
+| `debug-library`, tests OFF | Configure/build passed; metadata only, no production compilation |
+
+Unit compile commands used `-std=c++17`, `-fno-rtti` and the selected exception
+flag. This establishes local configuration evidence only, not public-header,
+parser, full J5-001 portability or embedded runtime verification. No remote
+matrix was executed in this session. C++ sources were unchanged.
+
+The default Windows generator attempted unavailable NMake. Configuring with
+`-G Ninja -DCMAKE_CXX_COMPILER=g++` selected the installed native toolchain.
+The initial dependency fetch required network access. Separate build directories
+attempted to populate the shared `tools/gtest` checkout; after completing the
+fetch sequentially, the OFF configuration was regenerated using
+`-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=tools/gtest`. Use that offline override
+for additional build directories reusing this checkout, and finish dependency
+configuration before starting builds against it.
+
+See the [P001 implementation handoff](requirements/p001-build-handoff.md) for
+the remaining production boundary and next step.
+
 ## Setup follow-up, 2026-10-12
 
 - Latest published licensing/setup unit workflow: [passed](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/38180963812).
