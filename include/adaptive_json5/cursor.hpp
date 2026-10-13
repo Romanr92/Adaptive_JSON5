@@ -5,7 +5,6 @@
 
 #include <cstddef>
 #include <optional>
-#include <windows.h>
 
 namespace adaptive_json5
 {
