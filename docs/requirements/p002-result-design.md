@@ -1,6 +1,6 @@
 # P002 result design
 
-Decision selected by the user on 2026-10-13. Implementation and executed unit
+Design recorded on 2026-10-13. Implementation and executed unit
 evidence are tracked separately. This decision does not declare the broader
 J5 contracts implemented or verified.
 
@@ -24,9 +24,8 @@ class result<void, E>;
 using status_result = result<void>;
 ```
 
-This is a design sketch, not an implemented public API. Existing code currently
-provides a concrete `status_result`; adapting that code is the developer's next
-step. No AUTOSAR SDK, namespace, runtime or implementation is incorporated.
+This describes the selected API shape; implementation and verification are
+tracked separately. No AUTOSAR SDK, namespace, runtime or implementation is incorporated.
 The [AUTOSAR interface guidelines](https://autosar.org/fileadmin/standards/R23-11/AP/AUTOSAR_AP_EXP_InterfacesGuidelines.pdf)
 provide conceptual background; this project's requirements govern behavior.
 
@@ -53,26 +52,21 @@ provide conceptual background; this project's requirements govern behavior.
   unconditional `noexcept` alone must not hide a potentially throwing operation.
 - Value-bearing results must support move-only payloads and constrain the
   construction/move/destruction paths they expose. Copy operations are provided
-  only where the payload contract supports them. Assignment and emplacement are
-  deferred until active-alternative lifetime handling has been designed and tested.
+  only where the payload contract supports them. Value-bearing result assignment
+  is disabled; emplacement is not exposed. The void specialization currently
+  retains generated assignment and requires non-throwing error assignment.
 - A value-bearing result must not acquire a third, valueless state on an exposed
-  operation. Its storage implementation is still to be selected; an arbitrary
-  `std::variant` or tagged union is not assumed correct without lifetime analysis.
+  operation. Value-bearing storage is a private `std::variant<T, E>` with value
+  at index 0 and error at index 1. Construction is selected explicitly by index,
+  including when T and E are identical. Non-throwing alternative construction
+  and destruction are constrained at compile time, assignment is disabled and
+  checked inspection uses `std::get_if`. The void specialization uses
+  `std::optional<E>` to represent success by the absence of an error.
 
-## Incremental implementation order
+## Verification scope
 
-1. Adapt the existing class to `result<void, E>` and retain `status_result` as an
-   alias. Keep its error in `std::optional<E>` and enforce the supported error
-   type's non-throwing properties.
-2. Verify success, failure, location boundaries, checked inspection, compile-time
-   guarantees and supported copy/move behavior using GoogleTest in both exception
-   configurations, with RTTI OFF.
-3. Design and implement `result<T, E>` storage and lifetime handling, initially
-   exposing only the operations needed by following foundation steps. Verify
-   both alternatives, move-only values, same-type value/error alternatives and
-   balanced destruction before using it in P003.
-
-Use the `m_` member naming convention in [coding style](../coding-style.md).
-Production headers remain the human developer's responsibility. The agent may
-connect CMake and write units against the actual declarations, but must not
-provide a substitute implementation in test helpers.
+GoogleTest coverage includes both result forms, failure codes, location
+boundaries, checked inspection, compile-time guarantees, supported copy/move
+behavior, move-only payloads, same-type value/error alternatives and balanced
+destruction. The same behavior is checked with exceptions OFF and ON and RTTI
+OFF. Implementation existence does not itself establish verification.
