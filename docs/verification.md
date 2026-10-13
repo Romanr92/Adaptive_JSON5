@@ -1,5 +1,18 @@
 # Development setup verification
 
+## Individual CTest case registration, 2026-10-13
+
+CMake now uses `gtest_discover_tests` to register each GoogleTest case, including
+parameterized cases, separately. The four former executable entry names remain
+group labels selectable with `ctest -L`; `-R` selects individual case names.
+Historical executable-level totals below describe the registration at that time.
+
+The Zed `launch-tests` workflow rebuilt and passed all 98 individual cases with
+exceptions OFF and RTTI OFF. The exceptions-ON preset also rebuilt and passed
+all 98 cases with RTTI OFF. No production C++ or test assertions changed.
+The formatting check could not run because the installed clang-format executable
+failed its `--version` invocation; formatting remains unverified for this change.
+
 ## Issue #1 public-contract documentation, 2026-10-13
 
 The existing [architecture document](architecture.md#public-ownership-value-and-policy-contracts)

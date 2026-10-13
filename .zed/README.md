@@ -23,6 +23,9 @@ failure. All four actions use exceptions OFF. Unit actions use
 first using the root README commands. Exe actions use `debug-example`, also with
 exceptions OFF. The helper does not offer an exception-mode override.
 
+CTest registers each individual GoogleTest case, including parameterized cases.
+The final summary counts cases rather than executables (currently 98 cases).
+
 **Launch Unit Test** and **Launch Executable** first ask CMake's native build system
 to update their targets. Changed sources, included headers or build files trigger
 the necessary compilation; unchanged targets are launched without recompiling.

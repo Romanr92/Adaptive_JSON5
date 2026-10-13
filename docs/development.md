@@ -26,9 +26,13 @@ ctest --preset debug-unit-tests
 
 The initial three GoogleTest cases check C++17, exception and RTTI build settings.
 The separate `adaptive_json5_result_unit_tests` executable supplies 40 P002
-result/error cases through the `result_units` CTest entry. The
-`adaptive_json5_api_unit_tests` executable adds eight input/options declaration
-cases through `api_configuration_units`. These do not establish parser semantics.
+result/error cases under the `result_units` CTest label. The storage executable
+supplies 39 cases under `storage_units`, and `adaptive_json5_api_unit_tests`
+supplies 16 input/options/cursor cases under `api_configuration_units`.
+CTest discovers individual GoogleTest cases, including parameterized cases,
+and reports 98 cases in the current build. Use `-L "^result_units$"` to select
+the result group, or `-R` to match individual case names.
+These do not establish parser semantics.
 Add requirement-backed units as the human developer implements
 the production API. The adapted
 [write-unit-tests skill](../.agents/skills/write-unit-tests/SKILL.md) explains

@@ -49,10 +49,12 @@ If the selected preset is already configured and built, run only its `ctest`
 command. To run just the P002 result suite:
 
 ```powershell
-ctest --preset debug-unit-tests -R "^result_units$" --output-on-failure
+ctest --preset debug-unit-tests -L "^result_units$" --output-on-failure
 ```
 
 Add `--verbose` to a `ctest` command to see each GoogleTest case.
+CTest discovers each individual GoogleTest case, including parameterized cases,
+so its final total counts cases. Suite labels such as `result_units` select groups.
 
 Exceptions and RTTI default OFF; the second preset enables exceptions. Run
 Windows commands in a Visual Studio developer terminal when using its compiler.
