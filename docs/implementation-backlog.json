@@ -1,9 +1,9 @@
 {
   "repository": "Romanr92/Adaptive_JSON5",
-  "version": 1,
+  "version": 2,
   "scope": "Prepare a generic independently developed OS-agnostic C++17 JSON5/strict-JSON library for compatible hosted and embedded projects. Errors are explicit results, never thrown. Schema/CLI/editor remain optional. Agents may prepare CMake, GoogleTest, docs, requirements and skills; no production C++.",
   "requirement_status": "Draft; creating issues does not promote proposal requirements to Agreed or establish implementation evidence.",
-  "quality_scope": "Automated quality checks are unit tests and formatting only. Deterministic grammar, schema, failure-injection and adapter cases may run as unit tests. Do not add fuzzing, sanitizers, e2e, integration-test, benchmark, target deployment or separate differential-test jobs.",
+  "quality_scope": "GoogleTest units and formatting only; one job each on pull requests; exceptions OFF and RTTI OFF.",
   "license": "Retain the existing Apache-2.0 repository license. MIT in the source proposal is a proposed choice, not authorization to change the current license. Preserve third-party notices and pinned provenance.",
   "adaptations": [
     "The latest user scope replaces WSL/AdaptivePi SDK/runtime/deployment obligations with a generic portable C++17 library for compatible projects.",
@@ -82,95 +82,404 @@
       ],
       "depends_on": [],
       "notes": [
-        "Compatible C++17 projects are the supported goal; do not promise every historical C++ implementation."
-      ]
+        "Compatible C++17 projects are the supported goal; do not promise every historical C++ implementation.",
+        "Public-contract umbrella retained; P001 library target completion is issue #68."
+      ],
+      "issue_number": 1
     },
     {
-      "key": "I02",
-      "title": "Add portable component builds, unit-test tooling and dependency provenance",
-      "milestone": "foundation",
-      "labels": [
-        "enhancement",
-        "component:build",
-        "requirements:draft"
-      ],
+      "key": "P002",
+      "issue_number": 2,
+      "title": "Non-throwing result foundation",
       "requirements": [
-        "J5-002",
-        "J5-007"
+        "J5-003",
+        "J5-043",
+        "J5-045"
       ],
-      "goal": "Provide CMake 3.25 configuration for independently selectable parser, schema, host tools and tests, with a minimal parser build and unit-test/formatting workflow. Retain Apache-2.0 and track licensed dependencies, data and fixtures.",
+      "goal": "Define success/error alternatives with stable minimal error code and byte offset; returning any failure shall not require allocation or throw.",
+      "unit_cases": "Unit-test minimal result construction in exceptions OFF; no parser needed.",
       "acceptance": [
-        "Parser-only configuration does not enable schema, CLI, editor or tests implicitly and requires no network access.",
-        "Compiler settings are target-scoped and portable across selected MSVC, GCC and Clang C++17 environments.",
-        "Provide documented commands and CI checks only for unit tests and formatting; no fuzz, sanitizer, integration, end-to-end or benchmark jobs.",
-        "License and provenance files retain Apache-2.0 and list pinned incorporated source/data/fixtures with their upstream notices."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I01"
+        "P001"
       ],
-      "notes": [
-        "The proposal's MIT suggestion does not override the existing Apache-2.0 license."
-      ]
+      "status": "complete"
     },
     {
-      "key": "I03",
-      "title": "Implement UTF-8 validation, Unicode whitespace and BOM policy",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
+      "key": "P003",
+      "issue_number": 3,
+      "title": "Fallible storage and accounting",
+      "requirements": [
+        "J5-040",
+        "J5-046",
+        "J5-051",
+        "J5-101"
       ],
+      "goal": "Provide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.",
+      "unit_cases": "Fail each primitive allocation and verify explicit outcomes and balanced release.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P002"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P004",
+      "issue_number": 4,
+      "title": "Explicit input cursor",
+      "requirements": [
+        "J5-004",
+        "J5-041",
+        "J5-044"
+      ],
+      "goal": "Consume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.",
+      "unit_cases": "Empty, embedded-zero and truncated buffers; no terminating NUL assumption.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P002"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P005",
+      "issue_number": 5,
+      "title": "Unicode source decoding",
+      "requirements": [
+        "J5-009"
+      ],
+      "goal": "Decode the project UTF-8 transport to source characters without replacement; retain byte-to-source mapping.",
+      "unit_cases": "Malformed, overlong, surrogate-encoded and out-of-range UTF-8; supplementary characters.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P004"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P006",
+      "issue_number": 6,
+      "title": "Character classification",
       "requirements": [
         "J5-006",
-        "J5-009",
-        "J5-010",
+        "J5-019",
+        "J5-052"
+      ],
+      "goal": "Establish documented Unicode data for source classification used by whitespace and IdentifierName; classification has no locale dependency.",
+      "unit_cases": "Category boundaries, non-ASCII and non-BMP handling; document supported Unicode version.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P005"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P007",
+      "issue_number": 7,
+      "title": "Line terminators",
+      "requirements": [
+        "J5-011",
+        "J5-017",
+        "J5-044"
+      ],
+      "goal": "Recognize LF, CR, CRLF, U+2028 and U+2029 as line terminator sequences; keep CRLF as one sequence for location/continuation purposes.",
+      "unit_cases": "Each sequence and EOF after CR; assert source spans.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P005"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P008",
+      "issue_number": 8,
+      "title": "Whitespace",
+      "requirements": [
         "J5-011",
         "J5-025"
       ],
-      "goal": "Establish documented reproducible Unicode data and validate every source byte in both modes, including comments and trailing trivia. Implement mode-specific whitespace and the explicit strict-JSON leading-BOM option.",
+      "goal": "Skip HT, VT, FF, SP, NBSP, BOM and other Unicode Zs whitespace, together with line terminators, between tokens.",
+      "unit_cases": "Each admitted space before/after tokens; BOM both leading and between tokens.",
       "acceptance": [
-        "Unit cases reject overlong UTF-8, encoded surrogates, invalid/truncated sequences and values beyond U+10FFFF at token, comment and trailing positions.",
-        "Unit cases cover JSON whitespace, JSON5 named/Zs spaces and BOM at leading/interior boundaries; strict JSON ignores at most one leading BOM only when configured.",
-        "Record table Unicode version, provenance and reproducible generation/vendor process; representative historical and newer property memberships do not depend on process locale."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I01",
-        "I02"
-      ]
+        "P006",
+        "P007"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I04",
-      "title": "Implement comments and object/array punctuation in both modes",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
+      "key": "P009",
+      "issue_number": 9,
+      "title": "Line comments",
+      "requirements": [
+        "J5-012"
       ],
+      "goal": "Skip // comments until a line terminator or EOF; comments are trivia rather than values.",
+      "unit_cases": "All terminators, empty comment and EOF comment; validate non-ASCII source.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P007"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P010",
+      "issue_number": 10,
+      "title": "Block comments",
+      "requirements": [
+        "J5-012"
+      ],
+      "goal": "Skip /* comments through the first */; do not nest comments, and report unterminated comments.",
+      "unit_cases": "First closer, embedded opener and EOF at every suffix position.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P005"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P011",
+      "issue_number": 11,
+      "title": "Trivia composition",
       "requirements": [
         "J5-012",
-        "J5-013"
+        "J5-024"
       ],
-      "goal": "Implement JSON5 comment placement/termination and container punctuation, including the single JSON5 trailing comma while strict JSON rejects extensions.",
+      "goal": "Permit any sequence of admitted spaces, line terminators and comments before/after tokens, without joining split tokens.",
+      "unit_cases": "Mixed trivia; comments between tokens; 1/*x*/2 remains two tokens.",
       "acceptance": [
-        "Unit cases cover EOF line comments, all line endings, unterminated block comments, attempted nesting and quoted comment delimiters.",
-        "Empty/nested containers and a single trailing comma parse as specified; holes, doubled commas, missing separators and misplaced colons fail at precise token locations.",
-        "Run each discriminating fixture in both syntax modes."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I03"
-      ]
+        "P008",
+        "P009",
+        "P010"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I05",
-      "title": "Implement lossless quoted strings, escapes and continuations",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
+      "key": "P012",
+      "issue_number": 12,
+      "title": "Punctuation tokens",
+      "requirements": [
+        "J5-013"
       ],
+      "goal": "Recognize exactly the structural punctuators { } [ ] : , outside strings/comments.",
+      "unit_cases": "Every punctuator, adjacent punctuators and original spans.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P004",
+        "P011"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P013",
+      "issue_number": 13,
+      "title": "String storage",
+      "requirements": [
+        "J5-018",
+        "J5-029",
+        "J5-040"
+      ],
+      "goal": "Provide owned length-aware decoded-unit storage, preserving UTF-16 escape units including lone surrogates; define allocation-failure behavior.",
+      "unit_cases": "Empty, NUL, supplementary scalar and unpaired unit round-trips without UTF-8 substitution.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P003",
+        "P005"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P014",
+      "issue_number": 14,
+      "title": "Quoted string boundaries",
+      "requirements": [
+        "J5-014"
+      ],
+      "goal": "Recognize single/double-quoted strings with matching closing delimiters; allow the other quote and ordinary source characters, rejecting raw CR/LF and unterminated strings.",
+      "unit_cases": "Both delimiters, opposite quote, raw tab/control characters, raw CR/LF and EOF.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P007",
+        "P013"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P015",
+      "issue_number": 15,
+      "title": "Simple character escapes",
+      "requirements": [
+        "J5-015",
+        "J5-016"
+      ],
+      "goal": "Decode escaped quotes, reverse solidus, b/f/n/r/t/v and zero; zero is valid only when not followed by a decimal digit.",
+      "unit_cases": "Each decoded unit; accept zero at quote/EOF boundary only where the complete string is valid; reject zero followed by any digit.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P014"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P016",
+      "issue_number": 16,
+      "title": "Hexadecimal string escapes",
+      "requirements": [
+        "J5-016"
+      ],
+      "goal": "Decode x followed by exactly two hexadecimal digits, in either hex-letter case; reject incomplete or nonhex escapes.",
+      "unit_cases": "Lower/upper hex letters, boundary bytes and every truncation.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P014"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P017",
+      "issue_number": 17,
+      "title": "Unicode string escapes",
+      "requirements": [
+        "J5-015",
+        "J5-018"
+      ],
+      "goal": "Decode u followed by exactly four hexadecimal digits; preserve individual units and support escaped surrogate pairs.",
+      "unit_cases": "BMP, paired/lone/reversed surrogate units and malformed/truncated hex.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P013",
+        "P014"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P018",
+      "issue_number": 18,
+      "title": "Non-escape characters",
+      "requirements": [
+        "J5-016"
+      ],
+      "goal": "For permitted characters without a special escape production, omit the reverse solidus and retain the character; reject escaped digits 1–9.",
+      "unit_cases": "a/e/slash/space yield those characters; 8/9 fail; x/u cannot fall back after malformed escape.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P015",
+        "P016",
+        "P017"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P019",
+      "issue_number": 19,
+      "title": "String line continuations",
+      "requirements": [
+        "J5-017"
+      ],
+      "goal": "Remove the reverse solidus and the following complete line terminator sequence from the decoded string.",
+      "unit_cases": "LF, CR, CRLF, U+2028/U+2029 join unchanged surrounding text.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P007",
+        "P014"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P020",
+      "issue_number": 20,
+      "title": "Raw separator warnings",
+      "requirements": [
+        "J5-017"
+      ],
+      "goal": "Accept unescaped U+2028/U+2029 in strings and produce a warning without changing successful parsing.",
+      "unit_cases": "Both raw separators, escaped equivalents, original warning spans and successful value.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P002",
+        "P014"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P021",
+      "issue_number": 21,
+      "title": "Complete string lexer",
       "requirements": [
         "J5-014",
         "J5-015",
@@ -178,881 +487,1230 @@
         "J5-017",
         "J5-018"
       ],
-      "goal": "Decode JSON and complete JSON5 string grammar into a lossless representation, preserving escaped UTF-16 units and distinguishing checked Unicode export from parse acceptance.",
+      "goal": "Compose all string alternatives, validate delimiters and input consumption, and report lexical failures atomically.",
+      "unit_cases": "Combine escapes/continuations; truncation at each byte; no partial successful string.",
       "acceptance": [
-        "Unit cases cover quoting, raw controls, forbidden raw CR/LF, truncation, every JSON escape and JSON5 x/v/zero/non-escape behavior; a/e decode as letters and forbidden digit escapes fail.",
-        "LF, CR, CRLF, U+2028 and U+2029 continuations join content correctly; raw separators preserve content and produce nonfatal JSON5 warnings.",
-        "Paired/unpaired surrogate units and pair order are preserved without substitution; valid raw non-BMP characters agree with paired escapes.",
-        "Fixtures assert exact decoded units/lengths and locations, with strict-mode distinctions."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I03",
-        "I04"
-      ]
+        "P015",
+        "P016",
+        "P017",
+        "P018",
+        "P019",
+        "P020"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I06",
-      "title": "Implement Unicode IdentifierName keys and escaped identifiers",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
+      "key": "P022",
+      "issue_number": 22,
+      "title": "IdentifierName tokens",
       "requirements": [
-        "J5-019",
-        "J5-020"
+        "J5-019"
       ],
-      "goal": "Implement the referenced JSON5 IdentifierName grammar with reserved words, Unicode positional properties and decoded identifier escapes; strict JSON continues to require quoted keys.",
+      "goal": "Recognize ES5 IdentifierName, including $, _, admitted Unicode starts/parts, ZWNJ/ZWJ continuation and reserved-word names.",
+      "unit_cases": "Category representatives, digit-first rejection and reserved-word tokens.",
       "acceptance": [
-        "Unit fixtures cover dollar/underscore, reserved-word names, non-ASCII letters, combining continuation marks and ZWNJ/ZWJ.",
-        "Digit-first names, unrelated punctuation and escapes decoding to illegal start/continuation characters fail.",
-        "Quoted, bare and escaped spellings yield the same decoded key where equivalent; strict mode rejects unquoted names."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I03",
-        "I05"
-      ]
+        "P006"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I07",
-      "title": "Implement strict/JSON5 number tokens, literals and token boundaries",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
+      "key": "P023",
+      "issue_number": 23,
+      "title": "Identifier Unicode escapes",
+      "requirements": [
+        "J5-020",
+        "J5-033"
       ],
+      "goal": "Decode identifier uXXXX escapes before checking start/part legality and member-name equality.",
+      "unit_cases": "Escaped valid names, illegal escaped start/part and equal decoded names.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P017",
+        "P022"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P024",
+      "issue_number": 24,
+      "title": "Null and boolean classification",
+      "requirements": [
+        "J5-023"
+      ],
+      "goal": "Classify lowercase null, true and false as value literals; preserve their admissibility as object IdentifierName tokens.",
+      "unit_cases": "Exact spellings versus case/suffix variants; key-versus-value context classified without parsing containers.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P022",
+        "P023"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P025",
+      "issue_number": 25,
+      "title": "Decimal numeric tokens",
       "requirements": [
         "J5-021",
-        "J5-022",
-        "J5-023",
-        "J5-024"
+        "J5-022"
       ],
-      "goal": "Recognize exact grammar spellings and complete boundaries for numbers and primitive literals without eager floating-point conversion or case folding.",
+      "goal": "Recognize decimal integer, fraction and exponent alternatives, including leading/trailing decimal points and optional leading sign; reject illegal leading zeros and missing exponent digits.",
+      "unit_cases": "0/-0/+1/.5/5./5.e2/1E-2; reject 01, ., 1e and doubled signs.",
       "acceptance": [
-        "Strict-number units cover integer/fraction/exponent forms and reject leading plus/zeros, missing digits, hex and nonfinite literals.",
-        "JSON5-number units cover signed decimal/hex, leading/trailing decimal points, exponents, NaN/Infinity and reject octal/binary/separators/malformed signs/case.",
-        "Lowercase true/false/null parse; lookalikes and unknown identifiers in value position fail.",
-        "Boundary fixtures such as truex, 1foo, 0x1z and trivia inserted inside a token fail instead of accepting prefixes; huge finite tokens remain syntax-valid within limits."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I04",
-        "I05",
-        "I06"
-      ]
+        "P004"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I08",
-      "title": "Complete the reader and maintain a grammar coverage matrix",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
+      "key": "P026",
+      "issue_number": 26,
+      "title": "Hexadecimal numeric tokens",
       "requirements": [
-        "J5-026",
+        "J5-022"
+      ],
+      "goal": "Recognize signed or unsigned 0x/0X with one or more hexadecimal digits; reject incomplete prefix and invalid suffix.",
+      "unit_cases": "Both prefixes/cases/signs; 0x, 0x1z and hex fractions fail.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P025"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P027",
+      "issue_number": 27,
+      "title": "Non-finite numeric tokens",
+      "requirements": [
+        "J5-022"
+      ],
+      "goal": "Recognize Infinity and NaN with permitted leading signs and exact case.",
+      "unit_cases": "Infinity/+Infinity/-Infinity and NaN/+NaN/-NaN; lowercase and suffix variants fail.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P025"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P028",
+      "issue_number": 28,
+      "title": "Token completion",
+      "requirements": [
+        "J5-024",
         "J5-027"
       ],
-      "goal": "Connect token and structural parsing so exactly one root of any valid type is consumed, followed only by permitted trivia, and trace every JSON5/strict-JSON grammar production to unit tests.",
+      "goal": "Reject illegal suffixes and unsupported octal/binary/separator forms; never silently discard bytes or split invalid numeric/identifier spellings into accepted prefixes.",
+      "unit_cases": "truex, 1foo, 0x1z, 0b1, 1_0 and split-token trivia; valid punctuation boundaries.",
       "acceptance": [
-        "Unit cases cover primitive/container roots, trailing permitted comments, empty/whitespace/comment-only input, additional roots and junk after a valid prefix.",
-        "Grammar matrix includes Unicode, malformed and representative every-byte truncation cases with decoded-value/location assertions and cross-mode expectations.",
-        "Document remaining grammar gaps and prevent a full-support claim until all productions are covered."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I03",
-        "I04",
-        "I05",
-        "I06",
-        "I07"
-      ]
+        "P012",
+        "P021",
+        "P023",
+        "P024",
+        "P025",
+        "P026",
+        "P027"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I09",
-      "title": "Implement the owned value model and checked access",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
+      "key": "P029",
+      "issue_number": 29,
+      "title": "Owned numeric representation",
+      "requirements": [
+        "J5-034",
+        "J5-038",
+        "J5-040"
       ],
+      "goal": "Retain exact numeric spellings and represent signed decimal/hex and non-finite values without unintended floating-point rounding.",
+      "unit_cases": "Integers beyond 2^53, huge exponents, negative zero and failure-safe owned storage.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P003",
+        "P025",
+        "P026",
+        "P027"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P030",
+      "issue_number": 30,
+      "title": "Owned value/container model",
       "requirements": [
         "J5-028",
-        "J5-029",
         "J5-030",
         "J5-031",
         "J5-039",
-        "J5-040",
-        "J5-042"
+        "J5-040"
       ],
-      "goal": "Provide owned distinct value types, length-aware strings/names, ordered arrays and every source object member, with checked access and explicit lifetimes in a pure in-memory API.",
+      "goal": "Provide distinct null/boolean/string/number/array/object alternatives, ordered array elements and observable ordered duplicate object members.",
+      "unit_cases": "Construct/inspect/move each variant before recursive parsing exists; explicit wrong-type results.",
       "acceptance": [
-        "Unit cases distinguish null/absent, boolean/number and all value categories; wrong-type, missing-member, ambiguous duplicate lookup and out-of-range index return explicit outcomes.",
-        "Empty/NUL content and repeated object members remain observable; array/member source order is preserved.",
-        "Destroy/overwrite input and move documents before inspecting values/names/tokens; views follow documented lifetime rules.",
-        "Checked UTF-8 export succeeds for valid pairs and fails explicitly for unpaired units, without substitution.",
-        "The core has no filesystem, process, environment-expansion or network dependencies."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I08"
+        "P003",
+        "P013",
+        "P029"
       ],
-      "notes": [
-        "Storage design can start with I01; complete acceptance follows the reader. Numeric conversion and duplicate policies are supplied by the next issues."
-      ]
+      "status": "implementation pending"
     },
     {
-      "key": "I10",
-      "title": "Implement decoded-key equality and selectable duplicate policy",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-032",
-        "J5-033"
-      ],
-      "goal": "Use exact decoded key content, without normalization/case folding, for generic preserve-all and explicit reject-duplicates behavior. Report both colliding source occurrences.",
-      "acceptance": [
-        "Unit cases cover bare/quoted/escaped collisions at root and nested objects; equal names in separate objects do not collide.",
-        "Generic default preserves all duplicates; configured rejection returns no successful document and reports both occurrences.",
-        "Differing case and canonically equivalent differently encoded keys remain distinct; injected hash collisions cannot replace equality checks."
-      ],
-      "depends_on": [
-        "I06",
-        "I09"
-      ]
-    },
-    {
-      "key": "I11",
-      "title": "Implement exact numbers and checked numeric conversions",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-034",
-        "J5-035",
-        "J5-036",
-        "J5-037",
-        "J5-038"
-      ],
-      "goal": "Own original numeric tokens and exact finite mathematical information, expose integrality separately from lexical spelling, and provide explicit checked integer/floating conversion outcomes.",
-      "acceptance": [
-        "Unit cases preserve spellings around 2^53, signed/unsigned limits, long integers/fractions, huge exponents and overflowing hex tokens.",
-        "Integer conversions report wrong type/nonintegral/out of range without rounding/wrapping; include 0x10000000000000001, bounds/adjacent values and negative unsigned inputs.",
-        "1, 1.0, 1e0, 0x1, +1 and close fractions distinguish value and spelling without a double intermediary.",
-        "Floating conversion documents rounding/overflow/underflow and remains locale independent without mutating exact storage.",
-        "Negative zero and explicit signed Infinity/NaN remain distinguishable from finite conversion overflow; strict mode rejects nonfinite syntax."
-      ],
-      "depends_on": [
-        "I07",
-        "I09"
-      ]
-    },
-    {
-      "key": "I12",
-      "title": "Implement structured diagnostics, source spans and minimal failure reporting",
-      "milestone": "parser",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-041",
-        "J5-043",
-        "J5-044",
-        "J5-045"
-      ],
-      "goal": "Retain original byte spans and stable structured error categories with documented line/column conventions, including allocation-free fallback code/location reporting.",
-      "acceptance": [
-        "Unit cases distinguish syntax, encoding, duplicate, access, numeric, configured-limit and allocation errors without parsing prose.",
-        "Check exact offsets/ranges for LF/CR/CRLF, Unicode separators, multibyte text, escaped strings, duplicate occurrences, invalid UTF-8 and end-of-input.",
-        "Moved documents retain spans after input destruction; any retained source ownership/cost is explicit and configurable.",
-        "An exhausted allocator still yields a usable minimal stable error code/location if rich messages or pointer construction fail."
-      ],
-      "depends_on": [
-        "I09",
-        "I10",
-        "I11"
-      ]
-    },
-    {
-      "key": "I13",
-      "title": "Implement recoverable allocation and atomic reusable contexts",
-      "milestone": "reliability",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-046",
-        "J5-051"
-      ],
-      "goal": "Route library-controlled allocations through a fallible mechanism and ensure every failed operation releases temporary resources, publishes no success/partial document and leaves contexts reusable.",
-      "acceptance": [
-        "In-process allocation-injection units fail each reachable allocation in representative success/failure paths, including owned-result and diagnostic construction.",
-        "Allocation accounting shows no leaked temporary blocks; retained success-result storage and allocator lifetimes are documented.",
-        "Alternate valid, malformed and allocation-failing operations in one context and assert unambiguous success/error results in both exception modes.",
-        "Audit containers/dependencies so unsupported throw/abort-on-OOM paths are not advertised as recoverable."
-      ],
-      "depends_on": [
-        "I12"
-      ]
-    },
-    {
-      "key": "I14",
-      "title": "Implement configurable limits, bounded traversal and cancellation",
-      "milestone": "reliability",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
+      "key": "P031",
+      "issue_number": 31,
+      "title": "Resource guards",
       "requirements": [
         "J5-047",
         "J5-048",
         "J5-049"
       ],
-      "goal": "Validate and account for named input/storage/diagnostic/work budgets across parse, conversion, comparison and cleanup, with explicit cancellation or deterministic work exhaustion.",
+      "goal": "Validate limits and account for depth, nodes, members, strings, numeric spelling/exponents, bytes and work before parser growth; cleanup remains bounded.",
+      "unit_cases": "Below/equal/above bounds and deterministic allocation/work exhaustion without recursive parser dependency.",
       "acceptance": [
-        "Unit cases exercise below/equal/above boundaries for bytes, depth, nodes/members, decoded units, numeric token/exponent size, owned bytes and diagnostics.",
-        "Invalid option combinations and checked arithmetic overflow fail before processing; no truncation can manufacture success.",
-        "Deep partial construction/destruction, adversarial duplicate sets and large numbers stay within checked stack/work budgets.",
-        "Cancellation at multiple work boundaries yields distinct operational outcomes and bounded cleanup; document calibrated defaults and accounting."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I11",
-        "I13"
-      ]
+        "P002",
+        "P003",
+        "P030"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I15",
-      "title": "Implement deterministic semantics and independent concurrent contexts",
-      "milestone": "reliability",
-      "labels": [
-        "enhancement",
-        "component:core",
-        "requirements:draft"
-      ],
+      "key": "P032",
+      "issue_number": 32,
+      "title": "Primitive value dispatcher",
       "requirements": [
-        "J5-050",
+        "J5-023",
+        "J5-028"
+      ],
+      "goal": "Convert completed string, number, null and boolean tokens into owned values; reject other identifiers in value position.",
+      "unit_cases": "Each primitive root, unknown identifiers and allocation failure; containers still explicitly unsupported at this stage.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P021",
+        "P024",
+        "P028",
+        "P029",
+        "P030",
+        "P031"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P033",
+      "issue_number": 33,
+      "title": "Recursive container engine",
+      "requirements": [
+        "J5-013",
+        "J5-027",
+        "J5-048"
+      ],
+      "goal": "Implement bounded value-dispatch frames for arrays and objects together, with empty containers, nesting and punctuation expectations.",
+      "unit_cases": "Empty arrays/objects and mixed nesting; allocate/check frames before descent; this step intentionally resolves mutual recursion together.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P012",
+        "P030",
+        "P031",
+        "P032"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P034",
+      "issue_number": 34,
+      "title": "Array element grammar",
+      "requirements": [
+        "J5-013",
+        "J5-030"
+      ],
+      "goal": "Complete array element/separator states, heterogeneous ordered elements and one optional trailing comma; reject holes and misplaced separators.",
+      "unit_cases": "[], mixed values, nested values, [1,]; reject [,], [1,,2] and missing commas.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P033"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P035",
+      "issue_number": 35,
+      "title": "Object member grammar",
+      "requirements": [
+        "J5-013",
+        "J5-019",
+        "J5-020",
+        "J5-031"
+      ],
+      "goal": "Complete quoted/identifier name, colon, value and separator states; permit one trailing comma and retain decoded names and every member.",
+      "unit_cases": "Empty/nested objects, reserved-word/escaped keys and mixed values; reject missing name/colon/value/comma and doubled commas.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P021",
+        "P023",
+        "P024",
+        "P033"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P036",
+      "issue_number": 37,
+      "title": "Duplicate-name policy",
+      "requirements": [
+        "J5-032",
+        "J5-033"
+      ],
+      "goal": "Keep all decoded duplicate members by default; optional rejection reports both occurrences. Compare exact decoded names without normalization/case folding.",
+      "unit_cases": "Quoted/bare/escaped collisions, distinct case and normalization forms, nested object independence.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P035"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P037",
+      "issue_number": 38,
+      "title": "Complete document entry point",
+      "requirements": [
+        "J5-026",
+        "J5-051"
+      ],
+      "goal": "Accept one root value of any supported type surrounded by trivia; reject empty/trivia-only input, extra roots and trailing nontrivia.",
+      "unit_cases": "Every root type, trailing EOF comment, {} {} and junk; atomic errors and reusable context.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P011",
+        "P032",
+        "P034",
+        "P035",
+        "P036"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P038",
+      "issue_number": 39,
+      "title": "Checked numeric operations",
+      "requirements": [
+        "J5-035",
+        "J5-036",
+        "J5-037",
+        "J5-038",
         "J5-052"
       ],
-      "goal": "Remove shared mutable global state and hidden locale/environment options, defining independent parser/document concurrency and immutable-schema use with separate work contexts.",
+      "goal": "Provide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.",
+      "unit_cases": "All destination bounds, nonintegral values, huge exponent, nonfinite and mathematical/lexical integer distinctions.",
       "acceptance": [
-        "Unit cases concurrently run independent valid/failing parser contexts and repeat equivalent input/options/version results.",
-        "Changed supported locales and environment settings cannot alter values or primary error categories; decimal parsing still follows the grammar.",
-        "Document unsupported sharing of mutable contexts and add equivalent immutable-schema concurrent units when schema lifetime support lands."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I13",
-        "I14"
-      ]
+        "P029",
+        "P030",
+        "P037"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I16",
-      "title": "Establish the optional Draft-07 component and schema compilation",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
+      "key": "P039",
+      "issue_number": 40,
+      "title": "Owned document and diagnostics",
+      "requirements": [
+        "J5-040",
+        "J5-041",
+        "J5-043",
+        "J5-044",
+        "J5-045"
       ],
+      "goal": "Expose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.",
+      "unit_cases": "Overwrite input, move/destroy documents, CRLF/non-BMP offsets, failure injection and minimal error fallback.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P020",
+        "P030",
+        "P037"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P040",
+      "issue_number": 41,
+      "title": "Whole-grammar unit evidence",
+      "requirements": [
+        "J5-027",
+        "J5-094",
+        "J5-095",
+        "J5-097",
+        "J5-098",
+        "J5-099"
+      ],
+      "goal": "Map every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures and both exception modes.",
+      "unit_cases": "No skipped grammar branches; fresh explicit unit evidence for accepted/rejected input and decoded content.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P001",
+        "P002",
+        "P003",
+        "P004",
+        "P005",
+        "P006",
+        "P007",
+        "P008",
+        "P009",
+        "P010",
+        "P011",
+        "P012",
+        "P013",
+        "P014",
+        "P015",
+        "P016",
+        "P017",
+        "P018",
+        "P019",
+        "P020",
+        "P021",
+        "P022",
+        "P023",
+        "P024",
+        "P025",
+        "P026",
+        "P027",
+        "P028",
+        "P029",
+        "P030",
+        "P031",
+        "P032",
+        "P033",
+        "P034",
+        "P035",
+        "P036",
+        "P037",
+        "P038",
+        "P039"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P041",
+      "issue_number": 42,
+      "title": "Full-support claim",
+      "requirements": [
+        "J5-008",
+        "J5-027",
+        "J5-100"
+      ],
+      "goal": "Document language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.",
+      "unit_cases": "Review production-to-unit matrix, all preceding contracts and actual native results.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P040"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P042",
+      "issue_number": 43,
+      "title": "Strict JSON syntax mode",
+      "requirements": [
+        "J5-005",
+        "J5-010",
+        "J5-015",
+        "J5-021",
+        "J5-025"
+      ],
+      "goal": "Add explicit strict JSON mode for schema documents: quoted keys/double-quoted strings, JSON escapes/numbers/whitespace, no comments/trailing commas/non-finite forms; reject BOM by default with documented optional leading-BOM handling.",
+      "unit_cases": "Paired JSON/JSON5 fixtures, all JSON grammar branches and mode-specific rejection.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P041"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P043",
+      "issue_number": 44,
+      "title": "Independent schema component and outcomes",
       "requirements": [
         "J5-053",
-        "J5-054",
+        "J5-063",
+        "J5-065",
+        "J5-066",
         "J5-068"
       ],
-      "goal": "Select/implement a separately buildable Draft-07 engine that preserves core precision/exception/resource contracts, explicitly reports its dialect and compiles strict-JSON boolean/object schemas against a vendored meta-schema.",
+      "goal": "Define an optional Draft-07 schema target/API with owned compilation/evaluation state, explicit non-throwing outcomes and bounded work storage. Parser-only consumers acquire no schema dependency. Declare instance-domain handling for duplicate names, non-finite values and unpaired surrogates.",
+      "unit_cases": "API/storage units and unsupported-instance versus invalid-instance/error categories; no complete validator assumed yet.",
       "acceptance": [
-        "Unit cases cover true/false schemas, invalid roots, wrong keyword shapes, malformed patterns and unsupported dialect requests.",
-        "Record the Draft-07 meta-schema URI, immutable revision and notices; compilation needs no live download.",
-        "Parser-only targets expose no schema dependencies; schema dependencies and supported exception/allocation paths are inventoried.",
-        "Maintain an explicit required-keyword coverage matrix, with unsupported work recorded until later issues complete it."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I02",
-        "I08",
-        "I12",
-        "I13",
-        "I14"
-      ]
+        "P042"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I17",
-      "title": "Implement offline URI/reference resolution and recursive schema semantics",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
-      ],
+      "key": "P044",
+      "issue_number": 45,
+      "title": "Schema locations and offline reference registry",
       "requirements": [
         "J5-055",
-        "J5-056"
+        "J5-064",
+        "J5-066",
+        "J5-067"
       ],
-      "goal": "Compile references through an explicit registry/resolver with Draft-07 URI scopes, JSON Pointers and ref-sibling semantics, supporting progressing recursion and rejecting nonprogressing cycles/resource exhaustion.",
+      "goal": "Implement URI base identities, pointer escaping and caller-registered local/external resources; no implicit network/filesystem resolution. Compile owned reference graphs with unresolved-reference errors.",
+      "unit_cases": "Nested $id, relative/absolute references, fragment and ~0/~1 pointers, input/registry destruction.",
       "acceptance": [
-        "Unit registry fixtures cover nested IDs, relative/absolute references, escaped pointers, fragments and registered external schemas without network retrieval.",
-        "Unresolved references have distinct outcomes; ref assertion siblings are ignored as Draft-07 requires.",
-        "Recursive list/tree cases progress through instances; reference-only cycles and exhausted budgets return operational errors rather than hanging or fabricated assertion failures."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I14",
-        "I16"
-      ]
+        "P043"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I18",
-      "title": "Implement the required Draft-07 assertion vocabulary",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-057"
-      ],
-      "goal": "Implement all required type, number, string, array, object, composition and conditional assertions with nested/interacting and nonapplicable-type behavior; numerical/equality/regex precision is completed by the following issues.",
-      "acceptance": [
-        "Unit fixtures cover type/type arrays, enum/const; multipleOf and all bounds; length/pattern; items/tuple/additionalItems/min/max/uniqueItems/contains.",
-        "Object fixtures cover properties/patternProperties/additionalProperties/required/propertyNames/min/maxProperties and property/schema dependencies.",
-        "Composition fixtures cover allOf/anyOf/oneOf/not and if/then/else including branches, interactions and nonapplicable types.",
-        "Required keyword matrix links positive/negative/boundary units; no required assertion may be silently skipped or relabelled optional."
-      ],
-      "depends_on": [
-        "I09",
-        "I11",
-        "I17"
-      ]
-    },
-    {
-      "key": "I19",
-      "title": "Implement exact schema numeric semantics and deep equality",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
-      ],
+      "key": "P045",
+      "issue_number": 46,
+      "title": "Exact schema equality",
       "requirements": [
         "J5-059",
         "J5-061"
       ],
-      "goal": "Use exact finite mathematical values for integer/bounds/multipleOf and type-aware deep equality for const/enum/uniqueItems, with explicit schema-instance rejection of duplicate members and nonfinite numbers.",
+      "goal": "Provide type-aware deep equality using exact numeric equivalence, ordered arrays and order-independent unique-name objects.",
+      "unit_cases": "Equivalent decimal/hex/exponent values; bool versus number; nested/reordered containers.",
       "acceptance": [
-        "Unit cases compare 1/1.0/1e0/0x1, 1e-1, large/close values, negative zero and exact decimal multipleOf without floating rounding.",
-        "Explicit NaN/Infinity fail at the instance boundary rather than as invalid parser syntax.",
-        "Deep equality respects type, order-sensitive arrays and order-independent uniquely named objects; booleans never equal numbers.",
-        "Duplicate-member instances receive their own boundary outcome, and nested/reordered object/array fixtures exercise enum/const/uniqueItems."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I10",
-        "I11",
-        "I18"
-      ]
+        "P043"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I20",
-      "title": "Implement Unicode schema string lengths and bounded regex semantics",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
-      ],
+      "key": "P046",
+      "issue_number": 47,
+      "title": "Bounded schema evaluation engine",
       "requirements": [
-        "J5-060"
+        "J5-053",
+        "J5-056",
+        "J5-063",
+        "J5-065"
       ],
-      "goal": "Count Unicode characters rather than UTF-8 bytes and provide documented Draft-07-compatible pattern/property-name matching with explicit invalid/unsupported patterns and Unicode-instance outcomes.",
+      "goal": "Evaluate boolean schemas and object schemas with per-type applicability; track branches/references/budgets and recursion progress. Apply Draft-07 $ref behavior, including ignored assertion siblings, without nonprogressing loops.",
+      "unit_cases": "True/false schemas, recursive instance progress, cyclic references, cleanup/cancellation and minimal errors.",
       "acceptance": [
-        "Unit cases cover astral/combining characters, decoded escapes and NUL for lengths and property names.",
-        "Anchored/unanchored and interoperable required regex fixtures follow the documented dialect; invalid or unsupported patterns produce structured compilation/operational outcomes.",
-        "Unpaired surrogate instances never pass through replacement decoding; regex work has a documented budget mechanism."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I05",
-        "I09",
-        "I14",
-        "I18"
-      ]
+        "P044",
+        "P045"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I21",
-      "title": "Implement schema metadata, extensions and optional assertion capabilities",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
+      "key": "P047",
+      "issue_number": 48,
+      "title": "Type and equality assertions",
+      "requirements": [
+        "J5-057",
+        "J5-059",
+        "J5-061"
       ],
+      "goal": "Implement type, enum and const, including type unions and mathematical integer semantics independent of token spelling.",
+      "unit_cases": "Positive/negative/nonapplicable-type cases and exact numeric parity.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P045",
+        "P046"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P048",
+      "issue_number": 49,
+      "title": "Numeric assertions",
+      "requirements": [
+        "J5-057",
+        "J5-059"
+      ],
+      "goal": "Implement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum without floating rounding.",
+      "unit_cases": "Exact fractional divisibility, huge numbers, every inclusive/exclusive bound.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P047"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P049",
+      "issue_number": 50,
+      "title": "String assertions and regex budget",
+      "requirements": [
+        "J5-057",
+        "J5-060",
+        "J5-065"
+      ],
+      "goal": "Implement minLength/maxLength in Unicode characters and pattern with the documented compatible regex behavior; reject unsupported conversion/domain and enforce regex work limits.",
+      "unit_cases": "Supplementary characters, unpaired-unit policy, unanchored patterns, malformed patterns and budget exhaustion.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P046"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P050",
+      "issue_number": 51,
+      "title": "Array assertions",
+      "requirements": [
+        "J5-057",
+        "J5-061"
+      ],
+      "goal": "Implement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems and contains.",
+      "unit_cases": "Empty/tuple arrays, nested schemas, deep exact uniqueness and matching/nonmatching contains cases.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P045",
+        "P046"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P051",
+      "issue_number": 52,
+      "title": "Object assertions",
+      "requirements": [
+        "J5-057"
+      ],
+      "goal": "Implement minProperties, maxProperties, required, properties, patternProperties, additionalProperties, dependencies (property/schema) and propertyNames.",
+      "unit_cases": "Missing fields, overlapping patterns, dynamic names, dependent schemas, unknown fields and type applicability.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P046",
+        "P049"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P052",
+      "issue_number": 53,
+      "title": "Logical and conditional assertions",
+      "requirements": [
+        "J5-057",
+        "J5-065"
+      ],
+      "goal": "Implement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and distinguishing operational failure from assertion mismatch.",
+      "unit_cases": "Zero/one/multiple matching branches, nested conditions and failures during branch evaluation.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P047",
+        "P048",
+        "P049",
+        "P050",
+        "P051"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P053",
+      "issue_number": 54,
+      "title": "Annotations and extension handling",
       "requirements": [
         "J5-058",
         "J5-062",
         "J5-069"
       ],
-      "goal": "Retain applicable schema annotations for tooling without mutating instances, follow Draft-07 unknown-keyword handling and expose format/content assertions only through explicit supported capabilities.",
+      "goal": "Expose title/description/default/examples/readOnly/writeOnly and unknown-keyword metadata with valid-branch annotation semantics; never insert defaults or mutate instances. Baseline format/contentEncoding/contentMediaType remain annotations; optional assertions require explicit supported capabilities.",
+      "unit_cases": "No mutation, failed/not-branch annotation suppression, unknown schema keywords versus unknown instance properties.",
       "acceptance": [
-        "Unit cases verify instance equality before/after validation and no insertion/conversion from defaults/examples.",
-        "Metadata includes title/description/default/examples/readOnly/writeOnly/comment with references/branches and no misleading inactive defaults.",
-        "Unknown schema keywords do not become assertions and remain distinct from unknown instance fields; optional typo warnings are nonassertive.",
-        "Baseline format/contentEncoding/contentMediaType remain annotations; requested unsupported assertion modes return explicit errors, and advertised options have units."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I16",
-        "I17",
-        "I18"
-      ]
+        "P052"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I22",
-      "title": "Implement structured schema outcomes and source-aware assertion diagnostics",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
-      ],
+      "key": "P054",
+      "issue_number": 55,
+      "title": "Public schema compilation and diagnostics",
       "requirements": [
+        "J5-054",
         "J5-063",
         "J5-064"
       ],
-      "goal": "Distinguish validation/assertion/schema/reference/unsupported/operational outcomes and emit bounded fail-fast/collect-all diagnostics with instance pointers, schema URI/locations, keywords and source spans.",
+      "goal": "Complete strict-JSON boolean/object schema compilation with the Draft-07 meta-schema, keyword shape/pattern checks and dialect errors. Return instance/schema pointers, keyword and available source spans; support bounded fail-fast/collect-all.",
+      "unit_cases": "Bootstrap shape checks are component units before this step; final public compiler validates the meta-schema with the completed engine and separates every failure class.",
       "acceptance": [
-        "Unit cases distinguish every outcome and diagnostic-count boundary; an assertion failure followed by allocation/cancellation failure cannot hide the operational error.",
-        "Nested arrays and slash/tilde/empty/Unicode names use correct RFC 6901 escaping.",
-        "Externally registered reference failures identify the originating schema URI/keyword, and instance pointers map to original source bytes where available.",
-        "Minimal allocation-free reporting remains usable when diagnostic paths or text cannot be built."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I12",
-        "I19",
-        "I20",
-        "I21"
-      ]
+        "P044",
+        "P052",
+        "P053"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I23",
-      "title": "Implement bounded schema evaluation, owned compiled graphs and pure validation",
-      "milestone": "schema",
-      "labels": [
-        "enhancement",
-        "component:schema",
-        "requirements:draft"
-      ],
+      "key": "P055",
+      "issue_number": 56,
+      "title": "Schema conformance and packaging",
       "requirements": [
+        "J5-053",
         "J5-065",
         "J5-066",
-        "J5-067"
+        "J5-067",
+        "J5-068",
+        "J5-069",
+        "J5-096"
       ],
-      "goal": "Account for schema reference/branch/equality/regex/error work and own compiled reference graphs independently of temporary input/registry buffers. Validation uses separate work contexts and performs no external operations.",
+      "goal": "Run pinned required Draft-07 unit fixtures with offline registered resources, exact-number/Unicode/failure regressions and owned concurrent work contexts. Document dependencies, capabilities and exported schema targets.",
+      "unit_cases": "Required keyword/reference matrix, OFF exception units, provenance and parser-only independence.",
       "acceptance": [
-        "Unit cases bound branch-heavy schemas, repeated references, expensive patterns, deep uniqueItems, cancellation and injected allocation failures, checking cleanup.",
-        "Destroy registry/input temporaries and move/reuse compiled schemas before validation; document any explicitly retained resolver lifetime.",
-        "Independent concurrent work-context units share immutable compiled schemas safely.",
-        "Fakes demonstrate validation performs no network/filesystem/process/environment-expansion calls; external loading occurs only at explicit compilation/resolution boundaries."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I13",
-        "I14",
-        "I15",
-        "I17",
-        "I20",
-        "I22"
-      ]
+        "P054"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I24",
-      "title": "Implement the validation CLI and versioned machine diagnostics",
-      "milestone": "tools",
-      "labels": [
-        "enhancement",
-        "component:cli",
-        "requirements:draft"
+      "key": "P056",
+      "issue_number": 57,
+      "title": "CLI dispatch and bounded readers",
+      "requirements": [
+        "J5-070"
       ],
+      "goal": "Prepare optional host command dispatch for file/stdin syntax selection and configured limits; read via injectable bounded I/O interfaces. Define generic validation commands without consumer-specific fields.",
+      "unit_cases": "Argument and fake I/O units; file errors, unsupported flags and input budget handling; schema flags initially report unavailable.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P042"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P057",
+      "issue_number": 58,
+      "title": "CLI validation and diagnostic protocol",
       "requirements": [
         "J5-070",
         "J5-071"
       ],
-      "goal": "Build an optional portable host CLI for file/stdin validation with explicit syntax/schema/profile/limit choices and readable plus versioned strict-JSON diagnostic/capability output.",
+      "goal": "Connect parser and optional compiled-schema validation; provide readable and versioned strict-JSON diagnostics/capabilities. Exit 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure. Encode surrogate/non-finite data safely.",
+      "unit_cases": "Dispatch/result mapping units, strict-JSON output round-trip, missing schema component and OOM fallback.",
       "acceptance": [
-        "Unit-test command parsing, bounded reader abstractions and execution with fake I/O: 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure.",
-        "Cover malformed input, invalid schemas, unreadable-file fake, unsupported options, limits and cancellation.",
-        "Machine output round-trips through strict-JSON units and escapes arbitrary Unicode/control content; include locations/pointers/severity/version/capabilities and minimal OOM output.",
-        "Package CLI separately so library users and cross-compiled targets require no host-tool runtime."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I14",
-        "I22",
-        "I23"
-      ]
+        "P055",
+        "P056"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I25",
-      "title": "Package VS Code support with workspace-local offline schema associations",
-      "milestone": "tools",
-      "labels": [
-        "enhancement",
-        "component:editor",
-        "requirements:draft"
-      ],
+      "key": "P058",
+      "issue_number": 59,
+      "title": "File-driven example executable",
       "requirements": [
-        "J5-072",
+        "J5-070",
+        "J5-071",
+        "J5-094"
+      ],
+      "goal": "Implement optional adaptive_json5_examples against examples/manifest.json with run/inspect/validate commands, matched expectations and requirement-specific observations; unsupported capabilities never count as passing. Preserve the distinct direct-validation and demonstration-run exit contracts documented in examples/README.md.",
+      "unit_cases": "Injected readers/reporters, valid/intentional-invalid examples and mismatch/resource outcomes; no e2e CI gate.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P057"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P059",
+      "issue_number": 60,
+      "title": "Host-tool packaging",
+      "requirements": [
+        "J5-002",
+        "J5-007",
+        "J5-070",
+        "J5-092",
+        "J5-093"
+      ],
+      "goal": "Expose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/version it independently, documenting library/executable/test presets. Parser and embedded consumers require no CLI/editor runtime.",
+      "unit_cases": "CMake target/options review, documented usage and unit capability/version output.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P058"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P060",
+      "issue_number": 61,
+      "title": "VS Code extension package",
+      "requirements": [
+        "J5-072"
+      ],
+      "goal": "Prepare a separate extension package with JSON5 language identity/file associations, pinned dependencies, native backend selection and supported versions; do not make it a library dependency.",
+      "unit_cases": "Package/contribution configuration units; reproducible packaging instructions, no new host-test CI gate.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P057"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P061",
+      "issue_number": 62,
+      "title": "Editor grammar and position mapping",
+      "requirements": [
+        "J5-074",
+        "J5-075"
+      ],
+      "goal": "Use grammar fixtures and runtime diagnostics consistently; map original byte spans to documented editor positions, including astral Unicode, combining marks, CRLF and continuations.",
+      "unit_cases": "Tokenization and range-adapter units with shared parser fixtures.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P060"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P062",
+      "issue_number": 63,
+      "title": "Versioned live documents and provisional recovery",
+      "requirements": [
+        "J5-076",
+        "J5-077"
+      ],
+      "goal": "Support unsaved document versions, cancellation and stale-result suppression; provide explicitly provisional recovery for completion/hover without accepting incomplete runtime documents.",
+      "unit_cases": "Rapid edits/reopen/cancellation and incomplete token/container unit cases.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P061"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P063",
+      "issue_number": 64,
+      "title": "Offline workspace schema associations",
+      "requirements": [
         "J5-073",
         "J5-081"
       ],
-      "goal": "Provide a reproducible extension or compatible documented setup with an explicit language ID, supported VS Code versions and local schemas selected by workspace file patterns, including multiple roots and offline operation.",
+      "goal": "Associate file patterns with repository-local schemas per workspace root, without inserting $schema in instances. Resolve registered resources offline; remote access requires explicit configuration.",
+      "unit_cases": "Two roots, relative references, changed associations and fake network that fails if called.",
       "acceptance": [
-        "Unit-test association/configuration resolution for two roots, relative local references and file patterns; do not insert schema metadata into instance documents.",
-        "Unit fakes confirm local completion/validation needs no background network fetch; optional remote loading requires explicit configuration and runtime-compatible reference identities.",
-        "Document installation, reproducible packaging, supported versions and optional Remote SSH setup without imposing a remote development environment.",
-        "Unrelated language associations stay unchanged; host/editor dependencies do not enter core targets."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I02",
-        "I17",
-        "I23",
-        "I24"
-      ]
+        "P055",
+        "P062"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I26",
-      "title": "Implement editor grammar parity, byte-to-position mapping and document versions",
-      "milestone": "tools",
-      "labels": [
-        "enhancement",
-        "component:editor",
-        "requirements:draft"
-      ],
+      "key": "P064",
+      "issue_number": 65,
+      "title": "Schema completions",
       "requirements": [
-        "J5-074",
-        "J5-075",
-        "J5-076"
-      ],
-      "goal": "Align complete-document editor tokenization/diagnostics with both supported grammars, accurately map original source bytes to editor positions and discard cancelled/outdated responses.",
-      "acceptance": [
-        "Language-service units reuse grammar fixtures for Unicode identifiers/whitespace, escapes, continuations, controls and numeric forms with syntax-mode expectations.",
-        "Position units cover astral/combining text, CRLF, continued strings, errors before/after multibyte text and valid EOF ranges using the documented protocol encoding.",
-        "Mock rapid edits, reopen/schema changes, cancellation and out-of-order backend responses; stale results never replace a newer document version."
-      ],
-      "depends_on": [
-        "I08",
-        "I12",
-        "I14",
-        "I24",
-        "I25"
-      ]
-    },
-    {
-      "key": "I27",
-      "title": "Implement incomplete-document recovery and schema-aware completion",
-      "milestone": "tools",
-      "labels": [
-        "enhancement",
-        "component:editor",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-077",
         "J5-078"
       ],
-      "goal": "Provide provisional editing assistance for malformed/incomplete text and context/style-aware schema property/value completion without treating recovered trees as successful runtime parses.",
+      "goal": "Suggest applicable property names and enum/const/default/example values, required-field hints and quoting-aware insertion, avoiding normal duplicate properties.",
+      "unit_cases": "Nested/referenced/conditional/union schemas and incomplete-input insertion units.",
       "acceptance": [
-        "Language-service units request assistance inside unfinished objects, arrays, strings and escapes; native parser units reject the same incomplete documents.",
-        "Root/nested/referenced/type-union/conditional schemas suggest applicable names and enum/const/example/default values with required-field indicators.",
-        "Existing properties suppress ordinary duplicate insertion; quoting and insertion text remain valid for each completion context.",
-        "Every recovered tree/result is marked provisional and cannot be returned as a runtime successful document/validation."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I09",
-        "I17",
-        "I18",
-        "I21",
-        "I25",
-        "I26"
-      ]
+        "P053",
+        "P063"
+      ],
+      "status": "implementation pending"
     },
     {
-      "key": "I28",
-      "title": "Implement schema hover, runtime-parity diagnostics and explicit consumer policies",
-      "milestone": "tools",
-      "labels": [
-        "enhancement",
-        "component:editor",
-        "requirements:draft"
-      ],
+      "key": "P065",
+      "issue_number": 66,
+      "title": "Hover and runtime-parity diagnostics",
       "requirements": [
         "J5-079",
         "J5-080"
       ],
-      "goal": "Show relevant descriptions/types/constraints in hover, align editor assertion outcomes with the native validator and keep duplicate/root/Unicode/numeric-spelling policies distinct from generic syntax.",
+      "goal": "Show applicable descriptions/types/constraints and agree with runtime exact-number/assertion semantics; expose duplicate, Unicode, root and lexical numeric profile rules separately from generic grammar.",
+      "unit_cases": "Hover metadata and parser/schema/profile parity units including mathematical versus lexical integer policies.",
       "acceptance": [
-        "Language-service units cover field/enum hover, unknown fields and conditional failures.",
-        "Shared fixture units compare editor/native outcomes for 1, 1.0, 1e0, 1e-1, large integers and source ranges.",
-        "Generic and explicit consumer profile units distinguish syntax acceptance from root/duplicate/Unicode/spelling rejection; decoded duplicates are errors under reject policy.",
-        "No AdaptivePi-specific policy becomes the generic parser or editor default."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I10",
-        "I11",
-        "I19",
-        "I20",
-        "I22",
-        "I26",
-        "I27"
+        "P057",
+        "P064"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "P066",
+      "issue_number": 67,
+      "title": "Editor release evidence",
+      "requirements": [
+        "J5-082",
+        "J5-100"
+      ],
+      "goal": "Document extension/backend versions and executed tokenization/live-document/range/completion/hover/parity units. Distinguish unit evidence from unexecuted VS Code host acceptance; do not claim unsupported features.",
+      "unit_cases": "Complete editor-feature-to-unit mapping and unit/format checks only.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P065"
+      ],
+      "status": "implementation pending"
+    },
+    {
+      "key": "BUILD",
+      "issue_number": 68,
+      "title": "Finish the C++17 library target and install the public headers",
+      "requirements": [
+        "J5-001",
+        "J5-002",
+        "J5-007",
+        "J5-091",
+        "J5-092",
+        "J5-093"
+      ],
+      "goal": "Create a usable namespaced library target for the existing result/error component; publish build/install include paths and C++17 requirements. Install error.hpp and result.hpp, then extend the same package with parser and optional schema targets when implemented. Keep tests OFF for subproject/consumer builds, avoid implicit dependency downloads, and keep host tools separate. Apply exceptions-OFF and RTTI-OFF flags to project targets without changing parent flags. Record pinned source/dependency versions and ABI-affecting options.",
+      "unit_cases": "Link the existing GoogleTest result suite through the real library target instead of a direct include-directory workaround. Run it with exceptions OFF and RTTI OFF. Record development configure/build/install results for tests-disabled and optional-component configurations; do not add an integration CI gate.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P002"
       ]
     },
     {
-      "key": "I29",
-      "title": "Add an optional versioned consumer schema and profile example",
-      "milestone": "examples",
-      "labels": [
-        "enhancement",
-        "component:examples",
-        "requirements:draft",
-        "optional:consumer-example"
+      "key": "RUNTIME",
+      "issue_number": 69,
+      "title": "Finish pure-memory parsing, concurrent contexts and embedded runtime contracts",
+      "requirements": [
+        "J5-042",
+        "J5-050",
+        "J5-052",
+        "J5-101"
       ],
+      "goal": "Keep parse/value/conversion operations independent of filesystem, network, processes, locale, clocks and OS thread APIs. Share only immutable data; keep mutable parse/work contexts caller-owned. Document the required C++17 runtime, alignment, byte order, integer-size assumptions, initialization and bounded stack/work storage. Connect caller-supplied fallible storage and caller-owned embedded CMake toolchains without requiring a global heap, exceptions, RTTI or host tools.",
+      "unit_cases": "Run repeated equivalent parses under changed supported locale/environment settings. Run independent valid/failing contexts concurrently using host test threads. Exercise fixed storage, exhaustion and cleanup through no-OS adapters; document unsupported data models/toolchains explicitly. Host passes do not establish device certification or universal embedded support.",
+      "acceptance": [
+        "Documentation",
+        "Implementation",
+        "Unit tests"
+      ],
+      "depends_on": [
+        "P003",
+        "P031",
+        "P037",
+        "P038",
+        "P039"
+      ]
+    },
+    {
+      "key": "PROFILE",
+      "issue_number": 70,
+      "title": "Finish the optional versioned consumer schema example",
       "requirements": [
         "J5-083",
         "J5-084",
         "J5-085",
         "J5-086"
       ],
-      "goal": "Demonstrate an isolated external consumer profile using JSON5, object-root and duplicate rejection plus a descriptive strict-JSON Draft-07 schema, using the proposal's AdaptivePi manifest snapshot only as a reference example.",
+      "goal": "Supply the optional version-1 consumer schema and complete valid/invalid example documents outside the core. Use object-root and duplicate-rejection policy only at this profile boundary. Document the reference snapshot revision and unresolved consumer assumptions. Reject unknown fields in fixed objects; apply explicit name/type rules to dynamic environment entries. Configure workspace-local editor association without inserting schema metadata into instances.",
+      "unit_cases": "Compile the local versioned schema against the local Draft-07 meta-schema. Test a valid example and per-field missing/type/null/pattern/bound/conditional failures, unknown fixed fields and dynamic-name/value rules. Contrast generic primitive/duplicate parsing with profile rejection.",
       "acceptance": [
-        "Example units show generic primitive/duplicate parsing separately from configured profile rejection.",
-        "Compile the vendored version-1 example schema with the local meta-schema and check a complete valid example plus per-field missing/type/null/pattern/bound/conditional failures.",
-        "Fixed objects reject unknown fields while dynamic environment names follow their name rule and require string values.",
-        "Document local editor association, snapshot revision and all unresolved consumer assumptions; no core application fields, services, filesystem layout or dependency are introduced."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I10",
-        "I18",
-        "I19",
-        "I20",
-        "I21",
-        "I22",
-        "I25",
-        "I27",
-        "I28"
-      ],
-      "notes": [
-        "Optional reference example only; the user requested a generic library. Do not claim agreed AdaptivePi compatibility or create AdaptivePi infrastructure work."
+        "P036",
+        "P054",
+        "P063",
+        "P065"
       ]
     },
     {
-      "key": "I30",
-      "title": "Document optional profile numeric/string policies and consumer result mapping",
-      "milestone": "examples",
-      "labels": [
-        "enhancement",
-        "component:examples",
-        "requirements:draft",
-        "optional:consumer-example"
-      ],
+      "key": "ADAPTER",
+      "issue_number": 71,
+      "title": "Finish optional consumer numeric/string policies and result mapping",
       "requirements": [
         "J5-087",
         "J5-088",
         "J5-089",
         "J5-090"
       ],
-      "goal": "Show how a standalone consumer adapter applies lexical integer/string/path policies, preserves arguments and owned data, implements consumer defaults and maps explicit core/schema errors into its own result type.",
+      "goal": "Implement a separate consumer adapter selecting mathematical or lexical integer rules, NUL/surrogate/path spelling rules and consumer defaults. Preserve owned input values, empty/ordered arguments and original bytes. Derive argv[0] in the adapter. Map syntax, encoding, duplicate, version, field, conversion and resource failures into the consumer result type without importing ara APIs, filesystem checks or service management into the parser.",
+      "unit_cases": "Compare 1, 1.0, 1e0, 0x1, +1, fractions, booleans and nonfinite values under each policy. Cover NUL/unpaired-surrogate and lexical traversal rejection, ordered/empty arguments, defaults versus schema annotations and each result mapping using fake consumer/I/O units.",
       "acceptance": [
-        "Example units compare mathematical-integral and explicit lexical policies on decimal/exponent/fraction/hex/plus spellings; booleans, true fractions and nonfinite values fail integer fields.",
-        "NUL/unpaired-surrogate and lexical traversal fixtures reject at the profile boundary without changing valid bytes or claiming filesystem security checks.",
-        "Owned fake-consumer units preserve empty/ordered arguments, derive argv[0] outside the parser and distinguish consumer defaults from schema annotations without mutating parsed data.",
-        "Fake result mapping distinguishes malformed/encoding/duplicate/version/field/conversion/resource errors and adds no ara::core/AdaptivePi dependency."
+        "Documentation",
+        "Implementation",
+        "Unit tests"
       ],
       "depends_on": [
-        "I09",
-        "I11",
-        "I13",
-        "I19",
-        "I22",
-        "I23",
-        "I29"
-      ],
-      "notes": [
-        "Keep consumer-specific defaults unresolved until separately agreed. Filesystem existence/permissions/symlink containment and service management remain consumer responsibilities."
+        "P038",
+        "P054",
+        "P065"
       ]
     },
     {
-      "key": "IE01",
-      "title": "Ensure OS-agnostic integration into embedded projects",
-      "milestone": "release",
-      "labels": [
-        "enhancement",
-        "component:build",
-        "requirements:draft"
-      ],
+      "key": "RELEASE",
+      "issue_number": 72,
+      "title": "Finish release records and reconcile documentation with implemented components",
       "requirements": [
-        "J5-101"
-      ],
-      "goal": "Make the generic C++17 core usable on embedded devices after compilation into a compatible consuming project, without requiring an operating system. Document the runtime/storage and generic CMake toolchain boundary. MICROSAR is one example only; no dedicated vendor port, SDK or workflow is required.",
-      "acceptance": [
-        "Document the required C/C++ runtime subset, compiler/runtime support, alignment/byte-order/data-model assumptions, static initialization and bounded stack/work storage.",
-        "Core targets require no POSIX/Windows APIs, files/processes/network, OS threads, locale/environment/clock, exception/RTTI runtime, default global heap, GoogleTest or optional host component dependencies.",
-        "Support caller-supplied fallible storage and deterministic budgets; GoogleTest units exercise fixed storage, exhaustion/cleanup, no-OS adapters and data-model boundaries as production APIs are implemented.",
-        "Provide generic caller-owned CMake toolchain guidance with tests and host components excluded. A consuming project can compile/link the core using its compatible embedded toolchain without a vendor-specific port workflow.",
-        "Return errors as explicit non-throwing outcomes in every supported compiler exception mode; document actual embedded support without claiming host units establish every device runtime, real-time guarantees or certification."
-      ],
-      "depends_on": [
-        "I01",
-        "I02",
-        "I13",
-        "I14",
-        "I15"
-      ],
-      "notes": [
-        "Production C++ is implemented by the developer; agents may prepare CMake, GoogleTest and documentation. This adds generic embedded usability to hosted portability, not a dedicated MICROSAR product."
-      ]
-    },
-    {
-      "key": "I31",
-      "title": "Provide portable reusable CMake packages and pinned build metadata",
-      "milestone": "release",
-      "labels": [
-        "enhancement",
-        "component:build",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-091",
-        "J5-092",
-        "J5-093"
-      ],
-      "goal": "Support generic compatible hosted and embedded C++17 projects with namespaced parser/schema exported targets, add_subdirectory and installed find_package use, offline dependencies and immutable release/build-option records.",
-      "acceptance": [
-        "Document supported native MSVC/GCC/Clang toolchains and standard CMake cross-compilation without imposing WSL, a Yocto SDK, AdaptivePi deployment or ARM64 runtime.",
-        "Parser-only and schema-enabled target/package metadata is relocatable, target-scoped and does not alter parent flags, enable tests or implicitly fetch dependencies.",
-        "Compile the selected unit-test targets on documented supported compilers; record any known platform/compiler restriction rather than asserting universal implementation support.",
-        "Release metadata pins source/dependency revisions and records compatible exception/allocator/ABI-impacting options; host tools/editor remain separate."
-      ],
-      "depends_on": [
-        "I02",
-        "I15",
-        "I16",
-        "I23",
-        "IE01"
-      ],
-      "notes": [
-        "J5-091's original application-specific platform requirement is superseded by the user's generic-library direction. No deployment or installed-consumer integration-test job is added."
-      ]
-    },
-    {
-      "key": "I32",
-      "title": "Complete parser grammar, truncation and failure-injection unit coverage",
-      "milestone": "release",
-      "labels": [
-        "enhancement",
-        "component:tests",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-094",
-        "J5-095",
-        "J5-097",
-        "J5-098"
-      ],
-      "goal": "Complete deterministic in-process unit coverage of grammar/value/location/resource contracts, using pinned compatible upstream fixtures and minimized known regressions without introducing broader test categories.",
-      "acceptance": [
-        "Trace each grammar requirement to valid/invalid/truncated cross-mode units that assert exact decoded values/locations; representative tokens are truncated at every byte.",
-        "Vendor licensed pinned representative official JSON5/JSONTestSuite cases as unit data, documenting optional-case and duplicate/precision/Unicode/limit semantics instead of adopting reference output blindly.",
-        "Fixed whitespace/comment/escape transformation units preserve expected values; deterministic deep/wide/boundary regressions return stable failures without crashes/uncontrolled loops.",
-        "In-process units fail each representative parser/conversion/schema/reporting allocation and limit/cancellation boundary in supported exception modes, verifying cleanup/no partial success.",
-        "Required checks remain unit tests and formatting."
-      ],
-      "depends_on": [
-        "I08",
-        "I10",
-        "I11",
-        "I12",
-        "I13",
-        "I14",
-        "I15",
-        "I23"
-      ],
-      "notes": [
-        "Automatic differential/reference-tool runs, fuzzing, sanitizers and benchmarking from the source proposal are deferred/superseded by the user's unit-test/formatting scope. Do not claim executed evidence for them."
-      ]
-    },
-    {
-      "key": "I33",
-      "title": "Complete Draft-07 and editor component unit-test traceability",
-      "milestone": "release",
-      "labels": [
-        "enhancement",
-        "component:tests",
-        "requirements:draft"
-      ],
-      "requirements": [
-        "J5-096",
-        "J5-082"
-      ],
-      "goal": "Run pinned required Draft-07 suite fixtures through unit tests with offline registered references, and trace editor service unit coverage for highlighting, live diagnostics, completion, hover, mapping and native parity.",
-      "acceptance": [
-        "Record Draft-07 suite revision, required/optional selection, counts and failures; required assertion/reference cases cannot be silently skipped or reclassified optional.",
-        "Offline registry fixtures supply suite references and add exact numeric, Unicode and parser/editor parity regressions missing from upstream cases.",
-        "Editor unit fixtures cover all service behaviors with explicit backend/extension compatibility metadata; mock document versions, associations and cancellation.",
-        "Coverage records distinguish executed unit evidence from manual/deferred installed-editor/Remote SSH acceptance; screenshots/README claims are not parity evidence."
-      ],
-      "depends_on": [
-        "I18",
-        "I19",
-        "I20",
-        "I21",
-        "I22",
-        "I23",
-        "I25",
-        "I26",
-        "I27",
-        "I28"
-      ],
-      "notes": [
-        "Installed VS Code, Remote SSH and end-to-end jobs from J5-082 are deferred under the user's current test scope; no other test category is introduced."
-      ]
-    },
-    {
-      "key": "I34",
-      "title": "Document supported builds and complete a truthful release checklist",
-      "milestone": "release",
-      "labels": [
-        "enhancement",
-        "component:docs",
-        "requirements:draft"
-      ],
-      "requirements": [
+        "J5-008",
         "J5-099",
         "J5-100"
       ],
-      "goal": "Publish supported C++17 compiler/exception configurations and release documents covering actual implemented APIs, standards/Unicode versions, matrices, limits, licensing, packaging/editor instructions and known deviations.",
+      "goal": "Replace stale no-production-code claims now that result/error headers exist. Reconcile README, architecture, development, verification, requirement sequence, traceability and issue ownership. Record actual supported compiler/toolchain versions and executed GoogleTest/formatting results; preserve historical results as historical. Document source/Unicode/schema versions, limits/deviations, allocator/ABI options, licensing, offline consumption and packaging for components actually shipped. Keep optional schema/CLI/editor/consumer releases separate from a core release.",
+      "unit_cases": "Check every shipped behavior against named executed GoogleTest cases and every shipped source against the existing formatting check. Keep implemented code, test inventory and executed evidence distinct. Record unsupported/unexecuted compiler/device/editor combinations. Required CI remains one exceptions-OFF GoogleTest job and one formatting job on pull requests.",
       "acceptance": [
-        "Record selected supported native compiler/toolchain versions and actual unit-test/formatting results for exceptions-off/on configurations; identify unverified/unsupported combinations explicitly.",
-        "Requirement, grammar and schema-keyword matrices link owning issues and implemented unit cases; Draft/Agreed/Implemented/Verified states stay distinct.",
-        "Release checklist documents public contracts, dependency/source versions, allocator/ABI options, reproducible packaging, offline use and optional components/example scope.",
-        "Do not claim full grammar/schema/editor support while unresolved gaps remain, or claim fuzz/sanitizer/integration/target/deployment/benchmark evidence that was not requested/executed.",
-        "Keep original broader verification intentions visible as superseded/deferred and explain the current unit-test/formatting acceptance scope.",
-        "Record J5-101 embedded port/runtime status separately from host unit passes; OS-agnostic embedded support must remain a reviewed core capability, not an assumed certification claim.",
-        "Parser-only releases are allowed. Schema/editor/CLI prerequisites apply only when those optional components are shipped; optional consumer examples never block a generic core release."
+        "Documentation matches shipped components",
+        "Executed unit/format evidence recorded"
       ],
       "depends_on": [
-        "I01",
-        "I31",
-        "I32",
-        "I33"
-      ],
-      "notes": [
-        "The original Yocto/QEMU/installed-consumer/sanitizer matrix and performance measurement obligations are superseded or deferred. Optional consumer examples may ship separately and are not a dependency for releasing the generic parser."
+        "P040",
+        "P041"
       ]
     }
-  ]
+  ],
+  "issue_mapping": {
+    "P001": 1,
+    "P002": 2,
+    "P003": 3,
+    "P004": 4,
+    "P005": 5,
+    "P006": 6,
+    "P007": 7,
+    "P008": 8,
+    "P009": 9,
+    "P010": 10,
+    "P011": 11,
+    "P012": 12,
+    "P013": 13,
+    "P014": 14,
+    "P015": 15,
+    "P016": 16,
+    "P017": 17,
+    "P018": 18,
+    "P019": 19,
+    "P020": 20,
+    "P021": 21,
+    "P022": 22,
+    "P023": 23,
+    "P024": 24,
+    "P025": 25,
+    "P026": 26,
+    "P027": 27,
+    "P028": 28,
+    "P029": 29,
+    "P030": 30,
+    "P031": 31,
+    "P032": 32,
+    "P033": 33,
+    "P034": 34,
+    "P035": 35,
+    "P036": 37,
+    "P037": 38,
+    "P038": 39,
+    "P039": 40,
+    "P040": 41,
+    "P041": 42,
+    "P042": 43,
+    "P043": 44,
+    "P044": 45,
+    "P045": 46,
+    "P046": 47,
+    "P047": 48,
+    "P048": 49,
+    "P049": 50,
+    "P050": 51,
+    "P051": 52,
+    "P052": 53,
+    "P053": 54,
+    "P054": 55,
+    "P055": 56,
+    "P056": 57,
+    "P057": 58,
+    "P058": 59,
+    "P059": 60,
+    "P060": 61,
+    "P061": 62,
+    "P062": 63,
+    "P063": 64,
+    "P064": 65,
+    "P065": 66,
+    "P066": 67,
+    "BUILD": 68,
+    "RUNTIME": 69,
+    "PROFILE": 70,
+    "ADAPTER": 71,
+    "RELEASE": 72
+  }
 }
