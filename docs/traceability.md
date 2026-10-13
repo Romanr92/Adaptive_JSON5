@@ -51,18 +51,18 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-037 | Floating conversion | Draft | [#11](https://github.com/Romanr92/Adaptive_JSON5/issues/11) |  |
 | J5-038 | Special numbers | Draft | [#11](https://github.com/Romanr92/Adaptive_JSON5/issues/11) |  |
 | J5-039 | Checked access | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
-| J5-040 | Document lifetime | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
+| J5-040 | Document lifetime | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) | `J5_040_Storage.ReleasePreservesAllocationDescription`; `J5_040_OwnedBlock.DefaultOwnsNothing`; `J5_040_OwnedBlock.ReleasesOnceOnDestruction`; `J5_040_OwnedBlock.MoveTransfersOwnershipWithoutDoubleRelease`; `J5_040_OwnedBlock.ZeroByteRequestSucceedsWithoutProviderCall` |
 | J5-041 | Source spans | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) |  |
 | J5-042 | Pure memory parsing | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
 | J5-043 | Structured errors | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_043_LocatedResult.PreservesCategoryAndOffset`; `J5_043_UnlocatedResult.DistinguishesMissingLocationFromByteZero` |
 | J5-044 | Diagnostic locations | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) |  |
 | J5-045 | Failure-safe reporting | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_045_Result.ReportsAllocationFailureWithoutRichDiagnostics` |
-| J5-046 | Fallible allocation | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) |  |
+| J5-046 | Fallible allocation | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) | `J5_046_CheckedSize/CheckedAddUnits.ReportsExactSumOrResourceLimit`; `J5_046_CheckedSize/CheckedMultiplyUnits.ReportsExactProductOrResourceLimit`; `J5_046_Storage.DefaultHasNoProvider`; `J5_046_Storage.ReportsFailureAsNullWithoutOutstandingStorage`; `J5_046_Storage.BalancesReleaseAfterInjectedFailure`; `J5_046_OwnedBlock/OwnedBlockAllocationPointUnits.ReportsFailureAndBalancesRelease`; `J5_046_OwnedBlock/OwnedBlockAlignmentUnits.RejectsInvalidAlignmentBeforeProviderCall`; `J5_046_OwnedBlock.RejectsMissingCallbacks`; `J5_046_OwnedBlock.AllocatesArrayWithExactSize`; `J5_046_OwnedBlock.ArrayOverflowReportsResourceLimitWithoutProviderCall` |
 | J5-047 | Configurable limits | Draft | [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14) |  |
 | J5-048 | Bounded traversal | Draft | [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14) |  |
 | J5-049 | Work budgets | Draft | [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14) |  |
 | J5-050 | Concurrency | Draft | [#15](https://github.com/Romanr92/Adaptive_JSON5/issues/15) |  |
-| J5-051 | Atomic results and reuse | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) |  |
+| J5-051 | Atomic results and reuse | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) | `J5_046_CheckedSize/CheckedAddUnits.ReportsExactSumOrResourceLimit`; `J5_046_CheckedSize/CheckedMultiplyUnits.ReportsExactProductOrResourceLimit`; `J5_051_OwnedBlock.ProviderRemainsUsableAfterFailedRequest` |
 | J5-052 | Deterministic semantics | Draft | [#15](https://github.com/Romanr92/Adaptive_JSON5/issues/15) |  |
 | J5-053 | Schema dialect | Draft | [#16](https://github.com/Romanr92/Adaptive_JSON5/issues/16) |  |
 | J5-054 | Schema compilation | Draft | [#16](https://github.com/Romanr92/Adaptive_JSON5/issues/16) |  |
