@@ -7,6 +7,44 @@ from this file when the repository is opened. Settings supported only at user
 scope still need the user configuration; this file does not install extensions
 or authenticate agent providers.
 
+## Build and run tests
+
+Ctrl+F5 opens Zed's task picker with these four project actions:
+
+1. **Build Unit Test**
+2. **Launch Unit Test**
+3. **Build Executable**
+4. **Launch Executable**
+
+The tasks save edited buffers and call `tools/zed_task.py`. Python runs each
+command directly, without `&&` or shell-dependent command parsing, and stops on
+failure. All four actions use exceptions OFF. Unit actions use
+`debug-unit-tests`; launch runs CTest with verbose output. Configure that preset
+first using the root README commands. Exe actions use `debug-example`, also with
+exceptions OFF. The helper does not offer an exception-mode override.
+
+**Launch Unit Test** and **Launch Executable** first ask CMake's native build system
+to update their targets. Changed sources, included headers or build files trigger
+the necessary compilation; unchanged targets are launched without recompiling.
+This also rebuilds a missing binary. Build actions use incremental builds too;
+no action forces an unnecessary full rebuild.
+
+The example executable is not implemented yet. Both executable actions report this
+and exit unsuccessfully until `examples/main.cpp` and the parser target exist.
+Once implemented, they use the `debug-example` preset and
+`adaptive_json5_examples` target; the launch action starts the built executable.
+
+Each action reuses its own terminal tab on subsequent runs. The four separate
+actions do not share one tab. `use_new_terminal` and `allow_concurrent_runs`
+remain false. Old tabs from earlier configurations can be closed manually.
+
+The shortcut is installed in Zed's user `keymap.json` on the current machine.
+`.zed/keymap.json` is the repository copy; Zed does not automatically import it
+as a project keymap. On another machine, merge its entry through **zed: open
+keymap**. Ctrl+Shift+R also opens the task picker.
+
+See [Zed task keybindings](https://zed.dev/docs/tasks#custom-keybindings-for-tasks).
+
 ## Formatting on save
 
 C and C++ buffers are formatted on save by the external `clang-format` command.

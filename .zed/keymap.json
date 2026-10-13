@@ -1,0 +1,8 @@
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-f5": "task::Spawn"
+    }
+  }
+]

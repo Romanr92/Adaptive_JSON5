@@ -1,5 +1,42 @@
 # Development setup verification
 
+## P002 result/error units, 2026-10-13
+
+The developer's `error.hpp` and `result.hpp` now provide minimal errors,
+`result<T, E>`, `result<void, E>` and the `status_result` alias. The agent added
+only test C++, test build setup and documentation for this verification step.
+
+`tests/result_tests.cpp` contains 14 GoogleTest declarations expanding to 40
+executed cases. Coverage includes both success/error alternatives, const/mutable
+inspection, all seven stable codes at byte zero, byte 17 and the maximum
+`std::size_t` offset, missing-location distinction, copy/move construction,
+move-only ownership transfer, identical value/error types, status assignment
+and balanced destruction of nontrivial active alternatives.
+
+Compile-time checks cover the public non-throwing operations, pointer types,
+move-only copy prohibition and disabled value-result assignment. Allocation
+failure reporting is also constructed and inspected in C++17 constant
+evaluation, where this path cannot dynamically allocate. This is evidence for
+minimal reporting, not allocator-exhaustion injection into a parser or proof
+that arbitrary custom error types never allocate.
+
+| Local native Windows configuration | Executed result |
+| --- | --- |
+| GCC 15.2.0, C++17, exceptions OFF, RTTI OFF | Both CTest entries passed: 40 result cases and 3 configuration cases |
+| GCC 15.2.0, C++17, exceptions ON, RTTI OFF | The same 43 GoogleTest cases passed |
+| clang-format 18.1.8 | Passed for all 4 C++ files; only the new test source was formatted by the agent |
+
+Both configurations used Ninja, CMake 4.4.4 and the pinned GoogleTest revision
+with `-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=tools/gtest`. Reproduce with
+`cmake --build --preset debug-unit-tests` and `ctest --preset debug-unit-tests`,
+then the corresponding `debug-unit-tests-exceptions` commands. The new CTest
+entry is `result_units`, running `adaptive_json5_result_unit_tests`.
+
+P002's current result/error component has local executed unit evidence. Broader
+J5-003, J5-043 and J5-045 contracts remain Draft because their parser, access,
+conversion and resource-failure behavior is not implemented here. No new remote
+compiler matrix or embedded target execution was performed.
+
 ## P001 starting point, 2026-10-13
 
 Reviewed P001 (independent C++17 build) and its J5-001, J5-002, J5-091 and

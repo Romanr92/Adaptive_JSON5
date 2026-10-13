@@ -2,7 +2,7 @@
 
 Every requirement has an owning implementation issue. All functional contracts
 remain **Draft**; none is declared fully implemented or verified by this setup.
-The three listed units test compiler configuration only and are partial evidence
+The configuration units and P002 result/error units provide partial evidence
 for their owning requirements. Test existence, a passing execution and complete
 requirement coverage are distinct.
 
@@ -14,7 +14,7 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | --- | --- | --- | --- | --- |
 | J5-001 | Standalone C++ library | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_001_BuildConfiguration.UsesCxx17OrNewer` |
 | J5-002 | Build components | Draft | [#2](https://github.com/Romanr92/Adaptive_JSON5/issues/2) |  |
-| J5-003 | Exception-independent API | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_003_BuildConfiguration.AppliesSelectedExceptionMode` |
+| J5-003 | Exception-independent API | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) | `J5_003_BuildConfiguration.AppliesSelectedExceptionMode`; `J5_003_Result.StatusSuccessHasNoError`; `J5_003_Result.ValueSuccessHasNoError`; `J5_003_Result.MutableAccessUpdatesStoredValue`; `J5_003_Result.CopyConstructionPreservesAlternatives`; `J5_003_Result.MoveConstructionPreservesAlternatives`; `J5_003_Result.SupportsMoveOnlyValueOwnership`; `J5_003_Result.SameTypeAlternativesRemainDistinct`; `J5_003_Result.StatusCopyAndMovePreserveFailure`; `J5_003_Result.StatusAssignmentTransitionsBothWays`; `J5_003_Result.BalancesSuccessAlternativeLifetimes`; `J5_003_Result.BalancesErrorAlternativeLifetimes` |
 | J5-004 | Input boundary | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) |  |
 | J5-005 | Syntax selection | Draft | [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) |  |
 | J5-006 | Unicode data baseline | Draft | [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3) |  |
@@ -54,9 +54,9 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-040 | Document lifetime | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
 | J5-041 | Source spans | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) |  |
 | J5-042 | Pure memory parsing | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
-| J5-043 | Structured errors | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) |  |
+| J5-043 | Structured errors | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_043_LocatedResult.PreservesCategoryAndOffset`; `J5_043_UnlocatedResult.DistinguishesMissingLocationFromByteZero` |
 | J5-044 | Diagnostic locations | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) |  |
-| J5-045 | Failure-safe reporting | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) |  |
+| J5-045 | Failure-safe reporting | Draft | [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12) | `J5_045_Result.ReportsAllocationFailureWithoutRichDiagnostics` |
 | J5-046 | Fallible allocation | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) |  |
 | J5-047 | Configurable limits | Draft | [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14) |  |
 | J5-048 | Bounded traversal | Draft | [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14) |  |

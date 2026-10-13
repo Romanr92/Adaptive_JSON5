@@ -33,7 +33,7 @@
         "J5-043",
         "J5-045"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "implemented; local unit verification passed (Windows/GCC, exceptions OFF/ON, RTTI OFF)",
       "user_review_required": false
     },
     {

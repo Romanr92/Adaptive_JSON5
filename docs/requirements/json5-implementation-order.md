@@ -52,6 +52,11 @@ Provide the library component and GoogleTest units as separate native C++17 targ
 
 Define success/error alternatives with stable minimal error code and byte offset; returning any failure shall not require allocation or throw.
 
+Implementation: developer-authored `error.hpp` and `result.hpp`. Local unit
+evidence: 40 result cases passed on Windows/GCC with exceptions OFF/ON and RTTI
+OFF on 2026-10-13; see [verification notes](../verification.md). This component
+evidence does not complete the broader J5 contracts or establish a remote matrix.
+
 - Prerequisites: P001.
 - Basis: Project.
 - Unit acceptance: Unit-test minimal result construction in exceptions OFF/ON; no parser needed.

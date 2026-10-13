@@ -10,10 +10,12 @@ The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
 numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
-**Status: development setup only. No production C++ or public parser API has
-been implemented.** The repository supplies CMake/package scaffolding,
-GoogleTest infrastructure, formatting, documentation and an ordered issue backlog.
-The initial GoogleTest cases verify build settings only, not parser conformance.
+**Status: P002 result/error foundation implemented; no parser API is available.**
+The developer's public headers provide minimal errors and value/status results.
+GoogleTest covers their behavior and the build settings; local exceptions
+OFF/ON results are recorded in [verification notes](docs/verification.md).
+The repository also supplies CMake/package scaffolding, formatting,
+documentation and an ordered issue backlog. Parser conformance remains pending.
 Production C++ implementation is reserved for the developer; see [AGENTS.md](AGENTS.md).
 
 Native Windows, Linux and macOS development requires no WSL. The planned parser
@@ -26,14 +28,30 @@ boundary. AdaptivePi is inspiration and an optional consumer example.
 Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host units.
 CMake downloads and builds the pinned host-only GoogleTest dependency on the first test configuration:
 
-```sh
+From PowerShell, run these commands in the repository directory:
+
+```powershell
 cmake --preset debug-unit-tests
 cmake --build --preset debug-unit-tests
 ctest --preset debug-unit-tests
+```
+
+Run the same units with exceptions ON:
+
+```powershell
 cmake --preset debug-unit-tests-exceptions
 cmake --build --preset debug-unit-tests-exceptions
 ctest --preset debug-unit-tests-exceptions
 ```
+
+If the selected preset is already configured and built, run only its `ctest`
+command. To run just the P002 result suite:
+
+```powershell
+ctest --preset debug-unit-tests -R "^result_units$" --output-on-failure
+```
+
+Add `--verbose` to a `ctest` command to see each GoogleTest case.
 
 Exceptions and RTTI default OFF; the second preset enables exceptions. Run
 Windows commands in a Visual Studio developer terminal when using its compiler.
