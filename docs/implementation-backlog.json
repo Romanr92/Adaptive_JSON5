@@ -85,7 +85,8 @@
         "Compatible C++17 projects are the supported goal; do not promise every historical C++ implementation.",
         "Public-contract umbrella retained; P001 library target completion is issue #68."
       ],
-      "issue_number": 1
+      "issue_number": 1,
+      "status": "declaration/contracts scope complete; merged PR #73; full parser contracts remain Draft"
     },
     {
       "key": "P002",
@@ -128,7 +129,7 @@
       "depends_on": [
         "P002"
       ],
-      "status": "implementation pending"
+      "status": "complete; merged PR #75; 39 storage cases passed"
     },
     {
       "key": "P004",
@@ -149,7 +150,7 @@
       "depends_on": [
         "P002"
       ],
-      "status": "implementation pending"
+      "status": "input/options declarations implemented; bounded cursor implementation pending"
     },
     {
       "key": "P005",
@@ -1616,7 +1617,8 @@
       "depends_on": [
         "P038",
         "P054",
-        "P065"
+        "P065",
+        "PROFILE"
       ]
     },
     {

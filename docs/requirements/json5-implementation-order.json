@@ -54,7 +54,7 @@
         "J5-051",
         "J5-101"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "implemented; merged PR #75; 39 storage cases and formatting passed; issue #3 completed",
       "user_review_required": false,
       "issue_number": 3
     },

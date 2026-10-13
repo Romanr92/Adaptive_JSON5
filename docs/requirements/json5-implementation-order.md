@@ -76,6 +76,11 @@ evidence does not complete the broader J5 contracts or establish a remote matrix
 
 ### P003 — Fallible storage and accounting
 
+Implemented in merged PR #75: checked-size arithmetic, caller storage callbacks
+and move-only owned blocks. Thirty-nine storage cases passed; see
+[verification](../verification.md). Broader parser integration and embedded
+runtime requirements remain pending.
+
 Tracking: [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3).
 
 Provide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.

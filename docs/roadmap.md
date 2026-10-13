@@ -3,7 +3,9 @@
 Issues #2 onward follow the concrete P001–P066 requirement sequence. Issue #1
 remains the public-contract umbrella; its original full scope is not a prerequisite
 for each early component. P001 configuration units passed; production target and
-packaging completion is #68. P002 is implemented and its issue #2 is complete.
+packaging completion is #68. P002 and P003 are implemented; issues #2 and #3 are complete.
+Issue #1's public declarations/contracts scope is complete. P004 remains open:
+input/options declarations exist, but its bounded reading cursor is pending.
 The parser is not implemented yet.
 
 Each implementation issue describes the behavior to implement and specific
