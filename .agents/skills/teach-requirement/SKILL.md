@@ -24,6 +24,21 @@ budgets, but do not write production C++ files or present sketches as the finish
 library. Explain where a human developer should make a production change. CMake,
 GoogleTest, documentation and requirements work is permitted by AGENTS.md.
 
+## Coding style for guidance
+
+Read [docs/coding-style.md](../../../docs/coding-style.md) when presenting or
+reviewing C++ examples. Class data members use `m_<varName>` with no trailing
+underscore, for example `m_error` rather than `error_` or `m_error_`. Preserve
+snake_case for the remainder of the name and the existing public aggregate
+field convention. Header guards still end in an underscore. Follow the tracked
+clang-format 18 layout. Explain production naming changes to the developer;
+do not edit production files to apply them.
+
+Use the guide's Doxygen comment convention in future C++ examples: `@brief`,
+`@par Requirements` with applicable P/J5 IDs, and relevant `@note` contracts.
+Place a `//` explanation immediately above non-obvious lines or blocks to explain
+why that approach is needed. Requirement links do not imply verification.
+
 ## Contracts that shape guidance
 
 - JSON5 is the planned default, with explicit strict JSON selection and complete

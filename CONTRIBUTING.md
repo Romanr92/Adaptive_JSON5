@@ -5,6 +5,10 @@ Start with [development setup](docs/development.md), the ordered
 Pick a ready issue whose prerequisites are complete. Keep the generic parser
 independent of consumer fields, operating systems and optional host tooling.
 
+Follow the [C++ coding style](docs/coding-style.md), including the `m_` prefix
+without a trailing underscore for class data members, and the tracked
+clang-format rules.
+
 Discuss public API, ownership, exact-number, Unicode and allocation choices in
 the relevant issue before building dependent features. Record durable decisions
 in `docs/adr/`; preserve stable requirement IDs when contracts change.

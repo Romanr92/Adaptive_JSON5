@@ -23,6 +23,16 @@ flag is used. The original user-settings backup remains under `user-config/`.
 
 See [Zed's formatter settings](https://zed.dev/docs/reference/all-settings#formatter).
 
+## C++ completion and standard headers
+
+The root `.clangd` selects `build/debug-unit-tests/compile_commands.json` and
+C++17. Configure the unit-test preset with your native toolchain to generate
+that database. Zed's clangd arguments allow querying the Windows Scoop GCC
+compiler used by this checkout for its target and standard-library include
+paths. This is editor configuration, not a parser dependency or quality gate.
+Other toolchains may need their own narrowly scoped `--query-driver` argument
+in user settings. See [clangd system headers](https://clangd.llvm.org/guides/system-headers).
+
 ## Header guard snippet
 
 `snippets/c++.json` contains the `hguard` completion. Install it in Zed's user

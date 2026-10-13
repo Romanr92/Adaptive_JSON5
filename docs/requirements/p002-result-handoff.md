@@ -3,6 +3,11 @@
 Status: Proposed implementation guidance; production implementation and unit
 evidence pending. This does not change the baseline or J5 contract statuses.
 
+The user has selected the [generic result design](p002-result-design.md):
+`result<T, E = error>`, a `result<void, E>` specialization and a `status_result`
+alias. That decision supersedes the earlier concrete status-only class proposal
+where they differ; production adaptation and verification remain pending.
+
 The ordered sequence reaches its first production C++ work here, after the
 [P001 configuration evidence](../verification.md). P001's actual production
 target remains pending until there is a real component to compile.

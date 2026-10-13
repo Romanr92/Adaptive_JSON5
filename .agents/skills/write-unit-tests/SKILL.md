@@ -35,6 +35,18 @@ failure and developer fix. Do not move production algorithms into test helpers.
 
 ## Parameterization and layout
 
+Follow [docs/coding-style.md](../../../docs/coding-style.md). Class data members,
+including test fixture members, use `m_<varName>` with no trailing underscore,
+for example `m_storage` rather than `storage_` or `m_storage_`. Keep existing
+public aggregate field naming and the requirement-specific GoogleTest names.
+clang-format controls layout, not identifier naming. Production naming fixes
+remain the human developer's responsibility.
+
+Use the coding guide's Doxygen blocks for meaningful test-support declarations
+and put `//` reasoning comments immediately above non-obvious code. Preserve
+the purpose/Arrange/Act/Expect comments required below for GoogleTest declarations
+without adding duplicate documentation blocks.
+
 Prefer parameterized units when inputs/expected results vary but setup and
 assertions are shared. Keep distinct behaviors separate when branching would
 obscure the assertion. Simple build-setting units need no artificial parameters.
