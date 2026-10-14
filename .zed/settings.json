@@ -11,7 +11,7 @@
   "lsp": {
     "clangd": {
       "binary": {
-        "arguments": ["--query-driver=**/scoop/apps/gcc/*/bin/g++.exe,**/scoop/apps/mingw/*/bin/g++.exe"]
+        "arguments": ["--query-driver=**/g++.exe,**/g++.EXE"]
       }
     }
   },
