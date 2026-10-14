@@ -258,3 +258,149 @@ do not treat a declared matrix as a passed matrix.
 
 No vendor SDK, target device, integration/e2e test, sanitizer, fuzzer, benchmark,
 static-analysis or coverage gate is included in the current quality scope.
+
+## P005 contract-first units, 2026-10-13
+
+`tests/utf8_tests.cpp` declares eight unit patterns, expanding to 47 GoogleTest
+cases once the developer supplies `include/adaptive_json5/utf8.hpp`. These
+are pending tests, not passing execution evidence. J5-009 remains Draft.
+
+The proposed test-facing API is `decode_utf8(cursor&) noexcept` returning
+`result<std::optional<decoded_character>>`. A character has `char32_t value`,
+`std::size_t byte_offset` and `std::size_t byte_length`. Successful empty optional
+means EOF. A failed sequence reports `error_code::encoding` at its starting
+byte offset and leaves the cursor unchanged. These API/state conventions are
+project design suggestions locked into these initial tests, not RFC mandates;
+the human developer can select another API and the units must then be adapted.
+
+Coverage includes scalar/width boundaries, NUL and all ASCII bytes, BOM and
+noncharacters, supplementary scalars, every forbidden leading octet, every
+noncontinuation octet in each continuation position, overlong encodings,
+surrogates, out-of-range values, all nonempty truncations of boundary encodings,
+nonzero byte offsets, unchanged buffers, retry after failure and repeated EOF.
+Parser integration must later demonstrate validation within comments and
+trailing trivia in both syntax modes; these decoder units do not establish that.
+
+CMake configuration succeeded for exceptions OFF/RTTI OFF and exceptions
+ON/RTTI OFF. Building `adaptive_json5_utf8_unit_tests` in both configurations
+stopped at the expected missing `adaptive_json5/utf8.hpp`; no P005 cases ran.
+clang-format 18 is unavailable in this environment, and attempts to acquire
+18.1.8 into ignored build storage failed; formatting remains pending.
+
+After the production header exists, build the unit-test preset and run:
+
+```powershell
+cmake --build --preset debug-unit-tests --target adaptive_json5_utf8_unit_tests
+ctest --preset debug-unit-tests -L "^utf8_units$" --output-on-failure
+```
+
+Repeat with exceptions ON and RTTI OFF. No production C++ was added by the agent.
+
+### Formatting follow-up
+
+clang-format 18.1.8 was subsequently installed into ignored `build/format-tools`
+storage. Zed's C/C++ project settings now select that executable with formatting
+on save. Both configured commands passed a stdin/stdout formatting smoke check;
+an actual save in the Zed UI was not observed. `tests/utf8_tests.cpp` was formatted.
+The repository-wide formatting check currently flags the developer's new
+`utf8.hpp` namespace brace; no production header was changed by the agent.
+
+The formatter settings were subsequently made portable through
+`tools/zed_format.py`: the helper and style are located from the edited buffer
+path, and the executable is selected from local build storage or PATH. Windows
+smoke checks passed for C/C++ with an unrelated working directory and a copied
+checkout whose path contains spaces. Formatting the returned buffer again was
+idempotent. Linux/macOS name handling is present but was not executed here.
+
+### P005 developer implementation, 2026-10-13
+
+The developer supplied `include/adaptive_json5/utf8.hpp`. All 47 decoder cases
+passed locally on Windows/GCC 16.2.0 with exceptions OFF/RTTI OFF in
+`build/debug-unit-tests` and exceptions ON/RTTI OFF in
+`build/p005-units-exceptions`. The configured builds used the compiler's C++20
+default; a separate C++17 syntax check of the header with exceptions OFF and
+RTTI OFF also passed. clang-format 18.1.8 checking passed for all 16 C++ files.
+This supersedes the earlier missing-header/pending execution state at P005
+component scope. J5-009 remains Draft: comment/trailing-trivia validation in both
+parser modes and remote matrix execution are not established by these units.
+
+## P006 generated Unicode tables, 2026-10-13
+
+The user explicitly authorized generation of `unicode_tables.hpp`; this narrow
+exception does not authorize edits to the other production headers. Unicode
+17.0.0 and 3.0.0 inputs and the complete Unicode License V3 snapshot are retained
+with SHA-256 hashes and source URLs. Offline regeneration produced byte-identical
+output (35,132 bytes). The generated header has 686 identifier-start ranges,
+398 additional continuation ranges, 7 modern Zs ranges and 6 historical Zs ranges.
+
+Fourteen table-only GoogleTest cases passed locally on Windows/GCC 16.2.0 with
+C++17, RTTI OFF and exceptions OFF/ON. Commands used the
+`adaptive_json5_unicode_table_unit_tests` target and `unicode_table_units` label
+in `build/debug-unit-tests` and `build/p005-units-exceptions`. These units cover
+range invariants and selected independent category fixtures, including historical
+category changes and supplementary characters. They do not test classification
+functions, identifier parsing or whitespace skipping, which remain pending.
+The broader J5 contracts remain Draft. clang-format 18.1.8 checking passed for
+all 20 C++ files. Remote unit jobs were not executed for this change.
+
+## P006 classifier units, 2026-10-14
+
+The developer corrected the binary search's earlier-half update and moved its
+miss return after the loop. Forty-six lookup/classifier cases now pass locally
+on Windows/GCC 16.2.0 with C++17, RTTI OFF and exceptions OFF/ON. These are
+additional to the 14 generated-table cases. The affected target is
+`adaptive_json5_unicode_unit_tests`, selected with CTest label `unicode_units`
+in `build/debug-unit-tests` and `build/p005-units-exceptions`.
+
+The units exercise both binary-search directions, range endpoints and gaps,
+Unicode category representatives, dollar/underscore, ZWNJ/ZWJ, historical
+memberships, supplementary characters and invalid scalars. clang-format 18.1.8
+passed for all 21 C++ files. The first search branch's explanatory comments
+still describe the later half, although its implementation now correctly sets
+`end = middle`; production comments were not edited by the agent.
+
+This is component evidence. Full identifier grammar, escaped names, whitespace
+skipping, complete Unicode/category conformance and remote jobs are not verified
+by these cases. The broader J5 contracts remain Draft.
+
+## P007 line-terminator units, 2026-10-14
+
+Twenty-five GoogleTest cases were added in `tests/line_terminator_tests.cpp`
+for exact spans, nonterminators, CRLF grouping, EOF and bounded reads, malformed
+UTF-8 and unchanged-cursor failures. Builds succeeded with C++17, RTTI OFF and
+exceptions OFF/ON on Windows/GCC 16.2.0. Both runs passed 23 cases and failed 2:
+`LineSeparator` and `SubscriptZero` under the
+`SequenceFixtures/J5_011_LineTerminator.RecognizesExactSpanOrLeavesInput` pattern.
+The developer's `c_line_separator` is still `0x2080`; it must be `0x2028`.
+This causes U+2028 to be missed and U+2080 to be consumed incorrectly.
+Production code was not changed by the agent. P007 remains incomplete, and
+all broader linked J5 contracts remain Draft. Results used target
+`adaptive_json5_line_terminator_unit_tests` and label `line_terminator_units`
+in the existing OFF/ON build directories.
+
+### P007 correction and passing execution
+
+The developer corrected `c_line_separator` to U+2028. All 25 line-terminator
+cases passed on 2026-10-14 in both existing C++17 exception configurations,
+with RTTI OFF. clang-format 18.1.8 passed for all 23 C++ files. This supersedes
+the preceding 23-pass/2-fail execution result at P007 component scope; broader
+parser location/continuation contracts and remote verification remain pending.
+
+## P008 whitespace units, 2026-10-14
+
+The developer supplied `whitespace.hpp` and corrected its line-count field name.
+All 38 cases in `tests/whitespace_tests.cpp` passed on Windows/GCC 16.2.0 with
+C++17, RTTI OFF and exceptions OFF/ON. The affected target is
+`adaptive_json5_whitespace_unit_tests`, selected with CTest label
+`whitespace_units` in the existing OFF/ON build directories.
+
+The cases include every admitted individual space, retained historical Zs,
+line terminators/CRLF counts, nonwhitespace distinctions, EOF and exact-length
+views, byte spans at zero/nonzero offsets, leading/interior BOMs and rollback
+with original encoding-error offsets. Parameter cases check before/after
+boundaries for structural punctuation, both quote styles, primitive/number
+spellings and identifiers using a simulated token-consumer seam. They do not
+parse those tokens. clang-format 18.1.8 passed for all 25 C++ files.
+
+This is P008 component evidence. Full parser/token behavior, strict-mode BOM
+policy and remote jobs remain unverified; broader J5 contracts remain Draft.

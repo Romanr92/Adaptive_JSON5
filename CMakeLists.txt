@@ -86,6 +86,6 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake
 install(FILES LICENSE NOTICE DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5)
 install(FILES docs/licensing.md docs/dependencies.md
     DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5/docs)
-install(FILES LICENSES/GoogleTest-BSD-3-Clause.txt
+install(FILES LICENSES/GoogleTest-BSD-3-Clause.txt LICENSES/Unicode-License-V3.txt
     DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5/LICENSES)
 endif()
