@@ -1,6 +1,15 @@
 include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
 include(GoogleTest)
 
+add_executable(adaptive_json5_lexer_trivia_unit_tests lexer_trivia_tests.cpp)
+target_include_directories(adaptive_json5_lexer_trivia_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_lexer_trivia_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_lexer_trivia_unit_tests)
+gtest_discover_tests(adaptive_json5_lexer_trivia_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS lexer_trivia_units TIMEOUT 10)
+
 add_executable(adaptive_json5_unit_tests build_configuration_tests.cpp)
 target_link_libraries(adaptive_json5_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
 adaptive_json5_configure_target(adaptive_json5_unit_tests)
