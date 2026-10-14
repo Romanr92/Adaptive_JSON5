@@ -1,4 +1,14 @@
 {
+  "Namespace with closing comment": {
+    "prefix": "namespace",
+    "body": [
+      "namespace ${1:adaptive_json5}",
+      "{",
+      "  $0",
+      "} // namespace ${1}"
+    ],
+    "description": "Namespace with a linked name in its closing comment"
+  },
   "Header guard": {
     "prefix": "hguard",
     "body": [
