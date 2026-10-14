@@ -18,7 +18,9 @@ For each implementation change:
 1. State the behavior and requirement IDs it implements.
 2. Add meaningful unit cases for normal behavior, boundaries and explicit errors.
 3. Run the unit suite with exceptions OFF and RTTI OFF, then check clang-format 18.
-4. Update requirement-to-test mappings and public documentation as applicable.
+4. Retain named unit mappings/results and update essential API/ownership/error/limit,
+   provenance and usage contracts where behavior changes. No per-issue documentation
+   report or implementation narrative is required.
 5. Submit a focused pull request using the template.
 
 The only automated quality checks are unit tests and formatting. Do not add
@@ -38,3 +40,8 @@ is introduced by this repository setup.
 Read [licensing guidance](docs/licensing.md) and retain applicable upstream notices
 when contributing copied or adapted material. Repository copyright attribution is
 recorded in [NOTICE](NOTICE); third-party rights remain with their owners.
+
+The [consolidation plan](docs/issue-consolidation-plan.md) groups consecutive P
+steps without reducing technical acceptance. Romanr92 implements production C++;
+AI creates independent GoogleTest units and does not fix production files. Full
+schema, minimal testing CLI and advanced accounting remain in the selected delivery.

@@ -37,19 +37,23 @@ not as future prerequisites for an early P-step. The P dependency column governs
 this implementation sequence. [Machine-readable checklist](json5-implementation-order.json)
 contains the same entries for dependency checks.
 
-GitHub issues #2–#35 map to P002–P035. PR #36 occupies a GitHub number;
-P036–P066 therefore map to issues #37–#67. Build/runtime/consumer/release completion
-is tracked in #68–#72. P001 configuration evidence exists; the real library target
-remains in #68. P002 is complete, without implying complete J5 error contracts.
-Implementation issues use three acceptance items: documentation, implementation,
-and unit tests. Required builds use exceptions OFF and RTTI OFF; historical ON
-results remain historical evidence. See [the current roadmap](../roadmap.md).
+P001–P066 contracts and prerequisite order are unchanged. Existing GitHub anchors
+now group consecutive steps, with at most three active issues per subsystem; see
+[the consolidation plan](../issue-consolidation-plan.md) and [roadmap](../roadmap.md).
+Foundation P002/P003/P004 has merged component evidence; broader J5 contracts stay
+Draft. Production C++/public headers belong to Romanr92; AI creates unit tests.
+No separate per-issue documentation report is required. Keep essential public
+API, ownership, limits/accounting, provenance, deviations and usage contracts.
+Required builds use exceptions OFF/RTTI OFF and one unit/one formatting PR job.
+Full schema P043–P055, minimal testing CLI P056–P059 and full advanced memory
+accounting remain in the selected delivery scope; optional consumer build flags
+do not remove them from this scope.
 
 ## Numbered implementation requirements
 
 ### P001 — Independent C++17 build
 
-Tracking: [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1).
+Tracking: [#1](https://github.com/Romanr92/Adaptive_JSON5/issues/1) (original step issue #1).
 
 Provide the library component and GoogleTest units as separate native C++17 targets; no OS or host-tool dependency enters the core.
 
@@ -60,7 +64,7 @@ Provide the library component and GoogleTest units as separate native C++17 targ
 
 ### P002 — Non-throwing result foundation
 
-Tracking: [#2](https://github.com/Romanr92/Adaptive_JSON5/issues/2).
+Tracking: [#2](https://github.com/Romanr92/Adaptive_JSON5/issues/2) (original step issue #2).
 
 Define success/error alternatives with stable minimal error code and byte offset; returning any failure shall not require allocation or throw.
 
@@ -95,7 +99,7 @@ Local unit evidence: 39 storage cases passed on Windows/GCC with exceptions OFF 
 
 ### P004 — Explicit input cursor
 
-Tracking: [#4](https://github.com/Romanr92/Adaptive_JSON5/issues/4).
+Tracking: [#4](https://github.com/Romanr92/Adaptive_JSON5/issues/4) (original step issue #4).
 
 Consume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.
 
@@ -109,7 +113,7 @@ Local unit evidence: 8 cursor cases (6 boundary/read, 1 span, 1 location) passed
 
 ### P005 — Unicode source decoding
 
-Tracking: [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5).
+Tracking: [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) (original step issue #5).
 
 Decode the project UTF-8 transport to source characters without replacement; retain byte-to-source mapping.
 
@@ -120,7 +124,7 @@ Decode the project UTF-8 transport to source characters without replacement; ret
 
 ### P006 — Character classification
 
-Tracking: [#6](https://github.com/Romanr92/Adaptive_JSON5/issues/6).
+Tracking: [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) (original step issue #6).
 
 Establish documented Unicode data for source classification used by whitespace and IdentifierName; classification has no locale dependency.
 
@@ -131,7 +135,7 @@ Establish documented Unicode data for source classification used by whitespace a
 
 ### P007 — Line terminators
 
-Tracking: [#7](https://github.com/Romanr92/Adaptive_JSON5/issues/7).
+Tracking: [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) (original step issue #7).
 
 Recognize LF, CR, CRLF, U+2028 and U+2029 as line terminator sequences; keep CRLF as one sequence for location/continuation purposes.
 
@@ -142,7 +146,7 @@ Recognize LF, CR, CRLF, U+2028 and U+2029 as line terminator sequences; keep CRL
 
 ### P008 — Whitespace
 
-Tracking: [#8](https://github.com/Romanr92/Adaptive_JSON5/issues/8).
+Tracking: [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) (original step issue #8).
 
 Skip HT, VT, FF, SP, NBSP, BOM and other Unicode Zs whitespace, together with line terminators, between tokens.
 
@@ -153,7 +157,7 @@ Skip HT, VT, FF, SP, NBSP, BOM and other Unicode Zs whitespace, together with li
 
 ### P009 — Line comments
 
-Tracking: [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9).
+Tracking: [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) (original step issue #9).
 
 Skip // comments until a line terminator or EOF; comments are trivia rather than values.
 
@@ -164,7 +168,7 @@ Skip // comments until a line terminator or EOF; comments are trivia rather than
 
 ### P010 — Block comments
 
-Tracking: [#10](https://github.com/Romanr92/Adaptive_JSON5/issues/10).
+Tracking: [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) (original step issue #10).
 
 Skip /* comments through the first */; do not nest comments, and report unterminated comments.
 
@@ -175,7 +179,7 @@ Skip /* comments through the first */; do not nest comments, and report untermin
 
 ### P011 — Trivia composition
 
-Tracking: [#11](https://github.com/Romanr92/Adaptive_JSON5/issues/11).
+Tracking: [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) (original step issue #11).
 
 Permit any sequence of admitted spaces, line terminators and comments before/after tokens, without joining split tokens.
 
@@ -186,7 +190,7 @@ Permit any sequence of admitted spaces, line terminators and comments before/aft
 
 ### P012 — Punctuation tokens
 
-Tracking: [#12](https://github.com/Romanr92/Adaptive_JSON5/issues/12).
+Tracking: [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) (original step issue #12).
 
 Recognize exactly the structural punctuators { } [ ] : , outside strings/comments.
 
@@ -197,7 +201,7 @@ Recognize exactly the structural punctuators { } [ ] : , outside strings/comment
 
 ### P013 — String storage
 
-Tracking: [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13).
+Tracking: [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) (original step issue #13).
 
 Provide owned length-aware decoded-unit storage, preserving UTF-16 escape units including lone surrogates; define allocation-failure behavior.
 
@@ -208,7 +212,7 @@ Provide owned length-aware decoded-unit storage, preserving UTF-16 escape units 
 
 ### P014 — Quoted string boundaries
 
-Tracking: [#14](https://github.com/Romanr92/Adaptive_JSON5/issues/14).
+Tracking: [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) (original step issue #14).
 
 Recognize single/double-quoted strings with matching closing delimiters; allow the other quote and ordinary source characters, rejecting raw CR/LF and unterminated strings.
 
@@ -219,7 +223,7 @@ Recognize single/double-quoted strings with matching closing delimiters; allow t
 
 ### P015 — Simple character escapes
 
-Tracking: [#15](https://github.com/Romanr92/Adaptive_JSON5/issues/15).
+Tracking: [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) (original step issue #15).
 
 Decode escaped quotes, reverse solidus, b/f/n/r/t/v and zero; zero is valid only when not followed by a decimal digit.
 
@@ -230,7 +234,7 @@ Decode escaped quotes, reverse solidus, b/f/n/r/t/v and zero; zero is valid only
 
 ### P016 — Hexadecimal string escapes
 
-Tracking: [#16](https://github.com/Romanr92/Adaptive_JSON5/issues/16).
+Tracking: [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) (original step issue #16).
 
 Decode x followed by exactly two hexadecimal digits, in either hex-letter case; reject incomplete or nonhex escapes.
 
@@ -241,7 +245,7 @@ Decode x followed by exactly two hexadecimal digits, in either hex-letter case; 
 
 ### P017 — Unicode string escapes
 
-Tracking: [#17](https://github.com/Romanr92/Adaptive_JSON5/issues/17).
+Tracking: [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) (original step issue #17).
 
 Decode u followed by exactly four hexadecimal digits; preserve individual units and support escaped surrogate pairs.
 
@@ -252,7 +256,7 @@ Decode u followed by exactly four hexadecimal digits; preserve individual units 
 
 ### P018 — Non-escape characters
 
-Tracking: [#18](https://github.com/Romanr92/Adaptive_JSON5/issues/18).
+Tracking: [#18](https://github.com/Romanr92/Adaptive_JSON5/issues/18) (original step issue #18).
 
 For permitted characters without a special escape production, omit the reverse solidus and retain the character; reject escaped digits 1–9.
 
@@ -263,7 +267,7 @@ For permitted characters without a special escape production, omit the reverse s
 
 ### P019 — String line continuations
 
-Tracking: [#19](https://github.com/Romanr92/Adaptive_JSON5/issues/19).
+Tracking: [#18](https://github.com/Romanr92/Adaptive_JSON5/issues/18) (original step issue #19).
 
 Remove the reverse solidus and the following complete line terminator sequence from the decoded string.
 
@@ -274,7 +278,7 @@ Remove the reverse solidus and the following complete line terminator sequence f
 
 ### P020 — Raw separator warnings
 
-Tracking: [#20](https://github.com/Romanr92/Adaptive_JSON5/issues/20).
+Tracking: [#18](https://github.com/Romanr92/Adaptive_JSON5/issues/18) (original step issue #20).
 
 Accept unescaped U+2028/U+2029 in strings and produce a warning without changing successful parsing.
 
@@ -285,7 +289,7 @@ Accept unescaped U+2028/U+2029 in strings and produce a warning without changing
 
 ### P021 — Complete string lexer
 
-Tracking: [#21](https://github.com/Romanr92/Adaptive_JSON5/issues/21).
+Tracking: [#18](https://github.com/Romanr92/Adaptive_JSON5/issues/18) (original step issue #21).
 
 Compose all string alternatives, validate delimiters and input consumption, and report lexical failures atomically.
 
@@ -296,7 +300,7 @@ Compose all string alternatives, validate delimiters and input consumption, and 
 
 ### P022 — IdentifierName tokens
 
-Tracking: [#22](https://github.com/Romanr92/Adaptive_JSON5/issues/22).
+Tracking: [#22](https://github.com/Romanr92/Adaptive_JSON5/issues/22) (original step issue #22).
 
 Recognize ES5 IdentifierName, including $, _, admitted Unicode starts/parts, ZWNJ/ZWJ continuation and reserved-word names.
 
@@ -307,7 +311,7 @@ Recognize ES5 IdentifierName, including $, _, admitted Unicode starts/parts, ZWN
 
 ### P023 — Identifier Unicode escapes
 
-Tracking: [#23](https://github.com/Romanr92/Adaptive_JSON5/issues/23).
+Tracking: [#22](https://github.com/Romanr92/Adaptive_JSON5/issues/22) (original step issue #23).
 
 Decode identifier uXXXX escapes before checking start/part legality and member-name equality.
 
@@ -318,7 +322,7 @@ Decode identifier uXXXX escapes before checking start/part legality and member-n
 
 ### P024 — Null and boolean classification
 
-Tracking: [#24](https://github.com/Romanr92/Adaptive_JSON5/issues/24).
+Tracking: [#22](https://github.com/Romanr92/Adaptive_JSON5/issues/22) (original step issue #24).
 
 Classify lowercase null, true and false as value literals; preserve their admissibility as object IdentifierName tokens.
 
@@ -329,7 +333,7 @@ Classify lowercase null, true and false as value literals; preserve their admiss
 
 ### P025 — Decimal numeric tokens
 
-Tracking: [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25).
+Tracking: [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) (original step issue #25).
 
 Recognize decimal integer, fraction and exponent alternatives, including leading/trailing decimal points and optional leading sign; reject illegal leading zeros and missing exponent digits.
 
@@ -340,7 +344,7 @@ Recognize decimal integer, fraction and exponent alternatives, including leading
 
 ### P026 — Hexadecimal numeric tokens
 
-Tracking: [#26](https://github.com/Romanr92/Adaptive_JSON5/issues/26).
+Tracking: [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) (original step issue #26).
 
 Recognize signed or unsigned 0x/0X with one or more hexadecimal digits; reject incomplete prefix and invalid suffix.
 
@@ -351,7 +355,7 @@ Recognize signed or unsigned 0x/0X with one or more hexadecimal digits; reject i
 
 ### P027 — Non-finite numeric tokens
 
-Tracking: [#27](https://github.com/Romanr92/Adaptive_JSON5/issues/27).
+Tracking: [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) (original step issue #27).
 
 Recognize Infinity and NaN with permitted leading signs and exact case.
 
@@ -362,7 +366,7 @@ Recognize Infinity and NaN with permitted leading signs and exact case.
 
 ### P028 — Token completion
 
-Tracking: [#28](https://github.com/Romanr92/Adaptive_JSON5/issues/28).
+Tracking: [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) (original step issue #28).
 
 Reject illegal suffixes and unsupported octal/binary/separator forms; never silently discard bytes or split invalid numeric/identifier spellings into accepted prefixes.
 
@@ -373,7 +377,7 @@ Reject illegal suffixes and unsupported octal/binary/separator forms; never sile
 
 ### P029 — Owned numeric representation
 
-Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29).
+Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29) (original step issue #29).
 
 Retain exact numeric spellings and represent signed decimal/hex and non-finite values without unintended floating-point rounding.
 
@@ -384,7 +388,7 @@ Retain exact numeric spellings and represent signed decimal/hex and non-finite v
 
 ### P030 — Owned value/container model
 
-Tracking: [#30](https://github.com/Romanr92/Adaptive_JSON5/issues/30).
+Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29) (original step issue #30).
 
 Provide distinct null/boolean/string/number/array/object alternatives, ordered array elements and observable ordered duplicate object members.
 
@@ -395,7 +399,7 @@ Provide distinct null/boolean/string/number/array/object alternatives, ordered a
 
 ### P031 — Resource guards
 
-Tracking: [#31](https://github.com/Romanr92/Adaptive_JSON5/issues/31).
+Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29) (original step issue #31).
 
 Validate limits and account for depth, nodes, members, strings, numeric spelling/exponents, bytes and work before parser growth; cleanup remains bounded.
 
@@ -406,7 +410,7 @@ Validate limits and account for depth, nodes, members, strings, numeric spelling
 
 ### P032 — Primitive value dispatcher
 
-Tracking: [#32](https://github.com/Romanr92/Adaptive_JSON5/issues/32).
+Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29) (original step issue #32).
 
 Convert completed string, number, null and boolean tokens into owned values; reject other identifiers in value position.
 
@@ -417,7 +421,7 @@ Convert completed string, number, null and boolean tokens into owned values; rej
 
 ### P033 — Recursive container engine
 
-Tracking: [#33](https://github.com/Romanr92/Adaptive_JSON5/issues/33).
+Tracking: [#33](https://github.com/Romanr92/Adaptive_JSON5/issues/33) (original step issue #33).
 
 Implement bounded value-dispatch frames for arrays and objects together, with empty containers, nesting and punctuation expectations.
 
@@ -428,7 +432,7 @@ Implement bounded value-dispatch frames for arrays and objects together, with em
 
 ### P034 — Array element grammar
 
-Tracking: [#34](https://github.com/Romanr92/Adaptive_JSON5/issues/34).
+Tracking: [#33](https://github.com/Romanr92/Adaptive_JSON5/issues/33) (original step issue #34).
 
 Complete array element/separator states, heterogeneous ordered elements and one optional trailing comma; reject holes and misplaced separators.
 
@@ -439,7 +443,7 @@ Complete array element/separator states, heterogeneous ordered elements and one 
 
 ### P035 — Object member grammar
 
-Tracking: [#35](https://github.com/Romanr92/Adaptive_JSON5/issues/35).
+Tracking: [#33](https://github.com/Romanr92/Adaptive_JSON5/issues/33) (original step issue #35).
 
 Complete quoted/identifier name, colon, value and separator states; permit one trailing comma and retain decoded names and every member.
 
@@ -450,7 +454,7 @@ Complete quoted/identifier name, colon, value and separator states; permit one t
 
 ### P036 — Duplicate-name policy
 
-Tracking: [#37](https://github.com/Romanr92/Adaptive_JSON5/issues/37).
+Tracking: [#33](https://github.com/Romanr92/Adaptive_JSON5/issues/33) (original step issue #37).
 
 Keep all decoded duplicate members by default; optional rejection reports both occurrences. Compare exact decoded names without normalization/case folding.
 
@@ -461,7 +465,7 @@ Keep all decoded duplicate members by default; optional rejection reports both o
 
 ### P037 — Complete document entry point
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38).
+Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #38).
 
 Accept one root value of any supported type surrounded by trivia; reject empty/trivia-only input, extra roots and trailing nontrivia.
 
@@ -472,7 +476,7 @@ Accept one root value of any supported type surrounded by trivia; reject empty/t
 
 ### P038 — Checked numeric operations
 
-Tracking: [#39](https://github.com/Romanr92/Adaptive_JSON5/issues/39).
+Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #39).
 
 Provide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.
 
@@ -483,7 +487,7 @@ Provide non-throwing signed/unsigned/floating conversion and exact comparison un
 
 ### P039 — Owned document and diagnostics
 
-Tracking: [#40](https://github.com/Romanr92/Adaptive_JSON5/issues/40).
+Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #40).
 
 Expose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.
 
@@ -494,7 +498,7 @@ Expose stable byte spans, warning/error locations and documented views; destruct
 
 ### P040 — Whole-grammar unit evidence
 
-Tracking: [#41](https://github.com/Romanr92/Adaptive_JSON5/issues/41).
+Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #41).
 
 Map every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures with exceptions OFF.
 
@@ -505,7 +509,7 @@ Map every JSON5 lexical/syntactic production and referenced ES5 alternative to n
 
 ### P041 — Full-support claim
 
-Tracking: [#42](https://github.com/Romanr92/Adaptive_JSON5/issues/42).
+Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #42).
 
 Document language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.
 
@@ -568,7 +572,7 @@ schema component; it is consumer-specific code, not another generic schema engin
 
 ### P042 — Strict JSON syntax mode
 
-Tracking: [#43](https://github.com/Romanr92/Adaptive_JSON5/issues/43).
+Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #43).
 
 Add explicit strict JSON mode for schema documents: quoted keys/double-quoted strings, JSON escapes/numbers/whitespace, no comments/trailing commas/non-finite forms; reject BOM by default with documented optional leading-BOM handling.
 
@@ -578,7 +582,7 @@ Add explicit strict JSON mode for schema documents: quoted keys/double-quoted st
 
 ### P043 — Independent schema component and outcomes
 
-Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44).
+Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #44).
 
 Define an optional Draft-07 schema target/API with owned compilation/evaluation state, explicit non-throwing outcomes and bounded work storage. Parser-only consumers acquire no schema dependency. Declare instance-domain handling for duplicate names, non-finite values and unpaired surrogates.
 
@@ -588,7 +592,7 @@ Define an optional Draft-07 schema target/API with owned compilation/evaluation 
 
 ### P044 — Schema locations and offline reference registry
 
-Tracking: [#45](https://github.com/Romanr92/Adaptive_JSON5/issues/45).
+Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #45).
 
 Implement URI base identities, pointer escaping and caller-registered local/external resources; no implicit network/filesystem resolution. Compile owned reference graphs with unresolved-reference errors.
 
@@ -598,7 +602,7 @@ Implement URI base identities, pointer escaping and caller-registered local/exte
 
 ### P045 — Exact schema equality
 
-Tracking: [#46](https://github.com/Romanr92/Adaptive_JSON5/issues/46).
+Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #46).
 
 Provide type-aware deep equality using exact numeric equivalence, ordered arrays and order-independent unique-name objects.
 
@@ -608,7 +612,7 @@ Provide type-aware deep equality using exact numeric equivalence, ordered arrays
 
 ### P046 — Bounded schema evaluation engine
 
-Tracking: [#47](https://github.com/Romanr92/Adaptive_JSON5/issues/47).
+Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #47).
 
 Evaluate boolean schemas and object schemas with per-type applicability; track branches/references/budgets and recursion progress. Apply Draft-07 $ref behavior, including ignored assertion siblings, without nonprogressing loops.
 
@@ -618,7 +622,7 @@ Evaluate boolean schemas and object schemas with per-type applicability; track b
 
 ### P047 — Type and equality assertions
 
-Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48).
+Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #48).
 
 Implement type, enum and const, including type unions and mathematical integer semantics independent of token spelling.
 
@@ -628,7 +632,7 @@ Implement type, enum and const, including type unions and mathematical integer s
 
 ### P048 — Numeric assertions
 
-Tracking: [#49](https://github.com/Romanr92/Adaptive_JSON5/issues/49).
+Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #49).
 
 Implement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum without floating rounding.
 
@@ -638,7 +642,7 @@ Implement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum wi
 
 ### P049 — String assertions and regex budget
 
-Tracking: [#50](https://github.com/Romanr92/Adaptive_JSON5/issues/50).
+Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #50).
 
 Implement minLength/maxLength in Unicode characters and pattern with the documented compatible regex behavior; reject unsupported conversion/domain and enforce regex work limits.
 
@@ -648,7 +652,7 @@ Implement minLength/maxLength in Unicode characters and pattern with the documen
 
 ### P050 — Array assertions
 
-Tracking: [#51](https://github.com/Romanr92/Adaptive_JSON5/issues/51).
+Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #51).
 
 Implement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems and contains.
 
@@ -658,7 +662,7 @@ Implement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems
 
 ### P051 — Object assertions
 
-Tracking: [#52](https://github.com/Romanr92/Adaptive_JSON5/issues/52).
+Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #52).
 
 Implement minProperties, maxProperties, required, properties, patternProperties, additionalProperties, dependencies (property/schema) and propertyNames.
 
@@ -668,7 +672,7 @@ Implement minProperties, maxProperties, required, properties, patternProperties,
 
 ### P052 — Logical and conditional assertions
 
-Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53).
+Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) (original step issue #53).
 
 Implement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and distinguishing operational failure from assertion mismatch.
 
@@ -678,7 +682,7 @@ Implement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and
 
 ### P053 — Annotations and extension handling
 
-Tracking: [#54](https://github.com/Romanr92/Adaptive_JSON5/issues/54).
+Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) (original step issue #54).
 
 Expose title/description/default/examples/readOnly/writeOnly and unknown-keyword metadata with valid-branch annotation semantics; never insert defaults or mutate instances. Baseline format/contentEncoding/contentMediaType remain annotations; optional assertions require explicit supported capabilities.
 
@@ -688,7 +692,7 @@ Expose title/description/default/examples/readOnly/writeOnly and unknown-keyword
 
 ### P054 — Public schema compilation and diagnostics
 
-Tracking: [#55](https://github.com/Romanr92/Adaptive_JSON5/issues/55).
+Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) (original step issue #55).
 
 Complete strict-JSON boolean/object schema compilation with the Draft-07 meta-schema, keyword shape/pattern checks and dialect errors. Return instance/schema pointers, keyword and available source spans; support bounded fail-fast/collect-all.
 
@@ -698,7 +702,7 @@ Complete strict-JSON boolean/object schema compilation with the Draft-07 meta-sc
 
 ### P055 — Schema conformance and packaging
 
-Tracking: [#56](https://github.com/Romanr92/Adaptive_JSON5/issues/56).
+Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) (original step issue #56).
 
 Run pinned required Draft-07 unit fixtures with offline registered resources, exact-number/Unicode/failure regressions and owned concurrent work contexts. Document dependencies, capabilities and exported schema targets.
 
@@ -708,7 +712,7 @@ Run pinned required Draft-07 unit fixtures with offline registered resources, ex
 
 ### P056 — CLI dispatch and bounded readers
 
-Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57).
+Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57) (original step issue #57).
 
 Prepare optional host command dispatch for file/stdin syntax selection and configured limits; read via injectable bounded I/O interfaces. Define generic validation commands without consumer-specific fields.
 
@@ -718,7 +722,7 @@ Prepare optional host command dispatch for file/stdin syntax selection and confi
 
 ### P057 — CLI validation and diagnostic protocol
 
-Tracking: [#58](https://github.com/Romanr92/Adaptive_JSON5/issues/58).
+Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57) (original step issue #58).
 
 Connect parser and optional compiled-schema validation; provide readable and versioned strict-JSON diagnostics/capabilities. Exit 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure. Encode surrogate/non-finite data safely.
 
@@ -728,7 +732,7 @@ Connect parser and optional compiled-schema validation; provide readable and ver
 
 ### P058 — File-driven example executable
 
-Tracking: [#59](https://github.com/Romanr92/Adaptive_JSON5/issues/59).
+Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57) (original step issue #59).
 
 Implement optional adaptive_json5_examples against examples/manifest.json with run/inspect/validate commands, matched expectations and requirement-specific observations; unsupported capabilities never count as passing. Preserve the distinct direct-validation and demonstration-run exit contracts documented in examples/README.md.
 
@@ -738,7 +742,7 @@ Implement optional adaptive_json5_examples against examples/manifest.json with r
 
 ### P059 — Host-tool packaging
 
-Tracking: [#60](https://github.com/Romanr92/Adaptive_JSON5/issues/60).
+Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57) (original step issue #60).
 
 Expose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/version it independently, documenting library/executable/test presets. Parser and embedded consumers require no CLI/editor runtime.
 
@@ -748,7 +752,7 @@ Expose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/ve
 
 ### P060 — VS Code extension package
 
-Tracking: [#61](https://github.com/Romanr92/Adaptive_JSON5/issues/61).
+Tracking: [#61](https://github.com/Romanr92/Adaptive_JSON5/issues/61) (original step issue #61).
 
 Prepare a separate extension package with JSON5 language identity/file associations, pinned dependencies, native backend selection and supported versions; do not make it a library dependency.
 
@@ -758,7 +762,7 @@ Prepare a separate extension package with JSON5 language identity/file associati
 
 ### P061 — Editor grammar and position mapping
 
-Tracking: [#62](https://github.com/Romanr92/Adaptive_JSON5/issues/62).
+Tracking: [#61](https://github.com/Romanr92/Adaptive_JSON5/issues/61) (original step issue #62).
 
 Use grammar fixtures and runtime diagnostics consistently; map original byte spans to documented editor positions, including astral Unicode, combining marks, CRLF and continuations.
 
@@ -768,7 +772,7 @@ Use grammar fixtures and runtime diagnostics consistently; map original byte spa
 
 ### P062 — Versioned live documents and provisional recovery
 
-Tracking: [#63](https://github.com/Romanr92/Adaptive_JSON5/issues/63).
+Tracking: [#61](https://github.com/Romanr92/Adaptive_JSON5/issues/61) (original step issue #63).
 
 Support unsaved document versions, cancellation and stale-result suppression; provide explicitly provisional recovery for completion/hover without accepting incomplete runtime documents.
 
@@ -778,7 +782,7 @@ Support unsaved document versions, cancellation and stale-result suppression; pr
 
 ### P063 — Offline workspace schema associations
 
-Tracking: [#64](https://github.com/Romanr92/Adaptive_JSON5/issues/64).
+Tracking: [#64](https://github.com/Romanr92/Adaptive_JSON5/issues/64) (original step issue #64).
 
 Associate file patterns with repository-local schemas per workspace root, without inserting $schema in instances. Resolve registered resources offline; remote access requires explicit configuration.
 
@@ -788,7 +792,7 @@ Associate file patterns with repository-local schemas per workspace root, withou
 
 ### P064 — Schema completions
 
-Tracking: [#65](https://github.com/Romanr92/Adaptive_JSON5/issues/65).
+Tracking: [#64](https://github.com/Romanr92/Adaptive_JSON5/issues/64) (original step issue #65).
 
 Suggest applicable property names and enum/const/default/example values, required-field hints and quoting-aware insertion, avoiding normal duplicate properties.
 
@@ -798,7 +802,7 @@ Suggest applicable property names and enum/const/default/example values, require
 
 ### P065 — Hover and runtime-parity diagnostics
 
-Tracking: [#66](https://github.com/Romanr92/Adaptive_JSON5/issues/66).
+Tracking: [#66](https://github.com/Romanr92/Adaptive_JSON5/issues/66) (original step issue #66).
 
 Show applicable descriptions/types/constraints and agree with runtime exact-number/assertion semantics; expose duplicate, Unicode, root and lexical numeric profile rules separately from generic grammar.
 
@@ -808,7 +812,7 @@ Show applicable descriptions/types/constraints and agree with runtime exact-numb
 
 ### P066 — Editor release evidence
 
-Tracking: [#67](https://github.com/Romanr92/Adaptive_JSON5/issues/67).
+Tracking: [#66](https://github.com/Romanr92/Adaptive_JSON5/issues/66) (original step issue #67).
 
 Document extension/backend versions and executed tokenization/live-document/range/completion/hover/parity units. Distinguish unit evidence from unexecuted VS Code host acceptance; do not claim unsupported features.
 

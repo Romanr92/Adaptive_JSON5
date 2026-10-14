@@ -1,6 +1,6 @@
 {
   "repository": "Romanr92/Adaptive_JSON5",
-  "version": 2,
+  "version": 3,
   "scope": "Prepare a generic independently developed OS-agnostic C++17 JSON5/strict-JSON library for compatible hosted and embedded projects. Errors are explicit results, never thrown. Schema/CLI/editor remain optional. Agents may prepare CMake, GoogleTest, docs, requirements and skills; no production C++.",
   "requirement_status": "Draft; creating issues does not promote proposal requirements to Agreed or establish implementation evidence.",
   "quality_scope": "GoogleTest units and formatting only; one job each on pull requests; exceptions OFF and RTTI OFF.",
@@ -86,7 +86,8 @@
         "Public-contract umbrella retained; P001 library target completion is issue #68."
       ],
       "issue_number": 1,
-      "status": "declaration/contracts scope complete; merged PR #73; full parser contracts remain Draft"
+      "status": "declaration/contracts scope complete; merged PR #73; full parser contracts remain Draft",
+      "original_issue_number": 1
     },
     {
       "key": "P002",
@@ -100,14 +101,15 @@
       "goal": "Define success/error alternatives with stable minimal error code and byte offset; returning any failure shall not require allocation or throw.",
       "unit_cases": "Unit-test minimal result construction in exceptions OFF; no parser needed.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P001"
       ],
-      "status": "complete"
+      "status": "complete",
+      "original_issue_number": 2
     },
     {
       "key": "P003",
@@ -122,14 +124,15 @@
       "goal": "Provide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.",
       "unit_cases": "Fail each primitive allocation and verify explicit outcomes and balanced release.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P002"
       ],
-      "status": "complete; merged PR #75; 39 storage cases passed"
+      "status": "complete; merged PR #75; 39 storage cases passed",
+      "original_issue_number": 3
     },
     {
       "key": "P004",
@@ -143,14 +146,15 @@
       "goal": "Consume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.",
       "unit_cases": "Empty, embedded-zero and truncated buffers; no terminating NUL assumption.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P002"
       ],
-      "status": "input/options declarations implemented; bounded cursor implementation pending"
+      "status": "implemented cursor; merged developer PR #76; broader contracts remain Draft",
+      "original_issue_number": 4
     },
     {
       "key": "P005",
@@ -162,18 +166,19 @@
       "goal": "Decode the project UTF-8 transport to source characters without replacement; retain byte-to-source mapping.",
       "unit_cases": "Malformed, overlong, surrogate-encoded and out-of-range UTF-8; supplementary characters.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P004"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 5
     },
     {
       "key": "P006",
-      "issue_number": 6,
+      "issue_number": 5,
       "title": "Character classification",
       "requirements": [
         "J5-006",
@@ -183,18 +188,19 @@
       "goal": "Establish documented Unicode data for source classification used by whitespace and IdentifierName; classification has no locale dependency.",
       "unit_cases": "Category boundaries, non-ASCII and non-BMP handling; document supported Unicode version.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P005"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 6
     },
     {
       "key": "P007",
-      "issue_number": 7,
+      "issue_number": 5,
       "title": "Line terminators",
       "requirements": [
         "J5-011",
@@ -204,18 +210,19 @@
       "goal": "Recognize LF, CR, CRLF, U+2028 and U+2029 as line terminator sequences; keep CRLF as one sequence for location/continuation purposes.",
       "unit_cases": "Each sequence and EOF after CR; assert source spans.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P005"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 7
     },
     {
       "key": "P008",
-      "issue_number": 8,
+      "issue_number": 5,
       "title": "Whitespace",
       "requirements": [
         "J5-011",
@@ -224,15 +231,16 @@
       "goal": "Skip HT, VT, FF, SP, NBSP, BOM and other Unicode Zs whitespace, together with line terminators, between tokens.",
       "unit_cases": "Each admitted space before/after tokens; BOM both leading and between tokens.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P006",
         "P007"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 8
     },
     {
       "key": "P009",
@@ -244,18 +252,19 @@
       "goal": "Skip // comments until a line terminator or EOF; comments are trivia rather than values.",
       "unit_cases": "All terminators, empty comment and EOF comment; validate non-ASCII source.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P007"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 9
     },
     {
       "key": "P010",
-      "issue_number": 10,
+      "issue_number": 9,
       "title": "Block comments",
       "requirements": [
         "J5-012"
@@ -263,18 +272,19 @@
       "goal": "Skip /* comments through the first */; do not nest comments, and report unterminated comments.",
       "unit_cases": "First closer, embedded opener and EOF at every suffix position.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P005"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 10
     },
     {
       "key": "P011",
-      "issue_number": 11,
+      "issue_number": 9,
       "title": "Trivia composition",
       "requirements": [
         "J5-012",
@@ -283,20 +293,21 @@
       "goal": "Permit any sequence of admitted spaces, line terminators and comments before/after tokens, without joining split tokens.",
       "unit_cases": "Mixed trivia; comments between tokens; 1/*x*/2 remains two tokens.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P008",
         "P009",
         "P010"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 11
     },
     {
       "key": "P012",
-      "issue_number": 12,
+      "issue_number": 9,
       "title": "Punctuation tokens",
       "requirements": [
         "J5-013"
@@ -304,15 +315,16 @@
       "goal": "Recognize exactly the structural punctuators { } [ ] : , outside strings/comments.",
       "unit_cases": "Every punctuator, adjacent punctuators and original spans.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P004",
         "P011"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 12
     },
     {
       "key": "P013",
@@ -326,19 +338,20 @@
       "goal": "Provide owned length-aware decoded-unit storage, preserving UTF-16 escape units including lone surrogates; define allocation-failure behavior.",
       "unit_cases": "Empty, NUL, supplementary scalar and unpaired unit round-trips without UTF-8 substitution.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P003",
         "P005"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 13
     },
     {
       "key": "P014",
-      "issue_number": 14,
+      "issue_number": 13,
       "title": "Quoted string boundaries",
       "requirements": [
         "J5-014"
@@ -346,19 +359,20 @@
       "goal": "Recognize single/double-quoted strings with matching closing delimiters; allow the other quote and ordinary source characters, rejecting raw CR/LF and unterminated strings.",
       "unit_cases": "Both delimiters, opposite quote, raw tab/control characters, raw CR/LF and EOF.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P007",
         "P013"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 14
     },
     {
       "key": "P015",
-      "issue_number": 15,
+      "issue_number": 13,
       "title": "Simple character escapes",
       "requirements": [
         "J5-015",
@@ -367,18 +381,19 @@
       "goal": "Decode escaped quotes, reverse solidus, b/f/n/r/t/v and zero; zero is valid only when not followed by a decimal digit.",
       "unit_cases": "Each decoded unit; accept zero at quote/EOF boundary only where the complete string is valid; reject zero followed by any digit.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P014"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 15
     },
     {
       "key": "P016",
-      "issue_number": 16,
+      "issue_number": 13,
       "title": "Hexadecimal string escapes",
       "requirements": [
         "J5-016"
@@ -386,18 +401,19 @@
       "goal": "Decode x followed by exactly two hexadecimal digits, in either hex-letter case; reject incomplete or nonhex escapes.",
       "unit_cases": "Lower/upper hex letters, boundary bytes and every truncation.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P014"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 16
     },
     {
       "key": "P017",
-      "issue_number": 17,
+      "issue_number": 13,
       "title": "Unicode string escapes",
       "requirements": [
         "J5-015",
@@ -406,15 +422,16 @@
       "goal": "Decode u followed by exactly four hexadecimal digits; preserve individual units and support escaped surrogate pairs.",
       "unit_cases": "BMP, paired/lone/reversed surrogate units and malformed/truncated hex.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P013",
         "P014"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 17
     },
     {
       "key": "P018",
@@ -426,20 +443,21 @@
       "goal": "For permitted characters without a special escape production, omit the reverse solidus and retain the character; reject escaped digits 1–9.",
       "unit_cases": "a/e/slash/space yield those characters; 8/9 fail; x/u cannot fall back after malformed escape.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P015",
         "P016",
         "P017"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 18
     },
     {
       "key": "P019",
-      "issue_number": 19,
+      "issue_number": 18,
       "title": "String line continuations",
       "requirements": [
         "J5-017"
@@ -447,19 +465,20 @@
       "goal": "Remove the reverse solidus and the following complete line terminator sequence from the decoded string.",
       "unit_cases": "LF, CR, CRLF, U+2028/U+2029 join unchanged surrounding text.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P007",
         "P014"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 19
     },
     {
       "key": "P020",
-      "issue_number": 20,
+      "issue_number": 18,
       "title": "Raw separator warnings",
       "requirements": [
         "J5-017"
@@ -467,19 +486,20 @@
       "goal": "Accept unescaped U+2028/U+2029 in strings and produce a warning without changing successful parsing.",
       "unit_cases": "Both raw separators, escaped equivalents, original warning spans and successful value.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P002",
         "P014"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 20
     },
     {
       "key": "P021",
-      "issue_number": 21,
+      "issue_number": 18,
       "title": "Complete string lexer",
       "requirements": [
         "J5-014",
@@ -491,9 +511,9 @@
       "goal": "Compose all string alternatives, validate delimiters and input consumption, and report lexical failures atomically.",
       "unit_cases": "Combine escapes/continuations; truncation at each byte; no partial successful string.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P015",
@@ -503,7 +523,8 @@
         "P019",
         "P020"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 21
     },
     {
       "key": "P022",
@@ -515,18 +536,19 @@
       "goal": "Recognize ES5 IdentifierName, including $, _, admitted Unicode starts/parts, ZWNJ/ZWJ continuation and reserved-word names.",
       "unit_cases": "Category representatives, digit-first rejection and reserved-word tokens.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P006"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 22
     },
     {
       "key": "P023",
-      "issue_number": 23,
+      "issue_number": 22,
       "title": "Identifier Unicode escapes",
       "requirements": [
         "J5-020",
@@ -535,19 +557,20 @@
       "goal": "Decode identifier uXXXX escapes before checking start/part legality and member-name equality.",
       "unit_cases": "Escaped valid names, illegal escaped start/part and equal decoded names.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P017",
         "P022"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 23
     },
     {
       "key": "P024",
-      "issue_number": 24,
+      "issue_number": 22,
       "title": "Null and boolean classification",
       "requirements": [
         "J5-023"
@@ -555,15 +578,16 @@
       "goal": "Classify lowercase null, true and false as value literals; preserve their admissibility as object IdentifierName tokens.",
       "unit_cases": "Exact spellings versus case/suffix variants; key-versus-value context classified without parsing containers.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P022",
         "P023"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 24
     },
     {
       "key": "P025",
@@ -576,18 +600,19 @@
       "goal": "Recognize decimal integer, fraction and exponent alternatives, including leading/trailing decimal points and optional leading sign; reject illegal leading zeros and missing exponent digits.",
       "unit_cases": "0/-0/+1/.5/5./5.e2/1E-2; reject 01, ., 1e and doubled signs.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P004"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 25
     },
     {
       "key": "P026",
-      "issue_number": 26,
+      "issue_number": 25,
       "title": "Hexadecimal numeric tokens",
       "requirements": [
         "J5-022"
@@ -595,18 +620,19 @@
       "goal": "Recognize signed or unsigned 0x/0X with one or more hexadecimal digits; reject incomplete prefix and invalid suffix.",
       "unit_cases": "Both prefixes/cases/signs; 0x, 0x1z and hex fractions fail.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P025"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 26
     },
     {
       "key": "P027",
-      "issue_number": 27,
+      "issue_number": 25,
       "title": "Non-finite numeric tokens",
       "requirements": [
         "J5-022"
@@ -614,18 +640,19 @@
       "goal": "Recognize Infinity and NaN with permitted leading signs and exact case.",
       "unit_cases": "Infinity/+Infinity/-Infinity and NaN/+NaN/-NaN; lowercase and suffix variants fail.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P025"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 27
     },
     {
       "key": "P028",
-      "issue_number": 28,
+      "issue_number": 25,
       "title": "Token completion",
       "requirements": [
         "J5-024",
@@ -634,9 +661,9 @@
       "goal": "Reject illegal suffixes and unsupported octal/binary/separator forms; never silently discard bytes or split invalid numeric/identifier spellings into accepted prefixes.",
       "unit_cases": "truex, 1foo, 0x1z, 0b1, 1_0 and split-token trivia; valid punctuation boundaries.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P012",
@@ -647,7 +674,8 @@
         "P026",
         "P027"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 28
     },
     {
       "key": "P029",
@@ -661,9 +689,9 @@
       "goal": "Retain exact numeric spellings and represent signed decimal/hex and non-finite values without unintended floating-point rounding.",
       "unit_cases": "Integers beyond 2^53, huge exponents, negative zero and failure-safe owned storage.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P003",
@@ -671,11 +699,12 @@
         "P026",
         "P027"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 29
     },
     {
       "key": "P030",
-      "issue_number": 30,
+      "issue_number": 29,
       "title": "Owned value/container model",
       "requirements": [
         "J5-028",
@@ -687,20 +716,21 @@
       "goal": "Provide distinct null/boolean/string/number/array/object alternatives, ordered array elements and observable ordered duplicate object members.",
       "unit_cases": "Construct/inspect/move each variant before recursive parsing exists; explicit wrong-type results.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P003",
         "P013",
         "P029"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 30
     },
     {
       "key": "P031",
-      "issue_number": 31,
+      "issue_number": 29,
       "title": "Resource guards",
       "requirements": [
         "J5-047",
@@ -710,20 +740,21 @@
       "goal": "Validate limits and account for depth, nodes, members, strings, numeric spelling/exponents, bytes and work before parser growth; cleanup remains bounded.",
       "unit_cases": "Below/equal/above bounds and deterministic allocation/work exhaustion without recursive parser dependency.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P002",
         "P003",
         "P030"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 31
     },
     {
       "key": "P032",
-      "issue_number": 32,
+      "issue_number": 29,
       "title": "Primitive value dispatcher",
       "requirements": [
         "J5-023",
@@ -732,9 +763,9 @@
       "goal": "Convert completed string, number, null and boolean tokens into owned values; reject other identifiers in value position.",
       "unit_cases": "Each primitive root, unknown identifiers and allocation failure; containers still explicitly unsupported at this stage.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P021",
@@ -744,7 +775,8 @@
         "P030",
         "P031"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 32
     },
     {
       "key": "P033",
@@ -758,9 +790,9 @@
       "goal": "Implement bounded value-dispatch frames for arrays and objects together, with empty containers, nesting and punctuation expectations.",
       "unit_cases": "Empty arrays/objects and mixed nesting; allocate/check frames before descent; this step intentionally resolves mutual recursion together.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P012",
@@ -768,11 +800,12 @@
         "P031",
         "P032"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 33
     },
     {
       "key": "P034",
-      "issue_number": 34,
+      "issue_number": 33,
       "title": "Array element grammar",
       "requirements": [
         "J5-013",
@@ -781,18 +814,19 @@
       "goal": "Complete array element/separator states, heterogeneous ordered elements and one optional trailing comma; reject holes and misplaced separators.",
       "unit_cases": "[], mixed values, nested values, [1,]; reject [,], [1,,2] and missing commas.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P033"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 34
     },
     {
       "key": "P035",
-      "issue_number": 35,
+      "issue_number": 33,
       "title": "Object member grammar",
       "requirements": [
         "J5-013",
@@ -803,9 +837,9 @@
       "goal": "Complete quoted/identifier name, colon, value and separator states; permit one trailing comma and retain decoded names and every member.",
       "unit_cases": "Empty/nested objects, reserved-word/escaped keys and mixed values; reject missing name/colon/value/comma and doubled commas.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P021",
@@ -813,11 +847,12 @@
         "P024",
         "P033"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 35
     },
     {
       "key": "P036",
-      "issue_number": 37,
+      "issue_number": 33,
       "title": "Duplicate-name policy",
       "requirements": [
         "J5-032",
@@ -826,14 +861,15 @@
       "goal": "Keep all decoded duplicate members by default; optional rejection reports both occurrences. Compare exact decoded names without normalization/case folding.",
       "unit_cases": "Quoted/bare/escaped collisions, distinct case and normalization forms, nested object independence.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P035"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 37
     },
     {
       "key": "P037",
@@ -846,9 +882,9 @@
       "goal": "Accept one root value of any supported type surrounded by trivia; reject empty/trivia-only input, extra roots and trailing nontrivia.",
       "unit_cases": "Every root type, trailing EOF comment, {} {} and junk; atomic errors and reusable context.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P011",
@@ -857,11 +893,12 @@
         "P035",
         "P036"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 38
     },
     {
       "key": "P038",
-      "issue_number": 39,
+      "issue_number": 38,
       "title": "Checked numeric operations",
       "requirements": [
         "J5-035",
@@ -873,20 +910,21 @@
       "goal": "Provide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.",
       "unit_cases": "All destination bounds, nonintegral values, huge exponent, nonfinite and mathematical/lexical integer distinctions.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P029",
         "P030",
         "P037"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 39
     },
     {
       "key": "P039",
-      "issue_number": 40,
+      "issue_number": 38,
       "title": "Owned document and diagnostics",
       "requirements": [
         "J5-040",
@@ -898,20 +936,21 @@
       "goal": "Expose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.",
       "unit_cases": "Overwrite input, move/destroy documents, CRLF/non-BMP offsets, failure injection and minimal error fallback.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P020",
         "P030",
         "P037"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 40
     },
     {
       "key": "P040",
-      "issue_number": 41,
+      "issue_number": 38,
       "title": "Whole-grammar unit evidence",
       "requirements": [
         "J5-027",
@@ -924,9 +963,9 @@
       "goal": "Map every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures and both exception modes.",
       "unit_cases": "No skipped grammar branches; fresh explicit unit evidence for accepted/rejected input and decoded content.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P001",
@@ -969,11 +1008,12 @@
         "P038",
         "P039"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 41
     },
     {
       "key": "P041",
-      "issue_number": 42,
+      "issue_number": 38,
       "title": "Full-support claim",
       "requirements": [
         "J5-008",
@@ -983,18 +1023,19 @@
       "goal": "Document language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.",
       "unit_cases": "Review production-to-unit matrix, all preceding contracts and actual native results.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P040"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 42
     },
     {
       "key": "P042",
-      "issue_number": 43,
+      "issue_number": 38,
       "title": "Strict JSON syntax mode",
       "requirements": [
         "J5-005",
@@ -1006,14 +1047,15 @@
       "goal": "Add explicit strict JSON mode for schema documents: quoted keys/double-quoted strings, JSON escapes/numbers/whitespace, no comments/trailing commas/non-finite forms; reject BOM by default with documented optional leading-BOM handling.",
       "unit_cases": "Paired JSON/JSON5 fixtures, all JSON grammar branches and mode-specific rejection.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P041"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 43
     },
     {
       "key": "P043",
@@ -1029,18 +1071,19 @@
       "goal": "Define an optional Draft-07 schema target/API with owned compilation/evaluation state, explicit non-throwing outcomes and bounded work storage. Parser-only consumers acquire no schema dependency. Declare instance-domain handling for duplicate names, non-finite values and unpaired surrogates.",
       "unit_cases": "API/storage units and unsupported-instance versus invalid-instance/error categories; no complete validator assumed yet.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P042"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 44
     },
     {
       "key": "P044",
-      "issue_number": 45,
+      "issue_number": 44,
       "title": "Schema locations and offline reference registry",
       "requirements": [
         "J5-055",
@@ -1051,18 +1094,19 @@
       "goal": "Implement URI base identities, pointer escaping and caller-registered local/external resources; no implicit network/filesystem resolution. Compile owned reference graphs with unresolved-reference errors.",
       "unit_cases": "Nested $id, relative/absolute references, fragment and ~0/~1 pointers, input/registry destruction.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P043"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 45
     },
     {
       "key": "P045",
-      "issue_number": 46,
+      "issue_number": 44,
       "title": "Exact schema equality",
       "requirements": [
         "J5-059",
@@ -1071,18 +1115,19 @@
       "goal": "Provide type-aware deep equality using exact numeric equivalence, ordered arrays and order-independent unique-name objects.",
       "unit_cases": "Equivalent decimal/hex/exponent values; bool versus number; nested/reordered containers.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P043"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 46
     },
     {
       "key": "P046",
-      "issue_number": 47,
+      "issue_number": 44,
       "title": "Bounded schema evaluation engine",
       "requirements": [
         "J5-053",
@@ -1093,15 +1138,16 @@
       "goal": "Evaluate boolean schemas and object schemas with per-type applicability; track branches/references/budgets and recursion progress. Apply Draft-07 $ref behavior, including ignored assertion siblings, without nonprogressing loops.",
       "unit_cases": "True/false schemas, recursive instance progress, cyclic references, cleanup/cancellation and minimal errors.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P044",
         "P045"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 47
     },
     {
       "key": "P047",
@@ -1115,19 +1161,20 @@
       "goal": "Implement type, enum and const, including type unions and mathematical integer semantics independent of token spelling.",
       "unit_cases": "Positive/negative/nonapplicable-type cases and exact numeric parity.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P045",
         "P046"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 48
     },
     {
       "key": "P048",
-      "issue_number": 49,
+      "issue_number": 48,
       "title": "Numeric assertions",
       "requirements": [
         "J5-057",
@@ -1136,18 +1183,19 @@
       "goal": "Implement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum without floating rounding.",
       "unit_cases": "Exact fractional divisibility, huge numbers, every inclusive/exclusive bound.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P047"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 49
     },
     {
       "key": "P049",
-      "issue_number": 50,
+      "issue_number": 48,
       "title": "String assertions and regex budget",
       "requirements": [
         "J5-057",
@@ -1157,18 +1205,19 @@
       "goal": "Implement minLength/maxLength in Unicode characters and pattern with the documented compatible regex behavior; reject unsupported conversion/domain and enforce regex work limits.",
       "unit_cases": "Supplementary characters, unpaired-unit policy, unanchored patterns, malformed patterns and budget exhaustion.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P046"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 50
     },
     {
       "key": "P050",
-      "issue_number": 51,
+      "issue_number": 48,
       "title": "Array assertions",
       "requirements": [
         "J5-057",
@@ -1177,19 +1226,20 @@
       "goal": "Implement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems and contains.",
       "unit_cases": "Empty/tuple arrays, nested schemas, deep exact uniqueness and matching/nonmatching contains cases.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P045",
         "P046"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 51
     },
     {
       "key": "P051",
-      "issue_number": 52,
+      "issue_number": 48,
       "title": "Object assertions",
       "requirements": [
         "J5-057"
@@ -1197,15 +1247,16 @@
       "goal": "Implement minProperties, maxProperties, required, properties, patternProperties, additionalProperties, dependencies (property/schema) and propertyNames.",
       "unit_cases": "Missing fields, overlapping patterns, dynamic names, dependent schemas, unknown fields and type applicability.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P046",
         "P049"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 52
     },
     {
       "key": "P052",
@@ -1218,9 +1269,9 @@
       "goal": "Implement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and distinguishing operational failure from assertion mismatch.",
       "unit_cases": "Zero/one/multiple matching branches, nested conditions and failures during branch evaluation.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P047",
@@ -1229,11 +1280,12 @@
         "P050",
         "P051"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 53
     },
     {
       "key": "P053",
-      "issue_number": 54,
+      "issue_number": 53,
       "title": "Annotations and extension handling",
       "requirements": [
         "J5-058",
@@ -1243,18 +1295,19 @@
       "goal": "Expose title/description/default/examples/readOnly/writeOnly and unknown-keyword metadata with valid-branch annotation semantics; never insert defaults or mutate instances. Baseline format/contentEncoding/contentMediaType remain annotations; optional assertions require explicit supported capabilities.",
       "unit_cases": "No mutation, failed/not-branch annotation suppression, unknown schema keywords versus unknown instance properties.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P052"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 54
     },
     {
       "key": "P054",
-      "issue_number": 55,
+      "issue_number": 53,
       "title": "Public schema compilation and diagnostics",
       "requirements": [
         "J5-054",
@@ -1264,20 +1317,21 @@
       "goal": "Complete strict-JSON boolean/object schema compilation with the Draft-07 meta-schema, keyword shape/pattern checks and dialect errors. Return instance/schema pointers, keyword and available source spans; support bounded fail-fast/collect-all.",
       "unit_cases": "Bootstrap shape checks are component units before this step; final public compiler validates the meta-schema with the completed engine and separates every failure class.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P044",
         "P052",
         "P053"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 55
     },
     {
       "key": "P055",
-      "issue_number": 56,
+      "issue_number": 53,
       "title": "Schema conformance and packaging",
       "requirements": [
         "J5-053",
@@ -1291,14 +1345,15 @@
       "goal": "Run pinned required Draft-07 unit fixtures with offline registered resources, exact-number/Unicode/failure regressions and owned concurrent work contexts. Document dependencies, capabilities and exported schema targets.",
       "unit_cases": "Required keyword/reference matrix, OFF exception units, provenance and parser-only independence.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P054"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 56
     },
     {
       "key": "P056",
@@ -1310,18 +1365,19 @@
       "goal": "Prepare optional host command dispatch for file/stdin syntax selection and configured limits; read via injectable bounded I/O interfaces. Define generic validation commands without consumer-specific fields.",
       "unit_cases": "Argument and fake I/O units; file errors, unsupported flags and input budget handling; schema flags initially report unavailable.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P042"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 57
     },
     {
       "key": "P057",
-      "issue_number": 58,
+      "issue_number": 57,
       "title": "CLI validation and diagnostic protocol",
       "requirements": [
         "J5-070",
@@ -1330,19 +1386,20 @@
       "goal": "Connect parser and optional compiled-schema validation; provide readable and versioned strict-JSON diagnostics/capabilities. Exit 0 valid, 1 input/assertion/profile invalid, 2 configuration/I/O/operational failure. Encode surrogate/non-finite data safely.",
       "unit_cases": "Dispatch/result mapping units, strict-JSON output round-trip, missing schema component and OOM fallback.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P055",
         "P056"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 58
     },
     {
       "key": "P058",
-      "issue_number": 59,
+      "issue_number": 57,
       "title": "File-driven example executable",
       "requirements": [
         "J5-070",
@@ -1352,18 +1409,19 @@
       "goal": "Implement optional adaptive_json5_examples against examples/manifest.json with run/inspect/validate commands, matched expectations and requirement-specific observations; unsupported capabilities never count as passing. Preserve the distinct direct-validation and demonstration-run exit contracts documented in examples/README.md.",
       "unit_cases": "Injected readers/reporters, valid/intentional-invalid examples and mismatch/resource outcomes; no e2e CI gate.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P057"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 59
     },
     {
       "key": "P059",
-      "issue_number": 60,
+      "issue_number": 57,
       "title": "Host-tool packaging",
       "requirements": [
         "J5-002",
@@ -1375,14 +1433,15 @@
       "goal": "Expose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/version it independently, documenting library/executable/test presets. Parser and embedded consumers require no CLI/editor runtime.",
       "unit_cases": "CMake target/options review, documented usage and unit capability/version output.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P058"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 60
     },
     {
       "key": "P060",
@@ -1394,18 +1453,19 @@
       "goal": "Prepare a separate extension package with JSON5 language identity/file associations, pinned dependencies, native backend selection and supported versions; do not make it a library dependency.",
       "unit_cases": "Package/contribution configuration units; reproducible packaging instructions, no new host-test CI gate.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P057"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 61
     },
     {
       "key": "P061",
-      "issue_number": 62,
+      "issue_number": 61,
       "title": "Editor grammar and position mapping",
       "requirements": [
         "J5-074",
@@ -1414,18 +1474,19 @@
       "goal": "Use grammar fixtures and runtime diagnostics consistently; map original byte spans to documented editor positions, including astral Unicode, combining marks, CRLF and continuations.",
       "unit_cases": "Tokenization and range-adapter units with shared parser fixtures.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P060"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 62
     },
     {
       "key": "P062",
-      "issue_number": 63,
+      "issue_number": 61,
       "title": "Versioned live documents and provisional recovery",
       "requirements": [
         "J5-076",
@@ -1434,14 +1495,15 @@
       "goal": "Support unsaved document versions, cancellation and stale-result suppression; provide explicitly provisional recovery for completion/hover without accepting incomplete runtime documents.",
       "unit_cases": "Rapid edits/reopen/cancellation and incomplete token/container unit cases.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P061"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 63
     },
     {
       "key": "P063",
@@ -1454,19 +1516,20 @@
       "goal": "Associate file patterns with repository-local schemas per workspace root, without inserting $schema in instances. Resolve registered resources offline; remote access requires explicit configuration.",
       "unit_cases": "Two roots, relative references, changed associations and fake network that fails if called.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P055",
         "P062"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 64
     },
     {
       "key": "P064",
-      "issue_number": 65,
+      "issue_number": 64,
       "title": "Schema completions",
       "requirements": [
         "J5-078"
@@ -1474,15 +1537,16 @@
       "goal": "Suggest applicable property names and enum/const/default/example values, required-field hints and quoting-aware insertion, avoiding normal duplicate properties.",
       "unit_cases": "Nested/referenced/conditional/union schemas and incomplete-input insertion units.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P053",
         "P063"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 65
     },
     {
       "key": "P065",
@@ -1495,19 +1559,20 @@
       "goal": "Show applicable descriptions/types/constraints and agree with runtime exact-number/assertion semantics; expose duplicate, Unicode, root and lexical numeric profile rules separately from generic grammar.",
       "unit_cases": "Hover metadata and parser/schema/profile parity units including mathematical versus lexical integer policies.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P057",
         "P064"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 66
     },
     {
       "key": "P066",
-      "issue_number": 67,
+      "issue_number": 66,
       "title": "Editor release evidence",
       "requirements": [
         "J5-082",
@@ -1516,14 +1581,15 @@
       "goal": "Document extension/backend versions and executed tokenization/live-document/range/completion/hover/parity units. Distinguish unit evidence from unexecuted VS Code host acceptance; do not claim unsupported features.",
       "unit_cases": "Complete editor-feature-to-unit mapping and unit/format checks only.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P065"
       ],
-      "status": "implementation pending"
+      "status": "implementation pending",
+      "original_issue_number": 67
     },
     {
       "key": "BUILD",
@@ -1540,38 +1606,57 @@
       "goal": "Create a usable namespaced library target for the existing result/error component; publish build/install include paths and C++17 requirements. Install error.hpp and result.hpp, then extend the same package with parser and optional schema targets when implemented. Keep tests OFF for subproject/consumer builds, avoid implicit dependency downloads, and keep host tools separate. Apply exceptions-OFF and RTTI-OFF flags to project targets without changing parent flags. Record pinned source/dependency versions and ABI-affecting options.",
       "unit_cases": "Link the existing GoogleTest result suite through the real library target instead of a direct include-directory workaround. Run it with exceptions OFF and RTTI OFF. Record development configure/build/install results for tests-disabled and optional-component configurations; do not add an integration CI gate.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P002"
-      ]
+      ],
+      "original_issue_number": 68
     },
     {
       "key": "RUNTIME",
       "issue_number": 69,
-      "title": "Finish pure-memory parsing, concurrent contexts and embedded runtime contracts",
+      "title": "Complete advanced memory accounting and pure-memory/concurrent/embedded runtime",
       "requirements": [
         "J5-042",
         "J5-050",
         "J5-052",
-        "J5-101"
+        "J5-101",
+        "J5-040",
+        "J5-041",
+        "J5-045",
+        "J5-046",
+        "J5-047",
+        "J5-048",
+        "J5-049",
+        "J5-051",
+        "J5-063",
+        "J5-065",
+        "J5-066",
+        "J5-068",
+        "J5-098",
+        "J5-003"
       ],
       "goal": "Keep parse/value/conversion operations independent of filesystem, network, processes, locale, clocks and OS thread APIs. Share only immutable data; keep mutable parse/work contexts caller-owned. Document the required C++17 runtime, alignment, byte order, integer-size assumptions, initialization and bounded stack/work storage. Connect caller-supplied fallible storage and caller-owned embedded CMake toolchains without requiring a global heap, exceptions, RTTI or host tools.",
       "unit_cases": "Run repeated equivalent parses under changed supported locale/environment settings. Run independent valid/failing contexts concurrently using host test threads. Exercise fixed storage, exhaustion and cleanup through no-OS adapters; document unsupported data models/toolchains explicitly. Host passes do not establish device certification or universal embedded support.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P003",
         "P031",
         "P037",
         "P038",
-        "P039"
-      ]
+        "P039",
+        "P055",
+        "P059"
+      ],
+      "original_issue_number": 69,
+      "full_advanced_memory_acceptance": "## Full advanced memory accounting — mandatory cross-cutting completion\n\nP003/#3 completed storage primitives only. Full accounting remains pending and is required across the retained parser, exact-number operations, diagnostics, schema compilation/evaluation and CLI bounded readers. #29 owns the P031 guards; #69 verifies their complete integration. These are shared acceptance contracts, not duplicate implementation tasks.\n\n- Define and validate limits for input bytes, depth, node/member counts, decoded string units, numeric token/exponent lengths, cumulative owned allocation bytes and diagnostic count; check sizes/overflow and budgets before every growth or descent.\n- Account for retained successful documents, number spellings, decoded names/strings, retained tooling source and compiled schemas separately from temporary parse/evaluation/diagnostic work; specify what counts, defaults, usage and release/reset behavior.\n- Route every library-controlled allocation through supported fallible storage, including containers, frames, conversion/equality scratch space, registry graphs, regex and rich diagnostics. Audit dependencies for unsupported throw/abort-on-OOM behavior.\n- Fail each reachable allocation in representative success and failure paths. Count allocations/releases and retained results; prove balanced cleanup, no partial-success publication, stable minimal code/location without another allocation, and reuse after syntax/OOM/limit/cancellation failures.\n- Bound parsing, conversions, comparison, traversal, destruction and partial-construction cleanup before stack/work exhaustion. Cover deep invalid structures, huge exponents, adversarial duplicates, branch-heavy schemas, repeated references, regex and deep uniqueItems.\n- Distinguish operational exhaustion/cancellation from syntax/assertion rejection, including a failed assertion followed by operational failure. Enforce references/branches/equality/regex/collected-error budgets in schema issues #44/#48/#53.\n- Own document/compiled-graph data after input and registry temporaries are destroyed. Preserve provider lifetime contracts; support independent concurrent operations with separate caller-owned work contexts and no mutable globals.\n- Preserve pure-memory and deterministic embedded behavior: no required filesystem/network/process/locale/clock/OS-thread/global-heap services; fixed caller storage, exhaustion, alignment, bounded stack/work and documented C++17 runtime/data-model assumptions.\n\n"
     },
     {
       "key": "PROFILE",
@@ -1586,16 +1671,17 @@
       "goal": "Supply the optional version-1 consumer schema and complete valid/invalid example documents outside the core. Use object-root and duplicate-rejection policy only at this profile boundary. Document the reference snapshot revision and unresolved consumer assumptions. Reject unknown fields in fixed objects; apply explicit name/type rules to dynamic environment entries. Configure workspace-local editor association without inserting schema metadata into instances.",
       "unit_cases": "Compile the local versioned schema against the local Draft-07 meta-schema. Test a valid example and per-field missing/type/null/pattern/bound/conditional failures, unknown fixed fields and dynamic-name/value rules. Contrast generic primitive/duplicate parsing with profile rejection.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P036",
         "P054",
         "P063",
         "P065"
-      ]
+      ],
+      "original_issue_number": 70
     },
     {
       "key": "ADAPTER",
@@ -1610,21 +1696,22 @@
       "goal": "Implement a separate consumer adapter selecting mathematical or lexical integer rules, NUL/surrogate/path spelling rules and consumer defaults. Preserve owned input values, empty/ordered arguments and original bytes. Derive argv[0] in the adapter. Map syntax, encoding, duplicate, version, field, conversion and resource failures into the consumer result type without importing ara APIs, filesystem checks or service management into the parser.",
       "unit_cases": "Compare 1, 1.0, 1e0, 0x1, +1, fractions, booleans and nonfinite values under each policy. Cover NUL/unpaired-surrogate and lexical traversal rejection, ordered/empty arguments, defaults versus schema annotations and each result mapping using fake consumer/I/O units.",
       "acceptance": [
-        "Documentation",
-        "Implementation",
-        "Unit tests"
+        "Owned implementation contracts complete",
+        "Specified GoogleTest unit cases implemented and passing",
+        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
       ],
       "depends_on": [
         "P038",
         "P054",
         "P065",
         "PROFILE"
-      ]
+      ],
+      "original_issue_number": 71
     },
     {
       "key": "RELEASE",
       "issue_number": 72,
-      "title": "Finish release records and reconcile documentation with implemented components",
+      "title": "Keep essential API, limits, provenance and truthful release evidence",
       "requirements": [
         "J5-008",
         "J5-099",
@@ -1633,13 +1720,14 @@
       "goal": "Replace stale no-production-code claims now that result/error headers exist. Reconcile README, architecture, development, verification, requirement sequence, traceability and issue ownership. Record actual supported compiler/toolchain versions and executed GoogleTest/formatting results; preserve historical results as historical. Document source/Unicode/schema versions, limits/deviations, allocator/ABI options, licensing, offline consumption and packaging for components actually shipped. Keep optional schema/CLI/editor/consumer releases separate from a core release.",
       "unit_cases": "Check every shipped behavior against named executed GoogleTest cases and every shipped source against the existing formatting check. Keep implemented code, test inventory and executed evidence distinct. Record unsupported/unexecuted compiler/device/editor combinations. Required CI remains one exceptions-OFF GoogleTest job and one formatting job on pull requests.",
       "acceptance": [
-        "Documentation matches shipped components",
-        "Executed unit/format evidence recorded"
+        "Essential public API/limits/provenance/usage and support records match shipped components",
+        "Named executed unit/format evidence recorded; no per-issue report burden"
       ],
       "depends_on": [
         "P040",
         "P041"
-      ]
+      ],
+      "original_issue_number": 72
     }
   ],
   "issue_mapping": {
@@ -1648,71 +1736,649 @@
     "P003": 3,
     "P004": 4,
     "P005": 5,
-    "P006": 6,
-    "P007": 7,
-    "P008": 8,
+    "P006": 5,
+    "P007": 5,
+    "P008": 5,
     "P009": 9,
-    "P010": 10,
-    "P011": 11,
-    "P012": 12,
+    "P010": 9,
+    "P011": 9,
+    "P012": 9,
     "P013": 13,
-    "P014": 14,
-    "P015": 15,
-    "P016": 16,
-    "P017": 17,
+    "P014": 13,
+    "P015": 13,
+    "P016": 13,
+    "P017": 13,
     "P018": 18,
-    "P019": 19,
-    "P020": 20,
-    "P021": 21,
+    "P019": 18,
+    "P020": 18,
+    "P021": 18,
     "P022": 22,
-    "P023": 23,
-    "P024": 24,
+    "P023": 22,
+    "P024": 22,
     "P025": 25,
-    "P026": 26,
-    "P027": 27,
-    "P028": 28,
+    "P026": 25,
+    "P027": 25,
+    "P028": 25,
     "P029": 29,
-    "P030": 30,
-    "P031": 31,
-    "P032": 32,
+    "P030": 29,
+    "P031": 29,
+    "P032": 29,
     "P033": 33,
-    "P034": 34,
-    "P035": 35,
-    "P036": 37,
+    "P034": 33,
+    "P035": 33,
+    "P036": 33,
     "P037": 38,
-    "P038": 39,
-    "P039": 40,
-    "P040": 41,
-    "P041": 42,
-    "P042": 43,
+    "P038": 38,
+    "P039": 38,
+    "P040": 38,
+    "P041": 38,
+    "P042": 38,
     "P043": 44,
-    "P044": 45,
-    "P045": 46,
-    "P046": 47,
+    "P044": 44,
+    "P045": 44,
+    "P046": 44,
     "P047": 48,
-    "P048": 49,
-    "P049": 50,
-    "P050": 51,
-    "P051": 52,
+    "P048": 48,
+    "P049": 48,
+    "P050": 48,
+    "P051": 48,
     "P052": 53,
-    "P053": 54,
-    "P054": 55,
-    "P055": 56,
+    "P053": 53,
+    "P054": 53,
+    "P055": 53,
     "P056": 57,
-    "P057": 58,
-    "P058": 59,
-    "P059": 60,
+    "P057": 57,
+    "P058": 57,
+    "P059": 57,
     "P060": 61,
-    "P061": 62,
-    "P062": 63,
+    "P061": 61,
+    "P062": 61,
     "P063": 64,
-    "P064": 65,
+    "P064": 64,
     "P065": 66,
-    "P066": 67,
+    "P066": 66,
     "BUILD": 68,
     "RUNTIME": 69,
     "PROFILE": 70,
     "ADAPTER": 71,
     "RELEASE": 72
-  }
+  },
+  "workflow": {
+    "production_cpp": "Romanr92 only; includes public C++ headers",
+    "unit_tests": "AI creates independent GoogleTest cases; developer reviews and fixes production failures",
+    "documentation": "No per-issue reports; essential public API/ownership/error/limit/accounting/version/provenance/usage docs only",
+    "quality": "GoogleTest units and formatting only; one job each on pull requests; exceptions OFF and RTTI OFF."
+  },
+  "retained_delivery_scope": [
+    "P001–P042 full JSON5 and strict JSON",
+    "P043–P055 full Draft-07 schema engine",
+    "P056–P059 minimal complete testing CLI",
+    "Full advanced memory accounting and runtime completion (#69)"
+  ],
+  "consolidation_plan": "docs/issue-consolidation-plan.md",
+  "consolidated_issues": [
+    {
+      "issue_number": 5,
+      "title": "Unicode — source decoding, classification, terminators and whitespace (P005–P008)",
+      "subsystem": "Unicode/source",
+      "p_steps": [
+        "P005",
+        "P006",
+        "P007",
+        "P008"
+      ],
+      "requirements": [
+        "J5-009",
+        "J5-006",
+        "J5-019",
+        "J5-052",
+        "J5-011",
+        "J5-017",
+        "J5-044",
+        "J5-025"
+      ]
+    },
+    {
+      "issue_number": 9,
+      "title": "Lexer 1 — comments, trivia and punctuation (P009–P012)",
+      "subsystem": "Lexer",
+      "p_steps": [
+        "P009",
+        "P010",
+        "P011",
+        "P012"
+      ],
+      "requirements": [
+        "J5-012",
+        "J5-024",
+        "J5-013"
+      ]
+    },
+    {
+      "issue_number": 13,
+      "title": "Strings 1 — owned storage, delimiters and basic escapes (P013–P017)",
+      "subsystem": "Strings",
+      "p_steps": [
+        "P013",
+        "P014",
+        "P015",
+        "P016",
+        "P017"
+      ],
+      "requirements": [
+        "J5-018",
+        "J5-029",
+        "J5-040",
+        "J5-014",
+        "J5-015",
+        "J5-016"
+      ]
+    },
+    {
+      "issue_number": 18,
+      "title": "Strings 2 — remaining escapes, continuations and complete lexing (P018–P021)",
+      "subsystem": "Strings",
+      "p_steps": [
+        "P018",
+        "P019",
+        "P020",
+        "P021"
+      ],
+      "requirements": [
+        "J5-016",
+        "J5-017",
+        "J5-014",
+        "J5-015",
+        "J5-018"
+      ]
+    },
+    {
+      "issue_number": 22,
+      "title": "Lexer 2 — IdentifierName, escaped identifiers and literals (P022–P024)",
+      "subsystem": "Lexer",
+      "p_steps": [
+        "P022",
+        "P023",
+        "P024"
+      ],
+      "requirements": [
+        "J5-019",
+        "J5-020",
+        "J5-033",
+        "J5-023"
+      ]
+    },
+    {
+      "issue_number": 25,
+      "title": "Lexer 3 — decimal, hexadecimal, non-finite numbers and token boundaries (P025–P028)",
+      "subsystem": "Lexer",
+      "p_steps": [
+        "P025",
+        "P026",
+        "P027",
+        "P028"
+      ],
+      "requirements": [
+        "J5-021",
+        "J5-022",
+        "J5-024",
+        "J5-027"
+      ]
+    },
+    {
+      "issue_number": 29,
+      "title": "Parser 1 — owned values, exact numbers, resource guards and primitives (P029–P032)",
+      "subsystem": "Values/parser",
+      "p_steps": [
+        "P029",
+        "P030",
+        "P031",
+        "P032"
+      ],
+      "requirements": [
+        "J5-034",
+        "J5-038",
+        "J5-040",
+        "J5-028",
+        "J5-030",
+        "J5-031",
+        "J5-039",
+        "J5-047",
+        "J5-048",
+        "J5-049",
+        "J5-023"
+      ]
+    },
+    {
+      "issue_number": 33,
+      "title": "Parser 2 — bounded containers, arrays, objects and duplicate policy (P033–P036)",
+      "subsystem": "Values/parser",
+      "p_steps": [
+        "P033",
+        "P034",
+        "P035",
+        "P036"
+      ],
+      "requirements": [
+        "J5-013",
+        "J5-027",
+        "J5-048",
+        "J5-030",
+        "J5-019",
+        "J5-020",
+        "J5-031",
+        "J5-032",
+        "J5-033"
+      ]
+    },
+    {
+      "issue_number": 38,
+      "title": "Parser 3 — document API, conversions, diagnostics, grammar evidence and strict JSON (P037–P042)",
+      "subsystem": "Values/parser",
+      "p_steps": [
+        "P037",
+        "P038",
+        "P039",
+        "P040",
+        "P041",
+        "P042"
+      ],
+      "requirements": [
+        "J5-026",
+        "J5-051",
+        "J5-035",
+        "J5-036",
+        "J5-037",
+        "J5-038",
+        "J5-052",
+        "J5-040",
+        "J5-041",
+        "J5-043",
+        "J5-044",
+        "J5-045",
+        "J5-027",
+        "J5-094",
+        "J5-095",
+        "J5-097",
+        "J5-098",
+        "J5-099",
+        "J5-008",
+        "J5-100",
+        "J5-005",
+        "J5-010",
+        "J5-015",
+        "J5-021",
+        "J5-025",
+        "J5-004"
+      ]
+    },
+    {
+      "issue_number": 44,
+      "title": "Schema 1 — component, owned references, exact equality and bounded evaluation (P043–P046)",
+      "subsystem": "Schema",
+      "p_steps": [
+        "P043",
+        "P044",
+        "P045",
+        "P046"
+      ],
+      "requirements": [
+        "J5-053",
+        "J5-063",
+        "J5-065",
+        "J5-066",
+        "J5-068",
+        "J5-055",
+        "J5-064",
+        "J5-067",
+        "J5-059",
+        "J5-061",
+        "J5-056"
+      ]
+    },
+    {
+      "issue_number": 48,
+      "title": "Schema 2 — full type, numeric, string, array and object assertions (P047–P051)",
+      "subsystem": "Schema",
+      "p_steps": [
+        "P047",
+        "P048",
+        "P049",
+        "P050",
+        "P051"
+      ],
+      "requirements": [
+        "J5-057",
+        "J5-059",
+        "J5-061",
+        "J5-060",
+        "J5-065"
+      ]
+    },
+    {
+      "issue_number": 53,
+      "title": "Schema 3 — logic, annotations, public compilation and conformance (P052–P055)",
+      "subsystem": "Schema",
+      "p_steps": [
+        "P052",
+        "P053",
+        "P054",
+        "P055"
+      ],
+      "requirements": [
+        "J5-057",
+        "J5-065",
+        "J5-058",
+        "J5-062",
+        "J5-069",
+        "J5-054",
+        "J5-063",
+        "J5-064",
+        "J5-053",
+        "J5-066",
+        "J5-067",
+        "J5-068",
+        "J5-096"
+      ]
+    },
+    {
+      "issue_number": 57,
+      "title": "CLI — minimal testing harness, diagnostics, examples and packaging (P056–P059)",
+      "subsystem": "CLI",
+      "p_steps": [
+        "P056",
+        "P057",
+        "P058",
+        "P059"
+      ],
+      "requirements": [
+        "J5-070",
+        "J5-071",
+        "J5-094",
+        "J5-002",
+        "J5-007",
+        "J5-092",
+        "J5-093"
+      ]
+    },
+    {
+      "issue_number": 61,
+      "title": "Editor 1 — package, grammar mapping and versioned live documents (P060–P062)",
+      "subsystem": "Editor",
+      "p_steps": [
+        "P060",
+        "P061",
+        "P062"
+      ],
+      "requirements": [
+        "J5-072",
+        "J5-074",
+        "J5-075",
+        "J5-076",
+        "J5-077"
+      ]
+    },
+    {
+      "issue_number": 64,
+      "title": "Editor 2 — offline schema associations and completions (P063–P064)",
+      "subsystem": "Editor",
+      "p_steps": [
+        "P063",
+        "P064"
+      ],
+      "requirements": [
+        "J5-073",
+        "J5-081",
+        "J5-078"
+      ]
+    },
+    {
+      "issue_number": 66,
+      "title": "Editor 3 — hover, runtime parity and release evidence (P065–P066)",
+      "subsystem": "Editor",
+      "p_steps": [
+        "P065",
+        "P066"
+      ],
+      "requirements": [
+        "J5-079",
+        "J5-080",
+        "J5-082",
+        "J5-100"
+      ]
+    },
+    {
+      "issue_number": 68,
+      "title": "Finish the C++17 library target and install the public headers",
+      "subsystem": "Build/release",
+      "p_steps": [],
+      "requirements": [
+        "J5-001",
+        "J5-002",
+        "J5-007",
+        "J5-091",
+        "J5-092",
+        "J5-093"
+      ]
+    },
+    {
+      "issue_number": 69,
+      "title": "Complete advanced memory accounting and pure-memory/concurrent/embedded runtime",
+      "subsystem": "Memory/runtime",
+      "p_steps": [],
+      "requirements": [
+        "J5-042",
+        "J5-050",
+        "J5-052",
+        "J5-101",
+        "J5-040",
+        "J5-041",
+        "J5-045",
+        "J5-046",
+        "J5-047",
+        "J5-048",
+        "J5-049",
+        "J5-051",
+        "J5-063",
+        "J5-065",
+        "J5-066",
+        "J5-068",
+        "J5-098",
+        "J5-003"
+      ]
+    },
+    {
+      "issue_number": 70,
+      "title": "Finish the optional versioned consumer schema example",
+      "subsystem": "Consumer",
+      "p_steps": [],
+      "requirements": [
+        "J5-083",
+        "J5-084",
+        "J5-085",
+        "J5-086"
+      ]
+    },
+    {
+      "issue_number": 71,
+      "title": "Finish optional consumer numeric/string policies and result mapping",
+      "subsystem": "Consumer",
+      "p_steps": [],
+      "requirements": [
+        "J5-087",
+        "J5-088",
+        "J5-089",
+        "J5-090"
+      ]
+    },
+    {
+      "issue_number": 72,
+      "title": "Keep essential API, limits, provenance and truthful release evidence",
+      "subsystem": "Build/release",
+      "p_steps": [],
+      "requirements": [
+        "J5-008",
+        "J5-099",
+        "J5-100"
+      ]
+    }
+  ],
+  "administrative_closures": [
+    {
+      "original_issue": 67,
+      "current_issue": 66,
+      "step": "P066",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 65,
+      "current_issue": 64,
+      "step": "P064",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 63,
+      "current_issue": 61,
+      "step": "P062",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 62,
+      "current_issue": 61,
+      "step": "P061",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 60,
+      "current_issue": 57,
+      "step": "P059",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 59,
+      "current_issue": 57,
+      "step": "P058",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 58,
+      "current_issue": 57,
+      "step": "P057",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 56,
+      "current_issue": 53,
+      "step": "P055",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 55,
+      "current_issue": 53,
+      "step": "P054",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 54,
+      "current_issue": 53,
+      "step": "P053",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 52,
+      "current_issue": 48,
+      "step": "P051",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 51,
+      "current_issue": 48,
+      "step": "P050",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 50,
+      "current_issue": 48,
+      "step": "P049",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 49,
+      "current_issue": 48,
+      "step": "P048",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 47,
+      "current_issue": 44,
+      "step": "P046",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 46,
+      "current_issue": 44,
+      "step": "P045",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 45,
+      "current_issue": 44,
+      "step": "P044",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 43,
+      "current_issue": 38,
+      "step": "P042",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 42,
+      "current_issue": 38,
+      "step": "P041",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 41,
+      "current_issue": 38,
+      "step": "P040",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 40,
+      "current_issue": 38,
+      "step": "P039",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 39,
+      "current_issue": 38,
+      "step": "P038",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 37,
+      "current_issue": 33,
+      "step": "P036",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 35,
+      "current_issue": 33,
+      "step": "P035",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 34,
+      "current_issue": 33,
+      "step": "P034",
+      "reason": "Consolidation only; implementation remains pending"
+    },
+    {
+      "original_issue": 32,
+      "current_issue": 29,
+      "step": "P032",
+      "reason": "Consolidation only; implementation remains pending"
+    }
+  ]
 }

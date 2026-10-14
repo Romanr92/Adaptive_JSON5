@@ -11,9 +11,9 @@ Requirements: <!-- J5-IDs -->
 
 ## Validation
 
-- [ ] Relevant unit cases pass with exceptions OFF and ON.
+- [ ] Relevant required unit cases pass with exceptions OFF and RTTI OFF.
 - [ ] clang-format 18 check passes.
-- [ ] Requirement-to-unit-test mappings and public contracts are updated.
+- [ ] Named unit references and affected essential public API/limit contracts are accurate; no separate per-issue report is required.
 - [ ] Incorporated source/data/fixtures have recorded versions and notices.
 
 ## Remaining limitations

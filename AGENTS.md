@@ -71,3 +71,20 @@ evidence separately; this authorization does not permit agents to write producti
 
 The sequential baseline now includes optional schema P042–P055, CLI/example
 P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.
+
+## Current delivery and issue workflow
+
+Follow [the consolidation plan](docs/issue-consolidation-plan.md): retain full
+schema P043–P055, minimal complete testing CLI P056–P059 and full advanced memory
+accounting. Independently optional build flags do not remove those features from
+this selected delivery scope. Editor/consumer acceptance remains in the backlog.
+Reuse existing anchors, at most three active issues per subsystem. Verify current
+assignment, comments, branch/PR and timeline activity before administrative closures;
+redirect consolidated children and never imply implementation completion.
+
+Romanr92 writes all production C++ and public headers; AI creates independent
+GoogleTest units. No separate per-issue documentation report, design narrative or
+generic Documentation checkbox is required. Preserve essential public API,
+ownership, errors, limits/defaults/accounting, cancellation, concurrency, provenance,
+known deviations and brief usage contracts. Keep named tests and actual execution
+results distinct from implementation and Draft/Verified status.
