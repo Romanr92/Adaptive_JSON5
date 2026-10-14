@@ -19,9 +19,16 @@ Ctrl+F5 opens Zed's task picker with these four project actions:
 The tasks save edited buffers and call `tools/zed_task.py`. Python runs each
 command directly, without `&&` or shell-dependent command parsing, and stops on
 failure. All four actions use exceptions OFF. Unit actions use
-`debug-unit-tests`; launch runs CTest with verbose output. Configure that preset
-first using the root README commands. Exe actions use `debug-example`, also with
+`debug-unit-tests`; launch runs CTest with verbose output. If its build directory
+or CMake cache is missing, either unit action configures the preset first, creating
+the directory automatically. An existing GoogleTest checkout is reused. Exe actions use `debug-example`, also with
 exceptions OFF. The helper does not offer an exception-mode override.
+
+New unit configurations prefer Ninja when available and no generator is selected
+in the environment. If a cached NMake configuration cannot find `nmake`, the
+helper reconfigures with `cmake --fresh` and Ninja. On Windows without an initialized
+MSVC compiler, it selects GCC from PATH unless a compiler/toolchain is selected
+in the environment. Existing usable build configurations remain incremental.
 
 CTest registers each individual GoogleTest case, including parameterized cases.
 The final summary counts cases rather than executables (currently 98 cases).

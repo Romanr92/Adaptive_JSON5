@@ -3,7 +3,9 @@
 
 # SPDX-License-Identifier: Apache-2.0
 import argparse
+import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -40,6 +42,35 @@ def main():
 
     if options.action in ("build-tests", "launch-tests"):
         preset = "debug-unit-tests"
+        cache = ROOT / "build" / preset / "CMakeCache.txt"
+        cache_text = cache.read_text(encoding="utf-8") if cache.is_file() else ""
+        broken_nmake = (
+            "CMAKE_GENERATOR:INTERNAL=NMake Makefiles" in cache_text
+            and shutil.which("nmake") is None
+        )
+        if not cache.is_file() or broken_nmake:
+            configure = ["cmake", "--preset", preset]
+            if broken_nmake:
+                if not shutil.which("ninja"):
+                    print("NMake is unavailable. Install Ninja or launch Zed from a Visual Studio developer terminal.",
+                          file=sys.stderr)
+                    return 2
+                # Changing generators requires a fresh cache, not deleting the build tree.
+                configure.extend(["--fresh", "-G", "Ninja"])
+            elif shutil.which("ninja") and not os.environ.get("CMAKE_GENERATOR"):
+                configure.extend(["-G", "Ninja"])
+
+            # Ordinary Windows editor sessions may have GCC but no initialized MSVC.
+            # Respect an explicitly selected compiler or toolchain.
+            if (sys.platform == "win32" and shutil.which("cl") is None
+                    and shutil.which("g++") and not os.environ.get("CXX")
+                    and not os.environ.get("CMAKE_TOOLCHAIN_FILE")):
+                configure.append("-DCMAKE_CXX_COMPILER=" + shutil.which("g++"))
+            # Reuse the shared checkout when configuring a new build directory.
+            gtest_source = ROOT / "tools/gtest"
+            if (gtest_source / "CMakeLists.txt").is_file():
+                configure.append(f"-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR={gtest_source}")
+            run(configure)
         # The native build system tracks source/header dependencies and does no work when current.
         run(["cmake", "--build", "--preset", preset])
         if options.action == "launch-tests":

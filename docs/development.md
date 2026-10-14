@@ -78,6 +78,37 @@ python tools/format.py --fix
 Use `--clang-format path/to/executable` if needed. Substitute `python3` on systems
 using that command. The helper excludes generated, build and third-party files.
 
+## Optional local coverage report
+
+For a manually requested GCC/gcovr report, use Python 3.10+, CMake, Ninja and
+GCC with its matching `gcov` on PATH:
+
+```sh
+python -m pip install gcovr==8.6
+python tools/coverage.py
+```
+
+If gcovr is installed in a virtual environment, run the helper with that
+environment's Python. For example, the local verification environment on Windows
+can be reused with `build/coverage-tools/Scripts/python.exe tools/coverage.py`.
+
+Open `build/coverage/report/index.html` for annotated source reports. The helper
+uses a separate Debug build, runs the existing host units with exceptions and
+RTTI OFF, and clears only that build's old runtime counters before execution.
+Reports include common C/C++ source, header, inline/template and module files
+(`.c`, `.cc`, `.cp`, `.cpp`, `.cxx`, `.c++`, `.h`, `.hh`, `.hp`, `.hpp`, `.hxx`,
+`.h++`, `.inl`, `.inc`, `.ipp`, `.tpp`, `.tcc`, `.txx`, `.ixx`, `.cppm`, `.cxxm`,
+`.ccm`, `.c++m`), including uppercase variants. `tests/` is excluded.
+Entries are requested even for files without instrumentation data. Build/output,
+generated and third-party directories (including `tools/gtest`) are excluded.
+Use `--compiler PATH`, `--gcov PATH`, `--jobs N` or `--gtest-source PATH` when needed;
+the last option retains the existing offline GoogleTest override. GCC and gcov
+must come from the same toolchain. This is an optional local diagnostic, with no
+coverage threshold, CI job or additional merge gate. Coverage does not establish
+complete requirement verification. Entries without instrumentation data do not
+provide executable-line or branch information and must not be interpreted as
+proof that those files were exercised.
+
 ## Package and embedded configuration
 
 The tests-disabled `library` preset exports only development metadata today.
