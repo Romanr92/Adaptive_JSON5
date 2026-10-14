@@ -32,10 +32,10 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-007 | License and provenance | Draft | [#68](https://github.com/Romanr92/Adaptive_JSON5/issues/68) |  |
 | J5-008 | Public contracts | Draft | [#72](https://github.com/Romanr92/Adaptive_JSON5/issues/72) |  |
 | J5-009 | UTF-8 source | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
-| J5-010 | JSON whitespace | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) |  |
+| J5-010 | JSON whitespace | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `Modes/J5_024_Trivia.ComposesOrReportsLocatedFailure`; `J5_024_TriviaBoundary.HandlesEmptyAndBoundedViews` |
 | J5-011 | JSON5 whitespace | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
-| J5-012 | Comments | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
-| J5-013 | Structural tokens | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
+| J5-012 | Comments | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) | `Spellings/J5_012_Comments.PreservesExactSpanAndSuffix`; `J5_012_CommentBoundaries.RejectsEveryUnterminatedPrefix`; `J5_012_CommentBoundaries.RespectsViewLengthAndEmptyCursors`; `Malformed/J5_012_CommentEncoding.ReportsOriginalOffsetAndRollsBack`; `J5_012_CommentBoundaries.StopsBeforeInvalidSuffix`; `Modes/J5_024_Trivia.ComposesOrReportsLocatedFailure`; `J5_024_TriviaBoundary.HandlesEmptyAndBoundedViews` |
+| J5-013 | Structural tokens | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) | `J5_013_Punctuation.RecognizesAdjacentKindsAndSpans`; `J5_013_Punctuation.LeavesEveryOtherByteAndEmptyInputUnread`; `J5_013_Punctuation.RecognizesOnlyAfterCommentTrivia` |
 | J5-014 | Quoted strings | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) |  |
 | J5-015 | JSON escapes | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) |  |
 | J5-016 | JSON5 escapes | Draft | [#13](https://github.com/Romanr92/Adaptive_JSON5/issues/13) |  |
@@ -46,7 +46,7 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-021 | JSON numbers | Draft | [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) |  |
 | J5-022 | JSON5 numbers | Draft | [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) |  |
 | J5-023 | Primitive literals | Draft | [#22](https://github.com/Romanr92/Adaptive_JSON5/issues/22) |  |
-| J5-024 | Token boundaries | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) |  |
+| J5-024 | Token boundaries | Draft | [#9](https://github.com/Romanr92/Adaptive_JSON5/issues/9) | `Modes/J5_024_Trivia.ComposesOrReportsLocatedFailure`; `J5_024_TriviaBoundary.DoesNotJoinSeparatedTokens`; `J5_024_TriviaBoundary.HandlesEmptyAndBoundedViews` |
 | J5-025 | BOM policy | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
 | J5-026 | Complete input | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) |  |
 | J5-027 | Language completeness | Draft | [#25](https://github.com/Romanr92/Adaptive_JSON5/issues/25) |  |

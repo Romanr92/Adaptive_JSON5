@@ -404,3 +404,31 @@ parse those tokens. clang-format 18.1.8 passed for all 25 C++ files.
 
 This is P008 component evidence. Full parser/token behavior, strict-mode BOM
 policy and remote jobs remain unverified; broader J5 contracts remain Draft.
+
+## P009-P012 comment, trivia and punctuation units, 2026-10-14
+
+Added 68 GoogleTest cases in `tests/lexer_trivia_tests.cpp`, built as
+`adaptive_json5_lexer_trivia_unit_tests` and selected with label
+`lexer_trivia_units`. On Windows/GCC 15.2.0 with C++17, all 68 passed with
+exceptions OFF and ON, both with RTTI OFF. The complete host suite passed
+336/336 cases in each configuration using `debug-unit-tests` and
+`debug-unit-tests-exceptions`. clang-format 18.1.8 passed for all 29 C++ files.
+
+The first OFF run passed 67/68 cases: the independent DelimitersInLine fixture
+incorrectly expected 14 bytes rather than 15. Correcting that fixture produced
+the passing executions above; no production code was changed by the agent.
+
+Coverage includes line EOF and all terminators, UTF-8 and embedded NUL contents,
+first block closer/non-nesting, every proper prefix of a block-comment fixture,
+explicit-length boundaries, located encoding/syntax errors and cursor rollback.
+Trivia cases cover mixed/adjacent comments, mode-specific whitespace, strict
+comment rejection, empty/EOF input and byte-preserving token separation.
+Punctuation cases check all six kinds and original spans, every other byte as
+no-match, and comment contents excluded by the trivia layer.
+
+These are P009-P012 component results, not a complete parser verification.
+The token-boundary unit uses a simulated one-byte token consumer; strings,
+numbers, literals, container grammar, trailing-comma rules and complete-input
+rejection remain responsibilities of later steps. No allocation-failure injection
+is needed for these allocation-free operations. No remote CI, editor-host or
+embedded-device execution was performed. Broader J5 contracts remain Draft.
