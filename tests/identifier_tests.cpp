@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/identifier_lexer.hpp"
+#include "adaptive_json5/string_lexer.hpp"
 
 #include <array>
 #include <cstddef>
@@ -15,7 +16,7 @@ namespace
   /**
    * @brief Host storage with per-request failure injection and release validation.
    * @par Requirements
-   * P022; J5-040; J5-046; J5-051.
+   * P022; P023; J5-040; J5-046; J5-051.
    * @note Fixed records track allocations; only these test callbacks use malloc.
    */
   class lexer_provider
@@ -32,7 +33,7 @@ namespace
       /**
        * @brief Allocate or inject failure on the selected request.
        * @par Requirements
-       * P022; J5-046.
+       * P022; P023; J5-046.
        */
       static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
@@ -63,7 +64,7 @@ namespace
       /**
        * @brief Verify and release one original allocation exactly once.
        * @par Requirements
-       * P022; J5-040; J5-051.
+       * P022; P023; J5-040; J5-051.
        */
       static void release(void* context, void* address, std::size_t bytes, std::size_t alignment) noexcept
       {
@@ -94,7 +95,7 @@ namespace
       /**
        * @brief Confirm owners released all allocations before provider destruction.
        * @par Requirements
-       * P022; J5-040.
+       * P022; P023; J5-040.
        */
       ~lexer_provider()
       {
@@ -110,7 +111,7 @@ namespace
       /**
        * @brief Borrow the test provider through the public callback interface.
        * @par Requirements
-       * P022; J5-046.
+       * P022; P023; J5-046.
        */
       storage_callbacks callbacks() noexcept
       {
@@ -403,4 +404,288 @@ namespace
     EXPECT_EQ(provider.m_live_bytes, 0u);
   }
   /* ================================= End Test_J5_019 ================================= */
+
+  /* ==================================== Test_J5_020 ==================================== */
+  class J5_020_IdentifierEscapes : public testing::TestWithParam<name_case>
+  {
+  };
+  /* Recognize escapes using independent expected content.
+   * Arrange: Supply mixed raw/escaped names at a nonzero offset.
+   * Act: Consume with an exact decoded unit limit.
+   * Expect: Exact units, original byte span, escape flag and unconsumed colon.
+   */
+  TEST_P(J5_020_IdentifierEscapes, DecodesIdentifierEscapes)
+  {
+    /* Arrange */
+    const auto& item = GetParam();
+    lexer_provider provider;
+    const std::string input = "!!" + item.input + ":";
+    cursor source({input.data(), input.size()});
+    source.advance(2);
+    /* Act */
+    auto actual = consume_identifier(source, provider.callbacks(), item.expected.size());
+    /* Expect */
+    ASSERT_TRUE(actual.has_value());
+    ASSERT_TRUE(actual.value_if()->has_value());
+    const auto& token = **actual.value_if();
+    expect_units(token.value, item.expected);
+    EXPECT_EQ(token.byte_offset, 2u);
+    EXPECT_EQ(token.byte_length, item.input.size());
+    EXPECT_EQ(source.offset(), 2 + item.input.size());
+    EXPECT_EQ(source.peek(), std::optional<char>{':'});
+    EXPECT_TRUE(token.contains_escape);
+  }
+
+  INSTANTIATE_TEST_SUITE_P(
+    P023, J5_020_IdentifierEscapes,
+    testing::Values(name_case{"Start", R"(\u0061b)", u"ab"}, name_case{"PartDigit", R"(a\u0030)", u"a0"},
+                    name_case{"DollarUnderscore", R"(\u0024\u005F)", u"$_"},
+                    name_case{"MarksAndJoiners", R"(a\u0301\u0903\u203F\u200C\u200D)",
+                              u"a\u0301\u0903\u203F\u200C\u200D"},
+                    name_case{"HexCase", R"(\u00e9\u00E9)", u"\u00E9\u00E9"},
+                    name_case{"RawAndEscaped", u8"\u03B1\\u0062\U00010400", u"\u03B1b\U00010400"},
+                    name_case{"Reserved", R"(\u0063lass)", u"class"},
+                    name_case{"LiteralLooking", R"(tr\u0075e)", u"true"}),
+    [](const testing::TestParamInfo<name_case>& item)
+    {
+      return item.param.name;
+    });
+  /* ----------------------------------------------------------------------------------- */
+  /**
+   * @brief Explicit invalid escaped-name expectations.
+   * @par Requirements
+   * P023; J5-020.
+   */
+  struct escape_error_case
+  {
+      const char* name;   // Input case label.
+      std::string input;  // Input source bytes.
+      error_code code;    // Expected explicit error category.
+      std::size_t offset; // Expected original byte offset relative to the name.
+  };
+  class J5_020_IdentifierFailure : public testing::TestWithParam<escape_error_case>
+  {
+  };
+  /* Reject malformed and positionally invalid escapes atomically.
+   * Arrange: Put each invalid name after two prefix bytes.
+   * Act: Attempt identifier recognition.
+   * Expect: Exact error category/offset, original cursor and no live allocations.
+   */
+  TEST_P(J5_020_IdentifierFailure, ReportsLocatedErrorWithoutPartialToken)
+  {
+    /* Arrange */
+    const auto& item = GetParam();
+    lexer_provider provider;
+    const std::string input = "!!" + item.input;
+    cursor source({input.data(), input.size()});
+    source.advance(2);
+    /* Act */
+    auto actual = consume_identifier(source, provider.callbacks(), 32);
+    /* Expect */
+    ASSERT_FALSE(actual.has_value());
+    EXPECT_EQ(actual.error_if()->code, item.code);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset);
+    EXPECT_EQ(actual.error_if()->byte_offset, 2 + item.offset);
+    EXPECT_EQ(source.offset(), 2u);
+    EXPECT_EQ(provider.m_live_bytes, 0u);
+    EXPECT_EQ(provider.m_allocations, provider.m_releases);
+  }
+  INSTANTIATE_TEST_SUITE_P(P023, J5_020_IdentifierFailure,
+                           testing::Values(escape_error_case{"DigitStart", R"(\u0030a)", error_code::syntax, 0},
+                                           escape_error_case{"MarkStart", R"(\u0301)", error_code::syntax, 0},
+                                           escape_error_case{"JoinerStart", R"(\u200D)", error_code::syntax, 0},
+                                           escape_error_case{"NonJoinerStart", R"(\u200C)", error_code::syntax, 0},
+                                           escape_error_case{"HyphenPart", R"(a\u002D)", error_code::syntax, 1},
+                                           escape_error_case{"NulPart", R"(a\u0000)", error_code::syntax, 1},
+                                           escape_error_case{"HighSurrogate", R"(\uD800)", error_code::syntax, 0},
+                                           escape_error_case{"LowSurrogate", R"(a\uDC00)", error_code::syntax, 1},
+                                           escape_error_case{"SurrogatePair", R"(\uD801\uDC00)", error_code::syntax, 0},
+                                           escape_error_case{"NonHex", R"(a\u00G0)", error_code::syntax, 5},
+                                           escape_error_case{"HexEscape", R"(a\x61)", error_code::syntax, 1},
+                                           escape_error_case{"UpperU", R"(\U0061)", error_code::syntax, 0},
+                                           escape_error_case{"BraceEscape", R"(a\u{61})", error_code::syntax, 3},
+                                           escape_error_case{"EscapedBackslash", R"(a\\)", error_code::syntax, 1},
+                                           escape_error_case{"EncodingInDigits", std::string("a\\u00") + "\x80",
+                                                             error_code::encoding, 5},
+                                           escape_error_case{"EncodingAfterEscape", std::string(R"(\u0061)") + "\x80",
+                                                             error_code::encoding, 6}),
+                           [](const testing::TestParamInfo<escape_error_case>& item)
+                           {
+                             return item.param.name;
+                           });
+  /* ----------------------------------------------------------------------------------- */
+  /* Reject every incomplete escape prefix using the explicit input length.
+   * Arrange: Keep a complete backing buffer but expose each incomplete escape prefix.
+   * Act: Consume from a nonzero offset with and without an accepted name prefix.
+   * Expect: Syntax error at exposed EOF and complete rollback without overreading.
+   */
+  TEST(J5_020_IdentifierBoundary, RejectsEveryTruncatedEscapePrefix)
+  {
+    /* Arrange */
+    for (const std::string prefix : {std::string{}, std::string{"ab"}})
+    {
+      const std::string input = "!!" + prefix + R"(\u0061)";
+      for (std::size_t length = 1; length < 6; ++length)
+      {
+        lexer_provider provider;
+        const auto size = 2 + prefix.size() + length;
+        cursor source({input.data(), size});
+        source.advance(2);
+        /* Act */
+        auto actual = consume_identifier(source, provider.callbacks(), 32);
+        /* Expect */
+        ASSERT_FALSE(actual.has_value());
+        EXPECT_EQ(actual.error_if()->code, error_code::syntax);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset);
+        EXPECT_EQ(actual.error_if()->byte_offset, size);
+        EXPECT_EQ(source.offset(), 2u);
+        EXPECT_EQ(provider.m_live_bytes, 0u);
+      }
+    }
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /* Count decoded units rather than escape spelling bytes.
+   * Arrange: Three escaped characters with limits below and at the decoded length.
+   * Act: Recognize the name.
+   * Expect: Exact limit success or resource failure at the first excluded escape.
+   */
+  TEST(J5_020_IdentifierStorage, EnforcesDecodedLimitsAtEscapeOffsets)
+  {
+    /* Arrange */
+    const std::string input = R"(\u0061\u0062\u0063)";
+    for (std::size_t limit = 0; limit <= 3; ++limit)
+    {
+      lexer_provider provider;
+      cursor source({input.data(), input.size()});
+      /* Act */
+      auto actual = consume_identifier(source, provider.callbacks(), limit);
+      /* Expect */
+      if (limit == 3)
+      {
+        ASSERT_TRUE(actual.has_value());
+        ASSERT_TRUE(actual.value_if()->has_value());
+        expect_units((**actual.value_if()).value, u"abc");
+        EXPECT_EQ(source.offset(), 18u);
+      }
+      else
+      {
+        ASSERT_FALSE(actual.has_value());
+        EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset);
+        EXPECT_EQ(actual.error_if()->byte_offset, 6 * limit);
+        EXPECT_EQ(source.offset(), 0u);
+        EXPECT_EQ(provider.m_live_bytes, 0u);
+      }
+    }
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /* Inject every allocation failure while constructing escaped content.
+   * Arrange: Measure a fully escaped name's actual allocation count.
+   * Act: Fail each request, then retry from the original cursor.
+   * Expect: Allocation failure at an escape start, no leaked storage and exact retry.
+   */
+  TEST(J5_020_IdentifierStorage, FailsEveryAllocationAndRetriesEscapedName)
+  {
+    /* Arrange */
+    const std::string input = R"(\u0061\u0062\u0063\u0064\u0065\u0066\u0067\u0068\u0069)";
+    std::size_t attempts{};
+    {
+      lexer_provider provider;
+      cursor source({input.data(), input.size()});
+      auto actual = consume_identifier(source, provider.callbacks(), 9);
+      ASSERT_TRUE(actual.has_value());
+      ASSERT_TRUE(actual.value_if()->has_value());
+      attempts = provider.m_attempts;
+    }
+    ASSERT_GT(attempts, 1u);
+    for (std::size_t failure = 1; failure <= attempts; ++failure)
+    {
+      lexer_provider provider;
+      provider.m_fail_on = failure;
+      cursor source({input.data(), input.size()});
+      /* Act */
+      auto actual = consume_identifier(source, provider.callbacks(), 9);
+      /* Expect */
+      ASSERT_FALSE(actual.has_value());
+      EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset);
+      EXPECT_EQ(actual.error_if()->byte_offset % 6, 0u);
+      EXPECT_LT(actual.error_if()->byte_offset, input.size());
+      EXPECT_EQ(source.offset(), 0u);
+      EXPECT_EQ(provider.m_live_bytes, 0u);
+      EXPECT_EQ(provider.m_allocations, provider.m_releases);
+      provider.m_fail_on = 0;
+      auto retry = consume_identifier(source, provider.callbacks(), 9);
+      ASSERT_TRUE(retry.has_value());
+      ASSERT_TRUE(retry.value_if()->has_value());
+      expect_units((**retry.value_if()).value, u"abcdefghi");
+      EXPECT_TRUE((**retry.value_if()).contains_escape);
+      EXPECT_EQ(source.offset(), input.size());
+    }
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+  /* Retain decoded escaped content independently of input and token movement.
+   * Arrange: Mutable escaped source and caller-owned storage.
+   * Act: Recognize, move the token, overwrite and destroy the input.
+   * Expect: Exact decoded units, retained escape metadata and balanced cleanup.
+   */
+  TEST(J5_020_IdentifierStorage, OwnsEscapedContentAfterMoveAndInputDestruction)
+  {
+    /* Arrange */
+    lexer_provider provider;
+    std::optional<identifier_token> retained;
+    {
+      std::string input = R"(a\u0062)";
+      cursor source({input.data(), input.size()});
+      /* Act */
+      auto actual = consume_identifier(source, provider.callbacks(), 2);
+      /* Expect */
+      ASSERT_TRUE(actual.has_value());
+      ASSERT_TRUE(actual.value_if()->has_value());
+      retained.emplace(std::move(**actual.value_if()));
+      input.assign(input.size(), '?');
+    }
+    expect_units(retained->value, u"ab");
+    EXPECT_TRUE(retained->contains_escape);
+    EXPECT_EQ(retained->byte_length, 7u);
+    retained.reset();
+    EXPECT_EQ(provider.m_live_bytes, 0u);
+    EXPECT_EQ(provider.m_allocations, provider.m_releases);
+  }
+
+  /* ================================== End Test_J5_020 ================================== */
+  /* ==================================== Test_J5_033 ==================================== */
+  /* Preserve exact name content across quoting and escaping without normalization.
+   * Arrange: Bare, escaped and quoted spellings with literal expected UTF-16 sequences.
+   * Act: Use the real identifier and quoted-string readers.
+   * Expect: Equivalent spellings share units; case and normalization variants remain distinct.
+   */
+  TEST(J5_033_IdentifierContent, PreservesExactDecodedNamesAcrossSpellings)
+  {
+    /* Arrange */
+    const std::string identifiers[] = {"ab", R"(a\u0062)", R"(\u0061b)", "Ab", u8"\u00E9", R"(e\u0301)"};
+    const std::u16string expected[] = {u"ab", u"ab", u"ab", u"Ab", u"\u00E9", u"e\u0301"};
+    lexer_provider provider;
+    for (std::size_t index = 0; index < 6; ++index)
+    {
+      cursor source({identifiers[index].data(), identifiers[index].size()});
+      /* Act */
+      auto actual = consume_identifier(source, provider.callbacks(), 8);
+      /* Expect */
+      ASSERT_TRUE(actual.has_value());
+      ASSERT_TRUE(actual.value_if()->has_value());
+      expect_units((**actual.value_if()).value, expected[index]);
+    }
+    for (const std::string input : {std::string{R"("ab")"}, std::string{R"("a\u0062")"}, std::string{R"('ab')"}})
+    {
+      cursor source({input.data(), input.size()});
+      auto actual = consume_string(source, syntax_mode::json5, provider.callbacks(), 2);
+      ASSERT_TRUE(actual.has_value());
+      ASSERT_TRUE(actual.value_if()->has_value());
+      expect_units((**actual.value_if()).value, u"ab");
+    }
+  }
+  /* ================================== End Test_J5_033 ================================== */
+
 } // namespace
