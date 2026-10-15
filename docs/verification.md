@@ -567,3 +567,29 @@ rollback, non-escape characters, continuations, warnings and token composition
 remain later steps. The Unicode escape helper itself allocates nothing; storage
 failure injection belongs to the existing P013 units. Shared J5 rows stay Draft;
 issue completion/PR review/merge and device support are separate evidence.
+
+
+## P018 non-escape character units, 2026-10-15
+
+Added 31 GoogleTest cases in `tests/non_escape_tests.cpp`, built as
+`adaptive_json5_non_escape_unit_tests` and selected by `non_escape_units`.
+All 31 passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 45 C++ files. Only the affected
+target was rebuilt and run; no new full-suite or remote CI execution is claimed.
+No production C++ was edited.
+
+Independent literal cases check a/e/slash/space, uppercase X/U, punctuation,
+raw tab/NUL and two-/three-/four-byte source characters, preserving scalars,
+original offsets, byte lengths, input and unread suffixes. Strict-mode rejection,
+all digits 1-9, all special escape spellings and all five line-terminator
+sequences, malformed UTF-8 classes, every partial valid UTF-8 width, bounded
+input and EOF are exercised with cursor stability and explicit error locations.
+Direct checks against existing hex/Unicode decoders show their malformed forms
+remain failures and are not accepted by the fallback helper. A supplementary
+non-escape composes with the existing UTF-16 encoder without unit truncation.
+
+These are P018 component results. Direct decoder calls do not establish the
+later P021 dispatcher's error propagation or full-string atomicity. Continuation
+removal and separator warnings remain P019/P020. The non-escape helper allocates
+nothing, so no allocation injection is required. Broader J5-016 remains Draft;
+embedded-device execution is not inferred from host tests.
