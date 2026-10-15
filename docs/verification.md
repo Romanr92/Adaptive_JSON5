@@ -567,3 +567,120 @@ rollback, non-escape characters, continuations, warnings and token composition
 remain later steps. The Unicode escape helper itself allocates nothing; storage
 failure injection belongs to the existing P013 units. Shared J5 rows stay Draft;
 issue completion/PR review/merge and device support are separate evidence.
+
+
+## P018 non-escape character units, 2026-10-15
+
+Added 31 GoogleTest cases in `tests/non_escape_tests.cpp`, built as
+`adaptive_json5_non_escape_unit_tests` and selected by `non_escape_units`.
+All 31 passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 45 C++ files. Only the affected
+target was rebuilt and run; no new full-suite or remote CI execution is claimed.
+No production C++ was edited.
+
+Independent literal cases check a/e/slash/space, uppercase X/U, punctuation,
+raw tab/NUL and two-/three-/four-byte source characters, preserving scalars,
+original offsets, byte lengths, input and unread suffixes. Strict-mode rejection,
+all digits 1-9, all special escape spellings and all five line-terminator
+sequences, malformed UTF-8 classes, every partial valid UTF-8 width, bounded
+input and EOF are exercised with cursor stability and explicit error locations.
+Direct checks against existing hex/Unicode decoders show their malformed forms
+remain failures and are not accepted by the fallback helper. A supplementary
+non-escape composes with the existing UTF-16 encoder without unit truncation.
+
+These are P018 component results. Direct decoder calls do not establish the
+later P021 dispatcher's error propagation or full-string atomicity. Continuation
+removal and separator warnings remain P019/P020. The non-escape helper allocates
+nothing, so no allocation injection is required. Broader J5-016 remains Draft;
+embedded-device execution is not inferred from host tests.
+
+
+## P019 line continuation units, 2026-10-15
+
+Added 21 GoogleTest cases in `tests/line_continuation_tests.cpp`, built as
+`adaptive_json5_line_continuation_unit_tests`, selected by `line_continuation_units`.
+All 21 passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 47 C++ files. Only the affected
+target was rebuilt and run; no new full-suite or remote CI execution is claimed.
+No production C++ was edited.
+
+Coverage includes LF/CR/CRLF/U+2028/U+2029 exact spans, nonzero offsets,
+strict-mode rejection and rollback, EOF, bounded CR lookahead, separated LF,
+additional raw terminators, nonterminating ASCII including NUL/VT/FF and Unicode,
+malformed UTF-8 classes, all proper Unicode separator prefixes and unread
+malformed suffixes after a complete CR. Five fixed public-API composition units
+call the opener, boundary reader, continuation recognizer, builder and exporter
+explicitly, producing exact A-space-B bytes without continuation content or
+indentation removal. No test helper implements string parsing.
+
+These are P019 component results. Continuation recognition is allocation-free;
+no allocation-failure injection is needed here. Host callbacks supply storage
+only for the visible composition cases. General string composition, dispatch
+and whole-token rollback remain P021; raw-separator warnings remain P020.
+Broader J5-017 stays Draft and device execution is not inferred.
+
+
+## P020 raw separator warning units, 2026-10-15
+
+Added six GoogleTest cases in `tests/string_warning_tests.cpp`, built as
+`adaptive_json5_string_warning_unit_tests` with label `string_warning_units`.
+All six passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 49 C++ files. Only the affected
+target was rebuilt and run; no fresh full-suite or remote CI execution is claimed.
+No production C++ was edited.
+
+Cases use the real boundary reader to check raw U+2028/U+2029 warnings, both
+JSON5 quote styles, strict-mode acceptance without JSON5 advisories, original
+byte offsets after a multibyte prefix, three-byte spans and repeatable inspection.
+Existing builder/export APIs confirm unchanged separator content and successful
+closing boundaries. Actual escape-start pieces are inspected before existing
+Unicode/continuation decoders handle escaped or continued separators, avoiding
+artificial reconstructed raw pieces. Other ASCII source/syntax pieces,
+neighboring scalars and supplementary characters do not warn. Adjacent separators
+produce independent descriptors with exact categories and source offsets.
+
+These are P020 descriptor/component results. Warning collection/exposure and
+whole-token success/failure remain P021 work. The inspected helper performs no
+allocation; host storage callbacks are only used to check retained content.
+No test helper implements parsing or warning collection. Broader J5-017 remains
+Draft, and no embedded-device support is inferred.
+
+
+## P021 complete string lexer units, 2026-10-15
+
+Added 51 GoogleTest cases in `tests/string_lexer_tests.cpp`, built as
+`adaptive_json5_string_lexer_unit_tests`, selected by `string_lexer_units`.
+All 51 passed on native Windows/GCC 15.2.0 with C++17, exceptions OFF and ON,
+and RTTI OFF in both configurations. The complete host unit suite was rebuilt
+and passed 611/611 cases in each preset. clang-format 18.1.8 passed for all
+53 C++ files. No production C++ was edited.
+
+Literal expectations cover empty and both quote styles, JSON/JSON5 simple
+escapes, hex/Unicode combinations, raw controls/NUL, raw and escaped supplementary
+characters, lone/reversed surrogate preservation, comment-like string content
+and all five continuations. Explicit failures check exact original error offsets
+and full-token cursor/storage rollback for malformed and mode-forbidden syntax
+and encoding. Every proper nonempty byte prefix of a combined escape/UTF-8/
+continuation/warning string fails without publishing a partial result or warning.
+No-match checks every initial nonquote byte and empty views without allocation.
+Closing boundaries preserve adjacent strings and malformed following source.
+
+The fixed host provider injects failure at each actual growth allocation,
+verifies release descriptions and balanced ownership, and permits retry from the
+unchanged cursor. Exact decoded limits exercise raw scalars, escaped scalar pairs,
+escaped surrogate units and resource failure after an observed raw separator.
+Empty/continuation-only content needs no provider; nonempty missing-provider
+failure is explicit. Token moves and input overwrite/destruction preserve owned
+content. Warning observers capture ordered original spans only after construction;
+metadata/content agree with disabled callbacks, strict separators do not warn,
+and later lexical/storage/limit failures suppress notifications. Callback replay
+is checked for no additional allocations between notifications.
+
+These are complete string-token component results for P021 and its P018-P020
+composition, not a complete JSON5 parser. The lexer intentionally stops after
+its closing quote; later token-boundary/document work owns suffix validation.
+Warning replay relies on documented immutable input and non-throwing observer
+contracts; callback mutation/failure is unsupported. Global parser budgets,
+cancellation, containers, document-level integration, remote CI and embedded
+execution remain later evidence. Shared J5 requirements stay Draft; issue review,
+required PR checks and merge status are separate from these local results.

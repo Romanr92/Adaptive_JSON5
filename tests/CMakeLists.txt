@@ -1,6 +1,42 @@
 include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
 include(GoogleTest)
 
+add_executable(adaptive_json5_string_lexer_unit_tests string_lexer_tests.cpp)
+target_include_directories(adaptive_json5_string_lexer_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_string_lexer_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_string_lexer_unit_tests)
+gtest_discover_tests(adaptive_json5_string_lexer_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS string_lexer_units TIMEOUT 10)
+
+add_executable(adaptive_json5_string_warning_unit_tests string_warning_tests.cpp)
+target_include_directories(adaptive_json5_string_warning_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_string_warning_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_string_warning_unit_tests)
+gtest_discover_tests(adaptive_json5_string_warning_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS string_warning_units TIMEOUT 10)
+
+add_executable(adaptive_json5_line_continuation_unit_tests line_continuation_tests.cpp)
+target_include_directories(adaptive_json5_line_continuation_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_line_continuation_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_line_continuation_unit_tests)
+gtest_discover_tests(adaptive_json5_line_continuation_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS line_continuation_units TIMEOUT 10)
+
+add_executable(adaptive_json5_non_escape_unit_tests non_escape_tests.cpp)
+target_include_directories(adaptive_json5_non_escape_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(adaptive_json5_non_escape_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
+adaptive_json5_configure_target(adaptive_json5_non_escape_unit_tests)
+gtest_discover_tests(adaptive_json5_non_escape_unit_tests
+    EXTRA_ARGS --gtest_fail_if_no_test_linked
+    NO_PRETTY_VALUES
+    PROPERTIES LABELS non_escape_units TIMEOUT 10)
+
 add_executable(adaptive_json5_unicode_escape_unit_tests unicode_escape_tests.cpp)
 target_include_directories(adaptive_json5_unicode_escape_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(adaptive_json5_unicode_escape_unit_tests PRIVATE AdaptiveJSON5::build_options GTest::gtest_main)
