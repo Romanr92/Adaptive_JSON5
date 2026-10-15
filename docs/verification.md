@@ -538,3 +538,32 @@ This is P016 component evidence. Complete string syntax, Unicode escapes,
 non-escape characters, continuation/warning behavior and composition remain in
 their later steps. No allocation injection is needed for these allocation-free
 helpers. Broader J5-016 remains Draft; embedded-device support is not inferred.
+
+
+## P017 Unicode escape units, 2026-10-15
+
+Added 41 GoogleTest cases in `tests/unicode_escape_tests.cpp`, built as
+`adaptive_json5_unicode_escape_unit_tests` and selected by `unicode_escape_units`.
+All 41 passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 43 C++ files. Only the affected
+target was rebuilt and run; no new full-suite or remote CI execution is claimed.
+No production C++ was changed.
+
+Coverage includes literal nibble-position, BMP, NUL, quote, backslash,
+case-combination and surrogate-boundary values. Both syntax-mode contexts use
+the real P014 opener/backslash handoff before Unicode decoding. Every proper
+escape prefix, invalid character/UTF-8 spelling at every digit position,
+truncated supplementary source character prefix, non-u byte and unread trailing
+byte are checked with exact cursor/error expectations. Literal paired, reversed,
+high/high, low/low and high/ASCII escapes compose with the existing builder,
+UTF-16 scalar decoder and UTF-8 exporter. Valid min/music/max pairs produce
+independent literal UTF-8 bytes. Lone boundary surrogates remain exact units and
+export fails without replacement or destination modification. Test callbacks
+supply host storage only; no test helper implements production decoding.
+
+These are P017 component results. P013-P017 now have local component unit
+execution evidence, not a complete string lexer or finished parser. Full-string
+rollback, non-escape characters, continuations, warnings and token composition
+remain later steps. The Unicode escape helper itself allocates nothing; storage
+failure injection belongs to the existing P013 units. Shared J5 rows stay Draft;
+issue completion/PR review/merge and device support are separate evidence.
