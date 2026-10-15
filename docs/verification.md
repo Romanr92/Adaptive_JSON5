@@ -515,3 +515,26 @@ Hex/Unicode escapes, non-escape characters, continuations and complete-string
 composition remain later steps. No-match for an unowned byte is not syntax
 acceptance. No allocation failure is injected into these allocation-free helpers.
 Draft status, remote CI and embedded-device support claims are unchanged.
+
+
+## P016 hexadecimal escape units, 2026-10-15
+
+Added 30 GoogleTest cases in `tests/hex_escape_tests.cpp`, built as
+`adaptive_json5_hex_escape_unit_tests`, selected with label `hex_escape_units`.
+All 30 passed on native Windows/GCC 15.2.0 with C++17, exceptions OFF and ON,
+and RTTI OFF in both presets. clang-format 18.1.8 passed for all 41 C++ files.
+Only the affected target was rebuilt and run for this step; no fresh full-suite
+execution or remote CI is claimed. No production C++ was edited.
+
+Independent literal expectations cover all 22 hex-digit spellings, nonhex byte
+classification and Unicode lookalikes, zero/maximum decoded bytes, nibble order,
+case combinations, quotes/backslashes as decoded content, exact-length buffers,
+all proper escape prefixes, strict JSON rejection, located invalid-digit and
+UTF-8 failures, explicit-view bounds and cursor rollback. Every non-x byte is
+checked as unchanged no-match; following hex/quote/NUL/malformed bytes remain
+unread after exactly two digits. Tests implement no decoding algorithm.
+
+This is P016 component evidence. Complete string syntax, Unicode escapes,
+non-escape characters, continuation/warning behavior and composition remain in
+their later steps. No allocation injection is needed for these allocation-free
+helpers. Broader J5-016 remains Draft; embedded-device support is not inferred.
