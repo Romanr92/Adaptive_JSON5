@@ -1,7 +1,6 @@
 #ifndef DECODED_STRING_HPP_
 #define DECODED_STRING_HPP_
 
-#include "adaptive_json5/decoded_string_builder.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/storage.hpp"
@@ -41,7 +40,6 @@ namespace adaptive_json5
        * @brief Adopt storage containing copied unit representations.
        * @par Requirements
        * P013; J5-040.
-       * @note Only copy_units creates a populated string.
        */
       decoded_string(owned_block&& storage, std::size_t size) noexcept : m_storage(std::move(storage)), m_size(size) {}
 

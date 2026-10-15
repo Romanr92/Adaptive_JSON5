@@ -5,6 +5,7 @@
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/storage.hpp"
 #include "checked_size.hpp"
+#include "decoded_string.hpp"
 #include "owned_block.hpp"
 #include "utf16.hpp"
 
@@ -52,7 +53,7 @@ namespace adaptive_json5
 
         std::size_t new_capacity = required;
 
-        // geometric growth avoids reallocation for every appended character.
+        // Geometric growth avoids reallocation for every appended character.
         const auto doubled = checked_add(m_capacity, m_capacity);
         if (doubled.has_value())
         {
@@ -167,6 +168,27 @@ namespace adaptive_json5
         }
 
         return append_units(encoded.value_if()->units, encoded.value_if()->size);
+      }
+
+      /**
+       * @brief Transfer accumulated storage into an immutable string.
+       * @par Requirements
+       * P013; J5-018; J5-029; J5-040.
+       * @return Completed string owning the existing allocation.
+       * @note Performs no allocation or content copy and cannot fail.
+       * Unused capacity remains owned by the returned string.
+       * The builder becomes empty and can be reused with its original
+       * provider and unit limit. Repeated finish returns an empty string.
+       */
+      decoded_string finish() noexcept
+      {
+        decoded_string output{std::move(m_storage), m_size};
+
+        // The builder no longwe owns storage or has capacity to append into.
+        m_size = std::size_t{};
+        m_capacity = std::size_t{};
+
+        return output;
       }
 
       /**

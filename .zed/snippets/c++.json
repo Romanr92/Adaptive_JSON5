@@ -2,12 +2,12 @@
   "Namespace with closing comment": {
     "prefix": "namespace",
     "body": [
-      "namespace ${1:adaptive_json5}",
+      "namespace ${1}",
       "{",
       "  $0",
       "} // namespace ${1}"
     ],
-    "description": "Namespace with a linked name in its closing comment"
+    "description": "Enter a namespace name; the closing comment updates with it"
   },
   "Header guard": {
     "prefix": "hguard",
@@ -17,7 +17,7 @@
       "",
       "$0",
       "",
-      "#endif // ${1}_"
+      "#endif /* ${1}_ */"
     ],
     "description": "Header guard: enter the uppercase filename with dots replaced by underscores; trailing underscore is automatic"
   }
