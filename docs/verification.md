@@ -432,3 +432,35 @@ numbers, literals, container grammar, trailing-comma rules and complete-input
 rejection remain responsibilities of later steps. No allocation-failure injection
 is needed for these allocation-free operations. No remote CI, editor-host or
 embedded-device execution was performed. Broader J5 contracts remain Draft.
+
+
+## P013 owned string storage and conversion units, 2026-10-15
+
+Added 42 GoogleTest cases in `tests/string_storage_tests.cpp`, built as
+`adaptive_json5_string_storage_unit_tests` with label `string_storage_units`.
+On native Windows/GCC 15.2.0 with C++17 and RTTI OFF, all 42 passed with
+exceptions OFF and ON. The full host suite passed 378/378 cases in each mode
+using `debug-unit-tests` and `debug-unit-tests-exceptions`.
+clang-format 18.1.8 passed for all 35 C++ files.
+
+Coverage includes explicit-length/NUL/control-unit storage, supplementary scalar
+and UTF-8 boundaries, lone/reversed surrogate preservation with checked export
+rejection, invalid scalar/index failures, exact output capacities and untouched
+failure buffers, input independence, moves, finish/reuse, and unfinished cleanup.
+A fixed aligned caller provider checks original release descriptions and balanced
+ownership, and injects failure at each of five growth allocations. Tests also
+cover atomic pair append failures, exact unit limits, allocation-size overflow,
+missing callbacks, and cross-provider/self/empty owned-block move assignment.
+The old P003 compile-time assertion was updated to require non-throwing move
+assignment, matching the developer's new API. No production C++ was edited.
+
+The exceptions-ON directory initially selected unavailable NMake. Reconfiguring
+that local build with Ninja/GCC and the existing offline GoogleTest checkout
+allowed the successful execution above; no repository preset was changed.
+
+These are P013 component results. Parser string boundaries/escape lexing,
+document integration, full memory accounting, remote CI and embedded-device
+execution remain unverified. No tests parse string literals or claim P014-P017
+completion. Infeasibly large live-string states are not fabricated to exercise
+UTF-8 total-size overflow; primitive overflow is covered by P003 and copy-size
+checks. Broader J5 contracts remain Draft.
