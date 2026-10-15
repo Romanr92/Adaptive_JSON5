@@ -593,3 +593,28 @@ later P021 dispatcher's error propagation or full-string atomicity. Continuation
 removal and separator warnings remain P019/P020. The non-escape helper allocates
 nothing, so no allocation injection is required. Broader J5-016 remains Draft;
 embedded-device execution is not inferred from host tests.
+
+
+## P019 line continuation units, 2026-10-15
+
+Added 21 GoogleTest cases in `tests/line_continuation_tests.cpp`, built as
+`adaptive_json5_line_continuation_unit_tests`, selected by `line_continuation_units`.
+All 21 passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 47 C++ files. Only the affected
+target was rebuilt and run; no new full-suite or remote CI execution is claimed.
+No production C++ was edited.
+
+Coverage includes LF/CR/CRLF/U+2028/U+2029 exact spans, nonzero offsets,
+strict-mode rejection and rollback, EOF, bounded CR lookahead, separated LF,
+additional raw terminators, nonterminating ASCII including NUL/VT/FF and Unicode,
+malformed UTF-8 classes, all proper Unicode separator prefixes and unread
+malformed suffixes after a complete CR. Five fixed public-API composition units
+call the opener, boundary reader, continuation recognizer, builder and exporter
+explicitly, producing exact A-space-B bytes without continuation content or
+indentation removal. No test helper implements string parsing.
+
+These are P019 component results. Continuation recognition is allocation-free;
+no allocation-failure injection is needed here. Host callbacks supply storage
+only for the visible composition cases. General string composition, dispatch
+and whole-token rollback remain P021; raw-separator warnings remain P020.
+Broader J5-017 stays Draft and device execution is not inferred.
