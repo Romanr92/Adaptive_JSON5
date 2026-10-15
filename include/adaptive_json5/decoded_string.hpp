@@ -1,6 +1,7 @@
 #ifndef DECODED_STRING_HPP_
 #define DECODED_STRING_HPP_
 
+#include "adaptive_json5/decoded_string_builder.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/storage.hpp"
@@ -13,6 +14,13 @@
 namespace adaptive_json5
 {
   /**
+   * @brief Declare the builder that transfers completed string storage.
+   * @par Requirements
+   * P013; J5-040.
+   */
+  class decoded_string_builder;
+
+  /**
    * @brief Own an immutable sequence of decoded UTF-16 units.
    * @par Requirements
    * P013; J5-018; J5-029; J5-040.
@@ -23,6 +31,9 @@ namespace adaptive_json5
   class decoded_string
   {
     private:
+      // Only the builder may adopt completed storage without copying.
+      friend class decoded_string_builder;
+
       owned_block m_storage{};
       std::size_t m_size = 0;
 

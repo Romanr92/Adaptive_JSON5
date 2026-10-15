@@ -22,8 +22,8 @@ namespace adaptive_json5
       static constexpr std::size_t c_single_unit_count = 1;
       static constexpr std::size_t c_surrogate_pair_unit_count = 2;
 
-      char16_t units[2]{};
-      std::size_t size = 0;
+      char16_t units[c_surrogate_pair_unit_count]{};
+      std::size_t size = c_first_unit_index;
   };
 
   /**
@@ -34,7 +34,7 @@ namespace adaptive_json5
    * @note Surrogates are rejected as scalar inputs.
    * Escaped UTF-16 units must be preserved separately without this conversion.
    */
-  inline result<encoded_utf16> encod_utf16(char32_t scalar) noexcept
+  inline result<encoded_utf16> encode_utf16(char32_t scalar) noexcept
   {
     constexpr char32_t c_max_scalar = 0x10FFFF;
     constexpr char32_t c_high_surrogate_min = 0xD800;

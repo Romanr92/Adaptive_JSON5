@@ -68,10 +68,46 @@ namespace adaptive_json5
         }
       }
 
-      // Copying would duplicate ownership. Assignment is deferred like result.
+      // Copying would duplicate ownership.
       owned_block(const owned_block&) = delete;
       owned_block& operator=(const owned_block&) = delete;
-      owned_block& operator=(owned_block&&) = delete;
+
+      /**
+       * @brief Release current storage and take ownership from another block.
+       * @par Requirements
+       * P003; P013; J5-040; J5-051.
+       * @return This owner after assignment.
+       * @note Self-move leaves the block unchanged.
+       * Otherwise, the source becomes empty.
+       * Views into the released destination allocation become invalid.
+       * No allocation is performed.
+       */
+      owned_block& operator=(owned_block&& other) noexcept
+      {
+        // Self-move must not release the allocation we intend to keep.
+        if (this == &other)
+        {
+          return *this;
+        }
+
+        // Release through the old provider before adopting the new one.
+        if (m_data != nullptr)
+        {
+          m_storage.deallocate(m_storage.context, m_data, m_bytes, m_alignment);
+        }
+
+        m_storage = other.m_storage;
+        m_data = other.m_data;
+        m_bytes = other.m_bytes;
+        m_alignment = other.m_alignment;
+
+        // Only the destination may release the transferred allocation.
+        other.m_data = nullptr;
+        other.m_bytes = 0;
+        other.m_alignment = 0;
+
+        return *this;
+      }
 
       /**
        * @brief Access the block's first byte.
