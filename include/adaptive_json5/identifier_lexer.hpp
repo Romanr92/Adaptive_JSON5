@@ -1,6 +1,7 @@
 #ifndef IDENTIFIER_LEXER_HPP_
 #define IDENTIFIER_LEXER_HPP_
 
+#include "adaptive_json5/unicode_escape.hpp"
 #include "cursor.hpp"
 #include "decoded_string_builder.hpp"
 #include "error.hpp"
@@ -17,16 +18,18 @@
 namespace adaptive_json5
 {
   /**
-   * @brief Consume an identifier containing ordinary UTF-8 characters.
+   * @brief Consume an identifier with ordinary UTF-8 characters or Unicode escapes.
    * @par Requirements
-   * P022; J5-019; J5-041.
+   * P022; P023; J5-019; J5-020; J5-041.
    * @param source Cursor positioned at a possible identifier start.
    * @param storage Caller-provided storage for decoded UTF-16 units.
    * @param max_units Maximum decoded UTF-16 unit count.
    * @return An owned token, successful nullopt for no-match,
    * or an explicit located error.
-   * @note This P022 version does not support identifier escapes yet.
-   * A backslash reports a syntax error pending the P023 extension.
+   * @note Only backslash-u followed by four hexadecimal digits is an escape.
+   * Decoded escapes must satisfy the current start/part rule.
+   * Illegal escaped characters and unsupported escape forms report the backslash offset.
+   * Malformed Unicode escapes retain the decoder's error location.
    * No-match and failure leave source unchanged.
    * Recognition is independent of key/value context and syntax mode.
    * Strict JSON member-name rejection belongs to the context-aware caller.
@@ -37,51 +40,84 @@ namespace adaptive_json5
   {
     using identifier_result = result<std::optional<identifier_token>>;
 
+    constexpr std::size_t c_backslash_byte_count = 1;
+
     const std::size_t start = source.offset();
 
     // Publish cursor movement only after the complete token succeeds.
     cursor candidate = source;
     decoded_string_builder builder(storage, max_units);
     bool first = true;
+    bool contains_escape = false;
 
     while (true)
     {
-      // P023 will replace this rejection with identifier escape decoding.
+      const std::size_t character_offset = candidate.offset();
       const auto next = candidate.peek();
-      if (next.has_value() && (*next == '\\'))
-      {
-        return identifier_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
-      }
 
-      // Decode through a copy so the first nonmember stays unconsumed.
+      // Decode privately so a terminating character remains unconsumed.
       cursor lookahead = candidate;
-      const auto decoded = decode_utf8(lookahead);
-      if (!decoded.has_value())
+      char32_t scalar{};
+      const bool escaped = next.has_value() && (*next == '\\');
+
+      if (escaped)
       {
-        return identifier_result::failure(*decoded.error_if());
+        // The existing escape decoder expects the cursor after the backslash.
+        lookahead.advance(c_backslash_byte_count);
+
+        const auto decoded = consume_unicode_escape(lookahead);
+        if (!decoded.has_value())
+        {
+          return identifier_result::failure(*decoded.error_if());
+        }
+
+        if (!decoded.value_if()->has_value())
+        {
+          // Other string escape forms are not identifier escapes.
+          return identifier_result::failure(error::at_offset(error_code::syntax, character_offset));
+        }
+
+        scalar = static_cast<char32_t>(**decoded.value_if());
+      }
+      else
+      {
+        const auto decoded = decode_utf8(lookahead);
+        if (!decoded.has_value())
+        {
+          return identifier_result::failure(*decoded.error_if());
+        }
+
+        const auto& character = *decoded.value_if();
+        if (!character.has_value())
+        {
+          break;
+        }
+
+        scalar = character->value;
       }
 
-      const auto& character = *decoded.value_if();
-      if (!character.has_value())
-      {
-        break;
-      }
-
-      const bool admitted = first ? is_identifier_start(character->value) : is_identifier_part(character->value);
+      const bool admitted = first ? is_identifier_start(scalar) : is_identifier_part(scalar);
 
       if (!admitted)
       {
+        // An escape cannot hide an illegal character or terminate a name.
+        if (escaped)
+        {
+          return identifier_result::failure(error::at_offset(error_code::syntax, character_offset));
+        }
+
         break;
       }
 
-      const auto appended = builder.append_scalar(character->value);
+      const auto appended = builder.append_scalar(scalar);
       if (!appended.has_value())
       {
-        return identifier_result::failure(error::at_offset(appended.error_if()->code, character->byte_offset));
+        return identifier_result::failure(error::at_offset(appended.error_if()->code, character_offset));
       }
 
       candidate = lookahead;
       first = false;
+      contains_escape = contains_escape || escaped;
     }
 
     if (first)
@@ -89,7 +125,7 @@ namespace adaptive_json5
       return identifier_result::success(std::nullopt);
     }
 
-    identifier_token token{builder.finish(), start, candidate.offset() - start, false};
+    identifier_token token{builder.finish(), start, candidate.offset() - start, contains_escape};
 
     // Prepare the owned result before committing the caller's position.
     auto completed = identifier_result::success(std::optional<identifier_token>{std::move(token)});
