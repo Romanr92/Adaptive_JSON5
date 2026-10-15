@@ -684,3 +684,93 @@ contracts; callback mutation/failure is unsupported. Global parser budgets,
 cancellation, containers, document-level integration, remote CI and embedded
 execution remain later evidence. Shared J5 requirements stay Draft; issue review,
 required PR checks and merge status are separate from these local results.
+
+
+## P022 ordinary identifier units, 2026-10-16
+
+Added 20 GoogleTest cases in `tests/identifier_tests.cpp`, built as
+`adaptive_json5_identifier_unit_tests`, selected by `identifier_units`.
+All 20 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+with RTTI OFF in both presets. Only the affected target was built and run;
+no fresh full-suite or remote CI result is claimed. clang-format 18.1.8
+passed for all 56 C++ files. No production C++ was edited.
+
+Literal expected UTF-16 content covers dollar/underscore, Unicode start categories,
+continuation marks/digits/connector punctuation/ZWNJ/ZWJ, supplementary letters,
+reserved words and literal-looking names. Negative starts, empty views, explicit
+NUL, nonzero offsets and unconsumed ASCII/multibyte terminators are checked.
+Malformed and truncated UTF-8 produces exact original encoding error locations
+and cursor/storage rollback. Exact UTF-16 limits include supplementary pairs.
+Every observed growth allocation is failed independently, temporary storage is
+released and retry succeeds from the unchanged cursor. Missing storage returns
+an explicit allocation failure; moved tokens preserve content after input
+mutation/destruction. Compile-time checks cover non-throwing recognition and
+move-only token ownership.
+
+These are P022 component results. Identifier escapes (P023), literal classification
+(P024), strict JSON key policy, complete token/document boundaries and embedded
+execution are separate work. J5-019 remains Draft; issue completion, PR checks
+and merge status are not inferred from these local results.
+
+
+## P023 identifier escape units, 2026-10-16
+
+Added 29 GoogleTest cases to `tests/identifier_tests.cpp`. All 49 P022/P023
+cases passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+with RTTI OFF in both presets. Only `adaptive_json5_identifier_unit_tests`
+was rebuilt and `identifier_units` executed; no fresh full-suite or remote CI
+result is claimed. clang-format 18.1.8 passed for all 56 C++ files.
+No production C++ was edited during this test work.
+
+Literal fixtures cover escaped starts/parts, dollar/underscore, combining marks,
+connector punctuation, joiners, hexadecimal digit case, mixed raw supplementary
+letters and escaped BMP content, reserved words and literal-looking names.
+Assertions check exact decoded UTF-16 units, original byte spans, escape metadata
+and unconsumed terminators at nonzero source offsets. Invalid escaped positions,
+NUL, surrogate units/pairs, unsupported forms, nonhex digits and malformed UTF-8
+inside/after escapes report explicit categories and exact original error offsets.
+Every incomplete prefix of a Unicode escape is tested using a shortened view over
+complete backing bytes, before and after an accepted name prefix. Failure leaves
+the cursor unchanged and releases all temporary allocations.
+
+Decoded-unit limits report the first excluded escape's backslash offset. Each
+observed allocation is failed independently, with balanced release and successful
+retry from the unchanged cursor. Moved escaped tokens retain exact content and
+metadata after input overwrite/destruction. Actual identifier/string readers
+produce literal expected matching UTF-16 content for bare, escaped and quoted
+spellings; case and canonical-normalization variants preserve distinct sequences.
+This establishes representation evidence, not an implemented equality/hash API.
+
+P024 literal classification, object lookup/duplicate policy, hash collisions,
+complete document boundaries and embedded execution remain separate evidence.
+J5-020 and J5-033 remain Draft; local unit results do not establish issue closure,
+required PR checks or merge completion.
+
+
+## P024 identifier classification units, 2026-10-16
+
+Added 58 parameterized cases in `tests/identifier_tests.cpp`, covering 29 source
+spellings in JSON5 and strict JSON. All 107 P022-P024 cases passed on native
+Windows/GCC 15.2.0, C++17, exceptions OFF and ON, with RTTI OFF in both presets.
+Only `adaptive_json5_identifier_unit_tests` was rebuilt and `identifier_units`
+executed; no fresh full-suite or remote CI result is claimed. clang-format
+18.1.8 passed for all 57 C++ files. No production C++ was edited.
+
+The real identifier reader supplies tokens for exact null/true/false, case and
+suffix variants, every nonempty proper literal prefix, a same-length mismatch,
+escaped literal spellings, unknown/reserved names and Unicode lookalikes/suffixes.
+Every case is classified repeatedly in value context and as a member name.
+JSON5 member names succeed; strict JSON member names report syntax at the
+original nonzero byte offset after a multibyte prefix. Value classifications
+match independent literal expectations in both modes. Classification preserves
+exact decoded units, source metadata, escape flags, input bytes and cursor.
+Arming the next provider allocation to fail confirms no new caller-storage
+requests, releases or ownership changes occur during classification. A
+compile-time assertion checks the public classification call is noexcept.
+
+Infinity/NaN cases establish only that this primitive classifier defers them;
+future numeric recognition remains responsible for their mode-specific handling.
+Unrecognized value classification is not string acceptance or document rejection.
+Quoted keys, container parsing, complete document/token boundaries, remote PR
+checks and embedded execution remain separate work. Shared J5-019/J5-023 status
+remains Draft; these local results do not imply issue closure or merge completion.
