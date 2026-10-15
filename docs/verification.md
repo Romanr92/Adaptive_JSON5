@@ -684,3 +684,30 @@ contracts; callback mutation/failure is unsupported. Global parser budgets,
 cancellation, containers, document-level integration, remote CI and embedded
 execution remain later evidence. Shared J5 requirements stay Draft; issue review,
 required PR checks and merge status are separate from these local results.
+
+
+## P022 ordinary identifier units, 2026-10-16
+
+Added 20 GoogleTest cases in `tests/identifier_tests.cpp`, built as
+`adaptive_json5_identifier_unit_tests`, selected by `identifier_units`.
+All 20 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+with RTTI OFF in both presets. Only the affected target was built and run;
+no fresh full-suite or remote CI result is claimed. clang-format 18.1.8
+passed for all 56 C++ files. No production C++ was edited.
+
+Literal expected UTF-16 content covers dollar/underscore, Unicode start categories,
+continuation marks/digits/connector punctuation/ZWNJ/ZWJ, supplementary letters,
+reserved words and literal-looking names. Negative starts, empty views, explicit
+NUL, nonzero offsets and unconsumed ASCII/multibyte terminators are checked.
+Malformed and truncated UTF-8 produces exact original encoding error locations
+and cursor/storage rollback. Exact UTF-16 limits include supplementary pairs.
+Every observed growth allocation is failed independently, temporary storage is
+released and retry succeeds from the unchanged cursor. Missing storage returns
+an explicit allocation failure; moved tokens preserve content after input
+mutation/destruction. Compile-time checks cover non-throwing recognition and
+move-only token ownership.
+
+These are P022 component results. Identifier escapes (P023), literal classification
+(P024), strict JSON key policy, complete token/document boundaries and embedded
+execution are separate work. J5-019 remains Draft; issue completion, PR checks
+and merge status are not inferred from these local results.
