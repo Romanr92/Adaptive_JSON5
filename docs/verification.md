@@ -464,3 +464,28 @@ execution remain unverified. No tests parse string literals or claim P014-P017
 completion. Infeasibly large live-string states are not fabricated to exercise
 UTF-8 total-size overflow; primitive overflow is covered by P003 and copy-size
 checks. Broader J5 contracts remain Draft.
+
+
+## P014 quoted-string boundary units, 2026-10-15
+
+Added 26 GoogleTest cases in `tests/string_boundary_tests.cpp`, built as
+`adaptive_json5_string_boundary_unit_tests`, selected by `string_boundary_units`.
+All 26 passed on native Windows/GCC 15.2.0 with C++17 in both
+`debug-unit-tests` (exceptions OFF) and `debug-unit-tests-exceptions`
+(exceptions ON), with RTTI OFF in both. clang-format 18.1.8 passed for all
+37 C++ files. No production C++ was edited. The full host suite was not rerun
+for this step; the preceding P013 full-suite results remain historical evidence.
+
+Coverage includes both delimiter styles and strict single-quote rejection,
+all nonquote input bytes as opener no-match, empty views and strings, opposite
+quotes as content, adjacent strings, original nonzero offsets, one-to-four-byte
+UTF-8 characters, raw U+2028/U+2029 acceptance, every ASCII control in both
+modes, CRLF rejection, malformed/overlong/surrogate/out-of-range/truncated UTF-8,
+every proper nonempty byte prefix of a plain UTF-8 string, and cursor stability
+on failure. Escape handoff checks only the backslash and its unread suffix.
+
+These allocation-free boundary helpers do not constitute a complete string
+lexer. Escape decoding/escaped quotes, line continuations, separator warnings,
+builder composition and whole-string atomic failure belong to later P steps.
+No helper in the tests implements escape or string parsing. Component results
+do not promote J5-014 from Draft or establish remote CI or device execution.
