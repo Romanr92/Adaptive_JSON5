@@ -551,7 +551,7 @@ namespace
   static_assert(std::is_nothrow_destructible_v<owned_block>);
   static_assert(!std::is_copy_constructible_v<owned_block>);
   static_assert(!std::is_copy_assignable_v<owned_block>);
-  static_assert(!std::is_move_assignable_v<owned_block>);
+  static_assert(std::is_nothrow_move_assignable_v<owned_block>);
 
   /* Verify a default block owns nothing.
    * Arrange: Choose the default owned block.

@@ -432,3 +432,138 @@ numbers, literals, container grammar, trailing-comma rules and complete-input
 rejection remain responsibilities of later steps. No allocation-failure injection
 is needed for these allocation-free operations. No remote CI, editor-host or
 embedded-device execution was performed. Broader J5 contracts remain Draft.
+
+
+## P013 owned string storage and conversion units, 2026-10-15
+
+Added 42 GoogleTest cases in `tests/string_storage_tests.cpp`, built as
+`adaptive_json5_string_storage_unit_tests` with label `string_storage_units`.
+On native Windows/GCC 15.2.0 with C++17 and RTTI OFF, all 42 passed with
+exceptions OFF and ON. The full host suite passed 378/378 cases in each mode
+using `debug-unit-tests` and `debug-unit-tests-exceptions`.
+clang-format 18.1.8 passed for all 35 C++ files.
+
+Coverage includes explicit-length/NUL/control-unit storage, supplementary scalar
+and UTF-8 boundaries, lone/reversed surrogate preservation with checked export
+rejection, invalid scalar/index failures, exact output capacities and untouched
+failure buffers, input independence, moves, finish/reuse, and unfinished cleanup.
+A fixed aligned caller provider checks original release descriptions and balanced
+ownership, and injects failure at each of five growth allocations. Tests also
+cover atomic pair append failures, exact unit limits, allocation-size overflow,
+missing callbacks, and cross-provider/self/empty owned-block move assignment.
+The old P003 compile-time assertion was updated to require non-throwing move
+assignment, matching the developer's new API. No production C++ was edited.
+
+The exceptions-ON directory initially selected unavailable NMake. Reconfiguring
+that local build with Ninja/GCC and the existing offline GoogleTest checkout
+allowed the successful execution above; no repository preset was changed.
+
+These are P013 component results. Parser string boundaries/escape lexing,
+document integration, full memory accounting, remote CI and embedded-device
+execution remain unverified. No tests parse string literals or claim P014-P017
+completion. Infeasibly large live-string states are not fabricated to exercise
+UTF-8 total-size overflow; primitive overflow is covered by P003 and copy-size
+checks. Broader J5 contracts remain Draft.
+
+
+## P014 quoted-string boundary units, 2026-10-15
+
+Added 26 GoogleTest cases in `tests/string_boundary_tests.cpp`, built as
+`adaptive_json5_string_boundary_unit_tests`, selected by `string_boundary_units`.
+All 26 passed on native Windows/GCC 15.2.0 with C++17 in both
+`debug-unit-tests` (exceptions OFF) and `debug-unit-tests-exceptions`
+(exceptions ON), with RTTI OFF in both. clang-format 18.1.8 passed for all
+37 C++ files. No production C++ was edited. The full host suite was not rerun
+for this step; the preceding P013 full-suite results remain historical evidence.
+
+Coverage includes both delimiter styles and strict single-quote rejection,
+all nonquote input bytes as opener no-match, empty views and strings, opposite
+quotes as content, adjacent strings, original nonzero offsets, one-to-four-byte
+UTF-8 characters, raw U+2028/U+2029 acceptance, every ASCII control in both
+modes, CRLF rejection, malformed/overlong/surrogate/out-of-range/truncated UTF-8,
+every proper nonempty byte prefix of a plain UTF-8 string, and cursor stability
+on failure. Escape handoff checks only the backslash and its unread suffix.
+
+These allocation-free boundary helpers do not constitute a complete string
+lexer. Escape decoding/escaped quotes, line continuations, separator warnings,
+builder composition and whole-string atomic failure belong to later P steps.
+No helper in the tests implements escape or string parsing. Component results
+do not promote J5-014 from Draft or establish remote CI or device execution.
+
+
+## P015 simple escape units, 2026-10-15
+
+Added 27 GoogleTest cases in `tests/simple_escape_tests.cpp`, built as
+`adaptive_json5_simple_escape_unit_tests` with label `simple_escape_units`.
+All 27 passed on native Windows/GCC 15.2.0 with C++17 in both
+`debug-unit-tests` (exceptions OFF) and `debug-unit-tests-exceptions`
+(exceptions ON), with RTTI OFF in both. clang-format 18.1.8 passed for all
+39 C++ files. No production C++ was changed. Only the affected unit target
+was rebuilt and run for this step; prior full-suite evidence remains historical.
+
+Independent numeric expectations check all eleven simple spellings under both
+modes, including backspace/form-feed corrections made by the developer before
+these runs. Cases cover strict JSON rejection of apostrophe/vertical-tab/NUL,
+exact-length escape suffixes, empty input/EOF, nonzero original offsets,
+every decimal digit after zero, nondigit lookahead including raw NUL, hidden
+lookahead beyond the explicit view, and every other byte as unchanged no-match.
+Two direct helper-composition cases check escaped-quote handoff and EOF after
+an accepted NUL escape without implementing a string lexer in test support.
+
+This is P015 component evidence, not complete J5-015/J5-016 verification.
+Hex/Unicode escapes, non-escape characters, continuations and complete-string
+composition remain later steps. No-match for an unowned byte is not syntax
+acceptance. No allocation failure is injected into these allocation-free helpers.
+Draft status, remote CI and embedded-device support claims are unchanged.
+
+
+## P016 hexadecimal escape units, 2026-10-15
+
+Added 30 GoogleTest cases in `tests/hex_escape_tests.cpp`, built as
+`adaptive_json5_hex_escape_unit_tests`, selected with label `hex_escape_units`.
+All 30 passed on native Windows/GCC 15.2.0 with C++17, exceptions OFF and ON,
+and RTTI OFF in both presets. clang-format 18.1.8 passed for all 41 C++ files.
+Only the affected target was rebuilt and run for this step; no fresh full-suite
+execution or remote CI is claimed. No production C++ was edited.
+
+Independent literal expectations cover all 22 hex-digit spellings, nonhex byte
+classification and Unicode lookalikes, zero/maximum decoded bytes, nibble order,
+case combinations, quotes/backslashes as decoded content, exact-length buffers,
+all proper escape prefixes, strict JSON rejection, located invalid-digit and
+UTF-8 failures, explicit-view bounds and cursor rollback. Every non-x byte is
+checked as unchanged no-match; following hex/quote/NUL/malformed bytes remain
+unread after exactly two digits. Tests implement no decoding algorithm.
+
+This is P016 component evidence. Complete string syntax, Unicode escapes,
+non-escape characters, continuation/warning behavior and composition remain in
+their later steps. No allocation injection is needed for these allocation-free
+helpers. Broader J5-016 remains Draft; embedded-device support is not inferred.
+
+
+## P017 Unicode escape units, 2026-10-15
+
+Added 41 GoogleTest cases in `tests/unicode_escape_tests.cpp`, built as
+`adaptive_json5_unicode_escape_unit_tests` and selected by `unicode_escape_units`.
+All 41 passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 43 C++ files. Only the affected
+target was rebuilt and run; no new full-suite or remote CI execution is claimed.
+No production C++ was changed.
+
+Coverage includes literal nibble-position, BMP, NUL, quote, backslash,
+case-combination and surrogate-boundary values. Both syntax-mode contexts use
+the real P014 opener/backslash handoff before Unicode decoding. Every proper
+escape prefix, invalid character/UTF-8 spelling at every digit position,
+truncated supplementary source character prefix, non-u byte and unread trailing
+byte are checked with exact cursor/error expectations. Literal paired, reversed,
+high/high, low/low and high/ASCII escapes compose with the existing builder,
+UTF-16 scalar decoder and UTF-8 exporter. Valid min/music/max pairs produce
+independent literal UTF-8 bytes. Lone boundary surrogates remain exact units and
+export fails without replacement or destination modification. Test callbacks
+supply host storage only; no test helper implements production decoding.
+
+These are P017 component results. P013-P017 now have local component unit
+execution evidence, not a complete string lexer or finished parser. Full-string
+rollback, non-escape characters, continuations, warnings and token composition
+remain later steps. The Unicode escape helper itself allocates nothing; storage
+failure injection belongs to the existing P013 units. Shared J5 rows stay Draft;
+issue completion/PR review/merge and device support are separate evidence.

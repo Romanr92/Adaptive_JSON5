@@ -19,9 +19,16 @@ Ctrl+F5 opens Zed's task picker with these four project actions:
 The tasks save edited buffers and call `tools/zed_task.py`. Python runs each
 command directly, without `&&` or shell-dependent command parsing, and stops on
 failure. All four actions use exceptions OFF. Unit actions use
-`debug-unit-tests`; launch runs CTest with verbose output. Configure that preset
-first using the root README commands. Exe actions use `debug-example`, also with
+`debug-unit-tests`; launch runs CTest with verbose output. If its build directory
+or CMake cache is missing, either unit action configures the preset first, creating
+the directory automatically. An existing GoogleTest checkout is reused. Exe actions use `debug-example`, also with
 exceptions OFF. The helper does not offer an exception-mode override.
+
+New unit configurations prefer Ninja when available and no generator is selected
+in the environment. If a cached NMake configuration cannot find `nmake`, the
+helper reconfigures with `cmake --fresh` and Ninja. On Windows without an initialized
+MSVC compiler, it selects GCC from PATH unless a compiler/toolchain is selected
+in the environment. Existing usable build configurations remain incremental.
 
 CTest registers each individual GoogleTest case, including parameterized cases.
 The final summary counts cases rather than executables (currently 98 cases).
@@ -91,10 +98,21 @@ in user settings. See [clangd system headers](https://clangd.llvm.org/guides/sys
 
 ## Header guard snippet
 
-`snippets/c++.json` contains the `hguard` completion. Install it in Zed's user
-snippets directory (`%APPDATA%/Zed/snippets/c++.json` on this Windows setup).
-If that file already contains snippets, merge the `Header guard` entry instead
-of replacing the file. Zed does not load this repository copy automatically.
+`.zed/snippets/c++.json` contains the `hguard` and `namespace` completions.
+Copy it to Zed's active user snippets file on Windows:
+
+```text
+C:\Users\<windows user>\AppData\Roaming\Zed\snippets\c++.json
+```
+
+Create the `snippets` directory if needed. If the destination file already
+contains custom snippets, merge the entries instead of replacing the file.
+Zed does not load the repository copy automatically: after changing
+`.zed/snippets/c++.json`, copy or merge the updated entries into the user file
+again. These user snippets apply across Zed projects.
+
+Use **snippets: configure snippets** and select C++ to edit the active file
+directly, or **snippets: open folder** to locate the snippets directory.
 
 In a C++ header, type `hguard` and accept the completion. Enter the uppercase
 filename with dots replaced by underscores, for example `ERROR_HPP` for
