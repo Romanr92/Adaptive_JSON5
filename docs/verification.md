@@ -745,3 +745,32 @@ P024 literal classification, object lookup/duplicate policy, hash collisions,
 complete document boundaries and embedded execution remain separate evidence.
 J5-020 and J5-033 remain Draft; local unit results do not establish issue closure,
 required PR checks or merge completion.
+
+
+## P024 identifier classification units, 2026-10-16
+
+Added 58 parameterized cases in `tests/identifier_tests.cpp`, covering 29 source
+spellings in JSON5 and strict JSON. All 107 P022-P024 cases passed on native
+Windows/GCC 15.2.0, C++17, exceptions OFF and ON, with RTTI OFF in both presets.
+Only `adaptive_json5_identifier_unit_tests` was rebuilt and `identifier_units`
+executed; no fresh full-suite or remote CI result is claimed. clang-format
+18.1.8 passed for all 57 C++ files. No production C++ was edited.
+
+The real identifier reader supplies tokens for exact null/true/false, case and
+suffix variants, every nonempty proper literal prefix, a same-length mismatch,
+escaped literal spellings, unknown/reserved names and Unicode lookalikes/suffixes.
+Every case is classified repeatedly in value context and as a member name.
+JSON5 member names succeed; strict JSON member names report syntax at the
+original nonzero byte offset after a multibyte prefix. Value classifications
+match independent literal expectations in both modes. Classification preserves
+exact decoded units, source metadata, escape flags, input bytes and cursor.
+Arming the next provider allocation to fail confirms no new caller-storage
+requests, releases or ownership changes occur during classification. A
+compile-time assertion checks the public classification call is noexcept.
+
+Infinity/NaN cases establish only that this primitive classifier defers them;
+future numeric recognition remains responsible for their mode-specific handling.
+Unrecognized value classification is not string acceptance or document rejection.
+Quoted keys, container parsing, complete document/token boundaries, remote PR
+checks and embedded execution remain separate work. Shared J5-019/J5-023 status
+remains Draft; these local results do not imply issue closure or merge completion.

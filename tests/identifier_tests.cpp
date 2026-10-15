@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "adaptive_json5/identifier_classification.hpp"
 #include "adaptive_json5/identifier_lexer.hpp"
 #include "adaptive_json5/string_lexer.hpp"
 
@@ -7,6 +8,7 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 namespace
@@ -687,5 +689,130 @@ namespace
     }
   }
   /* ================================== End Test_J5_033 ================================== */
+
+  /* ==================================== Test_J5_023 ==================================== */
+  static_assert(noexcept(classify_identifier(std::declval<const identifier_token&>(), identifier_context::value,
+                                             syntax_mode::json5)));
+  /**
+   * @brief Literal source and independent classification expectations.
+   * @par Requirements
+   * P024; J5-023.
+   */
+  struct classification_case
+  {
+      const char* name;                   // Input case label.
+      std::string input;                  // Input identifier source bytes.
+      std::u16string decoded;             // Expected unchanged decoded UTF-16 units.
+      identifier_classification expected; // Expected value-context classification.
+      bool escaped;                       // Expected token escape metadata.
+  };
+  class J5_023_IdentifierClassification : public testing::TestWithParam<std::tuple<classification_case, syntax_mode>>
+  {
+  };
+
+  /* Classify actual identifier tokens in both grammatical contexts.
+   * Arrange: Recognize a name after a multibyte prefix, then arm storage failure.
+   * Act: Repeatedly classify the same token as value and member name.
+   * Expect: Exact classification or strict-key error, no allocation or token/cursor mutation.
+   */
+  TEST_P(J5_023_IdentifierClassification, ClassifiesValueAndMemberContexts)
+  {
+    /* Arrange */
+    const auto& item = std::get<0>(GetParam());
+    const auto mode = std::get<1>(GetParam());
+    lexer_provider provider;
+    const std::string input = std::string(u8"\u03B1:") + item.input + ",";
+    const auto original = input;
+    cursor source({input.data(), input.size()});
+    source.advance(3);
+    auto recognized = consume_identifier(source, provider.callbacks(), 32);
+    ASSERT_TRUE(recognized.has_value());
+    ASSERT_TRUE(recognized.value_if()->has_value());
+    const auto& token = **recognized.value_if();
+    const auto attempts = provider.m_attempts;
+    const auto live_bytes = provider.m_live_bytes;
+    const auto releases = provider.m_releases;
+    provider.m_fail_on = attempts + 1;
+
+    /* Act */
+    const auto value = classify_identifier(token, identifier_context::value, mode);
+    const auto member = classify_identifier(token, identifier_context::member_name, mode);
+    const auto repeated = classify_identifier(token, identifier_context::value, mode);
+
+    /* Expect */
+    ASSERT_TRUE(value.has_value());
+    EXPECT_EQ(*value.value_if(), item.expected);
+    ASSERT_TRUE(repeated.has_value());
+    EXPECT_EQ(*repeated.value_if(), item.expected);
+    if (mode == syntax_mode::strict_json)
+    {
+      ASSERT_FALSE(member.has_value());
+      EXPECT_EQ(member.error_if()->code, error_code::syntax);
+      EXPECT_TRUE(member.error_if()->has_byte_offset);
+      EXPECT_EQ(member.error_if()->byte_offset, 3u);
+    }
+    else
+    {
+      ASSERT_TRUE(member.has_value());
+      EXPECT_EQ(*member.value_if(), identifier_classification::member_name);
+    }
+    expect_units(token.value, item.decoded);
+    EXPECT_EQ(token.byte_offset, 3u);
+    EXPECT_EQ(token.byte_length, item.input.size());
+    EXPECT_EQ(token.contains_escape, item.escaped);
+    EXPECT_EQ(source.offset(), 3 + item.input.size());
+    EXPECT_EQ(source.peek(), std::optional<char>{','});
+    EXPECT_EQ(input, original);
+    EXPECT_EQ(provider.m_attempts, attempts);
+    EXPECT_EQ(provider.m_live_bytes, live_bytes);
+    EXPECT_EQ(provider.m_releases, releases);
+  }
+  INSTANTIATE_TEST_SUITE_P(
+    P024, J5_023_IdentifierClassification,
+    testing::Combine(
+      testing::Values(
+        classification_case{"Null", "null", u"null", identifier_classification::null_literal, false},
+        classification_case{"True", "true", u"true", identifier_classification::true_literal, false},
+        classification_case{"False", "false", u"false", identifier_classification::false_literal, false},
+        classification_case{"NullCase", "Null", u"Null", identifier_classification::unrecognized_value, false},
+        classification_case{"TrueCase", "TRUE", u"TRUE", identifier_classification::unrecognized_value, false},
+        classification_case{"FalseCase", "False", u"False", identifier_classification::unrecognized_value, false},
+        classification_case{"NullSuffix", "nullx", u"nullx", identifier_classification::unrecognized_value, false},
+        classification_case{"TrueSuffix", "true0", u"true0", identifier_classification::unrecognized_value, false},
+        classification_case{"FalseSuffix", "false_", u"false_", identifier_classification::unrecognized_value, false},
+        classification_case{"SameLengthMismatch", "trux", u"trux", identifier_classification::unrecognized_value,
+                            false},
+        classification_case{"PrefixN", "n", u"n", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixNu", "nu", u"nu", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixNul", "nul", u"nul", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixT", "t", u"t", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixTr", "tr", u"tr", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixTru", "tru", u"tru", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixF", "f", u"f", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixFa", "fa", u"fa", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixFal", "fal", u"fal", identifier_classification::unrecognized_value, false},
+        classification_case{"PrefixFals", "fals", u"fals", identifier_classification::unrecognized_value, false},
+        classification_case{"EscapedNull", R"(\u006Eull)", u"null", identifier_classification::unrecognized_value,
+                            true},
+        classification_case{"EscapedTrue", R"(tr\u0075e)", u"true", identifier_classification::unrecognized_value,
+                            true},
+        classification_case{"EscapedFalse", R"(fals\u0065)", u"false", identifier_classification::unrecognized_value,
+                            true},
+        classification_case{"Unknown", "undefined", u"undefined", identifier_classification::unrecognized_value, false},
+        classification_case{"Reserved", "class", u"class", identifier_classification::unrecognized_value, false},
+        classification_case{"UnicodeLookalike", u8"tru\u0435", u"tru\u0435",
+                            identifier_classification::unrecognized_value, false},
+        classification_case{"UnicodeSuffix", u8"true\u200D", u"true\u200D",
+                            identifier_classification::unrecognized_value, false},
+        classification_case{"InfinityDeferred", "Infinity", u"Infinity", identifier_classification::unrecognized_value,
+                            false},
+        classification_case{"NaNDeferred", "NaN", u"NaN", identifier_classification::unrecognized_value, false}),
+      testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
+    [](const testing::TestParamInfo<std::tuple<classification_case, syntax_mode>>& info)
+    {
+      return std::string(std::get<0>(info.param).name) +
+             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+    });
+  /* ================================== End Test_J5_023 ================================== */
 
 } // namespace
