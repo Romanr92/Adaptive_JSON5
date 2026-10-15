@@ -618,3 +618,29 @@ no allocation-failure injection is needed here. Host callbacks supply storage
 only for the visible composition cases. General string composition, dispatch
 and whole-token rollback remain P021; raw-separator warnings remain P020.
 Broader J5-017 stays Draft and device execution is not inferred.
+
+
+## P020 raw separator warning units, 2026-10-15
+
+Added six GoogleTest cases in `tests/string_warning_tests.cpp`, built as
+`adaptive_json5_string_warning_unit_tests` with label `string_warning_units`.
+All six passed on native Windows/GCC 15.2.0 with C++17 in both exception modes,
+with RTTI OFF. clang-format 18.1.8 passed for all 49 C++ files. Only the affected
+target was rebuilt and run; no fresh full-suite or remote CI execution is claimed.
+No production C++ was edited.
+
+Cases use the real boundary reader to check raw U+2028/U+2029 warnings, both
+JSON5 quote styles, strict-mode acceptance without JSON5 advisories, original
+byte offsets after a multibyte prefix, three-byte spans and repeatable inspection.
+Existing builder/export APIs confirm unchanged separator content and successful
+closing boundaries. Actual escape-start pieces are inspected before existing
+Unicode/continuation decoders handle escaped or continued separators, avoiding
+artificial reconstructed raw pieces. Other ASCII source/syntax pieces,
+neighboring scalars and supplementary characters do not warn. Adjacent separators
+produce independent descriptors with exact categories and source offsets.
+
+These are P020 descriptor/component results. Warning collection/exposure and
+whole-token success/failure remain P021 work. The inspected helper performs no
+allocation; host storage callbacks are only used to check retained content.
+No test helper implements parsing or warning collection. Broader J5-017 remains
+Draft, and no embedded-device support is inferred.
