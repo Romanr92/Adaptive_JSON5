@@ -489,3 +489,29 @@ lexer. Escape decoding/escaped quotes, line continuations, separator warnings,
 builder composition and whole-string atomic failure belong to later P steps.
 No helper in the tests implements escape or string parsing. Component results
 do not promote J5-014 from Draft or establish remote CI or device execution.
+
+
+## P015 simple escape units, 2026-10-15
+
+Added 27 GoogleTest cases in `tests/simple_escape_tests.cpp`, built as
+`adaptive_json5_simple_escape_unit_tests` with label `simple_escape_units`.
+All 27 passed on native Windows/GCC 15.2.0 with C++17 in both
+`debug-unit-tests` (exceptions OFF) and `debug-unit-tests-exceptions`
+(exceptions ON), with RTTI OFF in both. clang-format 18.1.8 passed for all
+39 C++ files. No production C++ was changed. Only the affected unit target
+was rebuilt and run for this step; prior full-suite evidence remains historical.
+
+Independent numeric expectations check all eleven simple spellings under both
+modes, including backspace/form-feed corrections made by the developer before
+these runs. Cases cover strict JSON rejection of apostrophe/vertical-tab/NUL,
+exact-length escape suffixes, empty input/EOF, nonzero original offsets,
+every decimal digit after zero, nondigit lookahead including raw NUL, hidden
+lookahead beyond the explicit view, and every other byte as unchanged no-match.
+Two direct helper-composition cases check escaped-quote handoff and EOF after
+an accepted NUL escape without implementing a string lexer in test support.
+
+This is P015 component evidence, not complete J5-015/J5-016 verification.
+Hex/Unicode escapes, non-escape characters, continuations and complete-string
+composition remain later steps. No-match for an unowned byte is not syntax
+acceptance. No allocation failure is injected into these allocation-free helpers.
+Draft status, remote CI and embedded-device support claims are unchanged.
