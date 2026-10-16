@@ -831,3 +831,40 @@ The freshly built decimal and build-configuration groups pass 88/88 cases in
 each preset under the new warning flags. clang-format 18.1.8 passes for all
 61 C++ files. These partial results do not replace a successful complete host
 build/unit run or required PR checks.
+
+
+## P026 hexadecimal numeric component units, 2026-10-16
+
+Added 69 GoogleTest cases in `tests/hexadecimal_tests.cpp`, built as
+`adaptive_json5_hexadecimal_unit_tests`, selected by `hexadecimal_units`.
+All 69 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF in both presets, with `-Wparentheses -Werror`. Only the affected target
+was built and run; no fresh full-suite, remote CI or MSVC/Clang execution is
+claimed. clang-format 18.1.8 passed for all 62 C++ files. No production C++
+was edited during this unit-test work.
+
+Thirty-two explicit valid/invalid spellings run in both modes. Independent
+expectations check both prefix cases and all signs, negative/positive zero,
+leading hex zeros, all ASCII hex digits, e as a digit, missing/invalid first
+digits, spaces/signs before digits, identifier/Unicode suffixes, separators,
+escape suffixes, NUL before digits and unsupported hexadecimal fractions.
+Strict JSON failures locate the original token start. JSON5 failures locate
+the exact offending character or EOF. Original spans are checked after a
+multibyte prefix, and every failure preserves the original cursor/input.
+
+Every exposed byte prefix of a signed hexadecimal backing buffer checks
+no-match, incomplete-prefix error or exact success without overreading. Other
+spellings and doubled signs return component no-match without consumption;
+this does not establish document acceptance. Punctuation, comments, Unicode
+spaces and explicit NUL remain unconsumed after a recognized component.
+Malformed/truncated UTF-8 before/after digits produces exact encoding locations
+and cursor rollback. Values beyond 64-bit ranges and 4096 hex digits succeed
+without numeric conversion. The public scanner has a compile-time noexcept
+check; its API requires no allocation callbacks.
+
+P027 non-finite numbers and P028 general suffix/context validation remain
+separate work, including rejection of unsupported complete spellings that this
+component leaves for other recognizers. P029 owned numeric representation,
+conversion and parser budgets remain later evidence. Shared J5 contracts stay
+Draft; no full MISRA/CERT assessment, embedded support, issue closure or merge
+completion is inferred from these host component results.
