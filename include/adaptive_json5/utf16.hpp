@@ -46,7 +46,7 @@ namespace adaptive_json5
     constexpr unsigned int c_surrogate_payload_bits = 10;
 
     // Surrogate code points are units, not valid Unicode scalers.
-    if ((scalar > c_max_scalar) || (scalar >= c_high_surrogate_min) && (scalar <= c_low_surrogate_max))
+    if ((scalar > c_max_scalar) || ((scalar >= c_high_surrogate_min) && (scalar <= c_low_surrogate_max)))
     {
       return result<encoded_utf16>::failure(error::without_location(error_code::encoding));
     }

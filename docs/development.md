@@ -49,6 +49,13 @@ C++17 and compiler options apply to selected targets. Parent flags are not
 overwritten. Future production targets must use the reviewed exception/runtime
 policy; a configurable test build is not evidence of an implemented parser.
 
+All project C++ targets, including unit-test executables, treat compiler warnings
+as errors through `adaptive_json5_configure_target()`: `-Wparentheses -Werror`
+for GCC/Clang/AppleClang, and `/W4 /WX /w14706` for MSVC-compatible builds.
+The flags are private to project targets and do not alter GoogleTest targets,
+parent-project flags or exported consumer options. Both exception presets use
+the same warning policy. See [coding guidelines](coding-style.md).
+
 ## VS Code
 
 The tracked `.vscode/` setup is adapted from AdaptivePi. Install the recommended

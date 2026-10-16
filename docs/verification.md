@@ -774,3 +774,182 @@ Unrecognized value classification is not string acceptance or document rejection
 Quoted keys, container parsing, complete document/token boundaries, remote PR
 checks and embedded execution remain separate work. Shared J5-019/J5-023 status
 remains Draft; these local results do not imply issue closure or merge completion.
+
+
+## P025 decimal numeric component units, 2026-10-16
+
+Added 85 GoogleTest cases in `tests/decimal_tests.cpp`, built as
+`adaptive_json5_decimal_unit_tests`, selected by `decimal_units`. All 85 passed
+on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON, RTTI OFF in both
+presets. Only the affected target was built and run; no fresh full-suite or
+remote CI result is claimed. clang-format 18.1.8 passed for all 60 C++ files.
+No production C++ was edited during this test work.
+
+Forty explicit spelling cases run in both modes. Independent expectations cover
+zero/negative zero, integers, fractions, exponent case/sign/leading zeros,
+JSON5 leading plus and leading/trailing decimal points, and exact syntax error
+locations for leading zeros, missing components, malformed signs and exponents.
+Success checks original spelling spans after a multibyte source prefix and an
+unconsumed comma; errors leave the source cursor unchanged. Each explicit-length
+prefix of a complete fraction/exponent backing buffer checks acceptance or
+EOF-located failure without reading beyond the exposed view.
+
+Additional cases check empty/null-empty views, ordinary nonmatches and deferred
+hex/non-finite families; exact delimiter/trivia/NUL boundaries; and encoding
+errors at required digit positions after signs, decimal points or exponent
+markers/signs. Integers beyond 2^53 and signed/unsigned 64-bit ranges, 4096-digit
+integers/fractions/exponents remain lexical successes without numeric conversion.
+The public scanner has a compile-time noexcept check and requires no storage
+callback. These tests do not add an allocation failure path to an allocation-free
+API or instrument global allocations.
+
+These are P025 decimal-component results, not complete numeric token validation.
+Unconsumed suffix validation remains P028; hex/non-finite recognition remains
+P026/P027. Owned numeric representation, configurable parser budgets and actual
+numeric conversion remain later steps. No parser/document or embedded-device
+support is inferred. J5-021/J5-022 remain Draft; PR checks, merge and issue closure
+are separate from local component evidence.
+
+
+## Compiler warnings-as-errors policy, 2026-10-16
+
+Project targets, including all unit-test executables, now receive
+`-Wparentheses -Werror` on GCC/Clang/AppleClang, or `/W4 /WX /w14706` on
+MSVC-compatible builds through the shared private target configuration function.
+Third-party targets and exported consumer flags are unchanged. MSVC/Clang
+execution was not performed locally.
+
+Both native Windows/GCC 15.2.0 presets were configured and full builds attempted
+with exceptions OFF and ON, RTTI OFF. Both builds fail on the existing mixed
+logical expression in `include/adaptive_json5/utf16.hpp:49`, now diagnosed as
+`-Werror=parentheses`. Building remaining targets with Ninja's keep-going option
+reported no other unique compiler errors. No production C++ was edited to bypass
+or repair the diagnostic; the developer must explicitly group the surrogate
+range conjunction. Full-suite success under the new flags is not claimed.
+
+The freshly built decimal and build-configuration groups pass 88/88 cases in
+each preset under the new warning flags. clang-format 18.1.8 passes for all
+61 C++ files. These partial results do not replace a successful complete host
+build/unit run or required PR checks.
+
+
+## P026 hexadecimal numeric component units, 2026-10-16
+
+Added 69 GoogleTest cases in `tests/hexadecimal_tests.cpp`, built as
+`adaptive_json5_hexadecimal_unit_tests`, selected by `hexadecimal_units`.
+All 69 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF in both presets, with `-Wparentheses -Werror`. Only the affected target
+was built and run; no fresh full-suite, remote CI or MSVC/Clang execution is
+claimed. clang-format 18.1.8 passed for all 62 C++ files. No production C++
+was edited during this unit-test work.
+
+Thirty-two explicit valid/invalid spellings run in both modes. Independent
+expectations check both prefix cases and all signs, negative/positive zero,
+leading hex zeros, all ASCII hex digits, e as a digit, missing/invalid first
+digits, spaces/signs before digits, identifier/Unicode suffixes, separators,
+escape suffixes, NUL before digits and unsupported hexadecimal fractions.
+Strict JSON failures locate the original token start. JSON5 failures locate
+the exact offending character or EOF. Original spans are checked after a
+multibyte prefix, and every failure preserves the original cursor/input.
+
+Every exposed byte prefix of a signed hexadecimal backing buffer checks
+no-match, incomplete-prefix error or exact success without overreading. Other
+spellings and doubled signs return component no-match without consumption;
+this does not establish document acceptance. Punctuation, comments, Unicode
+spaces and explicit NUL remain unconsumed after a recognized component.
+Malformed/truncated UTF-8 before/after digits produces exact encoding locations
+and cursor rollback. Values beyond 64-bit ranges and 4096 hex digits succeed
+without numeric conversion. The public scanner has a compile-time noexcept
+check; its API requires no allocation callbacks.
+
+P027 non-finite numbers and P028 general suffix/context validation remain
+separate work, including rejection of unsupported complete spellings that this
+component leaves for other recognizers. P029 owned numeric representation,
+conversion and parser budgets remain later evidence. Shared J5 contracts stay
+Draft; no full MISRA/CERT assessment, embedded support, issue closure or merge
+completion is inferred from these host component results.
+
+
+## P027 non-finite numeric component units, 2026-10-16
+
+Added 58 GoogleTest cases in `tests/non_finite_tests.cpp`, built as
+`adaptive_json5_non_finite_unit_tests`, selected by `non_finite_units`.
+All 58 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF in both presets, with `-Wparentheses -Werror`. Only the affected target
+was built and run; no fresh full-suite, remote CI or MSVC/Clang execution is
+claimed. clang-format 18.1.8 passed for all 64 C++ files. No production C++
+was edited during this unit-test work.
+
+Twenty-seven literal spellings run in both modes. The six exact signed/unsigned
+Infinity/NaN forms produce independent expected kinds and original source spans.
+Case mismatches, identifier/digit/underscore/dollar/Unicode suffixes, decimal
+points, escaped spellings/suffixes, internal spaces/comments/NUL and Unicode
+lookalikes produce exact syntax offsets. Strict mode rejects attempted I/N
+spellings at the original token start after a multibyte prefix. Error paths
+preserve the caller cursor, and the parameterized units check unchanged input.
+
+Every bounded prefix of all six forms is tested over complete backing bytes,
+checking pre-attempt no-match, truncated-word EOF failures and complete tokens.
+Other initial spellings, lowercase names, doubled/missing signs and null-empty
+views return component no-match without movement. This is not document acceptance.
+Each complete form preserves adjacent punctuation, comments, Unicode space and
+explicit NUL. Invalid/truncated UTF-8 within attempted words and after complete
+words reports original encoding offsets with cursor rollback. The public
+recognizer has a compile-time noexcept assertion; no numeric conversion or
+storage-callback failure path is introduced into its metadata-only API.
+
+P028 caller dispatch and complete suffix/context validation remain separate,
+including final rejection of wrong-case/no-match value names and the distinct
+identifier path for member names. P029 numeric ownership/representation also
+remains later work. Shared J5 contracts stay Draft; host component results do
+not establish MISRA/CERT compliance, embedded execution, PR/merge completion
+or issue closure.
+
+
+## P028 scalar and numeric token completion units, 2026-10-16
+
+Added 125 GoogleTest cases in `tests/token_completion_tests.cpp`, built as
+`adaptive_json5_token_completion_unit_tests`, selected by `token_completion_units`.
+All 125 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF, with `-Wparentheses -Werror`. Both complete host builds succeeded;
+the full suite passed 1055/1055 cases in each preset. clang-format 18.1.8 passed
+for all 69 C++ files. No production C++ was edited during this test work.
+Execution logs are local build artifacts under `build/p028-full-*-results.log`;
+no remote CI, MSVC/Clang or embedded execution is claimed.
+
+Boundary fixtures check EOF, all six structural punctuators, strict JSON spaces,
+JSON5-only whitespace/separators and comment openers, and explicit invalid
+letters/digits/operators/quotes/backslashes/NUL. They preserve caller position
+and input. Invalid scalar fixtures check exact categories/offsets and rollback
+for truex, unknown/wrong-case/escaped names, numeric suffixes, binary/octal/
+separator forms, incomplete hex, non-finite suffixes, doubled signs, repeated
+points, adjacent quoted content and invalid slash/NUL boundaries. Applicable
+numeric cases independently exercise the public number wrapper as well.
+
+Success checks the actual variant alternative, literal/numeric kind, exact string
+units and original spans. Scalar numbers work without a provider; strings and
+temporary identifier-based literal recognition use the explicit provider and
+unit limit. EOF/structural no-match does not allocate. Malformed UTF-8 after each
+scalar family preserves the encoding category and original suffix location,
+without publishing cursor changes or leaking storage. Mode-specific comment/
+Unicode-space boundaries are exercised through every scalar alternative.
+Incomplete string/escape/exponent components propagate their EOF syntax failures.
+
+Real trivia processing between independently read scalar components confirms
+that whitespace/comments never join 1 and 2 or tr and ue into one spelling.
+These are component composition units, not a container/document parser. Context
+validation of multiple root values or missing container separators remains later
+work. Every observed allocation for string/literal recognition is failed
+independently with cleanup and retry; decoded-unit limits, missing providers
+and boundary failure after a warning-bearing string also roll back atomically.
+Moving a string variant preserves owned units and original warning metadata
+after input mutation/destruction. Compile-time checks cover noexcept entry
+points and non-throwing, noncopyable scalar-token ownership.
+
+Known documentation follow-up: token_boundary.hpp still describes intended
+callers as unquoted tokens only; scalar dispatch also applies its delimiter
+policy to quoted scalar strings. The developer should update that comment.
+Comment bodies/later trivia, document/container context, P029 numeric ownership,
+complete parser budgets and complete grammar conformance remain separate work.
+Shared requirements stay Draft; local component evidence is not a MISRA/CERT
+assessment, remote PR check, merge result or automatic issue closure.
