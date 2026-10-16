@@ -15,6 +15,10 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   error guard was also independently correct. Use exercise blocks for these
   error-propagation operations in later lessons. P029 recognition and allocation
   failure guards were also independently completed and reviewed as correct.
+  The P030 append failure guard's `result<value_storage>` versus
+  `result<value_index>` mismatch was identified by the learner as a typing
+  mistake, not a conceptual difficulty. Keep this concept learned and continue
+  using exercise placeholders rather than supplying its implementation.
 
 ## Retry after further guided practice
 
