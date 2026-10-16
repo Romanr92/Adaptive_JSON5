@@ -29,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiler", default="g++", help="GCC C++ compiler (default: g++)")
     parser.add_argument("--gcov", help="Matching gcov executable (default: beside the compiler)")
-    parser.add_argument("--jobs", type=int, default=2, help="Parallel build jobs (default: 2)")
+    parser.add_argument("--jobs", type=int, default=12, help="Parallel build jobs (default: 12)")
     parser.add_argument("--gtest-source", type=Path, help="Existing GoogleTest 1.17.0 source checkout")
     args = parser.parse_args()
     if args.jobs < 1:
