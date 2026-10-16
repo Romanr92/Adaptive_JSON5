@@ -868,3 +868,39 @@ component leaves for other recognizers. P029 owned numeric representation,
 conversion and parser budgets remain later evidence. Shared J5 contracts stay
 Draft; no full MISRA/CERT assessment, embedded support, issue closure or merge
 completion is inferred from these host component results.
+
+
+## P027 non-finite numeric component units, 2026-10-16
+
+Added 58 GoogleTest cases in `tests/non_finite_tests.cpp`, built as
+`adaptive_json5_non_finite_unit_tests`, selected by `non_finite_units`.
+All 58 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF in both presets, with `-Wparentheses -Werror`. Only the affected target
+was built and run; no fresh full-suite, remote CI or MSVC/Clang execution is
+claimed. clang-format 18.1.8 passed for all 64 C++ files. No production C++
+was edited during this unit-test work.
+
+Twenty-seven literal spellings run in both modes. The six exact signed/unsigned
+Infinity/NaN forms produce independent expected kinds and original source spans.
+Case mismatches, identifier/digit/underscore/dollar/Unicode suffixes, decimal
+points, escaped spellings/suffixes, internal spaces/comments/NUL and Unicode
+lookalikes produce exact syntax offsets. Strict mode rejects attempted I/N
+spellings at the original token start after a multibyte prefix. Error paths
+preserve the caller cursor, and the parameterized units check unchanged input.
+
+Every bounded prefix of all six forms is tested over complete backing bytes,
+checking pre-attempt no-match, truncated-word EOF failures and complete tokens.
+Other initial spellings, lowercase names, doubled/missing signs and null-empty
+views return component no-match without movement. This is not document acceptance.
+Each complete form preserves adjacent punctuation, comments, Unicode space and
+explicit NUL. Invalid/truncated UTF-8 within attempted words and after complete
+words reports original encoding offsets with cursor rollback. The public
+recognizer has a compile-time noexcept assertion; no numeric conversion or
+storage-callback failure path is introduced into its metadata-only API.
+
+P028 caller dispatch and complete suffix/context validation remain separate,
+including final rejection of wrong-case/no-match value names and the distinct
+identifier path for member names. P029 numeric ownership/representation also
+remains later work. Shared J5 contracts stay Draft; host component results do
+not establish MISRA/CERT compliance, embedded execution, PR/merge completion
+or issue closure.
