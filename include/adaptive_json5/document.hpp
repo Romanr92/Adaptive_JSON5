@@ -5,6 +5,7 @@
 #include "decoded_string.hpp"
 #include "document_links.hpp"
 #include "error.hpp"
+#include "member_lookup.hpp"
 #include "owned_number.hpp"
 #include "result.hpp"
 #include "storage.hpp"
@@ -23,7 +24,7 @@ namespace adaptive_json5
   /**
    * @brief Own value records and expose checked read-only views.
    * @par Requirements
-   * P030; J5-028; J5-039; J5-040; J5-030; J5-031.
+   * P030; J5-028; J5-039; J5-040; J5-030; J5-031; J5-033.
    * @note Values are created detached until selected as root or attached later.
    * All indices passed to this document must originate from this document.
    * Indices do not encode document identity; bounds checking cannot detect
@@ -250,6 +251,24 @@ namespace adaptive_json5
       result<value_iterator> iterate(value_index container) const noexcept
       {
         return value_iterator::create(m_values, container);
+      }
+
+      /**
+       * @brief Inspect an object's members for an exact decoded-name match.
+       * @par Requirements
+       * P030; J5-031; J5-033; J5-039; J5-040.
+       * @param object Object index belonging to this document.
+       * @param name Decoded name borrowed for this call only.
+       * @return Absent, unique or ambiguous match, or an explicit access failure.
+       * @note Rejects invalid indices, arrays and scalar values.
+       * Only a unique match supplies a borrowed value view.
+       * Preserves duplicate members and never selects among ambiguous matches.
+       * Allocates nothing and does not modify the document or name.
+       * Moving or destroying the document invalidates any returned view.
+       */
+      result<member_lookup> lookup_member(value_index object, const decoded_string& name) const noexcept
+      {
+        return detail::lookup_member(m_values, object, name);
       }
 
       /**
