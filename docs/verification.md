@@ -989,3 +989,39 @@ work/exponent/memory accounting are separate. P030 containers and P032 primitive
 owned-value composition are also pending. Shared J5 requirements remain Draft;
 no MISRA/CERT compliance, embedded execution, issue closure or merge result is
 inferred from this checkpoint.
+
+## P030 owned document and checked access units (2026-10-16)
+
+Added 40 GoogleTest cases in `tests/document_tests.cpp`, built as
+`adaptive_json5_document_unit_tests` and selected by `document_units`.
+All 40 passed on native Windows/GCC 15.2.0, C++17, with exceptions OFF
+and ON, RTTI OFF, and project warnings treated as errors. Only the affected
+target was built and run; no fresh full-suite or remote CI result is claimed.
+clang-format 18.1.8 passed for all 83 C++ files. Production C++ was unchanged.
+
+The units construct and inspect all six alternatives and move each root twice.
+They check exact owned string/number payloads after input mutation and record
+growth, source reuse after document moves, ordered repeated array elements,
+nested direct-child traversal, duplicate-preserving ordered object members,
+empty names and absent/unique/ambiguous lookup. Ten name fixtures run both as
+standalone comparisons and through lookup, including case differences, unequal
+lengths, normalization-sensitive content, embedded NUL and lone surrogates.
+
+Invalid views, indices, wrong types, empty containers, repeated iterator
+completion and invalid iterators have explicit results. Relationship tests
+exercise wrong containers, self-attachment, cycles, repeated attachment,
+root reuse and preservation of supplied member names on failure. Allocation
+tracking validates release descriptions and ownership balance, including a
+2048-level tree destroyed without traversing child ownership recursively.
+Zero/exact/exceeded record limits and missing providers are checked. Each
+of seven record-growth allocations is independently failed and retried while
+existing records remain readable; failed internal storage append preserves
+an externally owned string record for retry. Read-only lookup and traversal
+are checked to make no provider allocation requests.
+
+These are P030 component results before recursive parsing. Bare indices retain
+the documented same-document precondition; in-range foreign indices cannot be
+identified. Iteration requires relationships to remain unchanged. Full P031
+memory/work accounting and P032 primitive dispatch remain separate. Shared
+requirements remain Draft; these host results do not establish embedded target
+execution or MISRA/CERT compliance.
