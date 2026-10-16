@@ -92,13 +92,22 @@ Build independence very slowly and separately for each concept. After substantia
 guided practice, gradually remove implementation details for familiar operations
 from the complete-file teaching format, replacing selected code with precise
 implementation comments describing the expected behavior. Keep unfamiliar code
-and its explanations supplied. Clearly mark exercise gaps so the learner knows
-the displayed file is incomplete and may not compile until they fill them in;
-never remove necessary code silently or describe an exercise as a finished file.
+and its explanations supplied. Preserve normal Doxygen and intent comments as
+they would appear in the completed implementation. Put exercise instructions in
+separate `/* ... */` blocks exactly where the learner must remove the block and
+write code. Keep instructions clear and concise: name the relevant objects,
+required behavior and important success/failure ordering. Do not use `// EXERCISE`
+placeholders or turn ordinary code comments into exercise instructions. State
+outside the code that the file remains incomplete until placeholders are replaced
+and may not compile or behave correctly. Never remove necessary code silently
+or describe an exercise as a finished file.
 Do not remove code from actual repository files as a teaching exercise.
-If the user proceeds
-without asking for help with that task, treat the concept as learned for future
-guidance and allow similar tasks without supplying their code first. Do not treat
+After review confirms independent exercise success, record the specific concept
+as learned in [learning-progress.md](learning-progress.md). On later applications
+of that concept, supply only the concise exercise block in place of its code,
+keeping normal implementation comments and unfamiliar surrounding code supplied.
+Do not preemptively repeat the solution. If the user proceeds without asking for
+help, inspect their implementation before treating the concept as learned. Do not treat
 mere silence, a topic change or elapsed time as evidence of learning. Do not jump
 from familiarity with one operation to assuming mastery of unrelated C++ or parser
 concepts.
@@ -107,7 +116,9 @@ If the user asks for the implementation or says they do not understand, supply a
 illustrative implementation promptly with line-by-line explanation. Keep that
 concept at the guided level until later interaction supports reducing help;
 do not immediately repeat the same unaided exercise or withhold requested code.
-After further guided practice, try a small comment-only task on another familiar
+Record concepts requiring implementation help in the retry list in
+[learning-progress.md](learning-progress.md), noting the help provided. After
+further guided practice, try a small comment-only task on another familiar
 concept. Later still, gently retry the original concept without supplying code
 first. A request for help means the concept needs more support now, not that it
 must never be tried independently again. Space these attempts gradually, respond
