@@ -2,6 +2,7 @@
 #define VALUE_VIEW_HPP_
 
 #include "adaptive_json5/container_links.hpp"
+#include "adaptive_json5/number_token.hpp"
 #include "adaptive_json5/value_record.hpp"
 #include "decoded_string.hpp"
 #include "error.hpp"
@@ -11,6 +12,7 @@
 #include "value_kind.hpp"
 #include "value_storage.hpp"
 
+#include <cstddef>
 #include <variant>
 
 namespace adaptive_json5
@@ -18,7 +20,7 @@ namespace adaptive_json5
   /**
    * @brief Borrow checked, read-only access to one document-owned value.
    * @par Requirements
-   * P030; J5-028; J5-039; J5-040.
+   * P030; J5-028; J5-039; J5-040; J5-030; J5-031.
    * @note Owns no storage and does not extend the document's lifetime.
    * Moving or destroying the storage invalidates this view.
    * Appending records preserves indices, but growth invalidates returned pointers.
@@ -71,6 +73,83 @@ namespace adaptive_json5
         }
 
         return result<const T*>::success(payload);
+      }
+
+      /**
+       * @brief Resolve a direct child by its zero-based source-order position.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-039.
+       * @param position Direct-child ordinal, not a document record index.
+       * @param object True for object members, false for array elements.
+       * @note Requires document relationships maintained by validated operations.
+       * Traversal is iterative and visits at most position plus one records.
+       * P031 adds configurable work accounting.
+       */
+      result<value_view> child_at(std::size_t position, bool object) const noexcept
+      {
+        const auto resolved = record();
+        if (!resolved.has_value())
+        {
+          return result<value_view>::failure(*resolved.error_if());
+        }
+
+        const auto& payload = (*resolved.value_if())->payload;
+        const container_links* links = nullptr;
+
+        if (object)
+        {
+          const auto* data = std::get_if<object_data>(&payload);
+          if (data == nullptr)
+          {
+            return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+          }
+
+          links = &data->members;
+        }
+        else
+        {
+          const auto* data = std::get_if<array_data>(&payload);
+          if (data == nullptr)
+          {
+            return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+          }
+
+          links = &data->elements;
+        }
+
+        if ((position >= links->count) || (links->count > m_storage->size()))
+        {
+          return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+
+        value_index current = links->first;
+
+        for (std::size_t ordinal{}; ordinal <= position; ++ordinal)
+        {
+          const auto child = m_storage->at(current);
+
+          if (!child.has_value())
+          {
+            return result<value_view>::failure(*child.error_if());
+          }
+
+          const auto& child_record = **child.value_if();
+
+          if (!child_record.parent.is_set() || (child_record.parent.position() != m_index.position()) ||
+              (child_record.member_name.has_value() != object))
+          {
+            return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+          }
+
+          if (ordinal == position)
+          {
+            return result<value_view>::success(value_view{*m_storage, current});
+          }
+
+          current = child_record.next_sibling;
+        }
+
+        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
     public:
@@ -172,6 +251,86 @@ namespace adaptive_json5
       result<const owned_number*> as_number() const noexcept
       {
         return payload_as<owned_number>();
+      }
+
+      /**
+       * @brief Return the direct element or member count.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-039.
+       * @note Rejects scalar values rather than treating them as empty containers.
+       */
+      result<std::size_t> container_size() const noexcept
+      {
+        const auto resolved = record();
+
+        if (!resolved.has_value())
+        {
+          return result<std::size_t>::failure(*resolved.error_if());
+        }
+
+        const auto& payload = (*resolved.value_if())->payload;
+
+        if (const auto* array = std::get_if<array_data>(&payload); array != nullptr)
+        {
+          return result<std::size_t>::success(array->elements.count);
+        }
+
+        if (const auto* object = std::get_if<object_data>(&payload); object != nullptr)
+        {
+          return result<std::size_t>::success(object->members.count);
+        }
+
+        return result<std::size_t>::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      /**
+       * @brief Borrow an array element by zero-based source-order position.
+       * @par Requirements
+       * P030; J5-030; J5-039; J5-040.
+       * @note Rejects nonarrays and out-of-range positions.
+       * Linear traversal; repeated indexed enumeration has quadratic total cost.
+       */
+      result<value_view> element_at(std::size_t position) const noexcept
+      {
+        return child_at(position, false);
+      }
+
+      /**
+       * @brief Borrow an object member's value by zero-based source-order position.
+       * @par Requirements
+       * P030; J5-031; J5-039; J5-040.
+       * @note Includes every duplicate-name occurrence.
+       * Rejects nonobjects and out-of-range positions.
+       * Linear traversal; repeated indexed enumeration has quadratic total cost.
+       */
+      result<value_view> member_at(std::size_t position) const noexcept
+      {
+        return child_at(position, true);
+      }
+
+      /**
+       * @brief Borrow the decoded name attached to an object-member value.
+       * @par Requirements
+       * P030; J5-031; J5-039; J5-040.
+       * @note An empty member name succeeds; an absent name is an access error.
+       * The returned pointer is invalidated by storage growth or destruction.
+       */
+      result<const decoded_string*> member_name() const noexcept
+      {
+        const auto resolved = record();
+
+        if (!resolved.has_value())
+        {
+          return result<const decoded_string*>::failure(*resolved.error_if());
+        }
+
+        const auto& name = (*resolved.value_if())->member_name;
+        if (!name.has_value())
+        {
+          return result<const decoded_string*>::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+
+        return result<const decoded_string*>::success(&*name);
       }
   };
 } // namespace adaptive_json5
