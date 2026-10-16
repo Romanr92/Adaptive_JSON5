@@ -774,3 +774,38 @@ Unrecognized value classification is not string acceptance or document rejection
 Quoted keys, container parsing, complete document/token boundaries, remote PR
 checks and embedded execution remain separate work. Shared J5-019/J5-023 status
 remains Draft; these local results do not imply issue closure or merge completion.
+
+
+## P025 decimal numeric component units, 2026-10-16
+
+Added 85 GoogleTest cases in `tests/decimal_tests.cpp`, built as
+`adaptive_json5_decimal_unit_tests`, selected by `decimal_units`. All 85 passed
+on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON, RTTI OFF in both
+presets. Only the affected target was built and run; no fresh full-suite or
+remote CI result is claimed. clang-format 18.1.8 passed for all 60 C++ files.
+No production C++ was edited during this test work.
+
+Forty explicit spelling cases run in both modes. Independent expectations cover
+zero/negative zero, integers, fractions, exponent case/sign/leading zeros,
+JSON5 leading plus and leading/trailing decimal points, and exact syntax error
+locations for leading zeros, missing components, malformed signs and exponents.
+Success checks original spelling spans after a multibyte source prefix and an
+unconsumed comma; errors leave the source cursor unchanged. Each explicit-length
+prefix of a complete fraction/exponent backing buffer checks acceptance or
+EOF-located failure without reading beyond the exposed view.
+
+Additional cases check empty/null-empty views, ordinary nonmatches and deferred
+hex/non-finite families; exact delimiter/trivia/NUL boundaries; and encoding
+errors at required digit positions after signs, decimal points or exponent
+markers/signs. Integers beyond 2^53 and signed/unsigned 64-bit ranges, 4096-digit
+integers/fractions/exponents remain lexical successes without numeric conversion.
+The public scanner has a compile-time noexcept check and requires no storage
+callback. These tests do not add an allocation failure path to an allocation-free
+API or instrument global allocations.
+
+These are P025 decimal-component results, not complete numeric token validation.
+Unconsumed suffix validation remains P028; hex/non-finite recognition remains
+P026/P027. Owned numeric representation, configurable parser budgets and actual
+numeric conversion remain later steps. No parser/document or embedded-device
+support is inferred. J5-021/J5-022 remain Draft; PR checks, merge and issue closure
+are separate from local component evidence.
