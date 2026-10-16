@@ -904,3 +904,52 @@ identifier path for member names. P029 numeric ownership/representation also
 remains later work. Shared J5 contracts stay Draft; host component results do
 not establish MISRA/CERT compliance, embedded execution, PR/merge completion
 or issue closure.
+
+
+## P028 scalar and numeric token completion units, 2026-10-16
+
+Added 125 GoogleTest cases in `tests/token_completion_tests.cpp`, built as
+`adaptive_json5_token_completion_unit_tests`, selected by `token_completion_units`.
+All 125 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF, with `-Wparentheses -Werror`. Both complete host builds succeeded;
+the full suite passed 1055/1055 cases in each preset. clang-format 18.1.8 passed
+for all 69 C++ files. No production C++ was edited during this test work.
+Execution logs are local build artifacts under `build/p028-full-*-results.log`;
+no remote CI, MSVC/Clang or embedded execution is claimed.
+
+Boundary fixtures check EOF, all six structural punctuators, strict JSON spaces,
+JSON5-only whitespace/separators and comment openers, and explicit invalid
+letters/digits/operators/quotes/backslashes/NUL. They preserve caller position
+and input. Invalid scalar fixtures check exact categories/offsets and rollback
+for truex, unknown/wrong-case/escaped names, numeric suffixes, binary/octal/
+separator forms, incomplete hex, non-finite suffixes, doubled signs, repeated
+points, adjacent quoted content and invalid slash/NUL boundaries. Applicable
+numeric cases independently exercise the public number wrapper as well.
+
+Success checks the actual variant alternative, literal/numeric kind, exact string
+units and original spans. Scalar numbers work without a provider; strings and
+temporary identifier-based literal recognition use the explicit provider and
+unit limit. EOF/structural no-match does not allocate. Malformed UTF-8 after each
+scalar family preserves the encoding category and original suffix location,
+without publishing cursor changes or leaking storage. Mode-specific comment/
+Unicode-space boundaries are exercised through every scalar alternative.
+Incomplete string/escape/exponent components propagate their EOF syntax failures.
+
+Real trivia processing between independently read scalar components confirms
+that whitespace/comments never join 1 and 2 or tr and ue into one spelling.
+These are component composition units, not a container/document parser. Context
+validation of multiple root values or missing container separators remains later
+work. Every observed allocation for string/literal recognition is failed
+independently with cleanup and retry; decoded-unit limits, missing providers
+and boundary failure after a warning-bearing string also roll back atomically.
+Moving a string variant preserves owned units and original warning metadata
+after input mutation/destruction. Compile-time checks cover noexcept entry
+points and non-throwing, noncopyable scalar-token ownership.
+
+Known documentation follow-up: token_boundary.hpp still describes intended
+callers as unquoted tokens only; scalar dispatch also applies its delimiter
+policy to quoted scalar strings. The developer should update that comment.
+Comment bodies/later trivia, document/container context, P029 numeric ownership,
+complete parser budgets and complete grammar conformance remain separate work.
+Shared requirements stay Draft; local component evidence is not a MISRA/CERT
+assessment, remote PR check, merge result or automatic issue closure.
