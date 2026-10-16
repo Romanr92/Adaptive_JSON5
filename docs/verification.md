@@ -953,3 +953,39 @@ Comment bodies/later trivia, document/container context, P029 numeric ownership,
 complete parser budgets and complete grammar conformance remain separate work.
 Shared requirements stay Draft; local component evidence is not a MISRA/CERT
 assessment, remote PR check, merge result or automatic issue closure.
+
+
+## P029 owned numeric spelling checkpoint units, 2026-10-16
+
+Added 70 GoogleTest cases in `tests/owned_number_tests.cpp`, built as
+`adaptive_json5_owned_number_unit_tests`, selected by `owned_number_units`.
+All 70 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF, with `-Wparentheses -Werror`. Only the affected target was built/run;
+no fresh full-suite or remote CI result is claimed. clang-format 18.1.8 passed
+for all 71 C++ files. No production C++ was edited during this test work.
+
+Twenty-one spelling fixtures run in both syntax modes with literal numeric-kind
+expectations: ordinary numbers, negative-zero variants, preserved fraction/
+exponent spelling, values beyond 2^53 and signed/unsigned 64-bit ranges, huge
+positive/negative finite exponents, JSON5 decimal forms, hex and all signed
+non-finite forms. Success retains exact original bytes in an independent,
+exact-size allocation without a terminator; input mutation leaves content intact.
+Strict rejection precedes allocation. Twelve invalid complete spellings run in
+both modes, checking no-match, trivia/additional tokens, malformed grammar,
+unsupported binary/NUL suffixes and encoding errors with exact diagnostics.
+
+Additional cases retain 4096-digit integer/fraction/exponent/hex spellings without
+conversion, transfer ownership twice, preserve a borrowed view after input
+mutation/destruction, and confirm empty moved-from spelling with retained kind
+metadata. The sole allocation is failed while another owner remains live,
+then retried through the same provider. Missing providers, invalid/null-empty
+views and below/equal/above byte limits have explicit outcomes. Allocation and
+release descriptions/balances are checked. Compile-time checks cover noexcept
+factory/accessors, non-throwing moves/destruction and disabled copy/move assignment.
+
+This is owned spelling and numeric-family evidence, not executed exact arithmetic,
+integrality queries or numeric conversion. Those operations and the full P031
+work/exponent/memory accounting are separate. P030 containers and P032 primitive
+owned-value composition are also pending. Shared J5 requirements remain Draft;
+no MISRA/CERT compliance, embedded execution, issue closure or merge result is
+inferred from this checkpoint.

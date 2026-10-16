@@ -13,7 +13,8 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   decoding success before payload access and returns the stored error through
   `status_result::failure`. Reviewed as correct. The numeric wrapper's boundary
   error guard was also independently correct. Use exercise blocks for these
-  error-propagation operations in later lessons.
+  error-propagation operations in later lessons. P029 recognition and allocation
+  failure guards were also independently completed and reviewed as correct.
 
 ## Retry after further guided practice
 
