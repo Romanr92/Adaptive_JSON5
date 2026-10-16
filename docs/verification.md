@@ -809,3 +809,25 @@ P026/P027. Owned numeric representation, configurable parser budgets and actual
 numeric conversion remain later steps. No parser/document or embedded-device
 support is inferred. J5-021/J5-022 remain Draft; PR checks, merge and issue closure
 are separate from local component evidence.
+
+
+## Compiler warnings-as-errors policy, 2026-10-16
+
+Project targets, including all unit-test executables, now receive
+`-Wparentheses -Werror` on GCC/Clang/AppleClang, or `/W4 /WX /w14706` on
+MSVC-compatible builds through the shared private target configuration function.
+Third-party targets and exported consumer flags are unchanged. MSVC/Clang
+execution was not performed locally.
+
+Both native Windows/GCC 15.2.0 presets were configured and full builds attempted
+with exceptions OFF and ON, RTTI OFF. Both builds fail on the existing mixed
+logical expression in `include/adaptive_json5/utf16.hpp:49`, now diagnosed as
+`-Werror=parentheses`. Building remaining targets with Ninja's keep-going option
+reported no other unique compiler errors. No production C++ was edited to bypass
+or repair the diagnostic; the developer must explicitly group the surrogate
+range conjunction. Full-suite success under the new flags is not claimed.
+
+The freshly built decimal and build-configuration groups pass 88/88 cases in
+each preset under the new warning flags. clang-format 18.1.8 passes for all
+61 C++ files. These partial results do not replace a successful complete host
+build/unit run or required PR checks.

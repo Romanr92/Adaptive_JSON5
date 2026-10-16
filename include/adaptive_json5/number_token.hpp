@@ -1,7 +1,6 @@
 #ifndef NUMBER_TOKEN_HPP_
 #define NUMBER_TOKEN_HPP_
 
-#include <cmath>
 #include <cstddef>
 
 namespace adaptive_json5
