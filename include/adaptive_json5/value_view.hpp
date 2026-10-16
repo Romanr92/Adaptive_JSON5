@@ -2,7 +2,6 @@
 #define VALUE_VIEW_HPP_
 
 #include "adaptive_json5/container_links.hpp"
-#include "adaptive_json5/number_token.hpp"
 #include "adaptive_json5/value_record.hpp"
 #include "decoded_string.hpp"
 #include "error.hpp"

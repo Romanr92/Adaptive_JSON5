@@ -9,6 +9,7 @@
 #include "result.hpp"
 #include "storage.hpp"
 #include "value_index.hpp"
+#include "value_iterator.hpp"
 #include "value_record.hpp"
 #include "value_storage.hpp"
 #include "value_view.hpp"
@@ -27,7 +28,7 @@ namespace adaptive_json5
    * All indices passed to this document must originate from this document.
    * Indices do not encode document identity; bounds checking cannot detect
    * an in-range index incorrectly taken from another document.
-   * Moving or destroying the document invalidates its existing views.
+   * Moving or destroying the document invalidates its existing views and iterators.
    * Appending preserves indices but may invalidate borrowed payload pointers.
    * Every storage provider used by records or payloads must outlive its allocations.
    * This component record limit does not replace P031 resource accounting.
@@ -233,6 +234,22 @@ namespace adaptive_json5
         }
 
         return result<value_view>::success(value_view{m_values, index});
+      }
+
+      /**
+       * @brief Begin source-order iteration over a container's direct children.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-039; J5-040.
+       * @param container Array or object index belonging to this document.
+       * @note Rejects invalid indices and scalar values.
+       * Empty containers produce valid iterators that immediately report completion.
+       * The iterator borrows this document and allocates nothing.
+       * Moving or destroying this document invalidates the iterator.
+       * Do not modify document relationships during iteration.
+       */
+      result<value_iterator> iterate(value_index container) const noexcept
+      {
+        return value_iterator::create(m_values, container);
       }
 
       /**
