@@ -1025,3 +1025,41 @@ identified. Iteration requires relationships to remain unchanged. Full P031
 memory/work accounting and P032 primitive dispatch remain separate. Shared
 requirements remain Draft; these host results do not establish embedded target
 execution or MISRA/CERT compliance.
+
+## P031 resource-guard component units (2026-10-17)
+
+Added 36 GoogleTest cases in `tests/resource_guards_tests.cpp`, built as
+`adaptive_json5_resource_guards_unit_tests`, selected by `resource_guards_units`.
+All 36 plus the 16 existing `api_configuration_units` cases passed in each native
+Windows/GCC 15.2.0 C++17 configuration: exceptions OFF and ON, RTTI OFF, with
+project warnings treated as errors. The affected targets were rebuilt in both
+modes. No fresh full-suite or remote matrix result is claimed. clang-format
+18.1.8 passed for all 88 C++ files. Production files were not edited by the agent.
+
+Literal defaults and independent options overrides are checked alongside
+backward-compatible syntax selection. Input, numeric spelling and exponent
+lengths cover zero, below/equal/above limits and maximum size_t. Reservation
+units cover node/member coupling, depth and diagnostic limits, underflow,
+mismatched releases, rollback and reuse. String units cover incremental
+per-string and aggregate ceilings, failed-charge atomicity, zero and size_t
+maximum arithmetic without allocation.
+
+Caller-storage units distinguish resource_limit from allocation_failure, verify
+that byte-limit rejection does not call the provider, account for overlapping
+blocks and retained peak usage, and follow moves, replacement and release of
+owned blocks. They also exercise provider failure/retry while an allocation is
+live, missing callbacks, invalid alignments, empty blocks and checked array
+multiplication. Allocation descriptions and release balance are checked by a
+fixed-record host provider. Work units cover zero, exact exhaustion, failed
+charges and maximum-size overflow; exhausted work does not prevent owned-block
+cleanup or refund consumed work.
+
+This checkpoint verifies reusable P031 guards and options configuration only.
+Existing lexer, document and lookup paths do not automatically use these guards.
+Parser-wide accounting, operation-specific work charges and pre-growth checks
+must be wired as the parser/conversion paths are developed; #69 tracks complete
+cross-cutting accounting. The current components accept all size_t ceilings,
+including zero and restrictive cross-limit combinations; they do not expose a
+separate invalid-combination validator. No cancellation API is implemented by
+these units. Requirements remain Draft; parser-wide enforcement, embedded target
+execution and MISRA/CERT compliance are not inferred from these host results.

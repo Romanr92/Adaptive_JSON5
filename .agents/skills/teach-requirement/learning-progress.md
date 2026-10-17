@@ -1,11 +1,15 @@
 # Teaching progress
 
-Updated 2026-10-16. Track individual demonstrated concepts, not whole-language
+Updated 2026-10-17. Track individual demonstrated concepts, not whole-language
 mastery. Review implementations before recording independent success. Preserve
 normal code comments; exercise placeholders use concise `/* ... */` blocks.
 
 ## Independently completed
 
+- Peak-counter update: P031 `accounted_storage::allocate_callback()` compares
+  current outstanding bytes with the recorded peak and updates the peak only
+  when current usage is greater. Independently filled the exercise and reviewed
+  as correct. Use a concise exercise block for later applications of this concept.
 - Optional-sign handling: P027 `consume_non_finite()` safely checks the optional
   byte, consumes at most one sign and advances only the private cursor. Reviewed
   as correct. Use an exercise block for later applications of this operation.
