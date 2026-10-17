@@ -7,7 +7,6 @@
 #include "storage.hpp"
 
 #include <cstddef>
-#include <utility>
 
 namespace adaptive_json5
 {
