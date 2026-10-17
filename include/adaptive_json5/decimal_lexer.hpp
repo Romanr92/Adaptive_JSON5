@@ -9,6 +9,7 @@
 #include "utf8.hpp"
 
 #include <cstddef>
+#include <limits>
 #include <optional>
 
 namespace adaptive_json5
@@ -64,9 +65,10 @@ namespace adaptive_json5
   /**
    * @brief Recognize a decimal numeric spelling without numeric conversion.
    * @par Requirements
-   * P025; J5-021; J5-022; J5-041.
+   * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
    * @param source Cursor positioned at a possible number start.
    * @param mode Selected input syntax.
+   * @param max_exponent_digits Inclusive exponent digit limit.
    * @return Source metadata, successful nullopt for no-match,
    * or an explicit located error.
    * @note No-match and failure leave source unchanged.
@@ -74,8 +76,14 @@ namespace adaptive_json5
    * Hexadecimal prefixes and non-finite names are left for other recognizers.
    * Complete suffix validation is a separate P028 operation.
    * Nonmatching input and unconsumed suffix bytes are not validated here.
+   * Exponent signs are excluded from the digit count; leading zeros count.
+   * Excess exponent digits report resource_limit at the first excess digit.
+   * Zero permits exponent-free numbers but rejects any exponent digit.
+   * The default permits any digit count representable by size_t.
    */
-  inline result<std::optional<number_token>> consume_decimal(cursor& source, syntax_mode mode) noexcept
+  inline result<std::optional<number_token>>
+  consume_decimal(cursor& source, syntax_mode mode,
+                  std::size_t max_exponent_digits = std::numeric_limits<std::size_t>::max()) noexcept
   {
     using decimal_result = result<std::optional<number_token>>;
     constexpr std::size_t c_ascii_byte_count = 1;
@@ -180,7 +188,17 @@ namespace adaptive_json5
       }
 
       const std::size_t exponent_start = candidate.offset();
-      detail::consume_decimal_digits(candidate);
+
+      while (detail::is_decimal_digit(candidate.peek()))
+      {
+        // Reject the first excess digit before consuming it.
+        if (candidate.offset() - exponent_start >= max_exponent_digits)
+        {
+          return decimal_result::failure(error::at_offset(error_code::resource_limit, candidate.offset()));
+        }
+
+        candidate.advance(c_ascii_byte_count);
+      }
 
       if (candidate.offset() == exponent_start)
       {

@@ -3,10 +3,10 @@
 
 #include "container_links.hpp"
 #include "decoded_string.hpp"
+#include "input.hpp"
 #include "owned_number.hpp"
 #include "value_index.hpp"
 
-#include <cstddef>
 #include <optional>
 #include <variant>
 
@@ -14,19 +14,6 @@ namespace adaptive_json5
 {
   namespace detail
   {
-    /**
-     * @brief Describe an original source byte range.
-     * @par Requirements
-     * P030; J5-041.
-     * @note Contains no ownership of source text.
-     * Presence of a range does not keep the original input alive.
-     */
-    struct record_source_span
-    {
-        std::size_t byte_offset{};
-        std::size_t byte_length{};
-    };
-
     /**
      * @brief Store exactly one owned value payload or container description.
      * @par Requirements
@@ -41,7 +28,7 @@ namespace adaptive_json5
     /**
      * @brief Store one value and its document-relative relationship metadata.
      * @par Requirements
-     * P030; J5-028; J5-030; J5-031; J5-040; J5-041.
+     * P030; P032; J5-028; J5-030; J5-031; J5-040; J5-041.
      * @note Internal representation; document operations enforce invariants.
      * Default construction creates a detached null record without allocation.
      * parent is unset for a root or detached record.
@@ -59,8 +46,8 @@ namespace adaptive_json5
         value_index parent{};
         value_index next_sibling{};
         std::optional<decoded_string> member_name{};
-        std::optional<record_source_span> source_span{};
-        std::optional<record_source_span> member_name_source_span{};
+        std::optional<adaptive_json5::source_span> source_span{};
+        std::optional<adaptive_json5::source_span> member_name_source_span{};
     };
   } // namespace detail
 } // namespace adaptive_json5

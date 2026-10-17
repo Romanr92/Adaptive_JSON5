@@ -5,6 +5,7 @@
 #include "decoded_string.hpp"
 #include "document_links.hpp"
 #include "error.hpp"
+#include "input.hpp"
 #include "member_lookup.hpp"
 #include "owned_number.hpp"
 #include "result.hpp"
@@ -24,7 +25,7 @@ namespace adaptive_json5
   /**
    * @brief Own value records and expose checked read-only views.
    * @par Requirements
-   * P030; J5-028; J5-039; J5-040; J5-030; J5-031; J5-033.
+   * P030; P032; J5-028; J5-030; J5-031; J5-033; J5-039; J5-040; J5-041.
    * @note Values are created detached until selected as root or attached later.
    * All indices passed to this document must originate from this document.
    * Indices do not encode document identity; bounds checking cannot detect
@@ -186,6 +187,42 @@ namespace adaptive_json5
       status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept
       {
         return detail::attach_child(m_values, m_root, object, child, &name);
+      }
+
+      /**
+       * @brief Assign or replace a value's original source range.
+       * @par Requirements
+       * P032; J5-039; J5-041.
+       * @param index Value index belonging to this document.
+       * @param span Original zero-based byte offset and byte length.
+       * @param input_size Original input size in bytes.
+       * @return Success or an explicit access/range failure.
+       * @note Failure leaves existing metadata unchanged.
+       * A zero-length range at input_size is permitted.
+       * Stores no input pointer and performs no allocation.
+       * The caller must supply the correct original input size and provenance.
+       * Bounds validation does not prove that the range spells this value.
+       */
+      status_result set_source_span(value_index index, adaptive_json5::source_span span,
+                                    std::size_t input_size) noexcept
+      {
+        const auto resolved = m_values.at(index);
+
+        if (!resolved.has_value())
+        {
+          return status_result::failure(*resolved.error_if());
+        }
+
+        // Subtraction validates the range without overflowing its end position.
+        if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
+        {
+          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+
+        // Replace metadata only after all validation succeeds.
+        (*resolved.value_if())->source_span.emplace(span);
+
+        return status_result::success();
       }
 
       /**

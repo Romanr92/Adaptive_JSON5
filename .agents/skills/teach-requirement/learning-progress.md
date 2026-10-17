@@ -33,6 +33,12 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
 
 ## Still developing
 
+- Error-offset rebasing: P032 numeric substring errors required explanation and
+  a supplied implementation. Learner explicitly wants to keep practicing this
+  concept; offer a concise exercise with a concrete offset example at the next
+  suitable occurrence. Do not demote learned error propagation or count this as
+  abandoning the exercise. Current implementation was reviewed as correct with
+  supplied guidance, not as independent mastery.
 - Nested result/optional inspection: the numeric wrapper initially used
   `value()` where `has_value()` was needed. Corrected after explanation and
   reviewed. This correction is not independent mastery of the concept.

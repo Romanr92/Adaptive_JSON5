@@ -75,7 +75,8 @@ namespace adaptive_json5
        * @param max_bytes Maximum owned spelling length in bytes.
        * @return An owned number or an explicit error.
        * @note Checks the component byte limit before scanning or allocation.
-       * Error offsets are relative to text, not a containing document.
+       * Located validation errors are relative to text, not a containing document.
+       * Allocation failures preserve their error code without a source location.
        * Failure does not mutate input or retain a partial allocation.
        * This limit does not replace P031 accounting/work/exponent guards.
        */
@@ -116,7 +117,8 @@ namespace adaptive_json5
         auto allocation = allocate_block(storage, text.size, alignof(char));
         if (!allocation.has_value())
         {
-          return number_result::failure(*allocation.error_if());
+          // Allocation errors have no location relative to the numeric spelling.
+          return number_result::failure(error::without_location(allocation.error_if()->code));
         }
 
         std::memcpy(allocation.value_if()->data(), text.data, text.size);

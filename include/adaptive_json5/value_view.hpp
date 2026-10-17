@@ -5,6 +5,7 @@
 #include "adaptive_json5/value_record.hpp"
 #include "decoded_string.hpp"
 #include "error.hpp"
+#include "input.hpp"
 #include "owned_number.hpp"
 #include "result.hpp"
 #include "value_index.hpp"
@@ -12,6 +13,7 @@
 #include "value_storage.hpp"
 
 #include <cstddef>
+#include <optional>
 #include <variant>
 
 namespace adaptive_json5
@@ -19,7 +21,7 @@ namespace adaptive_json5
   /**
    * @brief Borrow checked, read-only access to one document-owned value.
    * @par Requirements
-   * P030; J5-028; J5-039; J5-040; J5-030; J5-031.
+   * P030; P032; J5-028; J5-030; J5-031; J5-039; J5-040; J5-041.
    * @note Owns no storage and does not extend the document's lifetime.
    * Moving or destroying the storage invalidates this view.
    * Appending records preserves indices, but growth invalidates returned pointers.
@@ -250,6 +252,27 @@ namespace adaptive_json5
       result<const owned_number*> as_number() const noexcept
       {
         return payload_as<owned_number>();
+      }
+
+      /**
+       * @brief Copy this value's optional original source range.
+       * @par Requirements
+       * P032; J5-039; J5-041.
+       * @return Stored span, successful nullopt when absent, or an access failure.
+       * @note Absence of metadata is distinct from an invalid view.
+       * Returned metadata owns no input text and extends no input lifetime.
+       * The copied span remains valid independently of record storage.
+       */
+      result<std::optional<adaptive_json5::source_span>> source_span() const noexcept
+      {
+        const auto resolved = record();
+
+        if (!resolved.has_value())
+        {
+          return result<std::optional<adaptive_json5::source_span>>::failure(*resolved.error_if());
+        }
+
+        return result<std::optional<adaptive_json5::source_span>>::success((*resolved.value_if())->source_span);
       }
 
       /**

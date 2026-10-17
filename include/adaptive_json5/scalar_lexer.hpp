@@ -17,6 +17,7 @@
 #include "token_boundary.hpp"
 
 #include <cstddef>
+#include <limits>
 #include <optional>
 #include <utility>
 
@@ -55,13 +56,15 @@ namespace adaptive_json5
   } // namespace detail
 
   /**
-   * @brief Recognize one string, number, null or Boolean value token.
+   * @brief Recognize a primitive token with independent component limits.
    * @par Requirements
-   * P028; J5-009; J5-023; J5-024; J5-041.
+   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-047.
    * @param source Cursor at a possible scalar value, after caller-managed trivia.
    * @param mode Selected syntax.
    * @param storage Caller-owned fallible storage provider.
-   * @param max_units Maximum decoded units for strings or temporary identifiers.
+   * @param max_string_units Maximum decoded units in a string token.
+   * @param max_identifier_units Maximum temporary decoded identifier units.
+   * @param max_exponent_digits Maximum decimal exponent digits.
    * @return A scalar token, successful nullopt at EOF or structural punctuation,
    * or an explicit located error.
    * @note No-match and failure leave source unchanged.
@@ -72,10 +75,12 @@ namespace adaptive_json5
    * No warning callbacks are exposed or invoked by this operation.
    * String storage and temporary identifier recognition may allocate.
    * The storage provider state must outlive returned owned string content.
+   * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
    */
   inline result<std::optional<scalar_token>>
-  consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units) noexcept
+  consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_string_units,
+                 std::size_t max_identifier_units, std::size_t max_exponent_digits) noexcept
   {
     using scalar_result = result<std::optional<scalar_token>>;
 
@@ -96,7 +101,7 @@ namespace adaptive_json5
     cursor candidate = source;
 
     // Delay public success until the following boundary also validates.
-    auto string = consume_string(candidate, mode, storage, max_units);
+    auto string = consume_string(candidate, mode, storage, max_string_units);
     if (!string.has_value())
     {
       return scalar_result::failure(*string.error_if());
@@ -108,7 +113,7 @@ namespace adaptive_json5
       return detail::finish_scalar_token(source, candidate, std::move(token), mode);
     }
 
-    auto number = detail::consume_number_spelling(candidate, mode);
+    auto number = detail::consume_number_spelling(candidate, mode, max_exponent_digits);
     if (!number.has_value())
     {
       return scalar_result::failure(*number.error_if());
@@ -120,7 +125,7 @@ namespace adaptive_json5
       return detail::finish_scalar_token(source, candidate, std::move(token), mode);
     }
 
-    auto identifier = consume_identifier(candidate, storage, max_units);
+    auto identifier = consume_identifier(candidate, storage, max_identifier_units);
     if (!identifier.has_value())
     {
       return scalar_result::failure(*identifier.error_if());
@@ -160,6 +165,24 @@ namespace adaptive_json5
     scalar_token token{std::in_place_type<literal_token>, literal};
 
     return detail::finish_scalar_token(source, candidate, std::move(token), mode);
+  }
+
+  /**
+   * @brief Recognize a primitive using the original shared decoded-unit limit.
+   * @par Requirements
+   * P028; J5-009; J5-023; J5-024; J5-041.
+   * @param source Cursor at a possible scalar value, after caller-managed trivia.
+   * @param mode Selected syntax.
+   * @param storage Caller-owned fallible storage provider.
+   * @param max_units Maximum decoded units for strings or temporary identifiers.
+   * @return The independently limited overload's recognition result.
+   * @note Preserves the original four-argument call behavior.
+   * Permits any exponent digit count representable by size_t.
+   */
+  inline result<std::optional<scalar_token>>
+  consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units) noexcept
+  {
+    return consume_scalar(source, mode, storage, max_units, max_units, std::numeric_limits<std::size_t>::max());
   }
 } // namespace adaptive_json5
 
