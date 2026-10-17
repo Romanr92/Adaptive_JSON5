@@ -953,3 +953,176 @@ Comment bodies/later trivia, document/container context, P029 numeric ownership,
 complete parser budgets and complete grammar conformance remain separate work.
 Shared requirements stay Draft; local component evidence is not a MISRA/CERT
 assessment, remote PR check, merge result or automatic issue closure.
+
+
+## P029 owned numeric spelling checkpoint units, 2026-10-16
+
+Added 70 GoogleTest cases in `tests/owned_number_tests.cpp`, built as
+`adaptive_json5_owned_number_unit_tests`, selected by `owned_number_units`.
+All 70 passed on native Windows/GCC 15.2.0, C++17, exceptions OFF and ON,
+RTTI OFF, with `-Wparentheses -Werror`. Only the affected target was built/run;
+no fresh full-suite or remote CI result is claimed. clang-format 18.1.8 passed
+for all 71 C++ files. No production C++ was edited during this test work.
+
+Twenty-one spelling fixtures run in both syntax modes with literal numeric-kind
+expectations: ordinary numbers, negative-zero variants, preserved fraction/
+exponent spelling, values beyond 2^53 and signed/unsigned 64-bit ranges, huge
+positive/negative finite exponents, JSON5 decimal forms, hex and all signed
+non-finite forms. Success retains exact original bytes in an independent,
+exact-size allocation without a terminator; input mutation leaves content intact.
+Strict rejection precedes allocation. Twelve invalid complete spellings run in
+both modes, checking no-match, trivia/additional tokens, malformed grammar,
+unsupported binary/NUL suffixes and encoding errors with exact diagnostics.
+
+Additional cases retain 4096-digit integer/fraction/exponent/hex spellings without
+conversion, transfer ownership twice, preserve a borrowed view after input
+mutation/destruction, and confirm empty moved-from spelling with retained kind
+metadata. The sole allocation is failed while another owner remains live,
+then retried through the same provider. Missing providers, invalid/null-empty
+views and below/equal/above byte limits have explicit outcomes. Allocation and
+release descriptions/balances are checked. Compile-time checks cover noexcept
+factory/accessors, non-throwing moves/destruction and disabled copy/move assignment.
+
+This is owned spelling and numeric-family evidence, not executed exact arithmetic,
+integrality queries or numeric conversion. Those operations and the full P031
+work/exponent/memory accounting are separate. P030 containers and P032 primitive
+owned-value composition are also pending. Shared J5 requirements remain Draft;
+no MISRA/CERT compliance, embedded execution, issue closure or merge result is
+inferred from this checkpoint.
+
+## P030 owned document and checked access units (2026-10-16)
+
+Added 40 GoogleTest cases in `tests/document_tests.cpp`, built as
+`adaptive_json5_document_unit_tests` and selected by `document_units`.
+All 40 passed on native Windows/GCC 15.2.0, C++17, with exceptions OFF
+and ON, RTTI OFF, and project warnings treated as errors. Only the affected
+target was built and run; no fresh full-suite or remote CI result is claimed.
+clang-format 18.1.8 passed for all 83 C++ files. Production C++ was unchanged.
+
+The units construct and inspect all six alternatives and move each root twice.
+They check exact owned string/number payloads after input mutation and record
+growth, source reuse after document moves, ordered repeated array elements,
+nested direct-child traversal, duplicate-preserving ordered object members,
+empty names and absent/unique/ambiguous lookup. Ten name fixtures run both as
+standalone comparisons and through lookup, including case differences, unequal
+lengths, normalization-sensitive content, embedded NUL and lone surrogates.
+
+Invalid views, indices, wrong types, empty containers, repeated iterator
+completion and invalid iterators have explicit results. Relationship tests
+exercise wrong containers, self-attachment, cycles, repeated attachment,
+root reuse and preservation of supplied member names on failure. Allocation
+tracking validates release descriptions and ownership balance, including a
+2048-level tree destroyed without traversing child ownership recursively.
+Zero/exact/exceeded record limits and missing providers are checked. Each
+of seven record-growth allocations is independently failed and retried while
+existing records remain readable; failed internal storage append preserves
+an externally owned string record for retry. Read-only lookup and traversal
+are checked to make no provider allocation requests.
+
+These are P030 component results before recursive parsing. Bare indices retain
+the documented same-document precondition; in-range foreign indices cannot be
+identified. Iteration requires relationships to remain unchanged. Full P031
+memory/work accounting and P032 primitive dispatch remain separate. Shared
+requirements remain Draft; these host results do not establish embedded target
+execution or MISRA/CERT compliance.
+
+## P031 resource-guard component units (2026-10-17)
+
+Added 36 GoogleTest cases in `tests/resource_guards_tests.cpp`, built as
+`adaptive_json5_resource_guards_unit_tests`, selected by `resource_guards_units`.
+All 36 plus the 16 existing `api_configuration_units` cases passed in each native
+Windows/GCC 15.2.0 C++17 configuration: exceptions OFF and ON, RTTI OFF, with
+project warnings treated as errors. The affected targets were rebuilt in both
+modes. No fresh full-suite or remote matrix result is claimed. clang-format
+18.1.8 passed for all 88 C++ files. Production files were not edited by the agent.
+
+Literal defaults and independent options overrides are checked alongside
+backward-compatible syntax selection. Input, numeric spelling and exponent
+lengths cover zero, below/equal/above limits and maximum size_t. Reservation
+units cover node/member coupling, depth and diagnostic limits, underflow,
+mismatched releases, rollback and reuse. String units cover incremental
+per-string and aggregate ceilings, failed-charge atomicity, zero and size_t
+maximum arithmetic without allocation.
+
+Caller-storage units distinguish resource_limit from allocation_failure, verify
+that byte-limit rejection does not call the provider, account for overlapping
+blocks and retained peak usage, and follow moves, replacement and release of
+owned blocks. They also exercise provider failure/retry while an allocation is
+live, missing callbacks, invalid alignments, empty blocks and checked array
+multiplication. Allocation descriptions and release balance are checked by a
+fixed-record host provider. Work units cover zero, exact exhaustion, failed
+charges and maximum-size overflow; exhausted work does not prevent owned-block
+cleanup or refund consumed work.
+
+This checkpoint verifies reusable P031 guards and options configuration only.
+Existing lexer, document and lookup paths do not automatically use these guards.
+Parser-wide accounting, operation-specific work charges and pre-growth checks
+must be wired as the parser/conversion paths are developed; #69 tracks complete
+cross-cutting accounting. The current components accept all size_t ceilings,
+including zero and restrictive cross-limit combinations; they do not expose a
+separate invalid-combination validator. No cancellation API is implemented by
+these units. Requirements remain Draft; parser-wide enforcement, embedded target
+execution and MISRA/CERT compliance are not inferred from these host results.
+
+## P032 primitive-root parsing and storage/lexer regressions (2026-10-18)
+
+Added 145 GoogleTest cases in `tests/primitive_parser_tests.cpp`, built as
+`adaptive_json5_primitive_parser_unit_tests`, selected by `primitive_parser_units`.
+The complete host suite passed 1346/1346 in each native Windows/GCC 15.2.0 C++17
+configuration: exceptions OFF and ON, RTTI OFF, with project warnings treated
+as errors. All project unit targets were rebuilt in both modes. clang-format
+18.1.8 passed for all 90 C++ files. No remote CI or other native-platform result
+is claimed, and no production C++ was edited by the agent during test authoring.
+
+Seventeen primitive fixtures run in both syntax modes with literal type,
+decoded UTF-16, Boolean and numeric-family expectations. They include empty
+strings, escaped NUL and lone surrogates, negative zero, an integer beyond
+2^53, preserved fractional/exponent spelling, JSON5-only quoted/decimal forms,
+hex and non-finite values. Forty invalid-input cases check exact original
+syntax offsets and cleanup, including empty/trivia-only input, extra values,
+unknown/case-variant/escaped identifiers, malformed numbers/strings, embedded
+NUL and explicitly unsupported container roots. Comment/trivia behavior is
+checked separately in JSON5 and strict JSON.
+
+Source-span units check absent metadata versus invalid access, replacement,
+failed-update atomicity, overflow-safe bounds, growth and independent copied
+spans. Parsed ownership survives input mutation/destruction and document moves.
+Warnings retain their total occurrence count and first original source span;
+only the retained descriptor consumes a diagnostic entry. Root string limits
+and temporary identifier limits remain independent, allowing literals when
+owned string-content limits are zero.
+
+Thirty-six configured-limit fixtures cover input, nodes, strings, aggregate
+root-string units, numeric spelling, exponent digits, bytes, diagnostics and
+work. Work boundaries verify the documented phase model, including 13 units
+for `true` and 17 for ` true `. Owned-byte limits are exercised below/equal/above
+the observed requested-byte peak, including another live allocation sharing
+the same accounting ceiling. Invalid input views and mismatched accounting
+configuration reject before provider calls. Fourteen direct-entry cases verify
+that decimal, complete-number and independently limited scalar recognition
+forward exponent limits and preserve the caller cursor on failure.
+
+Every reachable allocation in five representative roots is failed independently
+and retried while an earlier document remains live. Transaction units check
+recognition/construction work failure, record-growth failure and successful
+reuse without publishing cursor advancement or appended records on failure.
+Result-only and dual-callback storage regressions verify dispatch preference,
+no fallback after failure, null-success rejection, missing deallocation,
+original release descriptions, nested accounting, and explicit error/peak
+preservation. The numeric allocation regression returns a provider-origin
+located resource error at a nonzero input offset: its category survives, while
+the owned-number boundary deliberately removes its location before numeric
+substring rebasing. Separate validation errors retain and rebase their numeric
+substring locations.
+
+These results cover the primitive-only P032 entry point, not a complete JSON5
+parser. Arrays and objects remain rejected here until P033. Returned documents
+borrow a caller-owned accounted_storage object, which must outlive all their
+allocations. The byte ceiling is shared with other live allocations using that
+object. Repeated low-level consume_primitive calls do not share aggregate string
+or diagnostic counters; only the complete single-root wrapper has the stated
+root-level aggregate guarantee. Work charges are deterministic conservative
+phase allowances, not measured instructions/time or fine-grained cancellation.
+Cleanup remains independent of exhausted work. Later parser, conversion and
+schema paths still require shared accounting integration under #69. Requirements
+remain Draft; no MISRA/CERT compliance or embedded execution is inferred.

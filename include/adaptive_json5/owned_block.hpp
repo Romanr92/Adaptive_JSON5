@@ -23,6 +23,12 @@ namespace adaptive_json5
       // Only allocate_block may create a non-empty owner for a successful allocation.
       friend result<owned_block> allocate_block(const storage_callbacks&, std::size_t, std::size_t) noexcept;
 
+      /**
+       * @brief Adopt one successfully allocated block.
+       * @par Requirements
+       * P003; J5-040; J5-046.
+       * @note The allocation description must match the originating provider.
+       */
       owned_block(const storage_callbacks& storage, void* data, std::size_t bytes, std::size_t alignment) noexcept
           : m_storage(storage), m_data(data), m_bytes(bytes), m_alignment(alignment)
       {
@@ -121,11 +127,21 @@ namespace adaptive_json5
         return m_data;
       }
 
+      /**
+       * @brief Return the owned allocation size in bytes.
+       * @par Requirements
+       * P003; J5-040.
+       */
       std::size_t size() const noexcept
       {
         return m_bytes;
       }
 
+      /**
+       * @brief Return the owned allocation's requested alignment.
+       * @par Requirements
+       * P003; J5-040.
+       */
       std::size_t alignment() const noexcept
       {
         return m_alignment;
@@ -135,17 +151,22 @@ namespace adaptive_json5
   /**
    * @brief Allocate one block from caller-supplied storage.
    * @par Requirements
-   * P003; J5-046; J5-051; J5-101.
-   * @return Owning block, or allocation_failure when the provider is unusable or exhausted,
-   * or resource_limit when alignment is not a non-zero power of two.
-   * @note A zero-byte request succeeds with an empty block and does not call the provider.
-   * Failure reporting requires no allocation or input location.
+   * P003; P032; J5-003; J5-046; J5-047; J5-051; J5-101.
+   * @return Owning block, an explicit result-callback failure,
+   * allocation_failure for an unusable provider or null allocation,
+   * or resource_limit for invalid alignment.
+   * @note Requires deallocate and at least one allocation callback.
+   * Prefers allocate_result and never falls back after its failure.
+   * A zero-byte request succeeds after provider/alignment validation
+   * without invoking either allocation callback.
+   * Explicit callback errors are preserved, including location metadata.
+   * Failure reporting requires no allocation.
    */
   inline result<owned_block> allocate_block(const storage_callbacks& storage, std::size_t bytes,
                                             std::size_t alignment) noexcept
   {
     // Reject unusable providers before any callback can be invoked.
-    if ((storage.allocate == nullptr) || (storage.deallocate == nullptr))
+    if ((storage.deallocate == nullptr) || ((storage.allocate == nullptr) && (storage.allocate_result == nullptr)))
     {
       return result<owned_block>::failure(error::without_location(error_code::allocation_failure));
     }
@@ -161,7 +182,25 @@ namespace adaptive_json5
       return result<owned_block>::success(owned_block{});
     }
 
-    void* const data = storage.allocate(storage.context, bytes, alignment);
+    void* data = nullptr;
+
+    if (storage.allocate_result != nullptr)
+    {
+      const auto allocated = storage.allocate_result(storage.context, bytes, alignment);
+
+      if (!allocated.has_value())
+      {
+        return result<owned_block>::failure(*allocated.error_if());
+      }
+
+      data = *allocated.value_if();
+    }
+    else
+    {
+      data = storage.allocate(storage.context, bytes, alignment);
+    }
+
+    // Neither callback may create a nonempty owner around a null address.
     if (data == nullptr)
     {
       return result<owned_block>::failure(error::without_location(error_code::allocation_failure));

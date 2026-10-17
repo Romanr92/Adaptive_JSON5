@@ -10,6 +10,8 @@
 #include "result.hpp"
 #include "token_boundary.hpp"
 
+#include <cstddef>
+#include <limits>
 #include <optional>
 
 namespace adaptive_json5
@@ -19,15 +21,19 @@ namespace adaptive_json5
     /**
      * @brief Select a numeric spelling recognizer without skipping input.
      * @par Requirements
-     * P028; J5-021; J5-022; J5-024.
+     * P028; P032; J5-021; J5-022; J5-024; J5-047.
      * @param source Cursor used by the selected spelling recognizer.
      * @param mode Selected input syntax.
+     * @param max_exponent_digits Inclusive decimal exponent digit limit.
      * @return Recognized numeric metadata, no-match, or an explicit error.
      * @note A recognizer's failure is final and must not trigger fallback.
      * No-match leaves source unchanged before trying another recognizer.
      * This helper does not establish a complete token boundary.
+     * Exponent limits apply only to decimal spellings.
      */
-    inline result<std::optional<number_token>> consume_number_spelling(cursor& source, syntax_mode mode) noexcept
+    inline result<std::optional<number_token>>
+    consume_number_spelling(cursor& source, syntax_mode mode,
+                            std::size_t max_exponent_digits = std::numeric_limits<std::size_t>::max()) noexcept
     {
       auto hexadecimal = consume_hexadecimal(source, mode);
       if (!hexadecimal.has_value())
@@ -51,16 +57,17 @@ namespace adaptive_json5
         return non_finite;
       }
 
-      return consume_decimal(source, mode);
+      return consume_decimal(source, mode, max_exponent_digits);
     }
   } // namespace detail
 
   /**
    * @brief Recognize one numeric token and validate its immediate boundary.
    * @par Requirements
-   * P028; J5-009; J5-021; J5-022; J5-024; J5-041.
+   * P028; P032; J5-009; J5-021; J5-022; J5-024; J5-041; J5-047.
    * @param source Cursor positioned at a possible numeric token.
    * @param mode Selected input syntax.
+   * @param max_exponent_digits Inclusive decimal exponent digit limit.
    * @return Numeric metadata, successful nullopt for no-match,
    * or an explicit located error.
    * @note No-match and failure leave source unchanged.
@@ -69,14 +76,18 @@ namespace adaptive_json5
    * Success leaves following punctuation and trivia unconsumed.
    * Later trivia and document/container syntax require separate validation.
    * Source metadata does not own the numeric spelling.
+   * Excess exponent digits preserve the decimal recognizer's resource error.
+   * The default permits any exponent digit count representable by size_t.
    */
-  inline result<std::optional<number_token>> consume_number(cursor& source, syntax_mode mode) noexcept
+  inline result<std::optional<number_token>>
+  consume_number(cursor& source, syntax_mode mode,
+                 std::size_t max_exponent_digits = std::numeric_limits<std::size_t>::max()) noexcept
   {
     using number_result = result<std::optional<number_token>>;
 
     // Include boundary validation in the same private cursor transaction.
     cursor candidate = source;
-    auto recognized = detail::consume_number_spelling(candidate, mode);
+    auto recognized = detail::consume_number_spelling(candidate, mode, max_exponent_digits);
 
     if (!recognized.has_value())
     {
