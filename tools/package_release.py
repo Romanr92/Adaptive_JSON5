@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -27,10 +28,19 @@ def run(*args, cwd=None):
     return subprocess.check_output([str(arg) for arg in args], cwd=cwd, text=True).strip()
 
 
+def release_version(tag):
+    """Return the CMake numeric version, retaining the caller's exact tag elsewhere."""
+    match = re.fullmatch(r"v?(\d+\.\d+\.\d+)(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?", tag)
+    if not match:
+        raise ValueError("Use a MAJOR.MINOR.PATCH release tag, optionally prefixed with v")
+    return match[1]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--platform", choices=PROFILES, required=True)
-    parser.add_argument("--version", required=True, help="Release tag, e.g. v0.1.0 or v0.1.0-rc.1")
+    parser.add_argument("--version", required=True, help="Exact release tag, e.g. 0.1.0, v0.1.0 or 0.1.0-rc.1")
+    parser.add_argument("--source-dir", type=Path, help="Released source checkout; defaults to this tool's repository")
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=Path("dist"))
     parser.add_argument("--compiler", help="GNU C++ compiler; omit when using a sourced SDK")
@@ -40,19 +50,22 @@ def main():
     parser.add_argument("--jobs", type=int, default=os.cpu_count() or 1)
     parser.add_argument("--allow-dirty", action="store_true", help="Local development only; never publish this output")
     args = parser.parse_args()
-    source = Path(__file__).resolve().parents[1]
-    version = re.fullmatch(r"v(\d+\.\d+\.\d+)(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?", args.version)
-    if not version:
-        parser.error("Use a versioned vMAJOR.MINOR.PATCH release tag")
+    tooling = Path(__file__).resolve().parents[1]
+    source = args.source_dir.resolve() if args.source_dir else tooling
+    try:
+        version = release_version(args.version)
+    except ValueError as error:
+        parser.error(str(error))
     project = re.search(r"project\(AdaptiveJSON5 VERSION ([0-9.]+)", (source / "CMakeLists.txt").read_text())
-    if not project or project[1] != version[1]:
+    if not project or project[1] != version:
         parser.error("Release tag must match project(AdaptiveJSON5 VERSION ...) in CMakeLists.txt")
     revision = run("git", "rev-parse", "HEAD", cwd=source)
     if args.expected_commit and revision != args.expected_commit:
         parser.error("Checked-out source differs from the release event commit")
     dirty = bool(run("git", "status", "--porcelain", "--untracked-files=normal", cwd=source))
-    if dirty and not args.allow_dirty:
-        parser.error("Release source must be clean; use --allow-dirty only for unpublished local validation")
+    tooling_dirty = bool(run("git", "status", "--porcelain", "--untracked-files=normal", cwd=tooling))
+    if (dirty or tooling_dirty) and not args.allow_dirty:
+        parser.error("Release source and packaging tools must be clean; use --allow-dirty only for unpublished local validation")
     sdk_profile = args.platform.startswith("adaptivepi-")
     if sdk_profile and (args.sdk_sha256 != SDK_SHA256 or not args.toolchain):
         parser.error("AdaptivePi profile requires the pinned v0.2.0 SDK checksum and its CMake toolchain file")
@@ -102,10 +115,16 @@ def main():
         if expected != actual:
             parser.error("Installed public-header inventory differs from supported headers")
         info.update({"release_tag": args.version, "source_dirty": dirty,
+                     "packaging_revision": run("git", "rev-parse", "HEAD", cwd=tooling),
+                     "packaging_dirty": tooling_dirty,
                      "position_independent_code": True, "lto": False,
                      "cmake_version": run("cmake", "--version").splitlines()[0]})
         # The compiler/system versions are in build-info; host tools are not runtime dependencies.
         (stage / "build-info.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
+        # Recovery builds keep library sources immutable while shipping the corrected
+        # consumer import helper. Its separate tooling revision is recorded above.
+        shutil.copyfile(tooling / "cmake/ImportAdaptiveJSON5.cmake",
+                        stage / "share/AdaptiveJSON5/cmake/ImportAdaptiveJSON5.cmake")
         timestamp = int(run("git", "show", "-s", "--format=%ct", "HEAD", cwd=source))
         # Normalize archive metadata, not library bytes: toolchain reproducibility is separate.
         with archive.open("wb") as output, gzip.GzipFile(fileobj=output, mode="wb", filename="", mtime=0) as compressed:

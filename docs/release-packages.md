@@ -3,7 +3,9 @@
 Publishing a GitHub release runs `release-library.yml` for the released commit.
 Published prereleases are included; saving a draft does not publish packages.
 The numeric tag version must match `project(AdaptiveJSON5 VERSION ...)`, e.g.
-`v0.1.0` or `v0.1.0-rc.1` for CMake version `0.1.0`. Packaging does not establish
+`0.1.0`, `v0.1.0`, `0.1.0-rc.1` or `v0.1.0-rc.1` for CMake version `0.1.0`.
+The optional `v` prefix is preserved in archive names and download URLs; use the
+exact tag when importing a package. Packaging does not establish
 parser conformance or ECU runtime verification.
 
 ## Targets and contents
@@ -44,6 +46,8 @@ Caller-provided storage remains required; no default allocator is introduced.
 
 Metadata records the exact commit, compiler/version/triple, libstdc++ string ABI,
 flags, pointer size, MinGW CRT/thread model, source/data versions and SDK checksum.
+The separate `packaging_revision` identifies the packaging tool/import helper
+revision, which may be newer than the immutable library source during recovery.
 Runner package updates can change
 compiler patch/runtime versions; manifests describe actual builds, not a promise
 of byte-identical rebuilds. Binary imports reject different compiler versions,
@@ -127,12 +131,29 @@ Use a clean checkout. `--allow-dirty` marks unpublished local development output
 the workflow never uses it. `--expected-commit` checks the release event's commit.
 Version/profile strings are passed as process arguments, never shell code.
 
-A manual workflow run builds all four packages as workflow artifacts without
-uploading a release. On `release: published`, all builds must succeed before the
+A manual workflow run normally builds all four packages as workflow artifacts
+without uploading a release. Leaving **publish** unchecked intentionally skips
+the publish job. On `release: published`, all builds must succeed before the
 publishing job verifies checksums and attaches archives/manifests. Only that job
 has `contents: write`. Existing assets are not overwritten on reruns. Keep assets
 editable while this after-publication workflow attaches files; immutable-release
 publishing would require attaching files before publishing instead.
+
+### Recover an existing release
+
+If an older release failed because it used a tag without `v`, rerunning that old
+run still uses its original workflow/tooling. After merging the fix, open
+**Actions > release-library > Run workflow**, choose `main`, enter the exact
+existing release tag (e.g. `0.1.0`), and check **publish**. This explicitly attaches
+packages to that existing release. The workflow checks out its immutable tagged
+library source separately and runs the corrected packaging tools from the selected
+workflow revision. Library source and packaging-tool revisions are both recorded;
+the corrected import helper ships with the package. The tag is not moved.
+
+All four builds must pass before this recovery publish job runs. Already attached
+assets are not overwritten. A failed dependency build also causes publish to be
+skipped, so inspect the first failed build rather than treating the skipped
+publish job as the underlying failure.
 
 PR quality checks remain GoogleTest units and formatting. The unit workflow adds
 native ARM64 and MinGW executions in both exception modes with RTTI OFF. Consumer
