@@ -2,6 +2,7 @@ adaptive_json5_add_unit(adaptive_json5_parser_engine_unit_tests parser_engine_un
     parser/parser_engine_tests.cpp
     parser/array_grammar_tests.cpp
     parser/object_grammar_tests.cpp
+    parser/duplicate_policy_tests.cpp
     parser/parser_transition_tests.cpp
     parser/parser_close_tests.cpp
     parser/parser_warning_tests.cpp)

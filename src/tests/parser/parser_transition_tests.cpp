@@ -293,7 +293,7 @@ namespace
       if (state != parser_state::object_value)
         frame.pending_name.emplace();
       work_budget work{100};
-      const auto attached = attach_parsed_value(values, frame, *child.value_if(), work);
+      const auto attached = attach_parsed_value(values, frame, *child.value_if(), work, 0);
       /* Expect */
       // A pending object name must never be silently discarded by array attachment.
       ASSERT_FALSE(attached.has_value());
@@ -321,7 +321,7 @@ namespace
     work_budget work{100};
     /* Act */
     // Work admission can succeed while relationship validation still fails.
-    const auto attached = attach_parsed_value(values, frame, value_index{99}, work);
+    const auto attached = attach_parsed_value(values, frame, value_index{99}, work, 0);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
     EXPECT_EQ(attached.error_if()->code, error_code::wrong_type_or_access);

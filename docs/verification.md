@@ -1407,3 +1407,37 @@ in each exception mode, RTTI OFF, using 32 workers. Logs: local build artifacts
 `build/timeout-off-repeat.log`, `build/timeout-on-repeat.log`,
 `build/timeout-off-tests.log` and `build/timeout-on-tests.log`.
 No production implementation or test assertions were changed for this adjustment.
+
+
+## P036 duplicate-name policy units (2026-10-19)
+
+Added **69 runtime cases**: 56 named combinations of source examples and
+preserve/reject policies, six exact work-budget boundaries, and seven focused
+units. Internal cases are in `src/tests/parser/duplicate_policy_tests.cpp`;
+public error/span API cases are in `tests/value/member_name_span_tests.cpp`.
+The existing parser attachment units now supply the required input-size argument.
+
+The units check quoted, bare, escaped, reserved-word, empty, embedded-NUL and
+surrogate-unit names; case and normalization distinctions; parent/child and
+separate-object independence; duplicate names after nested values; original
+first/repeated byte offsets and lengths; default preservation of both ordered
+Boolean values; and retained name spans. Fixed fixture counts/locations are
+independent expected data. Duplicate error metadata is checked through result
+copying and compile-time construction.
+
+Operational checks cover every observed allocation failure with fresh-engine
+retry and balanced accounted storage, checker work boundaries before iteration
+and comparison, invalid object access and missing provenance, span-range overflow,
+invalid/unnamed views, optional absent metadata, atomic name/span attachment, and
+frame ownership/state retention on range failure followed by successful retry.
+Purpose and Arrange/Act/Expect comments accompany each declaration, with reasoning
+comments inside each body.
+
+Full suites passed **1643/1643 in each configuration**: GCC 16.2.0, C++17,
+exceptions OFF/ON respectively, RTTI OFF, all 32 logical CPU workers. Build/test
+logs are local artifacts `build/p036-tests-off-build.log`,
+`build/p036-tests-on-build.log`, `build/p036-tests-off.log` and
+`build/p036-tests-on.log`. clang-format 18 passed for all **170 C++ files**.
+Production implementation and public headers were not changed by this unit task.
+This is P036 host unit evidence; J5 statuses and P037 complete-document scope
+remain unchanged.
