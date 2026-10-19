@@ -23,12 +23,13 @@ namespace adaptive_json5
   namespace detail
   {
     /**
-     * @brief Own one completed value tree and its consumed input prefix.
+     * @brief Own one completed value tree and its consumed input length.
      * @par Requirements
-     * P033; J5-013; J5-027; J5-040; J5-041.
+     * P033; P037; J5-013; J5-026; J5-027; J5-040; J5-041.
      * @note The document has an established root.
-     * consumed_bytes includes leading trivia and ends immediately after the root.
-     * Remaining input has not been validated.
+     * consumed_bytes includes leading trivia.
+     * run() stops immediately after the root without validating remaining input.
+     * run_complete() includes trailing trivia and requires complete consumption.
      * The caller's accounting object and storage provider must outlive values.
      */
     struct parsed_value_tree
@@ -148,6 +149,17 @@ namespace adaptive_json5
          * Every failure requires abandoning this engine instance.
          */
         result<parsed_value_tree> run() noexcept;
+
+        /**
+         * @brief Construct one root and require complete input consumption.
+         * @par Requirements
+         * P037; J5-026; J5-049; J5-051.
+         * @note Invoke once on a fresh engine instead of run().
+         * Admits trailing trivia according to the selected syntax mode.
+         * Success sets consumed_bytes to the complete input size.
+         * Failure returns no tree; discard this engine instance.
+         */
+        result<parsed_value_tree> run_complete() noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5

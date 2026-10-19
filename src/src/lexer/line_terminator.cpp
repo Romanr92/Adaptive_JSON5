@@ -10,6 +10,16 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume one line-terminator sequence if present.
+   * @par Requirements
+   * P007; J5-011; J5-017; J5-044.
+   * @param source Cursor over borrowed UTF-8 input.
+   * @return A terminator span, successful std::nullopt when none is
+   * present, or an explicit encoding error.
+   * @note EOF, nonterminators and encoding failures leave source unchanged.
+   * Recognizes LF, CR, CRLF, U+2028 and U+2029 without allocation.
+   */
   result<std::optional<line_terminator_span>> consume_line_terminator(cursor& source) noexcept
   {
     using terminator_result = result<std::optional<line_terminator_span>>;

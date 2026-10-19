@@ -13,6 +13,20 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Select the next action for the innermost open container.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027.
+     * @param frame Valid innermost open-container frame.
+     * @param current Current byte after caller-managed trivia, or nullopt at EOF.
+     * @param byte_offset Original offset of current, or the EOF offset.
+     * @param mode Selected syntax mode.
+     * @return Next action or a located syntax error.
+     * @note Performs no allocation, input consumption or state mutation.
+     * Lexers validate value and name spellings after dispatch.
+     * EOF inside an open container is always a syntax error.
+     * Post-comma states are entered only after a completed element or member.
+     */
     result<parser_action> next_container_action(const parser_frame& frame, std::optional<char> current,
                                                 std::size_t byte_offset, syntax_mode mode) noexcept
     {

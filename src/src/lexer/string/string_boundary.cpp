@@ -12,6 +12,15 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume a permitted opening quote if present.
+   * @par Requirements
+   * P014; J5-014.
+   * @return The delimiter, successful nullopt before nonquote input or EOF,
+   * or syntax error for a single quote in strict JSON.
+   * @note Failure and no-match leave the cursor unchanged.
+   * Does not skip trivia or validate nonquote input.
+   */
   result<std::optional<string_quote>> consume_string_opening(cursor& source, syntax_mode mode) noexcept
   {
     using opening_result = result<std::optional<string_quote>>;
@@ -46,6 +55,20 @@ namespace adaptive_json5
     return opening_result::success(std::optional<string_quote>{quote});
   }
 
+  /**
+   * @brief Consume one ordinary character, closing quote or escape introducer.
+   * @par Requirements
+   * P014; J5-014.
+   * @param quote Delimiter returned by consume_string_opening in the same mode.
+   * @return One source piece, an encoding error, or a located syntax error.
+   * EOF reports syntax at the current end offset.
+   * @note Call only inside an open string, outside an escape sequence.
+   * Success consumes exactly one source character; failure consumes nothing.
+   * escape_start consumes the backslash only: the caller must decode its
+   * following escape before calling this function again.
+   * Raw U+2028/U+2029 are characters; warning handling belongs to P020.
+   * Whole-string rollback belongs to the later composing lexer.
+   */
   result<string_piece> consume_string_piece(cursor& source, string_quote quote, syntax_mode mode) noexcept
   {
     constexpr char32_t c_reverse_solidus = U'\\';

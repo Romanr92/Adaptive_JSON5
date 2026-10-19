@@ -19,22 +19,47 @@ namespace adaptive_json5
   {
     static_assert(std::is_nothrow_move_constructible_v<value_record>);
     static_assert(std::is_nothrow_destructible_v<value_record>);
+    /**
+     * @brief Address one slot within an already size-checked allocation.
+     * @par Requirements
+     * P030; J5-040; J5-046.
+     * @note Private callers provide index below the allocated capacity.
+     * This returns storage, without assuming a record is alive there.
+     */
     void* value_storage::slot_address(const owned_block& storage, std::size_t index) noexcept
     {
       auto* bytes = static_cast<unsigned char*>(storage.data());
       return bytes + index * sizeof(value_record);
     }
 
+    /**
+     * @brief Access an already constructed record.
+     * @par Requirements
+     * P030; J5-039; J5-040.
+     * @note Private callers provide index below the constructed record count.
+     */
     value_record* value_storage::live_record(std::size_t index) noexcept
     {
       return std::launder(static_cast<value_record*>(slot_address(m_storage, index)));
     }
 
+    /**
+     * @brief Access an already constructed record without mutation.
+     * @par Requirements
+     * P030; J5-039; J5-040.
+     * @note Private callers provide index below the constructed record count.
+     */
     const value_record* value_storage::live_record(std::size_t index) const noexcept
     {
       return std::launder(static_cast<const value_record*>(slot_address(m_storage, index)));
     }
 
+    /**
+     * @brief Destroy constructed records without releasing the raw block.
+     * @par Requirements
+     * P030; J5-040.
+     * @note Reverse-order iteration uses no recursive child traversal.
+     */
     void value_storage::destroy_records() noexcept
     {
       while (m_size != c_empty_size)
@@ -44,6 +69,13 @@ namespace adaptive_json5
       }
     }
 
+    /**
+     * @brief Ensure capacity before moving an incoming record.
+     * @par Requirements
+     * P030; J5-040; J5-046.
+     * @note Allocation failure leaves existing records unchanged.
+     * Growth temporarily retains both old and new raw blocks.
+     */
     status_result value_storage::reserve(std::size_t required) noexcept
     {
       if (required > m_max_records)
@@ -93,11 +125,23 @@ namespace adaptive_json5
       return status_result::success();
     }
 
+    /**
+     * @brief Construct empty storage with an explicit record limit.
+     * @par Requirements
+     * P030; J5-040; J5-046.
+     * @note Construction allocates nothing; a zero limit permits no records.
+     */
     value_storage::value_storage(const storage_callbacks& provider, std::size_t max_records) noexcept
         : m_provider(provider), m_max_records(max_records)
     {
     }
 
+    /**
+     * @brief Transfer storage ownership and leave the source empty.
+     * @par Requirements
+     * P030; J5-040.
+     * @note The source retains its provider and limit and can be reused.
+     */
     value_storage::value_storage(value_storage&& other) noexcept
         : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
           m_capacity(other.m_capacity), m_max_records(other.m_max_records)
@@ -106,11 +150,27 @@ namespace adaptive_json5
       other.m_capacity = 0;
     }
 
+    /**
+     * @brief Destroy each live record before releasing its raw storage.
+     * @par Requirements
+     * P030; J5-040.
+     * @note Performs no allocation and does not recursively follow children.
+     */
     value_storage::~value_storage() noexcept
     {
       destroy_records();
     }
 
+    /**
+     * @brief Append an externally held record and return its stable index.
+     * @par Requirements
+     * P030; J5-028; J5-040; J5-046.
+     * @param record Record that does not reside inside this storage.
+     * @return Its new index or an explicit limit/allocation error.
+     * @note Failure leaves existing records and the incoming record unchanged.
+     * Success moves from record. Growth invalidates earlier record pointers.
+     * Relationship invariants are enforced by the later document builder.
+     */
     result<value_index> value_storage::append(value_record&& record) noexcept
     {
       if (m_size >= m_max_records)
@@ -135,6 +195,12 @@ namespace adaptive_json5
       return result<value_index>::success(index);
     }
 
+    /**
+     * @brief Access a record after checking its index.
+     * @par Requirements
+     * P030; J5-039.
+     * @note Returned pointers are invalidated by growth or storage destruction.
+     */
     result<value_record*> value_storage::at(value_index index) noexcept
     {
       if (!index.is_set() || (index.position() >= m_size))
@@ -145,6 +211,12 @@ namespace adaptive_json5
       return result<value_record*>::success(live_record(index.position()));
     }
 
+    /**
+     * @brief Access a record without permitting mutation.
+     * @par Requirements
+     * P030; J5-039.
+     * @note Returned pointers are invalidated by growth or storage destruction.
+     */
     result<const value_record*> value_storage::at(value_index index) const noexcept
     {
       if (!index.is_set() || (index.position() >= m_size))
@@ -155,6 +227,11 @@ namespace adaptive_json5
       return result<const value_record*>::success(live_record(index.position()));
     }
 
+    /**
+     * @brief Return the number of constructed records.
+     * @par Requirements
+     * P030; J5-028.
+     */
     std::size_t value_storage::size() const noexcept
     {
       return m_size;

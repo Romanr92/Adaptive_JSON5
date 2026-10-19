@@ -29,6 +29,26 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Transfer one completed primitive token into a detached value.
+     * @par Requirements
+     * P032; J5-023; J5-028; J5-034; J5-040.
+     * @param destination Document receiving the detached value.
+     * @param token Completed token, consumed on entry.
+     * @param input Original input used to recognize the token.
+     * @param options Syntax and numeric spelling limit.
+     * @param storage Provider for the owned numeric spelling.
+     * @return New value index or an explicit failure.
+     * @note Tokens must originate from the scalar lexer using this input
+     * and syntax mode. Input must remain alive and unchanged during the call.
+     * String content is transferred; numeric spelling is independently copied.
+     * Provider state must outlive any transferred or copied allocation.
+     * Failure leaves existing document values and its root unchanged.
+     * Consumed string content may be released on failure.
+     * Does not establish a root, advance a cursor or parse containers.
+     * Source spans and string-warning publication are handled by composition.
+     * Does not itself integrate owned-byte or work accounting.
+     */
     result<value_index> append_primitive_token(document& destination, scalar_token token, input_view input,
                                                const parse_options& options, const storage_callbacks& storage) noexcept
     {
@@ -97,6 +117,37 @@ namespace adaptive_json5
     }
   } // namespace detail
 
+  /**
+   * @brief Recognize and construct one detached primitive using shared work accounting.
+   * @par Requirements
+   * P032; J5-017; J5-023; J5-028; J5-040; J5-041; J5-047; J5-049.
+   * @param destination Document receiving the constructed value.
+   * @param source Cursor positioned after caller-managed leading trivia.
+   * @param input Exact original input underlying source.
+   * @param options Syntax, string-content and numeric component limits.
+   * @param storage Provider for lexical storage and owned numeric spelling.
+   * @param work Shared work budget for the enclosing operation.
+   * @return Constructed primitive, successful nullopt at EOF or structural
+   * punctuation, or an explicit failure.
+   * @note Input must remain alive and unchanged throughout this call.
+   * No-match and failure leave source and destination values unchanged.
+   * Successful work charges remain consumed on no-match or failure.
+   * Success appends one detached value and advances source past its token.
+   * Does not set the root, skip trivia or require complete input consumption.
+   * Containers are not parsed; structural punctuation remains unconsumed.
+   * Warning metadata is returned without invoking warning callbacks.
+   * Record source spans are not assigned by this component.
+   * Each string is bounded by both per-string and total string limits.
+   * Repeated calls do not share aggregate string or diagnostic accounting.
+   * Temporary identifier units are bounded separately by input size.
+   * A retained first-warning descriptor consumes one diagnostic entry.
+   * warning_count summarizes occurrences without retaining additional entries.
+   * Diagnostic checks bound returned metadata, not temporary lexical metadata.
+   * Recognition charges one unit per remaining input byte before scanning.
+   * Construction charges token bytes plus existing records plus one new record.
+   * Construction charges conservatively include possible record relocation.
+   * These are phase-accounting units, not measured execution time.
+   */
   result<std::optional<primitive_value>> consume_primitive(document& destination, cursor& source, input_view input,
                                                            const parse_options& options,
                                                            const storage_callbacks& storage, work_budget& work) noexcept
@@ -200,6 +251,32 @@ namespace adaptive_json5
     return completed;
   }
 
+  /**
+   * @brief Parse exactly one primitive root with surrounding mode-valid trivia.
+   * @par Requirements
+   * P032; J5-009; J5-023; J5-027; J5-028; J5-040; J5-041; J5-046; J5-047; J5-049.
+   * @param input Borrowed complete input, unchanged throughout this call.
+   * @param options Syntax and configured component limits.
+   * @param accounting Caller-owned allocation accounting with a stable address.
+   * @return Complete owned primitive document or an explicit failure.
+   * @note accounting and its provider state must outlive the returned document.
+   * Its byte ceiling must equal options.limits.max_owned_bytes.
+   * Existing live allocations through accounting share that ceiling.
+   * Rejects empty input, additional tokens and container roots.
+   * Failure releases this call's temporary allocations and publishes no document.
+   * Does not invoke warning callbacks; root metadata retains warning information.
+   * Checks input bytes and uses existing node/string/numeric component limits.
+   * Lexical, numeric-spelling and document-record allocations use accounting.
+   * The single root string obeys per-string and total decoded-unit limits.
+   * Decimal exponent digits are checked during recognition.
+   * The optional first-warning descriptor obeys the retained diagnostic limit.
+   * Each trivia scan charges one unit per remaining input byte before scanning.
+   * Primitive recognition and construction charge the same shared work budget.
+   * Charges are conservative phase allowances, not measured execution time.
+   * Successful charges remain consumed when a later phase fails.
+   * Cleanup releases owned storage without requiring additional work charges.
+   * The root span is stored in its value record and returned root metadata.
+   */
   result<primitive_document> parse_primitive_document(input_view input, const parse_options& options,
                                                       accounted_storage& accounting) noexcept
   {

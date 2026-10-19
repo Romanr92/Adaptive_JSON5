@@ -18,6 +18,13 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Dispatch escape forms that produce exactly one UTF-16 unit.
+     * @par Requirements
+     * P021; J5-015; J5-016; J5-018.
+     * @note x and u always go to their owning decoders.
+     * Their failures must never fall back to non-escape characters.
+     */
     result<std::optional<char16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept
     {
       const auto current = source.peek();
@@ -36,6 +43,18 @@ namespace adaptive_json5
     }
   } // namespace detail
 
+  /**
+   * @brief Decode one complete escape after its backslash.
+   * @par Requirements
+   * P021; J5-015; J5-016; J5-017; J5-018.
+   * @param source Cursor immediately after an escape-introducing backslash.
+   * @return Zero, one or two decoded UTF-16 units, or a located error.
+   * @note Zero units represent a consumed line continuation.
+   * Escaped surrogate units are preserved without scalar conversion.
+   * Success consumes the complete escape suffix.
+   * Failure leaves source unchanged.
+   * No allocation is performed.
+   */
   result<encoded_utf16> consume_string_escape(cursor& source, syntax_mode mode) noexcept
   {
     // Keep the complete escape transactional across all recognizers.

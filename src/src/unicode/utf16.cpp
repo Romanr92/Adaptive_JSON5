@@ -6,6 +6,14 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Convert one Unicode scalar into one or two UTF-16 units.
+   * @par Requirements
+   * P013; J5-018.
+   * @return Encoded units, or encoding error for an invalid scalar.
+   * @note Surrogates are rejected as scalar inputs.
+   * Escaped UTF-16 units must be preserved separately without this conversion.
+   */
   result<encoded_utf16> encode_utf16(char32_t scalar) noexcept
   {
     constexpr char32_t c_max_scalar = 0x10FFFF;

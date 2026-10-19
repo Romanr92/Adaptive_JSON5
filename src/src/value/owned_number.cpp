@@ -17,11 +17,32 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Adopt validated numeric text and its spelling family.
+   * @par Requirements
+   * P029; J5-034; J5-040.
+   * @note Storage ownership transfers without another allocation.
+   */
   owned_number::owned_number(owned_block&& storage, number_kind kind) noexcept
       : m_storage(std::move(storage)), m_kind(kind)
   {
   }
 
+  /**
+   * @brief Validate and copy exactly one numeric spelling.
+   * @par Requirements
+   * P029; J5-034; J5-038; J5-040; J5-046.
+   * @param text Borrowed numeric bytes, with no surrounding trivia.
+   * @param mode Syntax used to validate the spelling.
+   * @param storage Caller-owned fallible storage provider.
+   * @param max_bytes Maximum owned spelling length in bytes.
+   * @return An owned number or an explicit error.
+   * @note Checks the component byte limit before scanning or allocation.
+   * Located validation errors are relative to text, not a containing document.
+   * Allocation failures preserve their error code without a source location.
+   * Failure does not mutate input or retain a partial allocation.
+   * This limit does not replace P031 accounting/work/exponent guards.
+   */
   result<owned_number> owned_number::copy_spelling(input_view text, syntax_mode mode, const storage_callbacks& storage,
                                                    std::size_t max_bytes) noexcept
   {
@@ -69,11 +90,27 @@ namespace adaptive_json5
     return number_result::success(owned_number{std::move(*allocation.value_if()), kind});
   }
 
+  /**
+   * @brief Borrow the exact original numeric spelling.
+   * @par Requirements
+   * P029; J5-034; J5-038; J5-040.
+   * @return Immutable bytes without a terminating NUL.
+   * @note Empty after ownership has been moved away.
+   * The view becomes invalid when its owning allocation is released.
+   */
   input_view owned_number::spelling() const noexcept
   {
     return input_view{static_cast<const char*>(m_storage.data()), m_storage.size()};
   }
 
+  /**
+   * @brief Return the retained numeric spelling family.
+   * @par Requirements
+   * P029; J5-034; J5-038.
+   * @note Finite decimal spellings remain decimal regardless of
+   * whether a later machine-number conversion would overflow.
+   * A moved-from object's kind is metadata only.
+   */
   number_kind owned_number::kind() const noexcept
   {
     return m_kind;

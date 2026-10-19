@@ -16,6 +16,21 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Recognize one quoted or mode-permitted identifier member name.
+     * @par Requirements
+     * P033; P035; J5-017; J5-019; J5-020; J5-041.
+     * @param source Cursor positioned after caller-managed trivia.
+     * @param mode Selected input syntax.
+     * @param storage Fallible provider for decoded name storage.
+     * @param max_units Inclusive decoded-name limit for this recognition.
+     * @return Owned name, successful nullopt on no-match, or an explicit failure.
+     * @note Failure and no-match preserve source.
+     * Success consumes only the name, leaving the colon unconsumed.
+     * Does not classify reserved words as value literals.
+     * Does not skip trivia, update frames or invoke warning callbacks.
+     * The caller handles shared resource and work accounting.
+     */
     result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
                                                                  const storage_callbacks& storage,
                                                                  std::size_t max_units) noexcept

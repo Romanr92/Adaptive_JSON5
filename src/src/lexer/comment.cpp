@@ -12,6 +12,17 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume a // comment if one begins at the current position.
+   * @par Requirements
+   * P009; J5-012.
+   * @param source Cursor over borrowed UTF-8 input.
+   * @return A comment span, successful std::nullopt when no comment starts
+   * here, or an explicit encoding error.
+   * @note Leaves the terminating line break unread.
+   * No match or encoding failure leaves source unchanged.
+   * Requires no allocation and throws no exceptions.
+   */
   result<std::optional<comment_span>> consume_line_comment(cursor& source) noexcept
   {
     using comment_result = result<std::optional<comment_span>>;
@@ -65,6 +76,19 @@ namespace adaptive_json5
     return comment_result::success(std::optional<comment_span>{comment_span{start, length}});
   }
 
+  /**
+   * @brief Consume a block comment through its first closing delimiter.
+   * @par Requirements
+   * P010; J5-012.
+   * @param source Cursor over borrowed UTF-8 input.
+   * @return A comment span, successful std::nullopt when no block comment
+   * begins here, or an explicit encoding or syntax error.
+   * @note Includes both delimiters and does not nest comments.
+   * An unterminated comment reports a syntax error at its opening slash.
+   * No match or failure leaves source unchanged.
+   * Requires no allocation and throws no exceptions.
+   * This recognizer does not enforce strict JSON mode.
+   */
   result<std::optional<comment_span>> consume_block_comment(cursor& source) noexcept
   {
     using comment_result = result<std::optional<comment_span>>;

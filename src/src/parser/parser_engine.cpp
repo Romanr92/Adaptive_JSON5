@@ -38,6 +38,18 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Start a container or construct and accept a scalar value.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+     * @note Reserve node/member resources before construction and depth
+     * before growing container frames.
+     * Scalar decoding uses the remaining aggregate string allowance.
+     * Failure preserves the source cursor but may change private state;
+     * the failed engine must be abandoned.
+     * Failed container opening releases its matching reservations.
+     * Successful work charges are not refunded.
+     */
     status_result parser_engine::read_value() noexcept
     {
       if (m_root.is_set())
@@ -264,6 +276,21 @@ namespace adaptive_json5
       return status_result::success();
     }
 
+    /**
+     * @brief Decode and retain the innermost object's next member name.
+     * @par Requirements
+     * P033; P035; P036; J5-032; J5-033; J5-049; J5-017; J5-019; J5-020; J5-048.
+     * @note Limits lexical growth to the remaining decoded-unit allowance.
+     * Success retains the name and selects object_colon.
+     * Retains only the first warning descriptor and counts all warnings.
+     * Failure preserves the source cursor and pending name.
+     * Earlier budget reservations are not rolled back after later failure;
+     * the failed engine must be abandoned.
+     * Under reject_duplicates, checks completed members of the same object
+     * before committing the name or cursor.
+     * Duplicate failures retain both original name-token spans.
+     * Preserve-all bypasses duplicate scanning.
+     */
     status_result parser_engine::read_name() noexcept
     {
       auto* frame = m_frames.top();
@@ -374,6 +401,15 @@ namespace adaptive_json5
       return status_result::success();
     }
 
+    /**
+     * @brief Consume a dispatched colon or comma and update its frame.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027.
+     * @note Validates action, state and punctuation before mutation.
+     * Success consumes exactly one byte.
+     * Failure preserves the cursor and frame.
+     * Dispatch work is charged by run().
+     */
     status_result parser_engine::consume_separator(parser_action action) noexcept
     {
       auto* frame = m_frames.top();
@@ -438,6 +474,16 @@ namespace adaptive_json5
       return status_result::success();
     }
 
+    /**
+     * @brief Close the innermost container and accept its completed value.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-048.
+     * @note Successful closure records the span and removes the frame.
+     * Releases depth before accepting the completed value.
+     * Failure requires abandoning this engine; earlier internal mutations
+     * are not rolled back after a later attachment failure.
+     * The source cursor is committed only after all steps succeed.
+     */
     status_result parser_engine::finish_container() noexcept
     {
       // Keep the closing byte unconsumed until completion succeeds.
@@ -477,6 +523,13 @@ namespace adaptive_json5
       return status_result::success();
     }
 
+    /**
+     * @brief Attach a completed value or record the completed root.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027.
+     * @note Reuse attach_parsed_value when a parent frame exists.
+     * Otherwise record m_root without publishing the document yet.
+     */
     status_result parser_engine::accept_completed_value(value_index completed) noexcept
     {
       if (!completed.is_set() || m_root.is_set())
@@ -498,6 +551,13 @@ namespace adaptive_json5
       return status_result::success();
     }
 
+    /**
+     * @brief Prepare private state without allocating parser storage.
+     * @par Requirements
+     * P033; J5-040; J5-047; J5-048.
+     * @note accounting and its upstream provider must outlive returned data.
+     * Input must remain alive and unchanged throughout run().
+     */
     parser_engine::parser_engine(input_view input, const parse_options& options, accounted_storage& accounting) noexcept
         : m_input(input), m_options(options), m_storage(accounting.callbacks()),
           m_owned_byte_limit(accounting.byte_limit()), m_source(input), m_document(m_storage, options.limits.max_nodes),
@@ -506,6 +566,14 @@ namespace adaptive_json5
     {
     }
 
+    /**
+     * @brief Construct one root value and return its consumed prefix.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
+     * @note Invoke once on a fresh engine.
+     * This internal operation does not validate trailing input.
+     * Every failure requires abandoning this engine instance.
+     */
     result<parsed_value_tree> parser_engine::run() noexcept
     {
       using tree_result = result<parsed_value_tree>;
@@ -632,6 +700,53 @@ namespace adaptive_json5
 
       return tree_result::success(
         parsed_value_tree{std::move(m_document), m_source.offset(), m_warning_count, m_first_warning});
+    }
+
+    /**
+     * @brief Construct one root and require complete input consumption.
+     * @par Requirements
+     * P037; J5-026; J5-049; J5-051.
+     * @note Invoke once on a fresh engine instead of run().
+     * Admits trailing trivia according to the selected syntax mode.
+     * Success sets consumed_bytes to the complete input size.
+     * Failure returns no tree; discard this engine instance.
+     */
+    result<parsed_value_tree> parser_engine::run_complete() noexcept
+    {
+      using tree_result = result<parsed_value_tree>;
+
+      // Keep ownership local until the complete input has been accepted.
+      auto parsed = run();
+
+      if (!parsed.has_value())
+      {
+        return tree_result::failure(*parsed.error_if());
+      }
+
+      // Admit the entire trailing scan before inspecting its bytes.
+      const auto charged = m_work.charge(m_source.remaining());
+
+      if (!charged.has_value())
+      {
+        return tree_result::failure(*charged.error_if());
+      }
+
+      const auto trivia = skip_trivia(m_source, m_options.syntax);
+
+      if (!trivia.has_value())
+      {
+        return tree_result::failure(*trivia.error_if());
+      }
+
+      if (!m_source.is_at_end())
+      {
+        return tree_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+      }
+
+      // Complete parsing includes the trailing trivia in its consumed length.
+      parsed.value_if()->consumed_bytes = m_source.offset();
+
+      return parsed;
     }
   } // namespace detail
 } // namespace adaptive_json5

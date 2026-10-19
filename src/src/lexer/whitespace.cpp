@@ -10,6 +10,18 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume consecutive JSON5 spaces and line-terminator sequences.
+   * @par Requirements
+   * P008; J5-011; J5-025.
+   * @param source Cursor positioned before possible whitespace.
+   * @return The consumed byte span and number of line breaks,
+   * or an explicit encoding error.
+   * @note Stops before the first valid nonwhitespace character.
+   * Encoding failure leaves source unchanged, including any preceding
+   * whitespace from this attempted run. Requires no allocation.
+   * This operation implements JSON5 whitespace, not strict JSON policy.
+   */
   result<whitespace_span> skip_json5_whitespace(cursor& source) noexcept
   {
     using whitespace_result = result<whitespace_span>;
