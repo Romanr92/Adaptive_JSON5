@@ -10,6 +10,17 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Decode one UTF-8 scalar from the current cursor position.
+   * @par Requirements
+   * P005; J5-009.
+   * @param source Cursor over valid borrowed input storage.
+   * @return A decoded character, successful std::nullopt at EOF,
+   * or an explicit encoding error.
+   * @note Requires no allocation. Encoding failure reports the sequence's
+   * starting byte offset and leaves the cursor unchanged.
+   * BOM, NUL and noncharacters are decoded without applying grammar policy.
+   */
   result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept
   {
     using decode_result = result<std::optional<decoded_character>>;

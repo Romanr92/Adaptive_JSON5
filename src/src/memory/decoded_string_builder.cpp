@@ -15,6 +15,13 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Ensure room for the requested total unit count.
+   * @par Requirements
+   * P013; J5-040.
+   * @return Success, resource_limit, or allocation_failure.
+   * @note Growth temporarily holds both old and new allocations.
+   */
   status_result decoded_string_builder::reserve(std::size_t required) noexcept
   {
     if (required > m_max_units)
@@ -61,6 +68,13 @@ namespace adaptive_json5
     return status_result::success();
   }
 
+  /**
+   * @brief Append units from an independent readable array.
+   * @par Requirements
+   * P013; J5-018; J5-029.
+   * @note Private callers provide a valid nonempty local array.
+   * Storage is reserved for the entire append before writing any units.
+   */
   status_result decoded_string_builder::append_units(const char16_t* units, std::size_t count) noexcept
   {
     const auto new_size = checked_add(m_size, count);
@@ -84,16 +98,36 @@ namespace adaptive_json5
     return status_result::success();
   }
 
+  /**
+   * @brief Construct an empty builder with an explicit unit limit.
+   * @par Requirements
+   * P013; J5-029; J5-040.
+   * @note Construction allocates nothing.
+   * A zero limit permits only empty content.
+   */
   decoded_string_builder::decoded_string_builder(const storage_callbacks& provider, std::size_t max_units) noexcept
       : m_provider(provider), m_max_units(max_units)
   {
   }
 
+  /**
+   * @brief Append one exact UTF-16 unit.
+   * @par Requirements
+   * P013; J5-018; J5-029.
+   * @note NUL and lone surrogate units are preserved.
+   */
   status_result decoded_string_builder::append_unit(char16_t unit) noexcept
   {
     return append_units(&unit, encoded_utf16::c_single_unit_count);
   }
 
+  /**
+   * @brief Append the UTF-16 representation of one Unicode scalar.
+   * @par Requirements
+   * P013; J5-018.
+   * @note An invalid scalar returns an encoding error.
+   * A surrogate pair is appended completely or not at all.
+   */
   status_result decoded_string_builder::append_scalar(char32_t scalar) noexcept
   {
     const auto encoded = encode_utf16(scalar);
@@ -105,6 +139,16 @@ namespace adaptive_json5
     return append_units(encoded.value_if()->units, encoded.value_if()->size);
   }
 
+  /**
+   * @brief Transfer accumulated storage into an immutable string.
+   * @par Requirements
+   * P013; J5-018; J5-029; J5-040.
+   * @return Completed string owning the existing allocation.
+   * @note Performs no allocation or content copy and cannot fail.
+   * Unused capacity remains owned by the returned string.
+   * The builder becomes empty and can be reused with its original
+   * provider and unit limit. Repeated finish returns an empty string.
+   */
   decoded_string decoded_string_builder::finish() noexcept
   {
     decoded_string output{std::move(m_storage), m_size};
@@ -116,6 +160,11 @@ namespace adaptive_json5
     return output;
   }
 
+  /**
+   * @brief Return the number of accumulated UTF-16 units.
+   * @par Requirements
+   * P013; J5-029.
+   */
   std::size_t decoded_string_builder::size() const noexcept
   {
     return m_size;

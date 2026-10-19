@@ -8,6 +8,17 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Compare decoded member names by their exact UTF-16 units.
+   * @par Requirements
+   * P030; J5-031; J5-033; J5-039.
+   * @param left First decoded name.
+   * @param right Second decoded name.
+   * @return Exact equality or an explicit unit-access failure.
+   * @note Performs no allocation, normalization or case folding.
+   * Embedded NUL and surrogate units participate unchanged.
+   * Work is linear in the number of units examined.
+   */
   result<bool> decoded_name_equal(const decoded_string& left, const decoded_string& right) noexcept
   {
     if (left.size() != right.size())

@@ -13,6 +13,17 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume whitespace admitted by strict JSON.
+   * @par Requirements
+   * P011; J5-010.
+   * @param source Cursor positioned before possible whitespace.
+   * @return Success, or an explicit encoding error.
+   * @note Admits only space, horizontal tab, carriage return and line feed.
+   * Stops before the first other valid character.
+   * Encoding failure leaves source unchanged.
+   * Requires no allocation and throws no exceptions.
+   */
   status_result skip_strict_json_whitespace(cursor& source) noexcept
   {
     constexpr char32_t c_space = 0x0020;
@@ -56,6 +67,19 @@ namespace adaptive_json5
     return status_result::success();
   }
 
+  /**
+   * @brief Consume consecutive whitespace and comments admitted by the mode.
+   * @par Requirements
+   * P011; J5-010; J5-012; J5-024.
+   * @param source Cursor positioned between tokens.
+   * @param mode Selected input language.
+   * @return The consumed trivia span, or an explicit encoding or syntax error.
+   * @note Strict JSON rejects comment openers at their opening slash.
+   * Stops before the first nontrivia character.
+   * Failure leaves source unchanged, including preceding trivia in this run.
+   * Requires no allocation and throws no exceptions.
+   * Call between tokens, never inside a token spelling.
+   */
   result<trivia_span> skip_trivia(cursor& source, syntax_mode mode) noexcept
   {
     using trivia_result = result<trivia_span>;

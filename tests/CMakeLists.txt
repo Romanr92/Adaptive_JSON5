@@ -31,11 +31,15 @@ adaptive_json5_add_unit(adaptive_json5_accounted_storage_unit_tests resource_gua
 adaptive_json5_add_unit(adaptive_json5_public_library_unit_tests public_library_units
     library/public_library_tests.cpp)
 
+adaptive_json5_add_unit(adaptive_json5_complete_document_unit_tests complete_document_units
+    parser/complete_document_tests.cpp)
+
 # Compile every public header in its own test translation unit, without private paths.
 set(adaptive_json5_public_headers
     error.hpp
     input.hpp
     options.hpp
+    parser.hpp
     result.hpp
     memory/accounted_storage.hpp
     memory/owned_block.hpp

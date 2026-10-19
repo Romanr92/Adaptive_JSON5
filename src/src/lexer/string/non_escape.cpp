@@ -11,6 +11,21 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume a JSON5 non-escape character after its backslash.
+   * @par Requirements
+   * P018; J5-016.
+   * @param source Cursor immediately after an escape-introducing backslash.
+   * @return The unchanged scalar and its source span, successful nullopt
+   * for a special escape or line terminator, or a located error.
+   * @note JSON5 accepts permitted non-escape characters; strict JSON rejects them.
+   * Digits 1 through 9 produce syntax errors.
+   * Special escape spellings remain for their owning decoders.
+   * Success consumes one complete UTF-8 character.
+   * Failure and no-match leave source unchanged.
+   * The returned span excludes the already-consumed backslash.
+   * No allocation is performed.
+   */
   result<std::optional<decoded_character>> consume_non_escape(cursor& source, syntax_mode mode) noexcept
   {
     using escape_result = result<std::optional<decoded_character>>;

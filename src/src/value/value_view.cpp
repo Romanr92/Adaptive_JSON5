@@ -18,6 +18,12 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Resolve the current record through checked storage access.
+   * @par Requirements
+   * P030; J5-039.
+   * @note Reacquires the record instead of retaining a growth-sensitive pointer.
+   */
   result<const detail::value_record*> value_view::record() const noexcept
   {
     if (m_storage == nullptr)
@@ -28,6 +34,12 @@ namespace adaptive_json5
     return m_storage->at(m_index);
   }
 
+  /**
+   * @brief Inspect the payload only when its stored type matches T.
+   * @par Requirements
+   * P030; J5-028; J5-039.
+   * @note Returns a borrowed pointer without numeric or Boolean coercion.
+   */
   template <typename T>
   result<const T*> value_view::payload_as() const noexcept
   {
@@ -47,6 +59,16 @@ namespace adaptive_json5
     return result<const T*>::success(payload);
   }
 
+  /**
+   * @brief Resolve a direct child by its zero-based source-order position.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-039.
+   * @param position Direct-child ordinal, not a document record index.
+   * @param object True for object members, false for array elements.
+   * @note Requires document relationships maintained by validated operations.
+   * Traversal is iterative and visits at most position plus one records.
+   * P031 adds configurable work accounting.
+   */
   result<value_view> value_view::child_at(std::size_t position, bool object) const noexcept
   {
     const auto resolved = record();
@@ -114,11 +136,23 @@ namespace adaptive_json5
     return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
   }
 
+  /**
+   * @brief Borrow a storage owner and a document-relative value index.
+   * @par Requirements
+   * P030; J5-039; J5-040.
+   * @note The storage must remain alive at the same address.
+   * Construction does not validate the index; accessors perform that check.
+   */
   value_view::value_view(const detail::value_storage& storage, value_index index) noexcept
       : m_storage(&storage), m_index(index)
   {
   }
 
+  /**
+   * @brief Return the stored value type without conversion.
+   * @par Requirements
+   * P030; J5-028; J5-039.
+   */
   result<value_kind> value_view::kind() const noexcept
   {
     const auto resolved = record();
@@ -157,6 +191,11 @@ namespace adaptive_json5
     return result<value_kind>::failure(error::without_location(error_code::wrong_type_or_access));
   }
 
+  /**
+   * @brief Read a Boolean value without accepting numeric substitutes.
+   * @par Requirements
+   * P030; J5-028; J5-039.
+   */
   result<bool> value_view::as_boolean() const noexcept
   {
     const auto boolean = payload_as<bool>();
@@ -169,16 +208,38 @@ namespace adaptive_json5
     return result<bool>::success(**boolean.value_if());
   }
 
+  /**
+   * @brief Borrow decoded string content after checking the value type.
+   * @par Requirements
+   * P030; J5-028; J5-039; J5-040.
+   * @note The returned pointer is invalidated by storage growth or destruction.
+   */
   result<const decoded_string*> value_view::as_string() const noexcept
   {
     return payload_as<decoded_string>();
   }
 
+  /**
+   * @brief Borrow an owned number after checking the value type.
+   * @par Requirements
+   * P030; J5-028; J5-039; J5-040.
+   * @note Performs no numeric conversion.
+   * The returned pointer is invalidated by storage growth or destruction.
+   */
   result<const owned_number*> value_view::as_number() const noexcept
   {
     return payload_as<owned_number>();
   }
 
+  /**
+   * @brief Copy this value's optional original source range.
+   * @par Requirements
+   * P032; J5-039; J5-041.
+   * @return Stored span, successful nullopt when absent, or an access failure.
+   * @note Absence of metadata is distinct from an invalid view.
+   * Returned metadata owns no input text and extends no input lifetime.
+   * The copied span remains valid independently of record storage.
+   */
   result<std::optional<adaptive_json5::source_span>> value_view::source_span() const noexcept
   {
     const auto resolved = record();
@@ -191,6 +252,12 @@ namespace adaptive_json5
     return result<std::optional<adaptive_json5::source_span>>::success((*resolved.value_if())->source_span);
   }
 
+  /**
+   * @brief Return the direct element or member count.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-039.
+   * @note Rejects scalar values rather than treating them as empty containers.
+   */
   result<std::size_t> value_view::container_size() const noexcept
   {
     const auto resolved = record();
@@ -215,16 +282,38 @@ namespace adaptive_json5
     return result<std::size_t>::failure(error::without_location(error_code::wrong_type_or_access));
   }
 
+  /**
+   * @brief Borrow an array element by zero-based source-order position.
+   * @par Requirements
+   * P030; J5-030; J5-039; J5-040.
+   * @note Rejects nonarrays and out-of-range positions.
+   * Linear traversal; repeated indexed enumeration has quadratic total cost.
+   */
   result<value_view> value_view::element_at(std::size_t position) const noexcept
   {
     return child_at(position, false);
   }
 
+  /**
+   * @brief Borrow an object member's value by zero-based source-order position.
+   * @par Requirements
+   * P030; J5-031; J5-039; J5-040.
+   * @note Includes every duplicate-name occurrence.
+   * Rejects nonobjects and out-of-range positions.
+   * Linear traversal; repeated indexed enumeration has quadratic total cost.
+   */
   result<value_view> value_view::member_at(std::size_t position) const noexcept
   {
     return child_at(position, true);
   }
 
+  /**
+   * @brief Borrow the decoded name attached to an object-member value.
+   * @par Requirements
+   * P030; J5-031; J5-039; J5-040.
+   * @note An empty member name succeeds; an absent name is an access error.
+   * The returned pointer is invalidated by storage growth or destruction.
+   */
   result<const decoded_string*> value_view::member_name() const noexcept
   {
     const auto resolved = record();
@@ -244,10 +333,14 @@ namespace adaptive_json5
   }
 
   /**
-   * @brief Read name-span metadata after validating this named-member view.
+   * @brief Copy an object member name's optional original source range.
    * @par Requirements
    * P036; J5-032; J5-039; J5-041; J5-044.
-   * @note Returns metadata by value without extending document or input lifetime.
+   * @return Stored span, successful nullopt when metadata is absent,
+   * or an access failure when the view is invalid or has no member name.
+   * @note An empty decoded member name is valid.
+   * Quoted-name spans include their quotation marks.
+   * Returned metadata contains no source pointer and performs no allocation.
    */
   result<std::optional<adaptive_json5::source_span>> value_view::member_name_source_span() const noexcept
   {

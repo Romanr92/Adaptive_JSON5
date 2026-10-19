@@ -9,6 +9,15 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Decode one scalar at a UTF-16 unit index.
+   * @par Requirements
+   * P013; J5-018; J5-029.
+   * @return A scalar and consumed unit count, wrong_type_or_access for an
+   * invalid index, or encoding error for an unpaired surrogate.
+   * @note Does not allocate, modify the string, or advance caller state.
+   * Errors have no original input byte offset: index counts decoded units.
+   */
   result<decoded_utf16> decode_utf16(const decoded_string& source, std::size_t index) noexcept
   {
     constexpr char32_t c_high_surrogate_min = 0xD800;

@@ -83,6 +83,10 @@ def main():
                    for path in compiler_files):
             parser.error("this helper supports GCC only; select a GCC compiler with --compiler")
 
+        # GoogleTest discovery runs newly linked executables during the build.
+        # Clear profiles from older binaries before discovery can merge them
+        # with instrumentation whose checksum changed after recompilation.
+        reset_counters()
         run(["cmake", "--build", BUILD, "--parallel", args.jobs])
 
         # Reset only runtime counters in this dedicated build so repeated reports

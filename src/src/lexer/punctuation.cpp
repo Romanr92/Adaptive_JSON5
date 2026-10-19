@@ -8,6 +8,17 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Consume one structural punctuation character if present.
+   * @par Requirements
+   * P012; J5-013.
+   * @param source Cursor positioned outside strings and comments.
+   * @return A token, or std::nullopt at EOF or before nonpunctuation input.
+   * @note No match leaves source unchanged.
+   * Each recognized punctuator occupies exactly one byte.
+   * Does not skip trivia or validate nonpunctuation input.
+   * Requires no allocation and throws no exceptions.
+   */
   std::optional<punctuation_token> consume_punctuation(cursor& source) noexcept
   {
     constexpr std::size_t c_punctuation_byte_count = 1;

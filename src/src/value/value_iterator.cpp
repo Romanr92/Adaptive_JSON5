@@ -14,12 +14,24 @@
 
 namespace adaptive_json5
 {
+  /**
+   * @brief Retain the validated container's direct-child traversal state.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-039.
+   */
   value_iterator::value_iterator(const detail::value_storage& storage, value_index parent, const container_links& links,
                                  bool object) noexcept
       : m_storage(&storage), m_parent(parent), m_next(links.first), m_remaining(links.count), m_object(object)
   {
   }
 
+  /**
+   * @brief Begin direct-child iteration over an array or object.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-039.
+   * @note Rejects scalar values and invalid container indices.
+   * Requires relationships maintained by validated document operations.
+   */
   result<value_iterator> value_iterator::create(const detail::value_storage& storage, value_index parent) noexcept
   {
     const auto resolved = storage.at(parent);
@@ -67,6 +79,14 @@ namespace adaptive_json5
     return result<value_iterator>::success(value_iterator{storage, parent, *links, object});
   }
 
+  /**
+   * @brief Return the next direct child or successful end of iteration.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-039; J5-040.
+   * @note Failure leaves traversal state unchanged.
+   * Repeated calls after completion return successful empty optionals.
+   * Each call performs constant work; P031 adds work accounting.
+   */
   result<std::optional<value_view>> value_iterator::next() noexcept
   {
     if (m_storage == nullptr)
