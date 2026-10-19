@@ -1,7 +1,6 @@
 #ifndef UTF16_HPP_
 #define UTF16_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>

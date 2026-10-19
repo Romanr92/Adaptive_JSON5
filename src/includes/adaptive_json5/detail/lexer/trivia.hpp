@@ -2,10 +2,6 @@
 #define ADAPTIVE_JSON5_TRIVIA_HPP_
 
 #include "adaptive_json5/detail/input/cursor.hpp"
-#include "adaptive_json5/detail/lexer/comment.hpp"
-#include "adaptive_json5/detail/lexer/whitespace.hpp"
-#include "adaptive_json5/detail/unicode/utf8.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 

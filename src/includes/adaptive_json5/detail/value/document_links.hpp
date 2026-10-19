@@ -1,18 +1,10 @@
 #ifndef DOCUMENT_LINKS_HPP_
 #define DOCUMENT_LINKS_HPP_
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
-#include "adaptive_json5/detail/value/container_links.hpp"
-#include "adaptive_json5/detail/value/value_record.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
-
-#include <cstddef>
-#include <utility>
-#include <variant>
 
 namespace adaptive_json5
 {

@@ -3,7 +3,6 @@
 
 #include "adaptive_json5/detail/input/cursor.hpp"
 #include "adaptive_json5/detail/lexer/number/number_token.hpp"
-#include "adaptive_json5/detail/unicode/utf8.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"

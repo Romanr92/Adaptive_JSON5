@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "adaptive_json5/detail/lexer/number/decimal_lexer.hpp"
+#include "adaptive_json5/detail/lexer/number/number_lexer.hpp"
+#include "adaptive_json5/detail/lexer/scalar_lexer.hpp"
 #include "adaptive_json5/detail/parser/primitive_parser.hpp"
 
 #include <array>

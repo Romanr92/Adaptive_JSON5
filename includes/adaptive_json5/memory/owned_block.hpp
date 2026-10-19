@@ -1,7 +1,6 @@
 #ifndef OWNED_BLOCK_HPP_
 #define OWNED_BLOCK_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
 

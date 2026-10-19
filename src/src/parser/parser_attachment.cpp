@@ -60,6 +60,7 @@ namespace adaptive_json5
         return status_result::failure(*charged.error_if());
       }
 
+      // P034: append elements in source order; P035: retain every member with its decoded name.
       const auto attached = object_member
                               ? destination.append_member(frame.container, std::move(*frame.pending_name), child)
                               : destination.append_element(frame.container, child);

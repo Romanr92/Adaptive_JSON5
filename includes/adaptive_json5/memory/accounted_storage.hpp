@@ -1,7 +1,6 @@
 #ifndef ACCOUNTED_STORAGE_HPP_
 #define ACCOUNTED_STORAGE_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"

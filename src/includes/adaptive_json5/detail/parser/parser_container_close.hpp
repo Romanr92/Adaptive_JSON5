@@ -3,10 +3,7 @@
 
 #include "adaptive_json5/detail/lexer/punctuation.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
-#include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/detail/parser/parser_stack.hpp"
-#include "adaptive_json5/error.hpp"
-#include "adaptive_json5/input.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -21,7 +18,7 @@ namespace adaptive_json5
     /**
      * @brief Complete and remove the innermost open-container frame.
      * @par Requirements
-     * P033; J5-013; J5-041; J5-048; J5-049.
+     * P033; P034; P035; J5-013; J5-041; J5-048; J5-049.
      * @param destination Document owning the frame's container.
      * @param frames Stack of valid open-container frames.
      * @param closing Recognized one-byte right bracket or right brace.

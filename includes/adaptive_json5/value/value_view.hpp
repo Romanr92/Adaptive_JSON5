@@ -1,7 +1,6 @@
 #ifndef VALUE_VIEW_HPP_
 #define VALUE_VIEW_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
@@ -11,7 +10,6 @@
 
 #include <cstddef>
 #include <optional>
-#include <variant>
 
 namespace adaptive_json5
 {

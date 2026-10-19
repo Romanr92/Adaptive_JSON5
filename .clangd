@@ -2,4 +2,4 @@ CompileFlags:
   CompilationDatabase: build/debug-unit-tests
   # Relative to the compilation database's build/debug-unit-tests directory.
   # New headers may inherit a test command without the library include path.
-  Add: [-I../../include]
+  Add: [-I../../includes, -I../../src/includes]

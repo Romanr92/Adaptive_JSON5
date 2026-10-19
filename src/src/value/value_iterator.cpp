@@ -9,7 +9,6 @@
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 
-#include <cstddef>
 #include <optional>
 #include <variant>
 

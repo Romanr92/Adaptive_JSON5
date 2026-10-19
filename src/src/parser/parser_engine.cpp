@@ -8,7 +8,6 @@
 #include "adaptive_json5/detail/lexer/scalar_lexer.hpp"
 #include "adaptive_json5/detail/lexer/scalar_token.hpp"
 #include "adaptive_json5/detail/lexer/string/string_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
 #include "adaptive_json5/detail/lexer/trivia.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
@@ -22,10 +21,10 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
-#include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 
 #include <algorithm>
@@ -341,6 +340,7 @@ namespace adaptive_json5
 
       const std::size_t name_units = name.value.size();
 
+      // P035: own the decoded name until its scalar or nested container value is attached.
       // Construct the optional's value directly: decoded_string cannot be assigned
       frame->pending_name.emplace(std::move(name.value));
       frame->name_offset = name.byte_offset;
@@ -384,7 +384,7 @@ namespace adaptive_json5
       }
       else if (action == parser_action::consume_comma)
       {
-        // A completed element or member must precede every comma.
+        // P034/P035: a completed element or member must precede every comma.
         if (frame->pending_name.has_value())
         {
           return status_result::failure(error::without_location(error_code::wrong_type_or_access));

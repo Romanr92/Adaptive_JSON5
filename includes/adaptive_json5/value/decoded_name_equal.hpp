@@ -4,8 +4,6 @@
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 
-#include <cstddef>
-
 namespace adaptive_json5
 {
   /**

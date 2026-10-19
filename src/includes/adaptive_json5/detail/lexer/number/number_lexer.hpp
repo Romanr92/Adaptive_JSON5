@@ -2,11 +2,7 @@
 #define NUMBER_LEXER_HPP_
 
 #include "adaptive_json5/detail/input/cursor.hpp"
-#include "adaptive_json5/detail/lexer/number/decimal_lexer.hpp"
-#include "adaptive_json5/detail/lexer/number/hexadecimal_lexer.hpp"
-#include "adaptive_json5/detail/lexer/number/non_finite_lexer.hpp"
 #include "adaptive_json5/detail/lexer/number/number_token.hpp"
-#include "adaptive_json5/detail/lexer/token_boundary.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 

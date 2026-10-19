@@ -11,7 +11,6 @@
 
 #include <cstddef>
 #include <new>
-#include <type_traits>
 #include <utility>
 
 namespace adaptive_json5

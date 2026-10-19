@@ -1,16 +1,9 @@
 #ifndef MEMBER_LOOKUP_HPP_
 #define MEMBER_LOOKUP_HPP_
 
-#include "adaptive_json5/error.hpp"
-#include "adaptive_json5/result.hpp"
-#include "adaptive_json5/value/decoded_name_equal.hpp"
-#include "adaptive_json5/value/decoded_string.hpp"
-#include "adaptive_json5/value/value_index.hpp"
-#include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 
 #include <optional>
-#include <variant>
 
 namespace adaptive_json5
 {

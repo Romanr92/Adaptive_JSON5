@@ -1,8 +1,8 @@
 #ifndef STRING_TOKEN_HPP_
 #define STRING_TOKEN_HPP_
 
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 
 #include <cstddef>
 #include <optional>

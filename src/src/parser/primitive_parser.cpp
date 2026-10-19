@@ -7,7 +7,6 @@
 #include "adaptive_json5/detail/lexer/scalar_lexer.hpp"
 #include "adaptive_json5/detail/lexer/scalar_token.hpp"
 #include "adaptive_json5/detail/lexer/string/string_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
 #include "adaptive_json5/detail/lexer/trivia.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"

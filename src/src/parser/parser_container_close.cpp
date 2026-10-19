@@ -70,6 +70,7 @@ namespace adaptive_json5
 
       const auto expected = array ? punctuation_kind::right_bracket : punctuation_kind::right_brace;
 
+      // P034/P035: only JSON5 permits closing after one completed item and its comma.
       if ((closing.kind != expected) || (trailing_comma && (mode != syntax_mode::json5)))
       {
         return result<value_index>::failure(error::at_offset(error_code::syntax, closing.byte_offset));

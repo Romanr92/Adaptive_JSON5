@@ -1,14 +1,12 @@
 #ifndef VALUE_ITERATOR_HPP_
 #define VALUE_ITERATOR_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 
 #include <cstddef>
 #include <optional>
-#include <variant>
 
 namespace adaptive_json5
 {

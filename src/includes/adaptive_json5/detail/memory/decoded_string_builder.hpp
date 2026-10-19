@@ -1,17 +1,12 @@
 #ifndef DECODED_STRING_BUILDER_HPP_
 #define DECODED_STRING_BUILDER_HPP_
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
-#include "adaptive_json5/detail/unicode/utf16.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 
 #include <cstddef>
-#include <cstring>
-#include <utility>
 
 namespace adaptive_json5
 {

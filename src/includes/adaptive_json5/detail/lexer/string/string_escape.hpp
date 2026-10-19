@@ -2,13 +2,7 @@
 #define STRING_ESCAPE_HPP_
 
 #include "adaptive_json5/detail/input/cursor.hpp"
-#include "adaptive_json5/detail/lexer/string/hex_escape.hpp"
-#include "adaptive_json5/detail/lexer/string/line_continuation.hpp"
-#include "adaptive_json5/detail/lexer/string/non_escape.hpp"
-#include "adaptive_json5/detail/lexer/string/simple_escape.hpp"
-#include "adaptive_json5/detail/lexer/string/unicode_escape.hpp"
 #include "adaptive_json5/detail/unicode/utf16.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 

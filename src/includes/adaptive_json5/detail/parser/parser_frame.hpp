@@ -14,7 +14,7 @@ namespace adaptive_json5
     /**
      * @brief Identify the next grammar operation for one open container.
      * @par Requirements
-     * P033; J5-013; J5-027.
+     * P033; P034; P035; J5-013; J5-027.
      * @note Separate initial and post-comma states allow the parser
      * to distinguish empty containers from trailing commas.
      */
@@ -33,7 +33,7 @@ namespace adaptive_json5
     /**
      * @brief Retain the parsing state of one open array or object.
      * @par Requirements
-     * P033; J5-013; J5-048.
+     * P033; P034; P035; J5-013; J5-048.
      * @note The parser must initialize container and state before use.
      * Container indices survive relocation of document records.
      * pending_name owns a decoded object name until member attachment.

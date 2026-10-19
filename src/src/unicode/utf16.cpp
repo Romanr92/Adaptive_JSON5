@@ -4,8 +4,6 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 
-#include <cstddef>
-
 namespace adaptive_json5
 {
   result<encoded_utf16> encode_utf16(char32_t scalar) noexcept

@@ -1,7 +1,6 @@
 #ifndef RESOURCE_BUDGET_HPP_
 #define RESOURCE_BUDGET_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/result.hpp"
 

@@ -3,8 +3,6 @@
 
 #include "adaptive_json5/detail/input/cursor.hpp"
 #include "adaptive_json5/detail/lexer/line_terminator.hpp"
-#include "adaptive_json5/detail/unicode/unicode.hpp"
-#include "adaptive_json5/detail/unicode/unicode_tables.hpp"
 #include "adaptive_json5/detail/unicode/utf8.hpp"
 #include "adaptive_json5/result.hpp"
 

@@ -27,6 +27,7 @@ namespace adaptive_json5
 
       switch (frame.state)
       {
+      // P034: distinguish an empty array, a completed element and a consumed comma.
       case parser_state::array_first_or_end:
         if (byte == ']')
         {
@@ -54,6 +55,7 @@ namespace adaptive_json5
 
         return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
 
+      // P035: require each name, colon and value before allowing a member separator.
       case parser_state::object_first_name_or_end:
         if (byte == '}')
         {
@@ -103,7 +105,7 @@ namespace adaptive_json5
         return action_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
-      // Structural separators cannot stand in for a required value.
+      // P034/P035: separators cannot create array holes or replace member values.
       if ((byte == ',') || (byte == ':') || (byte == ']') || (byte == '}'))
       {
         return action_result::failure(error::at_offset(error_code::syntax, byte_offset));

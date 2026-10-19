@@ -9,7 +9,6 @@
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
-#include <limits>
 #include <optional>
 
 namespace adaptive_json5

@@ -2,12 +2,10 @@
 #define IDENTIFIER_CLASSIFICATION_HPP_
 
 #include "adaptive_json5/detail/lexer/identifier/identifier_token.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 
-#include <cstddef>
 #include <string_view>
 
 namespace adaptive_json5

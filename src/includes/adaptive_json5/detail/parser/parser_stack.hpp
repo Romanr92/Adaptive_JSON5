@@ -1,18 +1,14 @@
 #ifndef PARSER_STACK_HPP_
 #define PARSER_STACK_HPP_
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
-#include <new>
 #include <type_traits>
-#include <utility>
 
 namespace adaptive_json5
 {

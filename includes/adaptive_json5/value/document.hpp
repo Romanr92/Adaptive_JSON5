@@ -1,7 +1,6 @@
 #ifndef DOCUMENT_HPP_
 #define DOCUMENT_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -14,8 +13,6 @@
 #include "adaptive_json5/value/value_view.hpp"
 
 #include <cstddef>
-#include <utility>
-#include <variant>
 
 namespace adaptive_json5
 {

@@ -2,24 +2,13 @@
 #define SCALAR_LEXER_HPP_
 
 #include "adaptive_json5/detail/input/cursor.hpp"
-#include "adaptive_json5/detail/lexer/identifier/identifier_classification.hpp"
-#include "adaptive_json5/detail/lexer/identifier/identifier_lexer.hpp"
-#include "adaptive_json5/detail/lexer/number/number_lexer.hpp"
-#include "adaptive_json5/detail/lexer/number/number_token.hpp"
-#include "adaptive_json5/detail/lexer/punctuation.hpp"
 #include "adaptive_json5/detail/lexer/scalar_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_lexer.hpp"
-#include "adaptive_json5/detail/lexer/string/string_token.hpp"
-#include "adaptive_json5/detail/lexer/token_boundary.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
-#include <limits>
 #include <optional>
-#include <utility>
 
 namespace adaptive_json5
 {

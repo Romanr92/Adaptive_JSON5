@@ -1,7 +1,6 @@
 #ifndef UTF8_EXPORT_HPP_
 #define UTF8_EXPORT_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 

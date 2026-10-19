@@ -5,7 +5,6 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 
-#include <cstddef>
 #include <optional>
 
 namespace adaptive_json5

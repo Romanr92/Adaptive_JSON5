@@ -2,7 +2,6 @@
 #define PARSER_DISPATCH_HPP_
 
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 
@@ -16,7 +15,7 @@ namespace adaptive_json5
     /**
      * @brief Identify the next operation of the iterative container engine.
      * @par Requirements
-     * P033; J5-013; J5-027.
+     * P033; P034; P035; J5-013; J5-027.
      * @note Actions describe work without consuming input or changing frames.
      */
     enum class parser_action
@@ -31,7 +30,7 @@ namespace adaptive_json5
     /**
      * @brief Select the next action for the innermost open container.
      * @par Requirements
-     * P033; J5-013; J5-027.
+     * P033; P034; P035; J5-013; J5-027.
      * @param frame Valid innermost open-container frame.
      * @param current Current byte after caller-managed trivia, or nullopt at EOF.
      * @param byte_offset Original offset of current, or the EOF offset.

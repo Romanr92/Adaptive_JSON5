@@ -1,30 +1,20 @@
 #ifndef PRIMITIVE_PARSER_HPP_
 #define PRIMITIVE_PARSER_HPP_
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/input/cursor.hpp"
-#include "adaptive_json5/detail/lexer/number/number_token.hpp"
-#include "adaptive_json5/detail/lexer/scalar_lexer.hpp"
 #include "adaptive_json5/detail/lexer/scalar_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
-#include "adaptive_json5/detail/lexer/trivia.hpp"
-#include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
-#include "adaptive_json5/value/owned_number.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 
 #include <cstddef>
 #include <optional>
-#include <utility>
-#include <variant>
 
 namespace adaptive_json5
 {

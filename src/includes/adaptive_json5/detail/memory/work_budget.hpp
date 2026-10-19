@@ -1,7 +1,6 @@
 #ifndef WORK_BUDGET_HPP_
 #define WORK_BUDGET_HPP_
 
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>

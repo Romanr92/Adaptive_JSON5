@@ -4,11 +4,9 @@
 #include "adaptive_json5/detail/input/cursor.hpp"
 #include "adaptive_json5/detail/lexer/identifier/identifier_lexer.hpp"
 #include "adaptive_json5/detail/lexer/string/string_lexer.hpp"
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
-#include "adaptive_json5/value/decoded_string.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -26,6 +24,7 @@ namespace adaptive_json5
 
       cursor candidate = source;
 
+      // P035: quoted and identifier names must produce the same owned decoded representation.
       auto quoted = consume_string(candidate, mode, storage, max_units);
 
       if (!quoted.has_value())

@@ -1,38 +1,22 @@
 #ifndef PARSER_ENGINE_HPP_
 #define PARSER_ENGINE_HPP_
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/input/cursor.hpp"
-#include "adaptive_json5/detail/lexer/member_name_lexer.hpp"
-#include "adaptive_json5/detail/lexer/punctuation.hpp"
-#include "adaptive_json5/detail/lexer/scalar_lexer.hpp"
-#include "adaptive_json5/detail/lexer/scalar_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
-#include "adaptive_json5/detail/lexer/trivia.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
-#include "adaptive_json5/detail/parser/parser_attachment.hpp"
-#include "adaptive_json5/detail/parser/parser_container_close.hpp"
-#include "adaptive_json5/detail/parser/parser_container_open.hpp"
 #include "adaptive_json5/detail/parser/parser_dispatch.hpp"
-#include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/detail/parser/parser_stack.hpp"
-#include "adaptive_json5/detail/parser/primitive_parser.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <optional>
-#include <utility>
-#include <variant>
 
 namespace adaptive_json5
 {
@@ -58,7 +42,7 @@ namespace adaptive_json5
     /**
      * @brief Construct a private value tree using iterative container frames.
      * @par Requirements
-     * P033; J5-013; J5-027; J5-048.
+     * P033; P034; P035; J5-013; J5-027; J5-048.
      * @note Internal operation object; construct a fresh instance for each run.
      * Partial documents are never returned after failure.
      * No recursive descent is used.
@@ -85,7 +69,7 @@ namespace adaptive_json5
         /**
          * @brief Start a container or construct and accept a scalar value.
          * @par Requirements
-         * P033; J5-013; J5-027; J5-028; J5-048.
+         * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
          * @note Reserve node/member resources before construction and depth
          * before growing container frames.
          * Scalar decoding uses the remaining aggregate string allowance.
@@ -112,7 +96,7 @@ namespace adaptive_json5
         /**
          * @brief Consume a dispatched colon or comma and update its frame.
          * @par Requirements
-         * P033; J5-013; J5-027.
+         * P033; P034; P035; J5-013; J5-027.
          * @note Validates action, state and punctuation before mutation.
          * Success consumes exactly one byte.
          * Failure preserves the cursor and frame.
@@ -123,7 +107,7 @@ namespace adaptive_json5
         /**
          * @brief Close the innermost container and accept its completed value.
          * @par Requirements
-         * P033; J5-013; J5-027; J5-048.
+         * P033; P034; P035; J5-013; J5-027; J5-048.
          * @note Successful closure records the span and removes the frame.
          * Releases depth before accepting the completed value.
          * Failure requires abandoning this engine; earlier internal mutations
@@ -135,7 +119,7 @@ namespace adaptive_json5
         /**
          * @brief Attach a completed value or record the completed root.
          * @par Requirements
-         * P033; J5-013; J5-027.
+         * P033; P034; P035; J5-013; J5-027.
          * @note Reuse attach_parsed_value when a parent frame exists.
          * Otherwise record m_root without publishing the document yet.
          */
@@ -154,7 +138,7 @@ namespace adaptive_json5
         /**
          * @brief Construct one root value and return its consumed prefix.
          * @par Requirements
-         * P033; J5-013; J5-027; J5-040; J5-048.
+         * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
          * @note Invoke once on a fresh engine.
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.

@@ -3,18 +3,13 @@
 
 #include "adaptive_json5/detail/input/cursor.hpp"
 #include "adaptive_json5/detail/lexer/string/string_boundary.hpp"
-#include "adaptive_json5/detail/lexer/string/string_escape.hpp"
 #include "adaptive_json5/detail/lexer/string/string_token.hpp"
-#include "adaptive_json5/detail/lexer/string/string_warning.hpp"
-#include "adaptive_json5/detail/memory/decoded_string_builder.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
 #include <optional>
-#include <utility>
 
 namespace adaptive_json5
 {

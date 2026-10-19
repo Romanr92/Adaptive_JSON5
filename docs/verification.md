@@ -1361,3 +1361,49 @@ and `build/p034-on-tests.log` (local build artifacts).
 Production C++ and public headers were unchanged. This is host unit evidence
 for P034, not complete-input P037 or full J5 verification; requirement statuses
 remain unchanged.
+
+
+## P035 object grammar review and units (2026-10-19)
+
+Source review found the P035 behavior present in the internal engine: quoted
+and JSON5 IdentifierName recognition, decoded pending-name ownership, required
+colon/value/comma states, mode-dependent trailing commas, nested completion and
+source-order attachment retaining every member. No P035 production defect was
+identified; this is distinct from full J5 verification. Duplicate rejection is
+P036 and complete-input enforcement remains P037.
+
+Added 56 runtime cases in `src/tests/parser/object_grammar_tests.cpp`: 44 named
+grammar cases, ten exact decoded-name cases and two member-retention cases.
+Grammar cases isolate empty/mixed/nested objects, trailing commas and comments,
+bare/single-quoted names, missing names/colons/values/commas, doubled punctuation,
+numeric names, incomplete input and mismatched closers. Failures assert exact
+original byte offsets, no successful partial tree and storage cleanup. Name cases
+exercise reserved words, identifier escapes, quoted escapes, empty names and
+embedded NUL. Retention cases overwrite source bytes after parsing and verify
+owned names, repeated boolean members, nested names/numbers, source order through
+indexing and iteration, and end/out-of-range behavior. Test comments explain
+purpose and reasons for the assertions.
+
+Full CTest: **1574/1574 passed in each** of `build/debug-unit-tests` and
+`build/debug-unit-tests-exceptions`, GCC 16.2.0, C++17, exceptions OFF/ON
+respectively, RTTI OFF, all 32 logical CPU workers. Logs are local build artifacts
+`build/p035-off-tests.log` and `build/p035-on-tests.log`. clang-format 18 passed
+for all 166 C++ files. P035 review/test work changed no production C++; the
+preceding separately authorized comment annotations remain in the working tree.
+Requirement statuses remain unchanged.
+
+
+## Host test timeout investigation (2026-10-19)
+
+A reported timeout for `J5_046_ScalarStorage.FailsEveryAllocationAndAllowsRetry`
+was not reproduced: 100 consecutive isolated executions passed in each exception
+mode, typically around 0.01 seconds per execution. The unit uses bounded input
+and measured allocation-failure loops. This does not establish the cause of the
+reported timeout. The shared CTest hang guard was raised from 10 to 60 seconds
+to tolerate host process startup/scheduling delays with all 32 workers active;
+it is not a parser timing contract. Both generated configurations report the
+effective 60-second property. After regeneration, full suites passed 1574/1574
+in each exception mode, RTTI OFF, using 32 workers. Logs: local build artifacts
+`build/timeout-off-repeat.log`, `build/timeout-on-repeat.log`,
+`build/timeout-off-tests.log` and `build/timeout-on-tests.log`.
+No production implementation or test assertions were changed for this adjustment.

@@ -1,15 +1,11 @@
 #ifndef PARSER_ATTACHMENT_HPP_
 #define PARSER_ATTACHMENT_HPP_
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
-#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
-
-#include <utility>
 
 namespace adaptive_json5
 {
@@ -18,7 +14,7 @@ namespace adaptive_json5
     /**
      * @brief Attach a completed value to its waiting parent frame.
      * @par Requirements
-     * P033; J5-013; J5-030; J5-031; J5-048; J5-049; J5-051.
+     * P033; P034; P035; J5-013; J5-030; J5-031; J5-048; J5-049; J5-051.
      * @param destination Document owning both frame.container and child.
      * @param frame Parent frame currently expecting a value.
      * @param child Detached completed value belonging to destination.

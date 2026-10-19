@@ -4,7 +4,6 @@
 #include "adaptive_json5/detail/lexer/string/string_boundary.hpp"
 #include "adaptive_json5/options.hpp"
 
-#include <cstddef>
 #include <optional>
 
 namespace adaptive_json5
