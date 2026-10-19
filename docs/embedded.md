@@ -34,8 +34,10 @@ executables may set `CMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY` there.
 cmake -S . -B build/embedded -DCMAKE_TOOLCHAIN_FILE=path/to/toolchain.cmake -DADAPTIVE_JSON5_BUILD_TESTS=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
 ```
 
-Today this configures development metadata only. Production core targets and the
-caller-storage implementation belong to the developer's implementation issues.
+This configures the compiled `AdaptiveJSON5::parser` component target without
+host tests. Caller-storage/value/lexical components and the internal P033 engine
+exist; the public complete-document parser entry remains P037 work. Actual
+embedded toolchain execution/support must still be established separately.
 
 ## Unit evidence and support claims
 

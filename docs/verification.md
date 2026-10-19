@@ -1,5 +1,135 @@
 # Development setup verification
 
+## Public/private compiled-library refactor, 2026-10-19
+
+Pre-commit source review compared against committed baseline `83f14a6`:
+all 200 explicit-`noexcept` function definitions (including compile-time/template
+definitions) and constructor initializer lists retain their original executable
+tokens after the mechanical document payload-helper relocation. Fifteen
+fundamental declaration/data headers retain the same tokens apart from include
+paths and comments, including result/error types, record payloads and Unicode
+tables. All 286 original GoogleTest declaration bodies and assertions are
+unchanged; the only added runtime unit is the public-library boundary case.
+The remaining additions are compiled-target/test/package wiring, separated
+public descriptors, and documentation. No new parser grammar, numeric operation,
+allocation strategy or P034+ feature was introduced. The review corrected a
+malformed Doxygen paragraph; it found no executable-code regression. This is
+source-review evidence, not a formal equivalence or standards-compliance proof.
+
+The user explicitly authorized AI production changes for the structural
+refactor described in [ADR 0002](adr/0002-public-private-source-layout.md).
+The former header-only `include/adaptive_json5/` layout was replaced with
+20 supported public headers under `includes/`, 50 private headers under
+`src/includes/`, and 48 ordinary implementation translation units grouped by
+topic under `src/src/`. Templates, compile-time definitions and small defaulted
+operations remain in headers where needed. No complete-document parser entry
+or subsequent P034–P037 feature was added.
+
+`AdaptiveJSON5::parser` now names a compiled static library. The public include
+interface contains no private source paths. Document construction retains its
+existing allocation-free by-value storage representation: its supporting
+`detail::value_storage` declaration resides in the public document header, while
+record/payload definitions and storage implementations are private. No opaque
+state allocation or new global-heap path was introduced. Number classification
+and warning descriptors have public headers separate from private lexer tokens.
+
+Internal component units moved to `src/tests/`; consumer-facing units remain in
+top-level `tests/`. Mixed document, allocation, string and accounting units were
+split along that boundary, retaining all **286 original test declarations** and
+their assertions. One additional public-library unit verifies owned document
+construction, movement, checked access and UTF-8 export through supported public
+headers. Each of the **20 public headers** is also compiled in a separate unit
+translation unit without private include access. Test names and existing labels
+were retained when tests changed executable or path.
+
+Executed with MinGW GCC 16.2.0, explicit C++17 and **32 parallel workers**, matching
+this PC's reported logical processor count:
+
+| Configuration / operation | Result |
+| --- | --- |
+| Full `debug-unit-tests`, exceptions OFF / RTTI OFF | **1422/1422 passed** |
+| Full `debug-unit-tests-exceptions`, exceptions ON / RTTI OFF | **1422/1422 passed** |
+| clang-format 18.1.8, all current C++ source/header files | **157 files passed** |
+| Tests-disabled Release core configuration/build | Passed, without acquiring/building GoogleTest |
+| Installation into a workspace-local prefix | Compiled target and 20 public headers installed; no private/test headers or private include-root export |
+
+Both unit builds use the existing pinned offline GoogleTest source override.
+Splitting translation units exposed formerly transitive dependencies; explicit
+private includes were added to affected internal units. The full exceptions-ON
+build also exposed this compiler's C++20 default through existing `u8` string
+fixtures. Project targets now explicitly request C++17 rather than relying only
+on the minimum compile feature. The successful results above follow those build
+corrections. Generated Unicode table data, versions and notices are unchanged;
+the generator's default output/include paths now follow the private layout.
+
+Commands used for both full unit configurations:
+
+```powershell
+cmake --build --preset debug-unit-tests --parallel 32
+ctest --preset debug-unit-tests --parallel 32 --output-on-failure
+cmake --build --preset debug-unit-tests-exceptions --parallel 32
+ctest --preset debug-unit-tests-exceptions --parallel 32 --output-on-failure
+```
+
+The install operation verifies generated package contents, not an installed
+consumer execution or an additional automated integration gate. Native Windows
+results do not establish another compiler/device, standards compliance or full
+language conformance. Requirements remain Draft, and subsequent production
+features remain subject to the normal human-owned implementation workflow.
+
+## P033 iterative container engine units, 2026-10-19
+
+Added `tests/parser_engine_tests.cpp` and the CTest label
+`parser_engine_units`: **75 discovered cases**. The named declarations are
+recorded separately in [traceability](traceability.md). Coverage includes empty
+and mixed array/object nesting in both modes, exact heterogeneous content and
+child spans, malformed structural roots and missing delimiters, every unfinished
+prefix of a nested fixture, original encoding-error offsets, JSON5-only nested
+grammar, internal consumed-prefix semantics, warning aggregation across names
+and values, input/configuration rejection, source overwrite and document moves.
+
+Resource units cover inclusive depth/node/member/string/name/aggregate/numeric/
+exponent/input limits, zero-unit empty content, scalar roots with zero container
+depth, mixed depth 64 and depth 65 rejection, failed deep cleanup, all allocation
+requests in a representative mixed parse, increasing work allowances through
+the first success, and byte ceilings below/at/above measured outstanding peak.
+Direct component units inspect pending-name ownership across frame relocation,
+growth allocation failure, provisional-frame rollback after record allocation
+failure, and close-mismatch preservation of frames/source spans. Failure reuse
+means a **fresh engine** on the same live accounting adapter, not rerunning an
+abandoned engine instance.
+
+Executed locally with MinGW GCC 16.2.0 on Windows:
+
+| Configuration | Executed scope | Result |
+| --- | --- | --- |
+| `debug-unit-tests`, exceptions OFF, RTTI OFF | Full available GoogleTest suite | **1421/1421 passed**, including **75/75 P033** |
+| `debug-unit-tests-exceptions`, exceptions ON, RTTI OFF | P033, primitive parser, document and resource guards | **296/296 passed**, including **75/75 P033** |
+| clang-format 18.1.8 | New `parser_engine_tests.cpp`, `--dry-run --Werror` | Passed |
+
+Commands used after configuration/build:
+
+```powershell
+ctest --preset debug-unit-tests --parallel 4 --output-on-failure
+ctest --preset debug-unit-tests-exceptions -L '^(parser_engine_units|primitive_parser_units|document_units|resource_guards_units)$' --parallel 4 --output-on-failure
+```
+
+Both builds used the existing offline-source override pointing at `tools/gtest`,
+checked out at pinned revision `52eb8108c5bdec04579160ae17225d66034bd723`.
+The initial exceptions-ON configure attempted a network fetch and failed; the
+generated dependency checkout was restored and pinned before successful builds.
+Four initial failures were two incorrect test-fixture expectations instantiated
+in both modes: the mixed container fixture has six records, and its separate
+unterminated fixture ends at byte 12. Correcting those independent counts required
+no production changes. The final executions above supersede that initial run.
+
+No production C++ was changed. These results establish P033 unit evidence, not
+completion of all P034–P036 acceptance, P037 complete-input behavior, the later
+whole-grammar evidence matrix or cross-component #69 accounting. The internal
+engine deliberately returns a root prefix; its successful result does not
+validate a trailing suffix. Requirements remain Draft. No embedded execution,
+real-time bound, MISRA/CERT/AUTOSAR compliance or CI result is inferred.
+
 ## Individual CTest case registration, 2026-10-13
 
 CMake now uses `gtest_discover_tests` to register each GoogleTest case, including
@@ -1126,3 +1256,188 @@ phase allowances, not measured instructions/time or fine-grained cancellation.
 Cleanup remains independent of exhausted work. Later parser, conversion and
 schema paths still require shared accounting integration under #69. Requirements
 remain Draft; no MISRA/CERT compliance or embedded execution is inferred.
+
+## Coverage-directed unit additions (2026-10-19)
+
+Added 66 GoogleTest cases in seven topic-based files under `src/tests/` and
+`tests/value/access_boundary_tests.cpp`. Each test body explains the behavioral
+reason for the case alongside Arrange/Act/Expect sections. Parameterized faults
+have descriptive case names. The units cover the complete container-dispatch
+state/mode table, rejected open/close/attachment transitions, read-only frame
+lifetime, typed access errors, moved-from numbers, invalid input metadata,
+empty roots, malformed trivia, warning-descriptor ownership, absent observers,
+non-scalar property queries, malformed surrogate pairs, and allocation failure
+while decoding escaped BMP/supplementary characters.
+
+Internal relationship fault injection operates on live `detail::value_record`
+objects through the existing mutable internal storage interface. It checks
+defensive traversal/attachment failures and unchanged relationships. These
+fixtures are deliberately inconsistent internal descriptions, not trees produced
+by the public document builder, and do not demonstrate a parser defect.
+No private-access macro, invented allocation, production change or coverage
+exclusion was used. Existing J5 requirement statuses remain Draft; named units
+are inventoried separately in [traceability](traceability.md).
+
+Executed all **1488/1488** cases successfully in both native Windows C++17
+configurations, using **32 CTest workers**, with RTTI OFF: GCC 15.2.0 with
+exceptions OFF in `build/coverage`, and GCC 16.2.0 with exceptions ON in
+`build/debug-unit-tests-exceptions`. clang-format 18.1.8 passes all 164 C++ files.
+These are local host results, not remote CI or embedded execution evidence.
+
+The optional GCC 15.2.0/gcovr 8.6 report includes the production roots only:
+public `includes/`, private `src/includes/`, and compiled `src/src/`.
+Parallel-only counter collection produced different omissions between passing
+runs because separate test processes write the same compiled core's `.gcda`
+files. The helper retains full-parallel CTest validation, then resets counters
+and executes each of the **35 currently registered unit executables** once,
+sequentially, for deterministic collection. It does not replay obsolete binaries
+left in the build directory. This additional collection is an optional local
+diagnostic, not a new automated quality gate.
+
+The requested 100% line/function/branch target is **not achieved**. The report
+reaches 100% functions; the remaining lines/branches include invariant defenses
+and host-infeasible size-overflow paths. Tests do not mutate immutable input
+during decoding, fabricate enormous storage, force private engine states or
+throw to create valueless variants. Doing so would violate component contracts
+or misrepresent executable behavior. Production changes remain reserved for the
+human developer; any simplification of redundant guards needs production design
+review. No requirements are marked Verified from coverage percentages.
+
+Final report: **3099/3158 lines (98.1%)**, **528/528 functions (100%)**,
+**1537/1618 branches (95.0%)**. `python tools/coverage.py` completed with exit
+code 0. Artifacts are local and ignored: `build/coverage/report/index.html`
+and `build/coverage/report/coverage.json`. Counts describe the instrumented
+executable code, not complete JSON5 conformance or uninstrumented declarations.
+The retained report has 59 unexecuted lines and 81 unexecuted branches; these
+are still included in the denominators. The following audit distinguishes
+invariant-dependent defenses from physically infeasible allocation sizes.
+Branch-only entries include short-circuit operands, not additional missing lines.
+
+| Source | Unexecuted source lines | Reason for remaining gap under the current contracts |
+| --- | --- | --- |
+| [comment.cpp](../src/src/lexer/comment.cpp) | 57 | The line-terminator probe already decodes the same bytes; the block loop guarantees a current byte. |
+| [identifier_classification.cpp](../src/src/lexer/identifier/identifier_classification.cpp) | None (branch operands only) | Length-bounded immutable unit access cannot fail; literal classification propagates that defensive result. |
+| [scalar_lexer.cpp](../src/src/lexer/scalar_lexer.cpp) | 102, 109 | After a readable non-punctuation start, identifier recognition either yields a token or fails; classification uses valid immutable decoded units. |
+| [string_escape.cpp](../src/src/lexer/string/string_escape.cpp) | 81, 88 | Earlier escape recognizers partition no-match/error cases; a decoded source scalar always fits UTF-16. |
+| [string_lexer.cpp](../src/src/lexer/string/string_lexer.cpp) | 45, 107 | Warning replay requires the same successfully validated, unchanged body; its repeated piece/escape failures cannot arise through consume_string. |
+| [trivia.cpp](../src/src/lexer/trivia.cpp) | None (branch operands only) | With a nonnull buffer and a loop position before EOF, UTF-8 decoding cannot successfully return an absent character. |
+| [whitespace.cpp](../src/src/lexer/whitespace.cpp) | 49 | The line-terminator probe already validated the same scalar; the loop guarantees a readable non-EOF position. |
+| [accounted_storage.cpp](../src/src/memory/accounted_storage.cpp) | None (branch operands only) | Every allocation preserves outstanding bytes <= the copied byte limit; the already-over-limit operand is defensive. |
+| [decoded_string_builder.cpp](../src/src/memory/decoded_string_builder.cpp) | 69 | Size/doubled-capacity overflow requires host-infeasible live string storage; scalar appends add at most two units. |
+| [resource_budget.cpp](../src/src/memory/resource_budget.cpp) | None (branch operands only) | Internal counters cannot exceed copied limits after successful reservations; the missing operand is an already-over-limit counter. |
+| [work_budget.cpp](../src/src/memory/work_budget.cpp) | None (branch operands only) | Successful charges preserve consumed <= limit; callers cannot change private counters. |
+| [parser_attachment.cpp](../src/src/parser/parser_attachment.cpp) | 53 | Adding one to the number of actually allocated records cannot reach size_t overflow on this host. |
+| [parser_container_open.cpp](../src/src/parser/parser_container_open.cpp) | 54 | Record-count overflow requires host-infeasible allocated record storage. |
+| [parser_engine.cpp](../src/src/parser/parser_engine.cpp) | 45, 59, 66, 72, 73, 104, 123, 128, 143, 189, 196, 215, 222, 244, 274, 279, 287, 321, 328, 369, 379, 390, 403, 404, 409, 418, 436, 451, 470, 590, 606, 607, 616 | Private states/names/root and mirrored resource counters are maintained by dispatch and construction; spans/indices were just validated. Other guards require host-infeasible count/size overflow. |
+| [parser_stack.cpp](../src/src/parser/parser_stack.cpp) | 41 | push enforces the frame ceiling before reserve; doubled-capacity overflow requires host-infeasible live frames. |
+| [primitive_parser.cpp](../src/src/parser/primitive_parser.cpp) | 63, 168, 175, 293, 300 | Validated numeric errors stay inside their spelling; the scalar variant always has an active known alternative. Real record-count arithmetic cannot overflow on this host; new detached roots and recorded spans satisfy publication checks. |
+| [utf16_decode.cpp](../src/src/unicode/utf16_decode.cpp) | 52 | The second unit read follows an explicit remaining-unit bounds check on an immutable string. |
+| [decoded_name_equal.cpp](../src/src/value/decoded_name_equal.cpp) | 31 | Equal immutable lengths bound both unit reads before comparison. |
+| [document.cpp](../src/src/value/document.cpp) | None (branch operands only) | The validated builder sets parent whenever it sets member/sibling metadata; earlier parent rejection short-circuits the remaining invalid-root operands. |
+| [member_lookup.cpp](../src/src/value/member_lookup.cpp) | 67, 74 | Iterator validation proves a live named member before name access; immutable equality cannot fail after its bounds checks. |
+| [utf8_export.cpp](../src/src/value/utf8_export.cpp) | 54, 111 | Output is decoded only after whole-string validation; total-byte overflow requires host-infeasible string storage. |
+| [value_storage.cpp](../src/src/value/value_storage.cpp) | 51 | append enforces the record ceiling before reserve; doubled-capacity overflow requires host-infeasible live records. |
+| [value_view.cpp](../src/src/value/value_view.cpp) | 114, 157 | Every admitted child_at loop returns by the requested ordinal; the nonthrowing payload variant cannot become valueless. |
+
+
+## P034 array grammar units (2026-10-19)
+
+Added 30 runtime cases in `src/tests/parser/array_grammar_tests.cpp`: 28 named
+array grammar cases and two mixed/repeated/nested order cases. The grammar cases
+isolate empty and heterogeneous arrays, JSON5-only trailing commas (including
+nested arrays and comments), holes, doubled commas, missing separators, misplaced
+colons, missing values at EOF and mismatched closers. Rejections check original
+byte offsets and cleanup without a successful partial document. Order cases check
+indexing and iteration against independent expected kinds and source spans,
+including repeated values and nested descendants that must not become siblings.
+Each declaration includes purpose and reasoning comments inside its body.
+
+Executed full CTest suites in `build/debug-unit-tests` and
+`build/debug-unit-tests-exceptions`: **1518/1518 passed in each**, C++17,
+exceptions OFF/ON respectively, RTTI OFF, using all 32 logical CPU workers.
+clang-format 18 passed for all 165 C++ files. Logs: `build/p034-off-tests.log`
+and `build/p034-on-tests.log` (local build artifacts).
+
+Production C++ and public headers were unchanged. This is host unit evidence
+for P034, not complete-input P037 or full J5 verification; requirement statuses
+remain unchanged.
+
+
+## P035 object grammar review and units (2026-10-19)
+
+Source review found the P035 behavior present in the internal engine: quoted
+and JSON5 IdentifierName recognition, decoded pending-name ownership, required
+colon/value/comma states, mode-dependent trailing commas, nested completion and
+source-order attachment retaining every member. No P035 production defect was
+identified; this is distinct from full J5 verification. Duplicate rejection is
+P036 and complete-input enforcement remains P037.
+
+Added 56 runtime cases in `src/tests/parser/object_grammar_tests.cpp`: 44 named
+grammar cases, ten exact decoded-name cases and two member-retention cases.
+Grammar cases isolate empty/mixed/nested objects, trailing commas and comments,
+bare/single-quoted names, missing names/colons/values/commas, doubled punctuation,
+numeric names, incomplete input and mismatched closers. Failures assert exact
+original byte offsets, no successful partial tree and storage cleanup. Name cases
+exercise reserved words, identifier escapes, quoted escapes, empty names and
+embedded NUL. Retention cases overwrite source bytes after parsing and verify
+owned names, repeated boolean members, nested names/numbers, source order through
+indexing and iteration, and end/out-of-range behavior. Test comments explain
+purpose and reasons for the assertions.
+
+Full CTest: **1574/1574 passed in each** of `build/debug-unit-tests` and
+`build/debug-unit-tests-exceptions`, GCC 16.2.0, C++17, exceptions OFF/ON
+respectively, RTTI OFF, all 32 logical CPU workers. Logs are local build artifacts
+`build/p035-off-tests.log` and `build/p035-on-tests.log`. clang-format 18 passed
+for all 166 C++ files. P035 review/test work changed no production C++; the
+preceding separately authorized comment annotations remain in the working tree.
+Requirement statuses remain unchanged.
+
+
+## Host test timeout investigation (2026-10-19)
+
+A reported timeout for `J5_046_ScalarStorage.FailsEveryAllocationAndAllowsRetry`
+was not reproduced: 100 consecutive isolated executions passed in each exception
+mode, typically around 0.01 seconds per execution. The unit uses bounded input
+and measured allocation-failure loops. This does not establish the cause of the
+reported timeout. The shared CTest hang guard was raised from 10 to 60 seconds
+to tolerate host process startup/scheduling delays with all 32 workers active;
+it is not a parser timing contract. Both generated configurations report the
+effective 60-second property. After regeneration, full suites passed 1574/1574
+in each exception mode, RTTI OFF, using 32 workers. Logs: local build artifacts
+`build/timeout-off-repeat.log`, `build/timeout-on-repeat.log`,
+`build/timeout-off-tests.log` and `build/timeout-on-tests.log`.
+No production implementation or test assertions were changed for this adjustment.
+
+
+## P036 duplicate-name policy units (2026-10-19)
+
+Added **69 runtime cases**: 56 named combinations of source examples and
+preserve/reject policies, six exact work-budget boundaries, and seven focused
+units. Internal cases are in `src/tests/parser/duplicate_policy_tests.cpp`;
+public error/span API cases are in `tests/value/member_name_span_tests.cpp`.
+The existing parser attachment units now supply the required input-size argument.
+
+The units check quoted, bare, escaped, reserved-word, empty, embedded-NUL and
+surrogate-unit names; case and normalization distinctions; parent/child and
+separate-object independence; duplicate names after nested values; original
+first/repeated byte offsets and lengths; default preservation of both ordered
+Boolean values; and retained name spans. Fixed fixture counts/locations are
+independent expected data. Duplicate error metadata is checked through result
+copying and compile-time construction.
+
+Operational checks cover every observed allocation failure with fresh-engine
+retry and balanced accounted storage, checker work boundaries before iteration
+and comparison, invalid object access and missing provenance, span-range overflow,
+invalid/unnamed views, optional absent metadata, atomic name/span attachment, and
+frame ownership/state retention on range failure followed by successful retry.
+Purpose and Arrange/Act/Expect comments accompany each declaration, with reasoning
+comments inside each body.
+
+Full suites passed **1643/1643 in each configuration**: GCC 16.2.0, C++17,
+exceptions OFF/ON respectively, RTTI OFF, all 32 logical CPU workers. Build/test
+logs are local artifacts `build/p036-tests-off-build.log`,
+`build/p036-tests-on-build.log`, `build/p036-tests-off.log` and
+`build/p036-tests-on.log`. clang-format 18 passed for all **170 C++ files**.
+Production implementation and public headers were not changed by this unit task.
+This is P036 host unit evidence; J5 statuses and P037 complete-document scope
+remain unchanged.

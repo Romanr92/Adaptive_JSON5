@@ -12,6 +12,20 @@ public headers belong to the human developer.
 
 ## Coding standards and applicability
 
+For file placement and header/source separation, follow
+[ADR 0002](adr/0002-public-private-source-layout.md). New guidance uses the agreed
+public `includes/`, private `src/includes/` and topic-based source/test layout;
+internal units use `src/tests/`, while public-interface/library units use
+top-level `tests/`. The structural migration was explicitly user-authorized;
+subsequent production features retain the normal human-owned workflow.
+
+For new implementation guidance, use declaration headers plus out-of-line
+definitions in the corresponding `src/src/<topic>/*.cpp` files. Keep ordinary
+implementation bodies and implementation-only includes out of consumer headers.
+Teach a matching header/source pair when needed; complete-file examples do not
+justify collapsing a module into a header. Templates, required compile-time
+definitions and documented small inline operations are the appropriate exceptions.
+
 Follow **MISRA C++:2023** and the **SEI CERT C++ Coding Standard** when designing,
 writing, teaching and reviewing C++ in this repository. MISRA C++:2023 is the
 selected C++17 coding baseline; use the published CERT C++ 2016 edition with
@@ -60,8 +74,9 @@ they do not detect every accidental assignment or establish MISRA/CERT complianc
 
 The shared `adaptive_json5_configure_target()` CMake function applies these
 options privately to project targets. New project C++ targets must use it.
-The policy does not modify parent-project flags, exported consumer options or
-GoogleTest's own build settings. It also applies when compiler exceptions are
+The policy does not modify parent-project flags or exported consumer options.
+The pinned host GoogleTest targets also receive the helper in the dependency
+setup; this does not establish dependency standards compliance. It also applies when compiler exceptions are
 enabled. Automated quality checks remain unit tests and formatting.
 
 ## Real-time profiles and freedom from interference

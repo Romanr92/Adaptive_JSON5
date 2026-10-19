@@ -1,243 +1,234 @@
 # Architecture and implementation boundaries
 
-The repository contains CMake development metadata, GoogleTest infrastructure
-and the developer's result/error, input-view and syntax-options headers. No
-parsing operation is implemented.
-The implementation issues define contracts before selecting storage and
-allocation details. The following boundaries guide that work.
+Updated after the compiled-library refactor, commit `61c98a3`. This page describes
+current components and their contracts. See the [source layout guide](source-layout.md)
+for exact folders, [ADR 0002](adr/0002-public-private-source-layout.md) for the
+layout decision, and the [detailed architecture diagrams](current-architecture.md)
+for class inventories, state transitions and the intended M1 endpoint.
+The active [requirements](requirements.md) remain authoritative; source presence,
+passing units and full requirement verification are distinct.
 
-| Component | Planned responsibility | Dependency boundary |
+## Current implementation and remaining boundary
+
+The core is a compiled C++17 static library, exported as `AdaptiveJSON5::parser`.
+It contains explicit result/error handling, bounded input access, Unicode and
+lexical components, owned document/value storage, resource guards, primitive
+parsing and the internal iterative P033 container engine.
+
+There is not yet a public complete-document parser entry. The internal engine
+returns one completed root and the consumed prefix; it does not validate trailing
+input. The primitive-only operation already requires complete input for a scalar
+root. P034/P035 acceptance, P036 duplicate rejection and P037's unified entry
+remain separate work. Checked numeric operations and expanded diagnostic/full
+conformance evidence are later stages. Refactoring added none of those features.
+
+| Boundary | Current responsibility | Exposure |
 | --- | --- | --- |
-| `include/adaptive_json5`, `src` | JSON5/strict JSON, owned values, exact numbers, errors and resource accounting | C++17 only; no filesystem, network or application model |
-| `schema` | Optional Draft-07 compilation, registered references and bounded validation | Parser/value API; explicit schema registry; no implicit I/O |
-| `cli` | Native host input/output and stable exit/diagnostic protocol | Optional parser/schema adapters; host-only |
-| `editor` | VS Code language support, schema assistance and live document versions | Host-only providers/backend; never a C++ runtime dependency |
-| `examples` | Small generic consumers and optional external profile/schema examples | Public API only; no imported consumer runtime |
-| `tests` | Deterministic units and pinned fixture data | Build optional; no runtime consumer dependency |
+| Public input/results/options | Explicit bytes and length, syntax/limits, inline success/error outcomes | Supported headers under `includes/adaptive_json5/` |
+| Public memory/value API | Caller storage, owned blocks/strings/number spellings, documents, views, iteration and lookup | Public topic headers; ordinary bodies compiled into the library |
+| Character/lexical processing | Cursor, Unicode, trivia, escapes, token recognition and boundaries | Private declarations under `src/includes/adaptive_json5/detail/` |
+| Parser orchestration | Shared budgets, bounded frames, open/close/attach/state dispatch | Internal engine and helpers; ordinary bodies in `src/src/parser/` |
+| Consumer API units | Public-header compilation and behavior through supported interfaces | Top-level `tests/`, with no private include path |
+| Internal component units | Lexers, guards, frames, engine and private record operations | `src/tests/`, with private include access |
 
-The reader accepts explicit bytes and length. A successful result owns its data;
-invalid input returns a structured error. Preserve decoded UTF-16 units losslessly
-and distinguish checked UTF-8 conversion. Preserve exact number spelling/value
-before any requested destination conversion. Preserve duplicate members by
-default and expose an explicit rejection policy.
+```mermaid
+flowchart TB
+    Consumer[Consumer]
+    Public[Public input, result, memory and value headers]
+    Library[Compiled AdaptiveJSON5::parser]
+    Private[Private lexer, parser and record declarations]
+    Source[Definitions in src/src topic folders]
+    InternalTests[Internal units in src/tests]
+    PublicTests[Public API and library units in tests]
+    Provider[Caller-owned fallible storage]
+    Future[Future P037 complete-document entry]
+    Consumer --> Public
+    PublicTests --> Public
+    Public --> Library
+    Library --> Source
+    Source --> Private
+    InternalTests --> Private
+    InternalTests --> Library
+    Library --> Provider
+    Consumer -. planned parsing API .-> Future
+    Future -. will compose .-> Library
+```
 
-The schema boundary rejects unsupported instance domains separately from syntax.
-Exact numeric and deep-equality behavior must agree across runtime and editor
-adapters. A provisional editor tree must never be a successful runtime parse.
-CLI I/O and schema loading occur outside pure parse/evaluate operations.
+## Header and source responsibilities
 
-## Input and syntax-options contract
+The component root `src/` contains three separate trees: `includes/` for private
+headers, `src/` for compiled implementations, and `tests/` for internal units.
+The repository root `includes/` is the supported consumer-header root. Only that
+public tree is installed. CMake exposes it publicly and adds the private tree
+only to the core and internal units. Production sources are explicit lists,
+never a recursive glob that could absorb test code.
 
-`input_view` and `parse_options` define the public input/configuration boundary
-for Issue #1, J5-004 and J5-005. They describe input and syntax selection; they
-do not implement parsing, bounded cursor reads or grammar acceptance.
+| Example declaration | Matching implementation |
+| --- | --- |
+| `includes/adaptive_json5/value/document.hpp` | `src/src/value/document.cpp` |
+| `includes/adaptive_json5/memory/accounted_storage.hpp` | `src/src/memory/accounted_storage.cpp` |
+| `src/includes/adaptive_json5/detail/parser/parser_engine.hpp` | `src/src/parser/parser_engine.cpp` |
+| `src/includes/adaptive_json5/detail/lexer/scalar_lexer.hpp` | `src/src/lexer/scalar_lexer.cpp` |
 
-- `input_view::data` is a borrowed `const char*`; `size` is the exact byte count.
-  No terminating NUL is required. A zero byte is part of the supplied input,
-  not a sentinel or permission to truncate it. Its syntax validity is determined
-  later by the selected language and its position.
-- A nonzero size requires a non-null pointer to at least that many readable
-  bytes. The caller owns the storage and keeps it alive and unchanged while an
-  operation reads it. Portable C++ cannot validate arbitrary dangling pointers
-  or inaccessible caller memory; these are buffer-lifetime preconditions.
-- A zero-size description can use a null or non-null pointer. Default
-  construction yields `{nullptr, 0}`. Empty input is a valid buffer description,
-  but the future parser reports missing-value `syntax` failure rather than success.
-- A reader consumes only the supplied byte range, without modifying it or
-  reading beyond it. `strlen`, NUL scanning and mutable input access are not
-  part of the parsing boundary. Complete parsing must consume one root followed
-  only by permitted trivia; prefix acceptance is not a success contract.
-- `parse_options{}` selects `syntax_mode::json5`. Callers can explicitly select
-  `json5` or `strict_json`. No additional nonstandard extension mode is exposed;
-  the declaration does not establish implementation of either language.
-- The result's state is selected explicitly with `success(...)` or
-  `failure(...)`. Neither value-bearing results nor `status_result` offer public
-  default construction. Input/options defaults do not imply a successful parse.
+Class headers retain required layout and function declarations. Ordinary method
+bodies, constructor initializer lists and non-template free-function definitions
+belong in the corresponding `.cpp`. Each source includes its declaration header
+first, then its implementation dependencies. Default arguments belong on the
+header declaration; definitions preserve the namespace, signature and `noexcept`.
+Helpers used by only one source may have translation-unit-local linkage.
 
-Declaration-level units cover empty descriptions, const non-NUL-terminated
-buffers, explicit prefix lengths, embedded zero bytes, borrowed storage and
-default/explicit syntax selections. Parsing immutable/truncated inputs, byte
-validation, complete consumption and mode-dependent syntax are verified by
-subsequent parser units. Invalid-length pointers are not dereferenced in these
-declaration tests.
+Public templates such as `result<T, E>` and definitions needed for constant
+evaluation remain visible in headers. Private Unicode templates and generated
+immutable tables remain private header facilities. These exceptions do not make
+the parser header-only. Forward declarations are appropriate for some borrowed
+pointer/reference types; by-value data members require complete types.
 
-## Recoverable-error contract
+Teaching and reviews must follow these boundaries. Inspect the header, matching
+source and CMake entry before guidance. Present declaration/definition pairs
+when the change needs both; do not put ordinary implementation into a header to
+simplify a lesson. Explain translation units and linking alongside the learner's
+current C++ concepts. Preserve the existing allocation strategy instead of adding
+PImpl, virtual dispatch or other abstractions without a concrete requirement.
 
-This section specifies the public error behavior for Issue #1 and J5-003,
-J5-043, J5-045 and J5-051. P002 implements the result/error containers; the
-operation-specific behavior below is a contract for subsequent implementation.
+## Input, syntax and explicit results
 
-Library operations return explicit `result<T, error>` or `status_result`
-success/error outcomes. Enabling compiler exceptions does not introduce a
-throwing API, select a different recovery path or change the documented outcome.
-The same input, options, storage behavior and resource limits must produce the
-same success/failure classification and error information in exceptions OFF/ON
-builds. Zed's build/launch actions select OFF; this does not change the library
-contract when a compatible consumer enables compiler exceptions.
+`input_view` borrows immutable caller bytes with an exact length. No terminating
+NUL is needed, and embedded zero is not EOF. A null pointer is valid only with
+zero length; readable memory and lifetime remain caller preconditions. A cursor
+copies that description and bounds every read/advance.
 
-| Recoverable failure | Minimal category | Implementation/verification boundary |
-| --- | --- | --- |
-| Invalid grammar, missing value or incomplete input | `syntax` | Parser behavior and grammar units are pending |
-| Malformed UTF-8 input | `encoding` | Decoder and parser units are pending |
-| Duplicate name rejected by an explicitly selected policy | `duplicate_policy` | Duplicate-policy behavior is pending |
-| Wrong value type or unavailable value/container access | `wrong_type_or_access` | Value/access operations are pending |
-| Requested numeric destination cannot represent the value | `numeric_conversion` | Conversion operations are pending |
-| Configured resource budget or limit is exhausted | `resource_limit` | Resource accounting and boundary units are pending |
-| Caller-provided fallible storage cannot fulfill an allocation | `allocation_failure` | Storage implementation and failure-injection units are pending |
+Transactional recognizers work on a cursor copy and commit it after recognition
+succeeds. `result<std::optional<T>>` distinguishes failure, successful no-match
+and a successful token. The parser turns no-match into syntax failure where a
+value/name is required. Helper atomicity is local: a failed engine may contain
+private partial work and must be discarded rather than rerun.
 
-Ordinary invalid input and the recoverable failures above must not throw,
-assert or abort. Failed operations publish no successful partial document or
-conversion value, release their temporary resources and leave reusable contexts
-in a documented valid state. Cleanup and reuse behavior must be verified when
-the corresponding operations exist; the result container alone does not prove it.
+`parse_options` owns syntax selection and finite resource limits. JSON5 is the
+default, with explicit strict JSON selection. Both mode paths exist in lexical
+and internal structural operations; no full language-conformance claim follows.
+The future P037 entry must admit exactly one root plus permitted surrounding
+trivia, rejecting empty input, extra roots and trailing nontrivia.
 
-Minimal errors contain a stable code and optional original zero-based byte
-location. A failure at byte zero is distinguished from a failure without a
-location by `has_byte_offset`; absent locations store an unused zero offset.
-End-of-input diagnostics use the valid end offset. Constructing and returning
-minimal allocation/resource errors must require no additional successful
-allocation. Rich messages, paths and diagnostic ranges are optional additions
-and cannot replace or obscure the minimal error if their construction fails.
+## Owned records and borrowed access
 
-Result inspection is non-throwing: `has_value()` reports the active state,
-`value_if()` returns a value pointer or null, and `error_if()` returns an error
-pointer or null. No throwing value accessor or wrong-alternative termination
-path is part of this API. Pointers refer to result-owned storage and must not
-outlive it. Custom result payload/error types must meet the documented
-non-throwing constraints; minimal error types must additionally honor the
-allocation-free reporting contract. Type traits alone do not establish that
-arbitrary custom operations never allocate.
+`document` owns a flat sequence of records plus a root index. Each record stores
+one null/Boolean/string/number/array/object payload and optional member-name and
+source-span metadata. Arrays/objects retain ordered child indices; child records
+supply parent and next-sibling indices. They do not recursively own descendants.
+Destruction iterates records and releases their own allocations without walking
+a recursively owned tree.
 
-Storage callbacks and required runtime facilities must fulfill their documented
-contracts. Unsupported throwing callbacks or runtime termination paths are not
-represented as recoverable library outcomes. The core must use fallible storage
-operations; exception handling around an infallible global-heap operation is not
-an alternative implementation of the allocation-failure contract.
+The public document header contains the supporting `detail::value_storage`
+declaration needed by its by-value member. Record/payload definitions and storage
+method bodies are private. Direct consumer use of that supporting declaration
+is not a supported API. This choice preserves allocation-free document
+construction and existing layout without opaque-state allocation.
 
-P002's 40 result cases and three configuration cases passed locally with
-exceptions OFF/ON and RTTI OFF; see [verification notes](verification.md).
-These establish result-container behavior and selected compiler settings.
-Invalid-input, allocation-exhaustion, conversion/access and resource-limit
-runtime recovery are verified by later units as their implementations arrive.
+`value_index` identifies a record position within its originating document; it
+does not encode owner identity. Appending preserves indices but may relocate
+records. Views reacquire records by index. Accessor-returned pointers can be
+invalidated by record growth; moving/destroying the owner invalidates existing
+views and iterators. Reacquire views from the moved-to document. Do not change
+relationships during iteration. Repeated indexed enumeration is linear per
+lookup; use an iterator to avoid quadratic total traversal.
 
-## Public ownership, value and policy contracts
+Strings/names own counted UTF-16 units, including NUL and lone surrogates.
+Checked UTF-8 export rejects invalid scalar sequences rather than replacing them.
+Numbers own original validated spelling and family without eager machine-number
+conversion. Exact comparison and requested integer/floating conversions remain
+separate later work.
 
-This section completes Issue #1's public-contract specification scope for
-J5-008. The semantic obligations come from the active requirements. Except for
-the existing input/options and result/error declarations, the value, storage,
-conversion and parser APIs described below are planned, not implemented.
+The model preserves every duplicate member in source order. Lookup reports
+absent, unique or ambiguous rather than choosing a duplicate silently. Name
+equality uses exact decoded units without normalization or case folding. P036's
+explicit parser rejection policy and reporting of both occurrences remain pending;
+`parse_options` does not yet expose that policy.
 
-### Ownership and views
+## Iterative parsing and resource ownership
 
-Under J5-028–031 and J5-040–042, a successful parsed document owns its values,
-decoded strings/member names and original number spellings independently of
-the input buffer. Caller input can be released or overwritten after parsing
-returns without changing a successful document. Source text retained for
-tooling must have explicit ownership and an accounted, configurable storage cost.
-Arrays and object-member enumeration retain source order; names and strings
-are length-aware, including embedded zero units.
+The internal engine owns a private candidate document, cursor, frame stack,
+logical resource budget, work budget and retained warning summary. Opening a
+container reserves value/member and depth resources before frame/record growth.
+Closing validates punctuation/state, records the span, pops the frame, releases
+depth and accepts the completed value. Completion attaches to the waiting parent
+or records the root when no parent remains. Parent frame pointers are reacquired
+after stack mutations.
 
-Input views borrow caller storage only during the reading operation. Pointers
-returned by result inspection borrow the result's active alternative and must
-not outlive that storage. For future document views, the owning-document
-lifetime, move/destruction effects and any invalidation rules must be defined
-before those views are exposed. No pointers into temporary parsing buffers may
-escape as document data. Address stability across document moves is **Draft**;
-it is not inferred from the existing result's move constructor.
+Container mutual nesting uses explicit frames rather than recursive C++ calls.
+A frame temporarily owns an object's pending decoded name until attachment.
+Frame/record growth uses aligned fallible blocks and nonthrowing moves; old/new
+capacity overlap is included in byte accounting. Cleanup requires neither new
+allocation nor additional work-budget admission.
 
-### Duplicate policy
+Three mechanisms serve different purposes:
 
-J5-031–033 specify preserve-all as the generic default. Every member remains
-observable in source order, including repeated decoded names. An explicit
-reject-duplicates policy reports the colliding occurrences and returns failure
-before publishing a successful document. Names compare by exact decoded
-content, without normalization, case folding or hash-only equality. Convenience
-lookup must explicitly report ambiguity rather than silently choosing or
-concealing a preserved duplicate.
+| Mechanism | Resource tracked |
+| --- | --- |
+| `resource_budget` | Logical nodes/members, simultaneous depth, retained decoded units/diagnostics, input and numeric bounds |
+| `work_budget` | Cumulative deterministic phase allowances, charged before the associated work |
+| `accounted_storage` | Simultaneously outstanding requested bytes, including capacity and growth overlap; upstream provider overhead excluded |
 
-The duplicate-policy declarations and lookup signatures are **Draft**. Current
-`parse_options` contains only syntax selection; no duplicate-policy field or
-working duplicate parser is present yet.
+Limits are inclusive and finite; zero permits zero consumption and is not an
+unlimited sentinel. Defaults and units are documented in
+[`resource_limits.hpp`](../includes/adaptive_json5/memory/resource_limits.hpp)
+and the [detailed resource map](current-architecture.md#3-storage-ownership-and-budgets).
+Failed reservations preserve their counters; successful work charges are not
+refunded after later failure. Shared whole-tree accounting must include both
+names and string values. These allowances are not elapsed-time measurements or
+a demonstrated real-time bound. Cross-component completion remains under #69.
 
-### Numbers, conversions and checked access
+Owned objects retain storage callbacks, not ownership of the provider context.
+The caller-owned accounting adapter must remain at a stable address and, with
+its upstream provider state, outlive all allocations moved into returned data.
+A returned document owns its contents independently of source bytes, but does
+not extend those external provider lifetimes.
 
-J5-034–039 require owned original number spelling and an exact finite-value
-representation. Mathematical integrality is separate from lexical spelling;
-eager conversion through `double` must not determine integer acceptance.
-Integer conversion reports wrong type, non-integral value and destination
-overflow explicitly, without rounding or wrapping. Booleans and non-finite
-values are not silently treated as integers.
+## Failure, runtime and concurrency boundaries
 
-Floating conversion is explicit and locale-independent, preserves the stored
-number and documents rounding, overflow and underflow outcomes. Finite tokens
-that overflow a requested destination remain distinct from explicit Infinity
-or NaN, and negative-zero sign/spelling is retained. The exact representation,
-destination-specific policies and detailed conversion-reason API are **Draft**;
-the current minimal `numeric_conversion` category alone does not specify every
-conversion sub-outcome.
+All recoverable library failures use explicit `result`/`error` outcomes in both
+exception modes. Minimal errors contain a stable category and optional original
+byte location without allocating. Byte zero differs from absent location; EOF
+locations use the valid end offset. Ordinary invalid input must not throw,
+assert or abort. Unsupported throwing provider behavior is not a recoverable
+allocation strategy.
 
-J5-018 and J5-029 require lossless decoded UTF-16 units, including unpaired
-surrogates, and checked UTF-8 export that fails rather than replacing unsupported
-units. Wrong-type access, absent members, ambiguous duplicates and out-of-range
-indices return explicit outcomes. These string/value access and conversion APIs
-are pending; current checked access applies to result alternatives only.
+| Category | Current implementation boundary |
+| --- | --- |
+| `syntax` | Lexical, primitive and internal engine errors; unified entry still pending |
+| `encoding` | Checked Unicode decoding/export and composed parsing paths |
+| `wrong_type_or_access` | Checked value/storage access and invalid descriptions/state |
+| `resource_limit` | Logical, work or owned-byte ceiling exhaustion |
+| `allocation_failure` | Caller provider cannot fulfill a request |
+| `duplicate_policy` | Category exists; P036 parser rejection remains pending |
+| `numeric_conversion` | Category exists; P038 checked conversion remains pending |
 
-### Storage, limits and cleanup
+Failure returns no successful partial tree. Private temporaries release storage
+when their owners are destroyed. Rich diagnostics remain separate from minimal
+allocation-free error reporting. Existing value spans and warning summaries do
+not establish all later P039 diagnostic/member-name-span requirements.
 
-J5-046–049 and J5-101 require caller-supplied fallible storage and explicit
-budgets for library-owned allocations, with no implicit global-heap or OS
-dependency. Storage must remain available until all associated owned objects
-have been destroyed and their allocations released. Allocator declarations,
-alignment/capacity accounting and the exact runtime subset are **Draft** and
-are developed in the storage foundation.
+The generic core performs no filesystem, process, network, environment, clock,
+locale or OS-thread operations. Separate contexts/documents have no required
+shared mutable global state; shared mutable providers/adapters require caller
+synchronization. No OS locks, default global heap, RTTI or exception-dependent
+recovery are introduced. The [embedded boundary](embedded.md) states target
+preconditions; host units do not establish device execution or certification.
 
-The named limits cover input bytes, nesting, nodes/members, decoded string
-units, numeric token/exponent lengths, owned allocation bytes and diagnostic
-count. Limits and option combinations are validated before processing;
-arithmetic is checked, and data is never silently truncated to fit a budget.
-Parsing, conversion, comparison and error cleanup must remain within stack/work
-budgets, including cleanup of partially built deep data. Exhaustion reports
-`resource_limit` or `allocation_failure` as appropriate, rather than a syntax
-failure. Long operations use documented cancellation or deterministic work
-budgets; their exact public representation remains **Draft**.
+Optional schema, CLI, editor and consumer adapters remain separate components.
+Schema loading, host I/O and consumer rejection policies must not enter pure
+core operations. Schema/reference/numeric semantics and any dependencies remain
+subject to their own requirements and provenance decisions.
 
-Concrete limit defaults and precise charging/reset rules are **Draft**. No
-unlimited or arbitrary numeric default is implied, and the current
-`parse_options` has no limit fields. These choices must be settled and tested
-before the corresponding processing API is advertised as supported.
+## Verification and remaining work
 
-### Thread-safety and deterministic behavior
+The refactor preserved the existing executable logic and all original units.
+All 20 public headers compile separately without private include access. The
+full local suite passed **1422/1422 cases in both exception modes**, RTTI OFF,
+with 32 parallel workers; formatting and tests-disabled build/install also passed.
+See [verification notes](verification.md) for exact scope and source-review evidence.
 
-J5-050–052 require independent parser contexts/documents to operate concurrently
-without shared mutable global state. Sharing a mutable work context requires
-caller synchronization unless a later API explicitly supports it. A shared
-storage provider must satisfy its own concurrency contract; the core does not
-add OS locks or threads to make an unsafe provider safe.
-
-Existing result/input/options objects follow ordinary C++ synchronization rules:
-read-only inspection must not race with mutation, moving, destruction or changes
-to borrowed bytes/payloads. Mutable `value_if()` access supplies no synchronization.
-Future same-document concurrent access and context reuse/invalidation details
-are **Draft** until their declarations and implementation are available.
-
-Parsing and conversion do not depend on process locale, clocks, environment or
-hidden global settings. Identical input/options, storage outcomes and documented
-data versions produce equivalent values and stable primary error categories.
-Concurrency and deterministic processing units follow those implementations;
-current result units do not prove parser concurrency or device execution.
-
-## Decisions still to make
-
-- Fallible allocator interface, owned document layout and view lifetimes.
-- Rich diagnostics layered on the implemented minimal result/error foundation.
-- Lossless string representation and exact finite-number operations.
-- Named budget accounting/defaults and bounded cleanup/traversal.
-- Unicode table source/version and reproducible generation.
-- Independent or integrated schema engine, regex behavior and provenance.
-- Editor backend/provider approach and supported host versions.
-
-Record these decisions in focused ADRs as their foundation issues are implemented.
-No framework, dependency engine, public parse signature or consumer policy is
-silently selected by this scaffold.
-
-Embedded portability is a core requirement: see [J5-101 and port boundary](embedded.md). Keep hosted standard-library/OS assumptions out of the production design; caller storage and the required runtime subset must be reviewed before selecting containers or schema dependencies.
+Remaining work includes P034/P035 grammar acceptance, P036 duplicate policy,
+P037 complete-document entry, later numeric operations and diagnostic expansion,
+whole-grammar evidence/full-support review, and independently tracked optional
+components and cross-component runtime accounting. The layout and passing units
+do not promote Draft J5 contracts or imply unexecuted compiler/CI/device results.

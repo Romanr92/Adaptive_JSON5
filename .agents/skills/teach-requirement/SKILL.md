@@ -26,9 +26,20 @@ GoogleTest, documentation and requirements work is permitted by AGENTS.md.
 
 ## Teach implementation in context
 
+Follow [ADR 0002](../../../docs/adr/0002-public-private-source-layout.md) for new
+file proposals: supported public headers under `includes/`, private headers under
+`src/includes/`, and non-template implementations under `src/src/`, grouped by topic.
+Internal test guidance uses `src/tests/`; public-interface and whole-library
+behavior units remain under top-level `tests/` without private-header access.
+Read actual current files before guidance; the old `include/` tree has been
+migrated under explicit user authorization. Do not duplicate it or expose private
+headers through public includes. Public document headers retain supporting
+representation declarations without adding opaque-state allocation; see ADR 0002.
+
 For an issue-based request, read its current body and map its scope to the active
 P steps, J5 contracts and prerequisites. Inspect the relevant implementation
-headers before recommending calls or types. Distinguish code that exists from
+headers, corresponding `.cpp` files and CMake source lists before recommending
+calls, types or placement. Distinguish code that exists from
 documented plans; stale status prose alone is not implementation evidence.
 For core parser work, use `docs/requirements/json5-implementation-order.md`.
 
@@ -64,21 +75,72 @@ exception to the production-code restriction when the user has asked to learn.
 
 ## Respect the teaching stage
 
+### Teach the compiled C++ architecture
+
+The user explicitly requires normal declaration/implementation separation in
+future lessons. Follow [the current architecture](../../../docs/architecture.md)
+and [source layout](../../../docs/source-layout.md). Do not return to header-only
+implementation merely because it is easier to present in a conversation.
+
+- Begin each coherent change by identifying its responsibility and boundary:
+  supported public interface, internal component, implementation-only helper or
+  test support. Reuse existing components before introducing a class, wrapper or
+  new header. Proper C++ architecture does not require a class for every helper,
+  virtual inheritance, PImpl, a factory or a design pattern without a need.
+- Put supported declarations in `includes/adaptive_json5/<topic>/`, shared
+  internal declarations in `src/includes/adaptive_json5/detail/<topic>/`, and
+  ordinary definitions in `src/src/<topic>/*.cpp`. Do not put substantial
+  non-template bodies inside class headers or create an `inline` header-only
+  helper as a shortcut. Single-translation-unit helpers belong locally in the
+  `.cpp` when practical. Small existing inline operations may remain as documented.
+- Keep public templates and definitions needed for constant evaluation in public
+  headers, and private templates in private headers as appropriate. State why a
+  definition must stay visible instead of treating that exception as permission
+  for a header-only module.
+- Explain declaration versus definition, translation units, compilation and
+  linking when the learner encounters them. A class header defines its layout
+  and declares its operations; it need not contain those operations' bodies.
+  Use `ClassName::method` for out-of-line definitions, preserve `noexcept`, and
+  keep default arguments on the declaration rather than repeating them.
+- Include the matching declaration header first in a `.cpp`. Keep implementation
+  dependencies there; headers must include what their declarations require.
+  Use forward declarations only where complete types are unnecessary. Public
+  headers must compile without the private include tree. Do not silently change
+  by-value layout, allocation, view lifetimes or ownership to hide a type.
+- Name both affected files when a lesson spans a declaration and definition.
+  Present a header/source pair as separately labeled complete-file blocks when
+  that is the useful coherent checkpoint, explaining each file's role. If the
+  files need separate lessons, explicitly identify what is still undefined and
+  continue with the matching source before declaring implementation complete.
+  Do not satisfy the complete-file teaching format by merging everything into a
+  header. An existing declaration may require only a `.cpp` implementation change.
+- Identify CMake registration for any new `.cpp`, under the compiled
+  `AdaptiveJSON5::parser` target. A declaration alone is not an implemented or
+  linkable operation. Read the actual source list and explain necessary build
+  wiring; do not claim it exists because a source file was proposed.
+- Review both sides for signature/default-argument agreement, complete types,
+  self-contained includes, single definitions, dependency direction and explicit
+  failures. Keep internal units in `src/tests/` and public-interface units in
+  top-level `tests/`; honor any requested pause before unit work.
+
 ### Learner's current needs and gradual independence
 
 The user currently knows C better than C++ and is still learning what a parser
 needs. Begin with explicit, patient guidance for each requirement: name the exact
 file to create or edit and explain its role in the architecture and why that
-design fits. Provide one complete file at a time in the conversation, including
-guards, includes, namespace, declarations and function bodies as applicable,
-rather than requiring the learner to assemble successive fragments. Read an
-existing file before presenting its proposed updated contents and preserve
-unrelated code. Proposed new files must be identified as proposals. Explain
+design fits. Teach one coherent class/module change at a time using complete
+files, with separately labeled header and source blocks when both are needed.
+Headers carry guards, required includes, namespaces and declarations; matching
+`.cpp` files carry implementation includes and out-of-line bodies. Do not require
+the learner to assemble disconnected fragments or place ordinary definitions in
+a header for convenience. Read each existing file before presenting its proposed
+updated contents and preserve unrelated code. Proposed new files must be
+identified as proposals. Explain
 the illustrative C++ line by line, including why each piece is
 needed by the parser. Do not assume familiarity with templates, references,
 `std::optional`, result types, constructors, namespaces or other C++ concepts
 merely because they appeared in an earlier answer. Explain relevant differences
-from C when the construct is introduced. Keep the lesson focused on that file;
+from C when the construct is introduced. Keep the lesson focused on that coherent change;
 do not dump every file for a grouped issue at once.
 
 Place a Doxygen block comment before every function shown, using the coding-style
@@ -144,7 +206,7 @@ the explanation or tests pass.
 
 ## Coding style for guidance
 
-Read [docs/coding-style.md](../../../../docs/coding-style.md) when presenting or
+Read [docs/coding-style.md](../../../docs/coding-style.md) when presenting or
 reviewing C++ examples. Class data members use `m_<varName>` with no trailing
 underscore, for example `m_error` rather than `error_` or `m_error_`. Preserve
 snake_case for the remainder of the name and the existing public aggregate
@@ -159,8 +221,9 @@ why that approach is needed. Requirement links do not imply verification.
 
 ## Contracts that shape guidance
 
-- JSON5 is the planned default, with explicit strict JSON selection and complete
-  input consumption. Syntax acceptance differs from schema or consumer rejection.
+- JSON5 is the default syntax selection. The future complete-document entry must
+  enforce complete input consumption; the current internal engine deliberately
+  returns a root prefix. Syntax acceptance differs from schema or consumer rejection.
 - Own values, names and original number spellings. Preserve duplicate members
   generically; reject them only under an explicit policy.
 - Preserve decoded UTF-16 units without substitution; checked UTF-8 export and

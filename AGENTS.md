@@ -16,8 +16,12 @@ requirements and repository/issue organization. **Do not create or modify
 production C++ implementation or public C++ headers.** Production implementation
 belongs to a human developer unless the user explicitly changes this instruction.
 
-Test-only C++ under `tests/` is permitted. Do not disguise production logic as
-test helpers or generated code to bypass the restriction.
+Test-only C++ under top-level `tests/` and `src/tests/` is permitted. Internal
+component units belong in `src/tests/`; public-header/API and whole-library
+behavior units using only public interfaces belong in top-level `tests/`.
+Both remain GoogleTest unit tests under the existing quality scope. Do not
+disguise production logic as test helpers or generated code to bypass the
+restriction, and never include `src/tests/` in production source lists.
 
 - Prepare or edit CMake, GoogleTest units, formatting, documentation, requirements,
   ADRs, repository skills and the authorized issue backlog.
@@ -38,6 +42,25 @@ test helpers or generated code to bypass the restriction.
   distinct. The initial build-setting units do not verify a parser or embedded runtime.
 
 ## Repository skills
+
+Follow [ADR 0002: source layout](docs/adr/0002-public-private-source-layout.md)
+for all new work and guidance: `includes/` contains supported public headers,
+`src/includes/` contains private headers, and `.cpp` files under `src/src/` hold
+substantial non-template implementations. Group files by topic. Internal units
+live in `src/tests/`; public-interface/library units stay in top-level `tests/`
+without private include access.
+Teaching must follow the compiled architecture: read the corresponding header,
+implementation and CMake source list; present declaration/source pairs when a
+change needs both. Do not teach substantial ordinary implementations as
+header-only code for convenience. Templates and required compile-time definitions
+remain legitimate header definitions. See the teaching skill for pacing and
+explicit guidance on translation units, linking and dependency boundaries.
+Public headers must not depend on the private include tree. The user explicitly
+authorized the completed structural migration from `include/adaptive_json5/`;
+do not recreate that legacy tree or a parallel header-only implementation.
+That task-specific authorization does not permit AI to implement subsequent
+production features; the normal restriction still applies to future moves/splits
+unless authorized.
 
 For explanations, design guidance or review of a requirement, use
 `.agents/skills/teach-requirement/SKILL.md`. For GoogleTest edits, use

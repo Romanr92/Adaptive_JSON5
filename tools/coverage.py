@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Build and run host units with GCC coverage, then write a local gcovr report."""
+"""Report local GCC coverage for the compiled core and its public/private headers."""
 
 import argparse
 import importlib.util
+import json
 import os
 from pathlib import Path
 import shlex
@@ -15,8 +16,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build" / "coverage"
 SOURCE_FILTER = (
-    r"(?!(?:tests|build(?:-[^/]+)?|Build|out|install|third_party|vendor|generated|node_modules|\.git)/"
-    r"|tools/gtest/).*(?i:\.(?:c|cc|cp|cpp|cxx|c\+\+|h|hh|hp|hpp|hxx|h\+\+|inl|inc|ipp|tpp|tcc|txx|ixx|cppm|cxxm|ccm|c\+\+m))$"
+    r"^(?:includes/|src/(?:includes|src)/)"
+    r".*(?i:\.(?:c|cc|cp|cpp|cxx|c\+\+|h|hh|hp|hpp|hxx|h\+\+|inl|inc|ipp|tpp|tcc|txx|ixx|cppm|cxxm|ccm|c\+\+m))$"
 )
 
 
@@ -25,11 +26,19 @@ def run(command):
     subprocess.run([str(arg) for arg in command], cwd=ROOT, check=True)
 
 
+def reset_counters():
+    # Restrict removal to runtime data in this helper's dedicated build tree.
+    for counter in BUILD.rglob("*.gcda"):
+        if counter.resolve().is_relative_to(BUILD.resolve()):
+            counter.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiler", default="g++", help="GCC C++ compiler (default: g++)")
     parser.add_argument("--gcov", help="Matching gcov executable (default: beside the compiler)")
-    parser.add_argument("--jobs", type=int, default=12, help="Parallel build jobs (default: 12)")
+    parser.add_argument("--jobs", type=int, default=os.cpu_count() or 1,
+                        help="Parallel build/test/gcov workers (default: all logical CPUs)")
     parser.add_argument("--gtest-source", type=Path, help="Existing GoogleTest 1.17.0 source checkout")
     args = parser.parse_args()
     if args.jobs < 1:
@@ -78,16 +87,34 @@ def main():
 
         # Reset only runtime counters in this dedicated build so repeated reports
         # describe the current unit run, rather than accumulating older results.
-        for counter in BUILD.rglob("*.gcda"):
-            if counter.resolve().is_relative_to(BUILD.resolve()):
-                counter.unlink()
+        reset_counters()
 
-        run(["ctest", "--test-dir", BUILD, "--output-on-failure", "--no-tests=error"])
+        run(["ctest", "--test-dir", BUILD, "--parallel", args.jobs,
+             "--output-on-failure", "--no-tests=error"])
+        # Each discovered GoogleTest case is a separate CTest process. All linked
+        # executables share the static core's .gcda files, whose concurrent writes
+        # lose counts on the Windows GCC host. Keep parallel validation above,
+        # then collect deterministic counters with one process per registered
+        # executable, sequentially. Do not discover stale binaries by globbing.
+        discovered = json.loads(subprocess.check_output(
+            ["ctest", "--test-dir", str(BUILD), "--show-only=json-v1"],
+            cwd=ROOT, text=True))
+        executables = sorted({test["command"][0] for test in discovered["tests"]})
+        if not executables:
+            raise OSError("CTest registered no unit executables for coverage collection")
+        for executable in executables:
+            if not Path(executable).resolve().is_relative_to(BUILD.resolve()):
+                raise OSError("Unit executable is outside the coverage build: " + executable)
+        reset_counters()
+        print("Collecting counters sequentially from registered unit executables.", flush=True)
+        for executable in executables:
+            run([executable, "--gtest_brief=1"])
         report = BUILD / "report"
         report.mkdir(exist_ok=True)
         run([
             sys.executable, "-m", "gcovr", BUILD,
             "--root", ROOT, "--filter", SOURCE_FILTER,
+            "-j", args.jobs,
             # gcovr parses this argument as a shell-style command, even on Windows.
             "--gcov-executable", shlex.quote(Path(shutil.which(gcov)).resolve().as_posix()),
             "--json", report / "coverage.json",
