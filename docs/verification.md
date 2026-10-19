@@ -1338,3 +1338,26 @@ Branch-only entries include short-circuit operands, not additional missing lines
 | [utf8_export.cpp](../src/src/value/utf8_export.cpp) | 54, 111 | Output is decoded only after whole-string validation; total-byte overflow requires host-infeasible string storage. |
 | [value_storage.cpp](../src/src/value/value_storage.cpp) | 51 | append enforces the record ceiling before reserve; doubled-capacity overflow requires host-infeasible live records. |
 | [value_view.cpp](../src/src/value/value_view.cpp) | 114, 157 | Every admitted child_at loop returns by the requested ordinal; the nonthrowing payload variant cannot become valueless. |
+
+
+## P034 array grammar units (2026-10-19)
+
+Added 30 runtime cases in `src/tests/parser/array_grammar_tests.cpp`: 28 named
+array grammar cases and two mixed/repeated/nested order cases. The grammar cases
+isolate empty and heterogeneous arrays, JSON5-only trailing commas (including
+nested arrays and comments), holes, doubled commas, missing separators, misplaced
+colons, missing values at EOF and mismatched closers. Rejections check original
+byte offsets and cleanup without a successful partial document. Order cases check
+indexing and iteration against independent expected kinds and source spans,
+including repeated values and nested descendants that must not become siblings.
+Each declaration includes purpose and reasoning comments inside its body.
+
+Executed full CTest suites in `build/debug-unit-tests` and
+`build/debug-unit-tests-exceptions`: **1518/1518 passed in each**, C++17,
+exceptions OFF/ON respectively, RTTI OFF, using all 32 logical CPU workers.
+clang-format 18 passed for all 165 C++ files. Logs: `build/p034-off-tests.log`
+and `build/p034-on-tests.log` (local build artifacts).
+
+Production C++ and public headers were unchanged. This is host unit evidence
+for P034, not complete-input P037 or full J5 verification; requirement statuses
+remain unchanged.
