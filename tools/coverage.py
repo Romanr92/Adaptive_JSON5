@@ -4,6 +4,7 @@
 
 import argparse
 import importlib.util
+import json
 import os
 from pathlib import Path
 import shlex
@@ -23,6 +24,13 @@ SOURCE_FILTER = (
 def run(command):
     print("+ " + subprocess.list2cmdline([str(arg) for arg in command]), flush=True)
     subprocess.run([str(arg) for arg in command], cwd=ROOT, check=True)
+
+
+def reset_counters():
+    # Restrict removal to runtime data in this helper's dedicated build tree.
+    for counter in BUILD.rglob("*.gcda"):
+        if counter.resolve().is_relative_to(BUILD.resolve()):
+            counter.unlink()
 
 
 def main():
@@ -79,12 +87,28 @@ def main():
 
         # Reset only runtime counters in this dedicated build so repeated reports
         # describe the current unit run, rather than accumulating older results.
-        for counter in BUILD.rglob("*.gcda"):
-            if counter.resolve().is_relative_to(BUILD.resolve()):
-                counter.unlink()
+        reset_counters()
 
         run(["ctest", "--test-dir", BUILD, "--parallel", args.jobs,
              "--output-on-failure", "--no-tests=error"])
+        # Each discovered GoogleTest case is a separate CTest process. All linked
+        # executables share the static core's .gcda files, whose concurrent writes
+        # lose counts on the Windows GCC host. Keep parallel validation above,
+        # then collect deterministic counters with one process per registered
+        # executable, sequentially. Do not discover stale binaries by globbing.
+        discovered = json.loads(subprocess.check_output(
+            ["ctest", "--test-dir", str(BUILD), "--show-only=json-v1"],
+            cwd=ROOT, text=True))
+        executables = sorted({test["command"][0] for test in discovered["tests"]})
+        if not executables:
+            raise OSError("CTest registered no unit executables for coverage collection")
+        for executable in executables:
+            if not Path(executable).resolve().is_relative_to(BUILD.resolve()):
+                raise OSError("Unit executable is outside the coverage build: " + executable)
+        reset_counters()
+        print("Collecting counters sequentially from registered unit executables.", flush=True)
+        for executable in executables:
+            run([executable, "--gtest_brief=1"])
         report = BUILD / "report"
         report.mkdir(exist_ok=True)
         run([

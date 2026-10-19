@@ -1,5 +1,6 @@
 adaptive_json5_add_unit(adaptive_json5_document_unit_tests document_units
-    value/document_tests.cpp)
+    value/document_tests.cpp
+    value/access_boundary_tests.cpp)
 
 adaptive_json5_add_unit(adaptive_json5_owned_number_unit_tests owned_number_units
     value/owned_number_tests.cpp)

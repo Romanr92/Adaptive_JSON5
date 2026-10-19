@@ -117,7 +117,12 @@ generated test translation units, tools and third-party directories (including
 Use `--compiler PATH`, `--gcov PATH`, `--jobs N` or `--gtest-source PATH` when needed;
 the last option retains the existing offline GoogleTest override. By default,
 building, CTest and gcov extraction use all logical CPUs; `--jobs N` overrides
-that worker count. GCC and gcov
+that worker count. After parallel CTest validation, the helper resets counters
+and runs each currently registered GoogleTest executable once, sequentially,
+to collect the report. This avoids lost updates when Windows GCC processes write
+the same compiled core's `.gcda` files concurrently. Executables come from CTest
+registration, so obsolete binaries left in the build tree are not replayed.
+GCC and gcov
 must come from the same toolchain. This is an optional local diagnostic, with no
 coverage threshold, CI job or additional merge gate. Coverage does not establish
 complete requirement verification. Entries without instrumentation data do not

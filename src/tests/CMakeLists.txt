@@ -1,5 +1,8 @@
 adaptive_json5_add_unit(adaptive_json5_parser_engine_unit_tests parser_engine_units
-    parser/parser_engine_tests.cpp)
+    parser/parser_engine_tests.cpp
+    parser/parser_transition_tests.cpp
+    parser/parser_close_tests.cpp
+    parser/parser_warning_tests.cpp)
 target_include_directories(adaptive_json5_parser_engine_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
 
 adaptive_json5_add_unit(adaptive_json5_primitive_parser_unit_tests primitive_parser_units
@@ -31,7 +34,8 @@ adaptive_json5_add_unit(adaptive_json5_identifier_unit_tests identifier_units
 target_include_directories(adaptive_json5_identifier_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
 
 adaptive_json5_add_unit(adaptive_json5_string_lexer_unit_tests string_lexer_units
-    lexer/string/string_lexer_tests.cpp)
+    lexer/string/string_lexer_tests.cpp
+    lexer/lexer_boundary_tests.cpp)
 target_include_directories(adaptive_json5_string_lexer_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
 
 adaptive_json5_add_unit(adaptive_json5_string_warning_unit_tests string_warning_units
@@ -99,5 +103,7 @@ adaptive_json5_add_unit(adaptive_json5_whitespace_unit_tests whitespace_units
 target_include_directories(adaptive_json5_whitespace_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
 
 adaptive_json5_add_unit(adaptive_json5_value_storage_unit_tests document_units
-    value/value_storage_tests.cpp)
+    value/value_storage_tests.cpp
+    value/relationship_validation_tests.cpp
+    value/attachment_validation_tests.cpp)
 target_include_directories(adaptive_json5_value_storage_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")

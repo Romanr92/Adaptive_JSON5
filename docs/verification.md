@@ -1256,3 +1256,85 @@ phase allowances, not measured instructions/time or fine-grained cancellation.
 Cleanup remains independent of exhausted work. Later parser, conversion and
 schema paths still require shared accounting integration under #69. Requirements
 remain Draft; no MISRA/CERT compliance or embedded execution is inferred.
+
+## Coverage-directed unit additions (2026-10-19)
+
+Added 66 GoogleTest cases in seven topic-based files under `src/tests/` and
+`tests/value/access_boundary_tests.cpp`. Each test body explains the behavioral
+reason for the case alongside Arrange/Act/Expect sections. Parameterized faults
+have descriptive case names. The units cover the complete container-dispatch
+state/mode table, rejected open/close/attachment transitions, read-only frame
+lifetime, typed access errors, moved-from numbers, invalid input metadata,
+empty roots, malformed trivia, warning-descriptor ownership, absent observers,
+non-scalar property queries, malformed surrogate pairs, and allocation failure
+while decoding escaped BMP/supplementary characters.
+
+Internal relationship fault injection operates on live `detail::value_record`
+objects through the existing mutable internal storage interface. It checks
+defensive traversal/attachment failures and unchanged relationships. These
+fixtures are deliberately inconsistent internal descriptions, not trees produced
+by the public document builder, and do not demonstrate a parser defect.
+No private-access macro, invented allocation, production change or coverage
+exclusion was used. Existing J5 requirement statuses remain Draft; named units
+are inventoried separately in [traceability](traceability.md).
+
+Executed all **1488/1488** cases successfully in both native Windows C++17
+configurations, using **32 CTest workers**, with RTTI OFF: GCC 15.2.0 with
+exceptions OFF in `build/coverage`, and GCC 16.2.0 with exceptions ON in
+`build/debug-unit-tests-exceptions`. clang-format 18.1.8 passes all 164 C++ files.
+These are local host results, not remote CI or embedded execution evidence.
+
+The optional GCC 15.2.0/gcovr 8.6 report includes the production roots only:
+public `includes/`, private `src/includes/`, and compiled `src/src/`.
+Parallel-only counter collection produced different omissions between passing
+runs because separate test processes write the same compiled core's `.gcda`
+files. The helper retains full-parallel CTest validation, then resets counters
+and executes each of the **35 currently registered unit executables** once,
+sequentially, for deterministic collection. It does not replay obsolete binaries
+left in the build directory. This additional collection is an optional local
+diagnostic, not a new automated quality gate.
+
+The requested 100% line/function/branch target is **not achieved**. The report
+reaches 100% functions; the remaining lines/branches include invariant defenses
+and host-infeasible size-overflow paths. Tests do not mutate immutable input
+during decoding, fabricate enormous storage, force private engine states or
+throw to create valueless variants. Doing so would violate component contracts
+or misrepresent executable behavior. Production changes remain reserved for the
+human developer; any simplification of redundant guards needs production design
+review. No requirements are marked Verified from coverage percentages.
+
+Final report: **3099/3158 lines (98.1%)**, **528/528 functions (100%)**,
+**1537/1618 branches (95.0%)**. `python tools/coverage.py` completed with exit
+code 0. Artifacts are local and ignored: `build/coverage/report/index.html`
+and `build/coverage/report/coverage.json`. Counts describe the instrumented
+executable code, not complete JSON5 conformance or uninstrumented declarations.
+The retained report has 59 unexecuted lines and 81 unexecuted branches; these
+are still included in the denominators. The following audit distinguishes
+invariant-dependent defenses from physically infeasible allocation sizes.
+Branch-only entries include short-circuit operands, not additional missing lines.
+
+| Source | Unexecuted source lines | Reason for remaining gap under the current contracts |
+| --- | --- | --- |
+| [comment.cpp](../src/src/lexer/comment.cpp) | 57 | The line-terminator probe already decodes the same bytes; the block loop guarantees a current byte. |
+| [identifier_classification.cpp](../src/src/lexer/identifier/identifier_classification.cpp) | None (branch operands only) | Length-bounded immutable unit access cannot fail; literal classification propagates that defensive result. |
+| [scalar_lexer.cpp](../src/src/lexer/scalar_lexer.cpp) | 102, 109 | After a readable non-punctuation start, identifier recognition either yields a token or fails; classification uses valid immutable decoded units. |
+| [string_escape.cpp](../src/src/lexer/string/string_escape.cpp) | 81, 88 | Earlier escape recognizers partition no-match/error cases; a decoded source scalar always fits UTF-16. |
+| [string_lexer.cpp](../src/src/lexer/string/string_lexer.cpp) | 45, 107 | Warning replay requires the same successfully validated, unchanged body; its repeated piece/escape failures cannot arise through consume_string. |
+| [trivia.cpp](../src/src/lexer/trivia.cpp) | None (branch operands only) | With a nonnull buffer and a loop position before EOF, UTF-8 decoding cannot successfully return an absent character. |
+| [whitespace.cpp](../src/src/lexer/whitespace.cpp) | 49 | The line-terminator probe already validated the same scalar; the loop guarantees a readable non-EOF position. |
+| [accounted_storage.cpp](../src/src/memory/accounted_storage.cpp) | None (branch operands only) | Every allocation preserves outstanding bytes <= the copied byte limit; the already-over-limit operand is defensive. |
+| [decoded_string_builder.cpp](../src/src/memory/decoded_string_builder.cpp) | 69 | Size/doubled-capacity overflow requires host-infeasible live string storage; scalar appends add at most two units. |
+| [resource_budget.cpp](../src/src/memory/resource_budget.cpp) | None (branch operands only) | Internal counters cannot exceed copied limits after successful reservations; the missing operand is an already-over-limit counter. |
+| [work_budget.cpp](../src/src/memory/work_budget.cpp) | None (branch operands only) | Successful charges preserve consumed <= limit; callers cannot change private counters. |
+| [parser_attachment.cpp](../src/src/parser/parser_attachment.cpp) | 53 | Adding one to the number of actually allocated records cannot reach size_t overflow on this host. |
+| [parser_container_open.cpp](../src/src/parser/parser_container_open.cpp) | 54 | Record-count overflow requires host-infeasible allocated record storage. |
+| [parser_engine.cpp](../src/src/parser/parser_engine.cpp) | 45, 59, 66, 72, 73, 104, 123, 128, 143, 189, 196, 215, 222, 244, 274, 279, 287, 321, 328, 369, 379, 390, 403, 404, 409, 418, 436, 451, 470, 590, 606, 607, 616 | Private states/names/root and mirrored resource counters are maintained by dispatch and construction; spans/indices were just validated. Other guards require host-infeasible count/size overflow. |
+| [parser_stack.cpp](../src/src/parser/parser_stack.cpp) | 41 | push enforces the frame ceiling before reserve; doubled-capacity overflow requires host-infeasible live frames. |
+| [primitive_parser.cpp](../src/src/parser/primitive_parser.cpp) | 63, 168, 175, 293, 300 | Validated numeric errors stay inside their spelling; the scalar variant always has an active known alternative. Real record-count arithmetic cannot overflow on this host; new detached roots and recorded spans satisfy publication checks. |
+| [utf16_decode.cpp](../src/src/unicode/utf16_decode.cpp) | 52 | The second unit read follows an explicit remaining-unit bounds check on an immutable string. |
+| [decoded_name_equal.cpp](../src/src/value/decoded_name_equal.cpp) | 31 | Equal immutable lengths bound both unit reads before comparison. |
+| [document.cpp](../src/src/value/document.cpp) | None (branch operands only) | The validated builder sets parent whenever it sets member/sibling metadata; earlier parent rejection short-circuits the remaining invalid-root operands. |
+| [member_lookup.cpp](../src/src/value/member_lookup.cpp) | 67, 74 | Iterator validation proves a live named member before name access; immutable equality cannot fail after its bounds checks. |
+| [utf8_export.cpp](../src/src/value/utf8_export.cpp) | 54, 111 | Output is decoded only after whole-string validation; total-byte overflow requires host-infeasible string storage. |
+| [value_storage.cpp](../src/src/value/value_storage.cpp) | 51 | append enforces the record ceiling before reserve; doubled-capacity overflow requires host-infeasible live records. |
+| [value_view.cpp](../src/src/value/value_view.cpp) | 114, 157 | Every admitted child_at loop returns by the requested ordinal; the nonthrowing payload variant cannot become valueless. |
