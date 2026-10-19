@@ -1,5 +1,58 @@
 # Development setup verification
 
+## P033 iterative container engine units, 2026-10-19
+
+Added `tests/parser_engine_tests.cpp` and the CTest label
+`parser_engine_units`: **75 discovered cases**. The named declarations are
+recorded separately in [traceability](traceability.md). Coverage includes empty
+and mixed array/object nesting in both modes, exact heterogeneous content and
+child spans, malformed structural roots and missing delimiters, every unfinished
+prefix of a nested fixture, original encoding-error offsets, JSON5-only nested
+grammar, internal consumed-prefix semantics, warning aggregation across names
+and values, input/configuration rejection, source overwrite and document moves.
+
+Resource units cover inclusive depth/node/member/string/name/aggregate/numeric/
+exponent/input limits, zero-unit empty content, scalar roots with zero container
+depth, mixed depth 64 and depth 65 rejection, failed deep cleanup, all allocation
+requests in a representative mixed parse, increasing work allowances through
+the first success, and byte ceilings below/at/above measured outstanding peak.
+Direct component units inspect pending-name ownership across frame relocation,
+growth allocation failure, provisional-frame rollback after record allocation
+failure, and close-mismatch preservation of frames/source spans. Failure reuse
+means a **fresh engine** on the same live accounting adapter, not rerunning an
+abandoned engine instance.
+
+Executed locally with MinGW GCC 16.2.0 on Windows:
+
+| Configuration | Executed scope | Result |
+| --- | --- | --- |
+| `debug-unit-tests`, exceptions OFF, RTTI OFF | Full available GoogleTest suite | **1421/1421 passed**, including **75/75 P033** |
+| `debug-unit-tests-exceptions`, exceptions ON, RTTI OFF | P033, primitive parser, document and resource guards | **296/296 passed**, including **75/75 P033** |
+| clang-format 18.1.8 | New `parser_engine_tests.cpp`, `--dry-run --Werror` | Passed |
+
+Commands used after configuration/build:
+
+```powershell
+ctest --preset debug-unit-tests --parallel 4 --output-on-failure
+ctest --preset debug-unit-tests-exceptions -L '^(parser_engine_units|primitive_parser_units|document_units|resource_guards_units)$' --parallel 4 --output-on-failure
+```
+
+Both builds used the existing offline-source override pointing at `tools/gtest`,
+checked out at pinned revision `52eb8108c5bdec04579160ae17225d66034bd723`.
+The initial exceptions-ON configure attempted a network fetch and failed; the
+generated dependency checkout was restored and pinned before successful builds.
+Four initial failures were two incorrect test-fixture expectations instantiated
+in both modes: the mixed container fixture has six records, and its separate
+unterminated fixture ends at byte 12. Correcting those independent counts required
+no production changes. The final executions above supersede that initial run.
+
+No production C++ was changed. These results establish P033 unit evidence, not
+completion of all P034–P036 acceptance, P037 complete-input behavior, the later
+whole-grammar evidence matrix or cross-component #69 accounting. The internal
+engine deliberately returns a root prefix; its successful result does not
+validate a trailing suffix. Requirements remain Draft. No embedded execution,
+real-time bound, MISRA/CERT/AUTOSAR compliance or CI result is inferred.
+
 ## Individual CTest case registration, 2026-10-13
 
 CMake now uses `gtest_discover_tests` to register each GoogleTest case, including
