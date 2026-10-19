@@ -1,5 +1,11 @@
 # Architecture and implementation boundaries
 
+For a source-based map of the current lexer, owned document, budgets and P033
+helpers, see [Current parser architecture](current-architecture.md), including
+Mermaid class diagrams and interaction flows. The preparation-stage descriptions
+below retain the original contracts; their statements about which components
+exist are historical, not a current implementation inventory.
+
 The repository contains CMake development metadata, GoogleTest infrastructure
 and the developer's result/error, input-view and syntax-options headers. No
 parsing operation is implemented.
