@@ -294,6 +294,23 @@ namespace adaptive_json5
                                     std::size_t input_size) noexcept;
 
       /**
+       * @brief Assign or replace an object member name's original source range.
+       * @par Requirements
+       * P036; J5-032; J5-039; J5-041; J5-044.
+       * @param index Object-member value index belonging to this document.
+       * @param span Original member-name token offset and length in bytes.
+       * @param input_size Original input size in bytes.
+       * @return Success or an explicit access/range failure.
+       * @note Requires an existing member_name, including a valid empty name.
+       * The span describes source spelling, including quotes when present.
+       * Failure leaves existing metadata unchanged.
+       * Stores no input pointer and performs no allocation.
+       * The caller supplies the correct input size and source provenance.
+       */
+      status_result set_member_name_source_span(value_index index, adaptive_json5::source_span span,
+                                                std::size_t input_size) noexcept;
+
+      /**
        * @brief Establish one detached value as the document root.
        * @par Requirements
        * P030; J5-028; J5-039.

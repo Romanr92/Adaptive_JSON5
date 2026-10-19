@@ -114,6 +114,41 @@ namespace adaptive_json5
     return status_result::success();
   }
 
+  /**
+   * @brief Validate and retain an attached member's original name range.
+   * @par Requirements
+   * P036; J5-032; J5-039; J5-041; J5-044.
+   * @note All validation precedes metadata replacement.
+   */
+  status_result document::set_member_name_source_span(value_index index, adaptive_json5::source_span span,
+                                                      std::size_t input_size) noexcept
+  {
+    const auto resolved = m_values.at(index);
+
+    if (!resolved.has_value())
+    {
+      return status_result::failure(*resolved.error_if());
+    }
+
+    auto& record = **resolved.value_if();
+
+    // Empty decoded names are valid; absence means this is not a named member.
+    if (!record.member_name.has_value())
+    {
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    // Subtraction checks the end without overflowing offset plus length.
+    if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
+    {
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    record.member_name_source_span.emplace(span);
+
+    return status_result::success();
+  }
+
   status_result document::set_root(value_index index) noexcept
   {
     if (m_root.is_set())
