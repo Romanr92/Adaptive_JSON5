@@ -30,7 +30,7 @@ case suffixes. Record actual execution in [verification notes](verification.md).
 | J5-005 | Syntax selection | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `J5_005_ParseOptions.DefaultsToJson5`; `J5_005_ParseOptions.SelectsJson5Explicitly`; `J5_005_ParseOptions.SelectsStrictJsonExplicitly` |
 | J5-006 | Unicode data baseline | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |
 | J5-007 | License and provenance | Draft | [#68](https://github.com/Romanr92/Adaptive_JSON5/issues/68) |  |
-| J5-008 | Public contracts | Draft | [#72](https://github.com/Romanr92/Adaptive_JSON5/issues/72) |  |
+| J5-008 | Public contracts | Draft | [#72](https://github.com/Romanr92/Adaptive_JSON5/issues/72) | `J5_008_PublicLibrary.BuildsAndInspectsOwnedValuesThroughPublicHeaders` |
 | J5-009 | UTF-8 source | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) | `J5_009_ContainerEncoding.ReportsOriginalNestedByteOffset` |
 | J5-010 | JSON whitespace | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `Modes/J5_024_Trivia.ComposesOrReportsLocatedFailure`; `J5_024_TriviaBoundary.HandlesEmptyAndBoundedViews` |
 | J5-011 | JSON5 whitespace | Draft | [#5](https://github.com/Romanr92/Adaptive_JSON5/issues/5) |  |

@@ -30,7 +30,8 @@ result/error cases under the `result_units` CTest label. The storage executable
 supplies 39 cases under `storage_units`, and `adaptive_json5_api_unit_tests`
 supplies 16 input/options/cursor cases under `api_configuration_units`.
 CTest discovers individual GoogleTest cases, including parameterized cases,
-and reports 98 cases in the current build. Use `-L "^result_units$"` to select
+and reports the available case total for the selected build. See verification
+notes for current executed totals. Use `-L "^result_units$"` to select
 the result group, or `-R` to match individual case names.
 These do not establish parser semantics.
 Add requirement-backed units as the human developer implements
@@ -46,8 +47,8 @@ traceability, parameterization and Arrange/Act/Expect comments.
 | `ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR` | Empty | Offline source override; otherwise CMake FetchContent |
 
 C++17 and compiler options apply to selected targets. Parent flags are not
-overwritten. Future production targets must use the reviewed exception/runtime
-policy; a configurable test build is not evidence of an implemented parser.
+overwritten. Compiled production and unit targets use the explicit C++17 baseline and
+reviewed exception/runtime policy; a passing build does not prove language completeness.
 
 All project C++ targets, including unit-test executables, treat compiler warnings
 as errors through `adaptive_json5_configure_target()`: `-Wparentheses -Werror`
@@ -118,7 +119,9 @@ proof that those files were exercised.
 
 ## Package and embedded configuration
 
-The tests-disabled `library` preset exports only development metadata today.
+The tests-disabled `library` preset builds and exports the compiled core and
+public headers without acquiring GoogleTest. Public API units live in `tests/`;
+internal units live in `src/tests/` and receive private include access.
 Install it with `cmake --install build/library --config Release --prefix path/to/install`.
 Future issues add the implemented parser/schema targets and their public headers.
 Schema, CLI and editor directories are future components, not available options.
@@ -141,7 +144,7 @@ Three independent component switches select what to prepare/build:
 
 | Switch | Default | Current scaffold behavior |
 | --- | --- | --- |
-| `ADAPTIVE_JSON5_BUILD_LIBRARY` | ON | Export/install development library metadata; parser C++ pending |
+| `ADAPTIVE_JSON5_BUILD_LIBRARY` | ON | Build/export/install the compiled core and public headers |
 | `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example data and future `examples/main.cpp` target; executable C++ pending |
 | `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root, OFF as subproject | Fetch/build/run host GoogleTest units |
 
@@ -160,3 +163,18 @@ Example/library selections currently configure infrastructure only and explicitl
 report the missing executable; they do not produce a working parser or demo.
 When both library and tests are OFF, no install package or GoogleTest is produced.
 The metadata interface remains available internally for test build settings.
+
+## Using all logical processors
+
+For local PowerShell builds and unit runs on the current PC:
+
+```powershell
+$unitJobs = [Environment]::ProcessorCount
+cmake --build --preset debug-unit-tests --parallel $unitJobs
+ctest --preset debug-unit-tests --parallel $unitJobs
+cmake --build --preset debug-unit-tests-exceptions --parallel $unitJobs
+ctest --preset debug-unit-tests-exceptions --parallel $unitJobs
+```
+
+The structural refactor was checked with 32 parallel workers on this host. This
+is a local execution setting, not a fixed processor requirement for consumers.

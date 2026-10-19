@@ -1,13 +1,15 @@
 # Current parser architecture
 
-Snapshot: 2026-10-19, through the P033 implementation walkthrough for issue #33.
+Updated after the 2026-10-19 structural refactor. P033's internal engine is
+implemented and has unit evidence; P034?P037 remain separate work. Public headers
+now live under `includes/`, private headers under `src/includes/`, implementations
+under topic folders in `src/src/`, and internal units under `src/tests/`. Public API
+and library-behavior units remain under top-level `tests/`.
 
-This document describes the headers currently present in the working tree,
-including work that may not yet be committed. **Present** means implementation
-code exists; it does not mean the component has passed units or that its J5
-contracts are Verified. The proposed engine from the walkthrough is shown
-separately: `parser_engine.hpp` exists as an empty file at the final inspection;
-it contains no engine declarations or implementation yet.
+[ADR 0002](adr/0002-public-private-source-layout.md) records the accepted layout
+and its implementation. The descriptions below distinguish current internal
+components from the M1 endpoint. Source existence and unit evidence do not promote
+J5 Draft contracts to Verified; see [verification notes](verification.md).
 
 The active [requirements](requirements.md), [traceability](traceability.md),
 [implementation sequence](requirements/json5-implementation-order.md),
@@ -32,8 +34,8 @@ not complete API declarations. Proposed types are explicitly marked.
 ### Complete picture now
 
 This overview combines the existing components into one picture. Solid arrows
-show current collaboration or ownership. The disconnected engine box marks the
-missing composition, not an operational parser. Detailed class diagrams later
+show current collaboration or ownership. The remaining-work box marks the
+unfinished M1 steps; P033 engine composition is now implemented. Detailed class diagrams later
 in this document explain the individual types.
 
 ```mermaid
@@ -42,6 +44,7 @@ flowchart TB
     subgraph Operations["Existing operations"]
         Primitive["parse_primitive_document: complete scalar input"]
         Consume["consume_primitive: scalar into a document"]
+        EngineNow["P033 internal engine: iterative value dispatch"]
         Helpers["P033 helpers: open, close, attach and dispatch"]
         Names["consume_member_name: quoted or identifier name"]
     end
@@ -68,7 +71,13 @@ flowchart TB
         Blocks["owned_block and storage_callbacks"]
         Provider["Caller-owned fallible storage provider"]
     end
-    Missing["Still missing: engine composition, complete container grammar, duplicate policy and unified root entry"]
+    Missing["Remaining: P034/P035 acceptance, duplicate policy and unified public root entry"]
+    Caller --> EngineNow
+    EngineNow --> Helpers
+    EngineNow --> Scalar
+    EngineNow --> Names
+    EngineNow --> Budget
+    EngineNow --> Work
     Caller --> Primitive
     Caller --> Document
     Caller --> Names
@@ -167,7 +176,7 @@ flowchart TB
 
 Existing types retain their current names. `CompleteDocumentEntry` and
 `DuplicatePolicy` below are conceptual roles rather than proposed C++ signatures.
-`parser_engine` is the teaching proposal. Dependencies on a shared budget mean
+`parser_engine` is implemented as an internal operation object. Dependencies on a shared budget mean
 explicit caller integration, not automatic enforcement by every accessor.
 
 ```mermaid
@@ -176,7 +185,7 @@ classDiagram
         <<planned role P037>>
     }
     class parser_engine {
-        <<proposed P033>>
+        <<internal P033>>
     }
     class DuplicatePolicy {
         <<planned role P036>>
@@ -246,7 +255,7 @@ not move P042's final strict-mode work into M1 or certify language conformance.
 flowchart TB
     Consumer[Consumer: caller input, options and storage]
     Primitive[Present: complete primitive-document operation]
-    Engine[Proposed: iterative parser_engine]
+    Engine[Present: internal iterative parser_engine]
     Helpers[Present: P033 container helpers and dispatch]
     Lexers[Present: scalar and member-name lexers]
     Characters[Present: cursor, UTF decoding, trivia and escapes]
@@ -258,19 +267,19 @@ flowchart TB
     Primitive --> Lexers
     Primitive --> Model
     Primitive --> Resources
-    Engine -. composition pending .-> Helpers
-    Engine -. composition pending .-> Lexers
-    Engine -. composition pending .-> Resources
+    Engine --> Helpers
+    Engine --> Lexers
+    Engine --> Resources
     Helpers --> Model
     Lexers --> Characters
     Lexers --> Storage
     Model --> Storage
 ```
 
-The implementation is predominantly header based. Lexical recognition, owned
-values, storage and accounting are separate components. P033 is joining arrays
-and objects through a shared iterative engine; the helper functions alone do
-not yet constitute an operational container parser.
+Ordinary non-template implementations now compile into a static library. Lexical recognition, owned
+values, storage and accounting are separate components. P033 joins arrays
+and objects through a shared iterative engine. Its internal prefix result is
+not the future public complete-document parser API.
 
 `parse_primitive_document()` already handles a complete scalar root, including
 leading/trailing trivia and suffix rejection. It cannot parse an array or object
@@ -343,13 +352,13 @@ classDiagram
 
 | Type / header | Responsibility and interaction |
 | --- | --- |
-| [`input_view`](../include/adaptive_json5/input.hpp) | Borrowed bytes plus exact length. Does not own or validate caller memory. No terminating NUL is needed; an embedded zero remains an input byte. |
-| [`source_span`](../include/adaptive_json5/input.hpp) | Copyable original byte offset and length. Describes a range without retaining its text. |
-| [`cursor`](../include/adaptive_json5/cursor.hpp) | Holds a borrowed input description and current position. Bounded access distinguishes EOF from a zero byte. Copying a cursor enables speculative recognition. |
-| [`syntax_mode`, `parse_options`](../include/adaptive_json5/options.hpp) | Select JSON5 by default or strict JSON explicitly; options also own the resource-limit configuration. Configuration alone enforces nothing. |
-| [`result<T, E>`](../include/adaptive_json5/result.hpp) | Stores success or error inline; default error type is `error`. Checked pointer access avoids throwing alternative access. Supports move-only payloads subject to its nonthrowing constraints. |
+| [`input_view`](../includes/adaptive_json5/input.hpp) | Borrowed bytes plus exact length. Does not own or validate caller memory. No terminating NUL is needed; an embedded zero remains an input byte. |
+| [`source_span`](../includes/adaptive_json5/input.hpp) | Copyable original byte offset and length. Describes a range without retaining its text. |
+| [`cursor`](../src/includes/adaptive_json5/detail/input/cursor.hpp) | Holds a borrowed input description and current position. Bounded access distinguishes EOF from a zero byte. Copying a cursor enables speculative recognition. |
+| [`syntax_mode`, `parse_options`](../includes/adaptive_json5/options.hpp) | Select JSON5 by default or strict JSON explicitly; options also own the resource-limit configuration. Configuration alone enforces nothing. |
+| [`result<T, E>`](../includes/adaptive_json5/result.hpp) | Stores success or error inline; default error type is `error`. Checked pointer access avoids throwing alternative access. Supports move-only payloads subject to its nonthrowing constraints. |
 | `result<void, E>` / `status_result` | Success has no payload. `status_result` is the alias used by fallible operations that return only status. |
-| [`error`, `error_code`](../include/adaptive_json5/error.hpp) | Minimal allocation-free failure category and optional original byte location. Offset zero and absence of a location are distinct. |
+| [`error`, `error_code`](../includes/adaptive_json5/error.hpp) | Minimal allocation-free failure category and optional original byte location. Offset zero and absence of a location are distinct. |
 
 Recognizers commonly return `result<std::optional<T>>`: failure means malformed
 input or an operational error, successful empty optional means no match, and a
@@ -418,16 +427,16 @@ classDiagram
 
 | Type / header | Responsibility and interaction |
 | --- | --- |
-| [`storage_callbacks`](../include/adaptive_json5/storage.hpp) | Borrows provider context and function pointers. A usable provider supplies deallocation and an allocation route. Explicit-result allocation takes precedence over pointer-or-null allocation. The context remains caller owned. |
+| [`storage_callbacks`](../includes/adaptive_json5/memory/storage.hpp) | Borrows provider context and function pointers. A usable provider supplies deallocation and an allocation route. Explicit-result allocation takes precedence over pointer-or-null allocation. The context remains caller owned. |
 | `allocate_function`, `allocate_result_function`, `deallocate_function` | Callback aliases, not allocator objects. Requests carry byte count and alignment; release must match the original request and must not allocate or throw. |
-| [`owned_block`](../include/adaptive_json5/owned_block.hpp) | Move-only owner of one raw allocation and its release description. Destruction releases it once through the original provider. `allocate_block()` and `allocate_array()` validate requests and checked sizes. |
-| [`accounted_storage`](../include/adaptive_json5/accounted_storage.hpp) | Wraps an upstream provider with a ceiling on simultaneously outstanding requested bytes. Exposes callbacks and current/peak counters. Capacity and old/new overlap during growth count; upstream internal overhead does not. |
-| [`decoded_string`](../include/adaptive_json5/decoded_string.hpp) | Immutable owned UTF-16 units, including embedded NUL and unpaired surrogates. Move construction transfers ownership; copy and move assignment are deleted. |
-| [`decoded_string_builder`](../include/adaptive_json5/decoded_string_builder.hpp) | Bounded mutable decoding buffer. Appends units or encoded scalars, then transfers storage through `finish()`. An unfinished builder releases its storage. |
-| [`owned_number`](../include/adaptive_json5/owned_number.hpp) | Owns validated original spelling and its numeric family. Keeps huge finite spellings and special spellings without rounding through a machine floating type. This is not the later numeric conversion API. |
-| [`resource_limits`](../include/adaptive_json5/resource_limits.hpp) | Inclusive finite limits. Zero permits zero consumption; there is no unlimited sentinel. |
-| [`resource_budget`](../include/adaptive_json5/resource_budget.hpp) | Tracks node/member, depth, decoded-unit and diagnostic reservations; checks input and number bounds. Failed reservations preserve counters. Matching release operations support rollback. Does not allocate storage or charge work. |
-| [`work_budget`](../include/adaptive_json5/work_budget.hpp) | Cumulative deterministic work allowance. Failed charges leave consumption unchanged; successful charges are retained after later failure. Does not measure elapsed time or establish a real-time guarantee. |
+| [`owned_block`](../includes/adaptive_json5/memory/owned_block.hpp) | Move-only owner of one raw allocation and its release description. Destruction releases it once through the original provider. `allocate_block()` and `allocate_array()` validate requests and checked sizes. |
+| [`accounted_storage`](../includes/adaptive_json5/memory/accounted_storage.hpp) | Wraps an upstream provider with a ceiling on simultaneously outstanding requested bytes. Exposes callbacks and current/peak counters. Capacity and old/new overlap during growth count; upstream internal overhead does not. |
+| [`decoded_string`](../includes/adaptive_json5/value/decoded_string.hpp) | Immutable owned UTF-16 units, including embedded NUL and unpaired surrogates. Move construction transfers ownership; copy and move assignment are deleted. |
+| [`decoded_string_builder`](../src/includes/adaptive_json5/detail/memory/decoded_string_builder.hpp) | Bounded mutable decoding buffer. Appends units or encoded scalars, then transfers storage through `finish()`. An unfinished builder releases its storage. |
+| [`owned_number`](../includes/adaptive_json5/value/owned_number.hpp) | Owns validated original spelling and its numeric family. Keeps huge finite spellings and special spellings without rounding through a machine floating type. This is not the later numeric conversion API. |
+| [`resource_limits`](../includes/adaptive_json5/memory/resource_limits.hpp) | Inclusive finite limits. Zero permits zero consumption; there is no unlimited sentinel. |
+| [`resource_budget`](../src/includes/adaptive_json5/detail/memory/resource_budget.hpp) | Tracks node/member, depth, decoded-unit and diagnostic reservations; checks input and number bounds. Failed reservations preserve counters. Matching release operations support rollback. Does not allocate storage or charge work. |
+| [`work_budget`](../src/includes/adaptive_json5/detail/memory/work_budget.hpp) | Cumulative deterministic work allowance. Failed charges leave consumption unchanged; successful charges are retained after later failure. Does not measure elapsed time or establish a real-time guarantee. |
 
 The three accounting mechanisms are complementary: `resource_budget` counts
 logical resources, `accounted_storage` counts allocation bytes, and
@@ -533,26 +542,26 @@ an arbitrary identifier is not implicitly a string value.
 
 | Type / header | Purpose and ownership |
 | --- | --- |
-| [`decoded_character`](../include/adaptive_json5/utf8.hpp) | One Unicode scalar plus original UTF-8 byte span; owns no text. |
-| [`unicode_range`](../include/adaptive_json5/unicode_range.hpp) | Inclusive interval used by sorted Unicode property tables. `unicode.hpp` queries the tables in `unicode_tables.hpp`. |
-| [`encoded_utf16`](../include/adaptive_json5/utf16.hpp) | Inline one- or two-unit encoding of a Unicode scalar; no allocation. |
-| [`decoded_utf16`](../include/adaptive_json5/utf16_decode.hpp) | One scalar decoded from stored units and the number of units consumed; unpaired surrogates fail checked scalar decoding. |
-| [`whitespace_span`](../include/adaptive_json5/whitespace.hpp) | Original range consumed as whitespace. |
-| [`line_terminator_span`](../include/adaptive_json5/line_terminator.hpp) | Original line-ending range; also used by line-continuation recognition. |
-| [`comment_span`](../include/adaptive_json5/comment.hpp) | Original consumed comment range. Comment text is not retained as document data. |
-| [`trivia_span`](../include/adaptive_json5/trivia.hpp) | Combined whitespace/comment run. Strict mode rejects comment openers. |
-| [`punctuation_kind`, `punctuation_token`](../include/adaptive_json5/punctuation.hpp) | Classify six structural punctuation bytes and retain the recognized byte span. |
-| [`string_quote`](../include/adaptive_json5/string_boundary.hpp) | Opening delimiter selection: single or double quote. |
+| [`decoded_character`](../src/includes/adaptive_json5/detail/unicode/utf8.hpp) | One Unicode scalar plus original UTF-8 byte span; owns no text. |
+| [`unicode_range`](../src/includes/adaptive_json5/detail/unicode/unicode_range.hpp) | Inclusive interval used by sorted Unicode property tables. `unicode.hpp` queries the tables in `unicode_tables.hpp`. |
+| [`encoded_utf16`](../src/includes/adaptive_json5/detail/unicode/utf16.hpp) | Inline one- or two-unit encoding of a Unicode scalar; no allocation. |
+| [`decoded_utf16`](../src/includes/adaptive_json5/detail/unicode/utf16_decode.hpp) | One scalar decoded from stored units and the number of units consumed; unpaired surrogates fail checked scalar decoding. |
+| [`whitespace_span`](../src/includes/adaptive_json5/detail/lexer/whitespace.hpp) | Original range consumed as whitespace. |
+| [`line_terminator_span`](../src/includes/adaptive_json5/detail/lexer/line_terminator.hpp) | Original line-ending range; also used by line-continuation recognition. |
+| [`comment_span`](../src/includes/adaptive_json5/detail/lexer/comment.hpp) | Original consumed comment range. Comment text is not retained as document data. |
+| [`trivia_span`](../src/includes/adaptive_json5/detail/lexer/trivia.hpp) | Combined whitespace/comment run. Strict mode rejects comment openers. |
+| [`punctuation_kind`, `punctuation_token`](../src/includes/adaptive_json5/detail/lexer/punctuation.hpp) | Classify six structural punctuation bytes and retain the recognized byte span. |
+| [`string_quote`](../src/includes/adaptive_json5/detail/lexer/string/string_boundary.hpp) | Opening delimiter selection: single or double quote. |
 | `string_piece_kind`, `string_piece` | Classify a source character, closing quote or escape start; retain original scalar/span, not a reconstructed escape. |
-| [`string_warning_code`, `string_warning`](../include/adaptive_json5/string_warning.hpp) | Advisory raw line/paragraph separator descriptor with original byte span; stored inline. |
-| [`string_warning_observer`, `string_warning_function`](../include/adaptive_json5/string_token.hpp) | Borrowed callback/context for successful-string notifications; observer does not own warnings or input. |
+| [`string_warning_code`, `string_warning`](../src/includes/adaptive_json5/detail/lexer/string/string_warning.hpp) | Advisory raw line/paragraph separator descriptor with original byte span; stored inline. |
+| [`string_warning_observer`, `string_warning_function`](../src/includes/adaptive_json5/detail/lexer/string/string_token.hpp) | Borrowed callback/context for successful-string notifications; observer does not own warnings or input. |
 | `string_token` | Owns a `decoded_string`, full quoted source span, warning count and optional first warning. |
-| [`identifier_token`](../include/adaptive_json5/identifier_token.hpp) | Owns decoded identifier units, original span and an escape-presence flag. |
-| [`identifier_context`, `identifier_classification`](../include/adaptive_json5/identifier_classification.hpp) | Distinguish member-name use from literal-value classification. Unrecognized value spelling is not acceptance. |
-| [`number_kind`, `number_token`](../include/adaptive_json5/number_token.hpp) | Decimal, hexadecimal, Infinity or NaN family plus original byte range. The token does not own spelling bytes. |
-| [`literal_kind`, `literal_token`](../include/adaptive_json5/scalar_token.hpp) | Null/true/false classification plus source metadata. |
+| [`identifier_token`](../src/includes/adaptive_json5/detail/lexer/identifier/identifier_token.hpp) | Owns decoded identifier units, original span and an escape-presence flag. |
+| [`identifier_context`, `identifier_classification`](../src/includes/adaptive_json5/detail/lexer/identifier/identifier_classification.hpp) | Distinguish member-name use from literal-value classification. Unrecognized value spelling is not acceptance. |
+| [`number_kind`, `number_token`](../src/includes/adaptive_json5/detail/lexer/number/number_token.hpp) | Decimal, hexadecimal, Infinity or NaN family plus original byte range. The token does not own spelling bytes. |
+| [`literal_kind`, `literal_token`](../src/includes/adaptive_json5/detail/lexer/scalar_token.hpp) | Null/true/false classification plus source metadata. |
 | `scalar_token` | Variant of `string_token`, `number_token` or `literal_token`. Owning string alternative makes it move-only. |
-| [`detail::member_name_token`](../include/adaptive_json5/member_name_lexer.hpp) | Common owned-name result for quoted and identifier member names; includes source range and warning summary. |
+| [`detail::member_name_token`](../src/includes/adaptive_json5/detail/lexer/member_name_lexer.hpp) | Common owned-name result for quoted and identifier member names; includes source range and warning summary. |
 
 ### Function modules without classes
 
@@ -634,17 +643,17 @@ It is a variant, not a polymorphic base class: there is no virtual value hierarc
 
 | Type / header | Responsibility and interaction |
 | --- | --- |
-| [`document`](../include/adaptive_json5/document.hpp) | Owns record storage and a root index. Creates detached values, validates attachment, sets value spans/root and exposes checked access. It is a builder and owner, not a lexer. |
-| [`detail::value_storage`](../include/adaptive_json5/value_storage.hpp) | Growable bounded sequence of live records in caller storage. Appending preserves existing indices; growth relocates records. Cleanup iterates records without following tree links. |
-| [`detail::value_record`](../include/adaptive_json5/value_record.hpp) | One payload plus parent/sibling indices, optional owned member name, optional value span and optional member-name span. The latter is representation capacity, not evidence that the parser currently populates it. |
+| [`document`](../includes/adaptive_json5/value/document.hpp) | Owns record storage and a root index. Creates detached values, validates attachment, sets value spans/root and exposes checked access. It is a builder and owner, not a lexer. |
+| [`detail::value_storage`](../includes/adaptive_json5/value/document.hpp) | Growable bounded sequence of live records in caller storage. Appending preserves existing indices; growth relocates records. Cleanup iterates records without following tree links. |
+| [`detail::value_record`](../src/includes/adaptive_json5/detail/value/value_record.hpp) | One payload plus parent/sibling indices, optional owned member name, optional value span and optional member-name span. The latter is representation capacity, not evidence that the parser currently populates it. |
 | `detail::value_payload` | Exactly one null, Boolean, string, number, array or object alternative. Owns scalar allocations through the selected owning type. |
-| [`value_index`](../include/adaptive_json5/value_index.hpp) | Set/unset document-relative record position. Does not encode document identity; the caller must not mix indices between documents. |
-| [`value_kind`](../include/adaptive_json5/value_kind.hpp) | Public null/Boolean/string/number/array/object classification. No type coercion. |
-| [`container_links`](../include/adaptive_json5/container_links.hpp) | First/last child indices and direct-child count; owns no child records. Each child carries its next sibling. |
+| [`value_index`](../includes/adaptive_json5/value/value_index.hpp) | Set/unset document-relative record position. Does not encode document identity; the caller must not mix indices between documents. |
+| [`value_kind`](../includes/adaptive_json5/value/value_kind.hpp) | Public null/Boolean/string/number/array/object classification. No type coercion. |
+| [`container_links`](../src/includes/adaptive_json5/detail/value/container_links.hpp) | First/last child indices and direct-child count; owns no child records. Each child carries its next sibling. |
 | `array_data`, `object_data` | Hold element/member links respectively. Source order and duplicate object names remain observable. |
-| [`value_view`](../include/adaptive_json5/value_view.hpp) | Borrowed storage reference plus index. Resolves checked read-only access, type queries, children, member names and value source spans. Default view is invalid, not JSON null. |
-| [`value_iterator`](../include/adaptive_json5/value_iterator.hpp) | Borrowed traversal state for direct children. `next()` returns a child, end-of-iteration or failure without allocating or recursively descending. |
-| [`member_lookup_state`, `member_lookup`](../include/adaptive_json5/member_lookup.hpp) | Explicit absent/unique/ambiguous outcome. A borrowed value is supplied only for a unique decoded-name match. |
+| [`value_view`](../includes/adaptive_json5/value/value_view.hpp) | Borrowed storage reference plus index. Resolves checked read-only access, type queries, children, member names and value source spans. Default view is invalid, not JSON null. |
+| [`value_iterator`](../includes/adaptive_json5/value/value_iterator.hpp) | Borrowed traversal state for direct children. `next()` returns a child, end-of-iteration or failure without allocating or recursively descending. |
+| [`member_lookup_state`, `member_lookup`](../includes/adaptive_json5/value/member_lookup.hpp) | Explicit absent/unique/ambiguous outcome. A borrowed value is supplied only for a unique decoded-name match. |
 
 `document_links.hpp` implements the internal `attach_child()` operation. It
 checks detached-child and container invariants, prevents cycles, updates the
@@ -669,7 +678,7 @@ quadratic total traversal cost; prefer an iterator for enumeration.
 
 ## 6. Existing primitive parsing path
 
-| API/type in [`primitive_parser.hpp`](../include/adaptive_json5/primitive_parser.hpp) | Role |
+| API/type in [`primitive_parser.hpp`](../src/includes/adaptive_json5/detail/parser/primitive_parser.hpp) | Role |
 | --- | --- |
 | `primitive_value` | Constructed value index, original span and string-warning summary. Owns no document. |
 | `primitive_document` | Owns a document plus primitive-root metadata. |
@@ -764,14 +773,14 @@ classDiagram
 
 | Type / function | Responsibility, mutation and caller obligations |
 | --- | --- |
-| [`detail::parser_state`](../include/adaptive_json5/parser_frame.hpp) | Eight states distinguishing array/object starts, values/names after commas, required colon/value, and comma-or-end positions. |
+| [`detail::parser_state`](../src/includes/adaptive_json5/detail/parser/parser_frame.hpp) | Eight states distinguishing array/object starts, values/names after commas, required colon/value, and comma-or-end positions. |
 | `detail::parser_frame` | One open container's index, state, opening offset and optional owned pending member name with source range. Owns the name temporarily, but not the document/container. |
-| [`detail::parser_stack`](../include/adaptive_json5/parser_stack.hpp) | Bounded nonrecursive live-frame stack in fallible caller storage. Charges push/relocation work, moves frames on growth, destroys frames iteratively. Push may invalidate frame pointers; pop destroys the removed frame. |
-| [`detail::parser_action`, `next_container_action()`](../include/adaptive_json5/parser_dispatch.hpp) | Pure selection from frame state, next byte, location and mode. Does not consume input, allocate or mutate frames. Rejects missing required values and EOF inside containers. |
-| [`detail::open_container()`](../include/adaptive_json5/parser_container_open.hpp) | Pushes a provisional frame, creates a detached container record and stores its index. If record creation fails, pops the provisional frame. Caller reserves value/member and depth first, releases matching reservations after open failure, and commits the cursor after success. No attachment/root publication. |
-| [`detail::close_container()`](../include/adaptive_json5/parser_container_close.hpp) | Validates state, delimiter and span; charges work; records the completed container's span and pops its frame. Caller releases depth, advances input and accepts the returned completed value. |
-| [`detail::attach_parsed_value()`](../include/adaptive_json5/parser_attachment.hpp) | Attaches a completed child to a waiting parent, charges relationship-inspection work, transfers an object name and moves the parent to comma-or-end. Does not set the root, advance input or reserve aggregate resources. |
-| [`detail::consume_member_name()`](../include/adaptive_json5/member_name_lexer.hpp) | Returns an owned quoted/identifier name with lexical metadata. Transactional cursor behavior; caller supplies work and aggregate budget integration. |
+| [`detail::parser_stack`](../src/includes/adaptive_json5/detail/parser/parser_stack.hpp) | Bounded nonrecursive live-frame stack in fallible caller storage. Charges push/relocation work, moves frames on growth, destroys frames iteratively. Push may invalidate frame pointers; pop destroys the removed frame. |
+| [`detail::parser_action`, `next_container_action()`](../src/includes/adaptive_json5/detail/parser/parser_dispatch.hpp) | Pure selection from frame state, next byte, location and mode. Does not consume input, allocate or mutate frames. Rejects missing required values and EOF inside containers. |
+| [`detail::open_container()`](../src/includes/adaptive_json5/detail/parser/parser_container_open.hpp) | Pushes a provisional frame, creates a detached container record and stores its index. If record creation fails, pops the provisional frame. Caller reserves value/member and depth first, releases matching reservations after open failure, and commits the cursor after success. No attachment/root publication. |
+| [`detail::close_container()`](../src/includes/adaptive_json5/detail/parser/parser_container_close.hpp) | Validates state, delimiter and span; charges work; records the completed container's span and pops its frame. Caller releases depth, advances input and accepts the returned completed value. |
+| [`detail::attach_parsed_value()`](../src/includes/adaptive_json5/detail/parser/parser_attachment.hpp) | Attaches a completed child to a waiting parent, charges relationship-inspection work, transfers an object name and moves the parent to comma-or-end. Does not set the root, advance input or reserve aggregate resources. |
+| [`detail::consume_member_name()`](../src/includes/adaptive_json5/detail/lexer/member_name_lexer.hpp) | Returns an owned quoted/identifier name with lexical metadata. Transactional cursor behavior; caller supplies work and aggregate budget integration. |
 
 ### Frame transitions
 
@@ -803,16 +812,16 @@ A nested container leaves its parent's frame waiting for the same value until
 that child closes. The child's new frame becomes the top frame. This is how
 mutually nested arrays and objects avoid C++ call-stack recursion.
 
-## 8. Proposed engine: composition still to implement
+## 8. Implemented internal engine
 
-The following names came from the teaching sketch; the current
-`parser_engine.hpp` file is empty and does not declare them.
-They are design proposals, not supported public APIs or implementation evidence.
+The teaching design is now implemented in the private engine header and
+`src/src/parser/parser_engine.cpp`. These types are internal, not supported public
+APIs. The class shape and prefix contract below remain unchanged by the refactor.
 
 ```mermaid
 classDiagram
     class parser_engine {
-        <<proposed>>
+        <<internal>>
         +run()
         -read_value()
         -read_name()
@@ -821,7 +830,7 @@ classDiagram
         -accept_completed_value(index)
     }
     class parsed_value_tree {
-        <<proposed>>
+        <<internal>>
         +document values
         +size_t consumed_bytes
         +size_t warning_count
@@ -839,17 +848,17 @@ classDiagram
     parser_engine *-- resource_budget
     parser_engine *-- work_budget
     parser_engine ..> accounted_storage : borrows callbacks
-    parser_engine ..> parsed_value_tree : proposed successful return
+    parser_engine ..> parsed_value_tree : successful internal return
     parsed_value_tree *-- document : moved completed candidate
 ```
 
-The proposed engine owns private per-operation state: copied options/input
+The engine owns private per-operation state: copied options/input
 description, cursor, candidate document, frame stack, logical budget, work budget
 and aggregate decoded-unit/warning counters. All allocations use the same caller
 accounting adapter. A fresh instance is intended for each run; a failed or
 completed instance is not a reusable parse context.
 
-| Proposed operation | Intended collaboration |
+| Internal operation | Collaboration |
 | --- | --- |
 | `run()` | Validate input/accounting configuration, charge dispatch/trivia work, skip trivia, select an action and repeat until the root completes. Establish the root and transfer ownership only after success. |
 | `read_value()` | Reserve node/member resources; open a container after depth admission, or recognize/build a scalar with shared limits and pass it to completion handling. |
@@ -857,12 +866,12 @@ completed instance is not a reusable parse context.
 | `consume_separator()` | Validate/consume the selected comma or colon and change the innermost frame's state. |
 | `finish_container()` | Recognize the closing punctuation, call `close_container()`, release depth and accept the completed container index. |
 | `accept_completed_value()` | Reacquire the current parent frame and call `attach_parsed_value()`, or record the completed root if no parent remains. |
-| `parsed_value_tree` | Own completed document plus consumed-prefix length and warning summary. This proposed internal prefix result is not complete-input validation. |
+| `parsed_value_tree` | Own completed document plus consumed-prefix length and warning summary. This internal prefix result is not complete-input validation. |
 
 Do not preserve a frame pointer across a stack push or pop. Do not publish a
 partial candidate after an error. Aggregate accounting must cover names as well
 as string values and must be admitted before the corresponding bounded growth;
-the new composition still needs implementation and review.
+full cross-component accounting remains separately tracked under #69.
 
 ### Intended interaction for `[{}]`
 
@@ -870,7 +879,7 @@ This is a design trace, not an executed result. Offsets are original input bytes
 
 ```mermaid
 sequenceDiagram
-    participant E as Proposed engine
+    participant E as Internal engine
     participant B as Shared resource budget
     participant S as parser_stack
     participant H as Existing container helpers
@@ -910,9 +919,9 @@ sequenceDiagram
 | Cleanup | Frame and record destruction is iterative; release needs no fresh allocation or extra work-budget admission. |
 | Name spans | Frame/token offsets exist and records have an optional name-span field. Full population/exposure through parsing remains to be connected; attachment alone does not establish it. |
 | Duplicate handling | Model/lookup preserve and expose duplicates. Explicit parser rejection policy and both colliding source locations remain P036 work. |
-| Complete input | Primitive-only entry already requires EOF after trivia. Proposed engine prefix success does not satisfy P037's unified complete-document contract. |
+| Complete input | Primitive-only entry already requires EOF after trivia. Internal engine prefix success does not satisfy P037's unified complete-document contract. |
 | Work accounting | Existing charges are component-specific. Whole-tree parsing and later traversal/conversion integration must be reviewed separately; finite record bounds alone do not prove all J5-048/J5-049 obligations. |
-| Verification | No units or formatting checks were run to create this document. Requirement status is unchanged. P033 implementation is not yet complete; the requested stop before unit tests remains in effect. |
+| Verification | P033 units and refactor regression results are recorded in verification notes. Requirement status is unchanged; P034?P037 and later whole-grammar evidence remain separate work. |
 
 This snapshot covers all currently declared core classes, structs, enums and
 architecturally significant aliases, including function-only modules. Local

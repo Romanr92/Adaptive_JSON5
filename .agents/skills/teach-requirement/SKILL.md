@@ -26,6 +26,16 @@ GoogleTest, documentation and requirements work is permitted by AGENTS.md.
 
 ## Teach implementation in context
 
+Follow [ADR 0002](../../../docs/adr/0002-public-private-source-layout.md) for new
+file proposals: supported public headers under `includes/`, private headers under
+`src/includes/`, and non-template implementations under `src/src/`, grouped by topic.
+Internal test guidance uses `src/tests/`; public-interface and whole-library
+behavior units remain under top-level `tests/` without private-header access.
+Read actual current files before guidance; the old `include/` tree has been
+migrated under explicit user authorization. Do not duplicate it or expose private
+headers through public includes. Public document headers retain supporting
+representation declarations without adding opaque-state allocation; see ADR 0002.
+
 For an issue-based request, read its current body and map its scope to the active
 P steps, J5 contracts and prerequisites. Inspect the relevant implementation
 headers before recommending calls or types. Distinguish code that exists from

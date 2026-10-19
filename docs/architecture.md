@@ -1,5 +1,20 @@
 # Architecture and implementation boundaries
 
+See the [implemented source layout guide](source-layout.md) for the current
+directory tree, include boundaries, compiled target and unit-test commands.
+
+The accepted layout for new work is defined by
+[ADR 0002: public/private source layout](adr/0002-public-private-source-layout.md):
+public headers under `includes/`, private headers under `src/includes/`, compiled
+implementations grouped by topic. Internal units belong under `src/tests/`;
+public-interface/library units remain under top-level `tests/`. The former
+`include/` tree has been migrated and ordinary implementations compile into
+`AdaptiveJSON5::parser`. Public headers require no private include path. The
+document's existing inline storage representation remains declared in its public
+header, while record definitions and implementations are private; no extra
+allocation was introduced. Historical preparation-stage statements below do not
+override this current layout or the implemented component inventory.
+
 For a source-based map of the current lexer, owned document, budgets and P033
 helpers, see [Current parser architecture](current-architecture.md), including
 Mermaid class diagrams and interaction flows. The preparation-stage descriptions

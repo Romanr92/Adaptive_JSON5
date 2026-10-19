@@ -1,5 +1,82 @@
 # Development setup verification
 
+## Public/private compiled-library refactor, 2026-10-19
+
+Pre-commit source review compared against committed baseline `83f14a6`:
+all 200 explicit-`noexcept` function definitions (including compile-time/template
+definitions) and constructor initializer lists retain their original executable
+tokens after the mechanical document payload-helper relocation. Fifteen
+fundamental declaration/data headers retain the same tokens apart from include
+paths and comments, including result/error types, record payloads and Unicode
+tables. All 286 original GoogleTest declaration bodies and assertions are
+unchanged; the only added runtime unit is the public-library boundary case.
+The remaining additions are compiled-target/test/package wiring, separated
+public descriptors, and documentation. No new parser grammar, numeric operation,
+allocation strategy or P034+ feature was introduced. The review corrected a
+malformed Doxygen paragraph; it found no executable-code regression. This is
+source-review evidence, not a formal equivalence or standards-compliance proof.
+
+The user explicitly authorized AI production changes for the structural
+refactor described in [ADR 0002](adr/0002-public-private-source-layout.md).
+The former header-only `include/adaptive_json5/` layout was replaced with
+20 supported public headers under `includes/`, 50 private headers under
+`src/includes/`, and 48 ordinary implementation translation units grouped by
+topic under `src/src/`. Templates, compile-time definitions and small defaulted
+operations remain in headers where needed. No complete-document parser entry
+or subsequent P034–P037 feature was added.
+
+`AdaptiveJSON5::parser` now names a compiled static library. The public include
+interface contains no private source paths. Document construction retains its
+existing allocation-free by-value storage representation: its supporting
+`detail::value_storage` declaration resides in the public document header, while
+record/payload definitions and storage implementations are private. No opaque
+state allocation or new global-heap path was introduced. Number classification
+and warning descriptors have public headers separate from private lexer tokens.
+
+Internal component units moved to `src/tests/`; consumer-facing units remain in
+top-level `tests/`. Mixed document, allocation, string and accounting units were
+split along that boundary, retaining all **286 original test declarations** and
+their assertions. One additional public-library unit verifies owned document
+construction, movement, checked access and UTF-8 export through supported public
+headers. Each of the **20 public headers** is also compiled in a separate unit
+translation unit without private include access. Test names and existing labels
+were retained when tests changed executable or path.
+
+Executed with MinGW GCC 16.2.0, explicit C++17 and **32 parallel workers**, matching
+this PC's reported logical processor count:
+
+| Configuration / operation | Result |
+| --- | --- |
+| Full `debug-unit-tests`, exceptions OFF / RTTI OFF | **1422/1422 passed** |
+| Full `debug-unit-tests-exceptions`, exceptions ON / RTTI OFF | **1422/1422 passed** |
+| clang-format 18.1.8, all current C++ source/header files | **157 files passed** |
+| Tests-disabled Release core configuration/build | Passed, without acquiring/building GoogleTest |
+| Installation into a workspace-local prefix | Compiled target and 20 public headers installed; no private/test headers or private include-root export |
+
+Both unit builds use the existing pinned offline GoogleTest source override.
+Splitting translation units exposed formerly transitive dependencies; explicit
+private includes were added to affected internal units. The full exceptions-ON
+build also exposed this compiler's C++20 default through existing `u8` string
+fixtures. Project targets now explicitly request C++17 rather than relying only
+on the minimum compile feature. The successful results above follow those build
+corrections. Generated Unicode table data, versions and notices are unchanged;
+the generator's default output/include paths now follow the private layout.
+
+Commands used for both full unit configurations:
+
+```powershell
+cmake --build --preset debug-unit-tests --parallel 32
+ctest --preset debug-unit-tests --parallel 32 --output-on-failure
+cmake --build --preset debug-unit-tests-exceptions --parallel 32
+ctest --preset debug-unit-tests-exceptions --parallel 32 --output-on-failure
+```
+
+The install operation verifies generated package contents, not an installed
+consumer execution or an additional automated integration gate. Native Windows
+results do not establish another compiler/device, standards compliance or full
+language conformance. Requirements remain Draft, and subsequent production
+features remain subject to the normal human-owned implementation workflow.
+
 ## P033 iterative container engine units, 2026-10-19
 
 Added `tests/parser_engine_tests.cpp` and the CTest label

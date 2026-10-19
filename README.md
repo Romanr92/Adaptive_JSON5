@@ -10,8 +10,9 @@ The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
 numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
-**Status: result/error, input/options, storage primitives and bounded cursor have
-merged component implementations; no complete parser API is available.**
+**Status: the compiled C++17 core includes owned values, lexical components,
+resource guards and the internal P033 container engine. A public complete-document
+parser entry remains P037 work.**
 GoogleTest inventories and historical executed results are recorded in
 [verification notes](docs/verification.md). Parser/schema/CLI conformance remains
 pending. Production C++ and public headers are reserved for Romanr92; AI creates
@@ -68,20 +69,20 @@ See [native development](docs/development.md) for offline GoogleTest, formatting
 and toolchain configuration. Automated checks are **GoogleTest unit tests and
 clang-format 18 only**. GoogleTest is host-only and never a parser runtime dependency.
 
-## CMake consumption scaffold
+## CMake consumption
 
-The current source/install package exports `AdaptiveJSON5::build_options`, an
-interface target expressing the C++17 development baseline. It contains no parser
-and should not be mistaken for a working JSON5 library. Future implementation
-issues will add `AdaptiveJSON5::parser` and an optional schema target.
+The source/install package exports the compiled static `AdaptiveJSON5::parser`
+target and the supporting `AdaptiveJSON5::build_options` metadata target.
+Consumers receive only the public `includes/` search root. The core currently
+exposes owned document/value/storage components; the full public parsing entry
+and optional schema target remain later work.
 
 ```cmake
 add_subdirectory(path/to/Adaptive_JSON5)
-# Current development metadata only:
-target_link_libraries(my_application PRIVATE AdaptiveJSON5::build_options)
+target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
 ```
 
-Tests default OFF as a subproject. A tests-disabled metadata package can be
+Tests default OFF as a subproject. A tests-disabled compiled package can be
 configured, built and installed without GoogleTest:
 
 ```sh
@@ -95,6 +96,15 @@ in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
 not a supported parser release.
 
 ## Documentation and work
+
+The implemented [source layout guide](docs/source-layout.md) and
+[layout decision](docs/adr/0002-public-private-source-layout.md) separate
+public `includes/` from private `src/includes/`, with files grouped by topic.
+Compiled implementation files live under `src/src/<topic>/`.
+Internal units live under `src/tests/`; public-header/API and whole-library
+behavior units stay under top-level `tests/`. This is the direction for new work;
+the former `include/` layout has been migrated. Internal declarations are not
+installed, and public headers compile without the private include root.
 
 The [examples folder](examples/README.md) contains JSON/JSON5 inputs, intentional
 failures, an optional schema and a planned requirement demonstration manifest.

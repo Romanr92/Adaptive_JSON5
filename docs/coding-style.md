@@ -12,6 +12,13 @@ public headers belong to the human developer.
 
 ## Coding standards and applicability
 
+For file placement and header/source separation, follow
+[ADR 0002](adr/0002-public-private-source-layout.md). New guidance uses the agreed
+public `includes/`, private `src/includes/` and topic-based source/test layout;
+internal units use `src/tests/`, while public-interface/library units use
+top-level `tests/`. The structural migration was explicitly user-authorized;
+subsequent production features retain the normal human-owned workflow.
+
 Follow **MISRA C++:2023** and the **SEI CERT C++ Coding Standard** when designing,
 writing, teaching and reviewing C++ in this repository. MISRA C++:2023 is the
 selected C++17 coding baseline; use the published CERT C++ 2016 edition with

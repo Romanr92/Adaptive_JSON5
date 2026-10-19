@@ -13,7 +13,7 @@ Tests may target a reviewed Draft contract without claiming it implemented.
 Preserve normative wording/status; update only test inventory/evidence unless
 the user explicitly requests a requirement change.
 
-AI agents may edit GoogleTest code under `tests/` and test CMake. Do not repair
+AI agents may edit GoogleTest code under `tests/`, `src/tests/` and test CMake. Do not repair
 production C++ when a unit exposes a defect; describe the expected behavior,
 failure and developer fix. Do not move production algorithms into test helpers.
 
@@ -34,6 +34,18 @@ failure and developer fix. Do not move production algorithms into test helpers.
   death test if a reviewed contract explicitly specifies termination.
 
 ## Parameterization and layout
+
+Follow [ADR 0002](../../../docs/adr/0002-public-private-source-layout.md): group
+new test files by topic. Internal units belong under `src/tests/`; public-header,
+public API and whole-library behavior units belong under top-level `tests/` and
+must use only public interfaces without private include access. Link the compiled
+core when available, and grant private header access only to internal component
+units. Both trees are host-only GoogleTest units, excluded from production sources
+and installation. Split mixed internal/public test files as appropriate rather
+than copying test bodies. The compiled target and layout now exist; inspect
+actual paths and CMake before edits. The user authorized the completed structural
+refactor specifically; future production moves/splits retain the normal
+human-owned workflow unless separately authorized.
 
 Follow [docs/coding-style.md](../../../docs/coding-style.md). Class data members,
 including test fixture members, use `m_<varName>` with no trailing underscore,

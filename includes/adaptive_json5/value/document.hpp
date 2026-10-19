@@ -1,0 +1,361 @@
+#ifndef DOCUMENT_HPP_
+#define DOCUMENT_HPP_
+
+#include "adaptive_json5/error.hpp"
+#include "adaptive_json5/input.hpp"
+#include "adaptive_json5/memory/owned_block.hpp"
+#include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/result.hpp"
+#include "adaptive_json5/value/decoded_string.hpp"
+#include "adaptive_json5/value/member_lookup.hpp"
+#include "adaptive_json5/value/owned_number.hpp"
+#include "adaptive_json5/value/value_index.hpp"
+#include "adaptive_json5/value/value_iterator.hpp"
+#include "adaptive_json5/value/value_view.hpp"
+
+#include <cstddef>
+#include <utility>
+#include <variant>
+
+namespace adaptive_json5
+{
+  namespace detail
+  {
+    struct value_record;
+    /**
+     * @brief Own a growable sequence of independently stored value records.
+     * @par Requirements
+     * P030; J5-028; J5-039; J5-040; J5-046.
+     * @note This declaration supports document's by-value layout; direct use of
+     * detail::value_storage is not a supported public API.
+     * Indices remain stable because records are appended without reordering.
+     * Growth invalidates record pointers, but not their indices.
+     * Provider state must outlive storage and owned payload allocations.
+     * Cleanup is iterative and never follows container links.
+     * max_records is a component limit, not complete P031 resource accounting.
+     */
+    class value_storage
+    {
+      public:
+        static constexpr std::size_t c_empty_size = 0;
+
+      private:
+        storage_callbacks m_provider;
+        owned_block m_storage{};
+        std::size_t m_size{};
+        std::size_t m_capacity{};
+        std::size_t m_max_records;
+
+        /**
+         * @brief Address one slot within an already size-checked allocation.
+         * @par Requirements
+         * P030; J5-040; J5-046.
+         * @note Private callers provide index below the allocated capacity.
+         * This returns storage, without assuming a record is alive there.
+         */
+        static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
+
+        /**
+         * @brief Access an already constructed record.
+         * @par Requirements
+         * P030; J5-039; J5-040.
+         * @note Private callers provide index below the constructed record count.
+         */
+        value_record* live_record(std::size_t index) noexcept;
+
+        /**
+         * @brief Access an already constructed record without mutation.
+         * @par Requirements
+         * P030; J5-039; J5-040.
+         * @note Private callers provide index below the constructed record count.
+         */
+        const value_record* live_record(std::size_t index) const noexcept;
+
+        /**
+         * @brief Destroy constructed records without releasing the raw block.
+         * @par Requirements
+         * P030; J5-040.
+         * @note Reverse-order iteration uses no recursive child traversal.
+         */
+        void destroy_records() noexcept;
+
+        /**
+         * @brief Ensure capacity before moving an incoming record.
+         * @par Requirements
+         * P030; J5-040; J5-046.
+         * @note Allocation failure leaves existing records unchanged.
+         * Growth temporarily retains both old and new raw blocks.
+         */
+        status_result reserve(std::size_t required) noexcept;
+
+      public:
+        /**
+         * @brief Construct empty storage with an explicit record limit.
+         * @par Requirements
+         * P030; J5-040; J5-046.
+         * @note Construction allocates nothing; a zero limit permits no records.
+         */
+        value_storage(const storage_callbacks& provider, std::size_t max_records) noexcept;
+
+        /**
+         * @brief Transfer storage ownership and leave the source empty.
+         * @par Requirements
+         * P030; J5-040.
+         * @note The source retains its provider and limit and can be reused.
+         */
+        value_storage(value_storage&& other) noexcept;
+
+        /**
+         * @brief Destroy each live record before releasing its raw storage.
+         * @par Requirements
+         * P030; J5-040.
+         * @note Performs no allocation and does not recursively follow children.
+         */
+        ~value_storage() noexcept;
+
+        value_storage(const value_storage&) = delete;
+        value_storage& operator=(const value_storage&) = delete;
+        value_storage& operator=(value_storage&&) = delete;
+
+        /**
+         * @brief Append an externally held record and return its stable index.
+         * @par Requirements
+         * P030; J5-028; J5-040; J5-046.
+         * @param record Record that does not reside inside this storage.
+         * @return Its new index or an explicit limit/allocation error.
+         * @note Failure leaves existing records and the incoming record unchanged.
+         * Success moves from record. Growth invalidates earlier record pointers.
+         * Relationship invariants are enforced by the later document builder.
+         */
+        result<value_index> append(value_record&& record) noexcept;
+
+        /**
+         * @brief Access a record after checking its index.
+         * @par Requirements
+         * P030; J5-039.
+         * @note Returned pointers are invalidated by growth or storage destruction.
+         */
+        result<value_record*> at(value_index index) noexcept;
+
+        /**
+         * @brief Access a record without permitting mutation.
+         * @par Requirements
+         * P030; J5-039.
+         * @note Returned pointers are invalidated by growth or storage destruction.
+         */
+        result<const value_record*> at(value_index index) const noexcept;
+
+        /**
+         * @brief Return the number of constructed records.
+         * @par Requirements
+         * P030; J5-028.
+         */
+        std::size_t size() const noexcept;
+    };
+  } // namespace detail
+} // namespace adaptive_json5
+
+namespace adaptive_json5
+{
+  /**
+   * @brief Own value records and expose checked read-only views.
+   * @par Requirements
+   * P030; P032; J5-028; J5-030; J5-031; J5-033; J5-039; J5-040; J5-041.
+   * @note Values are created detached until selected as root or attached later.
+   * All indices passed to this document must originate from this document.
+   * Indices do not encode document identity; bounds checking cannot detect
+   * an in-range index incorrectly taken from another document.
+   * Moving or destroying the document invalidates its existing views and iterators.
+   * Appending preserves indices but may invalidate borrowed payload pointers.
+   * Every storage provider used by records or payloads must outlive its allocations.
+   * This component record limit does not replace P031 resource accounting.
+   */
+  class document
+  {
+    private:
+      detail::value_storage m_values;
+      value_index m_root{};
+
+    public:
+      /**
+       * @brief Construct an empty document with explicit storage and record limit.
+       * @par Requirements
+       * P030; J5-028; J5-040.
+       * @note Allocates nothing and initially has no root.
+       */
+      document(const storage_callbacks& storage, std::size_t max_records) noexcept;
+
+      /**
+       * @brief Transfer record ownership and leave the source empty.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Existing views into either moved-from document state are invalid.
+       * The source retains its storage configuration and can be reused.
+       */
+      document(document&& other) noexcept;
+
+      /**
+       * @brief Release all records and their owned payloads iteratively.
+       * @par Requirements
+       * P030; J5-040.
+       */
+      ~document() noexcept = default;
+
+      document(const document&) = delete;
+      document& operator=(const document&) = delete;
+      document& operator=(document&&) = delete;
+
+      /**
+       * @brief Create a detached null value.
+       * @par Requirements
+       * P030; J5-028; J5-046.
+       */
+      result<value_index> make_null() noexcept;
+
+      /**
+       * @brief Create a detached Boolean without numeric coercion.
+       * @par Requirements
+       * P030; J5-028; J5-046.
+       */
+      result<value_index> make_boolean(bool value) noexcept;
+
+      /**
+       * @brief Transfer decoded content into a detached string value.
+       * @par Requirements
+       * P030; J5-028; J5-040; J5-046.
+       * @note Consumes value on entry, even if record allocation subsequently fails.
+       * Empty decoded strings are valid values.
+       */
+      result<value_index> make_string(decoded_string value) noexcept;
+
+      /**
+       * @brief Transfer validated numeric spelling into a detached numeric value.
+       * @par Requirements
+       * P030; J5-028; J5-034; J5-038; J5-040; J5-046.
+       * @note Consumes value on entry, even if record allocation subsequently fails.
+       * Rejects moved-from owners with empty spelling.
+       */
+      result<value_index> make_number(owned_number value) noexcept;
+
+      /**
+       * @brief Create a detached empty array.
+       * @par Requirements
+       * P030; J5-028; J5-030; J5-046.
+       */
+      result<value_index> make_array() noexcept;
+
+      /**
+       * @brief Create a detached empty object.
+       * @par Requirements
+       * P030; J5-028; J5-031; J5-046.
+       */
+      result<value_index> make_object() noexcept;
+
+      /**
+       * @brief Append a detached value or subtree to an array.
+       * @par Requirements
+       * P030; J5-030; J5-039; J5-040.
+       * @param array Array index belonging to this document.
+       * @param child Detached child index belonging to this document.
+       * @return Success or an explicit relationship/access error.
+       * @note Preserves element order and performs no allocation.
+       * Rejects wrong container type, existing attachment, root reuse and cycles.
+       * Failure leaves the document unchanged.
+       */
+      status_result append_element(value_index array, value_index child) noexcept;
+
+      /**
+       * @brief Append a named detached value or subtree to an object.
+       * @par Requirements
+       * P030; J5-031; J5-039; J5-040.
+       * @param object Object index belonging to this document.
+       * @param name External owned decoded name, transferred only on success.
+       * @param child Detached child index belonging to this document.
+       * @return Success or an explicit relationship/access error.
+       * @note Preserves member order, empty names and duplicate names.
+       * Performs no allocation; the name must already own its decoded content.
+       * Failure leaves the document and supplied name unchanged.
+       * Success moves from name. Its provider must outlive the transferred allocation.
+       */
+      status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
+
+      /**
+       * @brief Assign or replace a value's original source range.
+       * @par Requirements
+       * P032; J5-039; J5-041.
+       * @param index Value index belonging to this document.
+       * @param span Original zero-based byte offset and byte length.
+       * @param input_size Original input size in bytes.
+       * @return Success or an explicit access/range failure.
+       * @note Failure leaves existing metadata unchanged.
+       * A zero-length range at input_size is permitted.
+       * Stores no input pointer and performs no allocation.
+       * The caller must supply the correct original input size and provenance.
+       * Bounds validation does not prove that the range spells this value.
+       */
+      status_result set_source_span(value_index index, adaptive_json5::source_span span,
+                                    std::size_t input_size) noexcept;
+
+      /**
+       * @brief Establish one detached value as the document root.
+       * @par Requirements
+       * P030; J5-028; J5-039.
+       * @note Rejects an existing root, invalid index or attached/member record.
+       * Failure leaves the document unchanged.
+       */
+      status_result set_root(value_index index) noexcept;
+
+      /**
+       * @brief Borrow checked read-only access to a document-relative value.
+       * @par Requirements
+       * P030; J5-039; J5-040.
+       * @note The returned view does not extend this document's lifetime.
+       */
+      result<value_view> view(value_index index) const noexcept;
+
+      /**
+       * @brief Begin source-order iteration over a container's direct children.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-039; J5-040.
+       * @param container Array or object index belonging to this document.
+       * @note Rejects invalid indices and scalar values.
+       * Empty containers produce valid iterators that immediately report completion.
+       * The iterator borrows this document and allocates nothing.
+       * Moving or destroying this document invalidates the iterator.
+       * Do not modify document relationships during iteration.
+       */
+      result<value_iterator> iterate(value_index container) const noexcept;
+
+      /**
+       * @brief Inspect an object's members for an exact decoded-name match.
+       * @par Requirements
+       * P030; J5-031; J5-033; J5-039; J5-040.
+       * @param object Object index belonging to this document.
+       * @param name Decoded name borrowed for this call only.
+       * @return Absent, unique or ambiguous match, or an explicit access failure.
+       * @note Rejects invalid indices, arrays and scalar values.
+       * Only a unique match supplies a borrowed value view.
+       * Preserves duplicate members and never selects among ambiguous matches.
+       * Allocates nothing and does not modify the document or name.
+       * Moving or destroying the document invalidates any returned view.
+       */
+      result<member_lookup> lookup_member(value_index object, const decoded_string& name) const noexcept;
+
+      /**
+       * @brief Borrow the root or report that no root has been established.
+       * @par Requirements
+       * P030; J5-028; J5-039; J5-040.
+       * @note An absent root is an access error, not a null value.
+       */
+      result<value_view> root() const noexcept;
+
+      /**
+       * @brief Return the number of owned records, including detached values.
+       * @par Requirements
+       * P030; J5-028.
+       */
+      std::size_t size() const noexcept;
+  };
+} // namespace adaptive_json5
+
+#endif /* DOCUMENT_HPP_ */
