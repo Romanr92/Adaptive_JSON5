@@ -15,12 +15,13 @@ It contains explicit result/error handling, bounded input access, Unicode and
 lexical components, owned document/value storage, resource guards, primitive
 parsing and the internal iterative P033 container engine.
 
-There is not yet a public complete-document parser entry. The internal engine
-returns one completed root and the consumed prefix; it does not validate trailing
-input. The primitive-only operation already requires complete input for a scalar
-root. P034/P035 acceptance, P036 duplicate rejection and P037's unified entry
-remain separate work. Checked numeric operations and expanded diagnostic/full
-conformance evidence are later stages. Refactoring added none of those features.
+The public `parse_document()` entry now parses one complete document, including
+mode-valid trailing trivia, and rejects missing roots or invalid suffixes. The
+internal P033 engine remains prefix-oriented and private. P034/P035 container
+handling, P036 duplicate policy and the P037 public entry have implementation and
+host-unit evidence; their requirement rows remain Draft pending full acceptance
+and conformance. Checked numeric operations and expanded diagnostic evidence are
+later stages. These features followed, rather than being part of, the refactor.
 
 | Boundary | Current responsibility | Exposure |
 | --- | --- | --- |

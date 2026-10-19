@@ -133,8 +133,8 @@ existing quality scope.
 Top-level public-library units also compile every supported header separately,
 without the private include root. The runtime public-library unit exercises
 owned document construction, moves, access and UTF-8 export through public APIs.
-A complete public parsing entry remains P037 work; the internal P033 engine is
-not advertised as that entry point.
+The public `parse_document()` entry provides complete-document parsing; the
+internal P033 engine remains private.
 
 ## Running units with all logical processors
 

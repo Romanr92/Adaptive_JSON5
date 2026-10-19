@@ -36,14 +36,13 @@ cmake -S . -B build/embedded -DCMAKE_TOOLCHAIN_FILE=path/to/toolchain.cmake -DAD
 
 This configures the compiled `AdaptiveJSON5::parser` component target without
 host tests. Caller-storage/value/lexical components and the internal P033 engine
-exist; the public complete-document parser entry remains P037 work. Actual
-embedded toolchain execution/support must still be established separately.
+and public complete-document `parse_document()` entry exist. Actual embedded
+toolchain execution/support must still be established separately.
 
 ## Unit evidence and support claims
 
-Host GoogleTest units will exercise caller storage/exhaustion/cleanup, no-OS
-adapters, no-exception/no-RTTI settings and data-model boundaries as the public
-API is implemented. Current configuration units establish only compiler settings.
-Record actual embedded compiler/runtime support separately. No device execution,
+Host GoogleTest units exercise caller-storage failure/cleanup and parser behavior
+with exceptions and RTTI disabled. These host results do not establish embedded
+compiler/runtime support. Record that support separately; no device execution,
 real-time bound, universal compiler compatibility or certification is inferred
 from host units. No vendor-specific acceptance or deployment job is required.

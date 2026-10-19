@@ -9,7 +9,8 @@ consumer include path. Production source lists are explicit and exclude tests.
 
 Public-header/API and whole-library behavior units remain in top-level `tests/`.
 The core performs no host I/O; caller storage and explicit errors remain its
-runtime boundary. The complete public parsing entry is still P037 work.
+runtime boundary. The public `parse_document()` entry provides complete-document
+parsing; the internal P033 engine remains private.
 
 See [ADR 0002](../docs/adr/0002-public-private-source-layout.md) for layout and
 representation decisions and the [source layout guide](../docs/source-layout.md)
