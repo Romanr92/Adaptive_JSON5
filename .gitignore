@@ -72,6 +72,7 @@ CMakeUserPresets.json
 out/
 install/
 dist/
+/release-source/
 __pycache__/
 *.pyc
 node_modules/

@@ -6,19 +6,25 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to validate (vMAJOR.MINOR.PATCH); manual runs never publish'
+        description: 'Exact release tag (0.1.0 or v0.1.0); must match the CMake project version'
         required: true
         default: v0.1.0
+      publish:
+        description: 'Attach packages to this existing release (build its tagged source)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-library-${{ github.event.release.tag_name || github.run_id }}
+  group: release-library-${{ github.event.release.tag_name || inputs.publish && inputs.version || github.run_id }}
   cancel-in-progress: false
 
 env:
   PACKAGE_VERSION: ${{ github.event.release.tag_name || inputs.version }}
+  PACKAGE_SOURCE_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && format('refs/tags/{0}', inputs.version) || github.sha }}
 
 jobs:
   linux:
@@ -37,6 +43,12 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Check out the source to package
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.PACKAGE_SOURCE_REF }}
+          path: release-source
+          persist-credentials: false
       - name: Install GCC 13 and build tools
         run: |
           sudo apt-get update
@@ -47,7 +59,8 @@ jobs:
         run: >-
           python3 tools/package_release.py --version "$PACKAGE_VERSION"
           --platform "$PROFILE" --compiler g++-13
-          --expected-commit "$GITHUB_SHA" --build-dir build/release-package
+          --source-dir release-source
+          --expected-commit "$(git -C release-source rev-parse HEAD)" --build-dir build/release-package
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: package-${{ matrix.profile }}
@@ -61,6 +74,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out the source to package
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.PACKAGE_SOURCE_REF }}
+          path: release-source
           persist-credentials: false
       - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
         with:
@@ -77,7 +96,8 @@ jobs:
         run: >-
           python tools/package_release.py --version "$PACKAGE_VERSION"
           --platform windows-x86_64-mingw-gcc --compiler g++
-          --expected-commit "$GITHUB_SHA" --build-dir build/release-package
+          --source-dir release-source
+          --expected-commit "$(git -C release-source rev-parse HEAD)" --build-dir build/release-package
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: package-windows-x86_64-mingw-gcc
@@ -95,6 +115,12 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Check out the source to package
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ env.PACKAGE_SOURCE_REF }}
+          path: release-source
+          persist-credentials: false
       - name: Install SDK prerequisites
         run: |
           sudo apt-get update
@@ -110,7 +136,8 @@ jobs:
           source "$RUNNER_TEMP/adaptivepi-sdk/environment-setup-cortexa57-poky-linux"
           python3 tools/package_release.py --version "$PACKAGE_VERSION" \
             --platform adaptivepi-aarch64-yocto5.0.20-sdk0.2.0-gcc \
-            --sdk-sha256 "$SDK_SHA256" --expected-commit "$GITHUB_SHA" \
+            --sdk-sha256 "$SDK_SHA256" --source-dir release-source \
+            --expected-commit "$(git -C release-source rev-parse HEAD)" \
             --toolchain "$OECORE_NATIVE_SYSROOT/usr/share/cmake/OEToolchainConfig.cmake" \
             --build-dir build/release-package
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -120,7 +147,7 @@ jobs:
           if-no-files-found: error
 
   publish:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish)
     needs: [linux, windows, adaptivepi]
     runs-on: ubuntu-24.04
     permissions:
