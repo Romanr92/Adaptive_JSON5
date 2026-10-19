@@ -1,5 +1,10 @@
 # P002: Non-throwing result foundation
 
+Historical foundation walkthrough. Current ordinary implementation uses the
+[compiled architecture](../architecture.md) and [source layout](../source-layout.md).
+`result<T, E>` remains a header-defined template; the earlier interface-target
+suggestion below does not apply to the compiled parser as a whole.
+
 Status: The developer has implemented the result/error headers. Forty result
 unit cases passed locally with exceptions OFF/ON and RTTI OFF on 2026-10-13;
 see [verification notes](../verification.md). The broader J5 contracts remain

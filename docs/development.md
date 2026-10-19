@@ -53,7 +53,8 @@ reviewed exception/runtime policy; a passing build does not prove language compl
 All project C++ targets, including unit-test executables, treat compiler warnings
 as errors through `adaptive_json5_configure_target()`: `-Wparentheses -Werror`
 for GCC/Clang/AppleClang, and `/W4 /WX /w14706` for MSVC-compatible builds.
-The flags are private to project targets and do not alter GoogleTest targets,
+The flags are private to the configured targets; host GoogleTest targets also
+receive the helper through `cmake/Dependencies.cmake`. They do not alter
 parent-project flags or exported consumer options. Both exception presets use
 the same warning policy. See [coding guidelines](coding-style.md).
 
@@ -106,11 +107,17 @@ RTTI OFF, and clears only that build's old runtime counters before execution.
 Reports include common C/C++ source, header, inline/template and module files
 (`.c`, `.cc`, `.cp`, `.cpp`, `.cxx`, `.c++`, `.h`, `.hh`, `.hp`, `.hpp`, `.hxx`,
 `.h++`, `.inl`, `.inc`, `.ipp`, `.tpp`, `.tcc`, `.txx`, `.ixx`, `.cppm`, `.cxxm`,
-`.ccm`, `.c++m`), including uppercase variants. `tests/` is excluded.
-Entries are requested even for files without instrumentation data. Build/output,
-generated and third-party directories (including `tools/gtest`) are excluded.
+`.ccm`, `.c++m`), including uppercase variants, under the public `includes/`,
+private `src/includes/` and compiled implementation `src/src/` trees only.
+Both `tests/` and `src/tests/` are excluded from report source entries, while
+both groups of units execute against the instrumented compiled core. Entries
+are requested even for files without instrumentation data. Build/output,
+generated test translation units, tools and third-party directories (including
+`tools/gtest`) are excluded by the production-root allowlist.
 Use `--compiler PATH`, `--gcov PATH`, `--jobs N` or `--gtest-source PATH` when needed;
-the last option retains the existing offline GoogleTest override. GCC and gcov
+the last option retains the existing offline GoogleTest override. By default,
+building, CTest and gcov extraction use all logical CPUs; `--jobs N` overrides
+that worker count. GCC and gcov
 must come from the same toolchain. This is an optional local diagnostic, with no
 coverage threshold, CI job or additional merge gate. Coverage does not establish
 complete requirement verification. Entries without instrumentation data do not

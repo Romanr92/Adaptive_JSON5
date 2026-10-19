@@ -49,6 +49,12 @@ for all new work and guidance: `includes/` contains supported public headers,
 substantial non-template implementations. Group files by topic. Internal units
 live in `src/tests/`; public-interface/library units stay in top-level `tests/`
 without private include access.
+Teaching must follow the compiled architecture: read the corresponding header,
+implementation and CMake source list; present declaration/source pairs when a
+change needs both. Do not teach substantial ordinary implementations as
+header-only code for convenience. Templates and required compile-time definitions
+remain legitimate header definitions. See the teaching skill for pacing and
+explicit guidance on translation units, linking and dependency boundaries.
 Public headers must not depend on the private include tree. The user explicitly
 authorized the completed structural migration from `include/adaptive_json5/`;
 do not recreate that legacy tree or a parallel header-only implementation.

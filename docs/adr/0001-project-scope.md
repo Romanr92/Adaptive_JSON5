@@ -2,6 +2,12 @@
 
 Status: Accepted for repository preparation; updated 2026-10-12.
 
+This ADR records the preparation-stage baseline. Its portable runtime/component
+boundaries remain applicable; implementation-status statements in its consequences
+are historical. [ADR 0002](0002-public-private-source-layout.md) and the
+[current architecture](../architecture.md) describe the compiled implementation
+and public/private file separation now in use.
+
 ## Context
 
 The supplied proposal describes 100 Draft contracts for a standalone reader,

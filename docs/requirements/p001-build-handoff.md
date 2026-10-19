@@ -1,5 +1,11 @@
 # P001: Independent C++17 build
 
+Historical preparation-stage handoff. For current implementation placement and
+the compiled target, follow [the architecture](../architecture.md),
+[source layout](../source-layout.md) and [ADR 0002](../adr/0002-public-private-source-layout.md).
+The starting-point paths/status below record the earlier scaffold and do not
+authorize new header-only parser modules.
+
 P001 is the first step in the [implementation sequence](json5-implementation-order.md).
 J5-001 is the broader standalone-library contract: a documented public C++17 API,
 native Windows/Linux/macOS portability and independence from application

@@ -1,7 +1,7 @@
 # Current parser architecture
 
 Updated after the 2026-10-19 structural refactor. P033's internal engine is
-implemented and has unit evidence; P034?P037 remain separate work. Public headers
+implemented and has unit evidence; P034-P037 remain separate work. Public headers
 now live under `includes/`, private headers under `src/includes/`, implementations
 under topic folders in `src/src/`, and internal units under `src/tests/`. Public API
 and library-behavior units remain under top-level `tests/`.
@@ -921,7 +921,7 @@ sequenceDiagram
 | Duplicate handling | Model/lookup preserve and expose duplicates. Explicit parser rejection policy and both colliding source locations remain P036 work. |
 | Complete input | Primitive-only entry already requires EOF after trivia. Internal engine prefix success does not satisfy P037's unified complete-document contract. |
 | Work accounting | Existing charges are component-specific. Whole-tree parsing and later traversal/conversion integration must be reviewed separately; finite record bounds alone do not prove all J5-048/J5-049 obligations. |
-| Verification | P033 units and refactor regression results are recorded in verification notes. Requirement status is unchanged; P034?P037 and later whole-grammar evidence remain separate work. |
+| Verification | P033 units and refactor regression results are recorded in verification notes. Requirement status is unchanged; P034-P037 and later whole-grammar evidence remain separate work. |
 
 This snapshot covers all currently declared core classes, structs, enums and
 architecturally significant aliases, including function-only modules. Local

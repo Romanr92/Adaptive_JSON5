@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Build and run host units with GCC coverage, then write a local gcovr report."""
+"""Report local GCC coverage for the compiled core and its public/private headers."""
 
 import argparse
 import importlib.util
@@ -15,8 +15,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build" / "coverage"
 SOURCE_FILTER = (
-    r"(?!(?:tests|build(?:-[^/]+)?|Build|out|install|third_party|vendor|generated|node_modules|\.git)/"
-    r"|tools/gtest/).*(?i:\.(?:c|cc|cp|cpp|cxx|c\+\+|h|hh|hp|hpp|hxx|h\+\+|inl|inc|ipp|tpp|tcc|txx|ixx|cppm|cxxm|ccm|c\+\+m))$"
+    r"^(?:includes/|src/(?:includes|src)/)"
+    r".*(?i:\.(?:c|cc|cp|cpp|cxx|c\+\+|h|hh|hp|hpp|hxx|h\+\+|inl|inc|ipp|tpp|tcc|txx|ixx|cppm|cxxm|ccm|c\+\+m))$"
 )
 
 
@@ -29,7 +29,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiler", default="g++", help="GCC C++ compiler (default: g++)")
     parser.add_argument("--gcov", help="Matching gcov executable (default: beside the compiler)")
-    parser.add_argument("--jobs", type=int, default=12, help="Parallel build jobs (default: 12)")
+    parser.add_argument("--jobs", type=int, default=os.cpu_count() or 1,
+                        help="Parallel build/test/gcov workers (default: all logical CPUs)")
     parser.add_argument("--gtest-source", type=Path, help="Existing GoogleTest 1.17.0 source checkout")
     args = parser.parse_args()
     if args.jobs < 1:
@@ -82,12 +83,14 @@ def main():
             if counter.resolve().is_relative_to(BUILD.resolve()):
                 counter.unlink()
 
-        run(["ctest", "--test-dir", BUILD, "--output-on-failure", "--no-tests=error"])
+        run(["ctest", "--test-dir", BUILD, "--parallel", args.jobs,
+             "--output-on-failure", "--no-tests=error"])
         report = BUILD / "report"
         report.mkdir(exist_ok=True)
         run([
             sys.executable, "-m", "gcovr", BUILD,
             "--root", ROOT, "--filter", SOURCE_FILTER,
+            "-j", args.jobs,
             # gcovr parses this argument as a shell-style command, even on Windows.
             "--gcov-executable", shlex.quote(Path(shutil.which(gcov)).resolve().as_posix()),
             "--json", report / "coverage.json",
