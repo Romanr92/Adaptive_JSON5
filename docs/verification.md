@@ -1483,3 +1483,23 @@ clang-format 18 passed for all **173 C++ files**.
 No production C++ or public headers were changed by this unit-test task.
 These are host unit results; requirement statuses remain Draft and no CI, vendor
 target or whole-milestone verification is implied.
+
+## Coverage helper counter-reset review (2026-10-19)
+
+Quick review of `tools/coverage.py` found no blocking issues in the fix for stale
+profile checksums. The helper now clears `.gcda` counters before building, so
+post-build GoogleTest discovery does not encounter counters from previously
+compiled instrumentation. The reset after building still removes discovery-run
+counts, and the reset before sequential collection still removes parallel CTest
+counts. Compiler metadata (`.gcno`), objects and executables are preserved.
+
+The existing cleanup resolves each candidate path and limits deletion to `.gcda`
+files inside the dedicated coverage build tree. A temporary-file check passed
+for nested counter removal, preservation of `.gcno` and an outside `.gcda` file,
+and repeated reset with no remaining counters. Python syntax validation passed.
+No production code, CMake configuration or quality gates changed in this fix.
+
+This review did not rerun the complete coverage pipeline or reproduce an
+incremental checksum mismatch; disappearance of those messages and regenerated
+report values remain unverified. Run one coverage helper process at a time;
+concurrent invocations share the same build and profile files.

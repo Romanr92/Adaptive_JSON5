@@ -24,3 +24,9 @@ jobs:
         run: cmake --build build --config Debug --parallel
       - name: Run unit tests
         run: ctest --test-dir build --build-config Debug --output-on-failure --no-tests=error
+      - name: Configure exceptions-enabled unit tests
+        run: cmake --preset debug-unit-tests-exceptions
+      - name: Build exceptions-enabled unit tests
+        run: cmake --build --preset debug-unit-tests-exceptions --parallel
+      - name: Run exceptions-enabled unit tests
+        run: ctest --preset debug-unit-tests-exceptions --parallel --output-on-failure

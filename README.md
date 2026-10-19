@@ -11,8 +11,8 @@ numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
 **Status: the compiled C++17 core includes owned values, lexical components,
-resource guards and the internal P033 container engine. A public complete-document
-parser entry remains P037 work.**
+resource guards, the internal P033 container engine and the public P037
+complete-document `parse_document()` entry.**
 GoogleTest inventories and historical executed results are recorded in
 [verification notes](docs/verification.md). Parser/schema/CLI conformance remains
 pending. Production C++ and public headers are reserved for Romanr92; AI creates
@@ -74,8 +74,8 @@ clang-format 18 only**. GoogleTest is host-only and never a parser runtime depen
 The source/install package exports the compiled static `AdaptiveJSON5::parser`
 target and the supporting `AdaptiveJSON5::build_options` metadata target.
 Consumers receive only the public `includes/` search root. The core currently
-exposes owned document/value/storage components; the full public parsing entry
-and optional schema target remain later work.
+exposes owned document/value/storage components and the public `parse_document`
+entry; the optional schema target remains later work.
 
 ```cmake
 add_subdirectory(path/to/Adaptive_JSON5)
