@@ -95,6 +95,13 @@ Use `find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)` with the installation pref
 in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
 not a supported parser release.
 
+Release packaging builds GCC static libraries for Linux x86-64, Linux ARM64,
+Windows MinGW x86-64 and the pinned AdaptivePi ARM64 Yocto SDK. Each archive
+contains the `.a` beside its public `include/` folder, exported CMake targets,
+licenses and source/toolchain metadata. See [release packages](docs/release-packages.md)
+for pinned downloads, checksums, offline use and the consumer CMake import helper.
+macOS release binaries are outside this packaging scope.
+
 ## Documentation and work
 
 The implemented [source layout guide](docs/source-layout.md) and

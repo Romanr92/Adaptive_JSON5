@@ -30,3 +30,58 @@ jobs:
         run: cmake --build --preset debug-unit-tests-exceptions --parallel
       - name: Run exceptions-enabled unit tests
         run: ctest --preset debug-unit-tests-exceptions --parallel --output-on-failure
+
+  gcc-portability:
+    name: GCC units (${{ matrix.profile }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04-arm
+            profile: linux-aarch64
+          - runner: windows-2022
+            profile: windows-mingw
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - if: runner.os == 'Linux'
+        name: Install GNU compiler and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++-13 ninja-build
+      - if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            git
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+      - if: runner.os == 'Linux'
+        name: Run ARM64 host GoogleTest units in both exception modes
+        run: |
+          for mode in OFF ON; do
+            cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++-13 \
+              -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" \
+              -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+            cmake --build "build/gcc-$mode" --parallel
+            ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
+          done
+      - if: runner.os == 'Windows'
+        name: Run MinGW GoogleTest units in both exception modes
+        shell: msys2 {0}
+        run: |
+          for mode in OFF ON; do
+            cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++ \
+              -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" \
+              -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+            cmake --build "build/gcc-$mode" --parallel
+            ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
+          done

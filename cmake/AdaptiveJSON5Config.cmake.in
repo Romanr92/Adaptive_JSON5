@@ -1,4 +1,76 @@
 @PACKAGE_INIT@
 
+include("${CMAKE_CURRENT_LIST_DIR}/AdaptiveJSON5BuildInfo.cmake")
+if(NOT AdaptiveJSON5_PACKAGE_PROFILE STREQUAL "source")
+    # Binary packages are deliberately stricter than portable source consumption.
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL AdaptiveJSON5_COMPILER_ID OR
+       NOT CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL AdaptiveJSON5_COMPILER_VERSION OR
+       NOT CMAKE_SYSTEM_NAME STREQUAL AdaptiveJSON5_SYSTEM_NAME OR
+       NOT CMAKE_SIZEOF_VOID_P EQUAL AdaptiveJSON5_POINTER_SIZE)
+        set(AdaptiveJSON5_FOUND FALSE)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE
+            "Binary package ${AdaptiveJSON5_PACKAGE_PROFILE} requires ${AdaptiveJSON5_SYSTEM_NAME} ${AdaptiveJSON5_COMPILER_ID} ${AdaptiveJSON5_COMPILER_VERSION}; rebuild from source for another toolchain")
+        return()
+    endif()
+    separate_arguments(_adaptive_json5_args NATIVE_COMMAND "${CMAKE_CXX_COMPILER_ARG1}")
+    execute_process(COMMAND "${CMAKE_CXX_COMPILER}" ${_adaptive_json5_args} -dumpmachine
+        OUTPUT_VARIABLE _adaptive_json5_triple OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE _adaptive_json5_result)
+    if(NOT _adaptive_json5_result EQUAL 0 OR
+       NOT _adaptive_json5_triple STREQUAL AdaptiveJSON5_TARGET_TRIPLE)
+        set(AdaptiveJSON5_FOUND FALSE)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE "Binary package compiler target does not match ${AdaptiveJSON5_TARGET_TRIPLE}")
+        return()
+    endif()
+    execute_process(COMMAND "${CMAKE_CXX_COMPILER}" ${_adaptive_json5_args} -v
+        ERROR_VARIABLE _adaptive_json5_description OUTPUT_QUIET)
+    if(_adaptive_json5_description MATCHES "Thread model: ([a-z]+)")
+        if(NOT CMAKE_MATCH_1 STREQUAL AdaptiveJSON5_THREAD_MODEL)
+            set(AdaptiveJSON5_FOUND FALSE)
+            set(AdaptiveJSON5_NOT_FOUND_MESSAGE "Binary package GCC thread model differs from the consumer")
+            return()
+        endif()
+    endif()
+    if(AdaptiveJSON5_SDK_SHA256 AND
+       NOT AdaptiveJSON5_EXPECTED_SDK_SHA256 STREQUAL AdaptiveJSON5_SDK_SHA256)
+        set(AdaptiveJSON5_FOUND FALSE)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE
+            "Set AdaptiveJSON5_EXPECTED_SDK_SHA256 to the SHA-256 of your matching Yocto SDK installer")
+        return()
+    endif()
+    include(CheckCXXSourceCompiles)
+    function(_adaptive_json5_check_abi)
+        set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+        # Do not reuse a probe from a different package or changed consumer flags.
+        unset(_adaptive_json5_abi_matches CACHE)
+        check_cxx_source_compiles("#include <string>\nstatic_assert(_GLIBCXX_USE_CXX11_ABI == ${AdaptiveJSON5_GLIBCXX_ABI});"
+            _adaptive_json5_abi_matches)
+        set(_adaptive_json5_abi_ok "${_adaptive_json5_abi_matches}" PARENT_SCOPE)
+        if(MINGW)
+            unset(_adaptive_json5_ucrt CACHE)
+            check_cxx_source_compiles("#include <_mingw.h>\n#ifndef _UCRT\n#error Not UCRT\n#endif"
+                _adaptive_json5_ucrt)
+            if(_adaptive_json5_ucrt)
+                set(_adaptive_json5_crt "UCRT" PARENT_SCOPE)
+            else()
+                set(_adaptive_json5_crt "MSVCRT" PARENT_SCOPE)
+            endif()
+        endif()
+    endfunction()
+    _adaptive_json5_check_abi()
+    if(NOT _adaptive_json5_abi_ok)
+        set(AdaptiveJSON5_FOUND FALSE)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE "Binary package libstdc++ string ABI differs from the consumer")
+        return()
+    endif()
+    if(MINGW AND NOT _adaptive_json5_crt STREQUAL AdaptiveJSON5_MINGW_CRT)
+        set(AdaptiveJSON5_FOUND FALSE)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE "Binary package MinGW CRT differs from the consumer")
+        return()
+    endif()
+endif()
 include("${CMAKE_CURRENT_LIST_DIR}/AdaptiveJSON5Targets.cmake")
+set(AdaptiveJSON5_parser_FOUND TRUE)
+set(AdaptiveJSON5_build_options_FOUND TRUE)
+# Unknown/unimplemented required components (including schema) must fail clearly.
 check_required_components(AdaptiveJSON5)
