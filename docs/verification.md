@@ -1441,3 +1441,45 @@ logs are local artifacts `build/p036-tests-off-build.log`,
 Production implementation and public headers were not changed by this unit task.
 This is P036 host unit evidence; J5 statuses and P037 complete-document scope
 remain unchanged.
+
+## P037 complete-document public API units (2026-10-19)
+
+Added **67 runtime cases** in `tests/parser/complete_document_tests.cpp`, using
+only supported public headers: 21 root/trivia examples, 27 rejected complete
+inputs, ten resource-boundary examples and nine focused units. Each test has
+purpose/Arrange/Act/Expect comments and explains the reason for non-obvious checks
+inside its body. `parser.hpp` also joins the independent public-header compilation
+inventory without access to private include directories.
+
+The examples check every admitted root type in both syntax modes, exact scalar
+content and number spelling, established roots, container/record counts and root
+spans excluding surrounding trivia. They cover JSON5 EOF line comments, block
+comments and Unicode trivia; empty/trivia-only input; adjacent and separated extra
+roots; junk, delimiters and embedded NUL after a completed root; strict-mode comment
+and whitespace differences; malformed/truncated UTF-8 suffixes; and exact original
+error categories/offsets without partial success payloads. Every proper byte prefix
+of a representative nested object fails in both modes. An explicit-length example
+accepts a root whose backing array contains additional bytes outside the input view.
+
+Operational units inject failure at every observed allocation point with successful
+retry through the same accounting object. They alternate failures and successes
+while another returned document remains live, verify cleanup restores prior byte
+usage, and check moved public results after overwriting input. Names, embedded-NUL
+UTF-16 content, exact numeric spelling, name spans, duplicate-policy diagnostics and
+warning count/first descriptor are asserted through public accessors.
+
+Inclusive limits cover complete input bytes, depth, nodes, members, individual and
+aggregate string units, numeric spelling, exponent digits, retained diagnostics
+and shared work accounting including trailing trivia. Peak requested-byte tests
+use the measured target layout, check one byte below the peak, and retain a separate
+caller allocation to verify that it shares the ceiling. Invalid input views,
+mismatched accounting ceilings and unavailable storage report explicit failures.
+
+Full suites passed **1710/1710 in each configuration**: GCC 16.2.0, C++17,
+exceptions OFF/ON respectively, RTTI OFF, 32 parallel workers. Local logs:
+`build/p037-build-off.log`, `build/p037-build-on.log`,
+`build/p037-tests-off.log` and `build/p037-tests-on.log`.
+clang-format 18 passed for all **173 C++ files**.
+No production C++ or public headers were changed by this unit-test task.
+These are host unit results; requirement statuses remain Draft and no CI, vendor
+target or whole-milestone verification is implied.
