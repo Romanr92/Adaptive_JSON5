@@ -50,3 +50,17 @@ files, URLs, hashes, the license snapshot and the offline regeneration procedure
 are recorded in [the Unicode input inventory](../tools/unicode-data/README.md).
 This data incorporation does not complete P006's classification functions or
 verify whole-parser Unicode semantics.
+
+Binary release packaging uses the existing parser/Unicode source and adds no
+parser runtime dependency. Native Linux jobs use Ubuntu 24.04 GCC 13; Windows
+uses MSYS2 UCRT64 MinGW-w64 GCC. Exact compiler/runtime configuration is recorded
+per archive rather than inferred from a moving runner image. Workflow actions
+are pinned to immutable commits in `release-library.yml`.
+
+The optional AdaptivePi-targeted release profile uses its published `v0.2.0`
+Yocto/Poky 5.0.20 SDK installer, SHA-256
+`abd5aeb0b6243362c8fafc88c33eb501f62354add112a6509d0ec974cec017d6`.
+The SDK is a build tool, not a generic parser dependency, and is not redistributed
+inside the library archive. Its source URL, target and consumption constraints
+are recorded in [release packages](release-packages.md). Cross-building does not
+establish device execution evidence.

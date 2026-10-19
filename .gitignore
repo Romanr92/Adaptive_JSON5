@@ -71,6 +71,7 @@ Testing/
 CMakeUserPresets.json
 out/
 install/
+dist/
 __pycache__/
 *.pyc
 node_modules/

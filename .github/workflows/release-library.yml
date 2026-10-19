@@ -1,0 +1,142 @@
+name: release-library
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to validate (vMAJOR.MINOR.PATCH); manual runs never publish'
+        required: true
+        default: v0.1.0
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-library-${{ github.event.release.tag_name || github.run_id }}
+  cancel-in-progress: false
+
+env:
+  PACKAGE_VERSION: ${{ github.event.release.tag_name || inputs.version }}
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            profile: linux-x86_64-gcc
+          - runner: ubuntu-24.04-arm
+            profile: linux-aarch64-gcc
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install GCC 13 and build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++-13 ninja-build
+      - name: Build installed library package
+        env:
+          PROFILE: ${{ matrix.profile }}
+        run: >-
+          python3 tools/package_release.py --version "$PACKAGE_VERSION"
+          --platform "$PROFILE" --compiler g++-13
+          --expected-commit "$GITHUB_SHA" --build-dir build/release-package
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: package-${{ matrix.profile }}
+          path: dist/*
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: UCRT64
+          path-type: inherit
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-python
+      - name: Build MinGW GCC package (UCRT, not MSVC)
+        shell: msys2 {0}
+        run: >-
+          python tools/package_release.py --version "$PACKAGE_VERSION"
+          --platform windows-x86_64-mingw-gcc --compiler g++
+          --expected-commit "$GITHUB_SHA" --build-dir build/release-package
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: package-windows-x86_64-mingw-gcc
+          path: dist/*
+          if-no-files-found: error
+
+  adaptivepi:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SDK_URL: https://github.com/Romanr92/adaptive-pi/releases/download/v0.2.0/poky-glibc-x86_64-adaptive-pi-image-cortexa57-qemuarm64-toolchain-5.0.20.sh
+      SDK_SHA256: abd5aeb0b6243362c8fafc88c33eb501f62354add112a6509d0ec974cec017d6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install SDK prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ninja-build xz-utils file locales
+          sudo locale-gen en_US.UTF-8
+      - name: Download and verify the pinned AdaptivePi SDK
+        run: |
+          curl --fail --location --retry 3 "$SDK_URL" --output "$RUNNER_TEMP/sdk.sh"
+          printf '%s  %s\n' "$SDK_SHA256" "$RUNNER_TEMP/sdk.sh" | sha256sum --check --strict
+          sh "$RUNNER_TEMP/sdk.sh" -y -d "$RUNNER_TEMP/adaptivepi-sdk"
+      - name: Cross-build using the SDK environment and sysroot
+        run: |
+          source "$RUNNER_TEMP/adaptivepi-sdk/environment-setup-cortexa57-poky-linux"
+          python3 tools/package_release.py --version "$PACKAGE_VERSION" \
+            --platform adaptivepi-aarch64-yocto5.0.20-sdk0.2.0-gcc \
+            --sdk-sha256 "$SDK_SHA256" --expected-commit "$GITHUB_SHA" \
+            --toolchain "$OECORE_NATIVE_SYSROOT/usr/share/cmake/OEToolchainConfig.cmake" \
+            --build-dir build/release-package
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: package-adaptivepi-aarch64-yocto5.0.20-sdk0.2.0-gcc
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'release'
+    needs: [linux, windows, adaptivepi]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: package-*
+          path: dist
+          merge-multiple: true
+      - name: Attach all platform packages to the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cd dist
+          sha256sum --check --strict ./*.sha256
+          # A rerun cannot silently replace assets already pinned by consumers.
+          gh release upload "$PACKAGE_VERSION" ./*

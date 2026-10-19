@@ -6,9 +6,16 @@ include(CMakePackageConfigHelpers)
 
 option(ADAPTIVE_JSON5_BUILD_TESTS "Build host GoogleTest unit tests" ${PROJECT_IS_TOP_LEVEL})
 option(ADAPTIVE_JSON5_BUILD_LIBRARY "Build/export the library component" ON)
+option(ADAPTIVE_JSON5_BUILD_SCHEMA "Build the optional schema component when implemented" OFF)
 option(ADAPTIVE_JSON5_BUILD_EXECUTABLE "Build the host example executable when implemented" OFF)
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project targets" OFF)
 option(ADAPTIVE_JSON5_ENABLE_RTTI "Enable RTTI in project unit targets" OFF)
+if(ADAPTIVE_JSON5_BUILD_SCHEMA)
+    message(FATAL_ERROR "The optional schema implementation is not available yet; build the parser component only")
+endif()
+set(ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING
+    "Static archive install directory; release bundles use . beside include/")
+include(cmake/PackageMetadata.cmake)
 set(ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR "" CACHE PATH "Existing GoogleTest 1.17.0 source checkout")
 if(ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR)
     get_filename_component(ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR
@@ -149,16 +156,23 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY)
         ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5ConfigVersion.cmake
         VERSION ${PROJECT_VERSION} COMPATIBILITY SameMinorVersion)
     install(TARGETS adaptive_json5_build_options adaptive_json5_parser EXPORT AdaptiveJSON5Targets
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    install(DIRECTORY includes/adaptive_json5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+        ARCHIVE DESTINATION ${ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR})
+    install(DIRECTORY includes/adaptive_json5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING PATTERN "*.hpp")
     install(EXPORT AdaptiveJSON5Targets FILE AdaptiveJSON5Targets.cmake
         NAMESPACE AdaptiveJSON5:: DESTINATION ${adaptive_json5_package_dir})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5ConfigVersion.cmake
         DESTINATION ${adaptive_json5_package_dir})
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5BuildInfo.cmake
+        DESTINATION ${adaptive_json5_package_dir})
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/build-info.json
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5)
     install(FILES LICENSE NOTICE DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5)
     install(FILES docs/licensing.md docs/dependencies.md
         DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5/docs)
+    install(FILES cmake/ImportAdaptiveJSON5.cmake
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5/cmake)
     install(FILES LICENSES/GoogleTest-BSD-3-Clause.txt LICENSES/Unicode-License-V3.txt
         DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5/LICENSES)
 endif()

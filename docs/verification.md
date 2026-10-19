@@ -1503,3 +1503,28 @@ This review did not rerun the complete coverage pipeline or reproduce an
 incremental checksum mismatch; disappearance of those messages and regenerated
 report values remain unverified. Run one coverage helper process at a time;
 concurrent invocations share the same build and profile files.
+
+## GCC static-package development checks (2026-10-19)
+
+Windows MinGW GCC 15.2.0 (MSVCRT, POSIX thread model), CMake 4.0.1:
+all **1,710 GoogleTest cases passed** with exceptions OFF / RTTI OFF and again
+with exceptions ON / RTTI OFF. clang-format 18.1.8 passed for all **173 C++ files**.
+No production C++ or public headers changed.
+
+CMake **3.25.2** built/installed a development static-library archive with all
+21 public headers. Separate consumer development checks compiled, linked and ran
+through relocated `find_package`, offline archive import, trusted extracted-root
+import and `add_subdirectory`. Tests defaulted OFF as a subproject, GoogleTest
+was absent and parent compiler flags were preserved. Negative checks rejected
+duplicate imports, incorrect/malformed checksums, missing archives, unsupported
+profiles, unavailable required schema components, version mismatches and
+incompatible string ABI/compiler/pointer-size/MinGW CRT/SDK metadata. Optional
+schema did not prevent parser consumption. Packaging guards rejected invalid
+tags, mismatched project versions and wrong source commits.
+
+Python syntax validation, YAML parsing and actionlint 1.7.12 passed for the new
+release workflow and expanded GoogleTest workflow. Local packages were explicitly
+marked dirty development outputs and were not published. The MSYS2 UCRT64,
+Linux x86-64/ARM64 and Yocto release jobs still require execution on their runners;
+this local evidence does not claim their success, release-upload success or ECU
+runtime support. Requirement statuses remain Draft.
