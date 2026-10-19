@@ -86,6 +86,7 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS)
         src/src/memory/owned_block.cpp
         src/src/memory/resource_budget.cpp
         src/src/memory/work_budget.cpp
+        src/src/parser/parser.cpp
         src/src/parser/parser_attachment.cpp
         src/src/parser/parser_container_close.cpp
         src/src/parser/parser_container_open.cpp
