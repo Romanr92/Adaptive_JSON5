@@ -242,4 +242,32 @@ namespace adaptive_json5
 
     return result<const decoded_string*>::success(&*name);
   }
+
+  /**
+   * @brief Read name-span metadata after validating this named-member view.
+   * @par Requirements
+   * P036; J5-032; J5-039; J5-041; J5-044.
+   * @note Returns metadata by value without extending document or input lifetime.
+   */
+  result<std::optional<adaptive_json5::source_span>> value_view::member_name_source_span() const noexcept
+  {
+    using span_result = result<std::optional<adaptive_json5::source_span>>;
+
+    const auto resolved = record();
+
+    if (!resolved.has_value())
+    {
+      return span_result::failure(*resolved.error_if());
+    }
+
+    const auto& member = **resolved.value_if();
+
+    // A missing name is invalid access; missing source metadata is permitted.
+    if (!member.member_name.has_value())
+    {
+      return span_result::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    return span_result::success(member.member_name_source_span);
+  }
 } // namespace adaptive_json5

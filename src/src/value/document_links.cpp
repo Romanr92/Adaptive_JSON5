@@ -5,12 +5,14 @@
 #include "adaptive_json5/detail/value/container_links.hpp"
 #include "adaptive_json5/detail/value/value_record.hpp"
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 
 #include <cstddef>
+#include <optional>
 #include <utility>
 #include <variant>
 
@@ -18,9 +20,35 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Attach a detached child and optional member-name source metadata.
+     * @par Requirements
+     * P030; P036; J5-030; J5-031; J5-032; J5-039; J5-040; J5-041.
+     * @note All fallible validation precedes ownership and relationship changes.
+     * A supplied name span requires a supplied member name.
+     * Performs no allocation.
+     */
     status_result attach_child(value_storage& values, value_index root, value_index parent, value_index child,
-                               decoded_string* member_name) noexcept
+                               decoded_string* member_name, std::optional<source_span> name_span,
+                               std::size_t input_size) noexcept
     {
+      // Validate source metadata before transferring the name or attaching the child.
+      if (name_span.has_value())
+      {
+        if (member_name == nullptr)
+        {
+          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+
+        const auto span = *name_span;
+
+        // Subtraction avoids overflowing the end of the supplied source range.
+        if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
+        {
+          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+      }
+
       const auto parent_result = values.at(parent);
 
       if (!parent_result.has_value())
@@ -43,7 +71,8 @@ namespace adaptive_json5
         return status_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
-      if (child_record.parent.is_set() || child_record.next_sibling.is_set() || child_record.member_name.has_value())
+      if (child_record.parent.is_set() || child_record.next_sibling.is_set() || child_record.member_name.has_value() ||
+          child_record.member_name_source_span.has_value())
       {
         return status_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
@@ -135,6 +164,7 @@ namespace adaptive_json5
       if (member_name != nullptr)
       {
         child_record.member_name.emplace(std::move(*member_name));
+        child_record.member_name_source_span = name_span;
       }
 
       child_record.parent = parent;

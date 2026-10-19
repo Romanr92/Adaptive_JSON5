@@ -92,6 +92,18 @@ namespace adaptive_json5
     return detail::attach_child(m_values, m_root, object, child, &name);
   }
 
+  /**
+   * @brief Forward member attachment and name metadata to one transaction.
+   * @par Requirements
+   * P036; J5-031; J5-032; J5-039; J5-040; J5-041.
+   * @note Validation and ownership transfer are performed by attach_child().
+   */
+  status_result document::append_member(value_index object, decoded_string&& name, value_index child,
+                                        adaptive_json5::source_span name_span, std::size_t input_size) noexcept
+  {
+    return detail::attach_child(m_values, m_root, object, child, &name, name_span, input_size);
+  }
+
   status_result document::set_source_span(value_index index, adaptive_json5::source_span span,
                                           std::size_t input_size) noexcept
   {

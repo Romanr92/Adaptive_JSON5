@@ -277,6 +277,25 @@ namespace adaptive_json5
       status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
 
       /**
+       * @brief Append a named detached value with its original name-token range.
+       * @par Requirements
+       * P036; J5-031; J5-032; J5-039; J5-040; J5-041.
+       * @param object Object index belonging to this document.
+       * @param name Owned decoded name, transferred only on success.
+       * @param child Detached child index belonging to this document.
+       * @param name_span Original member-name token offset and length in bytes.
+       * @param input_size Original input size used to validate name_span.
+       * @return Success or an explicit relationship/access/range failure.
+       * @note Preserves source member order, empty names and repeated names.
+       * Failure leaves relationships, metadata and the supplied name unchanged.
+       * Success transfers the name and records its span atomically.
+       * Stores no input pointer and performs no allocation.
+       * Does not enforce duplicate-name rejection.
+       */
+      status_result append_member(value_index object, decoded_string&& name, value_index child,
+                                  adaptive_json5::source_span name_span, std::size_t input_size) noexcept;
+
+      /**
        * @brief Assign or replace a value's original source range.
        * @par Requirements
        * P032; J5-039; J5-041.

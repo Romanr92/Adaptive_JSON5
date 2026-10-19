@@ -5,18 +5,20 @@
 #include "adaptive_json5/detail/memory/work_budget.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 
+#include <cstddef>
 #include <utility>
 
 namespace adaptive_json5
 {
   namespace detail
   {
-    status_result attach_parsed_value(document& destination, parser_frame& frame, value_index child,
-                                      work_budget& work) noexcept
+    status_result attach_parsed_value(document& destination, parser_frame& frame, value_index child, work_budget& work,
+                                      std::size_t input_size) noexcept
     {
       bool object_member = false;
 
@@ -60,10 +62,13 @@ namespace adaptive_json5
         return status_result::failure(*charged.error_if());
       }
 
+      // Preserve source spelling coordinates before clearing the pending name.
+      const source_span name_span{frame.name_offset, frame.name_length};
+
       // P034: append elements in source order; P035: retain every member with its decoded name.
-      const auto attached = object_member
-                              ? destination.append_member(frame.container, std::move(*frame.pending_name), child)
-                              : destination.append_element(frame.container, child);
+      const auto attached = object_member ? destination.append_member(frame.container, std::move(*frame.pending_name),
+                                                                      child, name_span, input_size)
+                                          : destination.append_element(frame.container, child);
 
       if (!attached.has_value())
       {

@@ -156,6 +156,18 @@ namespace adaptive_json5
        * The returned pointer is invalidated by storage growth or destruction.
        */
       result<const decoded_string*> member_name() const noexcept;
+
+      /**
+       * @brief Copy an object member name's optional original source range.
+       * @par Requirements
+       * P036; J5-032; J5-039; J5-041; J5-044.
+       * @return Stored span, successful nullopt when metadata is absent,
+       * or an access failure when the view is invalid or has no member name.
+       * @note An empty decoded member name is valid.
+       * Quoted-name spans include their quotation marks.
+       * Returned metadata contains no source pointer and performs no allocation.
+       */
+      result<std::optional<adaptive_json5::source_span>> member_name_source_span() const noexcept;
   };
 } // namespace adaptive_json5
 

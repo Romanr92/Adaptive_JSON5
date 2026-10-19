@@ -83,13 +83,17 @@ namespace adaptive_json5
         /**
          * @brief Decode and retain the innermost object's next member name.
          * @par Requirements
-         * P033; P035; J5-017; J5-019; J5-020; J5-048.
+         * P033; P035; P036; J5-032; J5-033; J5-049; J5-017; J5-019; J5-020; J5-048.
          * @note Limits lexical growth to the remaining decoded-unit allowance.
          * Success retains the name and selects object_colon.
          * Retains only the first warning descriptor and counts all warnings.
          * Failure preserves the source cursor and pending name.
          * Earlier budget reservations are not rolled back after later failure;
          * the failed engine must be abandoned.
+         * Under reject_duplicates, checks completed members of the same object
+         * before committing the name or cursor.
+         * Duplicate failures retain both original name-token spans.
+         * Preserve-all bypasses duplicate scanning.
          */
         status_result read_name() noexcept;
 

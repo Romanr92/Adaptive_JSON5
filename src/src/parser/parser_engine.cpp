@@ -15,6 +15,7 @@
 #include "adaptive_json5/detail/parser/parser_container_close.hpp"
 #include "adaptive_json5/detail/parser/parser_container_open.hpp"
 #include "adaptive_json5/detail/parser/parser_dispatch.hpp"
+#include "adaptive_json5/detail/parser/parser_duplicate.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/detail/parser/parser_stack.hpp"
 #include "adaptive_json5/detail/parser/primitive_parser.hpp"
@@ -313,6 +314,19 @@ namespace adaptive_json5
 
       auto& name = **recognized.value_if();
 
+      // Reject decoded collisions before committing the name, cursor or retained metadata.
+      if (m_options.duplicate_names == duplicate_name_policy::reject_duplicates)
+      {
+        const source_span repeated_span{name.byte_offset, name.byte_length};
+
+        const auto unique = reject_duplicate_name(m_document, frame->container, name.value, repeated_span, m_work);
+
+        if (!unique.has_value())
+        {
+          return status_result::failure(*unique.error_if());
+        }
+      }
+
       const auto warning_total = checked_add(m_warning_count, name.warning_count);
 
       if (!warning_total.has_value())
@@ -475,7 +489,7 @@ namespace adaptive_json5
 
       if (parent != nullptr)
       {
-        return attach_parsed_value(m_document, *parent, completed, m_work);
+        return attach_parsed_value(m_document, *parent, completed, m_work, m_input.size);
       }
 
       // Root publication waits until run() finishes successfully.
