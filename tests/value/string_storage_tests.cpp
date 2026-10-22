@@ -1,6 +1,7 @@
 #include "../support/string_provider.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
+
 #include <array>
 #include <cstddef>
 #include <gtest/gtest.h>
