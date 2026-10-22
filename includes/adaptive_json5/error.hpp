@@ -2,6 +2,7 @@
 #define ADAPTIVE_JSON5_ERROR_HPP_
 
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/value/numeric_conversion_reason.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -41,7 +42,7 @@ namespace adaptive_json5
   /**
    * @brief Store explicit failure information without allocation.
    * @par Requirements
-   * P002; P036; J5-003; J5-032; J5-043; J5-044; J5-045.
+   * P002; P036; P038; J5-035; J5-003; J5-032; J5-043; J5-044; J5-045.
    * @note byte_offset is zero-based in the original input.
    * When has_byte_offset is false, byte_offset is unused and set to zero.
    * duplicate_member() sets byte_offset to the repeated member name's start
@@ -57,6 +58,9 @@ namespace adaptive_json5
 
       // Keep both locations available even when diagnostic allocation is impossible.
       std::optional<duplicate_names_locations> duplicate_names{};
+
+      // Preserve te braod cattegory while exposing the conversion failure.
+      std::optional<numeric_conversion_reason> numeric_reason{};
 
       /**
        * @brief Construct a failure with one original byte location.
@@ -93,6 +97,20 @@ namespace adaptive_json5
       {
         return error{error_code::duplicate_policy, repeated.byte_offset, true,
                      duplicate_names_locations{first, repeated}};
+      }
+
+      /**
+       * @brief Construct an unlocated numeric conversion failure.
+       * @par Requirements
+       * P038; J5-003; J5-035; J5-038; J5-043; J5-045.
+       * @param reason Specific reason the requested conversion failed.
+       * @return Numeric-conversion error containing the supplied reason.
+       * @note Conversion may inspect numbers without source metadata.
+       * Duplicate-name metadata is absent. Performs no allocation.
+       */
+      [[nodiscard]] static constexpr error numeric_failure(numeric_conversion_reason reason) noexcept
+      {
+        return error{error_code::numeric_conversion, 0, false, std::nullopt, reason};
       }
   };
 
