@@ -40,7 +40,7 @@ namespace adaptive_json5
      * Destruction releases this record's data without following child links.
      * Moving transfers owned data; moved-from records must not be traversed.
      */
-    struct value_record
+    struct [[nodiscard]] value_record
     {
         value_payload payload{};
         value_index parent{};

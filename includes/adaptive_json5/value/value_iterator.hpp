@@ -26,7 +26,7 @@ namespace adaptive_json5
    * Traversal allocates nothing and follows no nested descendants.
    * A default-constructed iterator is invalid.
    */
-  class value_iterator
+  class [[nodiscard]] value_iterator
   {
     private:
       const detail::value_storage* m_storage = nullptr;
@@ -58,7 +58,8 @@ namespace adaptive_json5
        * @note Rejects scalar values and invalid container indices.
        * Requires relationships maintained by validated document operations.
        */
-      static result<value_iterator> create(const detail::value_storage& storage, value_index parent) noexcept;
+      [[nodiscard]] static result<value_iterator> create(const detail::value_storage& storage,
+                                                         value_index parent) noexcept;
 
       /**
        * @brief Return the next direct child or successful end of iteration.
@@ -68,7 +69,7 @@ namespace adaptive_json5
        * Repeated calls after completion return successful empty optionals.
        * Each call performs constant work; P031 adds work accounting.
        */
-      result<std::optional<value_view>> next() noexcept;
+      [[nodiscard]] result<std::optional<value_view>> next() noexcept;
   };
 } // namespace adaptive_json5
 

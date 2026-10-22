@@ -23,7 +23,7 @@ namespace adaptive_json5
      * Provider state must outlive the owned name.
      * Identifier names have no string warnings.
      */
-    struct member_name_token
+    struct [[nodiscard]] member_name_token
     {
         decoded_string value{};
         std::size_t byte_offset{};
@@ -47,9 +47,9 @@ namespace adaptive_json5
      * Does not skip trivia, update frames or invoke warning callbacks.
      * The caller handles shared resource and work accounting.
      */
-    result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
-                                                                 const storage_callbacks& storage,
-                                                                 std::size_t max_units) noexcept;
+    [[nodiscard]] result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
+                                                                               const storage_callbacks& storage,
+                                                                               std::size_t max_units) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

@@ -32,7 +32,7 @@ namespace adaptive_json5
    * Quoted-name spans include their quotation marks.
    * Contains no source pointers and performs no allocation.
    */
-  struct duplicate_names_locations
+  struct [[nodiscard]] duplicate_names_locations
   {
       source_span first{};
       source_span repeated{};
@@ -49,7 +49,7 @@ namespace adaptive_json5
    * at_offset() and without_location() leave duplicate_names empty.
    * Error metadata contains no source pointers and performs no allocation.
    */
-  struct error
+  struct [[nodiscard]] error
   {
       error_code code;
       std::size_t byte_offset;
@@ -64,7 +64,7 @@ namespace adaptive_json5
        * P002; J5-043; J5-044; J5-045.
        * @note Duplicate-name metadata is absent.
        */
-      static constexpr error at_offset(error_code code, std::size_t byte_offset) noexcept
+      [[nodiscard]] static constexpr error at_offset(error_code code, std::size_t byte_offset) noexcept
       {
         return error{code, byte_offset, true};
       }
@@ -75,7 +75,7 @@ namespace adaptive_json5
        * P002; J5-043; J5-045.
        * @note Duplicate-name metadata is absent.
        */
-      static constexpr error without_location(error_code code) noexcept
+      [[nodiscard]] static constexpr error without_location(error_code code) noexcept
       {
         return error{code, 0, false};
       }
@@ -89,7 +89,7 @@ namespace adaptive_json5
        * @note The caller supplies validated original-input spans.
        * The primary location points to the repeated occurrence.
        */
-      static constexpr error duplicate_member(source_span first, source_span repeated) noexcept
+      [[nodiscard]] static constexpr error duplicate_member(source_span first, source_span repeated) noexcept
       {
         return error{error_code::duplicate_policy, repeated.byte_offset, true,
                      duplicate_names_locations{first, repeated}};

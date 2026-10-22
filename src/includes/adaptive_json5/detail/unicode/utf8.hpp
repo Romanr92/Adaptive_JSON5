@@ -15,7 +15,7 @@ namespace adaptive_json5
    * P005; J5-009.
    * @note Contains no ownership of input storage.
    */
-  struct decoded_character
+  struct [[nodiscard]] decoded_character
   {
       char32_t value;
       std::size_t byte_offset;
@@ -33,7 +33,7 @@ namespace adaptive_json5
    * starting byte offset and leaves the cursor unchanged.
    * BOM, NUL and noncharacters are decoded without applying grammar policy.
    */
-  result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept;
+  [[nodiscard]] result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept;
 } // namespace adaptive_json5
 
 #endif /* UTF8_HPP_ */

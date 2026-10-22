@@ -20,7 +20,7 @@ namespace adaptive_json5
      * Negative zero retains negative and is_zero set to true.
      * Contains no borrowed pointers and owns no allocated storage.
      */
-    struct number_analysis
+    struct [[nodiscard]] number_analysis
     {
         number_kind kind = number_kind::decimal;
         bool negative{};
@@ -41,7 +41,7 @@ namespace adaptive_json5
      * Successful charges are not refunded.
      * Performs one forward scan without allocation or locale-dependent operations.
      */
-    result<number_analysis> analyse_number(const owned_number& number, work_budget& work) noexcept;
+    [[nodiscard]] result<number_analysis> analyse_number(const owned_number& number, work_budget& work) noexcept;
   } // namespace detail
 
 } // namespace adaptive_json5

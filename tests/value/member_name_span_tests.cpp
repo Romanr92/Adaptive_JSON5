@@ -1,4 +1,6 @@
 #include "../support/document_provider.hpp"
+#include "adaptive_json5/value/document.hpp"
+#include <utility>
 
 #include <gtest/gtest.h>
 #include <limits>

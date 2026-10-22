@@ -41,7 +41,7 @@ namespace adaptive_json5
    * Storing configuration here does not itself enforce it.
    * Storage providers are specified separately.
    */
-  struct parse_options
+  struct [[nodiscard]] parse_options
   {
       syntax_mode syntax = syntax_mode::json5;
       resource_limits limits{};

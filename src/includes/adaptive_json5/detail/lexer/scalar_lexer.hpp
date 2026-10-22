@@ -25,8 +25,8 @@ namespace adaptive_json5
      * @note Failure releases any owned token storage without advancing source.
      * No warning observer is invoked.
      */
-    result<std::optional<scalar_token>> finish_scalar_token(cursor& source, cursor candidate, scalar_token token,
-                                                            syntax_mode mode) noexcept;
+    [[nodiscard]] result<std::optional<scalar_token>>
+    finish_scalar_token(cursor& source, cursor candidate, scalar_token token, syntax_mode mode) noexcept;
   } // namespace detail
 
   /**
@@ -52,9 +52,9 @@ namespace adaptive_json5
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
    */
-  result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
-                                                     std::size_t max_string_units, std::size_t max_identifier_units,
-                                                     std::size_t max_exponent_digits) noexcept;
+  [[nodiscard]] result<std::optional<scalar_token>>
+  consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_string_units,
+                 std::size_t max_identifier_units, std::size_t max_exponent_digits) noexcept;
 
   /**
    * @brief Recognize a primitive using the original shared decoded-unit limit.
@@ -68,8 +68,8 @@ namespace adaptive_json5
    * @note Preserves the original four-argument call behavior.
    * Permits any exponent digit count representable by size_t.
    */
-  result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
-                                                     std::size_t max_units) noexcept;
+  [[nodiscard]] result<std::optional<scalar_token>>
+  consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units) noexcept;
 } // namespace adaptive_json5
 
 #endif /* SCALAR_LEXER_HPP_ */

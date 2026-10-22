@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../../../tests/support/document_provider.hpp"
 #include "adaptive_json5/detail/parser/parser_container_close.hpp"
 

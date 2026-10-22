@@ -17,7 +17,7 @@ namespace adaptive_json5
    * @note CRLF contributes one line break. An empty run has zero
    * byte length and zero line breaks.
    */
-  struct whitespace_span
+  struct [[nodiscard]] whitespace_span
   {
       std::size_t byte_offset;
       std::size_t byte_length;
@@ -33,7 +33,7 @@ namespace adaptive_json5
    * @note Preserves Unicode 3.0 whitespace memberships alongside
    * the selected Unicode 17.0.0 category data.
    */
-  inline constexpr bool is_json5_space(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_json5_space(char32_t value) noexcept
   {
     constexpr char32_t c_horizontal_tab = 0x0009;
     constexpr char32_t c_vertical_tab = 0x000B;
@@ -72,7 +72,7 @@ namespace adaptive_json5
    * whitespace from this attempted run. Requires no allocation.
    * This operation implements JSON5 whitespace, not strict JSON policy.
    */
-  result<whitespace_span> skip_json5_whitespace(cursor& source) noexcept;
+  [[nodiscard]] result<whitespace_span> skip_json5_whitespace(cursor& source) noexcept;
 } // namespace adaptive_json5
 
 #endif /* WHITESPACE_HPP_ */

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #ifndef ADAPTIVE_JSON5_STRING_WARNING_TYPES_HPP_
 #define ADAPTIVE_JSON5_STRING_WARNING_TYPES_HPP_
 #include <cstddef>
@@ -22,7 +21,7 @@ namespace adaptive_json5
    * @note Stored inline without allocation or ownership of input bytes.
    * Offsets and lengths count original UTF-8 bytes.
    */
-  struct string_warning
+  struct [[nodiscard]] string_warning
   {
       string_warning_code code;
       std::size_t byte_offset;

@@ -28,7 +28,7 @@ namespace adaptive_json5
    * @note Contains source metadata only and requires no allocation.
    * The spelling must be exact, lowercase and unescaped.
    */
-  struct literal_token
+  struct [[nodiscard]] literal_token
   {
       literal_kind kind = literal_kind::null_literal;
       std::size_t byte_offset{};

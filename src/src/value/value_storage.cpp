@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/value/value_record.hpp"
 #include "adaptive_json5/error.hpp"

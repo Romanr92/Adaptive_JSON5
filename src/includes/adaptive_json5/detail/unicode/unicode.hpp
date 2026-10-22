@@ -16,7 +16,7 @@ namespace adaptive_json5
      * P006; J5-009.
      * @note Surrogates are UTF-16 code units, not Unicode scalars.
      */
-    inline constexpr bool is_unicode_scalar(char32_t value) noexcept
+    [[nodiscard]] inline constexpr bool is_unicode_scalar(char32_t value) noexcept
     {
       constexpr char32_t c_scalar_max = 0x10FFFF;
       constexpr char32_t c_surrogate_min = 0xD800;
@@ -36,7 +36,8 @@ namespace adaptive_json5
      * @note Binary search requires no allocation or locale facilities.
      */
     template <std::size_t RangeCount>
-    inline constexpr bool contains_unicode(char32_t value, const unicode_range (&ranges)[RangeCount]) noexcept
+    [[nodiscard]] inline constexpr bool contains_unicode(char32_t value,
+                                                         const unicode_range (&ranges)[RangeCount]) noexcept
     {
       if (!is_unicode_scalar(value))
       {
@@ -83,7 +84,7 @@ namespace adaptive_json5
    * P006; J5-006; J5-052.
    * @note This property query does not implement complete JSON5 whitespace.
    */
-  inline constexpr bool is_unicode_space_separator(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_unicode_space_separator(char32_t value) noexcept
   {
     return detail::contains_unicode(value, detail::c_space_separator_ranges);
   }
@@ -94,7 +95,7 @@ namespace adaptive_json5
    * P006; J5-006; J5-019; J5-052.
    * @note Uses versioned Unicode letter categories plus explicit ES5 additions.
    */
-  inline constexpr bool is_identifier_start(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_identifier_start(char32_t value) noexcept
   {
     // ES5 explicitly admits dollar sign and underscore independently
     // of their Unicode categories
@@ -114,7 +115,7 @@ namespace adaptive_json5
    * P006; J5-006; J5-019; J5-052.
    * @note Identifier continuation includes every valid starting character.
    */
-  inline constexpr bool is_identifier_part(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_identifier_part(char32_t value) noexcept
   {
     constexpr char32_t c_zero_width_non_joiner = 0x200C;
     constexpr char32_t c_zero_width_joiner = 0x200D;

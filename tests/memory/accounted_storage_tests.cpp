@@ -1,5 +1,10 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../support/guard_provider.hpp"
+#include "adaptive_json5/memory/accounted_storage.hpp"
+#include "adaptive_json5/memory/owned_block.hpp"
+#include <cstddef>
+#include <gtest/gtest.h>
+#include <limits>
+#include <utility>
 namespace
 {
   using namespace adaptive_json5;

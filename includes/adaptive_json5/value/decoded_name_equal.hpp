@@ -17,7 +17,7 @@ namespace adaptive_json5
    * Embedded NUL and surrogate units participate unchanged.
    * Work is linear in the number of units examined.
    */
-  result<bool> decoded_name_equal(const decoded_string& left, const decoded_string& right) noexcept;
+  [[nodiscard]] result<bool> decoded_name_equal(const decoded_string& left, const decoded_string& right) noexcept;
 } // namespace adaptive_json5
 
 #endif /* DECODED_NAME_EQUAL_HPP_ */

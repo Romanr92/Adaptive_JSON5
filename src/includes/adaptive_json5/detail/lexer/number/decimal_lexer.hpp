@@ -21,7 +21,7 @@ namespace adaptive_json5
      * P025; J5-021; J5-022.
      * @note Does not use locale-dependent character classification.
      */
-    inline constexpr bool is_decimal_digit(std::optional<char> byte) noexcept
+    [[nodiscard]] inline constexpr bool is_decimal_digit(std::optional<char> byte) noexcept
     {
       return byte.has_value() && (*byte >= '0') && (*byte <= '9');
     }
@@ -42,7 +42,7 @@ namespace adaptive_json5
      * Otherwise reports syntax at the current byte, including EOF.
      * The cursor is passed by value and the caller is unchanged.
      */
-    error decimal_expected_error(cursor source) noexcept;
+    [[nodiscard]] error decimal_expected_error(cursor source) noexcept;
   } // namespace detail
 
   /**

@@ -31,7 +31,7 @@ namespace adaptive_json5
      * Cleanup is iterative and never follows container links.
      * max_records is a component limit, not complete P031 resource accounting.
      */
-    class value_storage
+    class [[nodiscard]] value_storage
     {
       public:
         static constexpr std::size_t c_empty_size = 0;
@@ -50,7 +50,7 @@ namespace adaptive_json5
          * @note Private callers provide index below the allocated capacity.
          * This returns storage, without assuming a record is alive there.
          */
-        static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
+        [[nodiscard]] static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
 
         /**
          * @brief Access an already constructed record.
@@ -58,7 +58,7 @@ namespace adaptive_json5
          * P030; J5-039; J5-040.
          * @note Private callers provide index below the constructed record count.
          */
-        value_record* live_record(std::size_t index) noexcept;
+        [[nodiscard]] value_record* live_record(std::size_t index) noexcept;
 
         /**
          * @brief Access an already constructed record without mutation.
@@ -66,7 +66,7 @@ namespace adaptive_json5
          * P030; J5-039; J5-040.
          * @note Private callers provide index below the constructed record count.
          */
-        const value_record* live_record(std::size_t index) const noexcept;
+        [[nodiscard]] const value_record* live_record(std::size_t index) const noexcept;
 
         /**
          * @brief Destroy constructed records without releasing the raw block.
@@ -83,7 +83,7 @@ namespace adaptive_json5
          * @note Allocation failure leaves existing records unchanged.
          * Growth temporarily retains both old and new raw blocks.
          */
-        status_result reserve(std::size_t required) noexcept;
+        [[nodiscard]] status_result reserve(std::size_t required) noexcept;
 
       public:
         /**
@@ -124,7 +124,7 @@ namespace adaptive_json5
          * Success moves from record. Growth invalidates earlier record pointers.
          * Relationship invariants are enforced by the later document builder.
          */
-        result<value_index> append(value_record&& record) noexcept;
+        [[nodiscard]] result<value_index> append(value_record&& record) noexcept;
 
         /**
          * @brief Access a record after checking its index.
@@ -132,7 +132,7 @@ namespace adaptive_json5
          * P030; J5-039.
          * @note Returned pointers are invalidated by growth or storage destruction.
          */
-        result<value_record*> at(value_index index) noexcept;
+        [[nodiscard]] result<value_record*> at(value_index index) noexcept;
 
         /**
          * @brief Access a record without permitting mutation.
@@ -140,14 +140,14 @@ namespace adaptive_json5
          * P030; J5-039.
          * @note Returned pointers are invalidated by growth or storage destruction.
          */
-        result<const value_record*> at(value_index index) const noexcept;
+        [[nodiscard]] result<const value_record*> at(value_index index) const noexcept;
 
         /**
          * @brief Return the number of constructed records.
          * @par Requirements
          * P030; J5-028.
          */
-        std::size_t size() const noexcept;
+        [[nodiscard]] std::size_t size() const noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5
@@ -167,7 +167,7 @@ namespace adaptive_json5
    * Every storage provider used by records or payloads must outlive its allocations.
    * This component record limit does not replace P031 resource accounting.
    */
-  class document
+  class [[nodiscard]] document
   {
     private:
       detail::value_storage m_values;
@@ -207,14 +207,14 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-028; J5-046.
        */
-      result<value_index> make_null() noexcept;
+      [[nodiscard]] result<value_index> make_null() noexcept;
 
       /**
        * @brief Create a detached Boolean without numeric coercion.
        * @par Requirements
        * P030; J5-028; J5-046.
        */
-      result<value_index> make_boolean(bool value) noexcept;
+      [[nodiscard]] result<value_index> make_boolean(bool value) noexcept;
 
       /**
        * @brief Transfer decoded content into a detached string value.
@@ -223,7 +223,7 @@ namespace adaptive_json5
        * @note Consumes value on entry, even if record allocation subsequently fails.
        * Empty decoded strings are valid values.
        */
-      result<value_index> make_string(decoded_string value) noexcept;
+      [[nodiscard]] result<value_index> make_string(decoded_string value) noexcept;
 
       /**
        * @brief Transfer validated numeric spelling into a detached numeric value.
@@ -232,21 +232,21 @@ namespace adaptive_json5
        * @note Consumes value on entry, even if record allocation subsequently fails.
        * Rejects moved-from owners with empty spelling.
        */
-      result<value_index> make_number(owned_number value) noexcept;
+      [[nodiscard]] result<value_index> make_number(owned_number value) noexcept;
 
       /**
        * @brief Create a detached empty array.
        * @par Requirements
        * P030; J5-028; J5-030; J5-046.
        */
-      result<value_index> make_array() noexcept;
+      [[nodiscard]] result<value_index> make_array() noexcept;
 
       /**
        * @brief Create a detached empty object.
        * @par Requirements
        * P030; J5-028; J5-031; J5-046.
        */
-      result<value_index> make_object() noexcept;
+      [[nodiscard]] result<value_index> make_object() noexcept;
 
       /**
        * @brief Append a detached value or subtree to an array.
@@ -259,7 +259,7 @@ namespace adaptive_json5
        * Rejects wrong container type, existing attachment, root reuse and cycles.
        * Failure leaves the document unchanged.
        */
-      status_result append_element(value_index array, value_index child) noexcept;
+      [[nodiscard]] status_result append_element(value_index array, value_index child) noexcept;
 
       /**
        * @brief Append a named detached value or subtree to an object.
@@ -274,7 +274,7 @@ namespace adaptive_json5
        * Failure leaves the document and supplied name unchanged.
        * Success moves from name. Its provider must outlive the transferred allocation.
        */
-      status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
+      [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
 
       /**
        * @brief Append a named detached value with its original name-token range.
@@ -292,8 +292,8 @@ namespace adaptive_json5
        * Stores no input pointer and performs no allocation.
        * Does not enforce duplicate-name rejection.
        */
-      status_result append_member(value_index object, decoded_string&& name, value_index child,
-                                  adaptive_json5::source_span name_span, std::size_t input_size) noexcept;
+      [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child,
+                                                adaptive_json5::source_span name_span, std::size_t input_size) noexcept;
 
       /**
        * @brief Assign or replace a value's original source range.
@@ -309,8 +309,8 @@ namespace adaptive_json5
        * The caller must supply the correct original input size and provenance.
        * Bounds validation does not prove that the range spells this value.
        */
-      status_result set_source_span(value_index index, adaptive_json5::source_span span,
-                                    std::size_t input_size) noexcept;
+      [[nodiscard]] status_result set_source_span(value_index index, adaptive_json5::source_span span,
+                                                  std::size_t input_size) noexcept;
 
       /**
        * @brief Assign or replace an object member name's original source range.
@@ -326,8 +326,8 @@ namespace adaptive_json5
        * Stores no input pointer and performs no allocation.
        * The caller supplies the correct input size and source provenance.
        */
-      status_result set_member_name_source_span(value_index index, adaptive_json5::source_span span,
-                                                std::size_t input_size) noexcept;
+      [[nodiscard]] status_result set_member_name_source_span(value_index index, adaptive_json5::source_span span,
+                                                              std::size_t input_size) noexcept;
 
       /**
        * @brief Establish one detached value as the document root.
@@ -336,7 +336,7 @@ namespace adaptive_json5
        * @note Rejects an existing root, invalid index or attached/member record.
        * Failure leaves the document unchanged.
        */
-      status_result set_root(value_index index) noexcept;
+      [[nodiscard]] status_result set_root(value_index index) noexcept;
 
       /**
        * @brief Borrow checked read-only access to a document-relative value.
@@ -344,7 +344,7 @@ namespace adaptive_json5
        * P030; J5-039; J5-040.
        * @note The returned view does not extend this document's lifetime.
        */
-      result<value_view> view(value_index index) const noexcept;
+      [[nodiscard]] result<value_view> view(value_index index) const noexcept;
 
       /**
        * @brief Begin source-order iteration over a container's direct children.
@@ -357,7 +357,7 @@ namespace adaptive_json5
        * Moving or destroying this document invalidates the iterator.
        * Do not modify document relationships during iteration.
        */
-      result<value_iterator> iterate(value_index container) const noexcept;
+      [[nodiscard]] result<value_iterator> iterate(value_index container) const noexcept;
 
       /**
        * @brief Inspect an object's members for an exact decoded-name match.
@@ -372,7 +372,7 @@ namespace adaptive_json5
        * Allocates nothing and does not modify the document or name.
        * Moving or destroying the document invalidates any returned view.
        */
-      result<member_lookup> lookup_member(value_index object, const decoded_string& name) const noexcept;
+      [[nodiscard]] result<member_lookup> lookup_member(value_index object, const decoded_string& name) const noexcept;
 
       /**
        * @brief Borrow the root or report that no root has been established.
@@ -380,14 +380,14 @@ namespace adaptive_json5
        * P030; J5-028; J5-039; J5-040.
        * @note An absent root is an access error, not a null value.
        */
-      result<value_view> root() const noexcept;
+      [[nodiscard]] result<value_view> root() const noexcept;
 
       /**
        * @brief Return the number of owned records, including detached values.
        * @par Requirements
        * P030; J5-028.
        */
-      std::size_t size() const noexcept;
+      [[nodiscard]] std::size_t size() const noexcept;
   };
 } // namespace adaptive_json5
 

@@ -16,7 +16,7 @@ namespace adaptive_json5
    * @return A value from zero through fifteen, or nullopt for nonhex input.
    * @note Classification is independent of locale.
    */
-  std::optional<char16_t> hex_digit_value(char32_t character) noexcept;
+  [[nodiscard]] std::optional<char16_t> hex_digit_value(char32_t character) noexcept;
 
   /**
    * @brief Decode a JSON5 hexadecimal escape after its backslash.
@@ -31,7 +31,7 @@ namespace adaptive_json5
    * Missing digits report EOF; nonhex characters report their starting offset.
    * Nonmatching input is not validated. No allocation is performed.
    */
-  result<std::optional<char16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<char16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* HEX_ESCAPE_HPP_ */

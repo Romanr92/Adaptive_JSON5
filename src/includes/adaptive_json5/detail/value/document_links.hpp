@@ -38,9 +38,10 @@ namespace adaptive_json5
      * Success stores the optional name span together with the transferred name.
      * Failure also preserves existing child metadata.
      */
-    status_result attach_child(value_storage& values, value_index root, value_index parent, value_index child,
-                               decoded_string* member_name, std::optional<source_span> name_span = std::nullopt,
-                               std::size_t input_size = 0) noexcept;
+    [[nodiscard]] status_result attach_child(value_storage& values, value_index root, value_index parent,
+                                             value_index child, decoded_string* member_name,
+                                             std::optional<source_span> name_span = std::nullopt,
+                                             std::size_t input_size = 0) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

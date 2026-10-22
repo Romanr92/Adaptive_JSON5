@@ -27,7 +27,7 @@ namespace adaptive_json5
    * Other suffix/context validation remains P028 work.
    * Does not skip trivia, allocate, convert or own source text.
    */
-  result<std::optional<number_token>> consume_hexadecimal(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<number_token>> consume_hexadecimal(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* HEXADECIMAL_LEXER_HPP_ */

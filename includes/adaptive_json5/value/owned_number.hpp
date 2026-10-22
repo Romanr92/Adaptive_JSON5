@@ -23,7 +23,7 @@ namespace adaptive_json5
    * A moved-from object has empty spelling and retains its kind metadata.
    * Empty spelling does not represent a numeric value.
    */
-  class owned_number
+  class [[nodiscard]] owned_number
   {
     private:
       owned_block m_storage;
@@ -75,8 +75,9 @@ namespace adaptive_json5
        * Failure does not mutate input or retain a partial allocation.
        * This limit does not replace P031 accounting/work/exponent guards.
        */
-      static result<owned_number> copy_spelling(input_view text, syntax_mode mode, const storage_callbacks& storage,
-                                                std::size_t max_bytes) noexcept;
+      [[nodiscard]] static result<owned_number> copy_spelling(input_view text, syntax_mode mode,
+                                                              const storage_callbacks& storage,
+                                                              std::size_t max_bytes) noexcept;
 
       /**
        * @brief Borrow the exact original numeric spelling.
@@ -86,7 +87,7 @@ namespace adaptive_json5
        * @note Empty after ownership has been moved away.
        * The view becomes invalid when its owning allocation is released.
        */
-      input_view spelling() const noexcept;
+      [[nodiscard]] input_view spelling() const noexcept;
 
       /**
        * @brief Return the retained numeric spelling family.
@@ -96,7 +97,7 @@ namespace adaptive_json5
        * whether a later machine-number conversion would overflow.
        * A moved-from object's kind is metadata only.
        */
-      number_kind kind() const noexcept;
+      [[nodiscard]] number_kind kind() const noexcept;
   };
 } // namespace adaptive_json5
 

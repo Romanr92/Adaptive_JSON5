@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../../../tests/support/guard_provider.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"

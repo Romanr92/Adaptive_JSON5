@@ -15,7 +15,7 @@ namespace adaptive_json5
    * These settings describe limits; construction performs no allocation.
    * Enforcement and checked arithmetic belong to the resource guards.
    */
-  struct resource_limits
+  struct [[nodiscard]] resource_limits
   {
       // Bound the complete supplied input, including whitespace and comments.
       std::size_t max_input_bytes = 16384;
