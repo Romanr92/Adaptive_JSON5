@@ -16,7 +16,7 @@ namespace adaptive_json5
    * @note Describes borrowed input without owning its bytes.
    * An empty run has zero byte length.
    */
-  struct trivia_span
+  struct [[nodiscard]] trivia_span
   {
       std::size_t byte_offset;
       std::size_t byte_length;
@@ -33,7 +33,7 @@ namespace adaptive_json5
    * Encoding failure leaves source unchanged.
    * Requires no allocation and throws no exceptions.
    */
-  status_result skip_strict_json_whitespace(cursor& source) noexcept;
+  [[nodiscard]] status_result skip_strict_json_whitespace(cursor& source) noexcept;
 
   /**
    * @brief Consume consecutive whitespace and comments admitted by the mode.
@@ -48,7 +48,7 @@ namespace adaptive_json5
    * Requires no allocation and throws no exceptions.
    * Call between tokens, never inside a token spelling.
    */
-  result<trivia_span> skip_trivia(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<trivia_span> skip_trivia(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* ADAPTIVE_JSON5_TRIVIA_HPP_ */

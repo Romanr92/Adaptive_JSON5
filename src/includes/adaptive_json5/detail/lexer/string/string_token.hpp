@@ -31,7 +31,7 @@ namespace adaptive_json5
    * Observer state must remain valid throughout the lexer call.
    * Notifications occur in source order only after complete string success.
    */
-  struct string_warning_observer
+  struct [[nodiscard]] string_warning_observer
   {
       void* context = nullptr;
       string_warning_function notify = nullptr;
@@ -49,7 +49,7 @@ namespace adaptive_json5
    * first_warning is present exactly when warning_count is nonzero.
    * Warning metadata is retained even when callbacks are disabled.
    */
-  struct string_token
+  struct [[nodiscard]] string_token
   {
       decoded_string value{};
       std::size_t byte_offset{};

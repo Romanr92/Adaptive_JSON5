@@ -34,8 +34,9 @@ namespace adaptive_json5
      * Performs no allocation and charges one work unit after validation.
      * Successful work charges are not refunded after later failure.
      */
-    result<value_index> close_container(document& destination, parser_stack& frames, const punctuation_token& closing,
-                                        syntax_mode mode, std::size_t input_size, work_budget& work) noexcept;
+    [[nodiscard]] result<value_index> close_container(document& destination, parser_stack& frames,
+                                                      const punctuation_token& closing, syntax_mode mode,
+                                                      std::size_t input_size, work_budget& work) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

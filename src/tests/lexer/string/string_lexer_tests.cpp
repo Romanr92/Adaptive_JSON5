@@ -1,7 +1,5 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/lexer/string/string_escape.hpp"
 #include "adaptive_json5/detail/lexer/string/string_lexer.hpp"
-#include "adaptive_json5/value/utf8_export.hpp"
 
 #include <array>
 #include <cstddef>

@@ -52,7 +52,7 @@ namespace adaptive_json5
    * Otherwise, allocate supplies the pointer-or-null fallback.
    * Both allocation paths use the same context and deallocate callback.
    */
-  struct storage_callbacks
+  struct [[nodiscard]] storage_callbacks
   {
       void* context = nullptr;
       allocate_function allocate = nullptr;

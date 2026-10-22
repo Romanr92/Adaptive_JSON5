@@ -40,7 +40,7 @@ namespace adaptive_json5
    * @note scalar is the original source character, not a decoded escape.
    * No input storage is owned.
    */
-  struct string_piece
+  struct [[nodiscard]] string_piece
   {
       string_piece_kind kind;
       char32_t scalar;
@@ -57,7 +57,7 @@ namespace adaptive_json5
    * @note Failure and no-match leave the cursor unchanged.
    * Does not skip trivia or validate nonquote input.
    */
-  result<std::optional<string_quote>> consume_string_opening(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<string_quote>> consume_string_opening(cursor& source, syntax_mode mode) noexcept;
 
   /**
    * @brief Consume one ordinary character, closing quote or escape introducer.
@@ -73,7 +73,8 @@ namespace adaptive_json5
    * Raw U+2028/U+2029 are characters; warning handling belongs to P020.
    * Whole-string rollback belongs to the later composing lexer.
    */
-  result<string_piece> consume_string_piece(cursor& source, string_quote quote, syntax_mode mode) noexcept;
+  [[nodiscard]] result<string_piece> consume_string_piece(cursor& source, string_quote quote,
+                                                          syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* STRING_BOUNDARY_HPP_ */

@@ -15,7 +15,7 @@ namespace adaptive_json5
    * @note Never reads past the explicit buffer length.
    * Operates without requiring or assuming a terminating NUL byte.
    */
-  class cursor
+  class [[nodiscard]] cursor
   {
     private:
       input_view m_view{};
@@ -37,7 +37,7 @@ namespace adaptive_json5
        * @par Requirements
        * P004; J5-004.
        */
-      constexpr bool is_at_end() const noexcept
+      [[nodiscard]] constexpr bool is_at_end() const noexcept
       {
         return m_offset >= m_view.size;
       }
@@ -47,7 +47,7 @@ namespace adaptive_json5
        * @par Requirements
        * P004; J5-041; J5-044.
        */
-      constexpr std::size_t offset() const noexcept
+      [[nodiscard]] constexpr std::size_t offset() const noexcept
       {
         return m_offset;
       }
@@ -57,7 +57,7 @@ namespace adaptive_json5
        * @par Requirements
        * P004; J5-004.
        */
-      constexpr std::size_t remaining() const noexcept
+      [[nodiscard]] constexpr std::size_t remaining() const noexcept
       {
         return (m_offset < m_view.size) ? (m_view.size - m_offset) : c_zero_bytes;
       }
@@ -68,7 +68,7 @@ namespace adaptive_json5
        * P004; J5-004; J5-044.
        * @return The current byte, or std::nullopt if at end of input.
        */
-      constexpr std::optional<char> peek() const noexcept
+      [[nodiscard]] constexpr std::optional<char> peek() const noexcept
       {
         if (is_at_end() || (m_view.data == nullptr))
         {
@@ -84,7 +84,7 @@ namespace adaptive_json5
        * @param delta Zero-based lookahead index from current position.
        * @return The byte at (offset + delta), or std::nullopt if past end.
        */
-      constexpr std::optional<char> peek(std::size_t delta) const noexcept
+      [[nodiscard]] constexpr std::optional<char> peek(std::size_t delta) const noexcept
       {
         if ((m_view.data == nullptr) || (delta >= remaining()))
         {
@@ -99,7 +99,7 @@ namespace adaptive_json5
        * P004; J5-004.
        * @return The consumed byte, or std::nullopt if at end of input.
        */
-      constexpr std::optional<char> next() noexcept
+      [[nodiscard]] constexpr std::optional<char> next() noexcept
       {
         if (is_at_end() || (m_view.data == nullptr))
         {
@@ -124,7 +124,7 @@ namespace adaptive_json5
        * @par Requirements
        * P004; J5-041.
        */
-      constexpr input_view span_from(std::size_t start_offset) const noexcept
+      [[nodiscard]] constexpr input_view span_from(std::size_t start_offset) const noexcept
       {
         if ((m_view.data == nullptr) || (start_offset >= m_offset))
         {

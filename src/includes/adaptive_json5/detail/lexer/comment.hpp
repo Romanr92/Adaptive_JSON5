@@ -16,7 +16,7 @@ namespace adaptive_json5
    * @note Describes input bytes without copying or owning them.
    * A line-comment span includes // but excludes its line terminator.
    */
-  struct comment_span
+  struct [[nodiscard]] comment_span
   {
       std::size_t byte_offset;
       std::size_t byte_length;
@@ -33,7 +33,7 @@ namespace adaptive_json5
    * No match or encoding failure leaves source unchanged.
    * Requires no allocation and throws no exceptions.
    */
-  result<std::optional<comment_span>> consume_line_comment(cursor& source) noexcept;
+  [[nodiscard]] result<std::optional<comment_span>> consume_line_comment(cursor& source) noexcept;
 
   /**
    * @brief Consume a block comment through its first closing delimiter.
@@ -48,7 +48,7 @@ namespace adaptive_json5
    * Requires no allocation and throws no exceptions.
    * This recognizer does not enforce strict JSON mode.
    */
-  result<std::optional<comment_span>> consume_block_comment(cursor& source) noexcept;
+  [[nodiscard]] result<std::optional<comment_span>> consume_block_comment(cursor& source) noexcept;
 
 } // namespace adaptive_json5
 

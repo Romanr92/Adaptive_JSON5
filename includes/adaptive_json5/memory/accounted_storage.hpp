@@ -21,7 +21,7 @@ namespace adaptive_json5
    * Provider callbacks must not reenter this accounting object.
    * Construction performs no allocation.
    */
-  class accounted_storage
+  class [[nodiscard]] accounted_storage
   {
     private:
       storage_callbacks m_provider;
@@ -38,7 +38,8 @@ namespace adaptive_json5
        * Preserves explicit upstream failures without fallback.
        * Failure leaves current and peak accounting unchanged.
        */
-      static result<void*> allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept;
+      [[nodiscard]] static result<void*> allocate_callback(void* context, std::size_t bytes,
+                                                           std::size_t alignment) noexcept;
 
       /**
        * @brief Release one owned allocation and remove its accounted bytes.
@@ -85,7 +86,7 @@ namespace adaptive_json5
        * Direct callback use must satisfy the storage callback contracts.
        * Deallocation requires the original description exactly once.
        */
-      storage_callbacks callbacks() noexcept;
+      [[nodiscard]] storage_callbacks callbacks() noexcept;
 
       /**
        * @brief Allocate a block through the accounted callback adapter.
@@ -97,7 +98,7 @@ namespace adaptive_json5
        * Zero bytes produce an empty block without invoking the provider.
        * Failures leave current and peak accounting unchanged.
        */
-      result<owned_block> allocate(std::size_t bytes, std::size_t alignment) noexcept;
+      [[nodiscard]] result<owned_block> allocate(std::size_t bytes, std::size_t alignment) noexcept;
 
       /**
        * @brief Allocate an element block after checked size multiplication.
@@ -106,7 +107,8 @@ namespace adaptive_json5
        * @note Overflow and byte-limit failures never call the provider.
        * Raw storage is returned; element lifetimes are managed by the caller.
        */
-      result<owned_block> allocate_array(std::size_t count, std::size_t element_size, std::size_t alignment) noexcept;
+      [[nodiscard]] result<owned_block> allocate_array(std::size_t count, std::size_t element_size,
+                                                       std::size_t alignment) noexcept;
 
       /**
        * @brief Return the configured outstanding-byte ceiling.
@@ -114,14 +116,14 @@ namespace adaptive_json5
        * P032; J5-047.
        * @note Does not change the ceiling or current accounting.
        */
-      std::size_t byte_limit() const noexcept;
+      [[nodiscard]] std::size_t byte_limit() const noexcept;
 
       /**
        * @brief Return currently outstanding requested allocation bytes.
        * @par Requirements
        * P031; J5-047.
        */
-      std::size_t current_bytes() const noexcept;
+      [[nodiscard]] std::size_t current_bytes() const noexcept;
 
       /**
        * @brief Return the highest outstanding-byte total reached.
@@ -129,7 +131,7 @@ namespace adaptive_json5
        * P031; J5-047.
        * @note Releasing blocks reduces current bytes without reducing the peak.
        */
-      std::size_t peak_bytes() const noexcept;
+      [[nodiscard]] std::size_t peak_bytes() const noexcept;
   };
 } // namespace adaptive_json5
 

@@ -19,7 +19,7 @@ namespace adaptive_json5
    * Operation-specific code must document its charging rules.
    * This object requires external synchronization if shared concurrently.
    */
-  class work_budget
+  class [[nodiscard]] work_budget
   {
     private:
       std::size_t m_limit;
@@ -43,14 +43,14 @@ namespace adaptive_json5
        * @note Exactly exhausting the remaining budget succeeds.
        * Zero units succeed even when the budget is exhausted.
        */
-      status_result charge(std::size_t units) noexcept;
+      [[nodiscard]] status_result charge(std::size_t units) noexcept;
 
       /**
        * @brief Return the cumulative successfully charged work.
        * @par Requirements
        * P031; J5-049.
        */
-      std::size_t consumed() const noexcept;
+      [[nodiscard]] std::size_t consumed() const noexcept;
 
       /**
        * @brief Return the work units still available.
@@ -58,7 +58,7 @@ namespace adaptive_json5
        * P031; J5-049.
        * @note Successful charges preserve consumed <= limit.
        */
-      std::size_t remaining() const noexcept;
+      [[nodiscard]] std::size_t remaining() const noexcept;
   };
 } // namespace adaptive_json5
 

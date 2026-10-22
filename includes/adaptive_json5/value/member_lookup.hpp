@@ -26,7 +26,7 @@ namespace adaptive_json5
    * @note Lookup supplies a value only for the unique state.
    * The returned view borrows its originating document.
    */
-  struct member_lookup
+  struct [[nodiscard]] member_lookup
   {
       member_lookup_state state = member_lookup_state::absent;
       std::optional<value_view> value{};

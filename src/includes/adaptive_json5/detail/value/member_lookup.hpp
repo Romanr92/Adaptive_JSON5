@@ -21,8 +21,8 @@ namespace adaptive_json5
      * Work is linear in visited members plus examined name units.
      * P031 adds configurable work accounting.
      */
-    result<member_lookup> lookup_member(const value_storage& storage, value_index object,
-                                        const decoded_string& name) noexcept;
+    [[nodiscard]] result<member_lookup> lookup_member(const value_storage& storage, value_index object,
+                                                      const decoded_string& name) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 #endif

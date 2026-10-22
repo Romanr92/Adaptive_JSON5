@@ -32,8 +32,8 @@ namespace adaptive_json5
      * Does not establish a root, change the cursor or reserve resources.
      * The caller handles node/member/string accounting and duplicate policy.
      */
-    status_result attach_parsed_value(document& destination, parser_frame& frame, value_index child, work_budget& work,
-                                      std::size_t input_size) noexcept;
+    [[nodiscard]] status_result attach_parsed_value(document& destination, parser_frame& frame, value_index child,
+                                                    work_budget& work, std::size_t input_size) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

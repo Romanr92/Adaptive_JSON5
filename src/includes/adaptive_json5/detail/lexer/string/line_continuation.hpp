@@ -25,7 +25,8 @@ namespace adaptive_json5
    * Failure and no-match leave source unchanged.
    * No allocation is performed.
    */
-  result<std::optional<line_terminator_span>> consume_line_continuation(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<line_terminator_span>> consume_line_continuation(cursor& source,
+                                                                                      syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* LINE_CONTINUATION_HPP_ */

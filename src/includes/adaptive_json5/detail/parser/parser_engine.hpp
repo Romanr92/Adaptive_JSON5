@@ -32,7 +32,7 @@ namespace adaptive_json5
      * run_complete() includes trailing trivia and requires complete consumption.
      * The caller's accounting object and storage provider must outlive values.
      */
-    struct parsed_value_tree
+    struct [[nodiscard]] parsed_value_tree
     {
         document values;
         std::size_t consumed_bytes{};
@@ -48,7 +48,7 @@ namespace adaptive_json5
      * Partial documents are never returned after failure.
      * No recursive descent is used.
      */
-    class parser_engine
+    class [[nodiscard]] parser_engine
     {
       private:
         input_view m_input;
@@ -79,7 +79,7 @@ namespace adaptive_json5
          * Failed container opening releases its matching reservations.
          * Successful work charges are not refunded.
          */
-        status_result read_value() noexcept;
+        [[nodiscard]] status_result read_value() noexcept;
 
         /**
          * @brief Decode and retain the innermost object's next member name.
@@ -96,7 +96,7 @@ namespace adaptive_json5
          * Duplicate failures retain both original name-token spans.
          * Preserve-all bypasses duplicate scanning.
          */
-        status_result read_name() noexcept;
+        [[nodiscard]] status_result read_name() noexcept;
 
         /**
          * @brief Consume a dispatched colon or comma and update its frame.
@@ -107,7 +107,7 @@ namespace adaptive_json5
          * Failure preserves the cursor and frame.
          * Dispatch work is charged by run().
          */
-        status_result consume_separator(parser_action action) noexcept;
+        [[nodiscard]] status_result consume_separator(parser_action action) noexcept;
 
         /**
          * @brief Close the innermost container and accept its completed value.
@@ -119,7 +119,7 @@ namespace adaptive_json5
          * are not rolled back after a later attachment failure.
          * The source cursor is committed only after all steps succeed.
          */
-        status_result finish_container() noexcept;
+        [[nodiscard]] status_result finish_container() noexcept;
 
         /**
          * @brief Attach a completed value or record the completed root.
@@ -128,7 +128,7 @@ namespace adaptive_json5
          * @note Reuse attach_parsed_value when a parent frame exists.
          * Otherwise record m_root without publishing the document yet.
          */
-        status_result accept_completed_value(value_index completed) noexcept;
+        [[nodiscard]] status_result accept_completed_value(value_index completed) noexcept;
 
       public:
         /**
@@ -148,7 +148,7 @@ namespace adaptive_json5
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
          */
-        result<parsed_value_tree> run() noexcept;
+        [[nodiscard]] result<parsed_value_tree> run() noexcept;
 
         /**
          * @brief Construct one root and require complete input consumption.
@@ -159,7 +159,7 @@ namespace adaptive_json5
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
          */
-        result<parsed_value_tree> run_complete() noexcept;
+        [[nodiscard]] result<parsed_value_tree> run_complete() noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5

@@ -30,7 +30,7 @@ namespace adaptive_json5
    * Use in value context; member names use identifier recognition instead.
    * Other suffix/context validation remains P028 work.
    */
-  result<std::optional<number_token>> consume_non_finite(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<number_token>> consume_non_finite(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* NON_FINITE_LEXER_HPP_ */

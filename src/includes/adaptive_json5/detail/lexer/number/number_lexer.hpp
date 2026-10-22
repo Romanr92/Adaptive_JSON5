@@ -27,7 +27,7 @@ namespace adaptive_json5
      * This helper does not establish a complete token boundary.
      * Exponent limits apply only to decimal spellings.
      */
-    result<std::optional<number_token>>
+    [[nodiscard]] result<std::optional<number_token>>
     consume_number_spelling(cursor& source, syntax_mode mode,
                             std::size_t max_exponent_digits = std::numeric_limits<std::size_t>::max()) noexcept;
   } // namespace detail
@@ -50,7 +50,7 @@ namespace adaptive_json5
    * Excess exponent digits preserve the decimal recognizer's resource error.
    * The default permits any exponent digit count representable by size_t.
    */
-  result<std::optional<number_token>>
+  [[nodiscard]] result<std::optional<number_token>>
   consume_number(cursor& source, syntax_mode mode,
                  std::size_t max_exponent_digits = std::numeric_limits<std::size_t>::max()) noexcept;
 } // namespace adaptive_json5

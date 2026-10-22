@@ -22,7 +22,7 @@ namespace adaptive_json5
    * The originating accounting object and its provider must outlive values.
    * Counts all warnings while retaining only the first descriptor.
    */
-  struct parsed_document
+  struct [[nodiscard]] parsed_document
   {
       document values;
       std::size_t warning_count{};
@@ -46,8 +46,8 @@ namespace adaptive_json5
    * Each call uses fresh parsing state; accounting remains reusable.
    * No warning callbacks are invoked.
    */
-  result<parsed_document> parse_document(input_view input, const parse_options& options,
-                                         accounted_storage& accounting) noexcept;
+  [[nodiscard]] result<parsed_document> parse_document(input_view input, const parse_options& options,
+                                                       accounted_storage& accounting) noexcept;
 } // namespace adaptive_json5
 
 #endif /* PARSER_HPP_ */

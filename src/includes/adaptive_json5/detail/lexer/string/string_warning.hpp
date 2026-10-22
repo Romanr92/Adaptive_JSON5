@@ -21,7 +21,8 @@ namespace adaptive_json5
    * Strict JSON receives no JSON5 separator advisory.
    * No allocation or callback is performed.
    */
-  std::optional<string_warning> raw_separator_warning_for(const string_piece& piece, syntax_mode mode) noexcept;
+  [[nodiscard]] std::optional<string_warning> raw_separator_warning_for(const string_piece& piece,
+                                                                        syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* STRING_WARNING_HPP_ */

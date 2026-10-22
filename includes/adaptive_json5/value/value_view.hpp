@@ -28,7 +28,7 @@ namespace adaptive_json5
    * A default-constructed view is invalid, not a null value.
    * Operations allocate nothing and never coerce between value types.
    */
-  class value_view
+  class [[nodiscard]] value_view
   {
     private:
       const detail::value_storage* m_storage = nullptr;
@@ -40,7 +40,7 @@ namespace adaptive_json5
        * P030; J5-039.
        * @note Reacquires the record instead of retaining a growth-sensitive pointer.
        */
-      result<const detail::value_record*> record() const noexcept;
+      [[nodiscard]] result<const detail::value_record*> record() const noexcept;
 
       /**
        * @brief Inspect the payload only when its stored type matches T.
@@ -49,7 +49,7 @@ namespace adaptive_json5
        * @note Returns a borrowed pointer without numeric or Boolean coercion.
        */
       template <typename T>
-      result<const T*> payload_as() const noexcept;
+      [[nodiscard]] result<const T*> payload_as() const noexcept;
 
       /**
        * @brief Resolve a direct child by its zero-based source-order position.
@@ -61,7 +61,7 @@ namespace adaptive_json5
        * Traversal is iterative and visits at most position plus one records.
        * P031 adds configurable work accounting.
        */
-      result<value_view> child_at(std::size_t position, bool object) const noexcept;
+      [[nodiscard]] result<value_view> child_at(std::size_t position, bool object) const noexcept;
 
     public:
       /**
@@ -85,13 +85,13 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-028; J5-039.
        */
-      result<value_kind> kind() const noexcept;
+      [[nodiscard]] result<value_kind> kind() const noexcept;
       /**
        * @brief Read a Boolean value without accepting numeric substitutes.
        * @par Requirements
        * P030; J5-028; J5-039.
        */
-      result<bool> as_boolean() const noexcept;
+      [[nodiscard]] result<bool> as_boolean() const noexcept;
 
       /**
        * @brief Borrow decoded string content after checking the value type.
@@ -99,7 +99,7 @@ namespace adaptive_json5
        * P030; J5-028; J5-039; J5-040.
        * @note The returned pointer is invalidated by storage growth or destruction.
        */
-      result<const decoded_string*> as_string() const noexcept;
+      [[nodiscard]] result<const decoded_string*> as_string() const noexcept;
 
       /**
        * @brief Borrow an owned number after checking the value type.
@@ -108,7 +108,7 @@ namespace adaptive_json5
        * @note Performs no numeric conversion.
        * The returned pointer is invalidated by storage growth or destruction.
        */
-      result<const owned_number*> as_number() const noexcept;
+      [[nodiscard]] result<const owned_number*> as_number() const noexcept;
 
       /**
        * @brief Copy this value's optional original source range.
@@ -119,7 +119,7 @@ namespace adaptive_json5
        * Returned metadata owns no input text and extends no input lifetime.
        * The copied span remains valid independently of record storage.
        */
-      result<std::optional<adaptive_json5::source_span>> source_span() const noexcept;
+      [[nodiscard]] result<std::optional<adaptive_json5::source_span>> source_span() const noexcept;
 
       /**
        * @brief Return the direct element or member count.
@@ -127,7 +127,7 @@ namespace adaptive_json5
        * P030; J5-030; J5-031; J5-039.
        * @note Rejects scalar values rather than treating them as empty containers.
        */
-      result<std::size_t> container_size() const noexcept;
+      [[nodiscard]] result<std::size_t> container_size() const noexcept;
 
       /**
        * @brief Borrow an array element by zero-based source-order position.
@@ -136,7 +136,7 @@ namespace adaptive_json5
        * @note Rejects nonarrays and out-of-range positions.
        * Linear traversal; repeated indexed enumeration has quadratic total cost.
        */
-      result<value_view> element_at(std::size_t position) const noexcept;
+      [[nodiscard]] result<value_view> element_at(std::size_t position) const noexcept;
 
       /**
        * @brief Borrow an object member's value by zero-based source-order position.
@@ -146,7 +146,7 @@ namespace adaptive_json5
        * Rejects nonobjects and out-of-range positions.
        * Linear traversal; repeated indexed enumeration has quadratic total cost.
        */
-      result<value_view> member_at(std::size_t position) const noexcept;
+      [[nodiscard]] result<value_view> member_at(std::size_t position) const noexcept;
 
       /**
        * @brief Borrow the decoded name attached to an object-member value.
@@ -155,7 +155,7 @@ namespace adaptive_json5
        * @note An empty member name succeeds; an absent name is an access error.
        * The returned pointer is invalidated by storage growth or destruction.
        */
-      result<const decoded_string*> member_name() const noexcept;
+      [[nodiscard]] result<const decoded_string*> member_name() const noexcept;
 
       /**
        * @brief Copy an object member name's optional original source range.
@@ -167,7 +167,7 @@ namespace adaptive_json5
        * Quoted-name spans include their quotation marks.
        * Returned metadata contains no source pointer and performs no allocation.
        */
-      result<std::optional<adaptive_json5::source_span>> member_name_source_span() const noexcept;
+      [[nodiscard]] result<std::optional<adaptive_json5::source_span>> member_name_source_span() const noexcept;
   };
 } // namespace adaptive_json5
 

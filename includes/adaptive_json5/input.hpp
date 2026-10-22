@@ -15,7 +15,7 @@ namespace adaptive_json5
    * unchanged while an operation reads them.
    * A nonzero size requires data to address at least size readable bytes.
    */
-  struct input_view
+  struct [[nodiscard]] input_view
   {
       const char* data = nullptr;
       std::size_t size = 0;
@@ -31,7 +31,7 @@ namespace adaptive_json5
    * Construction does not validate the range against an input.
    * Consumers must validate bounds before accessing source bytes.
    */
-  struct source_span
+  struct [[nodiscard]] source_span
   {
       std::size_t byte_offset{};
       std::size_t byte_length{};

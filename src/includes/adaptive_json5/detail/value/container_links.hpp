@@ -19,7 +19,7 @@ namespace adaptive_json5
    * count includes direct children only, not nested descendants.
    * The document builder must enforce bounds, membership and acyclic links.
    */
-  struct container_links
+  struct [[nodiscard]] container_links
   {
       value_index first{};
       value_index last{};
@@ -33,7 +33,7 @@ namespace adaptive_json5
    * @note Repeated values remain separate element records.
    * Child ownership belongs to the document.
    */
-  struct array_data
+  struct [[nodiscard]] array_data
   {
       container_links elements{};
   };
@@ -47,7 +47,7 @@ namespace adaptive_json5
    * These links do not perform lookup or apply duplicate-name policy.
    * Child ownership belongs to the document.
    */
-  struct object_data
+  struct [[nodiscard]] object_data
   {
       container_links members{};
   };

@@ -1,5 +1,12 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../support/string_provider.hpp"
+#include "adaptive_json5/memory/owned_block.hpp"
+#include "adaptive_json5/value/utf8_export.hpp"
+#include <array>
+#include <cstddef>
+#include <gtest/gtest.h>
+#include <limits>
+#include <string>
+#include <utility>
 namespace
 {
   using namespace adaptive_json5;

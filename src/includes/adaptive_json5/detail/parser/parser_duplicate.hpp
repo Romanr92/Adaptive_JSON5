@@ -30,8 +30,9 @@ namespace adaptive_json5
      * Successfully charged work is not refunded on later failure.
      * The caller decides whether the selected policy requires this check.
      */
-    status_result reject_duplicate_name(const document& values, value_index object, const decoded_string& name,
-                                        source_span repeated_span, work_budget& work) noexcept;
+    [[nodiscard]] status_result reject_duplicate_name(const document& values, value_index object,
+                                                      const decoded_string& name, source_span repeated_span,
+                                                      work_budget& work) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

@@ -1,5 +1,6 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../support/document_provider.hpp"
+#include "adaptive_json5/value/document.hpp"
+#include <utility>
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
 

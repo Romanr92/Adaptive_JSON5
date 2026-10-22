@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 // P005 contract-first units; utf8.hpp is supplied by the human developer.
 #include "adaptive_json5/detail/input/cursor.hpp"
 #include "adaptive_json5/detail/unicode/utf8.hpp"

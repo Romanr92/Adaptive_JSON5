@@ -16,7 +16,7 @@ namespace adaptive_json5
    * Document access must validate bounds before reading storage.
    * No allocation or pointer arithmetic is performed.
    */
-  class value_index
+  class [[nodiscard]] value_index
   {
     public:
       static constexpr std::size_t c_unset_position = std::numeric_limits<std::size_t>::max();
@@ -47,7 +47,7 @@ namespace adaptive_json5
        * P030; J5-039.
        * @note A set index can still be outside a particular document's bounds.
        */
-      constexpr bool is_set() const noexcept
+      [[nodiscard]] constexpr bool is_set() const noexcept
       {
         return m_position != c_unset_position;
       }
@@ -58,7 +58,7 @@ namespace adaptive_json5
        * P030; J5-039.
        * @note Callers must validate the index before indexing document storage.
        */
-      constexpr std::size_t position() const noexcept
+      [[nodiscard]] constexpr std::size_t position() const noexcept
       {
         return m_position;
       }

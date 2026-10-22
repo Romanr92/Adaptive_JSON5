@@ -21,7 +21,7 @@ namespace adaptive_json5
    * Structural punctuation still requires grammatical context validation.
    * Intended for numbers, primitive literals and unquoted member names.
    */
-  status_result check_unquoted_token_boundary(cursor source, syntax_mode mode) noexcept;
+  [[nodiscard]] status_result check_unquoted_token_boundary(cursor source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* TOKEN_BOUNDARY_HPP_ */

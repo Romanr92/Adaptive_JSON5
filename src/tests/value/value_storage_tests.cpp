@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../../../tests/support/document_provider.hpp"
 #include "adaptive_json5/detail/value/value_record.hpp"
 #include "adaptive_json5/value/document.hpp"

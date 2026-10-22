@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/value/member_lookup.hpp"
 
 #include "adaptive_json5/detail/value/container_links.hpp"

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/lexer/comment.hpp"
 #include "adaptive_json5/detail/lexer/punctuation.hpp"
 #include "adaptive_json5/detail/lexer/trivia.hpp"

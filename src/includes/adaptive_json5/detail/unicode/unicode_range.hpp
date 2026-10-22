@@ -9,7 +9,7 @@ namespace adaptive_json5
    * P006; J5-006.
    * @note Table entries must be sorted and nonoverlapping.
    */
-  struct unicode_range
+  struct [[nodiscard]] unicode_range
   {
       char32_t first;
       char32_t last;

@@ -24,7 +24,7 @@ namespace adaptive_json5
    * No terminating NUL is stored or required.
    * The storage provider state must outlive this object.
    */
-  class decoded_string
+  class [[nodiscard]] decoded_string
   {
     private:
       // Only the builder may adopt completed storage without copying.
@@ -77,15 +77,15 @@ namespace adaptive_json5
        * @note Empty input succeeds without requiring a storage provider.
        * Nonempty input must remain readable for this call only.
        */
-      static result<decoded_string> copy_units(const storage_callbacks& storage, const char16_t* units,
-                                               std::size_t count) noexcept;
+      [[nodiscard]] static result<decoded_string> copy_units(const storage_callbacks& storage, const char16_t* units,
+                                                             std::size_t count) noexcept;
 
       /**
        * @brief Return the number of stored UTF-16 units.
        * @par Requirements
        * P013; J5-029.
        */
-      std::size_t size() const noexcept;
+      [[nodiscard]] std::size_t size() const noexcept;
 
       /**
        * @brief Read one decoded unit without changing the string.
@@ -94,7 +94,7 @@ namespace adaptive_json5
        * @return Exact unit, or wrong_type_or_access for an invalid index.
        * @note Surrogate units are returned unchanged.
        */
-      result<char16_t> unit_at(std::size_t index) const noexcept;
+      [[nodiscard]] result<char16_t> unit_at(std::size_t index) const noexcept;
   };
 } // namespace adaptive_json5
 

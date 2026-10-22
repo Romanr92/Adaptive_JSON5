@@ -46,7 +46,8 @@ namespace adaptive_json5
      * @note Performs no allocation, normalization or case folding.
      * Checked-access failures are propagated explicitly.
      */
-    result<bool> identifier_spelling_matches(const decoded_string& value, std::u16string_view spelling) noexcept;
+    [[nodiscard]] result<bool> identifier_spelling_matches(const decoded_string& value,
+                                                           std::u16string_view spelling) noexcept;
   } // namespace detail
 
   /**
@@ -63,8 +64,8 @@ namespace adaptive_json5
    * Input, token ownership and cursor position are unchanged.
    * Performs no allocation.
    */
-  result<identifier_classification> classify_identifier(const identifier_token& token, identifier_context context,
-                                                        syntax_mode mode) noexcept;
+  [[nodiscard]] result<identifier_classification>
+  classify_identifier(const identifier_token& token, identifier_context context, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* IDENTIFIER_CLASSIFICATION_HPP_ */
