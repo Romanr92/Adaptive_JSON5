@@ -2,7 +2,7 @@
 
 Implemented on 2026-10-19. This guide describes the current structure;
 [ADR 0002](adr/0002-public-private-source-layout.md) records the decision and
-[verification notes](verification.md) record the executed results.
+[traceability](traceability.md) lists the unit tests.
 
 ## Directory map
 

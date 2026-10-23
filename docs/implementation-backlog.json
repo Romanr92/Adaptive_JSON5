@@ -1815,7 +1815,7 @@
     "P056–P059 minimal complete testing CLI",
     "Full advanced memory accounting and runtime completion (#69)"
   ],
-  "consolidation_plan": "docs/issue-consolidation-plan.md",
+  "consolidation_plan": "docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking",
   "consolidated_issues": [
     {
       "issue_number": 5,

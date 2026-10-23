@@ -68,7 +68,7 @@ For explanations, design guidance or review of a requirement, use
 workflows, rewritten for this repository; its release-wide approval, `ara::*`
 APIs, deployment and platform policies do not apply here.
 
-Use the adapted requirements and roadmap. Automated quality checks are unit
+Use the adapted requirements and implementation sequence. Automated quality checks are unit
 tests and formatting only. Keep generic/embedded parser dependencies separate
 from optional schema, CLI, editor and consumer examples. Preserve Apache-2.0 and
 record incorporated material's provenance. Do not mark planned functionality
@@ -97,7 +97,7 @@ P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent
 
 ## Current delivery and issue workflow
 
-Follow [the consolidation plan](docs/issue-consolidation-plan.md): retain full
+Follow [the delivery scope and issue tracking](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking): retain full
 schema P043–P055, minimal complete testing CLI P056–P059 and full advanced memory
 accounting. Independently optional build flags do not remove those features from
 this selected delivery scope. Editor/consumer acceptance remains in the backlog.

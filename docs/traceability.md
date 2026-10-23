@@ -1,6 +1,6 @@
 # Requirement traceability
 
-Current ownership follows [the consolidation plan](issue-consolidation-plan.md).
+Current ownership follows [the issue tracking section](requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking).
 The owner is the final completion anchor for a shared contract; stage-specific
 implementation/tests remain in the P groups listed there. All existing named
 tests and Draft status are retained. No per-issue report is required; named units
@@ -19,7 +19,7 @@ requirement coverage are distinct.
 
 Keep exact `SuiteName.TestName` declarations in the Unit Tests inventory, separated
 by `; ` when several units cover one requirement. Do not add generated parameter
-case suffixes. Record actual execution in [verification notes](verification.md).
+case suffixes. Record actual execution results in the corresponding step of the [implementation sequence](requirements/json5-implementation-order.md).
 
 | ID | Contract | Status | Owning issue | Unit Tests |
 | --- | --- | --- | --- | --- |

@@ -1,8 +1,8 @@
 # ADR 0002: Public headers, private headers and compiled implementation
 
 Status: Accepted by the user, 2026-10-19. Physical migration implemented under
-the user's explicit authorization to refactor production files; execution
-evidence is recorded in [verification notes](../verification.md).
+the user's explicit authorization to refactor production files; unit
+evidence is recorded in [traceability](../traceability.md).
 The [source layout guide](../source-layout.md) describes the implemented tree
 and day-to-day build/test conventions, including the final `src/src/` location.
 

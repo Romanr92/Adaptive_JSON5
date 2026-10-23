@@ -1467,5 +1467,5 @@
     "RELEASE": 72
   },
   "quality_scope": "One GoogleTest job and one formatting job on pull requests; exceptions OFF and RTTI OFF.",
-  "issue_consolidation_plan": "../issue-consolidation-plan.md"
+  "issue_consolidation_plan": "json5-implementation-order.md#delivery-scope-and-issue-tracking"
 }
