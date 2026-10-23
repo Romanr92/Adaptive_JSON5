@@ -13,12 +13,12 @@ validation, a CLI and VS Code support are independently optional components.
 **Status: the compiled C++17 core includes owned values, lexical components,
 resource guards, the internal P033 container engine and the public P037
 complete-document `parse_document()` entry.**
-GoogleTest inventories and historical executed results are recorded in
-[verification notes](docs/verification.md). Parser/schema/CLI conformance remains
+GoogleTest inventories are in [traceability](docs/traceability.md); executed
+results are recorded per step in the [implementation sequence](docs/requirements/json5-implementation-order.md). Conformance remains
 pending. Production C++ and public headers are reserved for Romanr92; AI creates
 unit tests. See [AGENTS.md](AGENTS.md).
 
-The [consolidation plan](docs/issue-consolidation-plan.md) retains full schema
+The [delivery scope](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
 P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.
 Existing anchors group consecutive steps with at most three issues per subsystem.
 Schema/CLI remain optional for consumers, while required in this delivery scope.
@@ -120,7 +120,7 @@ The command-line executable will be implemented later; no production C++ is adde
 
 - [Original proposal Markdown](docs/requirements/proposals/json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
 - [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.
-- [Roadmap](docs/roadmap.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
+- [Implementation sequence and issue tracking](docs/requirements/json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
 - [Architecture](docs/architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
 - [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
 - [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).

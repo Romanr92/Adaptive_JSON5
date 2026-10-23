@@ -147,7 +147,7 @@ GitHub Actions runs one host GoogleTest job on Ubuntu with exceptions OFF and
 RTTI OFF, plus one formatting job, only for pull requests. Updating a pull request
 cancels its older in-progress runs.
 Both unit-tests and formatting are required by the prepared
-[main branch ruleset](branch-protection.md) once activated in repository settings.
+main branch ruleset (`.github/rulesets/main.json`) once imported and activated in repository settings.
 No integration, fuzz, sanitizer, benchmark, coverage or static-analysis gate is added.
 
 ## Component switches and bottom toolbar
