@@ -78,6 +78,7 @@ __pycache__/
 node_modules/
 .vscode/*.local.json
 third_party/
+__cmake_systeminformation/
 
 # CMake-acquired host-only GoogleTest sources
 /tools/gtest/
