@@ -6,6 +6,12 @@ adaptive_json5_add_unit(adaptive_json5_document_unit_tests document_units
 adaptive_json5_add_unit(adaptive_json5_owned_number_unit_tests owned_number_units
     value/owned_number_tests.cpp)
 
+adaptive_json5_add_unit(adaptive_json5_numeric_conversion_unit_tests numeric_units
+    value/integer_conversion_tests.cpp
+    value/floating_conversion_tests.cpp
+    value/number_comparison_tests.cpp
+    value/numeric_locale_tests.cpp)
+
 adaptive_json5_add_unit(adaptive_json5_unit_tests build_configuration_units
     library/build_configuration_tests.cpp)
 target_compile_definitions(adaptive_json5_unit_tests PRIVATE
@@ -48,8 +54,14 @@ set(adaptive_json5_public_headers
     value/decoded_name_equal.hpp
     value/decoded_string.hpp
     value/document.hpp
+    value/floating_conversion.hpp
+    value/floating_conversion_policy.hpp
+    value/integer_conversion.hpp
     value/member_lookup.hpp
+    value/number_comparison.hpp
     value/number_kind.hpp
+    value/numeric_conversion.hpp
+    value/numeric_conversion_reason.hpp
     value/owned_number.hpp
     value/string_warning.hpp
     value/utf8_export.hpp

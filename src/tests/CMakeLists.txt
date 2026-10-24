@@ -110,3 +110,8 @@ adaptive_json5_add_unit(adaptive_json5_value_storage_unit_tests document_units
     value/relationship_validation_tests.cpp
     value/attachment_validation_tests.cpp)
 target_include_directories(adaptive_json5_value_storage_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
+
+adaptive_json5_add_unit(adaptive_json5_numeric_internal_unit_tests numeric_units
+    value/big_unsigned_tests.cpp
+    value/number_analysis_tests.cpp)
+target_include_directories(adaptive_json5_numeric_internal_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")

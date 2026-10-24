@@ -972,7 +972,7 @@ sequenceDiagram
 | Container open failure | Provisional frame rollback is in the helper; matching resource reservation rollback belongs to its caller. Existing frame pointers may already have been invalidated by growth. |
 | Allocation failure | Report provider exhaustion separately from a configured byte ceiling. Minimal error reporting needs no new allocation. |
 | Cleanup | Frame and record destruction is iterative; release needs no fresh allocation or extra work-budget admission. |
-| Name spans | Frame/token offsets exist and records have an optional name-span field. Full population/exposure through parsing remains to be connected; attachment alone does not establish it. |
+| Name spans | Parsing records each member-name token span during attachment and exposes it through `value_view::member_name_source_span()`. Quoted-name spans include their quotation marks. Exact-span evidence for comments, escapes, CRLF and multibyte text is P039 work. |
 | Duplicate handling | Model/lookup preserve and expose duplicates by default; `parse_options` selects P036 rejection. Requirement rows remain Draft. |
 | Complete input | `parse_document()` requires one root, permitted trivia and EOF. Internal engine prefix success alone is not complete-input validation. |
 | Work accounting | Existing charges are component-specific. Whole-tree parsing and later traversal/conversion integration must be reviewed separately; finite record bounds alone do not prove all J5-048/J5-049 obligations. |
@@ -992,7 +992,37 @@ from minimal allocation-free error reporting.
 | `resource_limit` | Logical, work or owned-byte ceiling exhaustion |
 | `allocation_failure` | Caller provider cannot fulfill a request |
 | `duplicate_policy` | Parser rejection under `duplicate_name_policy::reject_duplicates` |
-| `numeric_conversion` | Category exists; P038 checked conversion remains pending |
+| `numeric_conversion` | P038 integer and floating conversion report `non_integral`, `out_of_range`, `non_finite`, `underflow` or `unsupported_destination`; exact comparison reports only resource, allocation and access errors |
+
+### P038 numeric policies
+
+Integer conversion, floating conversion and exact comparison are implemented,
+with units listed in the [traceability inventory](traceability.md). Numeric
+results do not depend on the process locale. Requirement rows remain Draft.
+
+| Topic | Decision |
+| --- | --- |
+| Integer conversion | Exact or explicit failure; never rounds, truncates, wraps, clamps or coerces booleans/strings. `-0` converts to `0`. |
+| Floating conversion | Rounds once, directly to the destination (`float` is not rounded through `double`), to nearest with ties to even. Negative zero keeps its sign. Finite overflow is `out_of_range` regardless of the non-finite policy. Defaults reject explicit infinity/NaN and nonzero-to-zero underflow; representable subnormals are accepted. |
+| Floating work | The default `max_work_units` (32768) is not enough for some extreme values, e.g. the smallest double subnormal, which then return `resource_limit`. Callers converting such values must raise the ceiling. |
+| Comparison API | `compare_numbers(left, right, scratch, options)` in `value/number_comparison.hpp`, returning `number_order { less, equal, greater, unordered }`. `number_comparison_options` carries work and scratch ceilings, like floating conversion. |
+| Comparison semantics | Exact mathematical value, independent of spelling and radix: `1`, `1.0`, `1e0`, `+1` and `0x1` are equal. `-0` equals `0`. Infinities order beyond every finite value; equal infinities are equal. NaN on either side, including NaN versus NaN, returns successful `unordered` rather than an error. Never converts through floating point. |
+| Comparison algorithm | Compare signs, then infinities, then the decimal exponent of each value's leading nonzero digit; only equal leading exponents need big-integer scaling, bounded by the digit counts. Hexadecimal values count their decimal digits exactly. Only finite nonzero operands allocate scratch. |
+| Comparison limit | Exponent magnitudes above `PTRDIFF_MAX / 4` (2^61 - 1 on 64-bit targets) return `resource_limit`, because exact comparison beyond that would need big-integer exponent arithmetic. This is a known project limit to be listed in the P041 full-support review. |
+
+### P039 diagnostic and source decisions
+
+Decisions recorded before implementation; they are proposals until code and
+units exist. Requirement rows remain Draft.
+
+| Topic | Decision |
+| --- | --- |
+| Line/column | A separate public operation converts an original byte offset into a position using the original input. `error`, warnings and spans keep byte offsets only, so reporting stays allocation-free. Offsets past the input size are rejected. |
+| Position convention | Lines and columns are 1-based; byte offsets stay 0-based. LF, CR, CRLF (one break), U+2028 and U+2029 each end a line, matching JSON5 LineTerminator. Columns count Unicode code points; each invalid or isolated UTF-8 byte counts as one column. |
+| Error range | `error` gains an optional source range, set only where the parser already knows the offending token's extent; otherwise only the start offset is reported. |
+| End-of-input and allocation locations | The rule for where unterminated tokens and allocation failures are located is documented and applied consistently; current behavior differs between unterminated strings (end of input) and comments (comment start), and between storage and growth allocation failures. |
+| Retained source text (J5-041) | Implemented in P039. Retaining a copy of the input is opt-in through parse options and off by default. The copy is owned by the parsed document, allocated through the caller's accounting and charged against `max_owned_bytes`, so its cost is explicit and configurable. |
+| Warnings | All warnings are retained, not only the first, in an owned list in the parsed document. Each retained warning still reserves one `max_diagnostics` entry, and exceeding that limit fails the parse with `resource_limit`, as already happens for the first warning. |
 
 ## 10. Runtime and concurrency boundaries
 

@@ -132,6 +132,8 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS)
         src/src/value/numeric_conversion.cpp
         src/src/value/big_unsigned.cpp
         src/src/value/floating_conversion.cpp
+        src/src/value/number_comparison.cpp
+        src/src/input/text_position.cpp
     )
     add_library(AdaptiveJSON5::parser ALIAS adaptive_json5_parser)
     set_target_properties(adaptive_json5_parser PROPERTIES EXPORT_NAME parser)

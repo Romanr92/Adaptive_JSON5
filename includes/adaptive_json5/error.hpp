@@ -59,7 +59,7 @@ namespace adaptive_json5
       // Keep both locations available even when diagnostic allocation is impossible.
       std::optional<duplicate_names_locations> duplicate_names{};
 
-      // Preserve te braod cattegory while exposing the conversion failure.
+      // Preserve the broad category while exposing the conversion failure.
       std::optional<numeric_conversion_reason> numeric_reason{};
 
       /**
