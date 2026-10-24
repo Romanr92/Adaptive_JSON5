@@ -84,6 +84,49 @@ namespace adaptive_json5::detail
   }
 
   /**
+   * @brief Count bits below the highest set bit of the top limb.
+   * @par Requirements
+   * P038; J5-003; J5-037.
+   * @return Exact significant bit count or an explicit size failure.
+   * @note Limb storage bounds bytes, not bits, so the count uses checked arithmetic.
+   */
+  result<std::size_t> big_unsigned::bit_length() const noexcept
+  {
+    using length_result = result<std::size_t>;
+
+    if (m_size == 0)
+    {
+      return length_result::success(0);
+    }
+
+    limb_type top = read_limb(m_storage, m_size - c_additional_limb);
+    std::size_t top_bits{};
+
+    // Canonical values have a nonzero top limb, so this loop runs at least once.
+    while (top != 0)
+    {
+      ++top_bits;
+      top = static_cast<limb_type>(top >> 1U);
+    }
+
+    const auto lower_bits = checked_multiply(m_size - c_additional_limb, std::size_t{c_limb_bits});
+
+    if (!lower_bits.has_value())
+    {
+      return length_result::failure(*lower_bits.error_if());
+    }
+
+    const auto total_bits = checked_add(*lower_bits.value_if(), top_bits);
+
+    if (!total_bits.has_value())
+    {
+      return length_result::failure(*total_bits.error_if());
+    }
+
+    return length_result::success(*total_bits.value_if());
+  }
+
+  /**
    * @brief Append a numeric digit using bounded exact limb arithmetic.
    * @par Requirements
    * P038; J5-003; J5-037; J5-046; J5-048.

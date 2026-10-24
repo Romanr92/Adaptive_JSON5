@@ -77,6 +77,15 @@ namespace adaptive_json5::detail
       [[nodiscard]] bool is_zero() const noexcept;
 
       /**
+       * @brief Report the number of significant binary digits.
+       * @par Requirements
+       * P038; J5-003; J5-037.
+       * @return Zero for zero; otherwise the position of the highest set bit plus one or explicit error.
+       * @note Inspects only the most significant limb; performs no allocation or work charge.
+       */
+      [[nodiscard]] result<std::size_t> bit_length() const noexcept;
+
+      /**
        * @brief Multiply by a spelling radix and add one numeric digit.
        * @par Requirements
        * P038; J5-003; J5-037; J5-046; J5-048.
