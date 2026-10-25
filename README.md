@@ -3,7 +3,7 @@
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
 [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
 
-A planned portable C++17 JSON5 reader for compatible C++ projects, including
+A portable C++17 JSON5 reader for compatible C++ projects, including
 hosted systems and embedded devices after compilation into a compatible project.
 The core is OS-agnostic; MICROSAR is one possible environment, not a required vendor port.
 The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
@@ -13,9 +13,10 @@ validation, a CLI and VS Code support are independently optional components.
 **Status: the compiled C++17 core parses complete JSON5 1.0.0 and strict JSON
 documents through `parse_document()`, with exact numeric conversion and
 comparison, warnings, line/column lookup and optional source retention
-(P001–P040).** The full-support claim (P041) is in draft: see the
-[JSON5 1.0.0 support statement](docs/conformance.md) for versions, limits,
-implementation-defined behaviour, deviations and executed results. Requirement
+(P001–P040).** The P041 technical review is recorded; final claim status and
+required PR evidence are in the
+[JSON5 1.0.0 support statement](docs/conformance.md), together with versions,
+limits, implementation-defined behaviour, deviations and executed results. Requirement
 rows remain Draft.
 GoogleTest inventories are in [traceability](docs/traceability.md), and the
 per-production view is the [grammar evidence matrix](docs/grammar-evidence.md).
@@ -30,8 +31,8 @@ No per-issue documentation report is required; essential public API, limits,
 ownership, provenance and usage contracts remain. Ten working days is a checkpoint,
 not a credible full-completion promise; the plan states estimate assumptions.
 
-Native Windows, Linux and macOS development requires no WSL. The planned parser
-will require neither AdaptivePi, an operating-system service, Node.js, VS Code nor
+Native development requires no WSL. The parser
+requires neither AdaptivePi, an operating-system service, Node.js, VS Code nor
 network access. [Embedded requirements](docs/embedded.md) define the bare-metal
 boundary. AdaptivePi is inspiration and an optional consumer example.
 

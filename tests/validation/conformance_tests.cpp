@@ -3,6 +3,7 @@
 #include "adaptive_json5/parser.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
@@ -12,6 +13,7 @@
 #include <iterator>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace
@@ -70,6 +72,78 @@ namespace
     reject,
     either // Implementation-defined: only clean completion is checked.
   };
+
+  /**
+   * @brief Pin project choices for every implementation-defined fixture without changing upstream labels.
+   * @par Requirements
+   * P041; J5-018; J5-025; J5-027; J5-095.
+   */
+  struct project_decision
+  {
+      const char* file;                   // Input pinned fixture basename.
+      bool strict;                        // Expected strict acceptance.
+      bool json5;                         // Expected JSON5 acceptance.
+      error_code code{};                  // Expected category on rejection.
+      std::size_t offset{};               // Expected rejection offset in bytes.
+      std::size_t warnings{};             // Expected unpaired-surrogate warning count.
+      std::array<std::size_t, 2> spans{}; // Expected warning offsets in bytes; lengths are six.
+  };
+  constexpr project_decision c_project_decisions[] = {
+    {"i_number_double_huge_neg_exp.json", true, true},
+    {"i_number_huge_exp.json", true, true},
+    {"i_number_neg_int_huge_exp.json", true, true},
+    {"i_number_pos_double_huge_exp.json", true, true},
+    {"i_number_real_neg_overflow.json", true, true},
+    {"i_number_real_pos_overflow.json", true, true},
+    {"i_number_real_underflow.json", true, true},
+    {"i_number_too_big_neg_int.json", true, true},
+    {"i_number_too_big_pos_int.json", true, true},
+    {"i_number_very_big_negative_int.json", true, true},
+    {"i_object_key_lone_2nd_surrogate.json", true, true, {}, 0, 1, {2}},
+    {"i_string_1st_surrogate_but_2nd_missing.json", true, true, {}, 0, 1, {2}},
+    {"i_string_1st_valid_surrogate_2nd_invalid.json", true, true, {}, 0, 1, {2}},
+    {"i_string_incomplete_surrogates_escape_valid.json", true, true, {}, 0, 2, {2, 8}},
+    {"i_string_incomplete_surrogate_and_escape_valid.json", true, true, {}, 0, 1, {2}},
+    {"i_string_incomplete_surrogate_pair.json", true, true, {}, 0, 1, {2}},
+    {"i_string_invalid_lonely_surrogate.json", true, true, {}, 0, 1, {2}},
+    {"i_string_invalid_surrogate.json", true, true, {}, 0, 1, {2}},
+    {"i_string_inverted_surrogates_U+1D11E.json", true, true, {}, 0, 2, {2, 8}},
+    {"i_string_lone_second_surrogate.json", true, true, {}, 0, 1, {2}},
+    {"i_string_invalid_utf-8.json", false, false, error_code::encoding, 2},
+    {"i_string_iso_latin_1.json", false, false, error_code::encoding, 2},
+    {"i_string_lone_utf8_continuation_byte.json", false, false, error_code::encoding, 2},
+    {"i_string_not_in_unicode_range.json", false, false, error_code::encoding, 2},
+    {"i_string_overlong_sequence_2_bytes.json", false, false, error_code::encoding, 2},
+    {"i_string_overlong_sequence_6_bytes.json", false, false, error_code::encoding, 2},
+    {"i_string_overlong_sequence_6_bytes_null.json", false, false, error_code::encoding, 2},
+    {"i_string_truncated-utf-8.json", false, false, error_code::encoding, 2},
+    {"i_string_UTF-8_invalid_sequence.json", false, false, error_code::encoding, 7},
+    {"i_string_UTF8_surrogate_U+D800.json", false, false, error_code::encoding, 2},
+    {"i_string_UTF-16LE_with_BOM.json", false, false, error_code::encoding, 0},
+    {"i_string_utf16BE_no_BOM.json", false, false, error_code::syntax, 0},
+    {"i_string_utf16LE_no_BOM.json", false, false, error_code::syntax, 1},
+    {"i_structure_500_nested_arrays.json", true, true},
+    {"i_structure_UTF-8_BOM_empty_object.json", false, true, error_code::syntax, 0},
+  };
+
+  /**
+   * @brief Return the documented project outcome for an i_ fixture, or either if not yet classified.
+   * @par Requirements
+   * P041; J5-095.
+   * @note The inventory unit fails if a fixture lacks a classification.
+   */
+  expectation project_outcome(const std::string& file, syntax_mode mode)
+  {
+    for (const auto& decision : c_project_decisions)
+    {
+      if (file == decision.file)
+      {
+        return (mode == syntax_mode::strict_json ? decision.strict : decision.json5) ? expectation::accept
+                                                                                     : expectation::reject;
+      }
+    }
+    return expectation::either;
+  }
 
   /**
    * @brief One fixture file parsed in one syntax mode.
@@ -211,8 +285,9 @@ namespace
    * @brief Collect JSONTestSuite cases using the upstream prefix convention.
    * @par Requirements
    * P040; J5-095.
-   * @note Strict mode: y_ accept, n_ reject, i_ either. JSON5 mode: y_ accept, because
-   * JSON5 is a superset of JSON; n_ and i_ need only complete cleanly, since many are valid JSON5.
+   * @note Strict mode: y_ accept, n_ reject, i_ use documented project decisions.
+   * JSON5 mode: y_ accept; i_ use project decisions; n_ need only complete cleanly,
+   * since many n_ fixtures are valid JSON5.
    */
   std::vector<corpus_case> json_test_suite_cases()
   {
@@ -230,10 +305,13 @@ namespace
       }
       const std::string path = file.string();
       const expectation strict =
-        (kind == 'y') ? expectation::accept : ((kind == 'n') ? expectation::reject : expectation::either);
+        (kind == 'y') ? expectation::accept
+                      : ((kind == 'n') ? expectation::reject : project_outcome(stem, syntax_mode::strict_json));
       cases.push_back({case_name("Strict_", stem, used), path, syntax_mode::strict_json, strict});
       cases.push_back({case_name("Json5_", stem, used), path, syntax_mode::json5,
-                       (kind == 'y') ? expectation::accept : expectation::either});
+                       (kind == 'y')
+                         ? expectation::accept
+                         : ((kind == 'i') ? project_outcome(stem, syntax_mode::json5) : expectation::either)});
     }
     return cases;
   }
@@ -312,5 +390,85 @@ namespace
     expect_case(GetParam());
   }
   INSTANTIATE_TEST_SUITE_P(Fixture, J5_095_JsonTestSuiteCorpus, testing::ValuesIn(json_test_suite_cases()), param_name);
+
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: The pinned i_ inventory and the explicit project decision table.
+   * Act: Compare their filename sets.
+   * Expect: Every fixture has exactly one classification and none are stale.
+   */
+  TEST(J5_095_ProjectDecisions, ClassifiesEveryImplementationDefinedFixture)
+  {
+    /* Arrange */
+    std::set<std::string> files;
+    std::set<std::string> decisions;
+    /* Act */
+    for (const auto& file : sorted_files(fs::path{ADAPTIVE_JSON5_JSONTESTSUITE_DIR}))
+    {
+      const auto name = file.filename().string();
+      if (name.rfind("i_", 0) == 0 && file.extension() == ".json")
+      {
+        files.insert(name);
+      }
+    }
+    for (const auto& decision : c_project_decisions)
+    {
+      EXPECT_TRUE(decisions.insert(decision.file).second) << decision.file;
+    }
+    /* Expect */
+    EXPECT_EQ(files, decisions);
+    EXPECT_EQ(files.size(), 35u);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+  class J5_095_ProjectOutcome : public testing::TestWithParam<std::tuple<project_decision, syntax_mode>>
+  {
+  };
+  /*
+   * Arrange: One documented fixture choice and syntax mode with default limits.
+   * Act: Parse its immutable bytes through the public API.
+   * Expect: The promised outcome, exact failure location or ordered warning spans, and full cleanup.
+   */
+  TEST_P(J5_095_ProjectOutcome, EnforcesDocumentedBehaviour)
+  {
+    /* Arrange */
+    const auto& decision = std::get<0>(GetParam());
+    const auto mode = std::get<1>(GetParam());
+    SCOPED_TRACE(decision.file);
+    const auto path = fs::path{ADAPTIVE_JSON5_JSONTESTSUITE_DIR} / decision.file;
+    const auto bytes = read_bytes(path.string());
+    counting_provider provider;
+    const parse_options options{mode};
+    /* Act */
+    {
+      accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+      const auto parsed = parse_document({bytes.data(), bytes.size()}, options, accounting);
+      /* Expect */
+      const bool accepted = mode == syntax_mode::strict_json ? decision.strict : decision.json5;
+      ASSERT_EQ(parsed.has_value(), accepted);
+      if (accepted)
+      {
+        ASSERT_EQ(parsed.value_if()->warnings.size(), decision.warnings);
+        for (std::size_t index{}; index < decision.warnings; ++index)
+        {
+          const auto warning = parsed.value_if()->warnings.at(index);
+          ASSERT_TRUE(warning.has_value());
+          EXPECT_EQ(warning.value_if()->code, string_warning_code::unpaired_surrogate_escape);
+          EXPECT_EQ(warning.value_if()->byte_offset, decision.spans[index]);
+          EXPECT_EQ(warning.value_if()->byte_length, 6u);
+        }
+      }
+      else
+      {
+        EXPECT_EQ(parsed.error_if()->code, decision.code);
+        EXPECT_TRUE(parsed.error_if()->has_byte_offset);
+        EXPECT_EQ(parsed.error_if()->byte_offset, decision.offset);
+      }
+    }
+    EXPECT_EQ(provider.m_live_bytes, 0u);
+  }
+  INSTANTIATE_TEST_SUITE_P(P041, J5_095_ProjectOutcome,
+                           testing::Combine(testing::ValuesIn(c_project_decisions),
+                                            testing::Values(syntax_mode::strict_json, syntax_mode::json5)));
   /* ================================= End Test_J5_095 ================================= */
 } // namespace

@@ -9,18 +9,17 @@ and actual executed evidence must still support any Verified claim.
 
 Every requirement has an owning implementation issue. Issues #2 onward follow
 P002–P066; completion issues #68–#72 retain build/runtime/consumer/release work.
-Issue #1's declaration/contracts work and P002/P003 are complete at component
-scope; broader J5 contracts remain Draft. The P004 cursor is still pending.
- All functional contracts
-remain **Draft**; none is declared fully implemented or verified by this setup.
-The configuration, P002 result/error and input/options units provide partial evidence
-for their owning requirements. Test existence, a passing execution and complete
-requirement coverage are distinct.
+The compiled parser and its P001–P040 components, including the P004 cursor,
+have implementation and host unit evidence. P038–P041 are tracked by #80;
+the P041 review and claim status are in [conformance](conformance.md).
+All functional requirement rows remain **Draft**. The named units below record
+test existence; executed results and a scoped contract review are separate
+evidence and do not automatically establish full requirement verification.
 
 Keep exact `SuiteName.TestName` declarations in the Unit Tests inventory, separated
 by `; ` when several units cover one requirement. Do not add generated parameter
 case suffixes. Record actual execution results in the corresponding step of the [implementation sequence](requirements/json5-implementation-order.md).
-The per-production view of the same tests, with open P040 gaps, is the
+The per-production view of the same tests is the
 [grammar evidence matrix](grammar-evidence.md). Support, limits and deviations
 are collected in the [JSON5 1.0.0 support statement](conformance.md).
 
@@ -75,9 +74,9 @@ are collected in the [JSON5 1.0.0 support statement](conformance.md).
 | J5-047 | Configurable limits | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `J5_047_Options.RetainsDefaultsAndIndependentOverrides`; `P031/J5_047_LengthGuard.ChecksInputNumberAndExponent`; `J5_047_Reservations.BoundsAndReleasesNodes`; `J5_047_Reservations.BoundsAndReleasesMembers`; `J5_047_Reservations.BoundsAndReleasesDepth`; `J5_047_Reservations.BoundsAndReleasesDiagnostics`; `J5_047_Reservations.CouplesNodesAndMembersAtomically`; `J5_047_Reservations.RejectsMismatchedReleaseWithoutMutation`; `J5_047_Strings.ChecksIndividualAndAggregateBeforeCharging`; `J5_047_Strings.HandlesZeroAndMaximumWithoutOverflow`; `P032/J5_047_PrimitiveLimit.EnforcesConfiguredBoundary`; `J5_047_PrimitiveBytes.ChecksPeakBoundaryAndSharedOutstandingBytes`; `J5_047_PrimitiveConfiguration.RejectsInvalidViewsAndMismatchedAccounting`; `P032/J5_047_ExponentEntry.ForwardsLimitAndPreservesCursor`; `P033/J5_048_ContainerLimits.EnforcesInclusiveSharedLimits`; `J5_048_ContainerBytes.EnforcesOutstandingPeakIncludingGrowthOverlap`; `J5_048_ContainerZeroUnits.AcceptsEmptyNamesAndValues`; `P037/J5_047_CompleteLimit.EnforcesInclusiveConfiguredBoundaries`; `J5_047_CompleteConfiguration.RejectsInvalidViewsAccountingAndProviders`; `J5_047_CompleteBytes.EnforcesPeakAndSharesOutstandingCallerAllocations` |
 | J5-048 | Bounded traversal | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `J5_047_Reservations.BoundsAndReleasesDepth`; `P031/J5_049_Work.ChargesBeforeWorkAndPreservesFailureState`; `J5_049_Work.ExhaustionDoesNotPreventOwnedCleanup`; `P032/J5_047_ExponentEntry.ForwardsLimitAndPreservesCursor`; `P032/J5_047_PrimitiveLimit.EnforcesConfiguredBoundary`; `J5_048_ContainerDepth.HandlesBoundaryAndDeepFailureWithoutRecursiveCleanup`; `J5_048_ContainerAllocation.ReleasesEveryFailedAllocationAndAllowsFreshEngine`; `J5_048_ContainerWork.ExhaustsRecoverablyAcrossAllChargedPhases`; `J5_048_ParserStack.PreservesOwnedNamesAcrossGrowthAndLimitFailure`; `J5_048_ContainerOpen.RollsBackFrameAfterRecordAllocationFailure`; `J5_048_ContainerClose.PreservesFrameAndSpanOnMismatch`; `J5_048_ParserStack.ConstInspectionTracksFrameLifetime`; `J5_048_ContainerOpen.RejectsInvalidTokensAndWorkBeforeMutation`; `J5_048_ParserAttachment.RejectsInconsistentPhasesBeforeTransfer`; `J5_048_ParserAttachment.PreservesPhaseWhenDocumentRejectsChild`; `Preconditions/J5_048_ContainerCloseBoundary.RetainsFrameOnRejectedCompletion`; `P037/J5_047_CompleteLimit.EnforcesInclusiveConfiguredBoundaries`; `J5_048_FloatingConversion.EnforcesWorkAndScratchCeilings`; `J5_048_FloatingConversion.FailsEveryScratchAllocationAndAllowsRetry`; `J5_048_NumberComparison.EnforcesWorkAndScratchCeilings`; `J5_048_NumberComparison.FailsEveryScratchAllocationAndAllowsRetry` |
 | J5-049 | Work budgets | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `P031/J5_049_Work.ChargesBeforeWorkAndPreservesFailureState`; `J5_049_Work.ExhaustionDoesNotPreventOwnedCleanup`; `P032/J5_047_PrimitiveLimit.EnforcesConfiguredBoundary`; `J5_051_PrimitiveTransaction.PreservesCursorAndDestinationAcrossRecognitionAndConstructionFailures`; `J5_048_ContainerWork.ExhaustsRecoverablyAcrossAllChargedPhases`; `P036/J5_049_DuplicateWork.ChargesBeforeInspectionAndComparison`; `P037/J5_047_CompleteLimit.EnforcesInclusiveConfiguredBoundaries`; `P040/J5_049_WorkGrowth.DoublingValuesAtMostDoublesWork` |
-| J5-050 | Concurrency | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) |  |
+| J5-050 | Concurrency | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `P041/J5_050_ConcurrentParsing.IsolatesSuccessFailuresAndLiveDocuments` |
 | J5-051 | Atomic results and reuse | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `J5_046_CheckedSize/CheckedAddUnits.ReportsExactSumOrResourceLimit`; `J5_046_CheckedSize/CheckedMultiplyUnits.ReportsExactProductOrResourceLimit`; `J5_051_OwnedBlock.ProviderRemainsUsableAfterFailedRequest`; `J5_047_Reservations.CouplesNodesAndMembersAtomically`; `J5_046_AccountedStorage.FailurePreservesUsageAndAllowsRetry`; `P032/J5_051_PrimitiveFailure.FailsEachAllocationAndAllowsRetry`; `J5_051_PrimitiveTransaction.PreservesCursorAndDestinationAcrossRecognitionAndConstructionFailures`; `P033/J5_013_ContainerFailure.ReportsLocatedSyntaxAndReleasesCandidate`; `J5_048_ContainerAllocation.ReleasesEveryFailedAllocationAndAllowsFreshEngine`; `J5_051_MemberSpanAttachment.PreservesFrameAndAllowsRetryAfterRangeFailure`; `J5_046_DuplicateAllocation.FailsEachAllocationAndAllowsFreshEngine`; `P037/J5_026_CompleteRejection.RejectsMissingRootsAndInvalidSuffixesAtomically`; `J5_026_CompleteTruncation.RejectsEveryUnfinishedNestedPrefix`; `J5_051_CompleteReuse.PreservesLiveDocumentsAcrossFailedAndSuccessfulCalls`; `J5_046_CompleteAllocation.FailsEveryAllocationAndAllowsRetry` |
-| J5-052 | Deterministic semantics | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `J5_052_NumericLocale.ResultsIgnoreProcessLocale` |
+| J5-052 | Deterministic semantics | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `J5_052_NumericLocale.ResultsIgnoreProcessLocale`; `P041/J5_050_ConcurrentParsing.IsolatesSuccessFailuresAndLiveDocuments` |
 | J5-053 | Schema dialect | Draft | [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) |  |
 | J5-054 | Schema compilation | Draft | [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) |  |
 | J5-055 | Identifiers and references | Draft | [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) |  |
@@ -120,7 +119,7 @@ are collected in the [JSON5 1.0.0 support statement](conformance.md).
 | J5-092 | Reusable package | Draft | [#68](https://github.com/Romanr92/Adaptive_JSON5/issues/68) |  |
 | J5-093 | Versioned consumption | Draft | [#68](https://github.com/Romanr92/Adaptive_JSON5/issues/68) |  |
 | J5-094 | Grammar unit regression coverage | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `P040/J5_094_DocumentTruncation.RejectsEveryProperPrefix` |
-| J5-095 | Pinned syntax fixtures | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `J5_095_Json5TestsCorpus.MatchesUpstreamExpectation`; `J5_095_JsonTestSuiteCorpus.MatchesUpstreamExpectation` |
+| J5-095 | Pinned syntax fixtures | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `J5_095_Json5TestsCorpus.MatchesUpstreamExpectation`; `J5_095_JsonTestSuiteCorpus.MatchesUpstreamExpectation`; `J5_095_ProjectDecisions.ClassifiesEveryImplementationDefinedFixture`; `P041/J5_095_ProjectOutcome.EnforcesDocumentedBehaviour` |
 | J5-096 | Draft-07 unit conformance fixtures | Draft | [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) |  |
 | J5-097 | Deterministic robustness unit cases | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `P040/J5_097_Equivalence.DecodesToReferenceDocument` |
 | J5-098 | Fault-injection evidence | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `P040/J5_098_DocumentFaultSweep.ReleasesEverythingAtEveryAllocationFailure` |

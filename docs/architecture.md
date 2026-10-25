@@ -14,9 +14,10 @@ mode-valid trailing trivia, and rejects missing roots or invalid suffixes. The
 internal P033 engine remains prefix-oriented and private. P034/P035 container
 handling, P036 duplicate policy and the P037 public entry have implementation and
 host-unit evidence; their requirement rows remain Draft pending full acceptance
-and conformance. Checked numeric operations (P038) and expanded diagnostics
-(P039) are later stages. Some diagrams below were drawn before P034–P037 landed
-and show those steps as the M1 endpoint.
+and conformance. Checked numeric operations (P038), expanded diagnostics
+(P039) and whole-grammar units (P040) also exist; the P041 review and claim status
+are in [conformance](conformance.md). Some diagrams below predate those steps
+and are retained as historical architecture sketches.
 
 The active [requirements](requirements.md), [traceability](traceability.md),
 [implementation sequence](requirements/json5-implementation-order.md),
@@ -177,17 +178,17 @@ arrows to keep the picture legible.
 
 ### Complete picture at the end of M1
 
-The current live [issue #38](https://github.com/Romanr92/Adaptive_JSON5/issues/38)
-defines **Milestone 1: First Working JSON5 Parser**, ending at P037. Its preceding
+The completed [issue #38](https://github.com/Romanr92/Adaptive_JSON5/issues/38)
+defined **Milestone 1: First Working JSON5 Parser**, ending at P037. Its preceding
 container work is [issue #33](https://github.com/Romanr92/Adaptive_JSON5/issues/33),
 P033–P036. [Issue #80](https://github.com/Romanr92/Adaptive_JSON5/issues/80)
-assigns P038–P041 to M2. Scope checked on 2026-10-19; this document does not change
+assigns P038–P041 to M2. Scope checked on 2026-10-25; this document does not change
 issue assignments or milestone definitions.
 
 The M1 endpoint is one complete JSON5 input becoming an owned, inspectable
-document, or an explicit failure. The diagram below is the intended completed
-architecture, not a claim that those connections exist today. Labels describe
-responsibilities; final entry-point and policy type names are still to be chosen.
+document, or an explicit failure. The diagram below is a historical design view;
+the supported entry is now `parse_document()`, and the implemented names and
+contracts are described in the component inventory and public headers.
 
 ```mermaid
 flowchart TB
@@ -299,16 +300,17 @@ classDiagram
 M1 does not mean the entire project is finished. Checked numeric conversion and
 exact comparison (P038), expanded document/diagnostic contracts (P039), the
 whole-grammar evidence matrix (P040) and the full-support claim review (P041)
-remain later work under #80. P042 and optional schema, CLI/editor, package and
-cross-component runtime completion remain separately tracked. Existing strict
-mode behavior must be preserved as the parser is composed; this endpoint does
-not move P042's final strict-mode work into M1 or certify language conformance.
+are the subsequent M2 scope under #80. P038–P040 now have implementation and
+executed evidence; P041 claim status is recorded in conformance. P042 and optional
+schema, CLI/editor, package and cross-component runtime completion remain
+separately tracked. This M1 view does not certify language conformance.
 
 ### Layer detail
 
 ```mermaid
 flowchart TB
     Consumer[Consumer: caller input, options and storage]
+    Entry[Present: public parse_document complete-input entry]
     Primitive[Present: complete primitive-document operation]
     Engine[Present: internal iterative parser_engine]
     Helpers[Present: P033 container helpers and dispatch]
@@ -318,7 +320,8 @@ flowchart TB
     Resources[Present: resource_budget and work_budget]
     Storage[Present: accounted_storage and caller callbacks]
     Consumer --> Primitive
-    Consumer -. planned entry .-> Engine
+    Consumer --> Entry
+    Entry --> Engine
     Primitive --> Lexers
     Primitive --> Model
     Primitive --> Resources
@@ -334,14 +337,14 @@ flowchart TB
 Ordinary non-template implementations now compile into a static library. Lexical recognition, owned
 values, storage and accounting are separate components. P033 joins arrays
 and objects through a shared iterative engine. Its internal prefix result is
-not the future public complete-document parser API.
+distinct from the public complete-document `parse_document()` API.
 
 `parse_primitive_document()` already handles a complete scalar root, including
 leading/trailing trivia and suffix rejection. It cannot parse an array or object
-root. The unified complete-document entry point belongs to P037. P034/P035
-complete the array/object grammar work; P036 adds explicit duplicate rejection.
-Exact spelling storage exists, but later checked numeric operations remain
-distinct from recognition and storage.
+root. The P037 `parse_document()` entry handles every root kind. P034/P035
+complete the array/object grammar work; P036 supplies explicit duplicate rejection.
+P038 numeric conversion/comparison remain separate operations from recognition
+and exact spelling storage.
 
 Schema, CLI, editor and consumer adapters remain outside this core map. Their
 optional dependencies must not become parser runtime dependencies. The core
@@ -1050,9 +1053,10 @@ All P039 production pieces below are implemented, with units listed in the
 ### P040 grammar decisions
 
 These are the grammar choices recorded while gathering whole-grammar evidence.
-The BOM option and the whitespace and separator behaviour are implemented; the
-P040 evidence matrix and its units are still in progress. Requirement rows
-remain Draft.
+The BOM option, whitespace, separator and surrogate-warning behaviour are
+implemented. P040 has a production matrix and executed units; the P041 review
+and remaining claim conditions are in [conformance](conformance.md).
+Requirement rows remain Draft.
 
 | Topic | Decision |
 | --- | --- |

@@ -22,6 +22,13 @@ included file is byte-identical to the archive.
 - JSONTestSuite `test_parsing/`: `y_` must be accepted, `n_` must be rejected and
   `i_` is implementation-defined.
 
+The upstream i_ classification is preserved. Separately, the project's
+`c_project_decisions` table in `tests/validation/conformance_tests.cpp` pins all
+35 i_ outcomes in each syntax mode to the [support statement](../../../docs/conformance.md).
+The inventory unit rejects missing, duplicate or obsolete classifications, and
+project-outcome units assert rejection codes/offsets or warning counts/spans.
+JSON5 n_ cases remain clean-completion cases because many are valid JSON5.
+
 ## Recorded deviations from upstream labels
 
 The specification decides the expected outcome, not the corpus. Where an

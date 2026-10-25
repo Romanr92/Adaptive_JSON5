@@ -3,8 +3,9 @@
 This page collects what the parser supports, the limits it applies and every
 known deviation or project decision, as required before claiming full JSON5
 1.0.0 parsing support (P041; J5-008, J5-027, J5-100). It is a **draft**: the
-claim is not made until the open items at the end are closed and the
-requirement rows are reviewed. Requirement rows remain Draft.
+claim is not made until the required PR checks for the P041 follow-up pass.
+The parser-scoped technical review is recorded below. Requirement rows remain
+Draft; this review does not verify optional components or promote shared rows.
 
 ## Versions
 
@@ -39,8 +40,8 @@ listed in [architecture § 3](architecture.md#3-storage-ownership-and-budgets).
 
 The defaults are conservative, chosen for untrusted input: for example 16 KiB of
 input, 1024 values, 1024 members and 4096 UTF-16 units per string. Valid
-documents beyond them fail until the caller raises the limits. All pinned corpus
-files, which are small, parse with the defaults, including 500 nested arrays and
+documents beyond them fail until the caller raises the limits. Accepted pinned
+fixtures fit within the defaults, including 500 nested arrays and
 a 131-digit exponent. The final defaults and per-value memory cost (about
 400-550 owned bytes per value) are tracked by
 [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69). Parser work grows
@@ -50,12 +51,15 @@ which is quadratic in the members of one object.
 ## Implementation-defined behaviour
 
 RFC 8259 leaves these choices to each implementation. Outcomes are for default
-options and were observed on the pinned JSONTestSuite `i_` files.
+options. All 35 pinned JSONTestSuite `i_` files have explicit project outcomes
+in `J5_095_ProjectOutcome.EnforcesDocumentedBehaviour`, including exact rejection
+categories/offsets and surrogate-warning spans. The inventory unit rejects missing,
+duplicate or stale classifications. Upstream files and labels are unchanged.
 
 | Topic | Files | Strict | JSON5 | Behaviour |
 | --- | --- | --- | --- | --- |
 | Huge, overflowing or underflowing numbers | `i_number_*` (10) | accept | accept | Parsing keeps the exact spelling and never converts. Range problems are reported only by the explicit conversion functions (`out_of_range`, `underflow`, `non_finite`). |
-| Lone, reversed or incomplete escaped surrogates | `i_string_*surrogate*` (8), `i_object_key_lone_2nd_surrogate` | accept with warning | accept with warning | Decoded strings keep the exact UTF-16 units. Each unpaired surrogate escape reports `unpaired_surrogate_escape`. Checked UTF-8 export rejects unpaired surrogates; nothing is replaced. |
+| Lone, reversed or incomplete escaped surrogates | 9 escaped-surrogate string fixtures plus `i_object_key_lone_2nd_surrogate` | accept with warning | accept with warning | Decoded strings keep the exact UTF-16 units. Each unpaired surrogate escape reports `unpaired_surrogate_escape`. Checked UTF-8 export rejects unpaired surrogates; nothing is replaced. |
 | Invalid UTF-8 (bad bytes, overlong, encoded surrogates, beyond U+10FFFF, truncated, Latin-1) | 10 `i_string_*` files | `encoding` | `encoding` | Rejected at the offset of the invalid sequence. |
 | UTF-16 input, with or without BOM | `i_string_UTF-16LE_with_BOM`, `i_string_utf16*_no_BOM` | reject | reject | Only UTF-8 is accepted. |
 | 500 nested arrays | `i_structure_500_nested_arrays` | accept | accept | Within the default `max_depth` (512). |
@@ -126,12 +130,27 @@ Schema, editor and manifest rows are outside P041.
 
 ## Contract reviews
 
+Parser-scoped technical review at `803dca3` plus the P041 follow-up, 2026-10-25.
+This reviews the documented API/source boundaries, production-to-unit matrix and
+executed evidence; it is not a line-by-line proof or MISRA/CERT certification.
+The table covers the preceding core contracts and the parser portions of shared
+release contracts. Schema, CLI, editor, consumer acceptance and device execution
+are outside this claim. The final PR gate below applies to the new test evidence.
+
 | Contract | Review result (2026-10-25) |
 | --- | --- |
 | J5-002 build components | Parser part met. CMake 3.25 is the minimum. A library-only configure (`release-library`) fetches no GoogleTest or fixtures and builds only `adaptive_json5_parser`. Unit and validation tests are separate opt-in options. Schema and tool targets are later steps (P042 onwards); `ADAPTIVE_JSON5_BUILD_SCHEMA` currently stops configuration. |
 | J5-007 license and provenance | Met for current material. `LICENSE` is Apache-2.0. `LICENSES/` keeps GoogleTest, JSON5 specification, ECMA-262, Unicode, json5-tests and JSONTestSuite notices; `NOTICE`, [dependencies](dependencies.md) and the [fixture README](../tests/fixtures/third_party/README.md) record versions and provenance. |
 | J5-042 pure memory parsing | Met. `J5_042_PureMemory.ProductionIncludesOnlyLanguageSupportHeaders` checks every production include against a language-support allowlist (no files, streams, processes, threads, time, locale or networking). `J5_042_PureMemory.ParseUsesOnlyCallerStorage` shows a complete parse, with retained source and warnings, makes no default-heap allocation. |
 | J5-008 public contracts | Met. Syntax defaults, duplicate handling, retention and BOM options are in `options.hpp`; value lifetimes and pointer invalidation in `document.hpp`, `value_view.hpp` and `parser.hpp`; limits in `resource_limits.hpp`; conversions in the conversion headers; each `error_code` value is described in `error.hpp`; thread safety is stated on `parse_document`, `document` and `accounted_storage`. |
+| J5-001, J5-003–006 foundation and source model | Reviewed for the parser. CMake requires C++17; `result`/`error`, explicit input lengths and `parse_options` define non-throwing modes and input ownership. Cursor/input/options units cover boundaries. Unicode tables identify 17.0.0 plus the ES5 minimum 3.0.0, with pinned provenance. |
+| J5-009–027 grammar and completeness | Reviewed against every row of the P040 matrix and the JSON5 1.0.0 lexical/syntactic productions. UTF-8, trivia, names, strings/escapes, numbers, containers, BOM and complete input have positive, negative, boundary and applicable truncation units. No unresolved grammar branch is listed. Project-defined i_ outcomes now have exact validation expectations. |
+| J5-028–034, J5-039–041 values, ownership and access | Reviewed for the public document/view/storage APIs and compiled implementations. Units cover all root kinds, ordered children and duplicate names, exact spellings/UTF-16 units, checked access, source spans, input destruction, moves and failure cleanup. No serializer or streaming API is claimed. |
+| J5-035–038 numeric operations | Reviewed for integer/floating conversion and exact comparison. Named numeric units cover bounds, lexical versus mathematical integrality, rounding, non-finite policy, negative zero, scratch/work exhaustion and allocation failure. The exponent-comparison and extreme-conversion limits above are retained as explicit limitations. |
+| J5-043–049, J5-051 failures, resources and reuse | Reviewed for parser/value/conversion scope. Structured errors, minimal allocation-free failure reporting, caller storage, inclusive limits, iterative depth handling and deterministic work budgets have named boundary/fault/reuse units. Retention and diagnostics share the owned-byte budget. Cancellation is supplied by deterministic budgets here; no extra cancellation API is claimed. |
+| J5-050, J5-052 concurrency and determinism | The host-only `P041/J5_050_ConcurrentParsing.IsolatesSuccessFailuresAndLiveDocuments` runs four workers per syntax mode, sharing immutable input/options and retaining independent documents while repeating syntax, encoding, resource and allocation failures and reuse. Storage/accounting remain separate. Numeric locale units remain separate evidence; a skipped locale case must not be described as an executed locale comparison. Shared mutable accounting/provider access still requires caller synchronization. |
+| J5-094–095, J5-097–099 unit and native evidence | Reviewed for core scope. The grammar matrix, equivalence/truncation/fault cases, immutable external fixtures and explicit project outcomes cover P040/P041. Native exception OFF/ON and RTTI OFF results are recorded below; the current follow-up requires its own PR jobs. Schema fixture J5-096 is outside parser scope. |
+| J5-100 parser release completeness | Versions, public contracts, grammar/requirement inventories, defaults, provenance, usage and deviations are linked from this statement and README. Stale scaffold/P004/P040 status text is corrected. P041 is tracked by #80. Final claim publication waits for the follow-up PR checks; no schema/editor completeness or embedded target support is inferred. |
 
 ## Executed results
 
@@ -140,14 +159,24 @@ Schema, editor and manifest rows are outside P041.
 | GitHub Actions [unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400393) | `016c7f4` | Linux GCC exceptions OFF and ON; linux-aarch64 g++-13 OFF and ON; Windows MinGW OFF and ON | Passed |
 | GitHub Actions [validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400388) | `016c7f4` | Linux, exceptions OFF and ON | Passed |
 | GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400395) | `016c7f4` | clang-format 18.1.8 | Passed |
+| GitHub Actions [unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192016985) | `803dca3` | Linux x86-64 GCC, Linux aarch64 GCC and Windows MinGW, exceptions OFF and ON, RTTI OFF | All host unit jobs passed |
+| GitHub Actions [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192016968) | `803dca3` | Linux, exceptions OFF and ON, RTTI OFF | Both validation jobs passed |
+| GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192016981) | `803dca3` | clang-format 18.1.8 | Passed |
 | Local, Windows GCC 15.2.0, CMake 4.0.1 | `016c7f4` plus the J5-042 units | Unit tests, exceptions OFF and ON, RTTI OFF | 2126/2126 passed in each mode |
 | Local, same toolchain | `016c7f4` | Validation tests, exceptions OFF and ON | 850/850 passed in each mode |
-| Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | Working tree with surrogate advisories | Unit tests, exceptions OFF and ON, RTTI OFF | 2145/2145 passed in each mode; includes 19 new surrogate-warning cases. A final assertion-safety adjustment was followed by 70/70 affected string/surrogate cases in each mode. |
-| Local, same toolchain (2026-10-25) | Same working tree | Validation tests, exceptions OFF and ON, RTTI OFF | 850/850 passed in each mode |
-| Local (2026-10-25) | Same working tree | clang-format 18.1.8 | Formatting passed for all 213 C++ files |
+| Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | Changes subsequently committed as `803dca3` | Unit tests, exceptions OFF and ON, RTTI OFF | 2145/2145 passed in each mode; includes 19 new surrogate-warning cases. A final assertion-safety adjustment was followed by 70/70 affected string/surrogate cases in each mode. |
+| Local, same toolchain (2026-10-25) | Changes subsequently committed as `803dca3` | Validation tests, exceptions OFF and ON, RTTI OFF | 850/850 passed in each mode |
+| Local (2026-10-25) | Changes subsequently committed as `803dca3` | clang-format 18.1.8 | Formatting passed for all 213 C++ files |
+| Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | `803dca3` plus this uncommitted P041 follow-up | Unit tests, exceptions OFF and ON, RTTI OFF | 2147/2147 passed in each mode; includes both concurrent-context cases |
+| Local, same toolchain (2026-10-25) | Same P041 follow-up | Validation tests, exceptions OFF and ON, RTTI OFF | 921/921 passed in each mode; includes 70 exact project outcomes and one inventory case |
+| Local (2026-10-25) | Same P041 follow-up | clang-format 18.1.8 | Formatting passed for all 214 C++ files |
 
 The J5-042 units passed in CI at `6e24e8b` ([unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954377), [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954321), [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954423)).
 
 ## Open before the claim
 
-1. User review of this statement; requirement rows stay Draft until then.
+1. Run all required host-unit, validation and formatting PR jobs on the commit
+   containing this P041 follow-up, and record that immutable commit and results.
+   Results for `803dca3` do not cover the added concurrency and project-outcome
+   assertions. The technical review is complete for parser scope;
+   requirement rows stay Draft.

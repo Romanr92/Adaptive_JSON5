@@ -48,6 +48,12 @@ adaptive_json5_add_unit(adaptive_json5_complete_document_unit_tests complete_doc
     parser/complete_document_tests.cpp
     parser/surrogate_warning_tests.cpp)
 
+# Host concurrency units need threads; the parser target acquires no thread dependency.
+find_package(Threads REQUIRED)
+adaptive_json5_add_unit(adaptive_json5_concurrency_unit_tests concurrency_units
+    parser/concurrency_tests.cpp)
+target_link_libraries(adaptive_json5_concurrency_unit_tests PRIVATE Threads::Threads)
+
 adaptive_json5_add_unit(adaptive_json5_pure_memory_unit_tests
     pure_memory_units
     library/pure_memory_tests.cpp)

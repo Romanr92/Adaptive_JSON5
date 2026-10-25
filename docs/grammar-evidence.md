@@ -78,7 +78,10 @@ These items cover P040 as a whole rather than one production:
 
 1. **External corpora.** Written: `J5_095_Json5TestsCorpus` and
    `J5_095_JsonTestSuiteCorpus` in `tests/validation` (separate validation-test
-   gate). Upstream label deviations are recorded in the fixture README.
+   gate). `J5_095_ProjectDecisions` inventories every i_ file and
+   `J5_095_ProjectOutcome` pins all 35 project outcomes in both modes, including
+   rejection codes/offsets and surrogate warning counts/spans. Upstream label
+   deviations and the separate project-policy table are recorded in the fixture README.
 2. **Equivalence.** Written: `J5_097_Equivalence` compares ten JSON5 spellings
    (quotes, names, trailing commas, comments, Unicode whitespace, escapes,
    continuations, number spellings) against a strict reference document.
@@ -92,7 +95,11 @@ These items cover P040 as a whole rather than one production:
    representative document in each mode.
 5. **BOM rows.** Written: `J5_025_DocumentBom`.
 
-All five suites are in `tests/parser/grammar_evidence_tests.cpp`
-(`grammar_evidence_units`). Strict error offsets follow the parser's convention:
+The equivalence, fault, strict-mode/encoding/truncation and BOM units are in
+`tests/parser/grammar_evidence_tests.cpp` (`grammar_evidence_units`); the corpus
+and project-outcome units are in `tests/validation/conformance_tests.cpp`.
+`J5_050_ConcurrentParsing` in `tests/parser/concurrency_tests.cpp` adds host-only
+evidence for independent contexts and live documents; it adds no core thread
+dependency. Strict error offsets follow the parser's convention:
 rejected number spellings report the token start, escapes report the escaped
 character and line continuations report the line terminator.

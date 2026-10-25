@@ -511,7 +511,7 @@ Accept one root value of any supported type surrounded by trivia; reject empty/t
 
 ### P038 — Checked numeric operations
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #39).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #39).
 
 Provide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.
 
@@ -522,7 +522,7 @@ Provide non-throwing signed/unsigned/floating conversion and exact comparison un
 
 ### P039 — Owned document and diagnostics
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #40).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #40).
 
 Expose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.
 
@@ -533,7 +533,7 @@ Expose stable byte spans, warning/error locations and documented views; destruct
 
 ### P040 — Whole-grammar unit evidence
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #41).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #41).
 
 Map every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures with exceptions OFF.
 
@@ -544,7 +544,7 @@ Map every JSON5 lexical/syntactic production and referenced ES5 alternative to n
 
 ### P041 — Full-support claim
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #42).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #42).
 
 Document language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.
 
@@ -558,12 +558,21 @@ Surrogate advisory decision (2026-10-25): option (b) adds
 UTF-16 units and checked UTF-8 export failures. Tests cover warning spans/order,
 quoted member names, pairs across JSON5 continuations, diagnostic boundaries,
 allocation-failure cleanup/retry and suppression of callbacks for failed strings.
-Local Windows GCC 15.2.0/CMake 4.0.1 working-tree execution: 2145/2145 unit tests
+Local Windows GCC 15.2.0/CMake 4.0.1 execution of the changes committed as
+`803dca3`: 2145/2145 unit tests
 and 850/850 pinned-fixture validation tests passed in each exception mode, RTTI
 OFF; 70/70 affected cases passed again after an assertion-safety adjustment.
 clang-format 18.1.8 passed all 213 C++ files. See the
 [support statement](../conformance.md) for the decision and execution evidence.
-These results do not change Draft requirement status or complete the P041 review.
+The P041 follow-up records the parser-scoped technical review in the support
+statement, adds explicit outcomes for all 35 pinned i_ fixtures and tests
+concurrent independent contexts/documents. Required PR checks for that follow-up
+must pass before publishing the final claim. Requirement rows remain Draft;
+future schema/editor/device acceptance is not inferred from parser evidence.
+Local P041 follow-up results (2026-10-25, Windows GCC 15.2.0, CMake 4.0.1):
+2147/2147 units and 921/921 validation cases passed with exceptions OFF and ON,
+RTTI OFF; clang-format 18.1.8 passed all 214 C++ files. These are working-tree
+results above `803dca3`, not a new immutable CI result.
 
 ## Grammar coverage review
 
