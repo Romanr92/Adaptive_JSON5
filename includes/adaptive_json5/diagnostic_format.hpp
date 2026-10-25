@@ -58,7 +58,7 @@ namespace adaptive_json5
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
    * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with
    *         nonzero capacity or an offset beyond input.
-   * @note Output is "line L, column C: warning: message". Same truncation, text and allocation rules as format_error.
+   * @note Output is "line: L, column: C: warning: message". Same truncation, text and allocation rules as format_error.
    */
   [[nodiscard]] result<std::size_t> format_warning(const string_warning& warning, input_view input, char* buffer,
                                                    std::size_t capacity) noexcept;
