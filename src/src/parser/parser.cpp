@@ -5,6 +5,7 @@
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/value/retained_source.hpp"
 
 #include <utility>
 
@@ -43,7 +44,18 @@ namespace adaptive_json5
 
     auto& tree = *parsed.value_if();
 
+    // Copy only after the whole input is accepted, so failed parses never pay for retention.
+    auto retained = (options.source_text == source_retention_policy::retain_copy)
+                      ? retained_source::copy(input, accounting.callbacks())
+                      : result<retained_source>::success(retained_source{});
+
+    if (!retained.has_value())
+    {
+      return document_result::failure(*retained.error_if());
+    }
+
     // Transfer ownership only after the entire input has been accepted.
-    return document_result::success(parsed_document{std::move(tree.values), std::move(tree.warnings)});
+    return document_result::success(
+      parsed_document{std::move(tree.values), std::move(tree.warnings), std::move(*retained.value_if())});
   }
 } // namespace adaptive_json5

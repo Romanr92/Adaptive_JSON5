@@ -6,6 +6,7 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/retained_source.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
 
 #include <cstddef>
@@ -20,17 +21,19 @@ namespace adaptive_json5
    * warnings holds every warning in source order; each one consumed a max_diagnostics entry.
    * The input bytes need not remain alive after parsing succeeds.
    * The originating accounting object and its provider must outlive values and warnings.
+   * source holds a copy of the input only when parse_options::source_text requests it.
    */
   struct [[nodiscard]] parsed_document
   {
       document values;
       warning_list warnings;
+      retained_source source;
   };
 
   /**
    * @brief Parse exactly one root value surrounded by mode-valid trivia.
    * @par Requirements
-   * P037; J5-026; J5-040; J5-047; J5-049; J5-051.
+   * P037; P039; J5-026; J5-040; J5-041; J5-047; J5-049; J5-051.
    * @param input Borrowed bytes, alive and unchanged throughout this call.
    * @param options Syntax, duplicate policy and resource limits.
    * @param accounting Caller-owned storage accounting at a stable address.
@@ -43,6 +46,8 @@ namespace adaptive_json5
    * Failure publishes no document and releases this call's allocations.
    * Each call uses fresh parsing state; accounting remains reusable.
    * Every warning is retained; more warnings than max_diagnostics fail with resource_limit.
+   * Retained source text is copied only after the complete input is accepted;
+   * a failed copy publishes no document.
    * No caller warning callbacks are invoked.
    */
   [[nodiscard]] result<parsed_document> parse_document(input_view input, const parse_options& options,
