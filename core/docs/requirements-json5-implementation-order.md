@@ -642,14 +642,14 @@ Add explicit strict JSON mode for schema documents: quoted keys/double-quoted st
 - Unit acceptance: Paired JSON/JSON5 fixtures, all JSON grammar branches and mode-specific rejection.
 
 Implementation: the strict branches were delivered with P007–P040 (trivia, strings,
-escapes, identifiers, numbers, container close and leading-BOM handling). The
-developer's P042 review on #81 found no missing production behavior and accepted
-three edge decisions: signed `Infinity`/`NaN` fail at the sign (offset 0); JSON5
+escapes, identifiers, numbers, container close and leading-BOM handling). A P042
+source review found no missing production behavior; the developer accepted three
+edge decisions: signed `Infinity`/`NaN` fail at the sign (offset 0); JSON5
 ignores `strict_bom`; a skipped BOM followed only by whitespace fails as empty
 input at the end of input. `tests/api/strict_json_tests.cpp` adds the `P042`
 strict accept matrix, every JSON escape, JSON-only and signed non-finite
 rejections, raw control characters, those BOM decisions, a strict
-allocation-failure sweep and an inclusive input limit. Strict truncation and
+allocation-failure sweep and an inclusive input limit (J5-047). Strict truncation and
 mode pairs remain the P040 `J5_094_DocumentTruncation` and `J5_027_ModePair` cases.
 Local P042 results (2026-10-25, Windows GCC 15.2.0, CMake 4.0.1, not yet
 committed): 2192/2192 units and 921/921 validation cases passed with exceptions

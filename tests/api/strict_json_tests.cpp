@@ -308,14 +308,15 @@ namespace
     // The document needs several allocations, so the sweep must have injected more than one failure.
     EXPECT_GT(failures, 1U);
   }
-  /* ----------------------------------------------------------------------------------- */
+  /* ================================= End Test_J5_098 ================================= */
+  /* =================================== Test_J5_047 =================================== */
   /*
    * Verify strict mode honors a configured limit inclusively and recovers after the failure.
-   * Arrange: A strict document and an input byte limit at its exact size and one byte below.
+   * Arrange: A strict document and an input byte limit one byte below its size, then at its exact size.
    * Act: Parse with each allowance using the same accounting.
-   * Expect: One byte below fails with resource_limit and nothing retained; the exact size succeeds.
+   * Expect: One byte below fails with resource_limit and retains nothing; the exact size then succeeds.
    */
-  TEST(J5_098_StrictLimit, EnforcesInclusiveInputBoundary)
+  TEST(J5_047_StrictLimit, EnforcesInclusiveInputBoundary)
   {
     /* Arrange */
     const std::string input{"{\"a\":[1,2]}"};
@@ -325,12 +326,15 @@ namespace
     options.limits.max_input_bytes = input.size() - 1U;
     /* Act */
     const auto below = parse_document({input.data(), input.size()}, options, accounting);
+    // Capture the retained bytes before the successful parse allocates its document.
+    const std::size_t bytes_after_failure = accounting.current_bytes();
     options.limits.max_input_bytes = input.size();
     const auto exact = parse_document({input.data(), input.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(below.has_value());
     EXPECT_EQ(below.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(bytes_after_failure, 0U);
     EXPECT_TRUE(exact.has_value());
   }
-  /* ================================= End Test_J5_098 ================================= */
+  /* ================================= End Test_J5_047 ================================= */
 } // namespace
