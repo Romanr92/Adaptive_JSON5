@@ -76,7 +76,7 @@ namespace adaptive_json5
         length += c_single_byte;
       }
 
-      // An offset inside a character of CRLF belongs to the position where that sequence starts.
+      // An offset inside a character or CRLF belongs to the position where that sequence starts.
       if ((byte_offset - start) < length)
       {
         break;

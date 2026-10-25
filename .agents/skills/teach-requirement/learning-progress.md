@@ -42,3 +42,11 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
 - Nested result/optional inspection: the numeric wrapper initially used
   `value()` where `has_value()` was needed. Corrected after explanation and
   reviewed. This correction is not independent mastery of the concept.
+  P039 `locate()` used supplied code for `result<std::optional<...>>`
+  inspection; reviewed as correct, still supplied rather than independent.
+- Error-propagation exercise blocks (2026-10-25): across the P038 floating,
+  comparison and P039 warning-list lessons the learner filled the guards
+  correctly, except one `warning_list::reserve()` guard that returned
+  `*required.has_value()` instead of `*required.error_if()`. Treat it as a
+  slip, like the earlier P030 typing mistake; keep the concept learned and keep
+  using exercise blocks.
