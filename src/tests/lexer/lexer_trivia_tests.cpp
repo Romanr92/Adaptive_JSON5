@@ -102,7 +102,8 @@ namespace
   /* Reject every incomplete suffix of a block comment.
    * Arrange: Every proper prefix of a valid ASCII comment at a nonzero offset.
    * Act: Recognize each bounded prefix without exposing its backing suffix.
-   * Expect: No match before the opener completes; syntax failure and rollback after it.
+   * Expect: No match before the opener completes; after it, syntax failure at the end of input
+   * with a range covering the open comment, and rollback.
    */
   TEST(J5_012_CommentBoundaries, RejectsEveryUnterminatedPrefix)
   {
@@ -128,7 +129,11 @@ namespace
         ASSERT_NE(actual.error_if(), nullptr);
         EXPECT_EQ(actual.error_if()->code, error_code::syntax);
         EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, 1U);
+        // The closer was expected at the end of the bounded input; the range starts at the opener.
+        EXPECT_EQ(actual.error_if()->byte_offset, end);
+        ASSERT_TRUE(actual.error_if()->source_range.has_value());
+        EXPECT_EQ(actual.error_if()->source_range->byte_offset, 1U);
+        EXPECT_EQ(actual.error_if()->source_range->byte_length, end - 1);
         EXPECT_EQ(actual.value_if(), nullptr);
       }
     }
@@ -329,7 +334,7 @@ namespace
       trivia_case{"StrictLine", " \t//x", syntax_mode::strict_json, 0, true, error_code::syntax, 2},
       trivia_case{"StrictBlock", " /*x*/", syntax_mode::strict_json, 0, true, error_code::syntax, 1},
       trivia_case{"StrictUnterminated", " /*", syntax_mode::strict_json, 0, true, error_code::syntax, 1},
-      trivia_case{"UnterminatedAfterComment", " /**/ /*x", syntax_mode::json5, 0, true, error_code::syntax, 6},
+      trivia_case{"UnterminatedAfterComment", " /**/ /*x", syntax_mode::json5, 0, true, error_code::syntax, 9},
       trivia_case{"BadEncodingAfterTrivia", " /**/\xFF", syntax_mode::json5, 0, true, error_code::encoding, 5},
       trivia_case{"BadEncodingInComment", " /*a\xFF*/", syntax_mode::json5, 0, true, error_code::encoding, 4},
       trivia_case{"StrictBadEncoding", " \xFF", syntax_mode::strict_json, 0, true, error_code::encoding, 1},

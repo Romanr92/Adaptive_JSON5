@@ -12,16 +12,16 @@ namespace
 
   /* =================================== Test_J5_017 ==================================== */
   /*
-   * Arrange: The first raw separator appears in a scalar; later ones occur in a name/value.
-   * Act: Parse with no diagnostic slot and with exactly one retained-descriptor slot.
-   * Expect: Zero slots rejects; one slot retains the first location and counts all warnings.
+   * Arrange: The first raw separator appears in a scalar; later ones occur in a name and its value.
+   * Act: Parse with one slot fewer than the warnings and with exactly one slot per warning.
+   * Expect: Too few slots rejects; exact slots retain all three warnings in source order.
    */
-  TEST(J5_017_ContainerWarnings, ScalarWarningOwnsFirstDiagnosticSlot)
+  TEST(J5_017_ContainerWarnings, EachWarningConsumesDiagnosticSlot)
   {
     /* Arrange */
     const std::string input = u8"[\"\u2028\",{\"\u2029\":\"\u2028\"}]";
     /* Act */
-    for (const std::size_t diagnostics : {0u, 1u})
+    for (const std::size_t diagnostics : {2u, 3u})
     {
       document_provider provider;
       parse_options options;
@@ -30,18 +30,24 @@ namespace
       parser_engine engine{{input.data(), input.size()}, options, accounting};
       const auto parsed = engine.run();
       /* Expect */
-      // Starting with a scalar verifies first-warning ownership independently of object-name decoding.
-      ASSERT_EQ(parsed.has_value(), diagnostics != 0);
-      if (diagnostics == 0)
+      // Mixing a scalar, a name and a value checks one shared diagnostic count across both lexers.
+      ASSERT_EQ(parsed.has_value(), diagnostics == 3);
+      if (diagnostics != 3)
       {
         EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
       }
       else
       {
-        EXPECT_EQ(parsed.value_if()->warning_count, 3u);
-        ASSERT_TRUE(parsed.value_if()->first_warning.has_value());
-        EXPECT_EQ(parsed.value_if()->first_warning->byte_offset, 2u);
-        EXPECT_EQ(parsed.value_if()->first_warning->byte_length, 3u);
+        const auto& warnings = parsed.value_if()->warnings;
+        ASSERT_EQ(warnings.size(), 3u);
+        constexpr std::size_t c_offsets[] = {2u, 9u, 15u};
+        for (std::size_t index = 0; index < warnings.size(); ++index)
+        {
+          const auto warning = warnings.at(index);
+          ASSERT_TRUE(warning.has_value());
+          EXPECT_EQ(warning.value_if()->byte_offset, c_offsets[index]);
+          EXPECT_EQ(warning.value_if()->byte_length, 3u);
+        }
       }
     }
   }

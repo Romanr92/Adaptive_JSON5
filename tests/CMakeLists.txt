@@ -6,6 +6,13 @@ adaptive_json5_add_unit(adaptive_json5_document_unit_tests document_units
 adaptive_json5_add_unit(adaptive_json5_owned_number_unit_tests owned_number_units
     value/owned_number_tests.cpp)
 
+adaptive_json5_add_unit(adaptive_json5_diagnostics_unit_tests diagnostics_units
+    api/error_range_tests.cpp
+    input/text_position_tests.cpp
+    value/warning_list_tests.cpp
+    value/retained_source_tests.cpp
+    parser/document_diagnostics_tests.cpp)
+
 adaptive_json5_add_unit(adaptive_json5_numeric_conversion_unit_tests numeric_units
     value/integer_conversion_tests.cpp
     value/floating_conversion_tests.cpp
@@ -47,6 +54,7 @@ set(adaptive_json5_public_headers
     options.hpp
     parser.hpp
     result.hpp
+    text_position.hpp
     memory/accounted_storage.hpp
     memory/owned_block.hpp
     memory/resource_limits.hpp
@@ -63,12 +71,14 @@ set(adaptive_json5_public_headers
     value/numeric_conversion.hpp
     value/numeric_conversion_reason.hpp
     value/owned_number.hpp
+    value/retained_source.hpp
     value/string_warning.hpp
     value/utf8_export.hpp
     value/value_index.hpp
     value/value_iterator.hpp
     value/value_kind.hpp
-    value/value_view.hpp)
+    value/value_view.hpp
+    value/warning_list.hpp)
 foreach(header IN LISTS adaptive_json5_public_headers)
     string(MAKE_C_IDENTIFIER "${header}" header_id)
     set(header_unit "${CMAKE_CURRENT_BINARY_DIR}/public_headers/${header_id}.cpp")

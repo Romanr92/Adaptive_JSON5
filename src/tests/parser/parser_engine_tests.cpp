@@ -420,16 +420,16 @@ namespace
 
   /* =================================== Test_J5_017 =================================== */
   /*
-   * Share a bounded first-warning descriptor across names and scalar strings.
-   * Arrange: Raw U+2028 in a name and U+2029 in a nested value, with diagnostic limits 1/0.
+   * Retain every warning from names and nested values, each consuming one diagnostic entry.
+   * Arrange: Raw U+2028 in a name and U+2029 in a nested value, with diagnostic limits 2/1.
    * Act: Parse each diagnostic allowance.
-   * Expect: Two counted warnings but one retained descriptor, or explicit resource failure.
+   * Expect: Both warnings in source order with two entries, or explicit resource failure with one.
    */
-  TEST(J5_017_ContainerWarnings, SharesFirstDescriptorAcrossNamesAndValues)
+  TEST(J5_017_ContainerWarnings, RetainsEveryWarningAcrossNamesAndValues)
   {
     /* Arrange */
     const std::string input = "{'\xE2\x80\xA8':['\xE2\x80\xA9']}";
-    for (const std::size_t diagnostics : {1u, 0u})
+    for (const std::size_t diagnostics : {2u, 1u})
     {
       engine_provider provider;
       parse_options options;
@@ -439,7 +439,7 @@ namespace
       /* Act */
       const auto parsed = engine.run();
       /* Expect */
-      if (diagnostics == 0)
+      if (diagnostics == 1)
       {
         ASSERT_FALSE(parsed.has_value());
         EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
@@ -447,11 +447,18 @@ namespace
       else
       {
         ASSERT_TRUE(parsed.has_value());
-        EXPECT_EQ(parsed.value_if()->warning_count, 2u);
-        ASSERT_TRUE(parsed.value_if()->first_warning.has_value());
-        EXPECT_EQ(parsed.value_if()->first_warning->code, string_warning_code::raw_line_separator);
-        EXPECT_EQ(parsed.value_if()->first_warning->byte_offset, 2u);
-        EXPECT_EQ(parsed.value_if()->first_warning->byte_length, 3u);
+        const auto& warnings = parsed.value_if()->warnings;
+        ASSERT_EQ(warnings.size(), 2u);
+        const auto name_warning = warnings.at(0);
+        const auto value_warning = warnings.at(1);
+        ASSERT_TRUE(name_warning.has_value());
+        ASSERT_TRUE(value_warning.has_value());
+        EXPECT_EQ(name_warning.value_if()->code, string_warning_code::raw_line_separator);
+        EXPECT_EQ(name_warning.value_if()->byte_offset, 2u);
+        EXPECT_EQ(name_warning.value_if()->byte_length, 3u);
+        EXPECT_EQ(value_warning.value_if()->code, string_warning_code::raw_paragraph_separator);
+        EXPECT_EQ(value_warning.value_if()->byte_offset, 9u);
+        EXPECT_EQ(value_warning.value_if()->byte_length, 3u);
       }
     }
   }
@@ -837,8 +844,7 @@ namespace
       ASSERT_TRUE(parsed.has_value());
       EXPECT_EQ(parsed.value_if()->values.size(), 1u);
       EXPECT_EQ(parsed.value_if()->consumed_bytes, input.size());
-      EXPECT_EQ(parsed.value_if()->warning_count, 0u);
-      EXPECT_FALSE(parsed.value_if()->first_warning.has_value());
+      EXPECT_EQ(parsed.value_if()->warnings.size(), 0u);
     }
   }
   /* ----------------------------------------------------------------------------------- */

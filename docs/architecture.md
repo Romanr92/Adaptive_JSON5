@@ -1012,8 +1012,8 @@ results do not depend on the process locale. Requirement rows remain Draft.
 
 ### P039 diagnostic and source decisions
 
-All P039 production pieces below are implemented; their units are still to be
-written, so no unit evidence exists yet. Requirement rows remain Draft.
+All P039 production pieces below are implemented, with units listed in the
+[traceability inventory](traceability.md). Requirement rows remain Draft.
 
 | Topic | Decision |
 | --- | --- |
