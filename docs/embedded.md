@@ -24,6 +24,10 @@ port, SDK or workflow requirement. The same core remains useful in hosted projec
 - Keep optional schema-engine and all CLI/editor/GoogleTest dependencies outside
   the embedded core target. No vendor implementation is imported.
 
+For storage callbacks, limit defaults, failure and retry behavior, and sizing a
+memory pool and work budget for a target, see
+[memory, limits and failure behavior](memory-and-limits.md).
+
 ## Generic CMake integration
 
 Use the consuming project's toolchain file for compiler, linker, archiver,

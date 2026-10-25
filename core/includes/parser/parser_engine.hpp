@@ -44,6 +44,9 @@ namespace adaptive_json5
      * @par Requirements
      * P033; P034; P035; J5-013; J5-027; J5-048.
      * @note Internal operation object; construct a fresh instance for each run.
+     * Single use: after any result, construct a new engine to parse again.
+     * Resource reservations are not rolled back after failure; the failed state is
+     * discarded as a whole and owned storage is released by destructors (ADR 0003, decision 9).
      * Partial documents are never returned after failure.
      * No recursive descent is used.
      */
@@ -155,6 +158,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
          * @note Invoke once on a fresh engine.
+         * Single use: after any result, construct a new engine to parse again.
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
          */
@@ -165,6 +169,7 @@ namespace adaptive_json5
          * @par Requirements
          * P037; J5-026; J5-049; J5-051.
          * @note Invoke once on a fresh engine instead of run().
+         * Single use: after any result, construct a new engine to parse again.
          * Admits trailing trivia according to the selected syntax mode.
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
