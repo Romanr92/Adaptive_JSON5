@@ -68,7 +68,8 @@ namespace adaptive_json5
     {
       if (mode == syntax_mode::strict_json)
       {
-        return classification_result::failure(error::at_offset(error_code::syntax, token.byte_offset));
+        return classification_result::failure(
+          error::syntax_at(token.byte_offset, syntax_error_reason::not_allowed_in_strict_json));
       }
 
       return classification_result::success(identifier_classification::member_name);

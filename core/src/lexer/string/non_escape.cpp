@@ -47,7 +47,7 @@ namespace adaptive_json5
     const auto& character = *decoded.value_if();
     if (!character.has_value())
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
     const char32_t scalar = character->value;
@@ -82,12 +82,13 @@ namespace adaptive_json5
 
     if ((scalar >= c_first_forbidden_digit) && (scalar <= c_last_forbidden_digit))
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+      return escape_result::failure(error::syntax_at(character->byte_offset, syntax_error_reason::invalid_escape));
     }
 
     if (mode == syntax_mode::strict_json)
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+      return escape_result::failure(
+        error::syntax_at(character->byte_offset, syntax_error_reason::not_allowed_in_strict_json));
     }
 
     source = candidate;

@@ -132,7 +132,8 @@ namespace adaptive_json5
       // Strict mode must reject comments instead of silently skipping them.
       if (mode == syntax_mode::strict_json)
       {
-        return trivia_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
+        return trivia_result::failure(
+          error::syntax_at(candidate.offset(), syntax_error_reason::not_allowed_in_strict_json));
       }
 
       const auto comment = is_line_comment ? consume_line_comment(candidate) : consume_block_comment(candidate);

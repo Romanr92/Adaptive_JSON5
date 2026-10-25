@@ -82,16 +82,27 @@ namespace adaptive_json5
         break;
 
       default:
+      {
         // A member awaiting its colon or value cannot close successfully.
-        return result<value_index>::failure(error::at_offset(error_code::syntax, closing.byte_offset));
+        return result<value_index>::failure(error::syntax_at(
+          closing.byte_offset, (frame->state == parser_state::object_colon) ? syntax_error_reason::missing_colon
+                                                                            : syntax_error_reason::missing_value));
+      }
       }
 
       const auto expected = array ? punctuation_kind::right_bracket : punctuation_kind::right_brace;
 
-      // P034/P035: only JSON5 permits closing after one completed item and its comma.
-      if ((closing.kind != expected) || (trailing_comma && (mode != syntax_mode::json5)))
+      if (closing.kind != expected)
       {
-        return result<value_index>::failure(error::at_offset(error_code::syntax, closing.byte_offset));
+        return result<value_index>::failure(
+          error::syntax_at(closing.byte_offset, syntax_error_reason::unexpected_closing_bracket));
+      }
+
+      // P034/P035: only JSON5 permits closing after one completed item and its comma.
+      if (trailing_comma && (mode != syntax_mode::json5))
+      {
+        return result<value_index>::failure(
+          error::syntax_at(closing.byte_offset, syntax_error_reason::not_allowed_in_strict_json));
       }
 
       // Every closable object has already transferred its pending name.

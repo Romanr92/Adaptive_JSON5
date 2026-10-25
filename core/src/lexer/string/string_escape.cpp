@@ -96,7 +96,7 @@ namespace adaptive_json5
 
     if (!character.value_if()->has_value())
     {
-      return result<encoded_utf16>::failure(error::at_offset(error_code::syntax, source.offset()));
+      return result<encoded_utf16>::failure(error::syntax_at(source.offset(), syntax_error_reason::invalid_escape));
     }
 
     // Non-escape source characters are scalars and may require a surrogate pair.

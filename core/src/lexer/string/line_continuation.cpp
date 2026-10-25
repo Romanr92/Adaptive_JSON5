@@ -31,7 +31,7 @@ namespace adaptive_json5
 
     if (!source.peek().has_value())
     {
-      return continuation_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return continuation_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
     // Apply the syntax policy before committing the recognized terminator.
@@ -49,7 +49,8 @@ namespace adaptive_json5
 
     if (mode == syntax_mode::strict_json)
     {
-      return continuation_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return continuation_result::failure(
+        error::syntax_at(source.offset(), syntax_error_reason::not_allowed_in_strict_json));
     }
 
     source = candidate;

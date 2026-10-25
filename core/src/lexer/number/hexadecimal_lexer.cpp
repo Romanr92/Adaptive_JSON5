@@ -64,7 +64,7 @@ namespace adaptive_json5
 
     if (mode == syntax_mode::strict_json)
     {
-      return hexadecimal_result::failure(error::at_offset(error_code::syntax, start));
+      return hexadecimal_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
     }
 
     candidate.advance(c_prefix_byte_count);
@@ -87,7 +87,7 @@ namespace adaptive_json5
       {
         if (!has_digits)
         {
-          return hexadecimal_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
+          return hexadecimal_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end));
         }
 
         break;
@@ -105,7 +105,8 @@ namespace adaptive_json5
       {
         if (!has_digits)
         {
-          return hexadecimal_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+          return hexadecimal_result::failure(
+            error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
         }
 
         const char32_t scalar = character->value;
@@ -113,7 +114,8 @@ namespace adaptive_json5
         // These suffixes cannot turn a hexadecimal prefix into a valid number.
         if (is_identifier_part(scalar) || (scalar == U'\\') || (scalar == U'.'))
         {
-          return hexadecimal_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+          return hexadecimal_result::failure(
+            error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
         }
 
         break;

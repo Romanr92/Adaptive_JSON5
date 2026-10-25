@@ -10,6 +10,34 @@
 
 namespace adaptive_json5
 {
+  namespace
+  {
+    /**
+     * @brief Name an unexpected structural byte, or fall back to the state's own reason.
+     * @par Requirements
+     * J5-043; issue #96.
+     * @param byte Byte found where the grammar required something else.
+     * @param otherwise Reason used when byte is not structural punctuation.
+     * @return The punctuation-specific reason or otherwise.
+     * @note Performs no allocation.
+     */
+    syntax_error_reason separator_reason(char byte, syntax_error_reason otherwise) noexcept
+    {
+      switch (byte)
+      {
+      case ',':
+        return syntax_error_reason::unexpected_comma;
+      case ':':
+        return syntax_error_reason::unexpected_colon;
+      case ']':
+      case '}':
+        return syntax_error_reason::unexpected_closing_bracket;
+      default:
+        return otherwise;
+      }
+    }
+  } // namespace
+
   namespace detail
   {
     /**
@@ -33,7 +61,7 @@ namespace adaptive_json5
 
       if (!current.has_value())
       {
-        return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
+        return action_result::failure(error::syntax_at(byte_offset, syntax_error_reason::unexpected_end));
       }
 
       const char byte = *current;
@@ -66,7 +94,8 @@ namespace adaptive_json5
           return action_result::success(parser_action::close_container);
         }
 
-        return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
+        return action_result::failure(
+          error::syntax_at(byte_offset, separator_reason(byte, syntax_error_reason::missing_comma)));
 
       // P035: require each name, colon and value before allowing a member separator.
       case parser_state::object_first_name_or_end:
@@ -85,7 +114,7 @@ namespace adaptive_json5
             return action_result::success(parser_action::close_container);
           }
 
-          return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
+          return action_result::failure(error::syntax_at(byte_offset, syntax_error_reason::not_allowed_in_strict_json));
         }
 
         return action_result::success(parser_action::read_name);
@@ -96,7 +125,7 @@ namespace adaptive_json5
           return action_result::success(parser_action::consume_colon);
         }
 
-        return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
+        return action_result::failure(error::syntax_at(byte_offset, syntax_error_reason::missing_colon));
 
       case parser_state::object_value:
         break;
@@ -112,7 +141,8 @@ namespace adaptive_json5
           return action_result::success(parser_action::close_container);
         }
 
-        return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
+        return action_result::failure(
+          error::syntax_at(byte_offset, separator_reason(byte, syntax_error_reason::missing_comma)));
 
       default:
         return action_result::failure(error::without_location(error_code::wrong_type_or_access));
@@ -121,7 +151,20 @@ namespace adaptive_json5
       // P034/P035: separators cannot create array holes or replace member values.
       if ((byte == ',') || (byte == ':') || (byte == ']') || (byte == '}'))
       {
-        return action_result::failure(error::at_offset(error_code::syntax, byte_offset));
+        auto reason = separator_reason(byte, syntax_error_reason::unexpected_character);
+
+        // A member colon promises a value, so any punctuation here means the value is missing.
+        if (frame.state == parser_state::object_value)
+        {
+          reason = syntax_error_reason::missing_value;
+        }
+        // JSON5 accepted this trailing comma above; only strict mode reaches here with it.
+        else if ((frame.state == parser_state::array_value_after_comma) && (byte == ']'))
+        {
+          reason = syntax_error_reason::not_allowed_in_strict_json;
+        }
+
+        return action_result::failure(error::syntax_at(byte_offset, reason));
       }
 
       return action_result::success(parser_action::read_value);

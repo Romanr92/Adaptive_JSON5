@@ -73,7 +73,8 @@ namespace adaptive_json5
         if (!decoded.value_if()->has_value())
         {
           // Other string escape forms are not identifier escapes.
-          return identifier_result::failure(error::at_offset(error_code::syntax, character_offset));
+          return identifier_result::failure(
+            error::syntax_at(character_offset, syntax_error_reason::invalid_identifier));
         }
 
         scalar = static_cast<char32_t>(**decoded.value_if());
@@ -102,7 +103,8 @@ namespace adaptive_json5
         // An escape cannot hide an illegal character or terminate a name.
         if (escaped)
         {
-          return identifier_result::failure(error::at_offset(error_code::syntax, character_offset));
+          return identifier_result::failure(
+            error::syntax_at(character_offset, syntax_error_reason::invalid_identifier));
         }
 
         break;

@@ -1,11 +1,14 @@
 #include "lexer/member_name_lexer.hpp"
 
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
 #include "lexer/string/string_lexer.hpp"
+#include "unicode/unicode.hpp"
+#include "unicode/utf8.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -25,6 +28,7 @@ namespace adaptive_json5
      * @param max_units Inclusive decoded-name limit for this recognition.
      * @return Owned name, successful nullopt on no-match, or an explicit failure.
      * @note Failure and no-match preserve source.
+     * Strict mode reports an identifier-shaped name as not_allowed_in_strict_json.
      * Success consumes only the name, leaving the colon unconsumed.
      * Does not classify reserved words as value literals.
      * Does not skip trivia, update frames or invoke warning callbacks.
@@ -63,6 +67,17 @@ namespace adaptive_json5
       // Strict JSON has no identifier-name alternative.
       if (mode != syntax_mode::json5)
       {
+        cursor probe = source;
+        const auto first = decode_utf8(probe);
+
+        // Name a JSON5 identifier as the strict-mode violation instead of a missing name, without allocating.
+        if (first.has_value() && first.value_if()->has_value() &&
+            (is_identifier_start((*first.value_if())->value) || ((*first.value_if())->value == U'\\')))
+        {
+          return name_result::failure(
+            error::syntax_at(source.offset(), syntax_error_reason::not_allowed_in_strict_json));
+        }
+
         return name_result::success(std::nullopt);
       }
 

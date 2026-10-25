@@ -147,7 +147,10 @@ namespace adaptive_json5
 
       if (!current.has_value())
       {
-        return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+        // Without an open container no root value was started, so the document itself is empty.
+        return status_result::failure(error::syntax_at(m_source.offset(), (m_frames.top() == nullptr)
+                                                                            ? syntax_error_reason::empty_input
+                                                                            : syntax_error_reason::unexpected_end));
       }
 
       const auto reserved_value = m_resources.reserve_value(member);
@@ -227,7 +230,7 @@ namespace adaptive_json5
 
       if (!recognized.value_if()->has_value())
       {
-        return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
       }
 
       const auto recognition = charge_scanned(m_work, m_source.offset(), candidate.offset());
@@ -363,7 +366,7 @@ namespace adaptive_json5
 
       if (!recognized.value_if()->has_value())
       {
-        return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::expected_member_name));
       }
 
       const auto charged = charge_scanned(m_work, m_source.offset(), candidate.offset());
@@ -483,7 +486,7 @@ namespace adaptive_json5
 
       if ((!punctuation.has_value()) || (punctuation->kind != expected))
       {
-        return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
       }
 
       frame->state = next_state;
@@ -511,7 +514,7 @@ namespace adaptive_json5
       if (!closing.has_value() ||
           ((closing->kind != punctuation_kind::right_bracket) && (closing->kind != punctuation_kind::right_brace)))
       {
-        return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
       }
 
       const auto completed = close_container(m_document, m_frames, *closing, m_options.syntax, m_input.size, m_work);
@@ -820,7 +823,7 @@ namespace adaptive_json5
 
       if (!m_source.is_at_end())
       {
-        return tree_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+        return tree_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
       }
 
       // Complete parsing includes the trailing trivia in its consumed length.

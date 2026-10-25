@@ -326,7 +326,9 @@ namespace adaptive_json5
 
     if (!parsed.value_if()->has_value())
     {
-      return document_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return document_result::failure(error::syntax_at(source.offset(), source.is_at_end()
+                                                                          ? syntax_error_reason::empty_input
+                                                                          : syntax_error_reason::unexpected_character));
     }
 
     // Admit the remaining suffix before scanning trailing trivia.
@@ -346,7 +348,7 @@ namespace adaptive_json5
 
     if (!source.is_at_end())
     {
-      return document_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return document_result::failure(error::syntax_at(source.offset(), syntax_error_reason::trailing_content));
     }
 
     const primitive_value root = **parsed.value_if();

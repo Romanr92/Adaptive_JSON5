@@ -35,7 +35,7 @@ namespace adaptive_json5
     const auto current = source.peek();
     if (!current.has_value())
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
     char16_t unit{};
@@ -97,7 +97,7 @@ namespace adaptive_json5
 
     if (json5_only && (mode == syntax_mode::strict_json))
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::not_allowed_in_strict_json));
     }
 
     if (*current == c_decimal_digits_min)
@@ -107,7 +107,8 @@ namespace adaptive_json5
       // Reject the entire zero escape instead of accepting an octal prefix.
       if (following.has_value() && (*following >= c_decimal_digits_min) && (*following <= c_decimal_digits_max))
       {
-        return escape_result::failure(error::at_offset(error_code::syntax, source.offset() + c_escape_byte_count));
+        return escape_result::failure(
+          error::syntax_at(source.offset() + c_escape_byte_count, syntax_error_reason::invalid_escape));
       }
     }
 

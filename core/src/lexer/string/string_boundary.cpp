@@ -40,7 +40,8 @@ namespace adaptive_json5
     {
       if (mode == syntax_mode::strict_json)
       {
-        return opening_result::failure(error::at_offset(error_code::syntax, source.offset()));
+        return opening_result::failure(
+          error::syntax_at(source.offset(), syntax_error_reason::not_allowed_in_strict_json));
       }
 
       quote = string_quote::single;
@@ -86,7 +87,7 @@ namespace adaptive_json5
     const auto& character = *decoded.value_if();
     if (!character.has_value())
     {
-      return result<string_piece>::failure(error::at_offset(error_code::syntax, source.offset()));
+      return result<string_piece>::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
     const char32_t scalar = character->value;
@@ -103,7 +104,11 @@ namespace adaptive_json5
     else if ((scalar == c_carriage_return) || (scalar == c_line_feed) ||
              ((mode == syntax_mode::strict_json) && (scalar <= c_control_max)))
     {
-      return result<string_piece>::failure(error::at_offset(error_code::syntax, character->byte_offset));
+      // Raw CR/LF are forbidden in both modes, so report them as line terminators even in strict JSON.
+      return result<string_piece>::failure(
+        error::syntax_at(character->byte_offset, ((scalar == c_carriage_return) || (scalar == c_line_feed))
+                                                   ? syntax_error_reason::line_terminator_in_string
+                                                   : syntax_error_reason::control_character_in_string));
     }
 
     source = candidate;
