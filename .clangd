@@ -2,7 +2,7 @@ CompileFlags:
   CompilationDatabase: build/debug-unit-tests
   # Relative to the compilation database's build/debug-unit-tests directory.
   # New headers may inherit a test command without the library include path.
-  Add: [-I../../includes, -I../../src/includes]
+  Add: [-I../../includes, -I../../core/includes]
 ---
 # Validation tests are absent from the unit-test compilation database. Their
 # fixture roots come from CMake; editor analysis needs only placeholder values.

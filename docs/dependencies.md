@@ -46,7 +46,7 @@ and ECMAScript 5.1 (June 2011). Specification notices are retained in
 `LICENSES/JSON5-Specification-MIT.txt` and `LICENSES/ECMA-262-5.1-Document.txt`.
 These are document attributions, not parser runtime dependencies.
 
-The generated `src/includes/adaptive_json5/detail/unicode/unicode_tables.hpp` uses Unicode 17.0.0
+The generated `core/includes/unicode/unicode_tables.hpp` uses Unicode 17.0.0
 category data and retains Unicode 3.0.0 identifier memberships. Unchanged source
 files, URLs, hashes, the license snapshot and the offline regeneration procedure
 are recorded in [the Unicode input inventory](../tools/unicode-data/README.md).

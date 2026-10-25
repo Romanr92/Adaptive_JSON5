@@ -16,7 +16,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build" / "coverage"
 SOURCE_FILTER = (
-    r"^(?:includes/|src/(?:includes|src)/)"
+    r"^(?:includes/|core/(?:includes|src)/)"
     r".*(?i:\.(?:c|cc|cp|cpp|cxx|c\+\+|h|hh|hp|hpp|hxx|h\+\+|inl|inc|ipp|tpp|tcc|txx|ixx|cppm|cxxm|ccm|c\+\+m))$"
 )
 

@@ -1,4 +1,4 @@
-#include "../support/guard_provider.hpp"
+#include "../shared_infrastructure/guard_provider.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/warning_list.hpp"

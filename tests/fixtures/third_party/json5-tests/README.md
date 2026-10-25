@@ -19,4 +19,4 @@ supported data type, but aggregate test cases are welcome, too.
 
 ## License
 
-MIT. See [LICENSE.md](./LICENSE.md) for details.
+MIT. See [LICENSE.md](LICENSE.md) for details.

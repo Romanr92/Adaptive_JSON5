@@ -1,4 +1,4 @@
-#include "../support/guard_provider.hpp"
+#include "../shared_infrastructure/guard_provider.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/value/floating_conversion.hpp"

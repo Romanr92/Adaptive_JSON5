@@ -1,6 +1,6 @@
 # Requirement traceability
 
-Current ownership follows [the issue tracking section](requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking).
+Current ownership follows [the issue tracking section](../core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking).
 The owner is the final completion anchor for a shared contract; stage-specific
 implementation/tests remain in the P groups listed there. All existing named
 tests and Draft status are retained. No per-issue report is required; named units
@@ -18,9 +18,9 @@ evidence and do not automatically establish full requirement verification.
 
 Keep exact `SuiteName.TestName` declarations in the Unit Tests inventory, separated
 by `; ` when several units cover one requirement. Do not add generated parameter
-case suffixes. Record actual execution results in the corresponding step of the [implementation sequence](requirements/json5-implementation-order.md).
+case suffixes. Record actual execution results in the corresponding step of the [implementation sequence](../core/docs/requirements-json5-implementation-order.md).
 The per-production view of the same tests is the
-[grammar evidence matrix](grammar-evidence.md). Support, limits and deviations
+[grammar evidence matrix](../core/docs/design-grammar-evidence.md). Support, limits and deviations
 are collected in the [JSON5 1.0.0 support statement](conformance.md).
 
 | ID | Contract | Status | Owning issue | Unit Tests |
@@ -126,3 +126,7 @@ are collected in the [JSON5 1.0.0 support statement](conformance.md).
 | J5-099 | Portable unit build matrix | Draft | [#72](https://github.com/Romanr92/Adaptive_JSON5/issues/72) |  |
 | J5-100 | Release completeness | Draft | [#72](https://github.com/Romanr92/Adaptive_JSON5/issues/72) |  |
 | J5-101 | OS-agnostic embedded integration | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | `J5_101_BuildConfiguration.AppliesSelectedRttiMode` |
+
+Issue #98 changed paths only. Public contracts are in [API requirements](requirements.md);
+J5-094?100 and quality intentions are in [core requirements](../core/docs/requirements-quality.md).
+The source/function and split traceability regeneration remains tracked in issue #99.

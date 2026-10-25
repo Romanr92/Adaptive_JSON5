@@ -1,5 +1,5 @@
-#include "../support/document_provider.hpp"
-#include "../support/guard_provider.hpp"
+#include "../shared_infrastructure/document_provider.hpp"
+#include "../shared_infrastructure/guard_provider.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/options.hpp"

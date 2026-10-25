@@ -1,4 +1,4 @@
-#include "../support/document_provider.hpp"
+#include "../shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/value/decoded_name_equal.hpp"
 #include "adaptive_json5/value/document.hpp"
 

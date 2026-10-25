@@ -23,7 +23,7 @@ Draft; this review does not verify optional components or promote shared rows.
 
 | Mode | Grammar | Evidence |
 | --- | --- | --- |
-| `syntax_mode::json5` (default) | Every JSON5 1.0.0 production | [Grammar evidence matrix](grammar-evidence.md); json5-tests corpus |
+| `syntax_mode::json5` (default) | Every JSON5 1.0.0 production | [Grammar evidence matrix](../core/docs/design-grammar-evidence.md); json5-tests corpus |
 | `syntax_mode::strict_json` | RFC 8259 JSON text; every JSON5-only feature is rejected | `J5_027_ModePair`; JSONTestSuite `y_`/`n_` |
 
 Any value type may be the root. Empty or trivia-only input is a syntax error.
@@ -37,7 +37,7 @@ RFC 8259 §9 permits limits on text size, nesting depth, numbers and strings, an
 J5-027 requires the grammar within documented limits. The parser's limits are
 inclusive, finite and configurable per call through `parse_options::limits`;
 exceeding one returns `resource_limit`, never a wrong result. The defaults are
-listed in [architecture § 3](architecture.md#3-storage-ownership-and-budgets).
+listed in [architecture § 3](../core/docs/design-architecture.md#3-storage-ownership-and-budgets).
 
 The defaults are conservative, chosen for untrusted input: for example 16 KiB of
 input, 1024 values, 1024 members and 4096 UTF-16 units per string. Valid
@@ -103,7 +103,7 @@ Classified as **spec choice** (the specification permits it), **addition**
 The core uses no filesystem, process, network, clock, locale or OS-thread
 services and has no shared mutable global state. Separate documents may be used
 concurrently; a shared storage provider needs caller synchronization. See
-[architecture § 10](architecture.md#10-runtime-and-concurrency-boundaries).
+[architecture § 10](../core/docs/design-architecture.md#10-runtime-and-concurrency-boundaries).
 
 ## Regression checklist mapping
 

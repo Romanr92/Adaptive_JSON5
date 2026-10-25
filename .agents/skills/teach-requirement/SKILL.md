@@ -26,10 +26,10 @@ GoogleTest, documentation and requirements work is permitted by AGENTS.md.
 
 ## Teach implementation in context
 
-Follow [ADR 0002](../../../docs/adr/0002-public-private-source-layout.md) for new
+Follow [ADR 0002](../../../core/docs/adr-0002-public-private-source-layout.md) for new
 file proposals: supported public headers under `includes/`, private headers under
-`src/includes/`, and non-template implementations under `src/src/`, grouped by topic.
-Internal test guidance uses `src/tests/`; public-interface and whole-library
+`core/includes/`, and non-template implementations under `core/src/`, grouped by topic.
+Internal test guidance uses `core/tests/`; public-interface and whole-library
 behavior units remain under top-level `tests/` without private-header access.
 Read actual current files before guidance; the old `include/` tree has been
 migrated under explicit user authorization. Do not duplicate it or expose private
@@ -41,7 +41,7 @@ P steps, J5 contracts and prerequisites. Inspect the relevant implementation
 headers, corresponding `.cpp` files and CMake source lists before recommending
 calls, types or placement. Distinguish code that exists from
 documented plans; stale status prose alone is not implementation evidence.
-For core parser work, use `docs/requirements/json5-implementation-order.md`.
+For core parser work, use `core/docs/requirements-json5-implementation-order.md`.
 
 Match the explanation to the request. A question about one operation needs a
 focused answer; an implementation walkthrough needs enough detail for the
@@ -78,8 +78,8 @@ exception to the production-code restriction when the user has asked to learn.
 ### Teach the compiled C++ architecture
 
 The user explicitly requires normal declaration/implementation separation in
-future lessons. Follow [the current architecture](../../../docs/architecture.md)
-and [source layout](../../../docs/source-layout.md). Do not return to header-only
+future lessons. Follow [the current architecture](../../../core/docs/design-architecture.md)
+and [source layout](../../../core/docs/design-source-layout.md). Do not return to header-only
 implementation merely because it is easier to present in a conversation.
 
 - Begin each coherent change by identifying its responsibility and boundary:
@@ -88,8 +88,8 @@ implementation merely because it is easier to present in a conversation.
   new header. Proper C++ architecture does not require a class for every helper,
   virtual inheritance, PImpl, a factory or a design pattern without a need.
 - Put supported declarations in `includes/adaptive_json5/<topic>/`, shared
-  internal declarations in `src/includes/adaptive_json5/detail/<topic>/`, and
-  ordinary definitions in `src/src/<topic>/*.cpp`. Do not put substantial
+  internal declarations in `core/includes/<topic>/`, and
+  ordinary definitions in `core/src/<topic>/*.cpp`. Do not put substantial
   non-template bodies inside class headers or create an `inline` header-only
   helper as a shortcut. Single-translation-unit helpers belong locally in the
   `.cpp` when practical. Small existing inline operations may remain as documented.
@@ -120,7 +120,7 @@ implementation merely because it is easier to present in a conversation.
   wiring; do not claim it exists because a source file was proposed.
 - Review both sides for signature/default-argument agreement, complete types,
   self-contained includes, single definitions, dependency direction and explicit
-  failures. Keep internal units in `src/tests/` and public-interface units in
+  failures. Keep internal units in `core/tests/` and public-interface units in
   top-level `tests/`; honor any requested pause before unit work.
 
 ### Learner's current needs and gradual independence
@@ -206,7 +206,7 @@ the explanation or tests pass.
 
 ## Coding style for guidance
 
-Read [docs/coding-style.md](../../../docs/coding-style.md) when presenting or
+Read [core/docs/design-coding-style.md](../../../core/docs/design-coding-style.md) when presenting or
 reviewing C++ examples. Class data members use `m_<varName>` with no trailing
 underscore, for example `m_error` rather than `error_` or `m_error_`. Preserve
 snake_case for the remainder of the name and the existing public aggregate

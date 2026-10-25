@@ -16,12 +16,12 @@ requirements and repository/issue organization. **Do not create or modify
 production C++ implementation or public C++ headers.** Production implementation
 belongs to a human developer unless the user explicitly changes this instruction.
 
-Test-only C++ under top-level `tests/` and `src/tests/` is permitted. Internal
-component units belong in `src/tests/`; public-header/API and whole-library
+Test-only C++ under top-level `tests/` and `core/tests/` is permitted. Internal
+component units belong in `core/tests/`; public-header/API and whole-library
 behavior units using only public interfaces belong in top-level `tests/`.
 Both remain GoogleTest unit tests under the existing quality scope. Do not
 disguise production logic as test helpers or generated code to bypass the
-restriction, and never include `src/tests/` in production source lists.
+restriction, and never include `core/tests/` in production source lists.
 
 - Prepare or edit CMake, GoogleTest units, formatting, documentation, requirements,
   ADRs, repository skills and the authorized issue backlog.
@@ -47,11 +47,11 @@ restriction, and never include `src/tests/` in production source lists.
 
 ## Repository skills
 
-Follow [ADR 0002: source layout](docs/adr/0002-public-private-source-layout.md)
+Follow [ADR 0002: source layout](core/docs/adr-0002-public-private-source-layout.md)
 for all new work and guidance: `includes/` contains supported public headers,
-`src/includes/` contains private headers, and `.cpp` files under `src/src/` hold
+`core/includes/` contains private headers, and `.cpp` files under `core/src/` hold
 substantial non-template implementations. Group files by topic. Internal units
-live in `src/tests/`; public-interface/library units stay in top-level `tests/`
+live in `core/tests/`; public-interface/library units stay in top-level `tests/`
 without private include access.
 Teaching must follow the compiled architecture: read the corresponding header,
 implementation and CMake source list; present declaration/source pairs when a
@@ -86,7 +86,7 @@ GoogleTest is acquired and built through CMake FetchContent for host unit tests
 only. Keep the immutable revision and offline source override; tests-disabled
 consumer builds must not acquire or link the host test framework.
 
-For core parser work, follow the [official-specification implementation sequence](docs/requirements/json5-implementation-order.md).
+For core parser work, follow the [official-specification implementation sequence](core/docs/requirements-json5-implementation-order.md).
 P001–P066 are ordered so all prerequisites come earlier; existing J5 IDs remain
 unchanged for issue and requirement traceability. Optional schema/editor/CLI work
 does not block this core parser sequence.
@@ -101,7 +101,7 @@ P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent
 
 ## Current delivery and issue workflow
 
-Follow [the delivery scope and issue tracking](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking): retain full
+Follow [the delivery scope and issue tracking](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking): retain full
 schema P043–P055, minimal complete testing CLI P056–P059 and full advanced memory
 accounting. Independently optional build flags do not remove those features from
 this selected delivery scope. Editor/consumer acceptance remains in the backlog.
