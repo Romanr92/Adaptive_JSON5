@@ -27,7 +27,8 @@ conformance, provenance and the existing traceability inventory remain in `docs/
 J5-094 through J5-100 and the regression/quality intentions moved to
 [core quality requirements](requirements-quality.md); public behavior contracts
 remain in [API requirements](../../docs/requirements.md). No normative wording or
-Draft status changed. Regenerating source/function traceability is issue #99.
+Draft status changed. Issue #99 regenerated the source/function traceability,
+split into core and API sections, against this layout.
 
 ## Decision
 
