@@ -139,6 +139,7 @@ namespace adaptive_json5
     // Report where the closer was expected, and cover the open comment so tools can highlight it.
     const source_span open_comment{start, candidate.offset() - start};
 
-    return comment_result::failure(error::at_range(error_code::syntax, candidate.offset(), open_comment));
+    return comment_result::failure(
+      error::syntax_at_range(candidate.offset(), open_comment, syntax_error_reason::unterminated_comment));
   }
 } // namespace adaptive_json5

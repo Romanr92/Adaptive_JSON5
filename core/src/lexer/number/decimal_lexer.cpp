@@ -45,7 +45,9 @@ namespace adaptive_json5
         return *decoded.error_if();
       }
 
-      return error::at_offset(error_code::syntax, offset);
+      // A missing component at end of input is truncation, not a malformed spelling.
+      return error::syntax_at(offset, decoded.value_if()->has_value() ? syntax_error_reason::invalid_number
+                                                                      : syntax_error_reason::unexpected_end);
     }
   } // namespace detail
 
@@ -95,7 +97,7 @@ namespace adaptive_json5
     {
       if ((*initial == '+') && (mode == syntax_mode::strict_json))
       {
-        return decimal_result::failure(error::at_offset(error_code::syntax, start));
+        return decimal_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
       }
 
       candidate.advance(c_ascii_byte_count);
@@ -131,7 +133,7 @@ namespace adaptive_json5
 
         if (detail::is_decimal_digit(candidate.peek()))
         {
-          return decimal_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
+          return decimal_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::invalid_number));
         }
       }
       else
@@ -144,7 +146,8 @@ namespace adaptive_json5
     {
       if (!has_integer && (mode == syntax_mode::strict_json))
       {
-        return decimal_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
+        return decimal_result::failure(
+          error::syntax_at(candidate.offset(), syntax_error_reason::not_allowed_in_strict_json));
       }
 
       candidate.advance(c_ascii_byte_count);

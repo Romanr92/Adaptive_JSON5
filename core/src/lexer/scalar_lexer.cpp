@@ -132,7 +132,7 @@ namespace adaptive_json5
 
     if (!identifier.value_if()->has_value())
     {
-      return scalar_result::failure(error::at_offset(error_code::syntax, start));
+      return scalar_result::failure(error::syntax_at(start, syntax_error_reason::unexpected_character));
     }
 
     const auto& name = **identifier.value_if();
@@ -157,7 +157,7 @@ namespace adaptive_json5
       break;
 
     default:
-      return scalar_result::failure(error::at_offset(error_code::syntax, name.byte_offset));
+      return scalar_result::failure(error::syntax_at(name.byte_offset, syntax_error_reason::unknown_literal));
     }
 
     const literal_token literal{kind, name.byte_offset, name.byte_length};

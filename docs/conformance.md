@@ -31,6 +31,14 @@ Strict mode accepts no extensions: RFC 8259 §9 permits a parser to accept
 non-JSON forms, but this one does not, except the opt-in `strict_bom` option.
 Errors are returned as `result` values in every build; nothing throws.
 
+Syntax errors also carry a `syntax_error_reason` (issue #96). `format_error`, `format_warning` and their
+`_at` forms in `diagnostic_format.hpp` render `line: L, column: C: <text>` into caller storage, with
+1-based lines and code-point columns from `locate`. Unlocated errors print only the text; duplicate names
+add `(first at line: L, column: C)`; warnings add `warning: `. Output is truncated with a NUL and the full
+length is returned; formatting allocates nothing and ignores the locale. The English text is stable but is
+for people only: programs use `error_code` and the reason fields. Unit evidence: `D96_` suites in
+`tests/api/syntax_reason_tests.cpp` and `tests/api/diagnostic_format_tests.cpp`.
+
 ## Default limits
 
 RFC 8259 §9 permits limits on text size, nesting depth, numbers and strings, and

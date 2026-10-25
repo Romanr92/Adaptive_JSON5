@@ -161,7 +161,8 @@ namespace adaptive_json5
         {
           const source_span open_string{start, candidate.offset() - start};
 
-          return string_result::failure(error::at_range(error_code::syntax, candidate.offset(), open_string));
+          return string_result::failure(
+            error::syntax_at_range(candidate.offset(), open_string, syntax_error_reason::unterminated_string));
         }
 
         return string_result::failure(*piece.error_if());

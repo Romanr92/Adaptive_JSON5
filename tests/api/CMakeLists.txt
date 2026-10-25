@@ -46,13 +46,24 @@ adaptive_json5_add_unit(adaptive_json5_strict_json_unit_tests
     strict_json_units
     strict_json_tests.cpp)
 
+adaptive_json5_add_unit(adaptive_json5_syntax_reason_unit_tests
+    syntax_reason_units
+    syntax_reason_tests.cpp)
+
+# Replaces the global allocator to prove formatting allocates nothing, so it stays in its own executable.
+adaptive_json5_add_unit(adaptive_json5_diagnostic_format_unit_tests
+    diagnostic_format_units
+    diagnostic_format_tests.cpp)
+
 # Compile every public header in its own test translation unit, without private paths.
 set(adaptive_json5_public_headers
+    diagnostic_format.hpp
     error.hpp
     input.hpp
     options.hpp
     parser.hpp
     result.hpp
+    syntax_error_reason.hpp
     text_position.hpp
     memory/accounted_storage.hpp
     memory/owned_block.hpp

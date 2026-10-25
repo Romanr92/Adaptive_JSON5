@@ -67,13 +67,13 @@ namespace adaptive_json5
 
     if (!recognized.value_if()->has_value())
     {
-      return number_result::failure(error::at_offset(error_code::syntax, c_spelling_start_offset));
+      return number_result::failure(error::syntax_at(c_spelling_start_offset, syntax_error_reason::invalid_number));
     }
 
     // Reject surrounding trivia or additional tokens instead of copying only a prefix.
     if (!source.is_at_end())
     {
-      return number_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return number_result::failure(error::syntax_at(source.offset(), syntax_error_reason::trailing_content));
     }
 
     auto allocation = allocate_block(storage, text.size, alignof(char));

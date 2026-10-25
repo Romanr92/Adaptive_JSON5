@@ -24,12 +24,27 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   mistake, not a conceptual difficulty. Keep this concept learned and continue
   using exercise placeholders rather than supplying its implementation.
 
+- Scoped-enum `switch` mapping (2026-10-25): #96 step 3b `describe()` for
+  `numeric_conversion_reason` and `string_warning_code` written independently from
+  exercise blocks, with every enumerator, no `default:` and the fallback after the
+  switch. One typo in a message literal (`escapeg`), a slip rather than a concept
+  issue. Use exercise blocks for later enum-to-value mappings.
+
 ## Retry after further guided practice
 
 - Committing a successful private cursor to the caller: the scalar finish helper
   exercise needed help. Supplied `source = candidate;` and explained references,
   cursor copies and ordering after validation/result construction. Keep guided
   support for now and retry this operation later rather than immediately.
+
+- Forwarding a same-typed result (2026-10-25): #96 step 3c `format_warning`
+  wrapped `format_warning_at(...)` in `result<std::size_t>::success(...)`, passed
+  `position.value_if()` without `*` and applied `std::move` to a raw pointer.
+  Learner asked for help; explained pass-through returns, dereferencing
+  `value_if()` and why moving a pointer is pointless. The surrounding
+  error-propagation guards were again correct. Learner explicitly asked to
+  retry this very soon: offer a concise exercise block at the next function
+  that returns another call's same-typed result, without supplying the line.
 
 ## Still developing
 

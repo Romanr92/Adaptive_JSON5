@@ -77,7 +77,7 @@ namespace adaptive_json5
 
     if (mode == syntax_mode::strict_json)
     {
-      return non_finite_result::failure(error::at_offset(error_code::syntax, start));
+      return non_finite_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
     }
 
     for (const char expected : spelling)
@@ -91,12 +91,13 @@ namespace adaptive_json5
       const auto& character = *decoded.value_if();
       if (!character.has_value())
       {
-        return non_finite_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
+        return non_finite_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end));
       }
 
       if (character->value != static_cast<char32_t>(expected))
       {
-        return non_finite_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+        return non_finite_result::failure(
+          error::syntax_at(character->byte_offset, syntax_error_reason::unknown_literal));
       }
     }
 
@@ -116,7 +117,7 @@ namespace adaptive_json5
       // Reject extended names, escaped suffixes and numeric-looking continuations.
       if (is_identifier_part(scalar) || (scalar == U'\\') || (scalar == U'.'))
       {
-        return non_finite_result::failure(error::at_offset(error_code::syntax, suffix->byte_offset));
+        return non_finite_result::failure(error::syntax_at(suffix->byte_offset, syntax_error_reason::unknown_literal));
       }
     }
 

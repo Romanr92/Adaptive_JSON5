@@ -78,6 +78,6 @@ namespace adaptive_json5
       }
     }
 
-    return status_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+    return status_result::failure(error::syntax_at(character->byte_offset, syntax_error_reason::unexpected_character));
   }
 } // namespace adaptive_json5

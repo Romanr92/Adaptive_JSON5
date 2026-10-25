@@ -71,7 +71,7 @@ namespace adaptive_json5
     const auto current = source.peek();
     if (!current.has_value())
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
     if (*current != c_hex_introducer)
@@ -81,7 +81,7 @@ namespace adaptive_json5
 
     if (mode == syntax_mode::strict_json)
     {
-      return escape_result::failure(error::at_offset(error_code::syntax, source.offset()));
+      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::not_allowed_in_strict_json));
     }
 
     // Keep the original position until the entire escape is validated.
@@ -100,13 +100,13 @@ namespace adaptive_json5
       const auto& character = *decoded.value_if();
       if (!character.has_value())
       {
-        return escape_result::failure(error::at_offset(error_code::syntax, candidate.offset()));
+        return escape_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end));
       }
 
       const auto digit = hex_digit_value(character->value);
       if (!digit.has_value())
       {
-        return escape_result::failure(error::at_offset(error_code::syntax, character->byte_offset));
+        return escape_result::failure(error::syntax_at(character->byte_offset, syntax_error_reason::invalid_escape));
       }
 
       // Two hexadecimal digits fit completely within one UTF-16 unit.

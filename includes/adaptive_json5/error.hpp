@@ -2,6 +2,7 @@
 #define ADAPTIVE_JSON5_ERROR_HPP_
 
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
 
 #include <cstddef>
@@ -42,7 +43,7 @@ namespace adaptive_json5
   /**
    * @brief Store explicit failure information without allocation.
    * @par Requirements
-   * P002; P036; P038; J5-035; J5-003; J5-032; J5-043; J5-044; J5-045.
+   * P002; P036; P038; J5-035; J5-003; J5-032; J5-043; J5-044; J5-045; issue #96.
    * @note byte_offset is zero-based in the original input.
    * When has_byte_offset is false, byte_offset is unused and set to zero.
    * duplicate_member() sets byte_offset to the repeated member name's start
@@ -50,7 +51,9 @@ namespace adaptive_json5
    * at_offset() and without_location() leave duplicate_names empty.
    * Error metadata contains no source pointers and performs no allocation.
    * source_range, when present, covers the offending token in the original input;
-   * at_range() sets it, and every other factory leaves it empty.
+   * at_range() and syntax_at_range() set it, and every other factory leaves it empty.
+   * syntax_reason is present only for error_code::syntax created by syntax_at() or
+   * syntax_at_range(); every other factory leaves it empty.
    */
   struct [[nodiscard]] error
   {
@@ -66,6 +69,9 @@ namespace adaptive_json5
 
       // Spans the offending token when its extent is known, e.g. an unterminated comment or string.
       std::optional<source_span> source_range{};
+
+      // Last, so existing positional brace initializers keep their meaning.
+      std::optional<syntax_error_reason> syntax_reason{};
 
       /**
        * @brief Construct a failure with one original byte location.
@@ -131,6 +137,37 @@ namespace adaptive_json5
       [[nodiscard]] static constexpr error numeric_failure(numeric_conversion_reason reason) noexcept
       {
         return error{error_code::numeric_conversion, 0, false, std::nullopt, reason};
+      }
+
+      /**
+       * @brief Construct a located syntax failure with its specific reason.
+       * @par Requirements
+       * J5-043; J5-044; issue #96.
+       * @param byte_offset Zero-based location of the offending character or expected token.
+       * @param reason Why the input violates the selected grammar.
+       * @return Syntax error carrying the reason; range, duplicate and numeric metadata are absent.
+       * @note Performs no allocation.
+       */
+      [[nodiscard]] static constexpr error syntax_at(std::size_t byte_offset, syntax_error_reason reason) noexcept
+      {
+        // The code is fixed, so a reason can never be attached to a non-syntax category.
+        return error{error_code::syntax, byte_offset, true, std::nullopt, std::nullopt, std::nullopt, reason};
+      }
+
+      /**
+       * @brief Construct a syntax failure with its reason and the offending token's range.
+       * @par Requirements
+       * J5-043; J5-044; issue #96.
+       * @param byte_offset Primary zero-based location, e.g. where a closing delimiter was expected.
+       * @param range Original-input extent of the offending token.
+       * @param reason Why the input violates the selected grammar.
+       * @return Syntax error carrying both the range and the reason.
+       * @note Performs no allocation.
+       */
+      [[nodiscard]] static constexpr error syntax_at_range(std::size_t byte_offset, source_span range,
+                                                           syntax_error_reason reason) noexcept
+      {
+        return error{error_code::syntax, byte_offset, true, std::nullopt, std::nullopt, range, reason};
       }
   };
 
