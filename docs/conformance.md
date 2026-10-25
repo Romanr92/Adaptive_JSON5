@@ -1,10 +1,11 @@
-# JSON5 1.0.0 support statement (P041 draft)
+# JSON5 1.0.0 support statement (P041 reviewed)
 
 This page collects what the parser supports, the limits it applies and every
 known deviation or project decision, as required before claiming full JSON5
-1.0.0 parsing support (P041; J5-008, J5-027, J5-100). It is a **draft**: the
-claim is not made until the required PR checks for the P041 follow-up pass.
-The parser-scoped technical review is recorded below. Requirement rows remain
+1.0.0 parsing support (P041; J5-008, J5-027, J5-100). The parser-scoped technical
+review and required PR checks are complete for `66a425a` in PR #100. The claim
+is full JSON5 1.0.0 parsing within the documented encoding, policies and limits.
+Requirement rows remain
 Draft; this review does not verify optional components or promote shared rows.
 
 ## Versions
@@ -135,7 +136,7 @@ This reviews the documented API/source boundaries, production-to-unit matrix and
 executed evidence; it is not a line-by-line proof or MISRA/CERT certification.
 The table covers the preceding core contracts and the parser portions of shared
 release contracts. Schema, CLI, editor, consumer acceptance and device execution
-are outside this claim. The final PR gate below applies to the new test evidence.
+are outside this claim. CI for the added test evidence is recorded below.
 
 | Contract | Review result (2026-10-25) |
 | --- | --- |
@@ -149,8 +150,18 @@ are outside this claim. The final PR gate below applies to the new test evidence
 | J5-035–038 numeric operations | Reviewed for integer/floating conversion and exact comparison. Named numeric units cover bounds, lexical versus mathematical integrality, rounding, non-finite policy, negative zero, scratch/work exhaustion and allocation failure. The exponent-comparison and extreme-conversion limits above are retained as explicit limitations. |
 | J5-043–049, J5-051 failures, resources and reuse | Reviewed for parser/value/conversion scope. Structured errors, minimal allocation-free failure reporting, caller storage, inclusive limits, iterative depth handling and deterministic work budgets have named boundary/fault/reuse units. Retention and diagnostics share the owned-byte budget. Cancellation is supplied by deterministic budgets here; no extra cancellation API is claimed. |
 | J5-050, J5-052 concurrency and determinism | The host-only `P041/J5_050_ConcurrentParsing.IsolatesSuccessFailuresAndLiveDocuments` runs four workers per syntax mode, sharing immutable input/options and retaining independent documents while repeating syntax, encoding, resource and allocation failures and reuse. Storage/accounting remain separate. Numeric locale units remain separate evidence; a skipped locale case must not be described as an executed locale comparison. Shared mutable accounting/provider access still requires caller synchronization. |
-| J5-094–095, J5-097–099 unit and native evidence | Reviewed for core scope. The grammar matrix, equivalence/truncation/fault cases, immutable external fixtures and explicit project outcomes cover P040/P041. Native exception OFF/ON and RTTI OFF results are recorded below; the current follow-up requires its own PR jobs. Schema fixture J5-096 is outside parser scope. |
-| J5-100 parser release completeness | Versions, public contracts, grammar/requirement inventories, defaults, provenance, usage and deviations are linked from this statement and README. Stale scaffold/P004/P040 status text is corrected. P041 is tracked by #80. Final claim publication waits for the follow-up PR checks; no schema/editor completeness or embedded target support is inferred. |
+| J5-094–095, J5-097–099 unit and native evidence | Reviewed for core scope. The grammar matrix, equivalence/truncation/fault cases, immutable external fixtures and explicit project outcomes cover P040/P041. Native exception OFF/ON and RTTI OFF results at `66a425a` are recorded below. Linux locale cases skipped; Windows locale cases executed and passed. Schema fixture J5-096 is outside parser scope. |
+| J5-100 parser release completeness | Versions, public contracts, grammar/requirement inventories, defaults, provenance, usage and deviations are linked from this statement and README. Stale scaffold/P004/P040 status text is corrected. P041 is tracked by #80. Technical review and required CI are complete at `66a425a`; PR review/merge remain human workflow steps. No schema/editor completeness or embedded target support is inferred. |
+
+PR #100 scope review (2026-10-25): P038 numeric bounds/integrality/rounding,
+P039 ownership/spans/diagnostic fallback, P040 grammar/fault evidence and P041
+versions/limits/deviations have corresponding implementation and named units.
+No additional functional blocker was identified in this acceptance-focused review.
+The machine-readable P038–P041 trackers also needed their owner/status and CI
+scope synchronized; that documentation correction is in the current working tree.
+The review found copied float wording in `to_double()`'s Doxygen text. It is
+corrected in this documentation-only follow-up under explicit user authorization;
+the `result<double>` signature and implementation are unchanged.
 
 ## Executed results
 
@@ -162,21 +173,26 @@ are outside this claim. The final PR gate below applies to the new test evidence
 | GitHub Actions [unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192016985) | `803dca3` | Linux x86-64 GCC, Linux aarch64 GCC and Windows MinGW, exceptions OFF and ON, RTTI OFF | All host unit jobs passed |
 | GitHub Actions [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192016968) | `803dca3` | Linux, exceptions OFF and ON, RTTI OFF | Both validation jobs passed |
 | GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192016981) | `803dca3` | clang-format 18.1.8 | Passed |
+| GitHub Actions [Linux x86-64 units](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192865734/job/121167408166) | `66a425a` | GCC 13.3.0, exceptions OFF and ON, RTTI OFF | Each mode: 2146 passed, 1 skipped, 0 failed (2147 registered). Locale comparison skipped because no comma-decimal locale was installed. |
+| GitHub Actions [Linux aarch64 units](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192865734/job/121167408167) | `66a425a` | GCC 13.3.0, exceptions OFF and ON, RTTI OFF | Each mode: 2146 passed, 1 skipped, 0 failed (2147 registered). Same locale skip. |
+| GitHub Actions [Windows MinGW units](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192865734/job/121167408039) | `66a425a` | GCC 16.2.0, exceptions OFF and ON, RTTI OFF | Each mode: 2147 passed, 0 failed; locale comparison executed and passed. |
+| GitHub Actions [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192865741) | `66a425a` | Linux GCC 13.3.0, exceptions OFF and ON, RTTI OFF | Each mode: 921/921 passed. |
+| GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40192865738) | `66a425a` | clang-format 18.1.8 | Passed. |
 | Local, Windows GCC 15.2.0, CMake 4.0.1 | `016c7f4` plus the J5-042 units | Unit tests, exceptions OFF and ON, RTTI OFF | 2126/2126 passed in each mode |
 | Local, same toolchain | `016c7f4` | Validation tests, exceptions OFF and ON | 850/850 passed in each mode |
 | Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | Changes subsequently committed as `803dca3` | Unit tests, exceptions OFF and ON, RTTI OFF | 2145/2145 passed in each mode; includes 19 new surrogate-warning cases. A final assertion-safety adjustment was followed by 70/70 affected string/surrogate cases in each mode. |
 | Local, same toolchain (2026-10-25) | Changes subsequently committed as `803dca3` | Validation tests, exceptions OFF and ON, RTTI OFF | 850/850 passed in each mode |
 | Local (2026-10-25) | Changes subsequently committed as `803dca3` | clang-format 18.1.8 | Formatting passed for all 213 C++ files |
-| Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | `803dca3` plus this uncommitted P041 follow-up | Unit tests, exceptions OFF and ON, RTTI OFF | 2147/2147 passed in each mode; includes both concurrent-context cases |
-| Local, same toolchain (2026-10-25) | Same P041 follow-up | Validation tests, exceptions OFF and ON, RTTI OFF | 921/921 passed in each mode; includes 70 exact project outcomes and one inventory case |
-| Local (2026-10-25) | Same P041 follow-up | clang-format 18.1.8 | Formatting passed for all 214 C++ files |
+| Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | Changes subsequently committed as `66a425a` | Unit tests, exceptions OFF and ON, RTTI OFF | 2147/2147 passed in each mode; includes both concurrent-context cases |
+| Local, same toolchain (2026-10-25) | Changes subsequently committed as `66a425a` | Validation tests, exceptions OFF and ON, RTTI OFF | 921/921 passed in each mode; includes 70 exact project outcomes and one inventory case |
+| Local (2026-10-25) | Changes subsequently committed as `66a425a` | clang-format 18.1.8 | Formatting passed for all 214 C++ files |
 
 The J5-042 units passed in CI at `6e24e8b` ([unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954377), [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954321), [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954423)).
 
-## Open before the claim
+## Review and merge status
 
-1. Run all required host-unit, validation and formatting PR jobs on the commit
-   containing this P041 follow-up, and record that immutable commit and results.
-   Results for `803dca3` do not cover the added concurrency and project-outcome
-   assertions. The technical review is complete for parser scope;
-   requirement rows stay Draft.
+All required PR checks for `66a425ab2213f8239643101ec7c45fd405413e1b` completed
+successfully. These results cover the concurrent-context and project-outcome
+tests. PR #100 remains subject to developer review and merge; no merge was
+performed. This review's documentation-only corrections are not part of the
+tested commit. Requirement rows remain Draft.

@@ -61,14 +61,14 @@ namespace adaptive_json5
                                        const floating_conversion_options& options = {}) noexcept;
 
   /**
-   * @brief Convert an exact numeric value directly to float.
+   * @brief Convert an exact numeric value directly to double.
    * @par Requirements
    * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
    * @param number Borrowed number whose spelling remains unchanged.
    * @param scratch Caller-owned fallible temporary-storage provider.
    * @param options Work, storage and special-value policies.
-   * @return Rounded float value or an explicit error.
-   * @note Rounds directly to float rather than converting through double.
+   * @return Rounded double value or an explicit error.
+   * @note Rounds the exact numeric value directly to double.
    * Uses round-to-nearest with ties to an even significand.
    * Preserves negative zero.
    * Explicit infinity/NaN follow the non_finite policy and destination support.

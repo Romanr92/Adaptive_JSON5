@@ -772,11 +772,11 @@
         "J5-038",
         "J5-052"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "implemented with named unit evidence; shared J5 requirement rows remain Draft",
       "user_review_required": false,
-      "issue_number": 38,
+      "issue_number": 80,
       "original_issue_number": 39,
-      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
+      "tracking_status": "Current owner #80; original issue number retained for provenance; see conformance.md for review and executed evidence"
     },
     {
       "id": "P039",
@@ -796,11 +796,11 @@
         "J5-044",
         "J5-045"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "implemented with named unit evidence; shared J5 requirement rows remain Draft",
       "user_review_required": false,
-      "issue_number": 38,
+      "issue_number": 80,
       "original_issue_number": 40,
-      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
+      "tracking_status": "Current owner #80; original issue number retained for provenance; see conformance.md for review and executed evidence"
     },
     {
       "id": "P040",
@@ -857,11 +857,11 @@
         "J5-098",
         "J5-099"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "implemented with named unit evidence; shared J5 requirement rows remain Draft",
       "user_review_required": false,
-      "issue_number": 38,
+      "issue_number": 80,
       "original_issue_number": 41,
-      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
+      "tracking_status": "Current owner #80; original issue number retained for provenance; see conformance.md for review and executed evidence"
     },
     {
       "id": "P041",
@@ -877,11 +877,11 @@
         "J5-027",
         "J5-100"
       ],
-      "status": "documented baseline; implementation pending",
+      "status": "parser-scoped technical review and required CI complete at 66a425a; developer review/merge pending; shared J5 rows remain Draft",
       "user_review_required": false,
-      "issue_number": 38,
+      "issue_number": 80,
       "original_issue_number": 42,
-      "tracking_status": "implementation pending in consolidated issue; administrative child closure is not evidence"
+      "tracking_status": "Current owner #80; original issue number retained for provenance; see conformance.md for review and executed evidence"
     },
     {
       "id": "P042",
@@ -1466,6 +1466,6 @@
     "ADAPTER": 71,
     "RELEASE": 72
   },
-  "quality_scope": "One GoogleTest job and one formatting job on pull requests; exceptions OFF and RTTI OFF.",
+  "quality_scope": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge.",
   "issue_consolidation_plan": "json5-implementation-order.md#delivery-scope-and-issue-tracking"
 }

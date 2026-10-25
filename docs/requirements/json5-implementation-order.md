@@ -4,7 +4,8 @@ Copyright 2026 Razvan-Stefan Roman. Project additions are Apache-2.0.
 Specification-derived explanations retain the source notices linked below.
 
 Status: **Documented implementation baseline; no user review required.**
-Specification checked 2026-10-12. No production parser is implemented.
+Specification checked 2026-10-12. P001–P040 have compiled implementation and
+host-unit evidence; P041 review and claim status are in [conformance](../conformance.md).
 This is the sequential core-parser checklist. IDs P001–P066 are local project
 identifiers, not numbers issued by the JSON5 authors. Each prerequisite has a
 smaller number: implement in ascending order; no step requires a later one.
@@ -566,13 +567,17 @@ clang-format 18.1.8 passed all 213 C++ files. See the
 [support statement](../conformance.md) for the decision and execution evidence.
 The P041 follow-up records the parser-scoped technical review in the support
 statement, adds explicit outcomes for all 35 pinned i_ fixtures and tests
-concurrent independent contexts/documents. Required PR checks for that follow-up
-must pass before publishing the final claim. Requirement rows remain Draft;
+concurrent independent contexts/documents. All required PR checks passed at
+`66a425a`; developer review/merge remain pending. Requirement rows remain Draft;
 future schema/editor/device acceptance is not inferred from parser evidence.
 Local P041 follow-up results (2026-10-25, Windows GCC 15.2.0, CMake 4.0.1):
 2147/2147 units and 921/921 validation cases passed with exceptions OFF and ON,
-RTTI OFF; clang-format 18.1.8 passed all 214 C++ files. These are working-tree
-results above `803dca3`, not a new immutable CI result.
+RTTI OFF; clang-format 18.1.8 passed all 214 C++ files. These changes were
+subsequently committed as `66a425a`. CI at that commit: Linux x86-64/aarch64
+GCC 13.3.0 each passed 2146 units with one locale skip per exception mode;
+Windows MinGW GCC 16.2.0 passed all 2147 units per mode, including locale;
+Linux validation passed 921/921 per mode; formatting passed. Exact run/job links
+and the acceptance-focused PR #100 review are in [conformance](../conformance.md).
 
 ## Grammar coverage review
 
