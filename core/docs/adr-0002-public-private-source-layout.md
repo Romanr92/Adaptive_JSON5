@@ -24,7 +24,7 @@ with `adr-`, `design-` or `requirements-` prefixes. Public ADR 0001 remains in
 `docs/adr/` because it defines consumer portability and component boundaries.
 Public API requirements, result design, embedded contract, package usage,
 conformance, provenance and the existing traceability inventory remain in `docs/`.
-J5-094?100 and the regression/quality intentions moved to
+J5-094 through J5-100 and the regression/quality intentions moved to
 [core quality requirements](requirements-quality.md); public behavior contracts
 remain in [API requirements](../../docs/requirements.md). No normative wording or
 Draft status changed. Regenerating source/function traceability is issue #99.
