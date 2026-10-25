@@ -883,13 +883,13 @@ classDiagram
         -consume_separator(action)
         -finish_container()
         -accept_completed_value(index)
+        -retain_warnings(offset, count)
     }
     class parsed_value_tree {
         <<internal>>
         +document values
         +size_t consumed_bytes
-        +size_t warning_count
-        +optional first_warning
+        +warning_list warnings
     }
     class cursor
     class document
@@ -1012,17 +1012,18 @@ results do not depend on the process locale. Requirement rows remain Draft.
 
 ### P039 diagnostic and source decisions
 
-Decisions recorded before implementation; they are proposals until code and
-units exist. Requirement rows remain Draft.
+All P039 production pieces below are implemented; their units are still to be
+written, so no unit evidence exists yet. Requirement rows remain Draft.
 
 | Topic | Decision |
 | --- | --- |
-| Line/column | A separate public operation converts an original byte offset into a position using the original input. `error`, warnings and spans keep byte offsets only, so reporting stays allocation-free. Offsets past the input size are rejected. |
-| Position convention | Lines and columns are 1-based; byte offsets stay 0-based. LF, CR, CRLF (one break), U+2028 and U+2029 each end a line, matching JSON5 LineTerminator. Columns count Unicode code points; each invalid or isolated UTF-8 byte counts as one column. |
-| Error range | `error` gains an optional source range, set only where the parser already knows the offending token's extent; otherwise only the start offset is reported. |
-| End-of-input and allocation locations | The rule for where unterminated tokens and allocation failures are located is documented and applied consistently; current behavior differs between unterminated strings (end of input) and comments (comment start), and between storage and growth allocation failures. |
-| Retained source text (J5-041) | Implemented in P039. Retaining a copy of the input is opt-in through parse options and off by default. The copy is owned by the parsed document, allocated through the caller's accounting and charged against `max_owned_bytes`, so its cost is explicit and configurable. |
-| Warnings | All warnings are retained, not only the first, in an owned list in the parsed document. Each retained warning still reserves one `max_diagnostics` entry, and exceeding that limit fails the parse with `resource_limit`, as already happens for the first warning. |
+| Line/column | `locate(input, byte_offset)` in `text_position.hpp` converts an original byte offset into a `text_position`, using the original or retained input. `error`, warnings and spans keep byte offsets only, so reporting stays allocation-free. `input.size` is the valid end position; larger offsets return `wrong_type_or_access`. It scans once up to the offset, allocates nothing and uses no work budget. |
+| Position convention | Lines and columns are 1-based; byte offsets stay 0-based. LF, CR, CRLF (one break), U+2028 and U+2029 each end a line, matching JSON5 LineTerminator. Columns count Unicode code points, using the validated UTF-8 decoder; each byte that does not start a valid sequence counts as one column. An offset inside a multibyte character or inside CRLF reports where that sequence starts. |
+| Error range | `error::source_range` is an optional span set through `error::at_range()` only where the offending token's extent is known; every other error leaves it empty and reports only `byte_offset`. |
+| Unterminated tokens | An unterminated block comment or string reports `byte_offset` at the end of input, where the closing delimiter was expected, with `source_range` covering the token from its opening delimiter to the end. A string ending inside an escape (e.g. `"a\`) reports the end-of-input offset without a range. Encoding errors keep the offset of the invalid sequence. |
+| Allocation failure locations | When storing a token's content (string value, member name or number spelling) fails, `allocation_failure` is located at that token. Failures while growing containers, records or parser frames are unlocated, because they belong to no single token. Every allocation failure releases the call's allocations. |
+| Retained source text (J5-041) | `parse_options::source_text = source_retention_policy::retain_copy` makes `parsed_document::source` (a `retained_source`) own a copy of the input; the default `discard` keeps nothing. The copy is made only after the complete input is accepted, through the caller's accounting, and is charged against `max_owned_bytes`; a failed copy publishes no document. It survives destruction of the caller's input and moves of the document. |
+| Warnings | `parsed_document::warnings` (a `warning_list`) holds every string and member-name warning in source order, replacing the former count and first-warning fields. Each warning reserves one `max_diagnostics` entry; exceeding the limit fails the parse with `resource_limit`. The engine reserves list capacity first and then re-walks only strings that reported warnings, so recording itself cannot fail. The internal primitive-document path still keeps only the first warning. |
 
 ## 10. Runtime and concurrency boundaries
 

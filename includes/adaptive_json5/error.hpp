@@ -49,6 +49,8 @@ namespace adaptive_json5
    * and retains both original name-token spans in duplicate_names.
    * at_offset() and without_location() leave duplicate_names empty.
    * Error metadata contains no source pointers and performs no allocation.
+   * source_range, when present, covers the offending token in the original input;
+   * at_range() sets it, and every other factory leaves it empty.
    */
   struct [[nodiscard]] error
   {
@@ -62,6 +64,9 @@ namespace adaptive_json5
       // Preserve the broad category while exposing the conversion failure.
       std::optional<numeric_conversion_reason> numeric_reason{};
 
+      // Spans the offending token when its extent is known, e.g. an unterminated comment or string.
+      std::optional<source_span> source_range{};
+
       /**
        * @brief Construct a failure with one original byte location.
        * @par Requirements
@@ -71,6 +76,21 @@ namespace adaptive_json5
       [[nodiscard]] static constexpr error at_offset(error_code code, std::size_t byte_offset) noexcept
       {
         return error{code, byte_offset, true};
+      }
+
+      /**
+       * @brief Construct a failure with a primary location and the offending token's range.
+       * @par Requirements
+       * P039; J5-043; J5-044; J5-045.
+       * @param code Failure category.
+       * @param byte_offset Primary zero-based location, e.g. where a closing delimiter was expected.
+       * @param range Original-input extent of the offending token.
+       * @note Performs no allocation; duplicate-name and numeric metadata are absent.
+       */
+      [[nodiscard]] static constexpr error at_range(error_code code, std::size_t byte_offset,
+                                                    source_span range) noexcept
+      {
+        return error{code, byte_offset, true, std::nullopt, std::nullopt, range};
       }
 
       /**
