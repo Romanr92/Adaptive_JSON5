@@ -21,7 +21,8 @@ Keep exact `SuiteName.TestName` declarations in the Unit Tests inventory, separa
 by `; ` when several units cover one requirement. Do not add generated parameter
 case suffixes. Record actual execution results in the corresponding step of the [implementation sequence](requirements/json5-implementation-order.md).
 The per-production view of the same tests, with open P040 gaps, is the
-[grammar evidence matrix](grammar-evidence.md).
+[grammar evidence matrix](grammar-evidence.md). Support, limits and deviations
+are collected in the [JSON5 1.0.0 support statement](conformance.md).
 
 | ID | Contract | Status | Owning issue | Unit Tests |
 | --- | --- | --- | --- | --- |
