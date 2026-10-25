@@ -31,7 +31,6 @@
 #include "parser/parser_work.hpp"
 #include "parser/primitive_parser.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <optional>
 #include <utility>
@@ -210,14 +209,8 @@ namespace adaptive_json5
 
       const auto& limits = m_options.limits;
 
-      if (m_string_units > limits.max_total_string_units)
-      {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
-      }
-
-      const std::size_t remaining_units = limits.max_total_string_units - m_string_units;
-
-      const std::size_t string_limit = std::min(limits.max_string_units, remaining_units);
+      // The budget owns the aggregate counter, so it alone derives the next string's limit.
+      const std::size_t string_limit = m_resources.string_unit_allowance();
 
       // Temporary identifier decoding is separate from retained string content.
       auto recognized =
@@ -306,8 +299,6 @@ namespace adaptive_json5
         return status_result::failure(*accepted.error_if());
       }
 
-      // Recognition already bounded this addition by the remaining allowance.
-      m_string_units += string_units;
       m_source = candidate;
 
       return status_result::success();
@@ -343,18 +334,8 @@ namespace adaptive_json5
         return status_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
-      const auto& limits = m_options.limits;
-
-      // Validate before subtracting the already retained units.
-      if (m_string_units > limits.max_total_string_units)
-      {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
-      }
-
-      const std::size_t remaining_units = limits.max_total_string_units - m_string_units;
-
       // The lexer must stop growth before either string limit is exceeded.
-      const std::size_t max_units = std::min(limits.max_string_units, remaining_units);
+      const std::size_t max_units = m_resources.string_unit_allowance();
 
       cursor candidate = m_source;
       auto recognized = consume_member_name(candidate, m_options.syntax, m_storage, max_units);
@@ -406,8 +387,6 @@ namespace adaptive_json5
         return status_result::failure(*retained.error_if());
       }
 
-      const std::size_t name_units = name.value.size();
-
       // P035: own the decoded name until its scalar or nested container value is attached.
       // Construct the optional's value directly: decoded_string cannot be assigned
       frame->pending_name.emplace(std::move(name.value));
@@ -415,8 +394,6 @@ namespace adaptive_json5
       frame->name_length = name.byte_length;
       frame->state = parser_state::object_colon;
 
-      // max_units already proved this addition fits the aggregate limit.
-      m_string_units += name_units;
       m_source = candidate;
 
       return status_result::success();

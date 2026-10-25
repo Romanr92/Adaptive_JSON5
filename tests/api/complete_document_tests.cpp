@@ -407,6 +407,8 @@ namespace
                     limit_case{"Members", "{a:1,b:2}", &resource_limits::max_members, 2},
                     limit_case{"String", "{a:\"xy\"}", &resource_limits::max_string_units, 2},
                     limit_case{"AggregateString", "{a:\"xy\"}", &resource_limits::max_total_string_units, 3},
+                    limit_case{"AggregateAcrossNamesAndValues", "{ab:\"c\",d:[\"ef\",{g:\"h\"}]}",
+                               &resource_limits::max_total_string_units, 8},
                     limit_case{"NumberBytes", "1.2e34", &resource_limits::max_number_bytes, 6},
                     limit_case{"ExponentDigits", "1e002", &resource_limits::max_exponent_digits, 3},
                     limit_case{"Diagnostics", "\"\xe2\x80\xa8\"", &resource_limits::max_diagnostics, 1},

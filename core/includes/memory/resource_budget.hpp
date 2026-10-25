@@ -127,6 +127,16 @@ namespace adaptive_json5
       [[nodiscard]] status_result release_string_units(std::size_t units) noexcept;
 
       /**
+       * @brief Report the decoded-unit allowance for the next string or member name.
+       * @par Requirements
+       * P031; J5-047.
+       * @return min(max_string_units, max_total_string_units - reserved units).
+       * @note Single source for the lexer limit; reserves nothing and changes no state.
+       * Returns zero if the reserved total ever exceeded the aggregate limit.
+       */
+      [[nodiscard]] std::size_t string_unit_allowance() const noexcept;
+
+      /**
        * @brief Reserve one retained diagnostic entry.
        * @par Requirements
        * P031; J5-047.

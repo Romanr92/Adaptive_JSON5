@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <limits>
+#include <ostream>
 #include <type_traits>
 #include <utility>
 
@@ -385,6 +386,102 @@ namespace
     EXPECT_FALSE(denied.has_value());
     EXPECT_TRUE(budget.release_string_units(maximum).has_value());
     EXPECT_TRUE(budget.reserve_string_units(0, 1).has_value());
+  }
+  /* ----------------------------------------------------------------------------------- */
+  static_assert(noexcept(std::declval<const resource_budget&>().string_unit_allowance()));
+
+  /**
+   * @brief Describe one next-string allowance expectation.
+   * @par Requirements
+   * P031; J5-047; ADR 0003 decision 8.
+   */
+  struct allowance_case
+  {
+      const char* name;
+      std::size_t max_string; // Input per-string limit in decoded units.
+      std::size_t max_total;  // Input aggregate limit in decoded units.
+      std::size_t reserved;   // Input units reserved before the query, one unit per string.
+      std::size_t expected;   // Expected allowance for the next string in decoded units.
+  };
+
+  std::ostream& operator<<(std::ostream& stream, const allowance_case& value)
+  {
+    return stream << value.name;
+  }
+
+  class J5_047_StringAllowance : public testing::TestWithParam<allowance_case>
+  {
+  };
+
+  /*
+   * Verify the budget alone derives the next string's limit from its single aggregate counter.
+   * Arrange: Configure per-string and aggregate limits and reserve units as one-unit strings.
+   * Act: Query the allowance twice.
+   * Expect: min(per-string, aggregate - reserved), unchanged by repeated queries.
+   */
+  TEST_P(J5_047_StringAllowance, ReportsMinimumOfPerStringAndRemainingTotal)
+  {
+    /* Arrange */
+    const auto input = GetParam();
+    resource_limits limits;
+    limits.max_string_units = input.max_string;
+    limits.max_total_string_units = input.max_total;
+    resource_budget budget{limits};
+    for (std::size_t index{}; index < input.reserved; ++index)
+    {
+      ASSERT_TRUE(budget.reserve_string_units(0, 1).has_value());
+    }
+    /* Act */
+    const std::size_t first = budget.string_unit_allowance();
+    const std::size_t second = budget.string_unit_allowance();
+    /* Expect */
+    EXPECT_EQ(first, input.expected);
+    // A query reserves nothing, so it must not change the next answer.
+    EXPECT_EQ(second, input.expected);
+  }
+  INSTANTIATE_TEST_SUITE_P(P031, J5_047_StringAllowance,
+                           testing::Values(allowance_case{"PerStringSmaller", 3, 5, 0, 3},
+                                           allowance_case{"TotalSmaller", 5, 3, 0, 3},
+                                           allowance_case{"RemainingAfterReservations", 3, 5, 4, 1},
+                                           allowance_case{"ExactlyAtTotal", 3, 5, 5, 0},
+                                           allowance_case{"ZeroTotal", 3, 0, 0, 0},
+                                           allowance_case{"ZeroPerString", 0, 5, 0, 0},
+                                           allowance_case{"FullDomain", std::numeric_limits<std::size_t>::max(),
+                                                          std::numeric_limits<std::size_t>::max(), 0,
+                                                          std::numeric_limits<std::size_t>::max()}),
+                           [](const testing::TestParamInfo<allowance_case>& info)
+                           {
+                             return info.param.name;
+                           });
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /*
+   * Verify releases restore the allowance from the same counter that reservations charge.
+   * Arrange: Per-string limit four, aggregate limit six, two-unit and four-unit reservations.
+   * Act: Query after each reservation and after releasing the larger one.
+   * Expect: 4 when empty, 4 after two units, 0 at the total, and 4 again after the release.
+   */
+  TEST(J5_047_StringAllowance, TracksReservationsAndReleases)
+  {
+    /* Arrange */
+    resource_limits limits;
+    limits.max_string_units = 4;
+    limits.max_total_string_units = 6;
+    resource_budget budget{limits};
+    /* Act */
+    const std::size_t empty = budget.string_unit_allowance();
+    ASSERT_TRUE(budget.reserve_string_units(0, 2).has_value());
+    const std::size_t after_name = budget.string_unit_allowance();
+    ASSERT_TRUE(budget.reserve_string_units(0, 4).has_value());
+    const std::size_t at_total = budget.string_unit_allowance();
+    ASSERT_TRUE(budget.release_string_units(4).has_value());
+    const std::size_t after_release = budget.string_unit_allowance();
+    /* Expect */
+    EXPECT_EQ(empty, 4u);
+    EXPECT_EQ(after_name, 4u);
+    EXPECT_EQ(at_total, 0u);
+    EXPECT_EQ(after_release, 4u);
   }
   /* ----------------------------------------------------------------------------------- */
   /* ================================= End Test_J5_047 ================================= */

@@ -65,7 +65,6 @@ namespace adaptive_json5
         parser_stack m_frames;
 
         value_index m_root{};
-        std::size_t m_string_units{};
         warning_list m_warnings;
 
         /**

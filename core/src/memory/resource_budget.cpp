@@ -205,6 +205,27 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Report the decoded-unit allowance for the next string or member name.
+   * @par Requirements
+   * P031; J5-047.
+   * @return min(max_string_units, max_total_string_units - reserved units).
+   * @note Single source for the lexer limit; reserves nothing and changes no state.
+   * Returns zero if the reserved total ever exceeded the aggregate limit.
+   */
+  std::size_t resource_budget::string_unit_allowance() const noexcept
+  {
+    // Validate before subtracting so a broken invariant cannot wrap around.
+    if (m_string_units > m_limits.max_total_string_units)
+    {
+      return c_no_resources;
+    }
+
+    const std::size_t remaining = m_limits.max_total_string_units - m_string_units;
+
+    return (m_limits.max_string_units < remaining) ? m_limits.max_string_units : remaining;
+  }
+
+  /**
    * @brief Reserve one retained diagnostic entry.
    * @par Requirements
    * P031; J5-047.
