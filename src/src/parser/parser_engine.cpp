@@ -42,6 +42,8 @@ namespace adaptive_json5
   {
     namespace
     {
+      constexpr std::size_t c_byte_order_mark_bytes = 3;
+
       /**
        * @brief Carry the destination list and any append failure through the warning callback.
        * @par Requirements
@@ -52,6 +54,26 @@ namespace adaptive_json5
           warning_list* list;
           bool failed{};
       };
+
+      /**
+       * @brief Report whether input begins with the UTF-8 encoding of U+FEFF.
+       * @par Requirements
+       * P040; J5-025.
+       * @param input Borrowed original input.
+       * @return True when the first three bytes are EF BB BF.
+       * @note Compares unsigned byte values, because char may be signed.
+       */
+      [[nodiscard]] bool starts_with_byte_order_mark(input_view input) noexcept
+      {
+        if (input.size < c_byte_order_mark_bytes)
+        {
+          return false;
+        }
+
+        const auto* bytes = reinterpret_cast<const unsigned char*>(input.data);
+
+        return (bytes[0] == 0xEFU) && (bytes[1] == 0xBBU) && (bytes[2] == 0xBFU);
+      }
 
       /**
        * @brief Append one re-reported warning into previously reserved capacity.
@@ -652,6 +674,13 @@ namespace adaptive_json5
       if (!input_checked.has_value())
       {
         return tree_result::failure(*input_checked.error_if());
+      }
+
+      // Skip at most one leading mark, and only in strict mode by request; JSON5 treats it as whitespace.
+      if ((m_options.syntax == syntax_mode::strict_json) && (m_options.strict_bom == strict_bom_policy::skip_one) &&
+          starts_with_byte_order_mark(m_input))
+      {
+        m_source.advance(c_byte_order_mark_bytes);
       }
 
       while (!m_root.is_set())
