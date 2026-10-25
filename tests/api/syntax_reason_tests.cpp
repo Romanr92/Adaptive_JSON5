@@ -110,6 +110,9 @@ namespace
       reason_case{"CloseAfterColon", "{\"a\":}", c_json5, 5, syntax_error_reason::missing_value},
       reason_case{"CommaAfterColon", "{\"a\":,}", c_json5, 5, syntax_error_reason::missing_value},
       reason_case{"NumericMemberName", "{1:2}", c_json5, 1, syntax_error_reason::expected_member_name},
+      // Inside objects a misplaced separator is reported where the name was expected.
+      reason_case{"ObjectDoubledComma", "{\"a\":1,,}", c_json5, 7, syntax_error_reason::expected_member_name},
+      reason_case{"ObjectLeadingComma", "{,}", c_json5, 1, syntax_error_reason::expected_member_name},
       reason_case{"UnterminatedString", "\"abc", c_json5, 4, syntax_error_reason::unterminated_string},
       reason_case{"UnterminatedComment", "1/*x", c_json5, 4, syntax_error_reason::unterminated_comment},
       reason_case{"RawLineFeedInString", "\"a\nb\"", c_json5, 2, syntax_error_reason::line_terminator_in_string},
