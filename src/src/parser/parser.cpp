@@ -44,6 +44,6 @@ namespace adaptive_json5
     auto& tree = *parsed.value_if();
 
     // Transfer ownership only after the entire input has been accepted.
-    return document_result::success(parsed_document{std::move(tree.values), tree.warning_count, tree.first_warning});
+    return document_result::success(parsed_document{std::move(tree.values), std::move(tree.warnings)});
   }
 } // namespace adaptive_json5

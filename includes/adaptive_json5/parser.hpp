@@ -6,27 +6,25 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
-#include "adaptive_json5/value/string_warning.hpp"
+#include "adaptive_json5/value/warning_list.hpp"
 
 #include <cstddef>
-#include <optional>
 
 namespace adaptive_json5
 {
   /**
-   * @brief Own a successfully parsed complete document and warning metadata.
+   * @brief Own a successfully parsed complete document and all of its warnings.
    * @par Requirements
-   * P037; J5-026; J5-040; J5-051.
+   * P037; P039; J5-017; J5-026; J5-040; J5-041; J5-051.
    * @note values has an established root.
+   * warnings holds every warning in source order; each one consumed a max_diagnostics entry.
    * The input bytes need not remain alive after parsing succeeds.
-   * The originating accounting object and its provider must outlive values.
-   * Counts all warnings while retaining only the first descriptor.
+   * The originating accounting object and its provider must outlive values and warnings.
    */
   struct [[nodiscard]] parsed_document
   {
       document values;
-      std::size_t warning_count{};
-      std::optional<string_warning> first_warning{};
+      warning_list warnings;
   };
 
   /**
@@ -44,7 +42,8 @@ namespace adaptive_json5
    * Existing allocations through accounting share its byte ceiling.
    * Failure publishes no document and releases this call's allocations.
    * Each call uses fresh parsing state; accounting remains reusable.
-   * No warning callbacks are invoked.
+   * Every warning is retained; more warnings than max_diagnostics fail with resource_limit.
+   * No caller warning callbacks are invoked.
    */
   [[nodiscard]] result<parsed_document> parse_document(input_view input, const parse_options& options,
                                                        accounted_storage& accounting) noexcept;

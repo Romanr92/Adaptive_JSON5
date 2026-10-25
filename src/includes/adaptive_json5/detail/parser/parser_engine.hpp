@@ -14,6 +14,7 @@
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
+#include "adaptive_json5/value/warning_list.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -30,14 +31,14 @@ namespace adaptive_json5
      * consumed_bytes includes leading trivia.
      * run() stops immediately after the root without validating remaining input.
      * run_complete() includes trailing trivia and requires complete consumption.
+     * warnings holds every retained string and member-name warning in source order.
      * The caller's accounting object and storage provider must outlive values.
      */
     struct [[nodiscard]] parsed_value_tree
     {
         document values;
         std::size_t consumed_bytes{};
-        std::size_t warning_count{};
-        std::optional<string_warning> first_warning{};
+        warning_list warnings;
     };
 
     /**
@@ -64,8 +65,7 @@ namespace adaptive_json5
 
         value_index m_root{};
         std::size_t m_string_units{};
-        std::size_t m_warning_count{};
-        std::optional<string_warning> m_first_warning{};
+        warning_list m_warnings;
 
         /**
          * @brief Start a container or construct and accept a scalar value.
@@ -129,6 +129,18 @@ namespace adaptive_json5
          * Otherwise record m_root without publishing the document yet.
          */
         [[nodiscard]] status_result accept_completed_value(value_index completed) noexcept;
+
+        /**
+         * @brief Reserve and record every warning of one validated quoted string.
+         * @par Requirements
+         * P039; J5-017; J5-041; J5-046; J5-047.
+         * @param token_offset Original offset of the string's opening quote.
+         * @param count Number of warnings the lexer reported for that string.
+         * @return Success, or an explicit diagnostic-limit, storage or internal failure.
+         * @note Reserves one diagnostic entry and one list slot per warning before recording any.
+         * Failure may leave partial reservations; the engine must then be abandoned.
+         */
+        [[nodiscard]] status_result retain_warnings(std::size_t token_offset, std::size_t count) noexcept;
 
       public:
         /**
