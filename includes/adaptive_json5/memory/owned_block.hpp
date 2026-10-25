@@ -15,7 +15,7 @@ namespace adaptive_json5
    * @note The provider state must outlive the block.
    * Destruction releases the block exactly once and never throws or allocates.
    */
-  class owned_block
+  class [[nodiscard]] owned_block
   {
     private:
       // Only allocate_block may create a non-empty owner for a successful allocation.
@@ -85,21 +85,21 @@ namespace adaptive_json5
        * @return Block address, or nullptr when empty.
        * @note The pointer remains dependent on this owner's lifetime.
        */
-      void* data() const noexcept;
+      [[nodiscard]] void* data() const noexcept;
 
       /**
        * @brief Return the owned allocation size in bytes.
        * @par Requirements
        * P003; J5-040.
        */
-      std::size_t size() const noexcept;
+      [[nodiscard]] std::size_t size() const noexcept;
 
       /**
        * @brief Return the owned allocation's requested alignment.
        * @par Requirements
        * P003; J5-040.
        */
-      std::size_t alignment() const noexcept;
+      [[nodiscard]] std::size_t alignment() const noexcept;
   };
 
   /**
@@ -116,8 +116,8 @@ namespace adaptive_json5
    * Explicit callback errors are preserved, including location metadata.
    * Failure reporting requires no allocation.
    */
-  result<owned_block> allocate_block(const storage_callbacks& storage, std::size_t bytes,
-                                     std::size_t alignment) noexcept;
+  [[nodiscard]] result<owned_block> allocate_block(const storage_callbacks& storage, std::size_t bytes,
+                                                   std::size_t alignment) noexcept;
 
   /**
    * @brief Allocate storage for count elements without size overflow.
@@ -127,8 +127,8 @@ namespace adaptive_json5
    * or the allocate_block failure.
    * @note The provider is not called when the size calculation fails.
    */
-  result<owned_block> allocate_array(const storage_callbacks& storage, std::size_t count, std::size_t element_size,
-                                     std::size_t alignment) noexcept;
+  [[nodiscard]] result<owned_block> allocate_array(const storage_callbacks& storage, std::size_t count,
+                                                   std::size_t element_size, std::size_t alignment) noexcept;
 } // namespace adaptive_json5
 
 #endif /* OWNED_BLOCK_HPP_ */

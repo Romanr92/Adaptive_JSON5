@@ -29,11 +29,11 @@ namespace adaptive_json5
      * Failure preserves document records and existing frame contents.
      * Stack capacity and successfully charged work may change on failure.
      * Frame growth invalidates previously obtained frame pointers.
-     * Record construction charges destination.size() plus one.
+     * Record construction charges c_record_construction_work.
      * Frame pushing additionally follows parser_stack's charging rules.
      */
-    result<value_index> open_container(document& destination, parser_stack& frames, const punctuation_token& opening,
-                                       work_budget& work) noexcept;
+    [[nodiscard]] result<value_index> open_container(document& destination, parser_stack& frames,
+                                                     const punctuation_token& opening, work_budget& work) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

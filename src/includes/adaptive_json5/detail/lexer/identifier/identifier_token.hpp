@@ -18,7 +18,7 @@ namespace adaptive_json5
    * contains_escape records whether any character used an escape.
    * This token does not determine whether the name is a value literal.
    */
-  struct identifier_token
+  struct [[nodiscard]] identifier_token
   {
       decoded_string value{};
       std::size_t byte_offset{};

@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #ifndef ADAPTIVE_JSON5_NUMBER_KIND_HPP_
 #define ADAPTIVE_JSON5_NUMBER_KIND_HPP_
 namespace adaptive_json5

@@ -23,7 +23,7 @@ namespace adaptive_json5
    * EOF after an accepted zero still requires the enclosing string to close.
    * No allocation is performed.
    */
-  result<std::optional<char16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<char16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* SIMPLE_ESCAPE_HPP_ */

@@ -6,33 +6,32 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
-#include "adaptive_json5/value/string_warning.hpp"
-
-#include <cstddef>
-#include <optional>
+#include "adaptive_json5/value/retained_source.hpp"
+#include "adaptive_json5/value/warning_list.hpp"
 
 namespace adaptive_json5
 {
   /**
-   * @brief Own a successfully parsed complete document and warning metadata.
+   * @brief Own a successfully parsed complete document and all of its warnings.
    * @par Requirements
-   * P037; J5-026; J5-040; J5-051.
+   * P037; P039; J5-017; J5-026; J5-040; J5-041; J5-051.
    * @note values has an established root.
+   * warnings holds every warning in source order; each one consumed a max_diagnostics entry.
    * The input bytes need not remain alive after parsing succeeds.
-   * The originating accounting object and its provider must outlive values.
-   * Counts all warnings while retaining only the first descriptor.
+   * The originating accounting object and its provider must outlive values and warnings.
+   * source holds a copy of the input only when parse_options::source_text requests it.
    */
-  struct parsed_document
+  struct [[nodiscard]] parsed_document
   {
       document values;
-      std::size_t warning_count{};
-      std::optional<string_warning> first_warning{};
+      warning_list warnings;
+      retained_source source;
   };
 
   /**
    * @brief Parse exactly one root value surrounded by mode-valid trivia.
    * @par Requirements
-   * P037; J5-026; J5-040; J5-047; J5-049; J5-051.
+   * P037; P039; J5-026; J5-040; J5-041; J5-047; J5-049; J5-051.
    * @param input Borrowed bytes, alive and unchanged throughout this call.
    * @param options Syntax, duplicate policy and resource limits.
    * @param accounting Caller-owned storage accounting at a stable address.
@@ -44,10 +43,16 @@ namespace adaptive_json5
    * Existing allocations through accounting share its byte ceiling.
    * Failure publishes no document and releases this call's allocations.
    * Each call uses fresh parsing state; accounting remains reusable.
-   * No warning callbacks are invoked.
+   * Every warning is retained; more warnings than max_diagnostics fail with resource_limit.
+   * Retained source text is copied only after the complete input is accepted;
+   * a failed copy publishes no document.
+   * No caller warning callbacks are invoked.
+   * Thread safety: uses no global mutable state, so concurrent calls are safe when each
+   * uses its own accounting object. input and options are only read and may be shared.
+   * An accounting object or provider shared between threads needs caller synchronization.
    */
-  result<parsed_document> parse_document(input_view input, const parse_options& options,
-                                         accounted_storage& accounting) noexcept;
+  [[nodiscard]] result<parsed_document> parse_document(input_view input, const parse_options& options,
+                                                       accounted_storage& accounting) noexcept;
 } // namespace adaptive_json5
 
 #endif /* PARSER_HPP_ */

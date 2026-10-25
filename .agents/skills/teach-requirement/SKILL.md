@@ -219,6 +219,11 @@ Use the guide's Doxygen comment convention in future C++ examples: `@brief`,
 Place a `//` explanation immediately above non-obvious lines or blocks to explain
 why that approach is needed. Requirement links do not imply verification.
 
+For enums, keep enumerator descriptions in the Doxygen block before the enum
+declaration, using a `@par Policies` list for policy enums. Do not place separate
+Doxygen blocks inside the enum body; keep its enumerator list uncluttered.
+This is the user's explicit teaching preference.
+
 ## Contracts that shape guidance
 
 - JSON5 is the default syntax selection. The future complete-document entry must

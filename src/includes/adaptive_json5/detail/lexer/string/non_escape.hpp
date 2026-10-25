@@ -25,7 +25,7 @@ namespace adaptive_json5
    * The returned span excludes the already-consumed backslash.
    * No allocation is performed.
    */
-  result<std::optional<decoded_character>> consume_non_escape(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<decoded_character>> consume_non_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* NON_ESCAPE_HPP_ */

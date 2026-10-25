@@ -1,7 +1,5 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/lexer/string/string_escape.hpp"
 #include "adaptive_json5/detail/lexer/string/string_lexer.hpp"
-#include "adaptive_json5/value/utf8_export.hpp"
 
 #include <array>
 #include <cstddef>
@@ -206,10 +204,11 @@ namespace
    */
   struct string_case
   {
-      const char* name;     // Diagnostic parameter name.
-      std::string literal;  // Input complete quoted string token.
-      std::u16string units; // Expected exact decoded UTF-16 units.
-      syntax_mode mode;     // Input syntax selection.
+      const char* name;       // Diagnostic parameter name.
+      std::string literal;    // Input complete quoted string token.
+      std::u16string units;   // Expected exact decoded UTF-16 units.
+      syntax_mode mode;       // Input syntax selection.
+      std::size_t warnings{}; // Expected number of unpaired-surrogate advisories.
   };
   class J5_014_StringLexer : public ::testing::TestWithParam<string_case>
   {
@@ -239,9 +238,21 @@ namespace
     expect_units(token.value, param.units);
     EXPECT_EQ(token.byte_offset, 2u);
     EXPECT_EQ(token.byte_length, param.literal.size());
-    EXPECT_EQ(token.warning_count, 0u);
-    EXPECT_FALSE(token.first_warning.has_value());
-    EXPECT_EQ(log.m_count, 0u);
+    EXPECT_EQ(token.warning_count, param.warnings);
+    ASSERT_EQ(token.first_warning.has_value(), param.warnings != 0);
+    ASSERT_EQ(log.m_count, param.warnings);
+    for (std::size_t index{}; index < param.warnings; ++index)
+    {
+      EXPECT_EQ(log.m_items[index].code, string_warning_code::unpaired_surrogate_escape);
+      EXPECT_EQ(log.m_items[index].byte_offset, 3u + index * 6u);
+      EXPECT_EQ(log.m_items[index].byte_length, 6u);
+    }
+    if (param.warnings != 0)
+    {
+      EXPECT_EQ(token.first_warning->code, log.m_items[0].code);
+      EXPECT_EQ(token.first_warning->byte_offset, log.m_items[0].byte_offset);
+      EXPECT_EQ(token.first_warning->byte_length, log.m_items[0].byte_length);
+    }
     EXPECT_EQ(source.offset(), 2u + param.literal.size());
     EXPECT_EQ(*source.peek(), 'Z');
     EXPECT_EQ(input, before);
@@ -266,9 +277,9 @@ namespace
                   syntax_mode::json5},
       string_case{
         "StrictUnicode", R"json("\u0000\u0041\uD83C\uDFBC")json", {0, 0x41, 0xD83C, 0xDFBC}, syntax_mode::strict_json},
-      string_case{"LoneHigh", R"json("\uD800")json", {0xD800}, syntax_mode::json5},
-      string_case{"LoneLowStrict", R"json("\uDFFF")json", {0xDFFF}, syntax_mode::strict_json},
-      string_case{"ReversedUnits", R"json("\uDC00\uD800")json", {0xDC00, 0xD800}, syntax_mode::json5},
+      string_case{"LoneHigh", R"json("\uD800")json", {0xD800}, syntax_mode::json5, 1},
+      string_case{"LoneLowStrict", R"json("\uDFFF")json", {0xDFFF}, syntax_mode::strict_json, 1},
+      string_case{"ReversedUnits", R"json("\uDC00\uD800")json", {0xDC00, 0xD800}, syntax_mode::json5, 2},
       string_case{"RawSupplementary", "\"\xF0\x9F\x8E\xBC\"", {0xD83C, 0xDFBC}, syntax_mode::strict_json},
       string_case{"EscapedSupplementary", "\"\\\xF0\x9F\x8E\xBC\"", {0xD83C, 0xDFBC}, syntax_mode::json5},
       string_case{"RawControls",
@@ -744,4 +755,60 @@ namespace
   }
 
   /* ================================= End Test_J5_046 ================================= */
+  /* =================================== Test_J5_018 ==================================== */
+  /*
+   * Arrange: A reported low surrogate followed by malformed syntax or later allocation failure.
+   * Act: Consume with an active observer in both syntax modes.
+   * Expect: Explicit failure, unchanged cursor, no callbacks and no leaked decoded storage.
+   */
+  TEST(J5_018_StringWarnings, FailedStringsPublishNoAdvisories)
+  {
+    /* Arrange */
+    for (const auto mode : {syntax_mode::strict_json, syntax_mode::json5})
+    {
+      for (const std::string input :
+           {std::string{R"("\uDC00\u12")"}, std::string{R"("\uDC00)"}, std::string{R"("\uDC00\q")"}})
+      {
+        // A non-escape letter is valid JSON5, so use the malformed Unicode cases there.
+        if (mode == syntax_mode::json5 && input.find("\\q") != std::string::npos)
+        {
+          continue;
+        }
+        lexer_provider provider;
+        warning_log log;
+        cursor source({input.data(), input.size()});
+        /* Act */
+        const auto parsed = consume_string(source, mode, provider.callbacks(), 64, log.observer());
+        /* Expect */
+        ASSERT_FALSE(parsed.has_value());
+        EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
+        EXPECT_EQ(source.offset(), 0u);
+        EXPECT_EQ(log.m_count, 0u);
+        EXPECT_EQ(provider.m_live_bytes, 0u);
+      }
+      const std::string input = std::string{"\"\\uDC00"} + std::string(40, 'a') + '"';
+      lexer_provider provider;
+      warning_log log;
+      std::size_t attempts{};
+      {
+        cursor source({input.data(), input.size()});
+        const auto baseline = consume_string(source, mode, provider.callbacks(), 64);
+        ASSERT_TRUE(baseline.has_value());
+        attempts = provider.m_attempts;
+      }
+      ASSERT_GT(attempts, 1u);
+      for (std::size_t failure = 1; failure <= attempts; ++failure)
+      {
+        provider.m_fail_on = provider.m_attempts + failure;
+        cursor source({input.data(), input.size()});
+        const auto parsed = consume_string(source, mode, provider.callbacks(), 64, log.observer());
+        ASSERT_FALSE(parsed.has_value());
+        EXPECT_EQ(parsed.error_if()->code, error_code::allocation_failure);
+        EXPECT_EQ(source.offset(), 0u);
+        EXPECT_EQ(log.m_count, 0u);
+        EXPECT_EQ(provider.m_live_bytes, 0u);
+      }
+    }
+  }
+  /* ================================= End Test_J5_018 ================================== */
 } // namespace

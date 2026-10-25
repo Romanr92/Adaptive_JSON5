@@ -24,7 +24,7 @@ namespace adaptive_json5
      * Growth invalidates frame pointers.
      * Cleanup is iterative and requires no allocation or work charge.
      */
-    class parser_stack
+    class [[nodiscard]] parser_stack
     {
       private:
         static_assert(std::is_nothrow_move_constructible_v<parser_frame>);
@@ -43,7 +43,7 @@ namespace adaptive_json5
          * @note Private callers supply an index below allocated capacity.
          * No frame lifetime is assumed at this address.
          */
-        static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
+        [[nodiscard]] static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
 
         /**
          * @brief Access an already constructed frame.
@@ -51,7 +51,7 @@ namespace adaptive_json5
          * P033; J5-040.
          * @note Private callers supply an index below m_size.
          */
-        parser_frame* live_frame(std::size_t index) noexcept;
+        [[nodiscard]] parser_frame* live_frame(std::size_t index) noexcept;
 
         /**
          * @brief Access an already constructed frame without mutation.
@@ -59,7 +59,7 @@ namespace adaptive_json5
          * P033; J5-040.
          * @note Private callers supply an index below m_size.
          */
-        const parser_frame* live_frame(std::size_t index) const noexcept;
+        [[nodiscard]] const parser_frame* live_frame(std::size_t index) const noexcept;
 
         /**
          * @brief Ensure storage for the requested number of frames.
@@ -69,7 +69,7 @@ namespace adaptive_json5
          * Growth costs one work unit per relocated frame.
          * Old and new allocations coexist during relocation.
          */
-        status_result reserve(std::size_t required, work_budget& work) noexcept;
+        [[nodiscard]] status_result reserve(std::size_t required, work_budget& work) noexcept;
 
       public:
         /**
@@ -103,7 +103,7 @@ namespace adaptive_json5
          * Each push attempt passing the frame limit costs one work unit.
          * Successful work charges are not refunded after later failure.
          */
-        status_result push(parser_frame&& frame, work_budget& work) noexcept;
+        [[nodiscard]] status_result push(parser_frame&& frame, work_budget& work) noexcept;
 
         /**
          * @brief Inspect the innermost open container.
@@ -112,7 +112,7 @@ namespace adaptive_json5
          * @return Pointer to the top frame, or nullptr when empty.
          * @note Growth, removal or destruction can invalidate the pointer.
          */
-        parser_frame* top() noexcept;
+        [[nodiscard]] parser_frame* top() noexcept;
 
         /**
          * @brief Inspect the innermost container without mutation.
@@ -120,7 +120,7 @@ namespace adaptive_json5
          * P033; J5-013.
          * @return Pointer to the top frame, or nullptr when empty.
          */
-        const parser_frame* top() const noexcept;
+        [[nodiscard]] const parser_frame* top() const noexcept;
 
         /**
          * @brief Remove the innermost frame if present.
@@ -144,7 +144,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-048.
          */
-        std::size_t size() const noexcept;
+        [[nodiscard]] std::size_t size() const noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5

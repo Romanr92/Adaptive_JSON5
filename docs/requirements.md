@@ -1,6 +1,10 @@
 # Development requirements
 
-Status: **Draft**. No production C++ parser, schema engine, validation CLI or editor feature is implemented by the development scaffold.
+Status: **Draft requirements**. The compiled parser, owned value model, numeric
+operations and diagnostics through P040 are implemented and have host unit
+evidence. P041 claim status is recorded in [conformance](conformance.md).
+The schema engine, validation CLI and editor remain later delivery steps.
+Implementation and passing tests do not promote these requirement rows to Verified.
 
 This backlog is adapted from the user-supplied standalone parser proposal dated
 2026-10-11. The user's subsequent scope decisions take precedence: a generic

@@ -16,7 +16,7 @@ namespace adaptive_json5
    * @return Exact sum, or resource_limit when unrepresentable.
    * @note Failure reporting requires no allocation or input location.
    */
-  constexpr result<std::size_t> checked_add(std::size_t left, std::size_t right) noexcept
+  [[nodiscard]] constexpr result<std::size_t> checked_add(std::size_t left, std::size_t right) noexcept
   {
     constexpr auto maximum = std::numeric_limits<std::size_t>::max();
 
@@ -36,7 +36,7 @@ namespace adaptive_json5
    * @return Exact product, or resource_limit when unrepresentable.
    * @note Failure reporting requires no allocation or input location.
    */
-  constexpr result<std::size_t> checked_multiply(std::size_t left, std::size_t right) noexcept
+  [[nodiscard]] constexpr result<std::size_t> checked_multiply(std::size_t left, std::size_t right) noexcept
   {
     constexpr auto maximum = std::numeric_limits<std::size_t>::max();
 

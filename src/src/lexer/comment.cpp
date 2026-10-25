@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/lexer/comment.hpp"
 
 #include "adaptive_json5/detail/input/cursor.hpp"
@@ -136,7 +135,10 @@ namespace adaptive_json5
         return comment_result::failure(*decoded.error_if());
       }
     }
-    // Point to the opener so the caller can locate the unterminated comment
-    return comment_result::failure(error::at_offset(error_code::syntax, start));
+
+    // Report where the closer was expected, and cover the open comment so tools can highlight it.
+    const source_span open_comment{start, candidate.offset() - start};
+
+    return comment_result::failure(error::at_range(error_code::syntax, candidate.offset(), open_comment));
   }
 } // namespace adaptive_json5

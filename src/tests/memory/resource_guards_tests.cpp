@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../../../tests/support/guard_provider.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
@@ -48,14 +47,14 @@ namespace
     EXPECT_EQ(defaults.syntax, syntax_mode::json5);
     EXPECT_EQ(selected.syntax, syntax_mode::strict_json);
     EXPECT_EQ(defaults.limits.max_input_bytes, 16384u);
-    EXPECT_EQ(defaults.limits.max_depth, 64u);
+    EXPECT_EQ(defaults.limits.max_depth, 512u);
     EXPECT_EQ(defaults.limits.max_nodes, 1024u);
     EXPECT_EQ(defaults.limits.max_members, 1024u);
     EXPECT_EQ(defaults.limits.max_string_units, 4096u);
     EXPECT_EQ(defaults.limits.max_total_string_units, 16384u);
     EXPECT_EQ(defaults.limits.max_number_bytes, 1024u);
-    EXPECT_EQ(defaults.limits.max_exponent_digits, 128u);
-    EXPECT_EQ(defaults.limits.max_owned_bytes, 32768u);
+    EXPECT_EQ(defaults.limits.max_exponent_digits, 1024u);
+    EXPECT_EQ(defaults.limits.max_owned_bytes, 524288u);
     EXPECT_EQ(defaults.limits.max_diagnostics, 16u);
     EXPECT_EQ(defaults.limits.max_work_units, 32768u);
     EXPECT_EQ(selected.limits.max_depth, 0u);

@@ -71,6 +71,8 @@ def main():
             "-DCMAKE_CXX_FLAGS=--coverage -O0 -g",
             "-DCMAKE_EXE_LINKER_FLAGS=--coverage",
             "-DADAPTIVE_JSON5_BUILD_TESTS=ON",
+            # Validation tests are a separate gate and never contribute to coverage.
+            "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF",
             "-DADAPTIVE_JSON5_BUILD_LIBRARY=OFF",
             "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
             "-DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF",

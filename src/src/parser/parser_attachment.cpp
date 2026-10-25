@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/parser/parser_attachment.hpp"
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
+#include "adaptive_json5/detail/parser/parser_work.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
@@ -31,7 +30,9 @@ namespace adaptive_json5
      * @note Performs no allocation.
      * Failure preserves relationships, frame state, pending name and name offsets.
      * Successful work charges are not refunded after attachment failure.
-     * Charges destination.size() plus one before relationship inspection.
+     * Charges c_attachment_work before relationship inspection. The engine attaches a
+     * container only when it closes, so frame.container is still detached and the
+     * cycle check inspects that one record.
      * Success transfers an object's pending name and records its original span.
      * Does not establish a root, change the cursor or reserve resources.
      * The caller handles node/member/string accounting and duplicate policy.
@@ -66,15 +67,8 @@ namespace adaptive_json5
         return status_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
-      // Document attachment may inspect the parent's complete ancestor chain.
-      const auto units = checked_add(destination.size(), 1);
-
-      if (!units.has_value())
-      {
-        return status_result::failure(*units.error_if());
-      }
-
-      const auto charged = work.charge(*units.value_if());
+      // The open parent is detached, so the ancestor walk inspects only that record.
+      const auto charged = work.charge(c_attachment_work);
 
       if (!charged.has_value())
       {

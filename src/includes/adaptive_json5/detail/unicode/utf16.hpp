@@ -14,7 +14,7 @@ namespace adaptive_json5
    * @note Only the first size entries contain output units.
    * These units are stored inline without allocation.
    */
-  struct encoded_utf16
+  struct [[nodiscard]] encoded_utf16
   {
       static constexpr std::size_t c_first_unit_index = 0;
       static constexpr std::size_t c_second_unit_index = 1;
@@ -33,7 +33,7 @@ namespace adaptive_json5
    * @note Surrogates are rejected as scalar inputs.
    * Escaped UTF-16 units must be preserved separately without this conversion.
    */
-  result<encoded_utf16> encode_utf16(char32_t scalar) noexcept;
+  [[nodiscard]] result<encoded_utf16> encode_utf16(char32_t scalar) noexcept;
 } // namespace adaptive_json5
 
 #endif // UTF16_HPP_

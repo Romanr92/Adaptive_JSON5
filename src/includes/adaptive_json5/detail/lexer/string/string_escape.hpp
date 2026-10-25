@@ -19,7 +19,7 @@ namespace adaptive_json5
      * @note x and u always go to their owning decoders.
      * Their failures must never fall back to non-escape characters.
      */
-    result<std::optional<char16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept;
+    [[nodiscard]] result<std::optional<char16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept;
   } // namespace detail
 
   /**
@@ -34,7 +34,7 @@ namespace adaptive_json5
    * Failure leaves source unchanged.
    * No allocation is performed.
    */
-  result<encoded_utf16> consume_string_escape(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<encoded_utf16> consume_string_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* STRING_ESCAPE_HPP_ */

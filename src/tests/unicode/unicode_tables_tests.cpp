@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/unicode/unicode_tables.hpp"
 
 #include <algorithm>

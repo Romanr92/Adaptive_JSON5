@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/value/document.hpp"
 
 #include "adaptive_json5/detail/value/container_links.hpp"
@@ -30,7 +29,7 @@ namespace adaptive_json5
      * P030; J5-028; J5-040; J5-046.
      * @note Ownership transfers on entry; existing records survive append failure.
      */
-    result<value_index> add_payload(detail::value_storage& values, detail::value_payload payload) noexcept
+    [[nodiscard]] result<value_index> add_payload(detail::value_storage& values, detail::value_payload payload) noexcept
     {
       detail::value_record record{std::move(payload), {}, {}, {}, {}, {}};
       return values.append(std::move(record));

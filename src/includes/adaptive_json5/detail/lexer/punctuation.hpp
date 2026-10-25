@@ -29,7 +29,7 @@ namespace adaptive_json5
    * P012; J5-013.
    * @note Contains no ownership of the input.
    */
-  struct punctuation_token
+  struct [[nodiscard]] punctuation_token
   {
       punctuation_kind kind;
       std::size_t byte_offset;
@@ -47,7 +47,7 @@ namespace adaptive_json5
    * Does not skip trivia or validate nonpunctuation input.
    * Requires no allocation and throws no exceptions.
    */
-  std::optional<punctuation_token> consume_punctuation(cursor& source) noexcept;
+  [[nodiscard]] std::optional<punctuation_token> consume_punctuation(cursor& source) noexcept;
 } // namespace adaptive_json5
 
 #endif // ADAPTIVE_JSON5_PUNCTUATION_HPP_

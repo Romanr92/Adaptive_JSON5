@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/parser/primitive_parser.hpp"
 
 #include "adaptive_json5/detail/common/checked_size.hpp"
@@ -10,6 +9,7 @@
 #include "adaptive_json5/detail/lexer/trivia.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
+#include "adaptive_json5/detail/parser/parser_work.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
@@ -144,7 +144,7 @@ namespace adaptive_json5
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
    * Recognition charges one unit per remaining input byte before scanning.
-   * Construction charges token bytes plus existing records plus one new record.
+   * Construction charges token bytes plus c_record_construction_work.
    * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
    */
@@ -209,16 +209,7 @@ namespace adaptive_json5
       value.first_warning = string->first_warning;
     }
 
-    constexpr std::size_t c_new_record_count = 1;
-
-    const auto records = checked_add(destination.size(), c_new_record_count);
-
-    if (!records.has_value())
-    {
-      return primitive_result::failure(*records.error_if());
-    }
-
-    const auto construction_units = checked_add(value.byte_length, *records.value_if());
+    const auto construction_units = checked_add(value.byte_length, detail::c_record_construction_work);
 
     if (!construction_units.has_value())
     {

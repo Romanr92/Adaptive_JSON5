@@ -1,17 +1,11 @@
 #ifndef ADAPTIVE_JSON5_TEST_GUARD_PROVIDER_HPP_
 #define ADAPTIVE_JSON5_TEST_GUARD_PROVIDER_HPP_
-// SPDX-License-Identifier: Apache-2.0
-#include "adaptive_json5/memory/accounted_storage.hpp"
-#include "adaptive_json5/memory/owned_block.hpp"
-#include "adaptive_json5/options.hpp"
+#include "adaptive_json5/memory/storage.hpp"
 
 #include <array>
 #include <cstddef>
 #include <cstdlib>
 #include <gtest/gtest.h>
-#include <limits>
-#include <type_traits>
-#include <utility>
 namespace adaptive_json5_test
 {
   using namespace adaptive_json5;

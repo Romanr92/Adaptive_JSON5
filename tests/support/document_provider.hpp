@@ -1,18 +1,11 @@
 #ifndef ADAPTIVE_JSON5_TEST_DOCUMENT_PROVIDER_HPP_
 #define ADAPTIVE_JSON5_TEST_DOCUMENT_PROVIDER_HPP_
-// SPDX-License-Identifier: Apache-2.0
-#include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/memory/storage.hpp"
 
 #include <array>
 #include <cstddef>
 #include <cstdlib>
 #include <gtest/gtest.h>
-#include <limits>
-#include <optional>
-#include <string>
-#include <type_traits>
-#include <utility>
-#include <variant>
 
 namespace adaptive_json5_test
 {

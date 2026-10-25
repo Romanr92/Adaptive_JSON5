@@ -24,8 +24,8 @@ namespace adaptive_json5
      * The observer must satisfy string_warning_observer's lifetime contract.
      * Performs no allocation and does not modify the caller's cursor.
      */
-    status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
-                                         const string_warning_observer& observer) noexcept;
+    [[nodiscard]] status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
+                                                       const string_warning_observer& observer) noexcept;
   } // namespace detail
 
   /**
@@ -48,9 +48,10 @@ namespace adaptive_json5
    * Does not skip trivia or validate input following the closing quote.
    * max_units is a component limit, not complete parser memory accounting.
    */
-  result<std::optional<string_token>> consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage,
-                                                     std::size_t max_units,
-                                                     string_warning_observer observer = {}) noexcept;
+  [[nodiscard]] result<std::optional<string_token>> consume_string(cursor& source, syntax_mode mode,
+                                                                   const storage_callbacks& storage,
+                                                                   std::size_t max_units,
+                                                                   string_warning_observer observer = {}) noexcept;
 } // namespace adaptive_json5
 
 #endif /* STRING_LEXER_HPP_ */

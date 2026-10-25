@@ -16,7 +16,7 @@ namespace adaptive_json5
    * or resource_limit if the byte count cannot be represented.
    * @note No terminating NUL is included. Performs no allocation.
    */
-  result<std::size_t> utf8_size(const decoded_string& source) noexcept;
+  [[nodiscard]] result<std::size_t> utf8_size(const decoded_string& source) noexcept;
 
   /**
    * @brief Export a decoded string into caller-provided UTF-8 storage.
@@ -32,8 +32,8 @@ namespace adaptive_json5
    * Source and destination storage must not overlap.
    * The source must remain unchanged throughout this call.
    */
-  result<std::size_t> export_utf8(const decoded_string& source, unsigned char* destination,
-                                  std::size_t capacity) noexcept;
+  [[nodiscard]] result<std::size_t> export_utf8(const decoded_string& source, unsigned char* destination,
+                                                std::size_t capacity) noexcept;
 } // namespace adaptive_json5
 
 #endif /* UTF8_EXPORT_HPP_ */

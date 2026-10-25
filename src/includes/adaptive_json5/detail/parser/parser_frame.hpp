@@ -39,7 +39,7 @@ namespace adaptive_json5
      * pending_name owns a decoded object name until member attachment.
      * This type neither allocates frame storage nor enforces budgets.
      */
-    struct parser_frame
+    struct [[nodiscard]] parser_frame
     {
         value_index container{};
         parser_state state = parser_state::array_first_or_end;

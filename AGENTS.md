@@ -32,11 +32,15 @@ restriction, and never include `src/tests/` in production source lists.
   OS-agnostic; MICROSAR is only an example, not a required vendor port. Read `docs/embedded.md` and J5-101 for runtime/storage boundaries.
 - Do not require WSL, AdaptivePi, an OS service, SDK, Node.js, VS Code or host test
   dependencies in the parser. Schema, CLI, editor and examples remain optional.
-- Unit tests and formatting are the only automated quality checks. Do not add
+- Unit tests, validation tests and formatting are the only automated quality checks.
+  Validation tests are GoogleTest cases over the pinned third-party fixtures in
+  `tests/validation`, built only by `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` and run
+  as a separate pull-request gate. Do not add
   integration, end-to-end, fuzz, sanitizer, benchmark, coverage or static-analysis
   gates unless the user changes this scope.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
-  must pass all host unit-test jobs and formatting before merging into main.
+  must pass all host unit-test jobs, validation-test jobs and formatting before
+  merging into main.
 - Preserve Apache-2.0 and the notices/immutable versions of incorporated material.
 - Keep requirement review, implementation, test existence and executed results
   distinct. The initial build-setting units do not verify a parser or embedded runtime.
@@ -68,7 +72,7 @@ For explanations, design guidance or review of a requirement, use
 workflows, rewritten for this repository; its release-wide approval, `ara::*`
 APIs, deployment and platform policies do not apply here.
 
-Use the adapted requirements and roadmap. Automated quality checks are unit
+Use the adapted requirements and implementation sequence. Automated quality checks are unit
 tests and formatting only. Keep generic/embedded parser dependencies separate
 from optional schema, CLI, editor and consumer examples. Preserve Apache-2.0 and
 record incorporated material's provenance. Do not mark planned functionality
@@ -97,7 +101,7 @@ P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent
 
 ## Current delivery and issue workflow
 
-Follow [the consolidation plan](docs/issue-consolidation-plan.md): retain full
+Follow [the delivery scope and issue tracking](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking): retain full
 schema P043–P055, minimal complete testing CLI P056–P059 and full advanced memory
 accounting. Independently optional build flags do not remove those features from
 this selected delivery scope. Editor/consumer acceptance remains in the backlog.

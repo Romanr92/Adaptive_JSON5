@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "adaptive_json5/detail/parser/parser_engine.hpp"
 
 #include "adaptive_json5/detail/common/checked_size.hpp"
@@ -7,6 +6,8 @@
 #include "adaptive_json5/detail/lexer/punctuation.hpp"
 #include "adaptive_json5/detail/lexer/scalar_lexer.hpp"
 #include "adaptive_json5/detail/lexer/scalar_token.hpp"
+#include "adaptive_json5/detail/lexer/string/string_boundary.hpp"
+#include "adaptive_json5/detail/lexer/string/string_lexer.hpp"
 #include "adaptive_json5/detail/lexer/string/string_token.hpp"
 #include "adaptive_json5/detail/lexer/trivia.hpp"
 #include "adaptive_json5/detail/memory/resource_budget.hpp"
@@ -18,6 +19,7 @@
 #include "adaptive_json5/detail/parser/parser_duplicate.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/detail/parser/parser_stack.hpp"
+#include "adaptive_json5/detail/parser/parser_work.hpp"
 #include "adaptive_json5/detail/parser/primitive_parser.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
@@ -27,6 +29,7 @@
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
+#include "adaptive_json5/value/warning_list.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -38,6 +41,60 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    namespace
+    {
+      constexpr std::size_t c_byte_order_mark_bytes = 3;
+
+      /**
+       * @brief Carry the destination list and any append failure through the warning callback.
+       * @par Requirements
+       * P039; J5-017.
+       */
+      struct warning_sink
+      {
+          warning_list* list;
+          bool failed{};
+      };
+
+      /**
+       * @brief Report whether input begins with the UTF-8 encoding of U+FEFF.
+       * @par Requirements
+       * P040; J5-025.
+       * @param input Borrowed original input.
+       * @return True when the first three bytes are EF BB BF.
+       * @note Compares unsigned byte values, because char may be signed.
+       */
+      [[nodiscard]] bool starts_with_byte_order_mark(input_view input) noexcept
+      {
+        if (input.size < c_byte_order_mark_bytes)
+        {
+          return false;
+        }
+
+        const auto* bytes = reinterpret_cast<const unsigned char*>(input.data);
+
+        return (bytes[0] == 0xEFU) && (bytes[1] == 0xBBU) && (bytes[2] == 0xBFU);
+      }
+
+      /**
+       * @brief Append one re-reported warning into previously reserved capacity.
+       * @par Requirements
+       * P039; J5-017.
+       * @param context Borrowed warning_sink.
+       * @param warning Warning reported by the string walk.
+       * @note The callback type cannot return a failure, so one is recorded in the sink instead.
+       */
+      void collect_warning(void* context, const string_warning& warning) noexcept
+      {
+        auto& sink = *static_cast<warning_sink*>(context);
+
+        if (!sink.list->append_reserved(warning).has_value())
+        {
+          sink.failed = true;
+        }
+      }
+    } // namespace
+
     /**
      * @brief Start a container or construct and accept a scalar value.
      * @par Requirements
@@ -159,13 +216,6 @@ namespace adaptive_json5
 
       const std::size_t string_limit = std::min(limits.max_string_units, remaining_units);
 
-      const auto recognition = m_work.charge(m_source.remaining());
-
-      if (!recognition.has_value())
-      {
-        return status_result::failure(*recognition.error_if());
-      }
-
       // Temporary identifier decoding is separate from retained string content.
       auto recognized =
         consume_scalar(candidate, m_options.syntax, m_storage, string_limit, m_input.size, limits.max_exponent_digits);
@@ -180,25 +230,25 @@ namespace adaptive_json5
         return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
       }
 
+      const auto recognition = charge_scanned(m_work, m_source.offset(), candidate.offset());
+
+      if (!recognition.has_value())
+      {
+        return status_result::failure(*recognition.error_if());
+      }
+
       auto& token = **recognized.value_if();
 
       std::size_t string_units = 0;
+      std::size_t string_offset = 0;
       std::size_t warning_count = 0;
-      std::optional<string_warning> first_warning{};
 
       // Capture metadata before construction transfers the token's string.
       if (const auto* string = std::get_if<string_token>(&token); string != nullptr)
       {
         string_units = string->value.size();
+        string_offset = string->byte_offset;
         warning_count = string->warning_count;
-        first_warning = string->first_warning;
-      }
-
-      const auto warning_total = checked_add(m_warning_count, warning_count);
-
-      if (!warning_total.has_value())
-      {
-        return status_result::failure(*warning_total.error_if());
       }
 
       const auto reserved_string = m_resources.reserve_string_units(0, string_units);
@@ -208,26 +258,16 @@ namespace adaptive_json5
         return status_result::failure(*reserved_string.error_if());
       }
 
-      if (!m_first_warning.has_value() && first_warning.has_value())
-      {
-        const auto diagnostic = m_resources.reserve_diagnostic();
+      const auto retained = retain_warnings(string_offset, warning_count);
 
-        if (!diagnostic.has_value())
-        {
-          return status_result::failure(*diagnostic.error_if());
-        }
+      if (!retained.has_value())
+      {
+        return status_result::failure(*retained.error_if());
       }
 
       const source_span span{m_source.offset(), candidate.offset() - m_source.offset()};
 
-      const auto records = checked_add(m_document.size(), 1);
-
-      if (!records.has_value())
-      {
-        return status_result::failure(*records.error_if());
-      }
-
-      const auto construction_units = checked_add(span.byte_length, *records.value_if());
+      const auto construction_units = checked_add(span.byte_length, c_record_construction_work);
 
       if (!construction_units.has_value())
       {
@@ -265,14 +305,8 @@ namespace adaptive_json5
 
       // Recognition already bounded this addition by the remaining allowance.
       m_string_units += string_units;
-      m_warning_count = *warning_total.value_if();
-
-      if (!m_first_warning.has_value() && first_warning.has_value())
-      {
-        m_first_warning = first_warning;
-      }
-
       m_source = candidate;
+
       return status_result::success();
     }
 
@@ -319,13 +353,6 @@ namespace adaptive_json5
       // The lexer must stop growth before either string limit is exceeded.
       const std::size_t max_units = std::min(limits.max_string_units, remaining_units);
 
-      const auto charged = m_work.charge(m_source.remaining());
-
-      if (!charged.has_value())
-      {
-        return status_result::failure(*charged.error_if());
-      }
-
       cursor candidate = m_source;
       auto recognized = consume_member_name(candidate, m_options.syntax, m_storage, max_units);
 
@@ -337,6 +364,13 @@ namespace adaptive_json5
       if (!recognized.value_if()->has_value())
       {
         return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+      }
+
+      const auto charged = charge_scanned(m_work, m_source.offset(), candidate.offset());
+
+      if (!charged.has_value())
+      {
+        return status_result::failure(*charged.error_if());
       }
 
       auto& name = **recognized.value_if();
@@ -354,13 +388,6 @@ namespace adaptive_json5
         }
       }
 
-      const auto warning_total = checked_add(m_warning_count, name.warning_count);
-
-      if (!warning_total.has_value())
-      {
-        return status_result::failure(*warning_total.error_if());
-      }
-
       const auto reserved = m_resources.reserve_string_units(0, name.value.size());
 
       if (!reserved.has_value())
@@ -368,15 +395,12 @@ namespace adaptive_json5
         return status_result::failure(*reserved.error_if());
       }
 
-      // Only the first retained descriptor consumes a diagnostic entry.
-      if ((!m_first_warning.has_value()) && (name.first_warning.has_value()))
-      {
-        const auto diagnostic = m_resources.reserve_diagnostic();
+      // Identifier names report no warnings, so only quoted names reach the string walk.
+      const auto retained = retain_warnings(name.byte_offset, name.warning_count);
 
-        if (!diagnostic.has_value())
-        {
-          return status_result::failure(*diagnostic.error_if());
-        }
+      if (!retained.has_value())
+      {
+        return status_result::failure(*retained.error_if());
       }
 
       const std::size_t name_units = name.value.size();
@@ -390,14 +414,8 @@ namespace adaptive_json5
 
       // max_units already proved this addition fits the aggregate limit.
       m_string_units += name_units;
-      m_warning_count = *warning_total.value_if();
-
-      if ((!m_first_warning.has_value()) && (name.first_warning.has_value()))
-      {
-        m_first_warning = name.first_warning;
-      }
-
       m_source = candidate;
+
       return status_result::success();
     }
 
@@ -552,6 +570,62 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Reserve diagnostics and list capacity, then re-walk the string to record its warnings.
+     * @par Requirements
+     * P039; J5-017; J5-041; J5-046; J5-047.
+     */
+    status_result parser_engine::retain_warnings(std::size_t token_offset, std::size_t count) noexcept
+    {
+      if (count == 0)
+      {
+        return status_result::success();
+      }
+
+      // Every retained warning is a diagnostic entry, not only the first one.
+      for (std::size_t index{}; index < count; ++index)
+      {
+        const auto diagnostic = m_resources.reserve_diagnostic();
+
+        if (!diagnostic.has_value())
+        {
+          return status_result::failure(*diagnostic.error_if());
+        }
+      }
+
+      const auto reserved = m_warnings.reserve(count);
+
+      if (!reserved.has_value())
+      {
+        return status_result::failure(*reserved.error_if());
+      }
+
+      // The lexer already validated this string, so walking it again only re-reports its warnings.
+      cursor body{m_input};
+      body.advance(token_offset + 1);
+
+      const string_quote quote =
+        (m_input.data[token_offset] == '\'') ? string_quote::single : string_quote::double_quote;
+
+      warning_sink sink{&m_warnings};
+      const string_warning_observer observer{&sink, &collect_warning};
+
+      const auto notified = notify_string_warnings(body, quote, m_options.syntax, observer);
+
+      if (!notified.has_value())
+      {
+        return status_result::failure(*notified.error_if());
+      }
+
+      // Exactly count slots were reserved, so a failed append means the two passes disagree.
+      if (sink.failed)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      return status_result::success();
+    }
+
+    /**
      * @brief Prepare private state without allocating parser storage.
      * @par Requirements
      * P033; J5-040; J5-047; J5-048.
@@ -562,7 +636,7 @@ namespace adaptive_json5
         : m_input(input), m_options(options), m_storage(accounting.callbacks()),
           m_owned_byte_limit(accounting.byte_limit()), m_source(input), m_document(m_storage, options.limits.max_nodes),
           m_resources(options.limits), m_work(options.limits.max_work_units),
-          m_frames(m_storage, options.limits.max_depth)
+          m_frames(m_storage, options.limits.max_depth), m_warnings(m_storage)
     {
     }
 
@@ -596,6 +670,13 @@ namespace adaptive_json5
         return tree_result::failure(*input_checked.error_if());
       }
 
+      // Skip at most one leading mark, and only in strict mode by request; JSON5 treats it as whitespace.
+      if ((m_options.syntax == syntax_mode::strict_json) && (m_options.strict_bom == strict_bom_policy::skip_one) &&
+          starts_with_byte_order_mark(m_input))
+      {
+        m_source.advance(c_byte_order_mark_bytes);
+      }
+
       while (!m_root.is_set())
       {
         // Charge dispatch even when no lexical scanner is needed.
@@ -606,19 +687,19 @@ namespace adaptive_json5
           return tree_result::failure(*step_charged.error_if());
         }
 
-        // Bound the trivia scan before inspecting the remaining input.
-        const auto trivia_charged = m_work.charge(m_source.remaining());
-
-        if (!trivia_charged.has_value())
-        {
-          return tree_result::failure(*trivia_charged.error_if());
-        }
-
+        const std::size_t trivia_start = m_source.offset();
         const auto trivia = skip_trivia(m_source, m_options.syntax);
 
         if (!trivia.has_value())
         {
           return tree_result::failure(*trivia.error_if());
+        }
+
+        const auto trivia_charged = charge_scanned(m_work, trivia_start, m_source.offset());
+
+        if (!trivia_charged.has_value())
+        {
+          return tree_result::failure(*trivia_charged.error_if());
         }
 
         parser_action action = parser_action::read_value;
@@ -698,8 +779,7 @@ namespace adaptive_json5
         return tree_result::failure(*rooted.error_if());
       }
 
-      return tree_result::success(
-        parsed_value_tree{std::move(m_document), m_source.offset(), m_warning_count, m_first_warning});
+      return tree_result::success(parsed_value_tree{std::move(m_document), m_source.offset(), std::move(m_warnings)});
     }
 
     /**
@@ -723,19 +803,19 @@ namespace adaptive_json5
         return tree_result::failure(*parsed.error_if());
       }
 
-      // Admit the entire trailing scan before inspecting its bytes.
-      const auto charged = m_work.charge(m_source.remaining());
-
-      if (!charged.has_value())
-      {
-        return tree_result::failure(*charged.error_if());
-      }
-
+      const std::size_t trivia_start = m_source.offset();
       const auto trivia = skip_trivia(m_source, m_options.syntax);
 
       if (!trivia.has_value())
       {
         return tree_result::failure(*trivia.error_if());
+      }
+
+      const auto charged = charge_scanned(m_work, trivia_start, m_source.offset());
+
+      if (!charged.has_value())
+      {
+        return tree_result::failure(*charged.error_if());
       }
 
       if (!m_source.is_at_end())

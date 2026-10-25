@@ -19,7 +19,7 @@ namespace adaptive_json5
    * Assignment is disabled. Copying is available only for copyable payloads.
    */
   template <typename T, typename E = error>
-  class result
+  class [[nodiscard]] result
   {
       /**
        * @brief Require non-throwing construction and destruction.
@@ -82,7 +82,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003.
        */
-      static constexpr result success(T value) noexcept
+      [[nodiscard]] static constexpr result success(T value) noexcept
       {
         return result{std::in_place_index<c_value_index>, std::move(value)};
       }
@@ -92,7 +92,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003; J5-045.
        */
-      static constexpr result failure(E reason) noexcept
+      [[nodiscard]] static constexpr result failure(E reason) noexcept
       {
         return result{std::in_place_index<c_error_index>, std::move(reason)};
       }
@@ -120,7 +120,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003.
        */
-      constexpr bool has_value() const noexcept
+      [[nodiscard]] constexpr bool has_value() const noexcept
       {
         return m_storage.index() == c_value_index;
       }
@@ -132,7 +132,7 @@ namespace adaptive_json5
        * @return Pointer to the stored value, or nullptr on failure.
        * @note The pointer remains dependent on this result's lifetime.
        */
-      constexpr const T* value_if() const noexcept
+      [[nodiscard]] constexpr const T* value_if() const noexcept
       {
         // Select by index so identical value and error types are supported.
         return std::get_if<c_value_index>(&m_storage);
@@ -145,7 +145,7 @@ namespace adaptive_json5
        * @return Pointer to the stored value, or nullptr on failure.
        * @note The pointer remains dependent on this result's lifetime.
        */
-      constexpr T* value_if() noexcept
+      [[nodiscard]] constexpr T* value_if() noexcept
       {
         return std::get_if<c_value_index>(&m_storage);
       }
@@ -157,7 +157,7 @@ namespace adaptive_json5
        * @return Pointer to the stored error, or nullptr on success.
        * @note The pointer remains dependent on this result's lifetime.
        */
-      constexpr const E* error_if() const noexcept
+      [[nodiscard]] constexpr const E* error_if() const noexcept
       {
         // Checked access returns nullptr when error alternative is inactive.
         return std::get_if<c_error_index>(&m_storage);
@@ -173,7 +173,7 @@ namespace adaptive_json5
    * to error storage owned by this result.
    */
   template <typename E>
-  class result<void, E>
+  class [[nodiscard]] result<void, E>
   {
       /**
        * @brief Reject error types incompatible with non-throwing operations.
@@ -202,7 +202,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003.
        */
-      static constexpr result success() noexcept
+      [[nodiscard]] static constexpr result success() noexcept
       {
         return result{};
       }
@@ -212,12 +212,12 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003.
        */
-      static constexpr result failure(E reason) noexcept
+      [[nodiscard]] static constexpr result failure(E reason) noexcept
       {
         return result{reason};
       }
 
-      constexpr bool has_value() const noexcept
+      [[nodiscard]] constexpr bool has_value() const noexcept
       {
         return !m_error.has_value();
       }
@@ -227,7 +227,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003.
        */
-      constexpr const E* error_if() const noexcept
+      [[nodiscard]] constexpr const E* error_if() const noexcept
       {
         return m_error ? &*m_error : nullptr;
       }

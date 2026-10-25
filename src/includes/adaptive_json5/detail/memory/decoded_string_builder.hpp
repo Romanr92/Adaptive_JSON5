@@ -18,7 +18,7 @@ namespace adaptive_json5
    * Failed appends preserve existing content and length.
    * max_units bounds capacity in units; total-memory accounting is separate.
    */
-  class decoded_string_builder
+  class [[nodiscard]] decoded_string_builder
   {
     private:
       storage_callbacks m_provider;
@@ -34,7 +34,7 @@ namespace adaptive_json5
        * @return Success, resource_limit, or allocation_failure.
        * @note Growth temporarily holds both old and new allocations.
        */
-      status_result reserve(std::size_t required) noexcept;
+      [[nodiscard]] status_result reserve(std::size_t required) noexcept;
 
       /**
        * @brief Append units from an independent readable array.
@@ -43,7 +43,7 @@ namespace adaptive_json5
        * @note Private callers provide a valid nonempty local array.
        * Storage is reserved for the entire append before writing any units.
        */
-      status_result append_units(const char16_t* units, std::size_t count) noexcept;
+      [[nodiscard]] status_result append_units(const char16_t* units, std::size_t count) noexcept;
 
     public:
       /**
@@ -74,7 +74,7 @@ namespace adaptive_json5
        * P013; J5-018; J5-029.
        * @note NUL and lone surrogate units are preserved.
        */
-      status_result append_unit(char16_t unit) noexcept;
+      [[nodiscard]] status_result append_unit(char16_t unit) noexcept;
 
       /**
        * @brief Append the UTF-16 representation of one Unicode scalar.
@@ -83,7 +83,7 @@ namespace adaptive_json5
        * @note An invalid scalar returns an encoding error.
        * A surrogate pair is appended completely or not at all.
        */
-      status_result append_scalar(char32_t scalar) noexcept;
+      [[nodiscard]] status_result append_scalar(char32_t scalar) noexcept;
 
       /**
        * @brief Transfer accumulated storage into an immutable string.
@@ -95,14 +95,14 @@ namespace adaptive_json5
        * The builder becomes empty and can be reused with its original
        * provider and unit limit. Repeated finish returns an empty string.
        */
-      decoded_string finish() noexcept;
+      [[nodiscard]] decoded_string finish() noexcept;
 
       /**
        * @brief Return the number of accumulated UTF-16 units.
        * @par Requirements
        * P013; J5-029.
        */
-      std::size_t size() const noexcept;
+      [[nodiscard]] std::size_t size() const noexcept;
   };
 } // namespace adaptive_json5
 

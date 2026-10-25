@@ -18,7 +18,7 @@ namespace adaptive_json5
    * Owned numeric spelling and exact-value representation belong to P029.
    * A decimal token is not required to fit a machine numeric type.
    */
-  struct number_token
+  struct [[nodiscard]] number_token
   {
       number_kind kind = number_kind::decimal;
       std::size_t byte_offset{};

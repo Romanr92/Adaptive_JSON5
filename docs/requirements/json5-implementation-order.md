@@ -4,7 +4,8 @@ Copyright 2026 Razvan-Stefan Roman. Project additions are Apache-2.0.
 Specification-derived explanations retain the source notices linked below.
 
 Status: **Documented implementation baseline; no user review required.**
-Specification checked 2026-10-12. No production parser is implemented.
+Specification checked 2026-10-12. P001–P040 have compiled implementation and
+host-unit evidence; P041 review and claim status are in [conformance](../conformance.md).
 This is the sequential core-parser checklist. IDs P001–P066 are local project
 identifiers, not numbers issued by the JSON5 authors. Each prerequisite has a
 smaller number: implement in ascending order; no step requires a later one.
@@ -37,17 +38,52 @@ not as future prerequisites for an early P-step. The P dependency column governs
 this implementation sequence. [Machine-readable checklist](json5-implementation-order.json)
 contains the same entries for dependency checks.
 
-P001–P066 contracts and prerequisite order are unchanged. Existing GitHub anchors
-now group consecutive steps, with at most three active issues per subsystem; see
-[the consolidation plan](../issue-consolidation-plan.md) and [roadmap](../roadmap.md).
-Foundation P002/P003/P004 has merged component evidence; broader J5 contracts stay
-Draft. Production C++/public headers belong to Romanr92; AI creates unit tests.
+P001–P066 contracts and prerequisite order are unchanged. Foundation
+P002/P003/P004 has merged component evidence; broader J5 contracts stay Draft.
+
+## Delivery scope and issue tracking
+
+This section replaces the former roadmap and issue-consolidation plan.
+
+Full schema P043–P055, minimal testing CLI P056–P059 and full advanced memory
+accounting are in the selected delivery scope; optional consumer build flags do
+not remove them. Editor P060–P066 and consumer #70/#71 remain tracked in the
+backlog. Romanr92 writes production C++ and public headers; AI creates
+independent unit tests and must not patch production C++ to make tests pass.
 No separate per-issue documentation report is required. Keep essential public
 API, ownership, limits/accounting, provenance, deviations and usage contracts.
-Required builds use exceptions OFF/RTTI OFF and one unit/one formatting PR job.
-Full schema P043–P055, minimal testing CLI P056–P059 and full advanced memory
-accounting remain in the selected delivery scope; optional consumer build flags
-do not remove them from this scope.
+Required PR checks are one exceptions-OFF/RTTI-OFF GoogleTest job and one
+formatting job; `main` requires pull requests with both checks passing.
+
+GitHub anchors group consecutive steps, at most three active issues per
+subsystem. Each step's `Tracking:` line names its issue. Grouping does not make
+every internal step ready at once; follow the P prerequisites in order.
+
+| Subsystem | Issues and steps |
+| --- | --- |
+| Foundation (closed) | #1 P001, #2 P002, #3 P003, #4 P004 |
+| Unicode/source | #5 P005–P008 |
+| Lexer | #9 P009–P012, #22 P022–P024, #25 P025–P028 |
+| Strings | #13 P013–P017, #18 P018–P021 |
+| Values/parser | #29 P029–P032, #33 P033–P036, #38 P037–P042 (M1 ends at P037; #80 tracks P038–P041 as M2) |
+| Schema | #44 P043–P046, #48 P047–P051, #53 P052–P055 |
+| CLI | #57 P056–P059 |
+| Editor | #61 P060–P062, #64 P063–P064, #66 P065–P066 |
+
+Completion anchors:
+
+- [#68](https://github.com/Romanr92/Adaptive_JSON5/issues/68) — C++17 library target and installed public headers: J5-001, J5-002, J5-007, J5-091, J5-092, J5-093.
+- [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) — full advanced memory accounting and pure-memory/concurrent/embedded runtime: J5-040–J5-042, J5-045–J5-052, J5-063, J5-065, J5-066, J5-068, J5-098, J5-101. It needs complete accounting and failure recovery across parser, exact operations, diagnostics, schema and bounded CLI readers, so a parser-only release cannot close it. #3 covers only the primitive foundation.
+- [#70](https://github.com/Romanr92/Adaptive_JSON5/issues/70) — optional versioned consumer schema example: J5-083–J5-086.
+- [#71](https://github.com/Romanr92/Adaptive_JSON5/issues/71) — optional consumer numeric/string policies and result mapping: J5-087–J5-090.
+- [#72](https://github.com/Romanr92/Adaptive_JSON5/issues/72) — essential API, limits, provenance and truthful release evidence: J5-008, J5-099, J5-100.
+
+Administrative closures of consolidated child issues used `not_planned` with a
+redirect; they are not implementation evidence. Before closing or redirecting an
+issue, re-read its assignment, comments, branch/PR and timeline. Historical issue
+numbers can refer to different scopes; the snapshots
+[before consolidation](../issue-backlog-before-consolidation-2026-10-13.json) and
+[before the P sequence](../issue-backlog-before-p-sequence.json) are retained unchanged.
 
 ## Numbered implementation requirements
 
@@ -70,7 +106,7 @@ Define success/error alternatives with stable minimal error code and byte offset
 
 Implementation: developer-authored `error.hpp` and `result.hpp`. Local unit
 evidence: 40 result cases passed on Windows/GCC with exceptions OFF/ON and RTTI
-OFF on 2026-10-13; see [verification notes](../verification.md). This component
+OFF on 2026-10-13. This component
 evidence does not complete the broader J5 contracts or establish a remote matrix.
 
 - Prerequisites: P001.
@@ -81,8 +117,8 @@ evidence does not complete the broader J5 contracts or establish a remote matrix
 ### P003 — Fallible storage and accounting
 
 Implemented in merged PR #75: checked-size arithmetic, caller storage callbacks
-and move-only owned blocks. Thirty-nine storage cases passed; see
-[verification](../verification.md). Broader parser integration and embedded
+and move-only owned blocks. Thirty-nine storage cases passed.
+Broader parser integration and embedded
 runtime requirements remain pending.
 
 Tracking: [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3).
@@ -90,7 +126,7 @@ Tracking: [#3](https://github.com/Romanr92/Adaptive_JSON5/issues/3).
 Provide caller-supplied fallible storage, checked size arithmetic, ownership and cleanup primitives before implementing growing parser structures.
 
 Implementation: developer-authored `checked_size.hpp`, `storage.hpp` and `owned_block.hpp`.
-Local unit evidence: 39 storage cases passed on Windows/GCC with exceptions OFF and ON and RTTI OFF on 2026-10-13; see [verification notes](../verification.md). This component evidence does not complete broader J5-040, J5-046, J5-051 and J5-101 contracts or establish a remote matrix.
+Local unit evidence: 39 storage cases passed on Windows/GCC with exceptions OFF and ON and RTTI OFF on 2026-10-13. This component evidence does not complete broader J5-040, J5-046, J5-051 and J5-101 contracts or establish a remote matrix.
 
 - Prerequisites: P002.
 - Basis: Project.
@@ -104,7 +140,7 @@ Tracking: [#4](https://github.com/Romanr92/Adaptive_JSON5/issues/4) (original st
 Consume immutable bytes with explicit length and end position; bound every read and preserve original byte locations.
 
 Implementation: developer-authored `cursor.hpp`.
-Local unit evidence: 8 cursor cases (6 boundary/read, 1 span, 1 location) passed on Windows/GCC with exceptions OFF and ON and RTTI OFF on 2026-10-13; see [verification notes](../verification.md). This component evidence does not complete full parser input acceptance or establish a remote matrix.
+Local unit evidence: 8 cursor cases (6 boundary/read, 1 span, 1 location) passed on Windows/GCC with exceptions OFF and ON and RTTI OFF on 2026-10-13. This component evidence does not complete full parser input acceptance or establish a remote matrix.
 
 - Prerequisites: P002.
 - Basis: Project.
@@ -476,7 +512,7 @@ Accept one root value of any supported type surrounded by trivia; reject empty/t
 
 ### P038 — Checked numeric operations
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #39).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #39).
 
 Provide non-throwing signed/unsigned/floating conversion and exact comparison under documented policies without boolean coercion, rounding/wrapping or locale dependence.
 
@@ -487,7 +523,7 @@ Provide non-throwing signed/unsigned/floating conversion and exact comparison un
 
 ### P039 — Owned document and diagnostics
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #40).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #40).
 
 Expose stable byte spans, warning/error locations and documented views; destruction/moves and input-buffer destruction do not invalidate owned data.
 
@@ -498,7 +534,7 @@ Expose stable byte spans, warning/error locations and documented views; destruct
 
 ### P040 — Whole-grammar unit evidence
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #41).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #41).
 
 Map every JSON5 lexical/syntactic production and referenced ES5 alternative to named GoogleTest positive, negative, boundary and truncation cases; exercise resource failures with exceptions OFF.
 
@@ -509,7 +545,7 @@ Map every JSON5 lexical/syntactic production and referenced ES5 alternative to n
 
 ### P041 — Full-support claim
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #42).
+Tracking: [#80](https://github.com/Romanr92/Adaptive_JSON5/issues/80) (original step issue #42).
 
 Document language/Unicode versions, permitted limits and all deviations before claiming full JSON5 1.0.0 parsing support.
 
@@ -517,6 +553,31 @@ Document language/Unicode versions, permitted limits and all deviations before c
 - Basis: JSON5 §§10,A; Project release evidence.
 - Unit acceptance: Review production-to-unit matrix, all preceding contracts and actual native results.
 - Existing contracts: J5-008, J5-027, J5-100.
+
+Surrogate advisory decision (2026-10-25): option (b) adds
+`unpaired_surrogate_escape` in both modes while retaining the exact decoded
+UTF-16 units and checked UTF-8 export failures. Tests cover warning spans/order,
+quoted member names, pairs across JSON5 continuations, diagnostic boundaries,
+allocation-failure cleanup/retry and suppression of callbacks for failed strings.
+Local Windows GCC 15.2.0/CMake 4.0.1 execution of the changes committed as
+`803dca3`: 2145/2145 unit tests
+and 850/850 pinned-fixture validation tests passed in each exception mode, RTTI
+OFF; 70/70 affected cases passed again after an assertion-safety adjustment.
+clang-format 18.1.8 passed all 213 C++ files. See the
+[support statement](../conformance.md) for the decision and execution evidence.
+The P041 follow-up records the parser-scoped technical review in the support
+statement, adds explicit outcomes for all 35 pinned i_ fixtures and tests
+concurrent independent contexts/documents. All required PR checks passed at
+`66a425a`; developer review/merge remain pending. Requirement rows remain Draft;
+future schema/editor/device acceptance is not inferred from parser evidence.
+Local P041 follow-up results (2026-10-25, Windows GCC 15.2.0, CMake 4.0.1):
+2147/2147 units and 921/921 validation cases passed with exceptions OFF and ON,
+RTTI OFF; clang-format 18.1.8 passed all 214 C++ files. These changes were
+subsequently committed as `66a425a`. CI at that commit: Linux x86-64/aarch64
+GCC 13.3.0 each passed 2146 units with one locale skip per exception mode;
+Windows MinGW GCC 16.2.0 passed all 2147 units per mode, including locale;
+Linux validation passed 921/921 per mode; formatting passed. Exact run/job links
+and the acceptance-focused PR #100 review are in [conformance](../conformance.md).
 
 ## Grammar coverage review
 
@@ -819,4 +880,3 @@ Document extension/backend versions and executed tokenization/live-document/rang
 - Prerequisites: P065.
 - Existing contracts: J5-082, J5-100.
 - Unit acceptance: Complete editor-feature-to-unit mapping and unit/format checks only.
-

@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: Apache-2.0
 #include "../../../tests/support/document_provider.hpp"
 #include "adaptive_json5/detail/parser/parser_attachment.hpp"
 #include "adaptive_json5/detail/parser/parser_container_open.hpp"
 #include "adaptive_json5/detail/parser/parser_engine.hpp"
+#include "adaptive_json5/detail/parser/parser_work.hpp"
 #include "adaptive_json5/detail/parser/primitive_parser.hpp"
 
 #include <gtest/gtest.h>
@@ -326,7 +326,7 @@ namespace
     ASSERT_FALSE(attached.has_value());
     EXPECT_EQ(attached.error_if()->code, error_code::wrong_type_or_access);
     EXPECT_EQ(frame.state, parser_state::array_first_or_end);
-    EXPECT_EQ(work.consumed(), values.size() + 1);
+    EXPECT_EQ(work.consumed(), c_attachment_work);
   }
   /* ================================= End Test_J5_048 ================================== */
 } // namespace

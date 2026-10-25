@@ -3,22 +3,27 @@
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
 [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
 
-A planned portable C++17 JSON5 reader for compatible C++ projects, including
+A portable C++17 JSON5 reader for compatible C++ projects, including
 hosted systems and embedded devices after compilation into a compatible project.
 The core is OS-agnostic; MICROSAR is one possible environment, not a required vendor port.
 The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
 numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
-**Status: the compiled C++17 core includes owned values, lexical components,
-resource guards, the internal P033 container engine and the public P037
-complete-document `parse_document()` entry.**
-GoogleTest inventories and historical executed results are recorded in
-[verification notes](docs/verification.md). Parser/schema/CLI conformance remains
-pending. Production C++ and public headers are reserved for Romanr92; AI creates
+**Status: the compiled C++17 core parses complete JSON5 1.0.0 and strict JSON
+documents through `parse_document()`, with exact numeric conversion and
+comparison, warnings, line/column lookup and optional source retention
+(P001–P040).** The P041 technical review is recorded; final claim status and
+required PR evidence are in the
+[JSON5 1.0.0 support statement](docs/conformance.md), together with versions,
+limits, implementation-defined behaviour, deviations and executed results. Requirement
+rows remain Draft.
+GoogleTest inventories are in [traceability](docs/traceability.md), and the
+per-production view is the [grammar evidence matrix](docs/grammar-evidence.md).
+Production C++ and public headers are reserved for Romanr92; AI creates
 unit tests. See [AGENTS.md](AGENTS.md).
 
-The [consolidation plan](docs/issue-consolidation-plan.md) retains full schema
+The [delivery scope](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
 P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.
 Existing anchors group consecutive steps with at most three issues per subsystem.
 Schema/CLI remain optional for consumers, while required in this delivery scope.
@@ -26,8 +31,8 @@ No per-issue documentation report is required; essential public API, limits,
 ownership, provenance and usage contracts remain. Ten working days is a checkpoint,
 not a credible full-completion promise; the plan states estimate assumptions.
 
-Native Windows, Linux and macOS development requires no WSL. The planned parser
-will require neither AdaptivePi, an operating-system service, Node.js, VS Code nor
+Native development requires no WSL. The parser
+requires neither AdaptivePi, an operating-system service, Node.js, VS Code nor
 network access. [Embedded requirements](docs/embedded.md) define the bare-metal
 boundary. AdaptivePi is inspiration and an optional consumer example.
 
@@ -120,7 +125,7 @@ The command-line executable will be implemented later; no production C++ is adde
 
 - [Original proposal Markdown](docs/requirements/proposals/json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
 - [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.
-- [Roadmap](docs/roadmap.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
+- [Implementation sequence and issue tracking](docs/requirements/json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
 - [Architecture](docs/architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
 - [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
 - [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).

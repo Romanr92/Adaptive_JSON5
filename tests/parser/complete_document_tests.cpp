@@ -52,8 +52,8 @@ namespace
     ASSERT_TRUE(parsed.has_value()) << fixture.name;
     EXPECT_EQ(parsed.error_if(), nullptr);
     EXPECT_EQ(parsed.value_if()->values.size(), fixture.records);
-    EXPECT_EQ(parsed.value_if()->warning_count, 0u);
-    EXPECT_FALSE(parsed.value_if()->first_warning.has_value());
+    EXPECT_EQ(parsed.value_if()->warnings.size(), 0u);
+    EXPECT_FALSE(parsed.value_if()->source.is_retained());
     const auto root = parsed.value_if()->values.root();
     ASSERT_TRUE(root.has_value());
     const auto kind = root.value_if()->kind();
@@ -184,7 +184,7 @@ namespace
       rejection_case{"TrailingCloser", "{}]", syntax_mode::json5, error_code::syntax, 2},
       rejection_case{"Semicolon", "{};", syntax_mode::json5, error_code::syntax, 2},
       rejection_case{"TrailingSlash", "{}/", syntax_mode::json5, error_code::syntax, 2},
-      rejection_case{"UnterminatedComment", "{} /*", syntax_mode::json5, error_code::syntax, 3},
+      rejection_case{"UnterminatedComment", "{} /*", syntax_mode::json5, error_code::syntax, 5},
       rejection_case{"CommentBeforeSecondRoot", "{}/*ok*/[]", syntax_mode::json5, error_code::syntax, 8},
       rejection_case{"StrictLineComment", "{} //x", syntax_mode::strict_json, error_code::syntax, 3},
       rejection_case{"StrictBlockComment", "{} /*x*/", syntax_mode::strict_json, error_code::syntax, 3},
@@ -410,7 +410,7 @@ namespace
                     limit_case{"NumberBytes", "1.2e34", &resource_limits::max_number_bytes, 6},
                     limit_case{"ExponentDigits", "1e002", &resource_limits::max_exponent_digits, 3},
                     limit_case{"Diagnostics", "\"\xe2\x80\xa8\"", &resource_limits::max_diagnostics, 1},
-                    limit_case{"WorkIncludesTrailingScan", "null  ", &resource_limits::max_work_units, 20}),
+                    limit_case{"WorkIncludesTrailingScan", "null  ", &resource_limits::max_work_units, 17}),
     [](const testing::TestParamInfo<limit_case>& info)
     {
       return info.param.name;
@@ -610,9 +610,9 @@ namespace
   /*
    * Arrange: A member name and string containing both advisory raw line-separator forms.
    * Act: Parse a complete document with trailing trivia through the public API.
-   * Expect: Both warnings are counted and the first original byte location remains available.
+   * Expect: Both warnings are retained in source order with their original byte locations.
    */
-  TEST(J5_017_CompleteWarnings, RetainsCountAndFirstDescriptor)
+  TEST(J5_017_CompleteWarnings, RetainsEveryWarningInSourceOrder)
   {
     /* Arrange */
     constexpr std::string_view input{"{\"\xe2\x80\xa8\":\"\xe2\x80\xa9\"} //end"};
@@ -624,11 +624,18 @@ namespace
     /* Expect */
     // The public result must carry metadata from names as well as values across engine destruction.
     ASSERT_TRUE(parsed.has_value());
-    EXPECT_EQ(parsed.value_if()->warning_count, 2u);
-    ASSERT_TRUE(parsed.value_if()->first_warning.has_value());
-    EXPECT_EQ(parsed.value_if()->first_warning->code, string_warning_code::raw_line_separator);
-    EXPECT_EQ(parsed.value_if()->first_warning->byte_offset, 2u);
-    EXPECT_EQ(parsed.value_if()->first_warning->byte_length, 3u);
+    const auto& warnings = parsed.value_if()->warnings;
+    ASSERT_EQ(warnings.size(), 2u);
+    const auto first = warnings.at(0);
+    const auto second = warnings.at(1);
+    ASSERT_TRUE(first.has_value());
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(first.value_if()->code, string_warning_code::raw_line_separator);
+    EXPECT_EQ(first.value_if()->byte_offset, 2u);
+    EXPECT_EQ(first.value_if()->byte_length, 3u);
+    EXPECT_EQ(second.value_if()->code, string_warning_code::raw_paragraph_separator);
+    EXPECT_EQ(second.value_if()->byte_offset, 8u);
+    EXPECT_EQ(second.value_if()->byte_length, 3u);
   }
   /* ================================= End Test_J5_017 ================================== */
 } // namespace

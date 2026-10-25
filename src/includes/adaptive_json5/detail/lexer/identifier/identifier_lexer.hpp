@@ -29,8 +29,8 @@ namespace adaptive_json5
    * Strict JSON member-name rejection belongs to the context-aware caller.
    * The storage provider state must outlive a returned token.
    */
-  result<std::optional<identifier_token>> consume_identifier(cursor& source, const storage_callbacks& storage,
-                                                             std::size_t max_units) noexcept;
+  [[nodiscard]] result<std::optional<identifier_token>>
+  consume_identifier(cursor& source, const storage_callbacks& storage, std::size_t max_units) noexcept;
 } // namespace adaptive_json5
 
 #endif /* IDENTIFIER_LEXER_HPP_ */

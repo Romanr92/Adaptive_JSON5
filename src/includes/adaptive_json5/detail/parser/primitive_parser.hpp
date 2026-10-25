@@ -27,7 +27,7 @@ namespace adaptive_json5
    * Warning metadata follows the recognized string token.
    * Nonstring primitives have no string warnings.
    */
-  struct primitive_value
+  struct [[nodiscard]] primitive_value
   {
       value_index index{};
       std::size_t byte_offset{};
@@ -45,7 +45,7 @@ namespace adaptive_json5
    * All storage provider states must outlive the owned allocations.
    * Original input is not retained.
    */
-  struct primitive_document
+  struct [[nodiscard]] primitive_document
   {
       document values;
       primitive_value root{};
@@ -73,8 +73,9 @@ namespace adaptive_json5
      * Source spans and string-warning publication are handled by composition.
      * Does not itself integrate owned-byte or work accounting.
      */
-    result<value_index> append_primitive_token(document& destination, scalar_token token, input_view input,
-                                               const parse_options& options, const storage_callbacks& storage) noexcept;
+    [[nodiscard]] result<value_index> append_primitive_token(document& destination, scalar_token token,
+                                                             input_view input, const parse_options& options,
+                                                             const storage_callbacks& storage) noexcept;
   } // namespace detail
 
   /**
@@ -104,14 +105,14 @@ namespace adaptive_json5
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
    * Recognition charges one unit per remaining input byte before scanning.
-   * Construction charges token bytes plus existing records plus one new record.
+   * Construction charges token bytes plus c_record_construction_work.
    * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
    */
-  result<std::optional<primitive_value>> consume_primitive(document& destination, cursor& source, input_view input,
-                                                           const parse_options& options,
-                                                           const storage_callbacks& storage,
-                                                           work_budget& work) noexcept;
+  [[nodiscard]] result<std::optional<primitive_value>> consume_primitive(document& destination, cursor& source,
+                                                                         input_view input, const parse_options& options,
+                                                                         const storage_callbacks& storage,
+                                                                         work_budget& work) noexcept;
 
   /**
    * @brief Parse exactly one primitive root with surrounding mode-valid trivia.
@@ -139,8 +140,8 @@ namespace adaptive_json5
    * Cleanup releases owned storage without requiring additional work charges.
    * The root span is stored in its value record and returned root metadata.
    */
-  result<primitive_document> parse_primitive_document(input_view input, const parse_options& options,
-                                                      accounted_storage& accounting) noexcept;
+  [[nodiscard]] result<primitive_document> parse_primitive_document(input_view input, const parse_options& options,
+                                                                    accounted_storage& accounting) noexcept;
 } // namespace adaptive_json5
 
 #endif /* PRIMITIVE_PARSER_HPP_ */

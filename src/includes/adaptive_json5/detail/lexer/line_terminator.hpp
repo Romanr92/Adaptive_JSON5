@@ -15,7 +15,7 @@ namespace adaptive_json5
    * P007; J5-011; J5-017; J5-044.
    * @note CRLF occupies two bytes but represents one sequence.
    */
-  struct line_terminator_span
+  struct [[nodiscard]] line_terminator_span
   {
       std::size_t byte_offset;
       std::size_t byte_length;
@@ -31,7 +31,7 @@ namespace adaptive_json5
    * @note EOF, nonterminators and encoding failures leave source unchanged.
    * Recognizes LF, CR, CRLF, U+2028 and U+2029 without allocation.
    */
-  result<std::optional<line_terminator_span>> consume_line_terminator(cursor& source) noexcept;
+  [[nodiscard]] result<std::optional<line_terminator_span>> consume_line_terminator(cursor& source) noexcept;
 } // namespace adaptive_json5
 
 #endif /* LINE_TERMINATOR_HPP_ */

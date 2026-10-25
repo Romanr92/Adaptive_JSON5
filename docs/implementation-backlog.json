@@ -3,7 +3,7 @@
   "version": 3,
   "scope": "Prepare a generic independently developed OS-agnostic C++17 JSON5/strict-JSON library for compatible hosted and embedded projects. Errors are explicit results, never thrown. Schema/CLI/editor remain optional. Agents may prepare CMake, GoogleTest, docs, requirements and skills; no production C++.",
   "requirement_status": "Draft; creating issues does not promote proposal requirements to Agreed or establish implementation evidence.",
-  "quality_scope": "GoogleTest units and formatting only; one job each on pull requests; exceptions OFF and RTTI OFF.",
+  "quality_scope": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge.",
   "license": "Retain the existing Apache-2.0 repository license. MIT in the source proposal is a proposed choice, not authorization to change the current license. Preserve third-party notices and pinned provenance.",
   "adaptations": [
     "The latest user scope replaces WSL/AdaptivePi SDK/runtime/deployment obligations with a generic portable C++17 library for compatible projects.",
@@ -898,7 +898,7 @@
     },
     {
       "key": "P038",
-      "issue_number": 38,
+      "issue_number": 80,
       "title": "Checked numeric operations",
       "requirements": [
         "J5-035",
@@ -912,19 +912,19 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P029",
         "P030",
         "P037"
       ],
-      "status": "implementation pending",
+      "status": "implemented with named unit evidence; shared J5 requirement rows remain Draft",
       "original_issue_number": 39
     },
     {
       "key": "P039",
-      "issue_number": 38,
+      "issue_number": 80,
       "title": "Owned document and diagnostics",
       "requirements": [
         "J5-040",
@@ -938,19 +938,19 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P020",
         "P030",
         "P037"
       ],
-      "status": "implementation pending",
+      "status": "implemented with named unit evidence; shared J5 requirement rows remain Draft",
       "original_issue_number": 40
     },
     {
       "key": "P040",
-      "issue_number": 38,
+      "issue_number": 80,
       "title": "Whole-grammar unit evidence",
       "requirements": [
         "J5-027",
@@ -965,7 +965,7 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P001",
@@ -1008,12 +1008,12 @@
         "P038",
         "P039"
       ],
-      "status": "implementation pending",
+      "status": "implemented with named unit evidence; shared J5 requirement rows remain Draft",
       "original_issue_number": 41
     },
     {
       "key": "P041",
-      "issue_number": 38,
+      "issue_number": 80,
       "title": "Full-support claim",
       "requirements": [
         "J5-008",
@@ -1025,12 +1025,12 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "Required exceptions-OFF/RTTI-OFF unit and formatting PR checks pass; developer reviewed and merged"
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P040"
       ],
-      "status": "implementation pending",
+      "status": "parser-scoped technical review and required CI complete at 66a425a; developer review/merge pending; shared J5 rows remain Draft",
       "original_issue_number": 42
     },
     {
@@ -1768,10 +1768,10 @@
     "P035": 33,
     "P036": 33,
     "P037": 38,
-    "P038": 38,
-    "P039": 38,
-    "P040": 38,
-    "P041": 38,
+    "P038": 80,
+    "P039": 80,
+    "P040": 80,
+    "P041": 80,
     "P042": 38,
     "P043": 44,
     "P044": 44,
@@ -1807,7 +1807,7 @@
     "production_cpp": "Romanr92 only; includes public C++ headers",
     "unit_tests": "AI creates independent GoogleTest cases; developer reviews and fixes production failures",
     "documentation": "No per-issue reports; essential public API/ownership/error/limit/accounting/version/provenance/usage docs only",
-    "quality": "GoogleTest units and formatting only; one job each on pull requests; exceptions OFF and RTTI OFF."
+    "quality": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
   },
   "retained_delivery_scope": [
     "P001–P042 full JSON5 and strict JSON",
@@ -1815,7 +1815,7 @@
     "P056–P059 minimal complete testing CLI",
     "Full advanced memory accounting and runtime completion (#69)"
   ],
-  "consolidation_plan": "docs/issue-consolidation-plan.md",
+  "consolidation_plan": "docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking",
   "consolidated_issues": [
     {
       "issue_number": 5,

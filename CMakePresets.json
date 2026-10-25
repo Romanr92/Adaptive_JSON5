@@ -16,6 +16,7 @@
         "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
         "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
         "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
       }
@@ -30,6 +31,7 @@
         "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
         "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
         "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
       }
@@ -44,6 +46,7 @@
         "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
         "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "ON",
         "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
       }
@@ -58,6 +61,7 @@
         "ADAPTIVE_JSON5_BUILD_LIBRARY": "OFF",
         "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
         "ADAPTIVE_JSON5_BUILD_TESTS": "ON",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
         "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
       }
@@ -72,6 +76,37 @@
         "ADAPTIVE_JSON5_BUILD_LIBRARY": "OFF",
         "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
         "ADAPTIVE_JSON5_BUILD_TESTS": "ON",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "ON",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "validation-tests",
+      "displayName": "Debug: Official JSON & JSON5 Validation Tests",
+      "binaryDir": "${sourceDir}/build/validation-tests",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "OFF",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "ON",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "validation-tests-exceptions",
+      "displayName": "Debug: Official JSON & JSON5 Validation Tests (exceptions ON)",
+      "binaryDir": "${sourceDir}/build/validation-tests-exceptions",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "OFF",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "ON",
         "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "ON",
         "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
       }
@@ -127,6 +162,18 @@
       "configuration": "Debug"
     },
     {
+      "name": "validation-tests",
+      "displayName": "Build: Debug: Official JSON & JSON5 Validation Tests",
+      "configurePreset": "validation-tests",
+      "configuration": "Debug"
+    },
+    {
+      "name": "validation-tests-exceptions",
+      "displayName": "Build: Debug: Official JSON & JSON5 Validation Tests (exceptions ON)",
+      "configurePreset": "validation-tests-exceptions",
+      "configuration": "Debug"
+    },
+    {
       "name": "dev",
       "displayName": "Build: Compatibility: dev",
       "configurePreset": "dev",
@@ -167,6 +214,30 @@
       "execution": {
         "noTestsAction": "error"
       }
+    },
+    {
+      "name": "validation-tests",
+      "configurePreset": "validation-tests",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      },
+      "displayName": "Debug: Official JSON & JSON5 Validation Tests"
+    },
+    {
+      "name": "validation-tests-exceptions",
+      "configurePreset": "validation-tests-exceptions",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      },
+      "displayName": "Debug: Official JSON & JSON5 Validation Tests (exceptions ON)"
     },
     {
       "name": "dev",
