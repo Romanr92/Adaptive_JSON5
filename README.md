@@ -19,11 +19,11 @@ required PR evidence are in the
 limits, implementation-defined behaviour, deviations and executed results. Requirement
 rows remain Draft.
 GoogleTest inventories are in [traceability](docs/traceability.md), and the
-per-production view is the [grammar evidence matrix](docs/grammar-evidence.md).
+per-production view is the [grammar evidence matrix](core/docs/design-grammar-evidence.md).
 Production C++ and public headers are reserved for Romanr92; AI creates
 unit tests. See [AGENTS.md](AGENTS.md).
 
-The [delivery scope](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
+The [delivery scope](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
 P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.
 Existing anchors group consecutive steps with at most three issues per subsystem.
 Schema/CLI remain optional for consumers, while required in this delivery scope.
@@ -70,7 +70,7 @@ so its final total counts cases. Suite labels such as `result_units` select grou
 
 Exceptions and RTTI default OFF; the second preset enables exceptions. Run
 Windows commands in a Visual Studio developer terminal when using its compiler.
-See [native development](docs/development.md) for offline GoogleTest, formatting
+See [native development](core/docs/design-development.md) for offline GoogleTest, formatting
 and toolchain configuration. Automated checks are **GoogleTest unit tests and
 clang-format 18 only**. GoogleTest is host-only and never a parser runtime dependency.
 
@@ -109,11 +109,11 @@ macOS release binaries are outside this packaging scope.
 
 ## Documentation and work
 
-The implemented [source layout guide](docs/source-layout.md) and
-[layout decision](docs/adr/0002-public-private-source-layout.md) separate
-public `includes/` from private `src/includes/`, with files grouped by topic.
-Compiled implementation files live under `src/src/<topic>/`.
-Internal units live under `src/tests/`; public-header/API and whole-library
+The implemented [source layout guide](core/docs/design-source-layout.md) and
+[layout decision](core/docs/adr-0002-public-private-source-layout.md) separate
+public `includes/` from private `core/includes/`, with files grouped by topic.
+Compiled implementation files live under `core/src/<topic>/`.
+Internal units live under `core/tests/`; public-header/API and whole-library
 behavior units stay under top-level `tests/`. This is the direction for new work;
 the former `include/` layout has been migrated. Internal declarations are not
 installed, and public headers compile without the private include root.
@@ -123,10 +123,10 @@ failures, an optional schema and a planned requirement demonstration manifest.
 Enable `ADAPTIVE_JSON5_BUILD_EXECUTABLE` to expose its data target in CMake.
 The command-line executable will be implemented later; no production C++ is added.
 
-- [Original proposal Markdown](docs/requirements/proposals/json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
+- [Original proposal Markdown](core/docs/requirements-proposal-json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
 - [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.
-- [Implementation sequence and issue tracking](docs/requirements/json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
-- [Architecture](docs/architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
+- [Implementation sequence and issue tracking](core/docs/requirements-json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
+- [Architecture](core/docs/design-architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
 - [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
 - [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).
 
@@ -140,7 +140,7 @@ their own applicable notices and recorded versions.
 See [licensing and redistribution](docs/licensing.md) and [NOTICE](NOTICE) for
 attribution and distribution obligations.
 
-For core parser work, follow the [official-specification implementation sequence](docs/requirements/json5-implementation-order.md).
+For core parser work, follow the [official-specification implementation sequence](core/docs/requirements-json5-implementation-order.md).
 P001–P066 are ordered so all prerequisites come earlier; existing J5 IDs remain
 unchanged for issue and requirement traceability. Optional schema/editor/CLI work
 does not block this core parser sequence.

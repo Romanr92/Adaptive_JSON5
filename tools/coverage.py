@@ -16,7 +16,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build" / "coverage"
 SOURCE_FILTER = (
-    r"^(?:includes/|src/(?:includes|src)/)"
+    r"^(?:includes/|core/(?:includes|src)/)"
     r".*(?i:\.(?:c|cc|cp|cpp|cxx|c\+\+|h|hh|hp|hpp|hxx|h\+\+|inl|inc|ipp|tpp|tcc|txx|ixx|cppm|cxxm|ccm|c\+\+m))$"
 )
 
@@ -31,6 +31,28 @@ def reset_counters():
     for counter in BUILD.rglob("*.gcda"):
         if counter.resolve().is_relative_to(BUILD.resolve()):
             counter.unlink()
+
+
+def remove_obsolete_notes():
+    # A layout change leaves .gcno files for objects no longer in Ninja's graph.
+    # gcovr reads those too, mixing old header locations with current profiles.
+    targets = subprocess.check_output(
+        ["ninja", "-C", str(BUILD), "-t", "targets", "all"],
+        cwd=ROOT, text=True)
+    current_notes = {
+        (BUILD / line.rsplit(": ", 1)[0]).resolve().with_suffix(".gcno")
+        for line in targets.splitlines()
+        if Path(line.rsplit(": ", 1)[0]).suffix in (".o", ".obj")
+    }
+    if not current_notes:
+        raise OSError("Ninja registered no object files for coverage collection")
+    removed = 0
+    for note in BUILD.rglob("*.gcno"):
+        resolved = note.resolve()
+        if resolved.is_relative_to(BUILD.resolve()) and resolved not in current_notes:
+            note.unlink()
+            removed += 1
+    print(f"Removed {removed} obsolete coverage notes.", flush=True)
 
 
 def main():
@@ -65,10 +87,13 @@ def main():
 
     try:
         run([
-            "cmake", "-S", ROOT, "-B", BUILD, "-G", "Ninja",
+            "cmake", "--fresh", "-S", ROOT, "-B", BUILD, "-G", "Ninja",
             "-DCMAKE_CXX_COMPILER=" + compiler,
             "-DCMAKE_BUILD_TYPE=Debug",
-            "-DCMAKE_CXX_FLAGS=--coverage -O0 -g",
+            # The concurrency units execute the core on several threads even
+            # during sequential collection. Non-atomic counters lose updates
+            # and can make gcov infer negative branch counts.
+            "-DCMAKE_CXX_FLAGS=--coverage -fprofile-update=atomic -O0 -g",
             "-DCMAKE_EXE_LINKER_FLAGS=--coverage",
             "-DADAPTIVE_JSON5_BUILD_TESTS=ON",
             # Validation tests are a separate gate and never contribute to coverage.
@@ -89,6 +114,7 @@ def main():
         # Clear profiles from older binaries before discovery can merge them
         # with instrumentation whose checksum changed after recompilation.
         reset_counters()
+        remove_obsolete_notes()
         run(["cmake", "--build", BUILD, "--parallel", args.jobs])
 
         # Reset only runtime counters in this dedicated build so repeated reports

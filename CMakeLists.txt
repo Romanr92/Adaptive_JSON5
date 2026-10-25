@@ -77,82 +77,6 @@ function(adaptive_json5_configure_target target)
     endif()
 endfunction()
 
-if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS
-        OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
-    add_library(adaptive_json5_parser STATIC
-        src/src/lexer/comment.cpp
-        src/src/lexer/identifier/identifier_classification.cpp
-        src/src/lexer/identifier/identifier_lexer.cpp
-        src/src/lexer/line_terminator.cpp
-        src/src/lexer/member_name_lexer.cpp
-        src/src/lexer/number/decimal_lexer.cpp
-        src/src/lexer/number/hexadecimal_lexer.cpp
-        src/src/lexer/number/non_finite_lexer.cpp
-        src/src/lexer/number/number_lexer.cpp
-        src/src/lexer/punctuation.cpp
-        src/src/lexer/scalar_lexer.cpp
-        src/src/lexer/string/hex_escape.cpp
-        src/src/lexer/string/line_continuation.cpp
-        src/src/lexer/string/non_escape.cpp
-        src/src/lexer/string/simple_escape.cpp
-        src/src/lexer/string/string_boundary.cpp
-        src/src/lexer/string/string_escape.cpp
-        src/src/lexer/string/string_lexer.cpp
-        src/src/lexer/string/string_warning.cpp
-        src/src/lexer/string/unicode_escape.cpp
-        src/src/lexer/token_boundary.cpp
-        src/src/lexer/trivia.cpp
-        src/src/lexer/whitespace.cpp
-        src/src/memory/accounted_storage.cpp
-        src/src/memory/decoded_string_builder.cpp
-        src/src/memory/owned_block.cpp
-        src/src/memory/resource_budget.cpp
-        src/src/memory/work_budget.cpp
-        src/src/parser/parser.cpp
-        src/src/parser/parser_attachment.cpp
-        src/src/parser/parser_container_close.cpp
-        src/src/parser/parser_container_open.cpp
-        src/src/parser/parser_dispatch.cpp
-        src/src/parser/parser_duplicate.cpp
-        src/src/parser/parser_engine.cpp
-        src/src/parser/parser_stack.cpp
-        src/src/parser/parser_work.cpp
-        src/src/parser/primitive_parser.cpp
-        src/src/unicode/utf16.cpp
-        src/src/unicode/utf16_decode.cpp
-        src/src/unicode/utf8.cpp
-        src/src/value/decoded_name_equal.cpp
-        src/src/value/decoded_string.cpp
-        src/src/value/document.cpp
-        src/src/value/document_links.cpp
-        src/src/value/member_lookup.cpp
-        src/src/value/number_analysis.cpp
-        src/src/value/owned_number.cpp
-        src/src/value/utf8_export.cpp
-        src/src/value/value_iterator.cpp
-        src/src/value/value_storage.cpp
-        src/src/value/value_view.cpp
-        src/src/value/integer_magnitude.cpp
-        src/src/value/numeric_conversion.cpp
-        src/src/value/big_unsigned.cpp
-        src/src/value/floating_conversion.cpp
-        src/src/value/number_comparison.cpp
-        src/src/input/text_position.cpp
-        src/src/value/warning_list.cpp
-        src/src/value/retained_source.cpp
-    )
-    add_library(AdaptiveJSON5::parser ALIAS adaptive_json5_parser)
-    set_target_properties(adaptive_json5_parser PROPERTIES EXPORT_NAME parser)
-    target_link_libraries(adaptive_json5_parser PUBLIC
-        AdaptiveJSON5::build_options)
-    target_include_directories(adaptive_json5_parser
-        PUBLIC
-            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/includes>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
-    adaptive_json5_configure_target(adaptive_json5_parser)
-endif()
-
 if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
     if(CMAKE_CROSSCOMPILING)
         message(FATAL_ERROR
@@ -165,15 +89,14 @@ if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
     include(GoogleTest)
     include("${PROJECT_SOURCE_DIR}/cmake/UnitTests.cmake")
 endif()
-if(ADAPTIVE_JSON5_BUILD_TESTS)
-    add_subdirectory(src/tests)
+if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS
+        OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
+    add_subdirectory(core)
+endif()
+if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
     add_subdirectory(tests)
 endif()
-if(ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
-    # Third-party fixtures are resolved or downloaded only for validation.
-    include("${PROJECT_SOURCE_DIR}/cmake/TestFixtures.cmake")
-    add_subdirectory(tests/validation)
-endif()
+
 
 set(adaptive_json5_package_dir ${CMAKE_INSTALL_LIBDIR}/cmake/AdaptiveJSON5)
 if(ADAPTIVE_JSON5_BUILD_EXECUTABLE)

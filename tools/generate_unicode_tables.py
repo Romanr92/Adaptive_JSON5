@@ -69,7 +69,7 @@ def merge_ranges(categories, *databases):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT / "src/includes/adaptive_json5/detail/unicode/unicode_tables.hpp")
+    parser.add_argument("--output", type=Path, default=ROOT / "core/includes/unicode/unicode_tables.hpp")
     arguments = parser.parse_args()
     manifest = json.loads((DATA / "sources.json").read_text(encoding="utf-8"))
     for name, source in manifest.items():
@@ -92,7 +92,7 @@ def main():
              "// Unicode data copyright 1991-2026 Unicode, Inc.; UCD 17.0.0 ReadMe copyright 2025 Unicode, Inc.",
              "// SPDX-License-Identifier: Unicode-3.0", "/*", *license_text.splitlines(), "*/", "",
              "#ifndef UNICODE_TABLES_HPP_", "#define UNICODE_TABLES_HPP_", "",
-             '#include "adaptive_json5/detail/unicode/unicode_range.hpp"', "", "namespace adaptive_json5", "{", "  namespace detail", "  {"]
+             '#include "unicode/unicode_range.hpp"', "", "namespace adaptive_json5", "{", "  namespace detail", "  {"]
     for version in ("17.0.0", "3.0.0"):
         source = manifest[version + "/UnicodeData.txt"]
         lines += ["    // " + source["url"], "    // SHA-256: " + source["sha256"]]

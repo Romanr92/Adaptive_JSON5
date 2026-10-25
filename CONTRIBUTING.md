@@ -1,11 +1,11 @@
 # Contributing
 
-Start with [development setup](docs/development.md), the ordered
-[implementation sequence](docs/requirements/json5-implementation-order.md) and [requirements](docs/requirements.md).
+Start with [development setup](core/docs/design-development.md), the ordered
+[implementation sequence](core/docs/requirements-json5-implementation-order.md) and [requirements](docs/requirements.md).
 Pick a ready issue whose prerequisites are complete. Keep the generic parser
 independent of consumer fields, operating systems and optional host tooling.
 
-Follow the [C++ coding style](docs/coding-style.md), including the `m_` prefix
+Follow the [C++ coding style](core/docs/design-coding-style.md), including the `m_` prefix
 without a trailing underscore for class data members, and the tracked
 clang-format rules.
 
@@ -41,7 +41,7 @@ Read [licensing guidance](docs/licensing.md) and retain applicable upstream noti
 when contributing copied or adapted material. Repository copyright attribution is
 recorded in [NOTICE](NOTICE); third-party rights remain with their owners.
 
-The [issue tracking section](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking) groups consecutive P
+The [issue tracking section](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking) groups consecutive P
 steps without reducing technical acceptance. Romanr92 implements production C++;
 AI creates independent GoogleTest units and does not fix production files. Full
 schema, minimal testing CLI and advanced accounting remain in the selected delivery.
