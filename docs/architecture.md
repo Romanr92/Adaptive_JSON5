@@ -514,10 +514,11 @@ Current defaults in `resource_limits.hpp`:
 | `max_diagnostics` | 16 | Retained diagnostic entries |
 | `max_work_units` | 32768 | Operation-defined charged work |
 
-The P040 defaults accept every syntactically valid file in the pinned JSON and
-JSON5 corpora, including 500 nested arrays and a 131-digit exponent. They are
-conservative host defaults, not embedded recommendations; final defaults and
-per-value memory cost (about 400-550 owned bytes per value) are tracked by
+The defaults are conservative, chosen for untrusted input; valid documents
+beyond them fail with `resource_limit` until the caller raises the limits. Every
+file in the small pinned JSON and JSON5 corpora parses with them, including 500
+nested arrays and a 131-digit exponent. Final defaults and per-value memory cost
+(about 400-550 owned bytes per value) are tracked by
 [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69).
 
 Parser work charges grow linearly with the input and the number of values:
@@ -629,7 +630,7 @@ an arbitrary identifier is not implicitly a string value.
 | [`punctuation_kind`, `punctuation_token`](../src/includes/adaptive_json5/detail/lexer/punctuation.hpp) | Classify six structural punctuation bytes and retain the recognized byte span. |
 | [`string_quote`](../src/includes/adaptive_json5/detail/lexer/string/string_boundary.hpp) | Opening delimiter selection: single or double quote. |
 | `string_piece_kind`, `string_piece` | Classify a source character, closing quote or escape start; retain original scalar/span, not a reconstructed escape. |
-| [`string_warning_code`, `string_warning`](../src/includes/adaptive_json5/detail/lexer/string/string_warning.hpp) | Advisory raw line/paragraph separator descriptor with original byte span; stored inline. |
+| [`string_warning_code`, `string_warning`](../includes/adaptive_json5/value/string_warning.hpp) | Advisory raw line/paragraph separator or unpaired surrogate escape descriptor with original byte span; stored inline. |
 | [`string_warning_observer`, `string_warning_function`](../src/includes/adaptive_json5/detail/lexer/string/string_token.hpp) | Borrowed callback/context for successful-string notifications; observer does not own warnings or input. |
 | `string_token` | Owns a `decoded_string`, full quoted source span, warning count and optional first warning. |
 | [`identifier_token`](../src/includes/adaptive_json5/detail/lexer/identifier/identifier_token.hpp) | Owns decoded identifier units, original span and an escape-presence flag. |
@@ -1058,6 +1059,7 @@ remain Draft.
 | Strict-mode BOM | `parse_options::strict_bom` (`strict_bom_policy`) defaults to `reject`, as RFC 8259 allows parsers to do. `skip_one` ignores exactly one leading EF BB BF in strict mode; a second BOM, or one after any other byte, is still rejected. Offsets stay relative to the original input, so the skipped bytes count. JSON5 mode always treats U+FEFF as whitespace (J5 §8), so the option has no effect there. |
 | Legacy whitespace | JSON5 whitespace accepts Unicode 17.0.0 Zs plus every Unicode 3.0.0 Zs member, because ES5 names Unicode 3.0 as its minimum. U+200B ZERO WIDTH SPACE was Zs in 3.0 and is Cf today, so it is accepted as JSON5 whitespace on purpose. Strict mode accepts only the four RFC 8259 whitespace bytes. |
 | Raw U+2028/U+2029 in strings | Accepted unescaped in both modes: RFC 8259 permits them, and JSON5 1.0.0 §5.1 allows them with a warning. JSON5 mode reports them as `raw_line_separator`/`raw_paragraph_separator` warnings; strict mode accepts them silently. |
+| Unpaired escaped surrogates | Both modes preserve exact decoded UTF-16 units and report `unpaired_surrogate_escape` for each unpaired escape, in names as well as values. The warning covers the original six-byte `\uXXXX` sequence. Pairing follows adjacent decoded units, including across JSON5 line continuations. Valid pairs do not warn. Checked UTF-8 export still returns `encoding` without substitution. These advisories share the `max_diagnostics` limit with separator warnings. |
 
 ## 10. Runtime and concurrency boundaries
 

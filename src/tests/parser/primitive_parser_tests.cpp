@@ -176,13 +176,14 @@ namespace
    */
   struct root_case
   {
-      const char* name;     // Fixture label for diagnostics.
-      std::string input;    // Input source bytes without surrounding trivia.
-      value_kind kind;      // Expected stored type.
-      std::u16string units; // Expected decoded string units when applicable.
-      number_kind number;   // Expected numeric spelling family when applicable.
-      bool boolean;         // Expected Boolean content when applicable.
-      bool strict;          // Expected strict JSON acceptance.
+      const char* name;       // Fixture label for diagnostics.
+      std::string input;      // Input source bytes without surrounding trivia.
+      value_kind kind;        // Expected stored type.
+      std::u16string units;   // Expected decoded string units when applicable.
+      number_kind number;     // Expected numeric spelling family when applicable.
+      bool boolean;           // Expected Boolean content when applicable.
+      bool strict;            // Expected strict JSON acceptance.
+      std::size_t warnings{}; // Expected unpaired-surrogate warning count.
   };
   class J5_028_PrimitiveRoot : public testing::TestWithParam<std::tuple<root_case, syntax_mode>>
   {
@@ -223,8 +224,14 @@ namespace
     ASSERT_TRUE(span.value_if()->has_value());
     EXPECT_EQ(span.value_if()->value().byte_offset, 0u);
     EXPECT_EQ(span.value_if()->value().byte_length, input.input.size());
-    EXPECT_EQ(parsed.value_if()->root.warning_count, 0u);
-    EXPECT_FALSE(parsed.value_if()->root.first_warning.has_value());
+    EXPECT_EQ(parsed.value_if()->root.warning_count, input.warnings);
+    ASSERT_EQ(parsed.value_if()->root.first_warning.has_value(), input.warnings != 0);
+    if (input.warnings != 0)
+    {
+      EXPECT_EQ(parsed.value_if()->root.first_warning->code, string_warning_code::unpaired_surrogate_escape);
+      EXPECT_EQ(parsed.value_if()->root.first_warning->byte_offset, 1u);
+      EXPECT_EQ(parsed.value_if()->root.first_warning->byte_length, 6u);
+    }
     if (input.kind == value_kind::boolean)
     {
       const auto value = root.value_if()->as_boolean();
@@ -263,7 +270,7 @@ namespace
                       root_case{"EscapedString", "\"a\\n\\u0000b\"", value_kind::string,
                                 std::u16string{u'a', u'\n', u'\0', u'b'}, number_kind::decimal, false, true},
                       root_case{"LoneSurrogate", "\"\\uD800\"", value_kind::string,
-                                std::u16string{static_cast<char16_t>(0xD800)}, number_kind::decimal, false, true},
+                                std::u16string{static_cast<char16_t>(0xD800)}, number_kind::decimal, false, true, 1},
                       root_case{"NegativeZero", "-0", value_kind::number, {}, number_kind::decimal, false, true},
                       root_case{
                         "LargeInteger", "9007199254740993", value_kind::number, {}, number_kind::decimal, false, true},

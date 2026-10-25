@@ -6,13 +6,11 @@
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-#include <iterator>
 #include <new>
 #include <regex>
 #include <set>
 #include <string>
 #include <string_view>
-#include <vector>
 
 /* ==================================== Fixtures ===================================== */
 // Count default-heap use while a parse runs. Replacing the global operators applies

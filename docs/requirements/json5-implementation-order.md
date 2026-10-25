@@ -553,6 +553,18 @@ Document language/Unicode versions, permitted limits and all deviations before c
 - Unit acceptance: Review production-to-unit matrix, all preceding contracts and actual native results.
 - Existing contracts: J5-008, J5-027, J5-100.
 
+Surrogate advisory decision (2026-10-25): option (b) adds
+`unpaired_surrogate_escape` in both modes while retaining the exact decoded
+UTF-16 units and checked UTF-8 export failures. Tests cover warning spans/order,
+quoted member names, pairs across JSON5 continuations, diagnostic boundaries,
+allocation-failure cleanup/retry and suppression of callbacks for failed strings.
+Local Windows GCC 15.2.0/CMake 4.0.1 working-tree execution: 2145/2145 unit tests
+and 850/850 pinned-fixture validation tests passed in each exception mode, RTTI
+OFF; 70/70 affected cases passed again after an assertion-safety adjustment.
+clang-format 18.1.8 passed all 213 C++ files. See the
+[support statement](../conformance.md) for the decision and execution evidence.
+These results do not change Draft requirement status or complete the P041 review.
+
 ## Grammar coverage review
 
 P007–P012 cover source/trivia/punctuators. P013–P021 cover both string character
@@ -854,4 +866,3 @@ Document extension/backend versions and executed tokenization/live-document/rang
 - Prerequisites: P065.
 - Existing contracts: J5-082, J5-100.
 - Unit acceptance: Complete editor-feature-to-unit mapping and unit/format checks only.
-

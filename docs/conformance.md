@@ -15,7 +15,7 @@ requirement rows are reviewed. Requirement rows remain Draft.
 | ECMAScript lexical rules referenced by JSON5 | ECMAScript 5.1 |
 | Unicode data | 17.0.0, plus the 3.0.0 tables ES5 requires as its minimum ([provenance](dependencies.md)) |
 | Input encoding | UTF-8 only |
-| C++ | C++17; exceptions ON or OFF, RTTI OFF supported |
+| C++ | C++17. Tested with GCC on Linux x86-64, Linux aarch64 and Windows MinGW, exceptions OFF and ON, RTTI OFF. Other compilers and RTTI ON are untested. |
 
 ## Supported syntax
 
@@ -25,16 +25,24 @@ requirement rows are reviewed. Requirement rows remain Draft.
 | `syntax_mode::strict_json` | RFC 8259 JSON text; every JSON5-only feature is rejected | `J5_027_ModePair`; JSONTestSuite `y_`/`n_` |
 
 Any value type may be the root. Empty or trivia-only input is a syntax error.
+Strict mode accepts no extensions: RFC 8259 §9 permits a parser to accept
+non-JSON forms, but this one does not, except the opt-in `strict_bom` option.
 Errors are returned as `result` values in every build; nothing throws.
 
 ## Default limits
 
-Limits are inclusive, finite and configurable per call through
-`parse_options::limits`; exceeding one returns `resource_limit`. The defaults are
+RFC 8259 §9 permits limits on text size, nesting depth, numbers and strings, and
+J5-027 requires the grammar within documented limits. The parser's limits are
+inclusive, finite and configurable per call through `parse_options::limits`;
+exceeding one returns `resource_limit`, never a wrong result. The defaults are
 listed in [architecture § 3](architecture.md#3-storage-ownership-and-budgets).
-They accept every syntactically valid file in both pinned corpora, including
-500 nested arrays and a 131-digit exponent. They are host defaults, not embedded
-recommendations; the final defaults and per-value memory cost are tracked by
+
+The defaults are conservative, chosen for untrusted input: for example 16 KiB of
+input, 1024 values, 1024 members and 4096 UTF-16 units per string. Valid
+documents beyond them fail until the caller raises the limits. All pinned corpus
+files, which are small, parse with the defaults, including 500 nested arrays and
+a 131-digit exponent. The final defaults and per-value memory cost (about
+400-550 owned bytes per value) are tracked by
 [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69). Parser work grows
 linearly with the input and the number of values, except duplicate rejection,
 which is quadratic in the members of one object.
@@ -47,13 +55,26 @@ options and were observed on the pinned JSONTestSuite `i_` files.
 | Topic | Files | Strict | JSON5 | Behaviour |
 | --- | --- | --- | --- | --- |
 | Huge, overflowing or underflowing numbers | `i_number_*` (10) | accept | accept | Parsing keeps the exact spelling and never converts. Range problems are reported only by the explicit conversion functions (`out_of_range`, `underflow`, `non_finite`). |
-| Lone, reversed or incomplete escaped surrogates | `i_string_*surrogate*` (8), `i_object_key_lone_2nd_surrogate` | accept | accept | Decoded strings keep the exact UTF-16 units. Checked UTF-8 export rejects unpaired surrogates; nothing is replaced. |
+| Lone, reversed or incomplete escaped surrogates | `i_string_*surrogate*` (8), `i_object_key_lone_2nd_surrogate` | accept with warning | accept with warning | Decoded strings keep the exact UTF-16 units. Each unpaired surrogate escape reports `unpaired_surrogate_escape`. Checked UTF-8 export rejects unpaired surrogates; nothing is replaced. |
 | Invalid UTF-8 (bad bytes, overlong, encoded surrogates, beyond U+10FFFF, truncated, Latin-1) | 10 `i_string_*` files | `encoding` | `encoding` | Rejected at the offset of the invalid sequence. |
 | UTF-16 input, with or without BOM | `i_string_UTF-16LE_with_BOM`, `i_string_utf16*_no_BOM` | reject | reject | Only UTF-8 is accepted. |
 | 500 nested arrays | `i_structure_500_nested_arrays` | accept | accept | Within the default `max_depth` (512). |
 | UTF-8 BOM before the value | `i_structure_UTF-8_BOM_empty_object` | `syntax` at 0 | accept | Strict mode rejects by default; `strict_bom = skip_one` skips exactly one. JSON5 treats U+FEFF as whitespace. |
 
 ## Project decisions and deviations
+
+The surrogate advisory is a project addition, selected for this claim (option
+(b)); [RFC 8259 §8.2](https://www.rfc-editor.org/rfc/rfc8259.html#section-8.2)
+describes interoperability problems with unpaired surrogates but does not require
+a warning. In both modes, quoted member names and string values report one
+`unpaired_surrogate_escape` warning per unpaired escaped unit, covering the six
+original bytes of its `\uXXXX` escape. Valid pairs produce no warning, including
+pairs joined across JSON5 line continuations, which add no decoded units.
+Malformed or truncated `\u` escapes remain syntax errors. Warnings preserve
+successful parsing and exact units within configured limits; each retained
+warning consumes one `max_diagnostics` entry, so exhausting that limit returns
+`resource_limit`. This decision does not change numeric, input-encoding, nesting
+or BOM behaviour.
 
 Classified as **spec choice** (the specification permits it), **addition**
 (beyond the specification, opt-in or advisory) or **limit**.
@@ -69,7 +90,7 @@ Classified as **spec choice** (the specification permits it), **addition**
 | Strict error offsets | spec choice | Rejected number spellings report the token start, escapes the escaped character, line continuations the line terminator. |
 | Number comparison exponent | limit | Exponent magnitudes above `PTRDIFF_MAX / 4` return `resource_limit` in exact comparison. |
 | Extreme floating conversion | limit | Some extreme values, e.g. the smallest double subnormal, need more than the default work budget. |
-| Lone surrogates | spec choice | Preserved in decoded strings; checked UTF-8 export fails rather than substituting. |
+| Lone surrogates | spec choice + addition | Preserved in decoded strings; `unpaired_surrogate_escape` warns in both modes. Checked UTF-8 export fails rather than substituting. |
 | Upstream fixture label | corpus | `json5-tests/comments/irregular-block-comment.json` is labelled valid JSON but contains a comment; strict mode rejects it ([fixture README](../tests/fixtures/third_party/README.md)). |
 
 ## Thread safety and runtime
@@ -94,7 +115,7 @@ Schema, editor and manifest rows are outside P041.
 | `\x41`, `\v`, `\0`, `\a`, backslash-space, `\'` | `J5_015_SimpleEscape`, `J5_016_HexEscape`, `J5_016_NonEscape`, `J5_016_ZeroDigit` |
 | Raw tab/NUL and raw CR/LF in strings | `J5_014_Controls` |
 | Line continuations and raw U+2028/U+2029 | `J5_017_Continuation`, `J5_017_StringWarning`, `J5_017_CompleteWarnings` |
-| Paired and unpaired escaped surrogates | `J5_018_UnicodePair`, `J5_018_Unpaired`, `J5_018_UnicodeEscape` |
+| Paired and unpaired escaped surrogates | `J5_018_UnicodePair`, `J5_018_Unpaired`, `J5_018_UnicodeEscape`, `J5_018_SurrogateWarnings`, `J5_018_CompleteWarnings`, `J5_018_StringWarnings` |
 | `{a:1, "a":2, "a":3}` | `J5_032_DuplicateDefault`, `J5_032_DuplicatePolicy` |
 | Normalized-looking names, colliding hashes | `J5_033_DecodedName` |
 | `1`, `1.0`, `1e0`, `0x1`, `+1`, `1e-1` | `J5_036_NumberComparison`, `J5_035_IntegerConversion`, `J5_037_FloatingConversion` |
@@ -121,6 +142,9 @@ Schema, editor and manifest rows are outside P041.
 | GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400395) | `016c7f4` | clang-format 18.1.8 | Passed |
 | Local, Windows GCC 15.2.0, CMake 4.0.1 | `016c7f4` plus the J5-042 units | Unit tests, exceptions OFF and ON, RTTI OFF | 2126/2126 passed in each mode |
 | Local, same toolchain | `016c7f4` | Validation tests, exceptions OFF and ON | 850/850 passed in each mode |
+| Local, Windows GCC 15.2.0, CMake 4.0.1 (2026-10-25) | Working tree with surrogate advisories | Unit tests, exceptions OFF and ON, RTTI OFF | 2145/2145 passed in each mode; includes 19 new surrogate-warning cases. A final assertion-safety adjustment was followed by 70/70 affected string/surrogate cases in each mode. |
+| Local, same toolchain (2026-10-25) | Same working tree | Validation tests, exceptions OFF and ON, RTTI OFF | 850/850 passed in each mode |
+| Local (2026-10-25) | Same working tree | clang-format 18.1.8 | Formatting passed for all 213 C++ files |
 
 The J5-042 units passed in CI at `6e24e8b` ([unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954377), [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954321), [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954423)).
 

@@ -45,7 +45,8 @@ adaptive_json5_add_unit(adaptive_json5_public_library_unit_tests public_library_
     library/public_library_tests.cpp)
 
 adaptive_json5_add_unit(adaptive_json5_complete_document_unit_tests complete_document_units
-    parser/complete_document_tests.cpp)
+    parser/complete_document_tests.cpp
+    parser/surrogate_warning_tests.cpp)
 
 adaptive_json5_add_unit(adaptive_json5_pure_memory_unit_tests
     pure_memory_units
