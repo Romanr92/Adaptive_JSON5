@@ -65,7 +65,7 @@ every internal step ready at once; follow the P prerequisites in order.
 | Unicode/source | #5 P005–P008 |
 | Lexer | #9 P009–P012, #22 P022–P024, #25 P025–P028 |
 | Strings | #13 P013–P017, #18 P018–P021 |
-| Values/parser | #29 P029–P032, #33 P033–P036, #38 P037–P042 (M1 ends at P037; #80 tracks P038–P041 as M2) |
+| Values/parser | #29 P029–P032, #33 P033–P036, #38 P037 (M1), #80 P038–P041 (M2), #81 P042 (M3) |
 | Schema | #44 P043–P046, #48 P047–P051, #53 P052–P055 |
 | CLI | #57 P056–P059 |
 | Editor | #61 P060–P062, #64 P063–P064, #66 P065–P066 |
@@ -633,13 +633,28 @@ schema component; it is consumer-specific code, not another generic schema engin
 
 ### P042 — Strict JSON syntax mode
 
-Tracking: [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) (original step issue #43).
+Tracking: [#81](https://github.com/Romanr92/Adaptive_JSON5/issues/81) (original step issue #43; split from #38).
 
 Add explicit strict JSON mode for schema documents: quoted keys/double-quoted strings, JSON escapes/numbers/whitespace, no comments/trailing commas/non-finite forms; reject BOM by default with documented optional leading-BOM handling.
 
 - Prerequisites: P041.
 - Existing contracts: J5-005, J5-010, J5-015, J5-021, J5-025.
 - Unit acceptance: Paired JSON/JSON5 fixtures, all JSON grammar branches and mode-specific rejection.
+
+Implementation: the strict branches were delivered with P007–P040 (trivia, strings,
+escapes, identifiers, numbers, container close and leading-BOM handling). A P042
+source review found no missing production behavior; the developer accepted three
+edge decisions: signed `Infinity`/`NaN` fail at the sign (offset 0); JSON5
+ignores `strict_bom`; a skipped BOM followed only by whitespace fails as empty
+input at the end of input. `tests/api/strict_json_tests.cpp` adds the `P042`
+strict accept matrix, every JSON escape, JSON-only and signed non-finite
+rejections, raw control characters, those BOM decisions, a strict
+allocation-failure sweep and an inclusive input limit (J5-047). Strict truncation and
+mode pairs remain the P040 `J5_094_DocumentTruncation` and `J5_027_ModePair` cases.
+Local P042 results (2026-10-25, Windows GCC 15.2.0, CMake 4.0.1, not yet
+committed): 2192/2192 units and 921/921 validation cases passed with exceptions
+OFF and ON, RTTI OFF; clang-format 18.1.8 passed all 215 C++ files. CI and
+developer review/merge are pending. Requirement rows remain Draft.
 
 ### P043 — Independent schema component and outcomes
 

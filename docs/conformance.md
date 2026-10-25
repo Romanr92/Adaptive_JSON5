@@ -24,7 +24,7 @@ Draft; this review does not verify optional components or promote shared rows.
 | Mode | Grammar | Evidence |
 | --- | --- | --- |
 | `syntax_mode::json5` (default) | Every JSON5 1.0.0 production | [Grammar evidence matrix](../core/docs/design-grammar-evidence.md); json5-tests corpus |
-| `syntax_mode::strict_json` | RFC 8259 JSON text; every JSON5-only feature is rejected | `J5_027_ModePair`; JSONTestSuite `y_`/`n_` |
+| `syntax_mode::strict_json` | RFC 8259 JSON text; every JSON5-only feature is rejected | `J5_027_ModePair`; P042 `tests/api/strict_json_tests.cpp`; JSONTestSuite `y_`/`n_` |
 
 Any value type may be the root. Empty or trivia-only input is a syntax error.
 Strict mode accepts no extensions: RFC 8259 §9 permits a parser to accept
@@ -140,7 +140,7 @@ are outside this claim. CI for the added test evidence is recorded below.
 
 | Contract | Review result (2026-10-25) |
 | --- | --- |
-| J5-002 build components | Parser part met. CMake 3.25 is the minimum. A library-only configure (`release-library`) fetches no GoogleTest or fixtures and builds only `adaptive_json5_parser`. Unit and validation tests are separate opt-in options. Schema and tool targets are later steps (P042 onwards); `ADAPTIVE_JSON5_BUILD_SCHEMA` currently stops configuration. |
+| J5-002 build components | Parser part met. CMake 3.25 is the minimum. A library-only configure (`release-library`) fetches no GoogleTest or fixtures and builds only `adaptive_json5_parser`. Unit and validation tests are separate opt-in options. Strict JSON (P042, #81) is part of the parser; schema and tool targets are later steps (P043 onwards); `ADAPTIVE_JSON5_BUILD_SCHEMA` currently stops configuration. |
 | J5-007 license and provenance | Met for current material. `LICENSE` is Apache-2.0. `LICENSES/` keeps GoogleTest, JSON5 specification, ECMA-262, Unicode, json5-tests and JSONTestSuite notices; `NOTICE`, [dependencies](dependencies.md) and the [fixture README](../tests/fixtures/third_party/README.md) record versions and provenance. |
 | J5-042 pure memory parsing | Met. `J5_042_PureMemory.ProductionIncludesOnlyLanguageSupportHeaders` checks every production include against a language-support allowlist (no files, streams, processes, threads, time, locale or networking). `J5_042_PureMemory.ParseUsesOnlyCallerStorage` shows a complete parse, with retained source and warnings, makes no default-heap allocation. |
 | J5-008 public contracts | Met. Syntax defaults, duplicate handling, retention and BOM options are in `options.hpp`; value lifetimes and pointer invalidation in `document.hpp`, `value_view.hpp` and `parser.hpp`; limits in `resource_limits.hpp`; conversions in the conversion headers; each `error_code` value is described in `error.hpp`; thread safety is stated on `parse_document`, `document` and `accounted_storage`. |
