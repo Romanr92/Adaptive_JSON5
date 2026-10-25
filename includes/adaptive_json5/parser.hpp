@@ -47,6 +47,9 @@ namespace adaptive_json5
    * Retained source text is copied only after the complete input is accepted;
    * a failed copy publishes no document.
    * No caller warning callbacks are invoked.
+   * Thread safety: uses no global mutable state, so concurrent calls are safe when each
+   * uses its own accounting object. input and options are only read and may be shared.
+   * An accounting object or provider shared between threads needs caller synchronization.
    */
   [[nodiscard]] result<parsed_document> parse_document(input_view input, const parse_options& options,
                                                        accounted_storage& accounting) noexcept;

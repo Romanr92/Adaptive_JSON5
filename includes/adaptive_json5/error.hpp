@@ -16,13 +16,13 @@ namespace adaptive_json5
    */
   enum class error_code
   {
-    syntax = 1,
-    encoding = 2,
-    duplicate_policy = 3,
-    wrong_type_or_access = 4,
-    numeric_conversion = 5,
-    resource_limit = 6,
-    allocation_failure = 7
+    syntax = 1,               // Input violates the selected grammar, e.g. trailing content or JSON5 in strict.
+    encoding = 2,             // Input is not well-formed UTF-8.
+    duplicate_policy = 3,     // reject_duplicates found a repeated decoded member name.
+    wrong_type_or_access = 4, // Wrong value kind, out-of-range index or invalid argument.
+    numeric_conversion = 5,   // No exact conversion for the destination; see numeric_reason.
+    resource_limit = 6,       // A configured limit or the work budget would be exceeded.
+    allocation_failure = 7    // The storage provider could not supply memory.
   };
 
   /**

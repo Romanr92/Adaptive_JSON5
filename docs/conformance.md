@@ -110,7 +110,7 @@ Schema, editor and manifest rows are outside P041.
 | J5-002 build components | Parser part met. CMake 3.25 is the minimum. A library-only configure (`release-library`) fetches no GoogleTest or fixtures and builds only `adaptive_json5_parser`. Unit and validation tests are separate opt-in options. Schema and tool targets are later steps (P042 onwards); `ADAPTIVE_JSON5_BUILD_SCHEMA` currently stops configuration. |
 | J5-007 license and provenance | Met for current material. `LICENSE` is Apache-2.0. `LICENSES/` keeps GoogleTest, JSON5 specification, ECMA-262, Unicode, json5-tests and JSONTestSuite notices; `NOTICE`, [dependencies](dependencies.md) and the [fixture README](../tests/fixtures/third_party/README.md) record versions and provenance. |
 | J5-042 pure memory parsing | Met. `J5_042_PureMemory.ProductionIncludesOnlyLanguageSupportHeaders` checks every production include against a language-support allowlist (no files, streams, processes, threads, time, locale or networking). `J5_042_PureMemory.ParseUsesOnlyCallerStorage` shows a complete parse, with retained source and warnings, makes no default-heap allocation. |
-| J5-008 public contracts | Met in documentation, with two header gaps. Syntax defaults, duplicate handling, retention and BOM options are in `options.hpp`; value lifetimes and pointer invalidation in `document.hpp`, `value_view.hpp` and `parser.hpp`; limits in `resource_limits.hpp`; conversions in the conversion headers. **Gaps:** the `error_code` enumerators in `error.hpp` have no per-value descriptions (the categories are explained in [architecture § 9](architecture.md#9-failure-boundaries-and-remaining-work)), and thread safety is stated only in `accounted_storage.hpp` and the docs, not on `parse_document` or `document`. Both are header comment changes for the developer. |
+| J5-008 public contracts | Met. Syntax defaults, duplicate handling, retention and BOM options are in `options.hpp`; value lifetimes and pointer invalidation in `document.hpp`, `value_view.hpp` and `parser.hpp`; limits in `resource_limits.hpp`; conversions in the conversion headers; each `error_code` value is described in `error.hpp`; thread safety is stated on `parse_document`, `document` and `accounted_storage`. |
 
 ## Executed results
 
@@ -119,14 +119,11 @@ Schema, editor and manifest rows are outside P041.
 | GitHub Actions [unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400393) | `016c7f4` | Linux GCC exceptions OFF and ON; linux-aarch64 g++-13 OFF and ON; Windows MinGW OFF and ON | Passed |
 | GitHub Actions [validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400388) | `016c7f4` | Linux, exceptions OFF and ON | Passed |
 | GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400395) | `016c7f4` | clang-format 18.1.8 | Passed |
-| Local, Windows GCC 15.2.0, CMake 4.0.1 | `016c7f4` plus uncommitted J5-042 units | Unit tests, exceptions OFF and ON, RTTI OFF | 2126/2126 passed in each mode |
+| Local, Windows GCC 15.2.0, CMake 4.0.1 | `016c7f4` plus the J5-042 units | Unit tests, exceptions OFF and ON, RTTI OFF | 2126/2126 passed in each mode |
 | Local, same toolchain | `016c7f4` | Validation tests, exceptions OFF and ON | 850/850 passed in each mode |
 
-The J5-042 units are not in a CI run yet; rerun CI after they are committed.
+The J5-042 units passed in CI at `6e24e8b` ([unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954377), [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954321), [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188954423)).
 
 ## Open before the claim
 
-1. Commit the J5-042 units and record their CI run.
-2. Developer: add `error_code` value descriptions and thread-safety notes to the
-   public headers (J5-008 gaps above).
-3. User review of this statement; requirement rows stay Draft until then.
+1. User review of this statement; requirement rows stay Draft until then.

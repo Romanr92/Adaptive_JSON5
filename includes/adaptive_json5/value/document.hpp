@@ -166,6 +166,9 @@ namespace adaptive_json5
    * Appending preserves indices but may invalidate borrowed payload pointers.
    * Every storage provider used by records or payloads must outlive its allocations.
    * This component record limit does not replace P031 resource accounting.
+   * Thread safety: const operations change no state, so several threads may read one
+   * document concurrently. Any modification, move or destruction must not overlap
+   * with other access to the same document. Each value_iterator is single-threaded.
    */
   class [[nodiscard]] document
   {
