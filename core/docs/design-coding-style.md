@@ -151,19 +151,21 @@ Keep standard includes such as `<cstddef>` and project includes such as
 `"error.hpp"`; use only the headers required by the declaration. Close namespaces
 with a descriptive comment. Terminate class and struct definitions with `};`.
 
+Place the `private:` section, including data members, before the `public:` section.
+
 Illustrative class layout:
 
 ```cpp
 class status_result
 {
+  private:
+    std::optional<error> m_error;
+
   public:
     constexpr bool has_value() const noexcept
     {
       return !m_error.has_value();
     }
-
-  private:
-    std::optional<error> m_error;
 };
 ```
 
