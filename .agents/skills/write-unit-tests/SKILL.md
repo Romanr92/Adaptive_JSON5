@@ -84,8 +84,10 @@ Requirement-specific compile-time checks belong within that requirement block.
 ## Traceability and execution
 
 Update the separate **Unit Tests** inventory in `docs/traceability.md` with exact
-`SuiteName.TestName` declarations, separated by `; ` and without generated case
-suffixes. Leave it empty where no units exist. Keep planned verification in
+`SuiteName.TestName` declarations grouped by defining file, separated by `; ` and
+without generated case suffixes. Also update the row's **Source files and
+functions** entry and keep it in the Core or API section per the documented
+mapping rules. Leave both empty where no units exist. Keep planned verification in
 `docs/requirements.md`; test existence is not a pass or complete coverage.
 
 Record executed configuration/result separately. Run the affected GoogleTest
