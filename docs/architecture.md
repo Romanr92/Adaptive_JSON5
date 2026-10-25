@@ -503,16 +503,37 @@ Current defaults in `resource_limits.hpp`:
 | Limit | Default | Unit |
 | --- | ---: | --- |
 | `max_input_bytes` | 16384 | Complete supplied input bytes |
-| `max_depth` | 64 | Simultaneously open arrays/objects |
+| `max_depth` | 512 | Simultaneously open arrays/objects |
 | `max_nodes` | 1024 | All values, including root and containers |
 | `max_members` | 1024 | Object members across the document |
 | `max_string_units` | 4096 | UTF-16 units per string/name |
 | `max_total_string_units` | 16384 | UTF-16 units across strings/names |
 | `max_number_bytes` | 1024 | Bytes per numeric spelling |
-| `max_exponent_digits` | 128 | Digits, excluding exponent sign |
-| `max_owned_bytes` | 32768 | Outstanding requested allocation bytes |
+| `max_exponent_digits` | 1024 | Digits, excluding exponent sign |
+| `max_owned_bytes` | 524288 | Outstanding requested allocation bytes |
 | `max_diagnostics` | 16 | Retained diagnostic entries |
 | `max_work_units` | 32768 | Operation-defined charged work |
+
+The P040 defaults accept every syntactically valid file in the pinned JSON and
+JSON5 corpora, including 500 nested arrays and a 131-digit exponent. They are
+conservative host defaults, not embedded recommendations; final defaults and
+per-value memory cost (about 400-550 owned bytes per value) are tracked by
+[#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69).
+
+Parser work charges grow linearly with the input and the number of values:
+
+| Charge | Units |
+| --- | --- |
+| Each dispatch step | 1 |
+| Each lexical scan (token, name or trivia run) | Bytes consumed plus one lookahead byte, charged after the scan and before its result is used |
+| Each record construction | `c_record_construction_work` (3): creation plus amortized relocation under doubling growth; strings and numbers add their token bytes |
+| Each attachment | `c_attachment_work` (2); open containers stay detached until they close, so the cycle check inspects one record |
+| Each container close | 1 |
+| Frame-stack growth | Existing frames on each doubling |
+| Duplicate rejection | Per earlier member compared, only with `reject_duplicates`; this stays quadratic in the members of one object |
+
+A failed charge after a scan stops the parse before the scanned result changes
+the document, so overrun is bounded by that one scan.
 
 ### Allocation and lifetime interaction
 

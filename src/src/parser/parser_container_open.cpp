@@ -1,10 +1,10 @@
 #include "adaptive_json5/detail/parser/parser_container_open.hpp"
 
-#include "adaptive_json5/detail/common/checked_size.hpp"
 #include "adaptive_json5/detail/lexer/punctuation.hpp"
 #include "adaptive_json5/detail/memory/work_budget.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/detail/parser/parser_stack.hpp"
+#include "adaptive_json5/detail/parser/parser_work.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -33,7 +33,7 @@ namespace adaptive_json5
      * Failure preserves document records and existing frame contents.
      * Stack capacity and successfully charged work may change on failure.
      * Frame growth invalidates previously obtained frame pointers.
-     * Record construction charges destination.size() plus one.
+     * Record construction charges c_record_construction_work.
      * Frame pushing additionally follows parser_stack's charging rules.
      */
     result<value_index> open_container(document& destination, parser_stack& frames, const punctuation_token& opening,
@@ -65,15 +65,8 @@ namespace adaptive_json5
 
       frame.opening_offset = opening.byte_offset;
 
-      // Allow for creating the record and relocating existing records.
-      const auto units = checked_add(destination.size(), 1);
-
-      if (!units.has_value())
-      {
-        return result<value_index>::failure(*units.error_if());
-      }
-
-      const auto charged = work.charge(*units.value_if());
+      // Allow for creating the record and its amortized share of record relocation.
+      const auto charged = work.charge(c_record_construction_work);
 
       if (!charged.has_value())
       {

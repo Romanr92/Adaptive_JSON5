@@ -21,7 +21,7 @@ namespace adaptive_json5
       std::size_t max_input_bytes = 16384;
 
       // Count simultaneously open arrays and objects; scalar roots have depth zero.
-      std::size_t max_depth = 64;
+      std::size_t max_depth = 512;
 
       // Count all document values, including the root and container values.
       std::size_t max_nodes = 1024;
@@ -39,10 +39,10 @@ namespace adaptive_json5
       std::size_t max_number_bytes = 1024;
 
       // Count exponent digits, including leading zeros but excluding its sign.
-      std::size_t max_exponent_digits = 128;
+      std::size_t max_exponent_digits = 1024;
 
       // Bound simultaneously outstanding requested allocation bytes.
-      std::size_t max_owned_bytes = 32768;
+      std::size_t max_owned_bytes = 524288;
 
       // Bound retained diagnostic entries, including warning entries.
       std::size_t max_diagnostics = 16;

@@ -19,6 +19,7 @@
 #include "adaptive_json5/detail/parser/parser_duplicate.hpp"
 #include "adaptive_json5/detail/parser/parser_frame.hpp"
 #include "adaptive_json5/detail/parser/parser_stack.hpp"
+#include "adaptive_json5/detail/parser/parser_work.hpp"
 #include "adaptive_json5/detail/parser/primitive_parser.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
@@ -215,13 +216,6 @@ namespace adaptive_json5
 
       const std::size_t string_limit = std::min(limits.max_string_units, remaining_units);
 
-      const auto recognition = m_work.charge(m_source.remaining());
-
-      if (!recognition.has_value())
-      {
-        return status_result::failure(*recognition.error_if());
-      }
-
       // Temporary identifier decoding is separate from retained string content.
       auto recognized =
         consume_scalar(candidate, m_options.syntax, m_storage, string_limit, m_input.size, limits.max_exponent_digits);
@@ -234,6 +228,13 @@ namespace adaptive_json5
       if (!recognized.value_if()->has_value())
       {
         return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+      }
+
+      const auto recognition = charge_scanned(m_work, m_source.offset(), candidate.offset());
+
+      if (!recognition.has_value())
+      {
+        return status_result::failure(*recognition.error_if());
       }
 
       auto& token = **recognized.value_if();
@@ -266,14 +267,7 @@ namespace adaptive_json5
 
       const source_span span{m_source.offset(), candidate.offset() - m_source.offset()};
 
-      const auto records = checked_add(m_document.size(), 1);
-
-      if (!records.has_value())
-      {
-        return status_result::failure(*records.error_if());
-      }
-
-      const auto construction_units = checked_add(span.byte_length, *records.value_if());
+      const auto construction_units = checked_add(span.byte_length, c_record_construction_work);
 
       if (!construction_units.has_value())
       {
@@ -359,13 +353,6 @@ namespace adaptive_json5
       // The lexer must stop growth before either string limit is exceeded.
       const std::size_t max_units = std::min(limits.max_string_units, remaining_units);
 
-      const auto charged = m_work.charge(m_source.remaining());
-
-      if (!charged.has_value())
-      {
-        return status_result::failure(*charged.error_if());
-      }
-
       cursor candidate = m_source;
       auto recognized = consume_member_name(candidate, m_options.syntax, m_storage, max_units);
 
@@ -377,6 +364,13 @@ namespace adaptive_json5
       if (!recognized.value_if()->has_value())
       {
         return status_result::failure(error::at_offset(error_code::syntax, m_source.offset()));
+      }
+
+      const auto charged = charge_scanned(m_work, m_source.offset(), candidate.offset());
+
+      if (!charged.has_value())
+      {
+        return status_result::failure(*charged.error_if());
       }
 
       auto& name = **recognized.value_if();
@@ -693,19 +687,19 @@ namespace adaptive_json5
           return tree_result::failure(*step_charged.error_if());
         }
 
-        // Bound the trivia scan before inspecting the remaining input.
-        const auto trivia_charged = m_work.charge(m_source.remaining());
-
-        if (!trivia_charged.has_value())
-        {
-          return tree_result::failure(*trivia_charged.error_if());
-        }
-
+        const std::size_t trivia_start = m_source.offset();
         const auto trivia = skip_trivia(m_source, m_options.syntax);
 
         if (!trivia.has_value())
         {
           return tree_result::failure(*trivia.error_if());
+        }
+
+        const auto trivia_charged = charge_scanned(m_work, trivia_start, m_source.offset());
+
+        if (!trivia_charged.has_value())
+        {
+          return tree_result::failure(*trivia_charged.error_if());
         }
 
         parser_action action = parser_action::read_value;
@@ -809,19 +803,19 @@ namespace adaptive_json5
         return tree_result::failure(*parsed.error_if());
       }
 
-      // Admit the entire trailing scan before inspecting its bytes.
-      const auto charged = m_work.charge(m_source.remaining());
-
-      if (!charged.has_value())
-      {
-        return tree_result::failure(*charged.error_if());
-      }
-
+      const std::size_t trivia_start = m_source.offset();
       const auto trivia = skip_trivia(m_source, m_options.syntax);
 
       if (!trivia.has_value())
       {
         return tree_result::failure(*trivia.error_if());
+      }
+
+      const auto charged = charge_scanned(m_work, trivia_start, m_source.offset());
+
+      if (!charged.has_value())
+      {
+        return tree_result::failure(*charged.error_if());
       }
 
       if (!m_source.is_at_end())

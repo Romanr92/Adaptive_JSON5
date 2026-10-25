@@ -27,7 +27,8 @@ namespace adaptive_json5
      * @note Performs no allocation.
      * Failure preserves relationships, frame state, pending name and name offsets.
      * Successful work charges are not refunded after attachment failure.
-     * Charges destination.size() plus one before relationship inspection.
+     * Charges c_attachment_work before relationship inspection; frame.container must
+     * still be detached, as it is for every open container in the engine.
      * Success transfers an object's pending name and records its original span.
      * Does not establish a root, change the cursor or reserve resources.
      * The caller handles node/member/string accounting and duplicate policy.

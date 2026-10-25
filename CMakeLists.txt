@@ -116,6 +116,7 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS
         src/src/parser/parser_duplicate.cpp
         src/src/parser/parser_engine.cpp
         src/src/parser/parser_stack.cpp
+        src/src/parser/parser_work.cpp
         src/src/parser/primitive_parser.cpp
         src/src/unicode/utf16.cpp
         src/src/unicode/utf16_decode.cpp

@@ -673,6 +673,7 @@ namespace
       {
         engine_provider provider;
         parse_options options;
+        options.limits.max_depth = 64;
         options.limits.max_work_units = 1000000;
         options.limits.max_owned_bytes = 262144;
         accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};

@@ -3,6 +3,7 @@
 #include "adaptive_json5/value/number_comparison.hpp"
 
 #include <cstddef>
+#include <cstdlib>
 #include <gtest/gtest.h>
 #include <ostream>
 #include <string>
@@ -526,4 +527,129 @@ namespace
                                source_retention_policy::retain_copy}),
     case_name<fault_case>);
   /* ================================= End Test_J5_098 ================================= */
+  /* =================================== Test_J5_049 =================================== */
+  /**
+   * @brief A document shape repeated count times, to compare work at two sizes.
+   * @par Requirements
+   * P040; J5-049.
+   */
+  struct work_growth_case
+  {
+      const char* name;   // Case identifier, naming the shape.
+      const char* open;   // Input text before the repeated part.
+      const char* repeat; // Input text repeated once per element, including any separator.
+      const char* close;  // Input text after the repeated part, repeated count times for nesting.
+      bool nested;        // True when close is repeated count times instead of once.
+  };
+  // Print the case name in failure output instead of raw bytes.
+  void PrintTo(const work_growth_case& param, std::ostream* stream)
+  {
+    *stream << param.name;
+  }
+
+  /**
+   * @brief Build the shape with count repetitions.
+   * @par Requirements
+   * P040; J5-049.
+   */
+  std::string build_shape(const work_growth_case& shape, std::size_t count)
+  {
+    std::string text = shape.nested ? std::string{} : std::string{shape.open};
+    for (std::size_t i = 0U; i < count; ++i)
+    {
+      text += shape.nested ? shape.open : ((i == 0U) ? shape.repeat + 1 : shape.repeat);
+    }
+    if (shape.nested)
+    {
+      text += shape.repeat;
+      for (std::size_t i = 0U; i < count; ++i)
+      {
+        text += shape.close;
+      }
+    }
+    else
+    {
+      text += shape.close;
+    }
+    return text;
+  }
+
+  /**
+   * @brief Find the smallest max_work_units that parses input, with every other limit generous.
+   * @par Requirements
+   * P040; J5-049.
+   * @note Binary search through the public entry point; the parse is deterministic.
+   */
+  std::size_t minimum_work(const std::string& input)
+  {
+    // Unlike document_provider, this has no record cap, because every number and string allocates.
+    struct unbounded_provider
+    {
+        static void* allocate(void*, std::size_t bytes, std::size_t alignment) noexcept
+        {
+          return (alignment > alignof(std::max_align_t)) ? nullptr : std::malloc(bytes);
+        }
+        static void release(void*, void* address, std::size_t, std::size_t) noexcept
+        {
+          std::free(address);
+        }
+    };
+    std::size_t low = 1U;
+    std::size_t high = std::size_t{1} << 24U;
+    while (low < high)
+    {
+      const std::size_t middle = low + ((high - low) / 2U);
+      parse_options options{syntax_mode::json5};
+      options.limits.max_input_bytes = std::size_t{1} << 24U;
+      options.limits.max_depth = 4096U;
+      options.limits.max_nodes = std::size_t{1} << 20U;
+      options.limits.max_members = std::size_t{1} << 20U;
+      options.limits.max_total_string_units = std::size_t{1} << 20U;
+      options.limits.max_owned_bytes = std::size_t{1} << 26U;
+      options.limits.max_work_units = middle;
+      accounted_storage accounting{{nullptr, &unbounded_provider::allocate, &unbounded_provider::release},
+                                   options.limits.max_owned_bytes};
+      if (parse_document({input.data(), input.size()}, options, accounting).has_value())
+      {
+        high = middle;
+      }
+      else
+      {
+        low = middle + 1U;
+      }
+    }
+    return low;
+  }
+
+  class J5_049_WorkGrowth : public testing::TestWithParam<work_growth_case>
+  {
+  };
+  /*
+   * Verify parse work grows linearly with the number of values, for wide and deep documents.
+   * Arrange: The same shape with 200 and with 400 repetitions.
+   * Act: Find the smallest work budget that parses each.
+   * Expect: Doubling the values at most doubles the work, plus a small constant; quadratic
+   *         charging would need about four times as much.
+   */
+  TEST_P(J5_049_WorkGrowth, DoublingValuesAtMostDoublesWork)
+  {
+    /* Arrange */
+    const auto& shape = GetParam();
+    const std::string small = build_shape(shape, 200U);
+    const std::string large = build_shape(shape, 400U);
+    /* Act */
+    const std::size_t small_work = minimum_work(small);
+    const std::size_t large_work = minimum_work(large);
+    /* Expect */
+    ASSERT_LT(small_work, std::size_t{1} << 24U) << "small input did not parse";
+    EXPECT_LE(large_work, (2U * small_work) + 64U) << "small " << small_work << ", large " << large_work;
+  }
+  INSTANTIATE_TEST_SUITE_P(P040, J5_049_WorkGrowth,
+                           testing::Values(work_growth_case{"FlatNumbers", "[", ",1", "]", false},
+                                           work_growth_case{"FlatArrays", "[", ",[]", "]", false},
+                                           work_growth_case{"Members", "{", ",a:'x'", "}", false},
+                                           work_growth_case{"NestedArrays", "[", "", "]", true},
+                                           work_growth_case{"NestedObjects", "{a:", "1", "}", true}),
+                           case_name<work_growth_case>);
+  /* ================================= End Test_J5_049 ================================= */
 } // namespace
