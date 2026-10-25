@@ -109,7 +109,7 @@ namespace adaptive_json5
       return decimal_result::success(std::nullopt);
     }
 
-    // A hexadecimal prefix muust not be consumed as the decimal token zero.
+    // A hexadecimal prefix must not be consumed as the decimal token zero.
     if (first == std::optional<char>{'0'})
     {
       const auto next = candidate.peek(c_ascii_byte_count);
@@ -151,7 +151,7 @@ namespace adaptive_json5
       const std::size_t fraction_start = candidate.offset();
       detail::consume_decimal_digits(candidate);
 
-      // A leading point always needs digits; strict JSON also requires the after an integer.
+      // A leading point always needs digits; strict JSON also requires digits the after an integer.
       if ((candidate.offset() == fraction_start) && (!has_integer || (mode == syntax_mode::strict_json)))
       {
         return decimal_result::failure(detail::decimal_expected_error(candidate));
