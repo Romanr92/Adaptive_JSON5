@@ -60,4 +60,5 @@ add_library(adaptive_json5_parser STATIC
     value/warning_list.cpp
     value/retained_source.cpp
     diagnostics/diagnostic_format.cpp
+    value/document_access.cpp
 )

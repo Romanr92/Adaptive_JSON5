@@ -19,6 +19,8 @@ namespace adaptive_json5
   namespace detail
   {
     struct value_record;
+
+    struct document_access;
     /**
      * @brief Own a growable sequence of independently stored value records.
      * @par Requirements
@@ -173,6 +175,9 @@ namespace adaptive_json5
   class [[nodiscard]] document
   {
     private:
+      // Internal parser access to storage; not a supported public API.
+      friend struct detail::document_access;
+
       detail::value_storage m_values;
       value_index m_root{};
 
@@ -260,6 +265,7 @@ namespace adaptive_json5
        * @return Success or an explicit relationship/access error.
        * @note Preserves element order and performs no allocation.
        * Rejects wrong container type, existing attachment, root reuse and cycles.
+       * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
        * Failure leaves the document unchanged.
        */
       [[nodiscard]] status_result append_element(value_index array, value_index child) noexcept;
@@ -276,6 +282,7 @@ namespace adaptive_json5
        * Performs no allocation; the name must already own its decoded content.
        * Failure leaves the document and supplied name unchanged.
        * Success moves from name. Its provider must outlive the transferred allocation.
+       * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
        */
       [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
 
@@ -294,6 +301,7 @@ namespace adaptive_json5
        * Success transfers the name and records its span atomically.
        * Stores no input pointer and performs no allocation.
        * Does not enforce duplicate-name rejection.
+       * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
        */
       [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child,
                                                 adaptive_json5::source_span name_span, std::size_t input_size) noexcept;

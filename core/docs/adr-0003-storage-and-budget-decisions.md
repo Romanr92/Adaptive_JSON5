@@ -18,7 +18,7 @@ allocation), J5-047 (configurable limits), J5-048 (bounded traversal) and J5-049
 | 3 | Allocation-free literal recognition | Decided: L1, compare source bytes |
 | 4 | `warning_list` own capacity limit | Decided: W2 default; adaptive policy opt-in (T = 64, doubling); full table fails |
 | 5 | Scan charging before or after lexing | Decided: C4, budget-limited view |
-| 6 | `attach_child` ancestor walk | Decided: AW1, parser path without walk; public builder keeps it |
+| 6 | `attach_child` ancestor walk | Decided: AW1, parser path without walk (rationale corrected: analyzability, not cost); public builder keeps it |
 | 7 | `value_storage` relocation charging | Decided: V3, counting pre-pass and exact reservation; default work 131072 |
 | 8 | Single or duplicated string-unit counter | Decided: K1, single counter in `resource_budget` |
 | 9 | Reservation rollback on failure | Decided: R1, single-use parser state, no rollback |
@@ -411,56 +411,98 @@ bytes.
 
 ## Decision 6: the parser attaches without the ancestor walk (AW1)
 
-Decided by the user, 2026-10-25.
+Decided by the user, 2026-10-25. Rationale corrected on 2026-10-25, see below.
+
+### Correction
+
+The audit originally claimed that every parser attach walks the whole parent
+chain, about 131 000 uncharged steps for a document nested 512 deep. **That claim
+was wrong.** Open containers stay detached until they close
+(`core/src/parser/parser_engine.cpp`: "The new container remains detached until
+finish_container()"), and the parser attaches only in `accept_completed_value`,
+always to the open container on top of its frame stack. The walk in
+`attach_child` therefore inspects one record and stops, and that constant cost is
+already charged as `c_attachment_work` (`core/src/parser/parser_attachment.cpp`).
+Parser work is already linear in the node count. AW1 is kept for the reasons below,
+not for runtime cost.
 
 ### Problem
 
-`attach_child` (`core/src/value/document_links.cpp`) follows the parent chain up
-to the root on every attach to reject cycles, and charges no work for it. With
-the default `max_depth` of 512, a fully nested document performs about 131 000
-walk steps. Charging those steps would make valid deep documents fail against
-the default `max_work_units` of 32 768.
+The walk on the parser path is cheap only because of the attach order, an
+invariant that lives in comments. The code's own loop bound is the record count
+(`values.size()`), so:
+
+- **Timing analysis.** Static worst-case execution time (WCET) tools derive loop
+  bounds from code. They must assume O(nodes) per attach and O(nodes²) per parse,
+  unless someone writes and justifies a manual annotation.
+- **Fragile guarantee.** A future change that attaches containers while they are
+  still open would silently restore long walks.
+- **Structural coverage.** Called from the parser, the walk's loop iterations
+  beyond the first and its cycle-found branch cannot be reached, so statement,
+  branch or MC/DC coverage of the parser path needs a justification.
 
 ### Decision
 
-- **The parser path skips the walk.** The parser attaches through an internal
-  entry point with no ancestor walk. It keeps the O(1) checks: the child is not
-  attached yet, the parent has the right container type, the child is not the
-  root, and the source span is valid.
-- **Why this is safe.** The parser only attaches a value it just finished, which
-  is not attached anywhere yet, to the container on top of its frame stack. That
-  container's parent chain goes only through open containers, and the finished
-  value is not one of them. A cycle is impossible by construction. Debug builds
-  may assert this; the release contract does not depend on it.
+- **The parser path has no walk.** The parser attaches through an internal entry
+  point without the ancestor walk. It keeps the O(1) checks: valid indices, the
+  parent has the right container type, the child is not attached yet and is not
+  the root or the parent itself, the member name is present exactly for objects,
+  and the source span fits the input.
+- **Why this is safe.** The parser attaches only a value it just completed, which
+  is not attached anywhere, to the open container on top of its frame stack, which
+  is itself detached. A cycle would require the child to be an ancestor of that
+  container, which is impossible when the container has no parent.
 - **The public builder keeps the walk.** `document::append_element` and
-  `document::append_member` keep rejecting cycles. Their cost is documented as
-  O(depth), bounded by `max_nodes`.
+  `document::append_member` keep rejecting cycles through the shared validation
+  plus the walk. Their cost is documented as O(depth), bounded by `max_nodes`.
 
 ### Rationale
 
-Removing the walk makes parse work linear in the node count, so worst-case parse
-time does not depend on nesting depth. Nothing stays uncharged in the parser, the
-default limits remain usable for deep valid documents, and the public API and its
-cycle protection are unchanged.
+Chosen for embedded and automotive (safety-related) development, where properties
+must be shown by analysis, not only observed:
+
+- **Bounded by structure.** The parser's attach path contains no loop, so its
+  constant time follows from the code and needs no WCET annotation.
+- **Robust to change.** The guarantee no longer depends on the order in which the
+  engine attaches containers.
+- **Fully coverable.** The parser path is covered by parsing; the cycle check is
+  covered by the public builder units.
+- **Same runtime cost** as today. This decision changes analyzability, not speed.
 
 ### Consequences
 
-- Suggested shape, not an existing API: a second internal entry point beside
-  `attach_child` in `core/includes/value/document_links.hpp` and
-  `core/src/value/document_links.cpp`, with the cycle walk factored out of the
-  shared validation. `core/src/parser/parser_attachment.cpp` calls the variant
-  without the walk.
-- The public `append_element` and `append_member` documentation in
-  `includes/adaptive_json5/value/document.hpp` states the O(depth) cost.
-- Units: a document nested to `max_depth` parses within a work budget that grows
-  linearly with depth; the public `append_element` and `append_member` still reject
-  a cycle; the parser still rejects double attachment through its O(1) checks.
+- **Shared validation.** In `core/src/value/document_links.cpp`, split
+  `attach_child` into the shared O(1) validation and linking plus a separate cycle
+  check. `attach_child` keeps its current contract (validation, cycle check,
+  linking); the new internal entry point uses validation and linking only.
+  Suggested shape, not an existing API: declared in
+  `core/includes/value/document_links.hpp`.
+- **Access from the parser.** The parser holds a `document&`, whose storage is
+  private. Grant access through an internal accessor type that the public header
+  only names: a forward declaration of `detail::document_access` and one `friend`
+  line in `includes/adaptive_json5/value/document.hpp`, with the accessor defined
+  in a private header under `core/includes/value/`. This adds no public operation,
+  and the public header does not include the private tree (ADR 0002). The `friend`
+  line is a public-header change for the developer.
+- **Parser call site.** `core/src/parser/parser_attachment.cpp` calls the accessor
+  instead of `append_member` / `append_element`.
+- **Documentation.** The `append_element` and `append_member` comments state the
+  O(depth) cycle-check cost.
+- **Units:** the loop-free entry point rejects every link fault that `attach_child`
+  rejects, without changing anything; it rejects an attached parent that
+  `attach_child` would accept; it links an element and a named member with its span;
+  the public `append_element` and `append_member` still reject cycles (already
+  covered). A deep-nesting work unit was considered and rejected: the walk was never
+  charged, so measured work cannot detect it.
 
 ### Rejected alternatives
 
-- **AW2, charge each walk step:** valid deep documents fail on the default budget.
-- **AW3, unchanged:** the walk stays uncharged, with a hidden quadratic part in
-  worst-case parse time.
+- **Keep the walk and rely on the invariant (option 1).** Equal runtime cost, but
+  the bound depends on a documented invariant instead of the code's structure.
+- **A public `append_parsed_member` operation.** It would expose an unchecked
+  attach to every library user.
+- **AW2, charge each walk step.** It charges for analysis-visible worst cases that
+  never occur.
 
 ## Decision 7: count first, then allocate records and frames exactly once (V3)
 
