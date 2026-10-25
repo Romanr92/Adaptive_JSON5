@@ -115,3 +115,7 @@ adaptive_json5_add_unit(adaptive_json5_numeric_internal_unit_tests numeric_units
     value/big_unsigned_tests.cpp
     value/number_analysis_tests.cpp)
 target_include_directories(adaptive_json5_numeric_internal_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
+
+adaptive_json5_add_unit(adaptive_json5_allocation_audit_unit_tests allocation_audit_units
+    memory/allocation_audit_tests.cpp)
+target_include_directories(adaptive_json5_allocation_audit_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
