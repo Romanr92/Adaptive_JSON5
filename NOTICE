@@ -21,6 +21,15 @@ GoogleTest is acquired separately for host unit tests. Its BSD-3-Clause notice
 is reproduced in LICENSES/GoogleTest-BSD-3-Clause.txt and applies to GoogleTest,
 not to this project's original material.
 
+Host unit tests use unmodified conformance fixtures under
+tests/fixtures/third_party, which are not part of the parser:
+- json5-tests (https://github.com/json5/json5-tests, commit
+  ceb24d4080137d70833f86c25659c1331b80a387), MIT, Copyright (c) 2012-2016
+  Aseem Kishore, and others. See LICENSES/json5-tests-MIT.txt.
+- JSONTestSuite test_parsing (https://github.com/nst/JSONTestSuite, commit
+  1ef36fa01286573e846ac449e8683f8833c5b26a), MIT, Copyright (c) 2016 Nicolas
+  Seriot. See LICENSES/JSONTestSuite-MIT.txt.
+
 These notices are informational and do not modify any license terms.
 
 The JSON5 implementation checklist explains JSON5 1.0.0 (MIT, Copyright (c)

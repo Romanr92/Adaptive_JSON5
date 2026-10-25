@@ -79,6 +79,7 @@ __pycache__/
 node_modules/
 .vscode/*.local.json
 third_party/
+!/tests/fixtures/third_party/
 __cmake_systeminformation/
 
 # CMake-acquired host-only GoogleTest sources

@@ -1025,6 +1025,19 @@ All P039 production pieces below are implemented, with units listed in the
 | Retained source text (J5-041) | `parse_options::source_text = source_retention_policy::retain_copy` makes `parsed_document::source` (a `retained_source`) own a copy of the input; the default `discard` keeps nothing. The copy is made only after the complete input is accepted, through the caller's accounting, and is charged against `max_owned_bytes`; a failed copy publishes no document. It survives destruction of the caller's input and moves of the document. |
 | Warnings | `parsed_document::warnings` (a `warning_list`) holds every string and member-name warning in source order, replacing the former count and first-warning fields. Each warning reserves one `max_diagnostics` entry; exceeding the limit fails the parse with `resource_limit`. The engine reserves list capacity first and then re-walks only strings that reported warnings, so recording itself cannot fail. The internal primitive-document path still keeps only the first warning. |
 
+### P040 grammar decisions
+
+These are the grammar choices recorded while gathering whole-grammar evidence.
+The BOM option and the whitespace and separator behaviour are implemented; the
+P040 evidence matrix and its units are still in progress. Requirement rows
+remain Draft.
+
+| Topic | Decision |
+| --- | --- |
+| Strict-mode BOM | `parse_options::strict_bom` (`strict_bom_policy`) defaults to `reject`, as RFC 8259 allows parsers to do. `skip_one` ignores exactly one leading EF BB BF in strict mode; a second BOM, or one after any other byte, is still rejected. Offsets stay relative to the original input, so the skipped bytes count. JSON5 mode always treats U+FEFF as whitespace (J5 §8), so the option has no effect there. |
+| Legacy whitespace | JSON5 whitespace accepts Unicode 17.0.0 Zs plus every Unicode 3.0.0 Zs member, because ES5 names Unicode 3.0 as its minimum. U+200B ZERO WIDTH SPACE was Zs in 3.0 and is Cf today, so it is accepted as JSON5 whitespace on purpose. Strict mode accepts only the four RFC 8259 whitespace bytes. |
+| Raw U+2028/U+2029 in strings | Accepted unescaped in both modes: RFC 8259 permits them, and JSON5 1.0.0 §5.1 allows them with a warning. JSON5 mode reports them as `raw_line_separator`/`raw_paragraph_separator` warnings; strict mode accepts them silently. |
+
 ## 10. Runtime and concurrency boundaries
 
 The generic core performs no filesystem, process, network, environment, clock,

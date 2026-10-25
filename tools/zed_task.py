@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parent.parent
 ACTIONS = (
     ("Build Unit Test", "build-tests"),
     ("Launch Unit Test", "launch-tests"),
+    ("Build Official JSON & JSON5 Validation Tests", "build-validation"),
+    ("Launch Official JSON & JSON5 Validation Tests", "launch-validation"),
     ("Build Executable", "build-exe"),
     ("Launch Executable", "launch-exe"),
 )
@@ -40,8 +42,14 @@ def main():
     )
     options = parser.parse_args()
 
-    if options.action in ("build-tests", "launch-tests"):
-        preset = "debug-unit-tests"
+    test_presets = {
+        "build-tests": "debug-unit-tests",
+        "launch-tests": "debug-unit-tests",
+        "build-validation": "validation-tests",
+        "launch-validation": "validation-tests",
+    }
+    if options.action in test_presets:
+        preset = test_presets[options.action]
         cache = ROOT / "build" / preset / "CMakeCache.txt"
         cache_text = cache.read_text(encoding="utf-8") if cache.is_file() else ""
         broken_nmake = (
@@ -73,7 +81,7 @@ def main():
             run(configure)
         # The native build system tracks source/header dependencies and does no work when current.
         run(["cmake", "--build", "--preset", preset])
-        if options.action == "launch-tests":
+        if options.action.startswith("launch-"):
             run(["ctest", "--preset", preset, "--verbose"])
         return 0
 

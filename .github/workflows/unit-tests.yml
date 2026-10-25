@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       - name: Build unit tests
         run: cmake --build build --config Debug --parallel
       - name: Run unit tests
@@ -68,8 +68,8 @@ jobs:
           for mode in OFF ON; do
             cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++-13 \
               -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
-              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" \
-              -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
             cmake --build "build/gcc-$mode" --parallel
             ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
           done
@@ -80,8 +80,8 @@ jobs:
           for mode in OFF ON; do
             cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++ \
               -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
-              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" \
-              -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
             cmake --build "build/gcc-$mode" --parallel
             ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
           done

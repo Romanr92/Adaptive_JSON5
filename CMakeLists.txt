@@ -6,6 +6,8 @@ include(CMakePackageConfigHelpers)
 
 option(ADAPTIVE_JSON5_BUILD_TESTS "Build host GoogleTest unit tests"
     ${PROJECT_IS_TOP_LEVEL})
+option(ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS
+    "Build the Official JSON & JSON5 Validation Tests" OFF)
 option(ADAPTIVE_JSON5_BUILD_LIBRARY "Build/export the library component" ON)
 option(ADAPTIVE_JSON5_BUILD_SCHEMA
     "Build the optional schema component when implemented" OFF)
@@ -75,7 +77,8 @@ function(adaptive_json5_configure_target target)
     endif()
 endfunction()
 
-if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS)
+if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS
+        OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
     add_library(adaptive_json5_parser STATIC
         src/src/lexer/comment.cpp
         src/src/lexer/identifier/identifier_classification.cpp
@@ -149,18 +152,26 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS)
     adaptive_json5_configure_target(adaptive_json5_parser)
 endif()
 
-if(ADAPTIVE_JSON5_BUILD_TESTS)
+if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
     if(CMAKE_CROSSCOMPILING)
         message(FATAL_ERROR
-            "GoogleTest is host-only here; disable ADAPTIVE_JSON5_BUILD_TESTS "
-            "for embedded builds")
+            "GoogleTest is host-only here; disable "
+            "ADAPTIVE_JSON5_BUILD_TESTS and "
+            "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS for embedded builds")
     endif()
     enable_testing()
     include("${PROJECT_SOURCE_DIR}/cmake/Dependencies.cmake")
     include(GoogleTest)
     include("${PROJECT_SOURCE_DIR}/cmake/UnitTests.cmake")
+endif()
+if(ADAPTIVE_JSON5_BUILD_TESTS)
     add_subdirectory(src/tests)
     add_subdirectory(tests)
+endif()
+if(ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
+    # Third-party fixtures are resolved or downloaded only for validation.
+    include("${PROJECT_SOURCE_DIR}/cmake/TestFixtures.cmake")
+    add_subdirectory(tests/validation)
 endif()
 
 set(adaptive_json5_package_dir ${CMAKE_INSTALL_LIBDIR}/cmake/AdaptiveJSON5)

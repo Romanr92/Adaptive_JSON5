@@ -47,6 +47,10 @@ adaptive_json5_add_unit(adaptive_json5_public_library_unit_tests public_library_
 adaptive_json5_add_unit(adaptive_json5_complete_document_unit_tests complete_document_units
     parser/complete_document_tests.cpp)
 
+adaptive_json5_add_unit(adaptive_json5_grammar_evidence_unit_tests
+    grammar_evidence_units
+    parser/grammar_evidence_tests.cpp)
+
 # Compile every public header in its own test translation unit, without private paths.
 set(adaptive_json5_public_headers
     error.hpp

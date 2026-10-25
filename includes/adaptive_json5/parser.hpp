@@ -9,8 +9,6 @@
 #include "adaptive_json5/value/retained_source.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
 
-#include <cstddef>
-
 namespace adaptive_json5
 {
   /**

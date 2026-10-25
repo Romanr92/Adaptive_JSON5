@@ -12,12 +12,10 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
-#include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
 
 #include <cstddef>
-#include <optional>
 
 namespace adaptive_json5
 {

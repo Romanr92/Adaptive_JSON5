@@ -42,6 +42,8 @@ traceability, parameterization and Arrange/Act/Expect comments.
 | Option | Default | Purpose |
 | --- | --- | --- |
 | `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root; OFF as subproject | Host GoogleTest units |
+| `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` | OFF | Host GoogleTest validation tests over pinned third-party fixtures |
+| `ADAPTIVE_JSON5_JSON5_TESTS_SOURCE_DIR`, `ADAPTIVE_JSON5_JSONTESTSUITE_SOURCE_DIR` | Empty | Offline fixture overrides; otherwise the committed copies, else a pinned SHA256-checked download |
 | `ADAPTIVE_JSON5_ENABLE_EXCEPTIONS` | OFF | Exception mode for selected project targets |
 | `ADAPTIVE_JSON5_ENABLE_RTTI` | OFF | RTTI mode for selected project targets |
 | `ADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR` | Empty | Offline source override; otherwise CMake FetchContent |
@@ -159,11 +161,13 @@ Three independent component switches select what to prepare/build:
 | `ADAPTIVE_JSON5_BUILD_LIBRARY` | ON | Build/export/install the compiled core and public headers |
 | `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example data and future `examples/main.cpp` target; executable C++ pending |
 | `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root, OFF as subproject | Fetch/build/run host GoogleTest units |
+| `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` | OFF | Build/run the conformance validation tests in `tests/validation` |
 
 Select `Debug: Library`, `Release: Library`, `Debug: Example executable`,
-`Debug: Unit Tests` or `Debug: Unit Tests (exceptions ON)` in the bottom CMake
+`Debug: Unit Tests`, `Debug: Unit Tests (exceptions ON)`, `Debug: Official JSON & JSON5 Validation Tests`
+or `Debug: Official JSON & JSON5 Validation Tests (exceptions ON)` in the bottom CMake
 configuration-preset control. Then select its matching build preset and press
-Build. Test presets are provided for unit configurations. CMake Tools must be
+Build. Test presets are provided for unit and validation configurations. CMake Tools must be
 installed/enabled and the repository opened as a folder. If controls are hidden,
 run **CMake: Select Configure Preset** once and check that VS Code's status bar is
 shown. Tracked settings keep configure/build/test presets and actions visible.

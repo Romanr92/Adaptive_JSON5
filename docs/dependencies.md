@@ -7,6 +7,8 @@ incorporated Unicode data retains its own license. See [LICENSE](../LICENSE).
 | Material | Immutable version | License | Purpose |
 | --- | --- | --- | --- |
 | GoogleTest | 1.17.0, `52eb8108c5bdec04579160ae17225d66034bd723` | BSD-3-Clause; upstream LICENSE retained in FetchContent checkout | Host-only unit-test framework, never shipped with the parser |
+| json5-tests | `ceb24d4080137d70833f86c25659c1331b80a387` | MIT; LICENSES/json5-tests-MIT.txt | Host-only conformance fixtures in tests/fixtures/third_party, unmodified; never shipped |
+| JSONTestSuite `test_parsing` | `1ef36fa01286573e846ac449e8683f8833c5b26a` | MIT; LICENSES/JSONTestSuite-MIT.txt | Host-only conformance fixtures in tests/fixtures/third_party, unmodified subset; never shipped |
 | clang-format | 18.1.8 development package | Apache-2.0 WITH LLVM-exception for upstream LLVM; installed package may include additional notices | C++ formatting only |
 | Unicode Character Database | 17.0.0 and historical 3.0.0; exact source hashes in [manifest](../tools/unicode-data/sources.json) | Unicode License V3; full notice retained in LICENSES and generated header | Immutable parser classification tables; original inputs retained for offline regeneration |
 | Original supplied proposal | 2026-10-11 snapshot | User-provided project document | Historical Draft input in docs/requirements/proposals |

@@ -9,20 +9,24 @@ or authenticate agent providers.
 
 ## Build and run tests
 
-Ctrl+F5 opens Zed's task picker with these four project actions:
+Ctrl+F5 opens Zed's task picker with these six project actions:
 
 1. **Build Unit Test**
 2. **Launch Unit Test**
-3. **Build Executable**
-4. **Launch Executable**
+3. **Build Official JSON & JSON5 Validation Tests**
+4. **Launch Official JSON & JSON5 Validation Tests**
+5. **Build Executable**
+6. **Launch Executable**
 
 The tasks save edited buffers and call `tools/zed_task.py`. Python runs each
 command directly, without `&&` or shell-dependent command parsing, and stops on
-failure. All four actions use exceptions OFF. Unit actions use
+failure. All six actions use exceptions OFF. Unit actions use
 `debug-unit-tests`; launch runs CTest with verbose output. If its build directory
 or CMake cache is missing, either unit action configures the preset first, creating
 the directory automatically. An existing GoogleTest checkout is reused. Exe actions use `debug-example`, also with
-exceptions OFF. The helper does not offer an exception-mode override.
+exceptions OFF. Validation actions work the same way with the `validation-tests`
+preset, which builds only the third-party conformance tests (see
+`tests/fixtures/third_party/README.md`). The helper does not offer an exception-mode override.
 
 New unit configurations prefer Ninja when available and no generator is selected
 in the environment. If a cached NMake configuration cannot find `nmake`, the

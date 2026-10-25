@@ -1,0 +1,35 @@
+name: Official JSON & JSON5 Validation Tests
+
+on:
+  pull_request:
+
+concurrency:
+  group: validation-tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validation-tests:
+    name: Official JSON & JSON5 Validation Tests (exceptions ${{ matrix.exceptions }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - exceptions: 'OFF'
+            preset: validation-tests
+          - exceptions: 'ON'
+            preset: validation-tests-exceptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Configure validation tests
+        run: cmake --preset ${{ matrix.preset }}
+      - name: Build validation tests
+        run: cmake --build --preset ${{ matrix.preset }} --parallel
+      - name: Run validation tests
+        run: ctest --preset ${{ matrix.preset }} --parallel 4
