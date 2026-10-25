@@ -47,6 +47,13 @@ adaptive_json5_add_unit(adaptive_json5_public_library_unit_tests public_library_
 adaptive_json5_add_unit(adaptive_json5_complete_document_unit_tests complete_document_units
     parser/complete_document_tests.cpp)
 
+adaptive_json5_add_unit(adaptive_json5_pure_memory_unit_tests
+    pure_memory_units
+    library/pure_memory_tests.cpp)
+# The import scan reads production sources; parsing itself stays in memory.
+target_compile_definitions(adaptive_json5_pure_memory_unit_tests PRIVATE
+    "ADAPTIVE_JSON5_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
+
 adaptive_json5_add_unit(adaptive_json5_grammar_evidence_unit_tests
     grammar_evidence_units
     parser/grammar_evidence_tests.cpp)

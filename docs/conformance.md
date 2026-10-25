@@ -103,10 +103,30 @@ Schema, editor and manifest rows are outside P041.
 | Deep/wide structures, large strings/numbers | `J5_047_CompleteLimit`, `J5_048_ContainerDepth`, `J5_049_WorkGrowth` |
 | Allocation failure during parse | `J5_098_DocumentFaultSweep`, `J5_041_RetainedSource` |
 
+## Contract reviews
+
+| Contract | Review result (2026-10-25) |
+| --- | --- |
+| J5-002 build components | Parser part met. CMake 3.25 is the minimum. A library-only configure (`release-library`) fetches no GoogleTest or fixtures and builds only `adaptive_json5_parser`. Unit and validation tests are separate opt-in options. Schema and tool targets are later steps (P042 onwards); `ADAPTIVE_JSON5_BUILD_SCHEMA` currently stops configuration. |
+| J5-007 license and provenance | Met for current material. `LICENSE` is Apache-2.0. `LICENSES/` keeps GoogleTest, JSON5 specification, ECMA-262, Unicode, json5-tests and JSONTestSuite notices; `NOTICE`, [dependencies](dependencies.md) and the [fixture README](../tests/fixtures/third_party/README.md) record versions and provenance. |
+| J5-042 pure memory parsing | Met. `J5_042_PureMemory.ProductionIncludesOnlyLanguageSupportHeaders` checks every production include against a language-support allowlist (no files, streams, processes, threads, time, locale or networking). `J5_042_PureMemory.ParseUsesOnlyCallerStorage` shows a complete parse, with retained source and warnings, makes no default-heap allocation. |
+| J5-008 public contracts | Met in documentation, with two header gaps. Syntax defaults, duplicate handling, retention and BOM options are in `options.hpp`; value lifetimes and pointer invalidation in `document.hpp`, `value_view.hpp` and `parser.hpp`; limits in `resource_limits.hpp`; conversions in the conversion headers. **Gaps:** the `error_code` enumerators in `error.hpp` have no per-value descriptions (the categories are explained in [architecture § 9](architecture.md#9-failure-boundaries-and-remaining-work)), and thread safety is stated only in `accounted_storage.hpp` and the docs, not on `parse_document` or `document`. Both are header comment changes for the developer. |
+
+## Executed results
+
+| Where | Commit | Configuration | Result |
+| --- | --- | --- | --- |
+| GitHub Actions [unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400393) | `016c7f4` | Linux GCC exceptions OFF and ON; linux-aarch64 g++-13 OFF and ON; Windows MinGW OFF and ON | Passed |
+| GitHub Actions [validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400388) | `016c7f4` | Linux, exceptions OFF and ON | Passed |
+| GitHub Actions [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/40188400395) | `016c7f4` | clang-format 18.1.8 | Passed |
+| Local, Windows GCC 15.2.0, CMake 4.0.1 | `016c7f4` plus uncommitted J5-042 units | Unit tests, exceptions OFF and ON, RTTI OFF | 2126/2126 passed in each mode |
+| Local, same toolchain | `016c7f4` | Validation tests, exceptions OFF and ON | 850/850 passed in each mode |
+
+The J5-042 units are not in a CI run yet; rerun CI after they are committed.
+
 ## Open before the claim
 
-1. Record executed results for the current suites, with CI run references.
-2. Add a J5-042 unit (parsing touches no file or OS service) and record the
-   J5-002/J5-007 build and licensing review.
-3. Review the J5-008 public-contract list against the public headers.
-4. Update the README status once the above is done.
+1. Commit the J5-042 units and record their CI run.
+2. Developer: add `error_code` value descriptions and thread-safety notes to the
+   public headers (J5-008 gaps above).
+3. User review of this statement; requirement rows stay Draft until then.

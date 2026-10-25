@@ -10,12 +10,16 @@ The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
 numbers, explicit recoverable errors and configurable resource limits. Draft-07
 validation, a CLI and VS Code support are independently optional components.
 
-**Status: the compiled C++17 core includes owned values, lexical components,
-resource guards, the internal P033 container engine and the public P037
-complete-document `parse_document()` entry.**
-GoogleTest inventories are in [traceability](docs/traceability.md); executed
-results are recorded per step in the [implementation sequence](docs/requirements/json5-implementation-order.md). Conformance remains
-pending. Production C++ and public headers are reserved for Romanr92; AI creates
+**Status: the compiled C++17 core parses complete JSON5 1.0.0 and strict JSON
+documents through `parse_document()`, with exact numeric conversion and
+comparison, warnings, line/column lookup and optional source retention
+(P001–P040).** The full-support claim (P041) is in draft: see the
+[JSON5 1.0.0 support statement](docs/conformance.md) for versions, limits,
+implementation-defined behaviour, deviations and executed results. Requirement
+rows remain Draft.
+GoogleTest inventories are in [traceability](docs/traceability.md), and the
+per-production view is the [grammar evidence matrix](docs/grammar-evidence.md).
+Production C++ and public headers are reserved for Romanr92; AI creates
 unit tests. See [AGENTS.md](AGENTS.md).
 
 The [delivery scope](docs/requirements/json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
