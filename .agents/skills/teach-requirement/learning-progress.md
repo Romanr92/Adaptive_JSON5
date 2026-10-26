@@ -86,3 +86,6 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   return lines were right each time. The guard condition itself needs attention:
   in the next exercises, ask for the whole guard and point out in review that the
   condition must be true only on failure.
+  Same day, lesson 4 (`consume_primitive`): wrote the whole guard for
+  `started`, condition included, correctly. One success; give one or two more
+  whole-guard exercises before recording it as learned.

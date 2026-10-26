@@ -77,7 +77,8 @@ namespace adaptive_json5
      * @param scan Scan started by begin_limited_scan.
      * @param failure Error reported by the lexer.
      * @return resource_limit at view_end when the failure lies within
-     * c_cut_margin_bytes of a cut or has no location; otherwise failure unchanged.
+     * c_cut_margin_bytes of a cut, has a source range ending there, or has no location;
+     * otherwise failure unchanged.
      */
     error limited_scan_error(const limited_scan& scan, const error& failure) noexcept
     {
@@ -86,8 +87,14 @@ namespace adaptive_json5
         return failure;
       }
 
+      // A token that ran up to the cut may be reported at its start, so check its range end as well.
+      const bool range_near_cut =
+        failure.source_range.has_value() &&
+        ((failure.source_range->byte_offset + failure.source_range->byte_length + c_cut_margin_bytes) >= scan.view_end);
+
       // Adding the offset instead of subtracting from view_end cannot underflow.
-      const bool near_cut = (!failure.has_byte_offset) || ((failure.byte_offset + c_cut_margin_bytes) >= scan.view_end);
+      const bool near_cut =
+        (!failure.has_byte_offset) || ((failure.byte_offset + c_cut_margin_bytes) >= scan.view_end) || range_near_cut;
 
       return near_cut ? error::at_offset(error_code::resource_limit, scan.view_end) : failure;
     }

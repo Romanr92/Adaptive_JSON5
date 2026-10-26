@@ -260,5 +260,125 @@ namespace
       EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit) << prefix;
     }
   }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /**
+   * @brief One document whose every insufficient work budget must fail with resource_limit.
+   * @par Requirements
+   * J5-049.
+   */
+  struct cut_case
+  {
+      const char* name;  // Input case label.
+      std::string input; // Input document; parses completely under ample work.
+  };
+
+  class J5_049_ScanCut : public testing::TestWithParam<cut_case>
+  {
+  };
+
+  /* Verify a cut scan never produces a shortened token or a false syntax error.
+   * Arrange: A document and its minimal successful work ceiling.
+   * Act: Parse under every smaller ceiling, then under the minimal one.
+   * Expect: resource_limit for every smaller ceiling; the minimal ceiling consumes the
+   *         whole document, so the last scan ends exactly at the real end of input.
+   */
+  TEST_P(J5_049_ScanCut, BudgetBelowMinimumFailsWithResourceLimit)
+  {
+    /* Arrange */
+    const std::string& input = GetParam().input;
+    const std::size_t minimum = minimum_work(input);
+    ASSERT_LT(minimum, c_ample_work);
+    for (std::size_t budget{}; budget <= minimum; ++budget)
+    {
+      document_provider provider;
+      parse_options options;
+      options.limits.max_work_units = budget;
+      accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+      parser_engine engine{{input.data(), input.size()}, options, accounting};
+      /* Act */
+      const auto parsed = engine.run();
+      /* Expect */
+      if (budget < minimum)
+      {
+        ASSERT_FALSE(parsed.has_value()) << "budget " << budget;
+        EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit)
+          << "budget " << budget << ", error offset " << parsed.error_if()->byte_offset;
+      }
+      else
+      {
+        ASSERT_TRUE(parsed.has_value()) << "budget " << budget;
+        EXPECT_EQ(parsed.value_if()->consumed_bytes, input.size());
+      }
+    }
+  }
+
+  INSTANTIATE_TEST_SUITE_P(
+    J5_049, J5_049_ScanCut,
+    testing::Values(cut_case{"NumberRoot", "12345"},                  // A cut number must not become a shorter number.
+                    cut_case{"NumberElement", "[12345,6789]"},        // Cut inside a number followed by more input.
+                    cut_case{"CommentOpener", "[ //note\n1]"},        // A cut after the first '/' hides the comment.
+                    cut_case{"BlockComment", "[/* note */1]"},        // A cut inside a block comment hides its end.
+                    cut_case{"MemberName", "{name:\"value\"}"},       // Identifier name, then a quoted value.
+                    cut_case{"WarningString", "[\"a\xE2\x80\xA8\"]"}, // Multi-byte character and warning re-scan.
+                    cut_case{"Literal", "[true,false,null]"}),        // Literals followed by separators.
+    [](const testing::TestParamInfo<cut_case>& info)
+    {
+      return std::string(info.param.name);
+    });
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /**
+   * @brief One lexer error located well before the end of a cut view.
+   * @par Requirements
+   * J5-049.
+   */
+  struct early_error_case
+  {
+      const char* name;         // Input case label.
+      std::string prefix;       // Input bytes containing the error.
+      std::size_t error_offset; // Expected syntax error byte offset.
+  };
+
+  class J5_049_ScanCutError : public testing::TestWithParam<early_error_case>
+  {
+  };
+
+  /* Verify a lexer error before the cut keeps its own code and offset.
+   * Arrange: An erroneous prefix followed by 1000 bytes, under a 100-unit ceiling, so
+   *          the scan view is cut far after the error.
+   * Act: Parse the document.
+   * Expect: The original syntax error at its original offset, not resource_limit.
+   */
+  TEST_P(J5_049_ScanCutError, KeepsLexerErrorBeforeCut)
+  {
+    /* Arrange */
+    const auto& item = GetParam();
+    const std::string input = item.prefix + std::string(1000, ' ');
+    document_provider provider;
+    parse_options options;
+    options.limits.max_work_units = 100;
+    accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+    parser_engine engine{{input.data(), input.size()}, options, accounting};
+    /* Act */
+    const auto parsed = engine.run();
+    /* Expect */
+    ASSERT_FALSE(parsed.has_value());
+    EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
+    EXPECT_TRUE(parsed.error_if()->has_byte_offset);
+    EXPECT_EQ(parsed.error_if()->byte_offset, item.error_offset);
+  }
+
+  INSTANTIATE_TEST_SUITE_P(J5_049, J5_049_ScanCutError,
+                           testing::Values(early_error_case{"UnexpectedCharacter", "[@", 1}, // Not a value start.
+                                           early_error_case{"NumberSuffix", "[1x", 2},       // Invalid number boundary.
+                                           early_error_case{"UnknownLiteral", "[nul,", 1}, // Unknown identifier value.
+                                           early_error_case{"MissingSeparator", "[1 2", 3}), // Element without a comma.
+                           [](const testing::TestParamInfo<early_error_case>& info)
+                           {
+                             return std::string(info.param.name);
+                           });
   /* ================================= End Test_J5_049 ================================= */
 } // namespace

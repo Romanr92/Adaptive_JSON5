@@ -94,7 +94,8 @@ namespace adaptive_json5
      * @param scan Scan started by begin_limited_scan.
      * @param failure Error reported by the lexer.
      * @return resource_limit at view_end when the failure lies within
-     * c_cut_margin_bytes of a cut or has no location; otherwise failure unchanged.
+     * c_cut_margin_bytes of a cut, has a source range ending there, or has no location;
+     * otherwise failure unchanged.
      */
     [[nodiscard]] error limited_scan_error(const limited_scan& scan, const error& failure) noexcept;
 

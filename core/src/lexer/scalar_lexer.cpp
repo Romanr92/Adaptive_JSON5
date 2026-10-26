@@ -1,9 +1,11 @@
 #include "lexer/scalar_lexer.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/syntax_error_reason.hpp"
 #include "input/cursor.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
 #include "lexer/number/number_lexer.hpp"
@@ -244,9 +246,11 @@ namespace adaptive_json5
       return scalar_result::failure(error::syntax_at(start, syntax_error_reason::unexpected_character));
     }
 
+    const auto& name = **identifier.value_if();
+
     // Unescaped literal spellings were matched above, so any identifier here is unknown.
-    return scalar_result::failure(
-      error::syntax_at((**identifier.value_if()).byte_offset, syntax_error_reason::unknown_literal));
+    return scalar_result::failure(error::syntax_at_range(
+      name.byte_offset, source_span{name.byte_offset, name.byte_length}, syntax_error_reason::unknown_literal));
   }
 
   /**

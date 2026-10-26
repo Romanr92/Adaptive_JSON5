@@ -99,6 +99,21 @@ escapes, in UTF-16 units: a character outside the Basic Multilingual Plane count
 as 2. Internally there is exactly one counter for the total, so both checks always
 agree.
 
+**Allocation-free literals.** `true`, `false` and `null` never call your
+allocator. Strings, numbers and the document itself still allocate through it.
+
+**How work is charged.** Each scan of the input (whitespace and comments, every
+token, and the second walk over a string that has warnings) is charged exactly
+the bytes it reads. A scan never reads past the remaining budget, so a long or
+unterminated token under a small budget fails with `resource_limit` instead of
+being read to the end. A scan that ends within 3 bytes of the limit also fails
+with `resource_limit`, so a budget that is too small never produces a false
+syntax error. If you size `max_work_units` from measurements, keep a few units
+of headroom.
+
+**Unknown words in value position** (for example `nul` or `trueish`) fail with a
+`syntax` error whose `source_range` covers the whole word.
+
 **Warnings.** Every warning is kept. More warnings than `max_diagnostics` fail
 the whole parse with `resource_limit`. No document is returned with some of its
 warnings missing.
@@ -111,9 +126,7 @@ These change what you observe once implemented:
 |---|---|
 | Default `max_work_units` becomes **131072** (8 × `max_input_bytes`) | Documents near the size limits parse with default options. If you raise `max_input_bytes`, raise the work limit in the same proportion. The default work budgets of number conversion and comparison rise with it. |
 | Counting pre-pass, then exact allocation | Memory used for values, frames and strings equals what the document needs, with no spare capacity. Invalid or over-limit input fails **before any allocation**. A successful parse makes few, fixed-size allocations, so pools fragment less. |
-| Literals (`true`, `false`, `null`) allocate nothing | Fewer calls to your allocator. |
 | Warning table allocated once | The first warning allocates `max_diagnostics` entries, which is the worst case known in advance. Input without warnings allocates nothing for warnings. An optional adaptive policy in `parse_options` starts smaller, for tooling that sets a large `max_diagnostics`. |
-| Work charged before scanning goes too far | A long or unterminated token under a small work budget fails with `resource_limit` instead of being scanned to the end. Each scan is charged exactly the bytes it reads. A scan that ends within 3 bytes of the budget limit also fails with `resource_limit`, so a budget that is too small never produces a false syntax error. |
 
 **Known cost:** with `duplicate_name_policy::reject_duplicates`, checking a large
 object costs work that grows with the square of its member count. One object with
@@ -213,7 +226,7 @@ a separate, additive decision, and nothing in the current design prevents it.
    size.
 3. Measure the time per work unit on your target once. Set `max_work_units` from
    the longest parse time you can allow. If you size it from the work your largest
-   documents need, add some headroom: after the planned scan-charging change, a
-   scan that ends within 3 bytes of the limit fails with `resource_limit`.
+   documents need, add some headroom: a scan that ends within 3 bytes of the limit
+   fails with `resource_limit`.
 
 See also [embedded integration](embedded.md).

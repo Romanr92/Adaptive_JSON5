@@ -15,7 +15,6 @@
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
 #include "lexer/string/string_token.hpp"
-#include "lexer/trivia.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_work.hpp"
@@ -143,7 +142,7 @@ namespace adaptive_json5
    * A retained first-warning descriptor consumes one diagnostic entry.
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
-   * Recognition charges one unit per remaining input byte before scanning.
+   * Recognition scans within the remaining work and charges the bytes it reads (ADR 0003, decision 5).
    * Construction charges token bytes plus c_record_construction_work.
    * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
@@ -161,7 +160,7 @@ namespace adaptive_json5
 
     // A primitive root can contain only one owned string value.
     const std::size_t string_limit = (options.limits.max_string_units < options.limits.max_total_string_units)
-                                       ? options.limits.max_total_string_units
+                                       ? options.limits.max_string_units
                                        : options.limits.max_total_string_units;
 
     // Recognition must not publish cursor advancement before ownership succeeds.
@@ -174,7 +173,7 @@ namespace adaptive_json5
 
     detail::limited_scan scan = *started.value_if();
 
-    // temporary identifier decoding cannot produce more units than input bytes.
+    // Temporary identifier decoding cannot produce more units than input bytes.
     auto token = consume_scalar(scan.source, options.syntax, storage, string_limit, input.size,
                                 options.limits.max_exponent_digits);
 
@@ -268,7 +267,7 @@ namespace adaptive_json5
    * The single root string obeys per-string and total decoded-unit limits.
    * Decimal exponent digits are checked during recognition.
    * The optional first-warning descriptor obeys the retained diagnostic limit.
-   * Each trivia scan charges one unit per remaining input byte before scanning.
+   * Each trivia scan runs within the remaining work and charges the bytes it reads.
    * Primitive recognition and construction charge the same shared work budget.
    * Charges are conservative phase allowances, not measured execution time.
    * Successful charges remain consumed when a later phase fails.

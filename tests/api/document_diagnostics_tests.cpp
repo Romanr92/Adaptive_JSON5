@@ -161,11 +161,11 @@ namespace
 
   INSTANTIATE_TEST_SUITE_P(
     J5_044_DiagnosticLocation, DiagnosticLocationUnits,
-    ::testing::Values(at("TokenAfterLineFeed", "[1,\n x]", c_json5, c_syntax, 5U, 2U, 2U),
-                      at("TokenAfterCrLf", "[1,\r\n x]", c_json5, c_syntax, 6U, 2U, 2U),
-                      at("TokenAfterCarriageReturn", "[1,\r x]", c_json5, c_syntax, 5U, 2U, 2U),
-                      at("TokenAfterLineSeparator", "[1,\xE2\x80\xA8 x]", c_json5, c_syntax, 7U, 2U, 2U),
-                      at("TokenAfterNonBmpString", "[\"\xF0\x9F\x98\x80\", x]", c_json5, c_syntax, 9U, 1U, 7U),
+    ::testing::Values(ranged("TokenAfterLineFeed", "[1,\n x]", 5U, source_span{5U, 1U}, 2U, 2U),
+                      ranged("TokenAfterCrLf", "[1,\r\n x]", 6U, source_span{6U, 1U}, 2U, 2U),
+                      ranged("TokenAfterCarriageReturn", "[1,\r x]", 5U, source_span{5U, 1U}, 2U, 2U),
+                      ranged("TokenAfterLineSeparator", "[1,\xE2\x80\xA8 x]", 7U, source_span{7U, 1U}, 2U, 2U),
+                      ranged("TokenAfterNonBmpString", "[\"\xF0\x9F\x98\x80\", x]", 9U, source_span{9U, 1U}, 1U, 7U),
                       at("InvalidUtf8InString", "[\"a\xFF\"]", c_json5, c_encoding, 3U, 1U, 4U),
                       at("TruncatedUtf8InString", "[\"a\xE2\x80", c_json5, c_encoding, 3U, 1U, 4U),
                       at("OverlongUtf8", "[\"\xC0\x80\"]", c_json5, c_encoding, 2U, 1U, 3U),

@@ -285,8 +285,8 @@ namespace
         rejection_case{"StringPoint", R"("a".)", 3, 3, false}, rejection_case{"StrictSingleQuote", "'a'x", 3, 0, false},
         rejection_case{"LoneSlash", "1/", 1, 1, true}, rejection_case{"NotComment", "1/x", 1, 1, true},
         rejection_case{"NulSuffix", std::string("1\0", 2), 1, 1, true},
-        rejection_case{"LiteralEscapedPart", R"(trueA)", 0, 0, false},
-        rejection_case{"LiteralEscapedPoint", R"(true.)", 4, 4, false},
+        rejection_case{"LiteralEscapedPart", R"(true\u0041)", 0, 0, false},
+        rejection_case{"LiteralEscapedPoint", R"(true\u002e)", 4, 4, false},
         rejection_case{"LiteralUnicodePart", "true\xC3\xA9", 0, 0, false},
         rejection_case{"TruncatedNull", "nul", 0, 0, false}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
@@ -295,6 +295,40 @@ namespace
       return std::string(std::get<0>(info.param).name) +
              (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
+  /* ----------------------------------------------------------------------------------- */
+  /* Report an unknown value identifier with the range of the whole identifier.
+   * Arrange: Unknown, literal-prefixed and escaped identifiers at a nonzero offset.
+   * Act: Consume a scalar in both syntax modes.
+   * Expect: unknown_literal at the identifier start, a source range covering the whole
+   *         identifier, and the original cursor.
+   */
+  TEST(J5_024_Scalar, ReportsUnknownLiteralRange)
+  {
+    for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
+    {
+      for (const std::string text :
+           {std::string{"nul"}, std::string{"trueish"}, std::string{R"(\u0074rue)"}, std::string{"foo"}})
+      {
+        /* Arrange */
+        const std::string input = "!!" + text + "]";
+        lexer_provider provider;
+        cursor source({input.data(), input.size()});
+        source.advance(2);
+        /* Act */
+        auto actual = consume_scalar(source, mode, provider.callbacks(), 64);
+        /* Expect */
+        ASSERT_FALSE(actual.has_value()) << text;
+        EXPECT_EQ(actual.error_if()->code, error_code::syntax) << text;
+        EXPECT_EQ(actual.error_if()->syntax_reason, syntax_error_reason::unknown_literal) << text;
+        EXPECT_EQ(actual.error_if()->byte_offset, 2u) << text;
+        ASSERT_TRUE(actual.error_if()->source_range.has_value()) << text;
+        EXPECT_EQ(actual.error_if()->source_range->byte_offset, 2u) << text;
+        EXPECT_EQ(actual.error_if()->source_range->byte_length, text.size()) << text;
+        EXPECT_EQ(source.offset(), 2u) << text;
+        EXPECT_EQ(provider.m_live_bytes, 0u) << text;
+      }
+    }
+  }
   /* ----------------------------------------------------------------------------------- */
   /* Return exact variant alternatives and leave admitted boundaries unconsumed.
    * Arrange: Valid literals, each numeric family and strings with caller storage.

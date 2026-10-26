@@ -19,7 +19,6 @@
 #include "lexer/string/string_boundary.hpp"
 #include "lexer/string/string_lexer.hpp"
 #include "lexer/string/string_token.hpp"
-#include "lexer/trivia.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_attachment.hpp"

@@ -381,8 +381,15 @@ bytes.
   consumes (a comment opener), and `decode_utf8` reports a truncated character at
   its first byte. So when the view is cut, any scan outcome within 3 bytes of the
   end of the view becomes `resource_limit` at the end of the view. That covers
-  success, no-match, an error located there, and an error with no location. Any
-  other outcome keeps its own result, code and offset. The margin is
+  success, no-match, an error located there, an error whose `source_range` ends
+  there, and an error with no location. Any other outcome keeps its own result,
+  code and offset.
+  - *Why the range counts:* an unknown value identifier is reported at its start,
+    even when the identifier lexer read up to the cut (for example `false` cut to
+    `fals`). Its error therefore carries the identifier's `source_range`, so the
+    parser can see how far the scan reached. Consumers can see this too:
+    `unknown_literal` errors now include the range of the whole identifier. Their
+    code, offset and reason are unchanged. The margin is
   `c_cut_margin_bytes` in `core/includes/parser/parser_work.hpp`.
   - *Why success needs it:* with input `[ //note⏎1]` and the view ending after
     the first `/`, trivia skipping cannot see the second `/`. It stops before the
