@@ -69,6 +69,18 @@ namespace adaptive_json5
       ~decoded_string_builder() noexcept = default;
 
       /**
+       * @brief Reserve storage for exactly the given number of units.
+       * @par Requirements
+       * P013; J5-029; J5-040; J5-046.
+       * @param units Exact decoded size counted by the caller's first pass.
+       * @return Success, resource_limit above the unit limit, allocation_failure, or
+       * wrong_type_or_access when content or a reservation already exists.
+       * @note Makes at most one allocation; zero units allocate nothing.
+       * Appends up to units then never allocate (ADR 0003, decision 2).
+       */
+      [[nodiscard]] status_result reserve_exact(std::size_t units) noexcept;
+
+      /**
        * @brief Append one exact UTF-16 unit.
        * @par Requirements
        * P013; J5-018; J5-029.

@@ -31,7 +31,7 @@ namespace adaptive_json5
   /**
    * @brief Consume one complete quoted string into owned decoded storage.
    * @par Requirements
-   * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041.
+   * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041; J5-046.
    * @param source Cursor positioned at a possible opening quote.
    * @param mode Selected input syntax.
    * @param storage Caller-owned fallible storage provider.
@@ -41,6 +41,7 @@ namespace adaptive_json5
    * or an explicit located failure.
    * @note Success consumes through the matching closing quote only.
    * No-match and failure leave the caller's cursor unchanged.
+   * Counts units first, then makes one allocation of exactly that size (ADR 0003, decision 2).
    * Partial owned storage is released on failure.
    * No warning callbacks occur for a string that fails validation or storage.
    * Input must remain unchanged throughout both passes and callbacks.

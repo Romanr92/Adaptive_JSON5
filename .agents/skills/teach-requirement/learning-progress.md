@@ -89,3 +89,8 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   Same day, lesson 4 (`consume_primitive`): wrote the whole guard for
   `started`, condition included, correctly. One success; give one or two more
   whole-guard exercises before recording it as learned.
+  2026-10-26, step 5 lesson 1 (`reserve_exact`): whole allocation guard correct
+  again. Two successes in a row; one more, then record as learned.
+  2026-10-27, step 5 lesson 2 (`consume_string`): the guard exercise was left
+  as the placeholder, and the learner asked the agent to write it at the end of
+  the day. That's not evidence either way; offer the next whole-guard exercise.

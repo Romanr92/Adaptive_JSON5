@@ -110,6 +110,47 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Reserve storage for exactly the given number of units.
+   * @par Requirements
+   * P013; J5-029; J5-040; J5-046.
+   * @param units Exact decoded size counted by the caller's first pass.
+   * @return Success, resource_limit above the unit limit, allocation_failure, or
+   * wrong_type_or_access when content or a reservation already exists.
+   * @note Makes at most one allocation; zero units allocate nothing.
+   */
+  status_result decoded_string_builder::reserve_exact(std::size_t units) noexcept
+  {
+    // One reservation per string: a second one would mean the lexer's passes are out of step.
+    if ((m_size != std::size_t{}) || (m_capacity != std::size_t{}))
+    {
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    if (units > m_max_units)
+    {
+      return status_result::failure(error::without_location(error_code::resource_limit));
+    }
+
+    // An empty string owns no storage, so it never needs the provider.
+    if (units == std::size_t{})
+    {
+      return status_result::success();
+    }
+
+    auto allocation = allocate_array(m_provider, units, sizeof(char16_t), alignof(char16_t));
+
+    if (!allocation.has_value())
+    {
+      return status_result::failure(*allocation.error_if());
+    }
+
+    m_storage = std::move(*allocation.value_if());
+    m_capacity = units;
+
+    return status_result::success();
+  }
+
+  /**
    * @brief Append one exact UTF-16 unit.
    * @par Requirements
    * P013; J5-018; J5-029.
