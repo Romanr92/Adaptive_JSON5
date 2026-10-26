@@ -49,6 +49,11 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   wrapped `finish_scalar_token(...)` in `scalar_result::success(...)`. Explained
   that the call already returns `result<std::optional<scalar_token>>`. Keep
   guided; retry later with a short pointer to the callee's return type.
+  Retried 2026-10-26 (ADR 0003 step 4, `finish_limited_scan`) with that short
+  pointer: returned `work.charge(...)` directly, correctly. Passed a wrong
+  argument (`view_end` instead of `end_offset`), which is a separate slip. Next
+  time offer the exercise without the return-type hint; if it succeeds, move
+  this concept to Independently completed.
 
 ## Still developing
 
@@ -63,9 +68,21 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   reviewed. This correction is not independent mastery of the concept.
   P039 `locate()` used supplied code for `result<std::optional<...>>`
   inspection; reviewed as correct, still supplied rather than independent.
+  2026-10-26 (ADR 0003 step 4, `read_name`): while moving the supplied no-match
+  check, changed `!recognized.value_if()->has_value()` to
+  `!recognized.has_value()`, so an empty optional was dereferenced (segfault).
+  The same lesson's error guard used `!started.error_if()` instead of
+  `!started.has_value()`. Explained outer result versus inner optional and what
+  `error_if()` returns. Keep supplying nested inspections with an explanation.
 - Error-propagation exercise blocks (2026-10-25): across the P038 floating,
   comparison and P039 warning-list lessons the learner filled the guards
   correctly, except one `warning_list::reserve()` guard that returned
   `*required.has_value()` instead of `*required.error_if()`. Treat it as a
   slip, like the earlier P030 typing mistake; keep the concept learned and keep
   using exercise blocks.
+- Failure-guard condition (2026-10-26, ADR 0003 step 4): two inverted guards in a
+  row, `!started.error_if()` in `read_name` and `if (rescan_charged.has_value())`
+  (missing `!`) in `retain_warnings`; both crashed on the success path. The
+  return lines were right each time. The guard condition itself needs attention:
+  in the next exercises, ask for the whole guard and point out in review that the
+  condition must be true only on failure.

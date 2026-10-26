@@ -113,7 +113,7 @@ These change what you observe once implemented:
 | Counting pre-pass, then exact allocation | Memory used for values, frames and strings equals what the document needs, with no spare capacity. Invalid or over-limit input fails **before any allocation**. A successful parse makes few, fixed-size allocations, so pools fragment less. |
 | Literals (`true`, `false`, `null`) allocate nothing | Fewer calls to your allocator. |
 | Warning table allocated once | The first warning allocates `max_diagnostics` entries, which is the worst case known in advance. Input without warnings allocates nothing for warnings. An optional adaptive policy in `parse_options` starts smaller, for tooling that sets a large `max_diagnostics`. |
-| Work charged before scanning goes too far | A long or unterminated token under a small work budget fails with `resource_limit` instead of being scanned to the end. |
+| Work charged before scanning goes too far | A long or unterminated token under a small work budget fails with `resource_limit` instead of being scanned to the end. Each scan is charged exactly the bytes it reads. A scan that ends within 3 bytes of the budget limit also fails with `resource_limit`, so a budget that is too small never produces a false syntax error. |
 
 **Known cost:** with `duplicate_name_policy::reject_duplicates`, checking a large
 object costs work that grows with the square of its member count. One object with
@@ -212,6 +212,8 @@ a separate, additive decision, and nothing in the current design prevents it.
    your pool from that value plus margin, and set `max_owned_bytes` to the pool
    size.
 3. Measure the time per work unit on your target once. Set `max_work_units` from
-   the longest parse time you can allow.
+   the longest parse time you can allow. If you size it from the work your largest
+   documents need, add some headroom: after the planned scan-charging change, a
+   scan that ends within 3 bytes of the limit fails with `resource_limit`.
 
 See also [embedded integration](embedded.md).

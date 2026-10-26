@@ -159,29 +159,36 @@ namespace adaptive_json5
       return primitive_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    // Admit recognition before its scanning or temporary allocations begin.
-    const auto recognition = work.charge(source.remaining());
+    // A primitive root can contain only one owned string value.
+    const std::size_t string_limit = (options.limits.max_string_units < options.limits.max_total_string_units)
+                                       ? options.limits.max_total_string_units
+                                       : options.limits.max_total_string_units;
+
+    // Recognition must not publish cursor advancement before ownership succeeds.
+    const auto started = detail::begin_limited_scan(input, source.offset(), work);
+
+    if (!started.has_value())
+    {
+      return primitive_result::failure(*started.error_if());
+    }
+
+    detail::limited_scan scan = *started.value_if();
+
+    // temporary identifier decoding cannot produce more units than input bytes.
+    auto token = consume_scalar(scan.source, options.syntax, storage, string_limit, input.size,
+                                options.limits.max_exponent_digits);
+
+    if (!token.has_value())
+    {
+      return primitive_result::failure(detail::limited_scan_error(scan, *token.error_if()));
+    }
+
+    // Charge before the no-match check, so an exhausted budget reports resource_limit.
+    const auto recognition = detail::finish_limited_scan(scan, scan.source.offset(), work);
 
     if (!recognition.has_value())
     {
       return primitive_result::failure(*recognition.error_if());
-    }
-
-    // Recognition must not publish cursor advancement before ownership succeeds.
-    cursor candidate = source;
-
-    // A primitive root can contain only one owned string value.
-    const std::size_t string_limit = (options.limits.max_string_units < options.limits.max_total_string_units)
-                                       ? options.limits.max_string_units
-                                       : options.limits.max_total_string_units;
-
-    // Temporary identifier decoding cannot produce more units than input bytes.
-    auto token =
-      consume_scalar(candidate, options.syntax, storage, string_limit, input.size, options.limits.max_exponent_digits);
-
-    if (!token.has_value())
-    {
-      return primitive_result::failure(*token.error_if());
     }
 
     if (!token.value_if()->has_value())
@@ -191,7 +198,7 @@ namespace adaptive_json5
 
     primitive_value value{};
     value.byte_offset = source.offset();
-    value.byte_length = candidate.offset() - source.offset();
+    value.byte_length = scan.source.offset() - source.offset();
 
     // Preserve metadata before transferring the token's owned string content.
     if (const auto* string = std::get_if<string_token>(&**token.value_if()); string != nullptr)
@@ -237,7 +244,7 @@ namespace adaptive_json5
     auto completed = primitive_result::success(std::optional<primitive_value>{value});
 
     // Publish cursor advancement only after construction of the success result.
-    source = candidate;
+    source.advance(value.byte_length);
 
     return completed;
   }
@@ -302,15 +309,7 @@ namespace adaptive_json5
     document candidate{storage, options.limits.max_nodes};
     cursor source{input};
 
-    // Admit the complete available range before scanning leading trivia.
-    const auto leading_work = work.charge(source.remaining());
-
-    if (!leading_work.has_value())
-    {
-      return document_result::failure(*leading_work.error_if());
-    }
-
-    const auto leading = skip_trivia(source, options.syntax);
+    const auto leading = detail::skip_trivia_within_budget(source, input, options.syntax, work);
 
     if (!leading.has_value())
     {
@@ -331,15 +330,7 @@ namespace adaptive_json5
                                                                           : syntax_error_reason::unexpected_character));
     }
 
-    // Admit the remaining suffix before scanning trailing trivia.
-    const auto trailing_work = work.charge(source.remaining());
-
-    if (!trailing_work.has_value())
-    {
-      return document_result::failure(*trailing_work.error_if());
-    }
-
-    const auto trailing = skip_trivia(source, options.syntax);
+    const auto trailing = detail::skip_trivia_within_budget(source, input, options.syntax, work);
 
     if (!trailing.has_value())
     {

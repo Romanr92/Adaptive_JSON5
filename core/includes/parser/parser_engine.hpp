@@ -133,14 +133,18 @@ namespace adaptive_json5
         /**
          * @brief Reserve and record every warning of one validated quoted string.
          * @par Requirements
-         * P039; J5-017; J5-041; J5-046; J5-047.
+         * P039; J5-017; J5-041; J5-046; J5-047; J5-049.
          * @param token_offset Original offset of the string's opening quote.
+         * @param token_length Byte length of the string token, including both quotes.
          * @param count Number of warnings the lexer reported for that string.
-         * @return Success, or an explicit diagnostic-limit, storage or internal failure.
-         * @note Reserves one diagnostic entry and one list slot per warning before recording any.
+         * @return Success, or an explicit work, diagnostic-limit, storage or internal failure.
+         * @note Charges token_length work units before the re-scan; a string without
+         * warnings is not re-scanned and not charged.
+         * Reserves one diagnostic entry and one list slot per warning before recording any.
          * Failure may leave partial reservations; the engine must then be abandoned.
          */
-        [[nodiscard]] status_result retain_warnings(std::size_t token_offset, std::size_t count) noexcept;
+        [[nodiscard]] status_result retain_warnings(std::size_t token_offset, std::size_t token_length,
+                                                    std::size_t count) noexcept;
 
       public:
         /**

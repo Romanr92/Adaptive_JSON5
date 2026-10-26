@@ -376,6 +376,30 @@ bytes.
   bytes it reads.
 - **`primitive_parser` follows the same rule.** It no longer charges `remaining()`
   up front, so both parsers charge the same way.
+- **Scans near the cut (clarified by the user, 2026-10-26).** A lexer cannot tell
+  the cut from the real end of input. It may peek up to 2 bytes past what it
+  consumes (a comment opener), and `decode_utf8` reports a truncated character at
+  its first byte. So when the view is cut, any scan outcome within 3 bytes of the
+  end of the view becomes `resource_limit` at the end of the view. That covers
+  success, no-match, an error located there, and an error with no location. Any
+  other outcome keeps its own result, code and offset. The margin is
+  `c_cut_margin_bytes` in `core/includes/parser/parser_work.hpp`.
+  - *Why success needs it:* with input `[ //note⏎1]` and the view ending after
+    the first `/`, trivia skipping cannot see the second `/`. It stops before the
+    `/` with success, and the dispatcher would then report a false syntax error
+    on a valid document.
+  - *Cost:* a scan that really ends in the last 3 bytes of the budget, including
+    a real syntax error there, is reported as `resource_limit`. This is
+    deterministic, and costs at most 3 extra work units per scan at the boundary.
+  - *Embedded:* the check needs no allocation, clock or OS service, and nothing
+    is added inside the lexer loops. The cursor cannot read past the limited view,
+    so a parse never reads more input than its work budget allows, which helps
+    bound the time of one call. Integrators who size `max_work_units` tightly
+    from measurements should keep a few units of headroom.
+- **The warning re-scan is charged up front (clarified by the user, 2026-10-26).**
+  The re-scan in `retain_warnings` walks a string the lexer already validated, so
+  its byte length is known. Charge that length before the re-scan instead of
+  giving it a limited view. This is exact and stops before any work.
 
 ### Rationale
 

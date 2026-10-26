@@ -104,7 +104,7 @@ namespace adaptive_json5
    * A retained first-warning descriptor consumes one diagnostic entry.
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
-   * Recognition charges one unit per remaining input byte before scanning.
+   * Recognition scans within the remaining work and charges the bytes it reads (ADR 0003, decision 5).
    * Construction charges token bytes plus c_record_construction_work.
    * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
@@ -133,12 +133,11 @@ namespace adaptive_json5
    * The single root string obeys per-string and total decoded-unit limits.
    * Decimal exponent digits are checked during recognition.
    * The optional first-warning descriptor obeys the retained diagnostic limit.
-   * Each trivia scan charges one unit per remaining input byte before scanning.
-   * Primitive recognition and construction charge the same shared work budget.
-   * Charges are conservative phase allowances, not measured execution time.
-   * Successful charges remain consumed when a later phase fails.
-   * Cleanup releases owned storage without requiring additional work charges.
-   * The root span is stored in its value record and returned root metadata.
+   * Each trivia scan charges one unit per remaining input byte before scanning.” with “Each trivia scan runs within the
+   * remaining work and charges the bytes it reads. Primitive recognition and construction charge the same shared work
+   * budget. Charges are conservative phase allowances, not measured execution time. Successful charges remain consumed
+   * when a later phase fails. Cleanup releases owned storage without requiring additional work charges. The root span
+   * is stored in its value record and returned root metadata.
    */
   [[nodiscard]] result<primitive_document> parse_primitive_document(input_view input, const parse_options& options,
                                                                     accounted_storage& accounting) noexcept;

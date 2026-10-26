@@ -5,6 +5,7 @@
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
@@ -159,8 +160,6 @@ namespace adaptive_json5
         return status_result::failure(*reserved_value.error_if());
       }
 
-      cursor candidate = m_source;
-
       if ((*current == '[') || (*current == '{'))
       {
         const auto entered = m_resources.enter_container();
@@ -177,6 +176,8 @@ namespace adaptive_json5
 
           return status_result::failure(*entered.error_if());
         }
+
+        cursor candidate = m_source;
 
         // The byte check above guarantees a recognized opening token.
         const auto opening = consume_punctuation(candidate);
@@ -212,13 +213,31 @@ namespace adaptive_json5
       // The budget owns the aggregate counter, so it alone derives the next string's limit.
       const std::size_t string_limit = m_resources.string_unit_allowance();
 
+      const auto started = begin_limited_scan(m_input, m_source.offset(), m_work);
+
+      if (!started.has_value())
+      {
+        return status_result::failure(*started.error_if());
+      }
+
+      limited_scan scan = *started.value_if();
+
       // Temporary identifier decoding is separate from retained string content.
-      auto recognized =
-        consume_scalar(candidate, m_options.syntax, m_storage, string_limit, m_input.size, limits.max_exponent_digits);
+      auto recognized = consume_scalar(scan.source, m_options.syntax, m_storage, string_limit, m_input.size,
+                                       limits.max_exponent_digits);
 
       if (!recognized.has_value())
       {
-        return status_result::failure(*recognized.error_if());
+        // A failure at the cut may only mean the budget hid the rest of the token.
+        return status_result::failure(limited_scan_error(scan, *recognized.error_if()));
+      }
+
+      // Charge before the no-match check, so an exhausted budget reports resource_limit.
+      const auto recognition = finish_limited_scan(scan, scan.source.offset(), m_work);
+
+      if (!recognition.has_value())
+      {
+        return status_result::failure(*recognition.error_if());
       }
 
       if (!recognized.value_if()->has_value())
@@ -226,17 +245,11 @@ namespace adaptive_json5
         return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
       }
 
-      const auto recognition = charge_scanned(m_work, m_source.offset(), candidate.offset());
-
-      if (!recognition.has_value())
-      {
-        return status_result::failure(*recognition.error_if());
-      }
-
       auto& token = **recognized.value_if();
 
       std::size_t string_units = 0;
       std::size_t string_offset = 0;
+      std::size_t string_length = 0;
       std::size_t warning_count = 0;
 
       // Capture metadata before construction transfers the token's string.
@@ -244,6 +257,7 @@ namespace adaptive_json5
       {
         string_units = string->value.size();
         string_offset = string->byte_offset;
+        string_length = string->byte_length;
         warning_count = string->warning_count;
       }
 
@@ -254,14 +268,14 @@ namespace adaptive_json5
         return status_result::failure(*reserved_string.error_if());
       }
 
-      const auto retained = retain_warnings(string_offset, warning_count);
+      const auto retained = retain_warnings(string_offset, string_length, warning_count);
 
       if (!retained.has_value())
       {
         return status_result::failure(*retained.error_if());
       }
 
-      const source_span span{m_source.offset(), candidate.offset() - m_source.offset()};
+      const source_span span{m_source.offset(), scan.source.offset() - m_source.offset()};
 
       const auto construction_units = checked_add(span.byte_length, c_record_construction_work);
 
@@ -299,7 +313,8 @@ namespace adaptive_json5
         return status_result::failure(*accepted.error_if());
       }
 
-      m_source = candidate;
+      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      m_source.advance(span.byte_length);
 
       return status_result::success();
     }
@@ -337,24 +352,33 @@ namespace adaptive_json5
       // The lexer must stop growth before either string limit is exceeded.
       const std::size_t max_units = m_resources.string_unit_allowance();
 
-      cursor candidate = m_source;
-      auto recognized = consume_member_name(candidate, m_options.syntax, m_storage, max_units);
+      const auto started = begin_limited_scan(m_input, m_source.offset(), m_work);
+
+      if (!started.has_value())
+      {
+        return status_result::failure(*started.error_if());
+      }
+
+      limited_scan scan = *started.value_if();
+      auto recognized = consume_member_name(scan.source, m_options.syntax, m_storage, max_units);
 
       if (!recognized.has_value())
       {
-        return status_result::failure(*recognized.error_if());
+        // A failure at the cut may only mean the budget hid the rest of the name.
+        return status_result::failure(limited_scan_error(scan, *recognized.error_if()));
+      }
+
+      // Charge before the no-match check, so an exhausted budget reports resource_limit.
+      const auto charged = finish_limited_scan(scan, scan.source.offset(), m_work);
+
+      if (!charged.has_value())
+      {
+        return status_result::failure(*charged.error_if());
       }
 
       if (!recognized.value_if()->has_value())
       {
         return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::expected_member_name));
-      }
-
-      const auto charged = charge_scanned(m_work, m_source.offset(), candidate.offset());
-
-      if (!charged.has_value())
-      {
-        return status_result::failure(*charged.error_if());
       }
 
       auto& name = **recognized.value_if();
@@ -380,7 +404,7 @@ namespace adaptive_json5
       }
 
       // Identifier names report no warnings, so only quoted names reach the string walk.
-      const auto retained = retain_warnings(name.byte_offset, name.warning_count);
+      const auto retained = retain_warnings(name.byte_offset, name.byte_length, name.warning_count);
 
       if (!retained.has_value())
       {
@@ -394,7 +418,8 @@ namespace adaptive_json5
       frame->name_length = name.byte_length;
       frame->state = parser_state::object_colon;
 
-      m_source = candidate;
+      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      m_source.advance(scan.source.offset() - m_source.offset());
 
       return status_result::success();
     }
@@ -552,13 +577,22 @@ namespace adaptive_json5
     /**
      * @brief Reserve diagnostics and list capacity, then re-walk the string to record its warnings.
      * @par Requirements
-     * P039; J5-017; J5-041; J5-046; J5-047.
+     * P039; J5-017; J5-041; J5-046; J5-047; J5-049.
      */
-    status_result parser_engine::retain_warnings(std::size_t token_offset, std::size_t count) noexcept
+    status_result parser_engine::retain_warnings(std::size_t token_offset, std::size_t token_length,
+                                                 std::size_t count) noexcept
     {
       if (count == 0)
       {
         return status_result::success();
+      }
+
+      // The string was already validated and its length is known, so admit the whole re-scan up front.
+      const auto rescan_charged = m_work.charge(token_length);
+
+      if (!rescan_charged.has_value())
+      {
+        return status_result::failure(*rescan_charged.error_if());
       }
 
       // Every retained warning is a diagnostic entry, not only the first one.
@@ -667,19 +701,11 @@ namespace adaptive_json5
           return tree_result::failure(*step_charged.error_if());
         }
 
-        const std::size_t trivia_start = m_source.offset();
-        const auto trivia = skip_trivia(m_source, m_options.syntax);
+        const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
 
         if (!trivia.has_value())
         {
           return tree_result::failure(*trivia.error_if());
-        }
-
-        const auto trivia_charged = charge_scanned(m_work, trivia_start, m_source.offset());
-
-        if (!trivia_charged.has_value())
-        {
-          return tree_result::failure(*trivia_charged.error_if());
         }
 
         parser_action action = parser_action::read_value;
@@ -783,19 +809,11 @@ namespace adaptive_json5
         return tree_result::failure(*parsed.error_if());
       }
 
-      const std::size_t trivia_start = m_source.offset();
-      const auto trivia = skip_trivia(m_source, m_options.syntax);
+      const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
 
       if (!trivia.has_value())
       {
         return tree_result::failure(*trivia.error_if());
-      }
-
-      const auto charged = charge_scanned(m_work, trivia_start, m_source.offset());
-
-      if (!charged.has_value())
-      {
-        return tree_result::failure(*charged.error_if());
       }
 
       if (!m_source.is_at_end())
