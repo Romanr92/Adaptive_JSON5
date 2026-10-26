@@ -5,7 +5,6 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
-#include "lexer/identifier/identifier_classification.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
 #include "lexer/number/number_lexer.hpp"
 #include "lexer/number/number_token.hpp"
@@ -14,11 +13,110 @@
 #include "lexer/string/string_lexer.hpp"
 #include "lexer/string/string_token.hpp"
 #include "lexer/token_boundary.hpp"
+#include "unicode/unicode.hpp"
+#include "unicode/utf8.hpp"
 
 #include <cstddef>
 #include <limits>
 #include <optional>
+#include <string_view>
 #include <utility>
+
+namespace
+{
+  using adaptive_json5::literal_kind;
+
+  /**
+   * @brief Pair one value-literal spelling with its token kind.
+   * @par Requirements
+   * P028; J5-023; J5-046.
+   */
+  struct literal_spelling
+  {
+      std::string_view text;
+      literal_kind kind;
+  };
+
+  constexpr literal_spelling c_literal_spelling[] = {
+    {"null", literal_kind::null_literal}, {"true", literal_kind::true_literal}, {"false", literal_kind::false_literal}};
+
+  /**
+   * @brief Report whether the character after a spelling could extend an identifier.
+   * @par Requirements
+   * P028; J5-020; J5-046.
+   * @param after Copy of the cursor immediately after the matched spelling.
+   * @return True for a backslash, an identifier-part character or malformed UTF-8.
+   * @note Performs no allocation. True means "not provably a literal", so the caller
+   * defers to the identifier path, which reports today's exact error.
+   */
+  bool may_continue_identifier(adaptive_json5::cursor after) noexcept
+  {
+    const auto next = after.peek();
+    if (!next.has_value())
+    {
+      return false;
+    }
+
+    // An escape could decode to an identifier part, as in true\u0041.
+    if (*next == '\\')
+    {
+      return true;
+    }
+
+    const auto decoded = adaptive_json5::decode_utf8(after);
+    // Let the identifier path report malformed UTF-8 with its usual location.
+    if (!decoded.has_value())
+    {
+      return true;
+    }
+
+    const auto& character = *decoded.value_if();
+    return (character.has_value() && adaptive_json5::is_identifier_part(character->value));
+  }
+
+  /**
+   * @brief Recognize null, true or false by comparing source bytes.
+   * @par Requirements
+   * P028; J5-023; J5-046.
+   * @param source Cursor at a possible value literal; not advanced.
+   * @return The literal token when the bytes spell a complete literal, otherwise nullopt.
+   * @note Never decodes into storage and never calls storage callbacks (ADR 0003, decision 3).
+   */
+  std::optional<adaptive_json5::literal_token> match_literal_bytes(const adaptive_json5::cursor& source) noexcept
+  {
+    for (const literal_spelling& literal : c_literal_spelling)
+    {
+      bool matches = true;
+      for (std::size_t index{}; index < literal.text.size(); ++index)
+      {
+        const auto byte = source.peek(index);
+        if ((!byte.has_value()) || (*byte != literal.text[index]))
+        {
+          matches = false;
+          break;
+        }
+      }
+
+      if (!matches)
+      {
+        continue;
+      }
+
+      adaptive_json5::cursor after = source;
+      after.advance(literal.text.size());
+
+      // Trueish is one unknown identifier, not true followed by junk.
+      if (may_continue_identifier(after))
+      {
+        return std::nullopt;
+      }
+
+      return adaptive_json5::literal_token{literal.kind, source.offset(), literal.text.size()};
+    }
+
+    return std::nullopt;
+  }
+} // namespace
 
 namespace adaptive_json5
 {
@@ -57,7 +155,7 @@ namespace adaptive_json5
   /**
    * @brief Recognize a primitive token with independent component limits.
    * @par Requirements
-   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-047.
+   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-046; J5-047.
    * @param source Cursor at a possible scalar value, after caller-managed trivia.
    * @param mode Selected syntax.
    * @param storage Caller-owned fallible storage provider.
@@ -72,7 +170,7 @@ namespace adaptive_json5
    * Number/literal results contain source metadata without owning input.
    * String results own decoded storage and retain their warning metadata.
    * No warning callbacks are exposed or invoked by this operation.
-   * String storage and temporary identifier recognition may allocate.
+   * Literals never allocate; strings and the rejection of other identifiers may allocate.
    * The storage provider state must outlive returned owned string content.
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
@@ -124,6 +222,17 @@ namespace adaptive_json5
       return detail::finish_scalar_token(source, candidate, std::move(token), mode);
     }
 
+    // Literals need no decoded copy, so recognize them before the allocating identifier path.
+    const auto literal = match_literal_bytes(candidate);
+    if (literal.has_value())
+    {
+      candidate.advance(literal->byte_length);
+      scalar_token token{std::in_place_type<literal_token>, *literal};
+
+      return detail::finish_scalar_token(source, candidate, std::move(token), mode);
+    }
+
+    // Only rejection remains: reuse the identifier lexer so errors match the original path.
     auto identifier = consume_identifier(candidate, storage, max_identifier_units);
     if (!identifier.has_value())
     {
@@ -135,35 +244,9 @@ namespace adaptive_json5
       return scalar_result::failure(error::syntax_at(start, syntax_error_reason::unexpected_character));
     }
 
-    const auto& name = **identifier.value_if();
-    const auto classification = classify_identifier(name, identifier_context::value, mode);
-    if (!classification.has_value())
-    {
-      return scalar_result::failure(*classification.error_if());
-    }
-
-    literal_kind kind = literal_kind::null_literal;
-
-    switch (*classification.value_if())
-    {
-    case identifier_classification::null_literal:
-      kind = literal_kind::null_literal;
-      break;
-    case identifier_classification::true_literal:
-      kind = literal_kind::true_literal;
-      break;
-    case identifier_classification::false_literal:
-      kind = literal_kind::false_literal;
-      break;
-
-    default:
-      return scalar_result::failure(error::syntax_at(name.byte_offset, syntax_error_reason::unknown_literal));
-    }
-
-    const literal_token literal{kind, name.byte_offset, name.byte_length};
-    scalar_token token{std::in_place_type<literal_token>, literal};
-
-    return detail::finish_scalar_token(source, candidate, std::move(token), mode);
+    // Unescaped literal spellings were matched above, so any identifier here is unknown.
+    return scalar_result::failure(
+      error::syntax_at((**identifier.value_if()).byte_offset, syntax_error_reason::unknown_literal));
   }
 
   /**

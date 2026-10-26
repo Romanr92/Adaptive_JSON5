@@ -45,6 +45,10 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   error-propagation guards were again correct. Learner explicitly asked to
   retry this very soon: offer a concise exercise block at the next function
   that returns another call's same-typed result, without supplying the line.
+  Retried 2026-10-26 (ADR 0003 step 3, `consume_scalar` literal branch): again
+  wrapped `finish_scalar_token(...)` in `scalar_result::success(...)`. Explained
+  that the call already returns `result<std::optional<scalar_token>>`. Keep
+  guided; retry later with a short pointer to the callee's return type.
 
 ## Still developing
 

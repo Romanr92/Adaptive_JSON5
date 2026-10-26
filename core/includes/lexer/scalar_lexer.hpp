@@ -32,7 +32,7 @@ namespace adaptive_json5
   /**
    * @brief Recognize a primitive token with independent component limits.
    * @par Requirements
-   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-047.
+   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-046; J5-047.
    * @param source Cursor at a possible scalar value, after caller-managed trivia.
    * @param mode Selected syntax.
    * @param storage Caller-owned fallible storage provider.
@@ -47,7 +47,7 @@ namespace adaptive_json5
    * Number/literal results contain source metadata without owning input.
    * String results own decoded storage and retain their warning metadata.
    * No warning callbacks are exposed or invoked by this operation.
-   * String storage and temporary identifier recognition may allocate.
+   * Literals never allocate; strings and the rejection of other identifiers may allocate.
    * The storage provider state must outlive returned owned string content.
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.

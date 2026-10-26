@@ -234,8 +234,9 @@ storage callbacks.
   the existing number-token path.
 - **Errors are unchanged.** A non-literal identifier in value position (for
   example `[foo]`) and an escaped spelling (for example `true`) fail with the
-  same syntax error and the same offset as today. The source must not be decoded
-  to decide this.
+  same syntax error and the same offset as today. Recognizing a literal makes no
+  allocation; rejecting a non-literal may reuse the identifier path, so its errors
+  stay identical. Amended by the user, 2026-10-26.
 - **The boundary rule is unchanged.** A spelling followed by an identifier
   continuation character (for example `trueish`) is not a literal.
 - **Member names are unaffected.** Identifier member names still decode through

@@ -6,6 +6,7 @@
 #include "adaptive_json5/options.hpp"
 #include "input/cursor.hpp"
 #include "lexer/scalar_lexer.hpp"
+#include "lexer/scalar_token.hpp"
 #include "memory/decoded_string_builder.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_engine.hpp"
@@ -138,13 +139,62 @@ namespace
   /* ----------------------------------------------------------------------------------- */
 
   /* Verify value literals are recognized without temporary allocation.
-   * Arrange: JSON5 literal spellings and a provider that counts attempts.
+   * Arrange: Literal spellings alone and before a boundary, in both syntax modes, and a
+   *          provider that counts attempts.
    * Act: Recognize each spelling as a scalar.
-   * Expect: A literal token and zero allocation attempts for every spelling.
+   * Expect: A literal token with the exact kind and span, the cursor after the spelling
+   *         and zero allocation attempts.
    */
   TEST(J5_046_ScalarLexer, LiteralsDoNotAllocate)
   {
-    for (const std::string spelling : {"true", "false", "null"})
+    struct literal_case
+    {
+        const char* spelling; // Input literal spelling.
+        literal_kind kind;    // Expected token kind.
+    };
+    constexpr literal_case c_cases[] = {{"true", literal_kind::true_literal},
+                                        {"false", literal_kind::false_literal},
+                                        {"null", literal_kind::null_literal}};
+
+    for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
+    {
+      for (const literal_case& item : c_cases)
+      {
+        for (const std::string suffix : {std::string{}, std::string{"]"}, std::string{" "}})
+        {
+          /* Arrange */
+          const std::string input = std::string{item.spelling} + suffix;
+          const std::size_t length = std::string{item.spelling}.size();
+          string_provider provider;
+          cursor source{input_view{input.data(), input.size()}};
+          /* Act */
+          const auto token =
+            consume_scalar(source, mode, provider.callbacks(), 64, 64, std::numeric_limits<std::size_t>::max());
+          /* Expect */
+          ASSERT_TRUE(token.has_value()) << input;
+          ASSERT_TRUE(token.value_if()->has_value()) << input;
+          const auto* literal = std::get_if<literal_token>(&**token.value_if());
+          ASSERT_NE(literal, nullptr) << input;
+          EXPECT_EQ(literal->kind, item.kind) << input;
+          EXPECT_EQ(literal->byte_offset, 0U) << input;
+          EXPECT_EQ(literal->byte_length, length) << input;
+          EXPECT_EQ(source.offset(), length) << input;
+          EXPECT_EQ(provider.m_attempts, 0U) << input;
+        }
+      }
+    }
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify JSON5 non-finite spellings are recognized without temporary allocation.
+   * Arrange: Signed and unsigned Infinity and NaN and a provider that counts attempts.
+   * Act: Recognize each spelling as a JSON5 scalar.
+   * Expect: A number token covering the whole spelling and zero allocation attempts.
+   */
+  TEST(J5_046_ScalarLexer, NonFiniteSpellingsDoNotAllocate)
+  {
+    for (const std::string spelling : {"Infinity", "-Infinity", "+Infinity", "NaN", "-NaN", "+NaN"})
     {
       /* Arrange */
       string_provider provider;
@@ -155,7 +205,8 @@ namespace
       /* Expect */
       ASSERT_TRUE(token.has_value()) << spelling;
       ASSERT_TRUE(token.value_if()->has_value()) << spelling;
-      EXPECT_TRUE(std::holds_alternative<literal_token>(**token.value_if())) << spelling;
+      EXPECT_TRUE(std::holds_alternative<number_token>(**token.value_if())) << spelling;
+      EXPECT_EQ(source.offset(), spelling.size()) << spelling;
       EXPECT_EQ(provider.m_attempts, 0U) << spelling;
     }
   }
