@@ -81,22 +81,27 @@ namespace
   /* ================================== End Fixtures =================================== */
 
   /* =================================== Test_J5_046 =================================== */
-  /* Verify exact-integer growth reserves spare limbs instead of one limb per carry.
+  /* Verify an exact integer is loaded into one reservation sized from its digit count.
    * Arrange: An empty big_unsigned over a counting provider and an ample work budget.
-   * Act: Append 1000 decimal digits, the default max_number_bytes order of magnitude.
-   * Expect: Allocation count grows logarithmically (at most 16) rather than once per limb.
+   * Act: Reserve limbs_for_bits(decimal_digit_bits(1000)), then append 1000 nonzero decimal digits,
+   *      the default max_number_bytes order of magnitude.
+   * Expect: Every append succeeds with exactly one allocation, released afterwards (ADR 0003, decision 1).
    */
-  TEST(J5_046_BigUnsigned, DigitGrowthIsGeometric)
+  TEST(J5_046_BigUnsigned, DigitsLoadIntoOneReservation)
   {
     /* Arrange */
     constexpr std::size_t c_digits = 1000;
-    constexpr std::size_t c_max_allocations = 16;
     guard_provider provider;
     work_budget work{c_ample_work};
     std::size_t appended{};
+    const auto bits = detail::decimal_digit_bits(c_digits);
+    ASSERT_TRUE(bits.has_value());
+    const auto limbs = detail::limbs_for_bits(*bits.value_if());
+    ASSERT_TRUE(limbs.has_value());
     /* Act */
     {
       big_unsigned value{provider.callbacks()};
+      ASSERT_TRUE(value.reserve(*limbs.value_if()).has_value());
       for (; appended < c_digits; ++appended)
       {
         // A nonzero leading digit forces every later digit to extend the magnitude.
@@ -108,7 +113,7 @@ namespace
     }
     /* Expect */
     EXPECT_EQ(appended, c_digits);
-    EXPECT_LE(provider.m_allocations, c_max_allocations);
+    EXPECT_EQ(provider.m_allocations, 1U);
     EXPECT_EQ(provider.m_live_bytes, 0U);
   }
 

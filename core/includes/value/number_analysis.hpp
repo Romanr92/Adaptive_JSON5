@@ -32,9 +32,8 @@ namespace adaptive_json5
         bool is_integral{};
         std::size_t digit_count{};     // Significand digits, leading zeros and hexadecimal digits included.
         bool scale_negative{};         // Sign of the combined power-of-ten exponent.
-        // Absolute combined scale; the written exponent magnitude saturates at input size + 2048
-        // before combining it with the fractional digit count.
-        std::size_t scale_magnitude{};
+        std::size_t scale_magnitude{}; // Absolute combined scale; the written exponent magnitude saturates at input
+                                       // size + 2048 before combining it with the fractional digit count.
     };
 
     /**
