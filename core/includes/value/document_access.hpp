@@ -36,6 +36,13 @@ namespace adaptive_json5
         [[nodiscard]] static status_result attach_parsed_member(document& values, value_index object,
                                                                 decoded_string&& name, value_index child,
                                                                 source_span name_span, std::size_t input_size) noexcept;
+
+        /**
+         * @brief Reserve exactly the counted number of records in an empty document.
+         * @return Success, or value_storage::reserve_exact's failure with the document unchanged.
+         * @note Afterwards appends beyond records fail instead of growing (ADR 0003, decision 7).
+         */
+        [[nodiscard]] static status_result reserve_records_exact(document& values, std::size_t records) noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5

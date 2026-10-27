@@ -44,6 +44,7 @@ namespace adaptive_json5
         std::size_t m_size{};
         std::size_t m_capacity{};
         std::size_t m_max_records;
+        bool m_fixed{}; // Set by reserve_exact(); appends then never grow.
 
         /**
          * @brief Address one slot within an already size-checked allocation.
@@ -84,6 +85,8 @@ namespace adaptive_json5
          * P030; J5-040; J5-046.
          * @note Allocation failure leaves existing records unchanged.
          * Growth temporarily retains both old and new raw blocks.
+         * After reserve_exact(), a requirement beyond the capacity fails with
+         * wrong_type_or_access instead of growing.
          */
         [[nodiscard]] status_result reserve(std::size_t required) noexcept;
 
@@ -115,6 +118,19 @@ namespace adaptive_json5
         value_storage(const value_storage&) = delete;
         value_storage& operator=(const value_storage&) = delete;
         value_storage& operator=(value_storage&&) = delete;
+
+        /**
+         * @brief Allocate exactly the given number of records once and stop growing.
+         * @par Requirements
+         * P030; J5-040; J5-046.
+         * @param records Exact number of records this storage will hold.
+         * @return Success, resource_limit above max_records, a provider failure, or
+         * wrong_type_or_access when storage was already allocated or reserved.
+         * @note Call on empty storage only. Zero records allocate nothing.
+         * Afterwards, an append beyond records fails with wrong_type_or_access and never
+         * allocates (ADR 0003, decision 7). Failure leaves the storage growable and unchanged.
+         */
+        [[nodiscard]] status_result reserve_exact(std::size_t records) noexcept;
 
         /**
          * @brief Append an externally held record and return its stable index.

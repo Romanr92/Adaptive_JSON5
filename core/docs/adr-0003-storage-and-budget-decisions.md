@@ -603,6 +603,29 @@ allocate once, never grow.
   current single-pass parser, except for the deviation below; work is charged for
   both passes.
 
+### Scope: exact mode for parsing, growth kept for hand-built documents (option 1)
+
+Decided by the user, 2026-10-28.
+
+`detail::value_storage` also backs documents that callers build themselves through
+the public `document` API (`make_*`, `append`). Those callers rely on growth, and
+the public contract (J5-028, J5-040, J5-046) documents it. So:
+
+- `value_storage` gets an exact mode, `reserve_exact(n)`, reached by the parser
+  through `detail::document_access`. After it, the storage is fixed: an append
+  beyond `n` fails with `wrong_type_or_access` and never allocates. Storage that
+  was never reserved exactly grows as before.
+- `parser_stack` is internal to the parser, so its doubling is removed. Frames are
+  reserved once with `reserve_exact(peak depth)`, and a push beyond it fails with
+  `wrong_type_or_access`.
+- The public API does not change. A public opt-in `document::reserve_exact` for
+  hand-built documents can be added later without breaking anything; it is not part
+  of this step.
+
+Rejected: **option 2, no growth anywhere with a required public `reserve`.** It
+breaks every existing hand-built document for a benefit that only parsing needs;
+its only embedded gain is slightly less code.
+
 ### Known deviation: duplicate-name precedence (C1)
 
 Decided by the user, 2026-10-27.

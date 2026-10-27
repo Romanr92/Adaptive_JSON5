@@ -87,6 +87,12 @@ namespace adaptive_json5
         return status_result::success();
       }
 
+      // An exact reservation is an upper bound, so needing more means the counting pass was wrong.
+      if (m_fixed)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
       std::size_t capacity = required;
       const auto doubled = checked_add(m_capacity, m_capacity);
 
@@ -143,10 +149,50 @@ namespace adaptive_json5
      */
     value_storage::value_storage(value_storage&& other) noexcept
         : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
-          m_capacity(other.m_capacity), m_max_records(other.m_max_records)
+          m_capacity(other.m_capacity), m_max_records(other.m_max_records), m_fixed(other.m_fixed)
     {
       other.m_size = 0;
       other.m_capacity = 0;
+      // The emptied source owns no reservation, so it may grow again when reused.
+      other.m_fixed = false;
+    }
+
+    /**
+     * @brief Allocate exactly the given number of records once and stop growing.
+     * @par Requirements
+     * P030; J5-040; J5-046.
+     * @param records Exact number of records this storage will hold.
+     * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
+     * @note Failure leaves the storage growable and unchanged.
+     */
+    status_result value_storage::reserve_exact(std::size_t records) noexcept
+    {
+      // One reservation, made while empty, so nothing ever needs relocating.
+      if (m_fixed || (m_capacity != 0) || (m_size != 0))
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      if (records > m_max_records)
+      {
+        return status_result::failure(error::without_location(error_code::resource_limit));
+      }
+
+      if (records != 0)
+      {
+        auto allocation = allocate_array(m_provider, records, sizeof(value_record), alignof(value_record));
+
+        if (!allocation.has_value())
+        {
+          return status_result::failure(*allocation.error_if());
+        }
+
+        m_storage = std::move(*allocation.value_if());
+        m_capacity = records;
+      }
+
+      m_fixed = true;
+      return status_result::success();
     }
 
     /**

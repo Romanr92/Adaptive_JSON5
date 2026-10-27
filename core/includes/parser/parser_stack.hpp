@@ -95,6 +95,18 @@ namespace adaptive_json5
         parser_stack& operator=(parser_stack&&) = delete;
 
         /**
+         * @brief Allocate exactly the given number of frames once, before any push.
+         * @par Requirements
+         * P033; J5-046; J5-048.
+         * @param frames Exact number of frames, the pre-pass peak depth.
+         * @return Success, resource_limit above the frame limit, a provider failure, or
+         * wrong_type_or_access when storage was already allocated.
+         * @note Zero frames allocate nothing. Charges no work: nothing is relocated
+         * (ADR 0003, decision 7). Failure leaves the stack unchanged.
+         */
+        [[nodiscard]] status_result reserve_exact(std::size_t frames) noexcept;
+
+        /**
          * @brief Push an externally held frame after checking limits and storage.
          * @par Requirements
          * P033; J5-046; J5-048; J5-049; J5-051.

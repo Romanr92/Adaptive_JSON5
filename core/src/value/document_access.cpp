@@ -18,5 +18,10 @@ namespace adaptive_json5
     {
       return attach_to_detached_parent(values.m_values, values.m_root, object, child, &name, name_span, input_size);
     }
+
+    status_result document_access::reserve_records_exact(document& values, std::size_t records) noexcept
+    {
+      return values.m_values.reserve_exact(records);
+    }
   } // namespace detail
 } // namespace adaptive_json5

@@ -118,6 +118,45 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Allocate exactly the given number of frames once, before any push.
+     * @par Requirements
+     * P033; J5-046; J5-048.
+     * @param frames Exact number of frames, the pre-pass peak depth.
+     * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
+     * @note Failure leaves the stack unchanged.
+     */
+    status_result parser_stack::reserve_exact(std::size_t frames) noexcept
+    {
+      // One reservation, made while empty, so nothing ever needs relocating.
+      if ((m_capacity != 0) || (m_size != 0))
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      if (frames > m_max_frames)
+      {
+        return status_result::failure(error::without_location(error_code::resource_limit));
+      }
+
+      if (frames == 0)
+      {
+        return status_result::success();
+      }
+
+      auto allocation = allocate_array(m_provider, frames, sizeof(parser_frame), alignof(parser_frame));
+
+      if (!allocation.has_value())
+      {
+        return status_result::failure(*allocation.error_if());
+      }
+
+      m_storage = std::move(*allocation.value_if());
+      m_capacity = frames;
+
+      return status_result::success();
+    }
+
+    /**
      * @brief Construct an empty stack with an explicit frame limit.
      * @par Requirements
      * P033; J5-046; J5-048.
