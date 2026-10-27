@@ -223,6 +223,8 @@ namespace
     /* Arrange */
     document_provider provider;
     parser_stack frames{provider.callbacks(), 4};
+    // Frames are reserved once before any push (ADR 0003, decision 7).
+    ASSERT_TRUE(frames.reserve_exact(4).has_value());
     const parser_stack& view = frames;
     work_budget work{100};
     parser_frame frame;
@@ -251,6 +253,9 @@ namespace
     document_provider provider;
     document values{provider.callbacks(), 8};
     parser_stack frames{provider.callbacks(), 4};
+    // Frames are reserved once before any push (ADR 0003, decision 7).
+    ASSERT_TRUE(frames.reserve_exact(4).has_value());
+    const std::size_t attempts = provider.m_attempts;
     work_budget work{0};
     /* Act */
     const auto length = open_container(values, frames, {punctuation_kind::left_bracket, 0, 2}, work);
@@ -266,7 +271,7 @@ namespace
     EXPECT_EQ(exhausted.error_if()->code, error_code::resource_limit);
     EXPECT_EQ(values.size(), 0u);
     EXPECT_EQ(frames.size(), 0u);
-    EXPECT_EQ(provider.m_attempts, 0u);
+    EXPECT_EQ(provider.m_attempts, attempts);
   }
   /* ----------------------------------------------------------------------------------- */
   /*

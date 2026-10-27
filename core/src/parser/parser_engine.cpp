@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
+#include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
@@ -30,6 +31,7 @@
 #include "parser/parser_stack.hpp"
 #include "parser/parser_work.hpp"
 #include "parser/primitive_parser.hpp"
+#include "value/document_access.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -291,7 +293,7 @@ namespace adaptive_json5
         return status_result::failure(*construction_units.error_if());
       }
 
-      // Admit numeric copying and possible record relocation before construction.
+      // Admit numeric copying and record construction before building the value.
       const auto construction = m_work.charge(*construction_units.value_if());
 
       if (!construction.has_value())
@@ -655,6 +657,471 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Address the nesting-kind bits for the current pre-pass.
+     * @par Requirements
+     * P033; J5-046; J5-048.
+     */
+    unsigned char* parser_engine::nesting_kinds() noexcept
+    {
+      return (m_extra_kinds.data() != nullptr) ? static_cast<unsigned char*>(m_extra_kinds.data()) : m_inline_kinds;
+    }
+
+    /**
+     * @brief Count one value without building it: reserve its resources and validate it.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+     * @note Mirrors read_value step by step so both report the same errors.
+     */
+    status_result parser_engine::count_value() noexcept
+    {
+      if (m_count_root_done)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      bool member = false;
+
+      if (m_count_depth != 0)
+      {
+        switch (m_count_top.state)
+        {
+        case parser_state::array_first_or_end:
+        case parser_state::array_value_after_comma:
+          break;
+
+        case parser_state::object_value:
+          member = true;
+          break;
+
+        default:
+          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+      }
+
+      const auto current = m_source.peek();
+
+      if (!current.has_value())
+      {
+        // Without an open container no root value was started, so the document itself is empty.
+        return status_result::failure(error::syntax_at(m_source.offset(), (m_count_depth == 0)
+                                                                            ? syntax_error_reason::empty_input
+                                                                            : syntax_error_reason::unexpected_end));
+      }
+
+      const auto reserved_value = m_resources.reserve_value(member);
+
+      if (!reserved_value.has_value())
+      {
+        return status_result::failure(*reserved_value.error_if());
+      }
+
+      if ((*current == '[') || (*current == '{'))
+      {
+        const auto entered = m_resources.enter_container();
+
+        if (!entered.has_value())
+        {
+          return status_result::failure(*entered.error_if());
+        }
+
+        // enter_container() succeeded, so m_count_depth is below max_depth and the bit exists.
+        const bool object = (*current == '{');
+        const std::size_t byte = m_count_depth / c_bits_per_byte;
+        const auto mask = static_cast<unsigned char>(1U << (m_count_depth % c_bits_per_byte));
+        unsigned char* kinds = nesting_kinds();
+
+        kinds[byte] = object ? static_cast<unsigned char>(kinds[byte] | mask)
+                             : static_cast<unsigned char>(kinds[byte] & static_cast<unsigned char>(~mask));
+
+        ++m_count_depth;
+        m_count_top.state = object ? parser_state::object_first_name_or_end : parser_state::array_first_or_end;
+        m_source.advance(1);
+
+        return status_result::success();
+      }
+
+      const auto& limits = m_options.limits;
+      const std::size_t string_limit = m_resources.string_unit_allowance();
+
+      const auto started = begin_limited_scan(m_input, m_source.offset(), m_work);
+
+      if (!started.has_value())
+      {
+        return status_result::failure(*started.error_if());
+      }
+
+      limited_scan scan = *started.value_if();
+
+      const auto measured =
+        measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size, limits.max_exponent_digits);
+
+      if (!measured.has_value())
+      {
+        // A failure at the cut may only mean the budget hid the rest of the token.
+        return status_result::failure(limited_scan_error(scan, *measured.error_if()));
+      }
+
+      // Charge before the no-match check, so an exhausted budget reports resource_limit.
+      const auto recognition = finish_limited_scan(scan, scan.source.offset(), m_work);
+
+      if (!recognition.has_value())
+      {
+        return status_result::failure(*recognition.error_if());
+      }
+
+      if (!measured.value_if()->has_value())
+      {
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
+      }
+
+      const scalar_measure& value = **measured.value_if();
+
+      if (const auto* string = std::get_if<string_measure>(&value); string != nullptr)
+      {
+        const auto reserved_string = m_resources.reserve_string_units(0, string->units);
+
+        if (!reserved_string.has_value())
+        {
+          return status_result::failure(*reserved_string.error_if());
+        }
+
+        // The build pass retains every warning as one diagnostic entry, so count them now.
+        for (std::size_t index{}; index < string->warning_count; ++index)
+        {
+          const auto diagnostic = m_resources.reserve_diagnostic();
+
+          if (!diagnostic.has_value())
+          {
+            return status_result::failure(*diagnostic.error_if());
+          }
+        }
+      }
+      else if (const auto* number = std::get_if<number_token>(&value); number != nullptr)
+      {
+        // Same check and location as owned_number::copy_spelling in the build pass.
+        if (number->byte_length > limits.max_number_bytes)
+        {
+          return status_result::failure(error::at_offset(error_code::resource_limit, number->byte_offset));
+        }
+      }
+
+      const auto completed = count_completed_value();
+
+      if (!completed.has_value())
+      {
+        return status_result::failure(*completed.error_if());
+      }
+
+      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      m_source.advance(scan.source.offset() - m_source.offset());
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Count one member name without decoding it.
+     * @par Requirements
+     * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+     * @note Mirrors read_name except for the duplicate check (ADR 0003, decision 7, C1).
+     */
+    status_result parser_engine::count_name() noexcept
+    {
+      if ((m_count_depth == 0) || ((m_count_top.state != parser_state::object_first_name_or_end) &&
+                                   (m_count_top.state != parser_state::object_name_after_comma)))
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      const std::size_t max_units = m_resources.string_unit_allowance();
+
+      const auto started = begin_limited_scan(m_input, m_source.offset(), m_work);
+
+      if (!started.has_value())
+      {
+        return status_result::failure(*started.error_if());
+      }
+
+      limited_scan scan = *started.value_if();
+      const auto measured = measure_member_name(scan.source, m_options.syntax, max_units);
+
+      if (!measured.has_value())
+      {
+        // A failure at the cut may only mean the budget hid the rest of the name.
+        return status_result::failure(limited_scan_error(scan, *measured.error_if()));
+      }
+
+      // Charge before the no-match check, so an exhausted budget reports resource_limit.
+      const auto charged = finish_limited_scan(scan, scan.source.offset(), m_work);
+
+      if (!charged.has_value())
+      {
+        return status_result::failure(*charged.error_if());
+      }
+
+      if (!measured.value_if()->has_value())
+      {
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::expected_member_name));
+      }
+
+      const member_name_measure& name = **measured.value_if();
+
+      const auto reserved = m_resources.reserve_string_units(0, name.units);
+
+      if (!reserved.has_value())
+      {
+        return status_result::failure(*reserved.error_if());
+      }
+
+      for (std::size_t index{}; index < name.warning_count; ++index)
+      {
+        const auto diagnostic = m_resources.reserve_diagnostic();
+
+        if (!diagnostic.has_value())
+        {
+          return status_result::failure(*diagnostic.error_if());
+        }
+      }
+
+      m_count_top.state = parser_state::object_colon;
+
+      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      m_source.advance(scan.source.offset() - m_source.offset());
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Consume a dispatched colon or comma in the pre-pass.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027.
+     */
+    status_result parser_engine::count_separator(parser_action action) noexcept
+    {
+      if (m_count_depth == 0)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      parser_state next_state = m_count_top.state;
+      punctuation_kind expected = punctuation_kind::comma;
+
+      if ((action == parser_action::consume_colon) && (m_count_top.state == parser_state::object_colon))
+      {
+        expected = punctuation_kind::colon;
+        next_state = parser_state::object_value;
+      }
+      else if ((action == parser_action::consume_comma) && (m_count_top.state == parser_state::array_comma_or_end))
+      {
+        next_state = parser_state::array_value_after_comma;
+      }
+      else if ((action == parser_action::consume_comma) && (m_count_top.state == parser_state::object_comma_or_end))
+      {
+        next_state = parser_state::object_name_after_comma;
+      }
+      else
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      cursor candidate = m_source;
+      const auto punctuation = consume_punctuation(candidate);
+
+      if ((!punctuation.has_value()) || (punctuation->kind != expected))
+      {
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
+      }
+
+      m_count_top.state = next_state;
+      m_source = candidate;
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Close the innermost container in the pre-pass.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-048.
+     */
+    status_result parser_engine::count_close() noexcept
+    {
+      cursor candidate = m_source;
+      const auto closing = consume_punctuation(candidate);
+
+      if (!closing.has_value() ||
+          ((closing->kind != punctuation_kind::right_bracket) && (closing->kind != punctuation_kind::right_brace)))
+      {
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
+      }
+
+      if (m_count_depth == 0)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      const auto closable = check_container_close(m_count_top.state, *closing, m_options.syntax);
+
+      if (!closable.has_value())
+      {
+        return status_result::failure(*closable.error_if());
+      }
+
+      const auto release = m_resources.leave_container();
+
+      if (!release.has_value())
+      {
+        return status_result::failure(*release.error_if());
+      }
+
+      --m_count_depth;
+
+      if (m_count_depth != 0)
+      {
+        // The parent was expecting a value when this container opened, so only its kind is needed.
+        const std::size_t parent = m_count_depth - 1;
+        const bool object = ((nesting_kinds()[parent / c_bits_per_byte] >> (parent % c_bits_per_byte)) & 1U) != 0U;
+
+        m_count_top.state = object ? parser_state::object_value : parser_state::array_first_or_end;
+      }
+
+      const auto completed = count_completed_value();
+
+      if (!completed.has_value())
+      {
+        return status_result::failure(*completed.error_if());
+      }
+
+      m_source = candidate;
+      return status_result::success();
+    }
+
+    /**
+     * @brief Record a completed value in the pre-pass: finish the root or advance the parent.
+     * @par Requirements
+     * P033; P034; P035; J5-013.
+     */
+    status_result parser_engine::count_completed_value() noexcept
+    {
+      if (m_count_depth == 0)
+      {
+        m_count_root_done = true;
+        return status_result::success();
+      }
+
+      // Same transitions as attach_parsed_value after a successful attachment.
+      switch (m_count_top.state)
+      {
+      case parser_state::array_first_or_end:
+      case parser_state::array_value_after_comma:
+        m_count_top.state = parser_state::array_comma_or_end;
+        return status_result::success();
+
+      case parser_state::object_value:
+        m_count_top.state = parser_state::object_comma_or_end;
+        return status_result::success();
+
+      default:
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+    }
+
+    /**
+     * @brief Run the counting pre-pass over the whole document.
+     * @par Requirements
+     * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+     * @param complete True to also require complete input consumption.
+     * @return Success with the counts held in m_resources, or the first error.
+     */
+    status_result parser_engine::count_document(bool complete) noexcept
+    {
+      // Deeper configurations need more bits than the inline array holds (ADR 0003, decision 7, D1).
+      if (m_options.limits.max_depth > c_inline_nesting_bits)
+      {
+        const std::size_t bytes = (m_options.limits.max_depth / c_bits_per_byte) + 1;
+        auto allocation = allocate_block(m_storage, bytes, alignof(unsigned char));
+
+        if (!allocation.has_value())
+        {
+          return status_result::failure(*allocation.error_if());
+        }
+
+        m_extra_kinds = std::move(*allocation.value_if());
+      }
+
+      status_result counted = status_result::success();
+
+      while (counted.has_value() && !m_count_root_done)
+      {
+        // Charge dispatch even when no lexical scanner is needed, as the build pass does.
+        counted = m_work.charge(1);
+
+        if (counted.has_value())
+        {
+          counted = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
+        }
+
+        if (!counted.has_value())
+        {
+          break;
+        }
+
+        parser_action action = parser_action::read_value;
+
+        if (m_count_depth != 0)
+        {
+          const auto selected =
+            next_container_action(m_count_top, m_source.peek(), m_source.offset(), m_options.syntax);
+
+          if (!selected.has_value())
+          {
+            counted = status_result::failure(*selected.error_if());
+            break;
+          }
+
+          action = *selected.value_if();
+        }
+
+        switch (action)
+        {
+        case parser_action::read_value:
+          counted = count_value();
+          break;
+
+        case parser_action::read_name:
+          counted = count_name();
+          break;
+
+        case parser_action::consume_colon:
+        case parser_action::consume_comma:
+          counted = count_separator(action);
+          break;
+
+        case parser_action::close_container:
+          counted = count_close();
+          break;
+
+        default:
+          counted = status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          break;
+        }
+      }
+
+      if (counted.has_value() && complete)
+      {
+        counted = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
+
+        if (counted.has_value() && !m_source.is_at_end())
+        {
+          counted = status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
+        }
+      }
+
+      // The bits are only needed while counting, so the build pass never holds them.
+      m_extra_kinds = owned_block{};
+
+      return counted;
+    }
+
+    /**
      * @brief Prepare private state without allocating parser storage.
      * @par Requirements
      * P033; J5-040; J5-047; J5-048.
@@ -671,14 +1138,14 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Construct one root value and return its consumed prefix.
+     * @brief Count, reserve exactly, then build one root value.
      * @par Requirements
-     * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
-     * @note Invoke once on a fresh engine.
-     * This internal operation does not validate trailing input.
-     * Every failure requires abandoning this engine instance.
+     * P033; P037; J5-013; J5-026; J5-040; J5-046; J5-048; J5-049.
+     * @param complete True to require complete input consumption.
+     * @note Syntax and limit failures occur in the pre-pass, before any record or frame
+     * allocation (ADR 0003, decision 7).
      */
-    result<parsed_value_tree> parser_engine::run() noexcept
+    result<parsed_value_tree> parser_engine::parse(bool complete) noexcept
     {
       using tree_result = result<parsed_value_tree>;
 
@@ -705,6 +1172,38 @@ namespace adaptive_json5
           starts_with_byte_order_mark(m_input))
       {
         m_source.advance(c_byte_order_mark_bytes);
+      }
+
+      // Both passes start after any skipped mark.
+      const cursor start = m_source;
+
+      const auto counted = count_document(complete);
+
+      if (!counted.has_value())
+      {
+        return tree_result::failure(*counted.error_if());
+      }
+
+      const std::size_t records = m_resources.reserved_nodes();
+      const std::size_t frames = m_resources.peak_depth();
+
+      // The build pass reserves every resource again, so it starts from an unused budget.
+      m_resources = resource_budget{m_options.limits};
+      m_source = start;
+
+      // One allocation each, at exactly the counted sizes; neither container grows afterwards.
+      const auto records_reserved = document_access::reserve_records_exact(m_document, records);
+
+      if (!records_reserved.has_value())
+      {
+        return tree_result::failure(*records_reserved.error_if());
+      }
+
+      const auto frames_reserved = m_frames.reserve_exact(frames);
+
+      if (!frames_reserved.has_value())
+      {
+        return tree_result::failure(*frames_reserved.error_if());
       }
 
       while (!m_root.is_set())
@@ -801,7 +1300,36 @@ namespace adaptive_json5
         return tree_result::failure(*rooted.error_if());
       }
 
+      if (complete)
+      {
+        const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
+
+        if (!trivia.has_value())
+        {
+          return tree_result::failure(*trivia.error_if());
+        }
+
+        // The pre-pass already required complete consumption, so this only guards a disagreement.
+        if (!m_source.is_at_end())
+        {
+          return tree_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
+        }
+      }
+
       return tree_result::success(parsed_value_tree{std::move(m_document), m_source.offset(), std::move(m_warnings)});
+    }
+
+    /**
+     * @brief Construct one root value and return its consumed prefix.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
+     * @note Invoke once on a fresh engine.
+     * This internal operation does not validate trailing input.
+     * Every failure requires abandoning this engine instance.
+     */
+    result<parsed_value_tree> parser_engine::run() noexcept
+    {
+      return parse(false);
     }
 
     /**
@@ -815,32 +1343,7 @@ namespace adaptive_json5
      */
     result<parsed_value_tree> parser_engine::run_complete() noexcept
     {
-      using tree_result = result<parsed_value_tree>;
-
-      // Keep ownership local until the complete input has been accepted.
-      auto parsed = run();
-
-      if (!parsed.has_value())
-      {
-        return tree_result::failure(*parsed.error_if());
-      }
-
-      const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
-
-      if (!trivia.has_value())
-      {
-        return tree_result::failure(*trivia.error_if());
-      }
-
-      if (!m_source.is_at_end())
-      {
-        return tree_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
-      }
-
-      // Complete parsing includes the trailing trivia in its consumed length.
-      parsed.value_if()->consumed_bytes = m_source.offset();
-
-      return parsed;
+      return parse(true);
     }
   } // namespace detail
 } // namespace adaptive_json5

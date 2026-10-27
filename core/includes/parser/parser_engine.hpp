@@ -3,6 +3,7 @@
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
+#include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -13,6 +14,7 @@
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_dispatch.hpp"
+#include "parser/parser_frame.hpp"
 #include "parser/parser_stack.hpp"
 
 #include <cstddef>
@@ -66,6 +68,86 @@ namespace adaptive_json5
 
         value_index m_root{};
         warning_list m_warnings;
+
+        // Counting pre-pass state (ADR 0003, decision 7). The innermost container keeps its full
+        // grammar state; each open level keeps one bit, set for an object (decision 7, D1).
+        static constexpr std::size_t c_inline_nesting_bits = 512;
+        static constexpr std::size_t c_bits_per_byte = 8;
+
+        parser_frame m_count_top{};
+        std::size_t m_count_depth{};
+        bool m_count_root_done{};
+        unsigned char m_inline_kinds[c_inline_nesting_bits / c_bits_per_byte]{};
+        owned_block m_extra_kinds{};
+
+        /**
+         * @brief Address the nesting-kind bits for the current pre-pass.
+         * @par Requirements
+         * P033; J5-046; J5-048.
+         * @note The inline array unless max_depth exceeded it and extra bits were allocated.
+         */
+        [[nodiscard]] unsigned char* nesting_kinds() noexcept;
+
+        /**
+         * @brief Count one value without building it: reserve its resources and validate it.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+         * @note Reports the same errors as read_value and allocates nothing (ADR 0003, decision 7).
+         * Charges the same scanning work as read_value, but no construction or decode work.
+         */
+        [[nodiscard]] status_result count_value() noexcept;
+
+        /**
+         * @brief Count one member name without decoding it.
+         * @par Requirements
+         * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+         * @note Reports the same errors as read_name except duplicate names, which are checked
+         * only in the build pass (ADR 0003, decision 7, C1). Allocates nothing.
+         */
+        [[nodiscard]] status_result count_name() noexcept;
+
+        /**
+         * @brief Consume a dispatched colon or comma in the pre-pass.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027.
+         * @note Same validation and errors as consume_separator.
+         */
+        [[nodiscard]] status_result count_separator(parser_action action) noexcept;
+
+        /**
+         * @brief Close the innermost container in the pre-pass.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-048.
+         * @note Uses check_container_close, like close_container, so errors are identical.
+         */
+        [[nodiscard]] status_result count_close() noexcept;
+
+        /**
+         * @brief Record a completed value in the pre-pass: finish the root or advance the parent.
+         * @par Requirements
+         * P033; P034; P035; J5-013.
+         */
+        [[nodiscard]] status_result count_completed_value() noexcept;
+
+        /**
+         * @brief Run the counting pre-pass over the whole document.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @param complete True to also require complete input consumption, as run_complete does.
+         * @return Success with the counts held in m_resources, or the first error.
+         * @note Allocates nothing with max_depth up to 512; above that, one block of nesting bits
+         * that is released before returning. Leaves m_source where the pre-pass stopped.
+         */
+        [[nodiscard]] status_result count_document(bool complete) noexcept;
+
+        /**
+         * @brief Count, reserve exactly, then build one root value.
+         * @par Requirements
+         * P033; P037; J5-013; J5-026; J5-040; J5-046; J5-048; J5-049.
+         * @param complete True to require complete input consumption.
+         * @note Shared body of run() and run_complete() (ADR 0003, decision 7).
+         */
+        [[nodiscard]] result<parsed_value_tree> parse(bool complete) noexcept;
 
         /**
          * @brief Start a container or construct and accept a scalar value.
@@ -162,6 +244,8 @@ namespace adaptive_json5
          * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
          * @note Invoke once on a fresh engine.
          * Single use: after any result, construct a new engine to parse again.
+         * Counts in an allocation-free pre-pass, reserves records and frames exactly once,
+         * then builds; syntax and limit failures occur before any allocation (ADR 0003, decision 7).
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
          */
@@ -174,6 +258,7 @@ namespace adaptive_json5
          * @note Invoke once on a fresh engine instead of run().
          * Single use: after any result, construct a new engine to parse again.
          * Admits trailing trivia according to the selected syntax mode.
+         * The pre-pass also checks trailing content, so it fails before any allocation.
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
          */

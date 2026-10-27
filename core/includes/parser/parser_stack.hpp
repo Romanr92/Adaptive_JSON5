@@ -21,7 +21,7 @@ namespace adaptive_json5
      * @note Provider state must outlive this stack.
      * Use accounted callbacks to include frame storage in owned-byte accounting.
      * The caller separately reserves and releases resource-budget depth.
-     * Growth invalidates frame pointers.
+     * Storage is reserved once with reserve_exact() and never grows (ADR 0003, decision 7).
      * Cleanup is iterative and requires no allocation or work charge.
      */
     class [[nodiscard]] parser_stack
@@ -60,16 +60,6 @@ namespace adaptive_json5
          * @note Private callers supply an index below m_size.
          */
         [[nodiscard]] const parser_frame* live_frame(std::size_t index) const noexcept;
-
-        /**
-         * @brief Ensure storage for the requested number of frames.
-         * @par Requirements
-         * P033; J5-046; J5-048; J5-049; J5-051.
-         * @note Failure preserves existing frames.
-         * Growth costs one work unit per relocated frame.
-         * Old and new allocations coexist during relocation.
-         */
-        [[nodiscard]] status_result reserve(std::size_t required, work_budget& work) noexcept;
 
       public:
         /**
@@ -111,6 +101,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-046; J5-048; J5-049; J5-051.
          * @note frame must not reside inside this stack.
+         * A push beyond the reserve_exact() capacity fails with wrong_type_or_access and never allocates.
          * Failure preserves frames and the incoming frame.
          * Each push attempt passing the frame limit costs one work unit.
          * Successful work charges are not refunded after later failure.
@@ -122,7 +113,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-013.
          * @return Pointer to the top frame, or nullptr when empty.
-         * @note Growth, removal or destruction can invalidate the pointer.
+         * @note Removal or destruction can invalidate the pointer.
          */
         [[nodiscard]] parser_frame* top() noexcept;
 

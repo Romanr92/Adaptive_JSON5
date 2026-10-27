@@ -412,7 +412,7 @@ namespace
                     limit_case{"NumberBytes", "1.2e34", &resource_limits::max_number_bytes, 6},
                     limit_case{"ExponentDigits", "1e002", &resource_limits::max_exponent_digits, 3},
                     limit_case{"Diagnostics", "\"\xe2\x80\xa8\"", &resource_limits::max_diagnostics, 1},
-                    limit_case{"WorkIncludesTrailingScan", "null  ", &resource_limits::max_work_units, 14}),
+                    limit_case{"WorkIncludesTrailingScan", "null  ", &resource_limits::max_work_units, 21}),
     [](const testing::TestParamInfo<limit_case>& info)
     {
       return info.param.name;

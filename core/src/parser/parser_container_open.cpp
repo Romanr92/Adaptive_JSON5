@@ -65,7 +65,7 @@ namespace adaptive_json5
 
       frame.opening_offset = opening.byte_offset;
 
-      // Allow for creating the record and its amortized share of record relocation.
+      // Charge record construction before any frame or record storage changes.
       const auto charged = work.charge(c_record_construction_work);
 
       if (!charged.has_value())

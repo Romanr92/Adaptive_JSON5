@@ -626,6 +626,29 @@ Rejected: **option 2, no growth anywhere with a required public `reserve`.** It
 breaks every existing hand-built document for a benefit that only parsing needs;
 its only embedded gain is slightly less code.
 
+### Pre-pass nesting state: inline bit stack (D1)
+
+Decided by the user, 2026-10-28.
+
+The grammar needs the full state only for the innermost open container. For every
+outer level, one bit is enough: array or object. After a child closes, its parent is
+always in its "comma or end" state, and opening offsets are needed only for spans
+in the build pass. So the pre-pass keeps the innermost state plus one bit per open
+level instead of `parser_frame` objects.
+
+- The engine holds a fixed 512-bit (64-byte) array inline, which covers the default
+  `max_depth` of 512 without any allocation.
+- If `max_depth` is above 512, the pre-pass makes one allocation of
+  `ceil(max_depth / 8)` bytes through the accounted provider before scanning, and
+  releases it when the pre-pass ends.
+- Embedded: 64 bytes more stack per parse; with default limits the pre-pass uses no
+  heap, also for invalid input.
+
+Rejected: **D2, always allocate the bits** (one allocation before every pre-pass,
+including invalid input); **D3, cap `max_depth` at 512** (restricts a public
+setting); **D4, find the parent by scanning backwards** (re-lexing strings and
+comments in reverse, quadratic time).
+
 ### Known deviation: duplicate-name precedence (C1)
 
 Decided by the user, 2026-10-27.

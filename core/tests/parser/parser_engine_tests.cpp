@@ -893,18 +893,20 @@ namespace
   }
   /* ----------------------------------------------------------------------------------- */
   /*
-   * Preserve live pending names when frame storage grows or a later push fails.
-   * Arrange: Three frames with owned names and a three-frame ceiling.
-   * Act: Grow the stack, attempt one excessive push, then pop every frame.
-   * Expect: Names/order survive relocation, failed input remains owned, cleanup balances.
+   * Preserve live pending names in reserved frames and across a later limit failure.
+   * Arrange: Three frames with owned names, a three-frame ceiling and an exact reservation.
+   * Act: Push three frames, attempt one excessive push, then pop every frame.
+   * Expect: Names and order are kept, the limit is reported, cleanup balances.
    */
-  TEST(J5_048_ParserStack, PreservesOwnedNamesAcrossGrowthAndLimitFailure)
+  TEST(J5_048_ParserStack, PreservesOwnedNamesAndLimitFailure)
   {
     /* Arrange */
     engine_provider provider;
     accounted_storage accounting{provider.callbacks(), 32768};
     work_budget work{100};
     parser_stack frames{accounting.callbacks(), 3};
+    // Frames are reserved once before any push (ADR 0003, decision 7).
+    ASSERT_TRUE(frames.reserve_exact(3).has_value());
     /* Act */
     for (std::size_t index{}; index < 3; ++index)
     {
@@ -936,18 +938,20 @@ namespace
   }
   /* ----------------------------------------------------------------------------------- */
   /*
-   * Preserve existing frames and external input when growth allocation fails.
-   * Arrange: One live frame and a second external frame with a pending name.
-   * Act: Inject the next allocation failure during a capacity-growing push.
-   * Expect: Existing stack and input ownership unchanged, with allocation_failure.
+   * Reject a push beyond the exact reservation without allocating.
+   * Arrange: A stack reserved for one frame holding one frame, and an external frame with a name.
+   * Act: Push the external frame.
+   * Expect: wrong_type_or_access, no provider request, the stack and the input name unchanged
+   *         (ADR 0003, decision 7).
    */
-  TEST(J5_048_ParserStack, PreservesFramesAndInputOnGrowthAllocationFailure)
+  TEST(J5_048_ParserStack, PushBeyondReservationPreservesFramesAndInput)
   {
     /* Arrange */
     engine_provider provider;
     accounted_storage accounting{provider.callbacks(), 32768};
     work_budget work{100};
     parser_stack frames{accounting.callbacks(), 4};
+    ASSERT_TRUE(frames.reserve_exact(1).has_value());
     parser_frame first{};
     first.opening_offset = 7;
     ASSERT_TRUE(frames.push(std::move(first), work).has_value());
@@ -956,17 +960,52 @@ namespace
     ASSERT_TRUE(name.has_value());
     parser_frame second{};
     second.pending_name.emplace(std::move(*name.value_if()));
-    provider.m_fail_on = provider.m_attempts + 1;
+    const std::size_t attempts = provider.m_attempts;
     /* Act */
     const auto pushed = frames.push(std::move(second), work);
     /* Expect */
     ASSERT_FALSE(pushed.has_value());
-    EXPECT_EQ(pushed.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(pushed.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(provider.m_attempts, attempts);
     EXPECT_EQ(frames.size(), 1u);
     ASSERT_NE(frames.top(), nullptr);
     EXPECT_EQ(frames.top()->opening_offset, 7u);
     ASSERT_TRUE(second.pending_name.has_value());
     expect_units(*second.pending_name, u"x");
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Reserve frames exactly once, without work, and reject a second reservation.
+   * Arrange: A stack with a four-frame ceiling.
+   * Act: Reserve five, then three, then three again; reserve zero on a second stack.
+   * Expect: resource_limit without a request; one allocation and no work for three;
+   *         wrong_type_or_access for the repeat; zero allocates nothing.
+   */
+  TEST(J5_048_ParserStack, ReserveExactAllocatesOnceWithoutWork)
+  {
+    /* Arrange */
+    engine_provider provider;
+    accounted_storage accounting{provider.callbacks(), 32768};
+    parser_stack frames{accounting.callbacks(), 4};
+    parser_stack empty{accounting.callbacks(), 4};
+    /* Act */
+    const auto above = frames.reserve_exact(5);
+    const std::size_t attempts_after_above = provider.m_attempts;
+    const auto reserved = frames.reserve_exact(3);
+    const std::size_t attempts_after_reserve = provider.m_attempts;
+    const auto again = frames.reserve_exact(3);
+    const auto zero = empty.reserve_exact(0);
+    /* Expect */
+    ASSERT_FALSE(above.has_value());
+    EXPECT_EQ(above.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(attempts_after_above, 0u);
+    EXPECT_TRUE(reserved.has_value());
+    EXPECT_EQ(attempts_after_reserve, 1u);
+    ASSERT_FALSE(again.has_value());
+    EXPECT_EQ(again.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_TRUE(zero.has_value());
+    EXPECT_EQ(provider.m_attempts, attempts_after_reserve);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -984,6 +1023,8 @@ namespace
     work_budget work{100};
     document destination{accounting.callbacks(), 10};
     parser_stack frames{accounting.callbacks(), 4};
+    // Frames are reserved once before any push (ADR 0003, decision 7).
+    ASSERT_TRUE(frames.reserve_exact(4).has_value());
     /* Act */
     const auto opened = open_container(destination, frames, {punctuation_kind::left_bracket, 0, 1}, work);
     /* Expect */
@@ -1009,6 +1050,8 @@ namespace
     work_budget work{100};
     document destination{accounting.callbacks(), 10};
     parser_stack frames{accounting.callbacks(), 4};
+    // Frames are reserved once before any push (ADR 0003, decision 7).
+    ASSERT_TRUE(frames.reserve_exact(4).has_value());
     const auto opened = open_container(destination, frames, {punctuation_kind::left_bracket, 0, 1}, work);
     ASSERT_TRUE(opened.has_value());
     /* Act */
