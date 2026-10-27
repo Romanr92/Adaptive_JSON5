@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "common/checked_size.hpp"
@@ -54,14 +55,54 @@ namespace adaptive_json5
 
       std::memcpy(bytes + (index * sizeof(string_warning)), &entry, sizeof(entry));
     }
+
+    /**
+     * @brief Choose the capacity of the next allocation.
+     * @par Requirements
+     * P039; J5-046.
+     * @param policy Storage policy of the list.
+     * @param current Current capacity.
+     * @param required Entries needed; not above maximum.
+     * @param maximum Maximum entries of the list.
+     * @return A capacity between required and maximum.
+     */
+    [[nodiscard]] std::size_t next_capacity(warning_storage_policy policy, std::size_t current, std::size_t required,
+                                            std::size_t maximum) noexcept
+    {
+      // The fixed policy allocates the worst case once, so the table never grows.
+      if (policy == warning_storage_policy::fixed)
+      {
+        return maximum;
+      }
+
+      std::size_t capacity = warning_list::c_adaptive_initial_entries;
+
+      if (current != std::size_t{})
+      {
+        // Doubling keeps reallocations logarithmic; on overflow the maximum is the answer anyway.
+        const auto doubled = checked_multiply(current, c_growth_factor);
+        capacity = doubled.has_value() ? *doubled.value_if() : maximum;
+      }
+
+      if (capacity > maximum)
+      {
+        capacity = maximum;
+      }
+
+      return ((capacity < required) ? required : capacity);
+    }
   } // namespace
 
   /**
-   * @brief Borrow the provider without allocating.
+   * @brief Borrow the provider and record the maximum and policy without allocating.
    * @par Requirements
-   * P039; J5-046.
+   * P039; J5-046; J5-047.
    */
-  warning_list::warning_list(const storage_callbacks& provider) noexcept : m_provider(provider) {}
+  warning_list::warning_list(const storage_callbacks& provider, std::size_t max_entries,
+                             warning_storage_policy policy) noexcept
+      : m_provider(provider), m_max_entries(max_entries), m_policy(policy)
+  {
+  }
 
   /**
    * @brief Take over the storage and counts, then empty the source.
@@ -70,7 +111,7 @@ namespace adaptive_json5
    */
   warning_list::warning_list(warning_list&& other) noexcept
       : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
-        m_capacity(other.m_capacity)
+        m_capacity(other.m_capacity), m_max_entries(other.m_max_entries), m_policy(other.m_policy)
   {
     // The moved-from list must not report entries whose storage it no longer owns.
     other.m_size = 0;
@@ -91,20 +132,18 @@ namespace adaptive_json5
       return status_result::failure(*required.error_if());
     }
 
+    // Capacity belongs to the list, so no caller can grow it past its maximum.
+    if (*required.value_if() > m_max_entries)
+    {
+      return status_result::failure(error::without_location(error_code::resource_limit));
+    }
+
     if (*required.value_if() <= m_capacity)
     {
       return status_result::success();
     }
 
-    std::size_t capacity = *required.value_if();
-
-    // Doubling keeps total copying linear; if doubling overflows, the exact requirement still suffices.
-    const auto doubled = checked_multiply(m_capacity, c_growth_factor);
-
-    if (doubled.has_value() && (*doubled.value_if() > capacity))
-    {
-      capacity = *doubled.value_if();
-    }
+    const std::size_t capacity = next_capacity(m_policy, m_capacity, *required.value_if(), m_max_entries);
 
     auto allocation = allocate_array(m_provider, capacity, sizeof(string_warning), alignof(string_warning));
 

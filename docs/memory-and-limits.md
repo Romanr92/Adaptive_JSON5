@@ -118,6 +118,16 @@ of headroom.
 the whole parse with `resource_limit`. No document is returned with some of its
 warnings missing.
 
+**Warning table.** By default (`warning_storage_policy::fixed`), the first
+warning allocates a table of `max_diagnostics` entries at once, and it never
+grows. That is about 12 bytes per entry on 32-bit targets and 24 bytes on 64-bit
+hosts, and the worst case is known when you choose `max_diagnostics`. A document
+without warnings allocates nothing for warnings. Tooling that sets a large
+`max_diagnostics` but usually sees few warnings can set
+`parse_options::warning_storage = warning_storage_policy::adaptive`: the first
+warning then allocates `min(max_diagnostics, 64)` entries, and the table doubles
+as needed, never past `max_diagnostics`.
+
 ## Planned changes (decided in ADR 0003, not yet implemented)
 
 These change what you observe once implemented:
@@ -126,7 +136,6 @@ These change what you observe once implemented:
 |---|---|
 | Default `max_work_units` becomes **131072** (8 × `max_input_bytes`) | Documents near the size limits parse with default options. If you raise `max_input_bytes`, raise the work limit in the same proportion. The default work budgets of number conversion and comparison rise with it. |
 | Counting pre-pass, then exact allocation | Memory used for values, frames and strings equals what the document needs, with no spare capacity. Invalid or over-limit input fails **before any allocation**. A successful parse makes few, fixed-size allocations, so pools fragment less. |
-| Warning table allocated once | The first warning allocates `max_diagnostics` entries, which is the worst case known in advance. Input without warnings allocates nothing for warnings. An optional adaptive policy in `parse_options` starts smaller, for tooling that sets a large `max_diagnostics`. |
 
 **Known cost:** with `duplicate_name_policy::reject_duplicates`, checking a large
 object costs work that grows with the square of its member count. One object with

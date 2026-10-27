@@ -665,7 +665,8 @@ namespace adaptive_json5
         : m_input(input), m_options(options), m_storage(accounting.callbacks()),
           m_owned_byte_limit(accounting.byte_limit()), m_source(input), m_document(m_storage, options.limits.max_nodes),
           m_resources(options.limits), m_work(options.limits.max_work_units),
-          m_frames(m_storage, options.limits.max_depth), m_warnings(m_storage)
+          m_frames(m_storage, options.limits.max_depth),
+          m_warnings(m_storage, options.limits.max_diagnostics, options.warning_storage)
     {
     }
 

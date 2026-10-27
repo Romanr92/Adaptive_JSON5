@@ -4,6 +4,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "input/cursor.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
@@ -214,6 +215,60 @@ namespace
       EXPECT_EQ(provider.m_attempts, 0U) << spelling;
     }
   }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /**
+   * @brief Bytes retained by the result of one parse.
+   * @par Requirements
+   * J5-046.
+   * @param input Complete document bytes that must parse.
+   * @param options Parse options, including the diagnostics limit and warning policy.
+   * @return accounting.current_bytes() while the parsed tree is still alive.
+   */
+  std::size_t retained_bytes(const std::string& input, const parse_options& options)
+  {
+    document_provider provider;
+    accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+    parser_engine engine{{input.data(), input.size()}, options, accounting};
+    const auto parsed = engine.run();
+    EXPECT_TRUE(parsed.has_value());
+    return accounting.current_bytes();
+  }
+
+  /* Verify the parse result's warning table follows the selected policy.
+   * Arrange: A document with one raw line separator, and one without warnings.
+   * Act: Parse each under different max_diagnostics values and both policies.
+   * Expect: Without warnings, max_diagnostics changes nothing. With a warning, the fixed
+   *         table holds max_diagnostics entries; the adaptive table holds 64 entries when
+   *         max_diagnostics is larger.
+   */
+  TEST(J5_046_ParserWarnings, WarningTableFollowsPolicy)
+  {
+    /* Arrange */
+    const std::string warned = "[\"a\xE2\x80\xA8\"]";
+    const std::string plain = "[\"a\"]";
+    constexpr std::size_t c_entry = sizeof(string_warning);
+    parse_options small;
+    small.limits.max_diagnostics = 16;
+    parse_options large;
+    large.limits.max_diagnostics = 200;
+    parse_options adaptive = large;
+    adaptive.warning_storage = warning_storage_policy::adaptive;
+    /* Act */
+    const std::size_t plain_small = retained_bytes(plain, small);
+    const std::size_t plain_large = retained_bytes(plain, large);
+    const std::size_t warned_small = retained_bytes(warned, small);
+    const std::size_t warned_large = retained_bytes(warned, large);
+    const std::size_t warned_adaptive = retained_bytes(warned, adaptive);
+    /* Expect */
+    // A document without warnings allocates no warning table at all.
+    EXPECT_EQ(plain_small, plain_large);
+    // The only difference between these parses is the size of the warning table.
+    EXPECT_EQ(warned_large - warned_small, (200U - 16U) * c_entry);
+    EXPECT_EQ(warned_large - warned_adaptive, (200U - 64U) * c_entry);
+  }
+
   /* ================================= End Test_J5_046 ================================= */
 
   /* =================================== Test_J5_049 =================================== */
