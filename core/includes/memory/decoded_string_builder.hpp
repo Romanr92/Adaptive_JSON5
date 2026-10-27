@@ -15,8 +15,9 @@ namespace adaptive_json5
    * @par Requirements
    * P013; J5-018; J5-029; J5-040.
    * @note The provider state must outlive the builder and its allocations.
-   * Failed appends preserve existing content and length.
-   * max_units bounds capacity in units; total-memory accounting is separate.
+   * Storage is reserved once with reserve_exact; appends never allocate (ADR 0003, decision 2).
+   * Appending past the reservation fails with wrong_type_or_access and preserves content.
+   * max_units bounds the reservation in units; total-memory accounting is separate.
    */
   class [[nodiscard]] decoded_string_builder
   {
@@ -28,20 +29,11 @@ namespace adaptive_json5
       std::size_t m_max_units;
 
       /**
-       * @brief Ensure room for the requested total unit count.
-       * @par Requirements
-       * P013; J5-040.
-       * @return Success, resource_limit, or allocation_failure.
-       * @note Growth temporarily holds both old and new allocations.
-       */
-      [[nodiscard]] status_result reserve(std::size_t required) noexcept;
-
-      /**
        * @brief Append units from an independent readable array.
        * @par Requirements
        * P013; J5-018; J5-029.
        * @note Private callers provide a valid nonempty local array.
-       * Storage is reserved for the entire append before writing any units.
+       * The entire append must fit the reservation before any unit is written.
        */
       [[nodiscard]] status_result append_units(const char16_t* units, std::size_t count) noexcept;
 
@@ -103,7 +95,7 @@ namespace adaptive_json5
        * P013; J5-018; J5-029; J5-040.
        * @return Completed string owning the existing allocation.
        * @note Performs no allocation or content copy and cannot fail.
-       * Unused capacity remains owned by the returned string.
+       * The returned string owns exactly the reserved storage.
        * The builder becomes empty and can be reused with its original
        * provider and unit limit. Repeated finish returns an empty string.
        */

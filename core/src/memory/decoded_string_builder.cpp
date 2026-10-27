@@ -15,64 +15,11 @@
 namespace adaptive_json5
 {
   /**
-   * @brief Ensure room for the requested total unit count.
-   * @par Requirements
-   * P013; J5-040.
-   * @return Success, resource_limit, or allocation_failure.
-   * @note Growth temporarily holds both old and new allocations.
-   */
-  status_result decoded_string_builder::reserve(std::size_t required) noexcept
-  {
-    if (required > m_max_units)
-    {
-      return status_result::failure(error::without_location(error_code::resource_limit));
-    }
-
-    if (required <= m_capacity)
-    {
-      return status_result::success();
-    }
-
-    std::size_t new_capacity = required;
-
-    // Geometric growth avoids reallocation for every appended character.
-    const auto doubled = checked_add(m_capacity, m_capacity);
-    if (doubled.has_value())
-    {
-      const std::size_t bounded_capacity = (*doubled.value_if() > m_max_units) ? m_max_units : *doubled.value_if();
-
-      if (bounded_capacity > new_capacity)
-      {
-        new_capacity = bounded_capacity;
-      }
-    }
-
-    auto allocation = allocate_array(m_provider, new_capacity, sizeof(char16_t), alignof(char16_t));
-
-    if (!allocation.has_value())
-    {
-      return status_result::failure(*allocation.error_if());
-    }
-
-    // Empty storage may have a null pointer, so omit the empty copy.
-    if (m_size != std::size_t{})
-    {
-      std::memcpy(allocation.value_if()->data(), m_storage.data(), m_size * sizeof(char16_t));
-    }
-
-    // Replace the old woner only after allocation and coy succeeded.
-    m_storage = std::move(*allocation.value_if());
-    m_capacity = new_capacity;
-
-    return status_result::success();
-  }
-
-  /**
    * @brief Append units from an independent readable array.
    * @par Requirements
    * P013; J5-018; J5-029.
    * @note Private callers provide a valid nonempty local array.
-   * Storage is reserved for the entire append before writing any units.
+   * The entire append must fit the reservation before any unit is written.
    */
   status_result decoded_string_builder::append_units(const char16_t* units, std::size_t count) noexcept
   {
@@ -82,15 +29,15 @@ namespace adaptive_json5
       return status_result::failure(*new_size.error_if());
     }
 
-    const auto reserved = reserve(*new_size.value_if());
-    if (!reserved.has_value())
+    // Growing here would mean the lexer's counting pass and decoding pass disagree.
+    if (*new_size.value_if() > m_capacity)
     {
-      return status_result::failure(*reserved.error_if());
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
     auto* bytes = static_cast<unsigned char*>(m_storage.data());
 
-    // Reserve proved that the old offset and complete range fit.
+    // The capacity check proved that the old offset and complete range fit.
     std::memcpy(bytes + (m_size * sizeof(char16_t)), units, (count * sizeof(char16_t)));
     m_size = *new_size.value_if();
 
@@ -185,7 +132,7 @@ namespace adaptive_json5
    * P013; J5-018; J5-029; J5-040.
    * @return Completed string owning the existing allocation.
    * @note Performs no allocation or content copy and cannot fail.
-   * Unused capacity remains owned by the returned string.
+   * The returned string owns exactly the reserved storage.
    * The builder becomes empty and can be reused with its original
    * provider and unit limit. Repeated finish returns an empty string.
    */

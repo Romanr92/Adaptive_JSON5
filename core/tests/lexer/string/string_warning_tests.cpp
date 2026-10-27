@@ -95,6 +95,8 @@ namespace
         ASSERT_TRUE(piece.has_value());
         const auto offset = source.offset();
         decoded_string_builder builder(c_test_storage, 1);
+        // One separator decodes to one unit; the builder needs its exact reservation first.
+        ASSERT_TRUE(builder.reserve_exact(1).has_value());
         /* Act */
         const auto warning = raw_separator_warning_for(*piece.value_if(), mode);
         const auto repeated = raw_separator_warning_for(*piece.value_if(), mode);

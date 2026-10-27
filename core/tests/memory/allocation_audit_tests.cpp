@@ -7,7 +7,7 @@
 #include "input/cursor.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
-#include "memory/decoded_string_builder.hpp"
+#include "lexer/string/string_token.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_engine.hpp"
 #include "value/big_unsigned.hpp"
@@ -113,25 +113,29 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
-  /* Verify a finished decoded string does not retain geometric spare capacity.
-   * Arrange: A builder over a slot provider that tracks live bytes.
-   * Act: Append 33 units, which forces capacity past the next power of two, then finish.
-   * Expect: The retained string owns exactly 33 UTF-16 units of storage.
+  /* Verify a decoded string is reserved exactly once and retains no spare capacity.
+   * Arrange: A 33-unit string, which used to force capacity past the next power of two.
+   * Act: Recognize it as a scalar and keep the token alive.
+   * Expect: One allocation, and the retained string owns exactly 33 UTF-16 units.
    */
   TEST(J5_046_DecodedStringBuilder, FinishRetainsExactUnits)
   {
     /* Arrange */
     constexpr std::size_t c_units = 33;
+    const std::string input = "\"" + std::string(c_units, 'a') + "\"";
     string_provider provider;
-    decoded_string_builder builder(provider.callbacks(), 64);
+    cursor source{input_view{input.data(), input.size()}};
     /* Act */
-    for (std::size_t index{}; index < c_units; ++index)
-    {
-      ASSERT_TRUE(builder.append_unit(u'a').has_value());
-    }
-    const decoded_string text = builder.finish();
+    const auto token =
+      consume_scalar(source, syntax_mode::json5, provider.callbacks(), 64, 64, std::numeric_limits<std::size_t>::max());
     /* Expect */
-    EXPECT_EQ(text.size(), c_units);
+    ASSERT_TRUE(token.has_value());
+    ASSERT_TRUE(token.value_if()->has_value());
+    const auto* string = std::get_if<string_token>(&**token.value_if());
+    ASSERT_NE(string, nullptr);
+    EXPECT_EQ(string->value.size(), c_units);
+    // Counting first allows one exact reservation (ADR 0003, decision 2).
+    EXPECT_EQ(provider.m_allocations, 1U);
     // Retained strings are charged against max_owned_bytes, so spare capacity is wasted budget.
     EXPECT_EQ(provider.m_live_bytes, c_units * sizeof(char16_t));
   }

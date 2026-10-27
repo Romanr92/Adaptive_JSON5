@@ -313,6 +313,8 @@ namespace
     cursor first_source({param.first.data(), param.first.size()});
     cursor second_source({param.second.data(), param.second.size()});
     decoded_string_builder builder(c_test_storage, 2);
+    // Two escaped units; the builder needs its exact reservation first.
+    ASSERT_TRUE(builder.reserve_exact(2).has_value());
     std::array<unsigned char, 4> output;
     output.fill(0xA5);
     const auto before = output;
