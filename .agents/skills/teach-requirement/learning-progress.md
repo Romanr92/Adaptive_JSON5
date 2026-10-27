@@ -97,3 +97,8 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   2026-10-27, step 5 lesson 3 (`consume_identifier`): whole guard correct, the
   third independent success. Treat the whole failure guard as learned: from now
   on use a one-line exercise block for it.
+  2026-10-27, step 9 lesson 1 (`big_unsigned::reserve`): the first one-line
+  block came back as `if (!allocation.error_if())`, inverted. The learner
+  confirmed this was inattention, not a misunderstanding: they understand the
+  guard. Treat it as a slip; the concept stays learned and needs no extra hints.
+  Just point the slip out in review.

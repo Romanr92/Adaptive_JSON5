@@ -25,7 +25,9 @@ namespace adaptive_json5::detail
     constexpr std::size_t c_tail_work_units = 1;
     constexpr unsigned int c_limb_bits = 16;
     constexpr std::size_t c_shift_setup_work_units = 1;
-
+    constexpr unsigned int c_decimal_radix_2 = 100;
+    constexpr unsigned int c_decimal_radix_3 = 1000;
+    constexpr unsigned int c_decimal_radix_4 = 10000;
     constexpr std::size_t c_additional_limb = 1;
 
     /**
@@ -66,12 +68,95 @@ namespace adaptive_json5::detail
   } // namespace
 
   /**
+   * @brief Upper bound on the bits of an integer below 10^digits.
+   * @par Requirements
+   * P038; J5-037; J5-046.
+   * @param digits Number of decimal digits, or the exponent of a power of ten.
+   * @return ceil(digits * 10 / 3) bits, or resource_limit on overflow.
+   */
+  result<std::size_t> decimal_digit_bits(std::size_t digits) noexcept
+  {
+    constexpr std::size_t c_bits_numerator = 10;
+    constexpr std::size_t c_bits_denominator = 3;
+
+    const auto scaled = checked_multiply(digits, c_bits_numerator);
+
+    if (!scaled.has_value())
+    {
+      return result<std::size_t>::failure(*scaled.error_if());
+    }
+
+    // Adding denominator - 1 before dividing rounds up.
+    const auto rounded = checked_add(*scaled.value_if(), c_bits_denominator - 1);
+
+    if (!rounded.has_value())
+    {
+      return result<std::size_t>::failure(*rounded.error_if());
+    }
+
+    return result<std::size_t>::success(*rounded.value_if() / c_bits_denominator);
+  }
+
+  /**
+   * @brief Convert a bit bound to the limbs to reserve, with one limb of margin.
+   * @par Requirements
+   * P038; J5-037; J5-046.
+   * @param bits Upper bound on significant bits.
+   * @return ceil(bits / 16) + 1 limbs, or resource_limit on overflow.
+   */
+  result<std::size_t> limbs_for_bits(std::size_t bits) noexcept
+  {
+    const auto rounded = checked_add(bits, std::size_t{c_limb_bits} - 1);
+
+    if (!rounded.has_value())
+    {
+      return result<std::size_t>::failure(*rounded.error_if());
+    }
+
+    // The extra limb absorbs the +1 bit of a power of ten and any rounding in the callers' bounds.
+    return checked_add(*rounded.value_if() / c_limb_bits, c_additional_limb);
+  }
+
+  /**
    * @brief Construct an allocation-free exact zero.
    * @par Requirements
    * P038; J5-046.
    * @param provider Borrowed fallible storage provider.
    */
   big_unsigned::big_unsigned(const storage_callbacks& provider) noexcept : m_provider(provider) {}
+
+  /**
+   * @brief Reserve limb storage for an upper bound before loading any digits.
+   * @par Requirements
+   * P038; J5-037; J5-046.
+   * @param limbs Upper bound on the limbs this integer will hold.
+   * @return Success, a provider failure, or wrong_type_or_access when nonzero or already reserved.
+   */
+  status_result big_unsigned::reserve(std::size_t limbs) noexcept
+  {
+    // One reservation per integer, made while it is still zero, so nothing needs copying.
+    if ((m_size != 0) || (m_capacity != 0))
+    {
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    if (limbs == 0)
+    {
+      return status_result::success();
+    }
+
+    auto allocation = allocate_array(m_provider, limbs, sizeof(limb_type), alignof(limb_type));
+
+    if (!allocation.has_value())
+    {
+      return status_result::failure(*allocation.error_if());
+    }
+
+    m_storage = std::move(*allocation.value_if());
+    m_capacity = limbs;
+
+    return status_result::success();
+  }
 
   /**
    * @brief Report whether no nonzero limbs are stored.
@@ -127,18 +212,22 @@ namespace adaptive_json5::detail
   }
 
   /**
-   * @brief Append a numeric digit using bounded exact limb arithmetic.
+   * @brief Append a digit or decimal chunk using bounded exact limb arithmetic.
    * @par Requirements
    * P038; J5-003; J5-037; J5-046; J5-048.
-   * @param digit Numeric digit value below radix.
-   * @param radix Decimal or hexadecimal spelling base.
+   * @param digit Numeric digit or decimal chunk value below radix.
+   * @param radix Supported multiplier: 10, 100, 1000, 10000 or 16.
    * @param work Shared work budget.
    * @return Success or an explicit failure preserving the original value.
-   * @note Allocation and budget checks precede mutation.
+   * @note Budget and capacity checks precede mutation; performs no allocation.
    */
   status_result big_unsigned::append_digit(unsigned int digit, unsigned int radix, work_budget& work) noexcept
   {
-    if (((radix != c_decimal_radix) && (radix != c_hexadecimal_radix)) || (digit >= radix))
+    const bool supported_radix = (radix == c_decimal_radix) || (radix == c_decimal_radix_2) ||
+                                 (radix == c_decimal_radix_3) || (radix == c_decimal_radix_4) ||
+                                 (radix == c_hexadecimal_radix);
+
+    if (!supported_radix || (digit >= radix))
     {
       return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
@@ -175,44 +264,28 @@ namespace adaptive_json5::detail
     }
 
     const bool grows = (carry != 0);
-    owned_block replacement{};
 
-    if (grows)
+    // The reservation is an upper bound, so needing more means the bound was wrong.
+    if (grows && (m_size >= m_capacity))
     {
-      const auto count = checked_add(m_size, c_additional_limb);
-
-      if (!count.has_value())
-      {
-        return status_result::failure(*count.error_if());
-      }
-
-      auto allocation = allocate_array(m_provider, *count.value_if(), sizeof(limb_type), alignof(limb_type));
-
-      if (!allocation.has_value())
-      {
-        return status_result::failure(*allocation.error_if());
-      }
-
-      replacement = std::move(*allocation.value_if());
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    // No fallible operations remain after choosing the destination storage.
-    owned_block& destination = grows ? replacement : m_storage;
+    // No fallible operations remain, so the integer is updated in place.
     carry = digit;
 
     for (std::size_t index{}; index < m_size; ++index)
     {
       const auto expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
 
-      write_limb(destination, index, static_cast<limb_type>(expanded % c_limb_radix));
+      write_limb(m_storage, index, static_cast<limb_type>(expanded % c_limb_radix));
 
       carry = expanded / c_limb_radix;
     }
 
     if (grows)
     {
-      write_limb(destination, m_size, static_cast<limb_type>(carry));
-      m_storage = std::move(replacement);
+      write_limb(m_storage, m_size, static_cast<limb_type>(carry));
       ++m_size;
     }
 
@@ -346,47 +419,54 @@ namespace adaptive_json5::detail
       return status_result::failure(*charged.error_if());
     }
 
-    auto allocation = allocate_array(m_provider, destination_count, sizeof(limb_type), alignof(limb_type));
-
-    if (!allocation.has_value())
+    if (destination_count > m_capacity)
     {
-      return status_result::failure(*allocation.error_if());
-    }
-
-    auto& destination = *allocation.value_if();
-
-    // Whole-limb shifting introduces zero limbs at the last significant end.
-    for (std::size_t index{}; index < whole_limbs; ++index)
-    {
-      write_limb(destination, index, limb_type{});
-    }
-
-    wide_type carry{};
-
-    for (std::size_t index{}; index < m_size; ++index)
-    {
-      // The partial shift is below 16 bits, so the expanded value fits wide_type.
-      const auto expanded = (static_cast<wide_type>(read_limb(m_storage, index)) << partial_bits) | carry;
-
-      write_limb(destination, whole_limbs + index, static_cast<limb_type>(expanded % c_limb_radix));
-
-      carry = expanded / c_limb_radix;
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
     std::size_t significant_count = *base_count.value_if();
 
-    if (partial_bits != 0)
+    if (partial_bits == 0)
     {
-      write_limb(destination, significant_count, static_cast<limb_type>(carry));
+      // Move limbs upwards starting at the top, so no source limb is overwritten before it is read.
+      for (std::size_t index = m_size; index != 0;)
+      {
+        --index;
+        write_limb(m_storage, index + whole_limbs, read_limb(m_storage, index));
+      }
+    }
+    else
+    {
+      const unsigned int carry_bits = c_limb_bits - partial_bits;
 
-      if (carry != 0)
+      // The bits pushed out of the top limb form a new most significant limb.
+      const auto top = static_cast<limb_type>(read_limb(m_storage, m_size - c_additional_limb) >> carry_bits);
+      write_limb(m_storage, m_size + whole_limbs, top);
+
+      if (top != 0)
       {
         ++significant_count;
       }
+
+      // Each destination limb joins its source limb with the high bits of the limb below.
+      for (std::size_t index = m_size - c_additional_limb; index != 0; --index)
+      {
+        const auto high = static_cast<wide_type>(read_limb(m_storage, index)) << partial_bits;
+        const auto low = static_cast<wide_type>(read_limb(m_storage, index - 1)) >> carry_bits;
+
+        write_limb(m_storage, index + whole_limbs, static_cast<limb_type>((high | low) % c_limb_radix));
+      }
+
+      const auto lowest = static_cast<wide_type>(read_limb(m_storage, 0)) << partial_bits;
+      write_limb(m_storage, whole_limbs, static_cast<limb_type>(lowest % c_limb_radix));
     }
 
-    // Publish only after all the fallible operations and result construction finish.
-    m_storage = std::move(destination);
+    // Whole-limb shifting introduces zero limbs at the least significant end.
+    for (std::size_t index{}; index < whole_limbs; ++index)
+    {
+      write_limb(m_storage, index, limb_type{});
+    }
+
     m_size = significant_count;
 
     return status_result::success();
@@ -526,23 +606,17 @@ namespace adaptive_json5::detail
       return status_result::success();
     }
 
-    // Keep the original value intact until replacement storage is ready.
-    auto allocation = allocate_array(m_provider, other.m_size, sizeof(limb_type), alignof(limb_type));
-
-    if (!allocation.has_value())
+    // The reservation is an upper bound, so a larger source means the bound was wrong.
+    if (other.m_size > m_capacity)
     {
-      return status_result::failure(*allocation.error_if());
+      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
-
-    auto& destination = *allocation.value_if();
 
     for (std::size_t index{}; index < other.m_size; ++index)
     {
-      write_limb(destination, index, read_limb(other.m_storage, index));
+      write_limb(m_storage, index, read_limb(other.m_storage, index));
     }
 
-    // No fallible operations remain, so publishing cannot leave a partial copy.
-    m_storage = std::move(destination);
     m_size = other.m_size;
 
     return status_result::success();

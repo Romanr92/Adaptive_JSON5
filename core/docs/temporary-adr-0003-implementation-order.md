@@ -30,3 +30,5 @@ Implementation, unit existence and executed results are tracked separately.
 | 9 | A2, B1, 1c: numeric pre-sizing, 10^4 chunks, charging | — | medium | not started | pending: `J5_046_BigUnsigned.DigitGrowthIsGeometric` (to restate as one reservation) | fails before the change |
 
 Step 9 is independent and can be done in parallel with steps 1–8.
+
+**Follow-up after the steps (requested by the user, 2026-10-27):** review every place that reads the input twice and check whether a scan that already happens can provide the needed data instead, as step 9 does by taking its size bound from `analyse_number`. Candidates: the count and decode passes of `walk_string_body` and `walk_identifier` (step 5) with their extra work charge, the warning re-scan in `retain_warnings` (step 4), and the planned counting pre-pass of step 7.

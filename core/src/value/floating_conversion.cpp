@@ -28,22 +28,8 @@ namespace adaptive_json5
     constexpr unsigned int c_hexadecimal_radix = 16;
     constexpr unsigned int c_hexadecimal_letter_offset = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
-
-    // Exceeds every supported decimal range, so a saturated exponent is certainly out of range.
-    constexpr std::size_t c_exponent_margin = 2048;
-
-    /**
-     * @brief Describe an exact value as significand digits times a power of ten.
-     * @par Requirements
-     * P038; J5-037.
-     * @note The significand itself is accumulated separately in a big_unsigned.
-     */
-    struct decimal_parts
-    {
-        bool scale_negative{};         // Sign of the power-of-ten exponent.
-        std::size_t scale_magnitude{}; // Absolute power-of-ten exponent, possibly saturated.
-        std::size_t digit_count{};     // Upper bound on significand decimal digits.
-    };
+    constexpr unsigned int c_decimal_chunk_radix = 10000;
+    constexpr std::size_t c_decimal_chunk_digits = 4;
 
     /**
      * @brief Convert one validated hexadecimal digit character to its value.
@@ -89,23 +75,21 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Accumulate significand digits and the combined decimal exponent.
+     * @brief Load validated significand digits into a reserved exact integer.
      * @par Requirements
-     * P038; J5-003; J5-037; J5-048.
+     * P038; J5-003; J5-037; J5-046; J5-048.
      * @param spelling Validated finite numeric spelling.
      * @param kind Decimal or hexadecimal spelling family.
-     * @param digits Exact zero receiving every significand digit.
+     * @param digits Reserved zero receiving the significand.
      * @param work Shared conversion work budget.
-     * @return Power-of-ten scale or an explicit resource/storage failure.
-     * @note Hexadecimal spellings are integers and always have zero scale.
-     * Exponents saturate instead of overflowing; saturated values are certainly out of range.
+     * @return Success or an explicit arithmetic/resource failure.
+     * @note Loads decimal chunks of up to four digits and single hexadecimal digits.
+     * Ignores the decimal point and stops before the decimal exponent.
+     * The caller reserves sufficient capacity before calling.
      */
-    [[nodiscard]] result<decimal_parts> read_significand(input_view spelling, number_kind kind,
-                                                         detail::big_unsigned& digits, work_budget& work) noexcept
+    [[nodiscard]] status_result load_significand(input_view spelling, number_kind kind, detail::big_unsigned& digits,
+                                                 work_budget& work) noexcept
     {
-      using parts_result = result<decimal_parts>;
-
-      decimal_parts parts{};
       std::size_t position{};
 
       if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
@@ -113,7 +97,7 @@ namespace adaptive_json5
         ++position;
       }
 
-      // Hexadecimal is handled separately because 'e' and 'E' are digits there.
+      // Hexadecimal 'e' and 'E' are digits, so keep this path separate.
       if (kind == number_kind::hexadecimal)
       {
         position += c_hexadecimal_prefix_bytes;
@@ -125,15 +109,15 @@ namespace adaptive_json5
 
           if (!appended.has_value())
           {
-            return parts_result::failure(*appended.error_if());
+            return status_result::failure(*appended.error_if());
           }
         }
 
-        return parts_result::success(parts);
+        return status_result::success();
       }
 
-      bool after_point{};
-      std::size_t fractional_digits{};
+      unsigned int chunk{};
+      unsigned int chunk_radix{1};
 
       while (position < spelling.size)
       {
@@ -145,85 +129,39 @@ namespace adaptive_json5
           break;
         }
 
+        // Analysis already accounts for the point in the decimal scale.
         if (current == '.')
         {
-          after_point = true;
           continue;
         }
 
-        // Leading zeros keep the integer canonical zero and allocate nothing.
-        const auto appended = digits.append_digit(static_cast<unsigned int>(current - '0'), c_decimal_radix, work);
+        const auto digit = static_cast<unsigned int>(current - '0');
 
-        if (!appended.has_value())
+        // At most four decimal digits are accumulated, including leading zeros.
+        chunk = (chunk * c_decimal_radix) + digit;
+        chunk_radix *= c_decimal_radix;
+
+        if (chunk_radix == c_decimal_chunk_radix)
         {
-          return parts_result::failure(*appended.error_if());
-        }
+          const auto appended = digits.append_digit(chunk, chunk_radix, work);
 
-        ++parts.digit_count;
-
-        if (after_point)
-        {
-          ++fractional_digits;
-        }
-      }
-
-      const auto limit = checked_add(spelling.size, c_exponent_margin);
-
-      if (!limit.has_value())
-      {
-        return parts_result::failure(*limit.error_if());
-      }
-
-      bool exponent_negative{};
-      std::size_t exponent{};
-
-      // Validated syntax guarantees at least one exponent digit after the introducer.
-      if (position < spelling.size)
-      {
-        if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
-        {
-          exponent_negative = (spelling.data[position] == '-');
-          ++position;
-        }
-
-        for (; position < spelling.size; ++position)
-        {
-          const auto digit = static_cast<std::size_t>(spelling.data[position] - '0');
-
-          // Saturate before multiplying so arbitrarily long exponents cannot wrap.
-          if (exponent < *limit.value_if())
+          if (!appended.has_value())
           {
-            exponent = (exponent > ((*limit.value_if() - digit) / c_decimal_radix))
-                         ? *limit.value_if()
-                         : (exponent * c_decimal_radix) + digit;
+            return status_result::failure(*appended.error_if());
           }
+
+          chunk = 0;
+          chunk_radix = 1;
         }
       }
 
-      // Combine the written exponent with the implied fractional scale without signed overflow.
-      if (exponent_negative)
+      // A shorter final chunk must be loaded even when its numeric value is zero.
+      if (chunk_radix != 1)
       {
-        const auto magnitude = checked_add(exponent, fractional_digits);
-
-        if (!magnitude.has_value())
-        {
-          return parts_result::failure(*magnitude.error_if());
-        }
-
-        parts.scale_negative = true;
-        parts.scale_magnitude = *magnitude.value_if();
-      }
-      else if (exponent >= fractional_digits)
-      {
-        parts.scale_magnitude = exponent - fractional_digits;
-      }
-      else
-      {
-        parts.scale_negative = true;
-        parts.scale_magnitude = fractional_digits - exponent;
+        return digits.append_digit(chunk, chunk_radix, work);
       }
 
-      return parts_result::success(parts);
+      return status_result::success();
     }
 
     /**
@@ -297,7 +235,22 @@ namespace adaptive_json5
         return float_result::success(**special.value_if());
       }
 
-      const bool negative = analysis.value_if()->negative;
+      // Analysis already collected these properties during its existing scan.
+      const detail::number_analysis& parts = *analysis.value_if();
+      const bool negative = parts.negative;
+
+      // Reject certain overflow before reserving scratch or loading digits.
+      if (!parts.scale_negative && (parts.scale_magnitude > c_overflow_scale))
+      {
+        return float_result::failure(error::numeric_failure(numeric_conversion_reason::out_of_range));
+      }
+
+      // The value is below 10^(digit_count - scale), so this gap guarantees zero.
+      if (parts.scale_negative && (parts.scale_magnitude >= parts.digit_count) &&
+          ((parts.scale_magnitude - parts.digit_count) >= c_underflow_scale))
+      {
+        return finish_underflow<T>(negative, options);
+      }
 
       // Declared before integers so it outlives every allocation it accounts for.
       accounted_storage arena{scratch, options.max_scratch_bytes};
@@ -306,26 +259,104 @@ namespace adaptive_json5
       detail::big_unsigned numerator{provider};
       detail::big_unsigned denominator{provider};
 
-      const auto read = read_significand(number.spelling(), number.kind(), numerator, work);
+      // Bound the significand without scanning its spelling again.
+      const auto digit_bits = (parts.kind == number_kind::hexadecimal)
+                                ? checked_multiply(parts.digit_count, std::size_t{4})
+                                : detail::decimal_digit_bits(parts.digit_count);
 
-      if (!read.has_value())
+      if (!digit_bits.has_value())
       {
-        return float_result::failure(*read.error_if());
+        return float_result::failure(*digit_bits.error_if());
       }
 
-      const decimal_parts parts = *read.value_if();
+      const auto scale_bits = detail::decimal_digit_bits(parts.scale_magnitude);
 
-      // Reject certain overflow before building a power of ten proportional to the exponent.
-      if (!parts.scale_negative && (parts.scale_magnitude > c_overflow_scale))
+      if (!scale_bits.has_value())
       {
-        return float_result::failure(error::numeric_failure(numeric_conversion_reason::out_of_range));
+        return float_result::failure(*scale_bits.error_if());
       }
 
-      // The value is below 10^(digit_count - scale), so a large enough gap guarantees zero.
-      if (parts.scale_negative && (parts.scale_magnitude >= parts.digit_count) &&
-          ((parts.scale_magnitude - parts.digit_count) >= c_underflow_scale))
+      // Before scaling, the numerator holds the significand and the denominator holds one.
+      std::size_t numerator_bound = *digit_bits.value_if();
+      std::size_t denominator_bound = 1;
+
+      if (parts.scale_negative)
       {
-        return finish_underflow<T>(negative, options);
+        // The denominator becomes 10^scale; the extra bit also covers 10^0.
+        const auto scaled_bound = checked_add(denominator_bound, *scale_bits.value_if());
+
+        if (!scaled_bound.has_value())
+        {
+          return float_result::failure(*scaled_bound.error_if());
+        }
+
+        denominator_bound = *scaled_bound.value_if();
+      }
+      else
+      {
+        const auto scaled_bound = checked_add(numerator_bound, *scale_bits.value_if());
+
+        if (!scaled_bound.has_value())
+        {
+          return float_result::failure(*scaled_bound.error_if());
+        }
+
+        numerator_bound = *scaled_bound.value_if();
+      }
+
+      // Both integers must fit the later alignment and remainder operations.
+      const std::size_t larger_bound = (numerator_bound > denominator_bound) ? numerator_bound : denominator_bound;
+
+      const auto aligned_bound = checked_add(larger_bound, static_cast<std::size_t>(c_quotient_bits));
+
+      if (!aligned_bound.has_value())
+      {
+        return float_result::failure(*aligned_bound.error_if());
+      }
+
+      // A remainder can temporarily double before the next subtraction.
+      const auto capacity_bits = checked_add(*aligned_bound.value_if(), std::size_t{1});
+
+      if (!capacity_bits.has_value())
+      {
+        return float_result::failure(*capacity_bits.error_if());
+      }
+
+      const auto capacity_limbs = detail::limbs_for_bits(*capacity_bits.value_if());
+
+      if (!capacity_limbs.has_value())
+      {
+        return float_result::failure(*capacity_limbs.error_if());
+      }
+
+      // The bound calculation has constant cost; reservation does not initialize limbs.
+      const auto bound_charged = work.charge(1);
+
+      if (!bound_charged.has_value())
+      {
+        return float_result::failure(*bound_charged.error_if());
+      }
+
+      const auto numerator_reserved = numerator.reserve(*capacity_limbs.value_if());
+
+      if (!numerator_reserved.has_value())
+      {
+        return float_result::failure(*numerator_reserved.error_if());
+      }
+
+      const auto denominator_reserved = denominator.reserve(*capacity_limbs.value_if());
+
+      if (!denominator_reserved.has_value())
+      {
+        return float_result::failure(*denominator_reserved.error_if());
+      }
+
+      // Start digit arithmetic only after both scratch reservations succeed.
+      const auto loaded = load_significand(number.spelling(), parts.kind, numerator, work);
+
+      if (!loaded.has_value())
+      {
+        return float_result::failure(*loaded.error_if());
       }
 
       const auto one = denominator.append_digit(1, c_decimal_radix, work);
@@ -337,9 +368,32 @@ namespace adaptive_json5
 
       detail::big_unsigned& scaled = parts.scale_negative ? denominator : numerator;
 
-      for (std::size_t index{}; index < parts.scale_magnitude; ++index)
+      std::size_t remaining_scale = parts.scale_magnitude;
+
+      // Each full chunk applies four decimal positions in one limb operation.
+      while (remaining_scale >= c_decimal_chunk_digits)
       {
-        const auto multiplied = scaled.append_digit(0, c_decimal_radix, work);
+        const auto multiplied = scaled.append_digit(0, c_decimal_chunk_radix, work);
+
+        if (!multiplied.has_value())
+        {
+          return float_result::failure(*multiplied.error_if());
+        }
+
+        remaining_scale -= c_decimal_chunk_digits;
+      }
+
+      if (remaining_scale != 0)
+      {
+        unsigned int radix = 1;
+
+        // At most three positions remain, so radix never exceeds 1000.
+        for (std::size_t index{}; index < remaining_scale; ++index)
+        {
+          radix *= c_decimal_radix;
+        }
+
+        const auto multiplied = scaled.append_digit(0, radix, work);
 
         if (!multiplied.has_value())
         {
