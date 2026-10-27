@@ -23,6 +23,11 @@ namespace adaptive_json5
    * P036; J5-032; J5-033.
    * @note Equality uses exact decoded UTF-16 units.
    * The policy applies independently within each object in either syntax mode.
+   * reject_duplicates compares each name with the earlier names of its object, so work grows
+   * with the square of the member count: one object with 1024 members needs about 524 000
+   * work units. Raise resource_limits::max_work_units when using it with large objects.
+   * Duplicates are checked after syntax and limits, so another error in the same document
+   * is reported instead of the duplicate (ADR 0003, decision 7, C1).
    */
   enum class duplicate_name_policy
   {

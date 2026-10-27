@@ -721,6 +721,32 @@ default to 65536 would not cover warning-heavy documents.
   `includes/adaptive_json5/memory/resource_limits.hpp`. The defaults of the numeric
   conversion and comparison options derive from it and change with it.
 
+### Measured results (step 8, 2026-10-28)
+
+The default is implemented: `max_work_units = 131072` in
+`includes/adaptive_json5/memory/resource_limits.hpp`; the numeric conversion and
+comparison defaults read the same value. Each worst-case document below is exactly
+16384 bytes, parses completely under the default limits, parses at its measured
+requirement and fails with `resource_limit` one unit below it
+(`J5_049_WorkBaseline/WorkBaselineUnits` in `core/tests/parser/work_baseline_tests.cpp`).
+
+| Document shape | Estimate | Measured |
+|---|---|---|
+| Few nodes, plain strings (4 strings of 4090 units) | about 51 000 | 65 527 |
+| Strings that all carry warnings (16 strings of about 1000 bytes, one raw U+2028 each) | about 74 000 | 81 091 |
+| 1023 numbers of 15 bytes | about 57 000 | 53 231 |
+| 1023 members, many tokens and padding | about 50 000 | 41 978 |
+
+The largest requirement leaves 1.62x margin to the default (the estimate was 1.75x).
+
+**Construction charge (E1, decided by the user, 2026-10-28).** With records reserved
+exactly, nothing is relocated, so `c_record_construction_work` drops from 3 to 1 unit
+per record. The measured values above use 1. Rejected: E2, keeping 3, which would
+charge for relocation that no longer happens.
+
+The duplicate-name cost is documented beside `duplicate_name_policy` in
+`includes/adaptive_json5/options.hpp`.
+
 ### Rejected alternatives
 
 - **V1, doubling with relocation charged:** consistent charging, but keeps the

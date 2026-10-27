@@ -90,7 +90,7 @@ returns `resource_limit`.
 | `max_exponent_digits` | 1024 | Digits of one exponent, leading zeros included |
 | `max_owned_bytes` | 524288 | Bytes allocated through the accounting object at the same time |
 | `max_diagnostics` | 16 | Retained warnings; one more fails the parse |
-| `max_work_units` | 32768 | Total work charged during one call (planned to change, see below) |
+| `max_work_units` | 131072 | Total work charged during one call; 8 × `max_input_bytes`, so scale it with the input limit |
 
 **How string units are counted.** Each string value and each member name must fit
 `max_string_units` by itself. All of them together must fit
@@ -139,9 +139,9 @@ document into storage reserved once at exactly those sizes.
 - **A successful parse makes few, fixed-size allocations:** one block for all
   values, one for the open-container frames, plus one per string, member name and
   number. Nothing grows or is relocated, so memory pools fragment less.
-- **Work:** both passes are charged, so a document needs roughly twice the work
-  units it needed before. Until the default `max_work_units` is raised (see the
-  planned changes below), large documents may need a higher `max_work_units`.
+- **Work:** both passes are charged. The default `max_work_units` of 131072 covers
+  every maximum-size (16384-byte) document shape measured for ADR 0003: the
+  heaviest, sixteen long strings that all carry a warning, needs 81 091 units.
 - **Duplicate names** are checked in the second pass only. With
   `reject_duplicates`, a document that has a duplicate name **and** another error
   reports the other error (syntax, encoding or limit), not the duplicate. A
@@ -151,13 +151,11 @@ document into storage reserved once at exactly those sizes.
   uses no heap. Above 512 it allocates `max_depth / 8 + 1` bytes for its nesting
   state and releases them before the second pass.
 
-## Planned changes (decided in ADR 0003, not yet implemented)
+### Work budget
 
-These change what you observe once implemented:
-
-| Change | What you will notice |
-|---|---|
-| Default `max_work_units` becomes **131072** (8 × `max_input_bytes`) | Documents near the size limits parse with default options. If you raise `max_input_bytes`, raise the work limit in the same proportion. The default work budgets of number conversion and comparison rise with it. |
+The default `max_work_units` is 8 × `max_input_bytes`. If you raise
+`max_input_bytes`, raise `max_work_units` in the same proportion. The default work
+budgets of number conversion and comparison use the same value.
 
 **Known cost:** with `duplicate_name_policy::reject_duplicates`, checking a large
 object costs work that grows with the square of its member count. One object with
@@ -240,8 +238,8 @@ all retained documents together, or give each its own accounting object.
 **Set the limits for your files.** Configuration and manifest files can be larger
 or more deeply nested than the defaults allow. Measure your largest real files,
 then set `max_input_bytes`, `max_nodes`, `max_members`, `max_depth` and the string
-limits to match, with some margin. After the planned work-budget change, keep
-`max_work_units` at about 8 × `max_input_bytes`.
+limits to match, with some margin. Keep `max_work_units` at about
+8 × `max_input_bytes`.
 
 **When a reusable parser would help.** Keeping buffers allocated between calls only
 pays off at very high parse rates, such as thousands of documents per second.

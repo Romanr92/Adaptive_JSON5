@@ -57,7 +57,7 @@ namespace
     EXPECT_EQ(defaults.limits.max_exponent_digits, 1024u);
     EXPECT_EQ(defaults.limits.max_owned_bytes, 524288u);
     EXPECT_EQ(defaults.limits.max_diagnostics, 16u);
-    EXPECT_EQ(defaults.limits.max_work_units, 32768u);
+    EXPECT_EQ(defaults.limits.max_work_units, 131072u);
     EXPECT_EQ(selected.limits.max_depth, 0u);
     EXPECT_EQ(selected.limits.max_owned_bytes, 7u);
   }

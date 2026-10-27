@@ -515,7 +515,7 @@ Current defaults in `resource_limits.hpp`:
 | `max_exponent_digits` | 1024 | Digits, excluding exponent sign |
 | `max_owned_bytes` | 524288 | Outstanding requested allocation bytes |
 | `max_diagnostics` | 16 | Retained diagnostic entries |
-| `max_work_units` | 32768 | Operation-defined charged work |
+| `max_work_units` | 131072 (8 × `max_input_bytes`) | Operation-defined charged work |
 
 The defaults are conservative, chosen for untrusted input; valid documents
 beyond them fail with `resource_limit` until the caller raises the limits. Every
@@ -1029,7 +1029,7 @@ results do not depend on the process locale. Requirement rows remain Draft.
 | --- | --- |
 | Integer conversion | Exact or explicit failure; never rounds, truncates, wraps, clamps or coerces booleans/strings. `-0` converts to `0`. |
 | Floating conversion | Rounds once, directly to the destination (`float` is not rounded through `double`), to nearest with ties to even. Negative zero keeps its sign. Finite overflow is `out_of_range` regardless of the non-finite policy. Defaults reject explicit infinity/NaN and nonzero-to-zero underflow; representable subnormals are accepted. |
-| Floating work | The default `max_work_units` (32768) is not enough for some extreme values, e.g. the smallest double subnormal, which then return `resource_limit`. Callers converting such values must raise the ceiling. |
+| Floating work | The default `max_work_units` (131072) may not be enough for some extreme values, e.g. the smallest double subnormal, which then return `resource_limit`. Callers converting such values must raise the ceiling. |
 | Comparison API | `compare_numbers(left, right, scratch, options)` in `value/number_comparison.hpp`, returning `number_order { less, equal, greater, unordered }`. `number_comparison_options` carries work and scratch ceilings, like floating conversion. |
 | Comparison semantics | Exact mathematical value, independent of spelling and radix: `1`, `1.0`, `1e0`, `+1` and `0x1` are equal. `-0` equals `0`. Infinities order beyond every finite value; equal infinities are equal. NaN on either side, including NaN versus NaN, returns successful `unordered` rather than an error. Never converts through floating point. |
 | Comparison algorithm | Compare signs, then infinities, then the decimal exponent of each value's leading nonzero digit; only equal leading exponents need big-integer scaling, bounded by the digit counts. Hexadecimal values count their decimal digits exactly. Only finite nonzero operands allocate scratch. |

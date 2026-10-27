@@ -18,13 +18,12 @@ namespace adaptive_json5
      * @brief Work charged for constructing one document record.
      * @par Requirements
      * P031; P040; J5-047; J5-048; J5-049.
-     * @note One unit creates the record. The two further units were sized for the amortized
-     * relocation of doubling record storage. Since ADR 0003 decision 7 the parser reserves
-     * records exactly and never relocates them; the value is kept until the default work
-     * budget is re-baselined in ADR 0003 step 8. The charge grows linearly with the number
-     * of values instead of charging the whole document size on every construction.
+     * @note One unit creates the record. Records are reserved exactly and never relocated
+     * (ADR 0003, decision 7), so no relocation share is charged (step 8, E1). The charge grows
+     * linearly with the number of values instead of charging the whole document size on every
+     * construction.
      */
-    constexpr std::size_t c_record_construction_work = 3;
+    constexpr std::size_t c_record_construction_work = 1;
 
     /**
      * @brief Work charged for attaching one completed value to its open parent.

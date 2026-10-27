@@ -6,7 +6,8 @@ adaptive_json5_add_unit(adaptive_json5_parser_engine_unit_tests parser_engine_un
     parser/parser_transition_tests.cpp
     parser/parser_close_tests.cpp
     parser/parser_warning_tests.cpp
-    parser/two_pass_tests.cpp)
+    parser/two_pass_tests.cpp
+    parser/work_baseline_tests.cpp)
 target_include_directories(adaptive_json5_parser_engine_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
 
 adaptive_json5_add_unit(adaptive_json5_primitive_parser_unit_tests primitive_parser_units
