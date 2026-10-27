@@ -630,10 +630,11 @@ namespace
 
   /* =================================== Test_J5_046 =================================== */
 
-  /* Verify each actual growth allocation can fail with full token rollback.
+  /* Verify the single exact allocation can fail with full token rollback.
    * Arrange: Measure allocation requests for a string mixing warnings and escapes.
    * Act: Fail each request in turn, then retry the unchanged cursor after exhaustion.
-   * Expect: Located allocation failure, no warnings/leaks, followed by exact retry success.
+   * Expect: Exactly one request (ADR 0003, decision 2), allocation failure at the opening
+   *         quote, no warnings/leaks, followed by exact retry success.
    */
   TEST(J5_046_StringLexer, FailsEveryAllocationAtomicallyAndAllowsRetry)
   {
@@ -649,7 +650,8 @@ namespace
       ASSERT_TRUE(actual.value_if()->has_value());
       request_count = baseline.m_attempts;
     }
-    ASSERT_GT(request_count, 1u);
+    // Counting first makes one allocation of exactly the decoded size.
+    ASSERT_EQ(request_count, 1u);
     for (std::size_t failure = 1; failure <= request_count; ++failure)
     {
       lexer_provider provider;
@@ -662,7 +664,7 @@ namespace
       ASSERT_FALSE(actual.has_value()) << failure;
       EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
       EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_LT(actual.error_if()->byte_offset, input.size());
+      EXPECT_EQ(actual.error_if()->byte_offset, 0u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(log.m_count, 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -750,7 +752,8 @@ namespace
     ASSERT_FALSE(actual.has_value());
     EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
     EXPECT_TRUE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, 1u);
+    // The single reservation is made for the whole string, so it is located at the opening quote.
+    EXPECT_EQ(actual.error_if()->byte_offset, 0u);
     EXPECT_EQ(source.offset(), 0u);
   }
 
@@ -796,7 +799,8 @@ namespace
         ASSERT_TRUE(baseline.has_value());
         attempts = provider.m_attempts;
       }
-      ASSERT_GT(attempts, 1u);
+      // One exact reservation per string (ADR 0003, decision 2).
+      ASSERT_EQ(attempts, 1u);
       for (std::size_t failure = 1; failure <= attempts; ++failure)
       {
         provider.m_fail_on = provider.m_attempts + failure;

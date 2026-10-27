@@ -94,3 +94,6 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   2026-10-27, step 5 lesson 2 (`consume_string`): the guard exercise was left
   as the placeholder, and the learner asked the agent to write it at the end of
   the day. That's not evidence either way; offer the next whole-guard exercise.
+  2026-10-27, step 5 lesson 3 (`consume_identifier`): whole guard correct, the
+  third independent success. Treat the whole failure guard as learned: from now
+  on use a one-line exercise block for it.
