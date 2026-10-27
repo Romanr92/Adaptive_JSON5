@@ -176,6 +176,7 @@ namespace adaptive_json5
    * The storage provider state must outlive returned owned string content.
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
+   * Keep the alternative order identical to measure_scalar, which the counting pre-pass uses (ADR 0003, decision 7).
    */
   result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_string_units, std::size_t max_identifier_units,
@@ -269,5 +270,127 @@ namespace adaptive_json5
                                                      std::size_t max_units) noexcept
   {
     return consume_scalar(source, mode, storage, max_units, max_units, std::numeric_limits<std::size_t>::max());
+  }
+
+  namespace
+  {
+    /**
+     * @brief Validate a scalar boundary and publish a complete measurement.
+     * @par Requirements
+     * P028; J5-024; J5-041; J5-047.
+     * @param source Caller cursor updated only after complete success.
+     * @param candidate Private cursor immediately after the spelling.
+     * @param measured Recognized scalar description.
+     * @param mode Selected syntax.
+     * @return The measurement, or the boundary error with source unchanged.
+     * @note The measuring counterpart of detail::finish_scalar_token.
+     */
+    result<std::optional<scalar_measure>>
+    finish_scalar_measure(cursor& source, cursor candidate, const scalar_measure& measured, syntax_mode mode) noexcept
+    {
+      using measure_result = result<std::optional<scalar_measure>>;
+
+      // A value must not run straight into another unquoted character, for example "trueA" or "1x".
+      const auto boundary = check_unquoted_token_boundary(candidate, mode);
+
+      if (!boundary.has_value())
+      {
+        return measure_result::failure(*boundary.error_if());
+      }
+
+      source = candidate;
+      return measure_result::success(measured);
+    }
+  } // namespace
+
+  /**
+   * @brief Recognize a primitive like consume_scalar, but measure it without allocating.
+   * @par Requirements
+   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-046; J5-047.
+   * @param source Cursor at a possible scalar value, after caller-managed trivia.
+   * @param mode Selected syntax.
+   * @param max_string_units Maximum decoded units in a string token.
+   * @param max_identifier_units Maximum decoded identifier units while rejecting unknown words.
+   * @param max_exponent_digits Maximum decimal exponent digits.
+   * @return A measurement, nullopt at EOF or structural punctuation, or a located error.
+   * @note Keeps consume_scalar's order so both report the same errors (ADR 0003, decision 7).
+   */
+  result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode, std::size_t max_string_units,
+                                                       std::size_t max_identifier_units,
+                                                       std::size_t max_exponent_digits) noexcept
+  {
+    using measure_result = result<std::optional<scalar_measure>>;
+
+    const std::size_t start = source.offset();
+    if (!source.peek().has_value())
+    {
+      return measure_result::success(std::nullopt);
+    }
+
+    // Leave structural tokens available to the container parser.
+    cursor punctuation_source = source;
+    if (consume_punctuation(punctuation_source).has_value())
+    {
+      return measure_result::success(std::nullopt);
+    }
+
+    cursor candidate = source;
+
+    const auto string = measure_string(candidate, mode, max_string_units);
+
+    if (!string.has_value())
+    {
+      return measure_result::failure(*string.error_if());
+    }
+
+    // Success can still mean "no string here"; only then try the next alternative.
+    if (string.value_if()->has_value())
+    {
+      const scalar_measure measured{std::in_place_type<string_measure>, **string.value_if()};
+      return finish_scalar_measure(source, candidate, measured, mode);
+    }
+
+    const auto number = detail::consume_number_spelling(candidate, mode, max_exponent_digits);
+
+    if (!number.has_value())
+    {
+      return measure_result::failure(*number.error_if());
+    }
+
+    // Success can still mean "no number here"; only then try the next alternative.
+    if (number.value_if()->has_value())
+    {
+      const scalar_measure measured{std::in_place_type<number_token>, **number.value_if()};
+      return finish_scalar_measure(source, candidate, measured, mode);
+    }
+
+    // Literals are matched by bytes, exactly as consume_scalar does (ADR 0003, decision 3).
+    const auto literal = match_literal_bytes(candidate);
+    if (literal.has_value())
+    {
+      candidate.advance(literal->byte_length);
+      const scalar_measure measured{std::in_place_type<literal_token>, *literal};
+      return finish_scalar_measure(source, candidate, measured, mode);
+    }
+
+    // Only rejection remains; measuring the identifier gives consume_scalar's errors without decoding it.
+    const auto identifier = measure_identifier(candidate, max_identifier_units);
+
+    if (!identifier.has_value())
+    {
+      return measure_result::failure(*identifier.error_if());
+    }
+
+    // No identifier either, so this character cannot start any value.
+    if (!identifier.value_if()->has_value())
+    {
+      return measure_result::failure(error::syntax_at(start, syntax_error_reason::unexpected_character));
+    }
+
+    const identifier_measure& word = **identifier.value_if();
+
+    // Unescaped literal spellings were matched above, so any identifier here is unknown.
+    return measure_result::failure(error::syntax_at_range(
+      word.byte_offset, source_span{word.byte_offset, word.byte_length}, syntax_error_reason::unknown_literal));
   }
 } // namespace adaptive_json5

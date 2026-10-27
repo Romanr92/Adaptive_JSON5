@@ -139,6 +139,13 @@ namespace adaptive_json5
     }
 
     ++m_depth;
+
+    // The pre-pass sizes the frame stack from the deepest point, not the final depth.
+    if (m_depth > m_peak_depth)
+    {
+      m_peak_depth = m_depth;
+    }
+
     return status_result::success();
   }
 
@@ -258,5 +265,29 @@ namespace adaptive_json5
 
     --m_diagnostics;
     return status_result::success();
+  }
+
+  /**
+   * @brief Report the number of value reservations currently held.
+   * @par Requirements
+   * P031; J5-046;
+   * J5-047.
+   * @note Changes no state.
+   */
+  std::size_t resource_budget::reserved_nodes() const noexcept
+  {
+    return m_nodes;
+  }
+
+  /**
+   * @brief Report the deepest nesting reserved at any time.
+   * @par Requirements
+   * P031; J5-046; J5-048.
+
+   * * @note Changes no state.
+   */
+  std::size_t resource_budget::peak_depth() const noexcept
+  {
+    return m_peak_depth;
   }
 } // namespace adaptive_json5

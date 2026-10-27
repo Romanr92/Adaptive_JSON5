@@ -33,6 +33,22 @@ namespace adaptive_json5
     };
 
     /**
+     * @brief Describe one validated member name without owning its decoded units.
+     * @par Requirements
+     * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+     * @note byte_offset and byte_length cover the whole name spelling, quotes included.
+     * Identifier names have no string warnings, so their warning_count is zero.
+     * Owns nothing, so it can be produced and discarded without a storage provider.
+     */
+    struct [[nodiscard]] member_name_measure
+    {
+        std::size_t units{};
+        std::size_t byte_offset{};
+        std::size_t byte_length{};
+        std::size_t warning_count{};
+    };
+
+    /**
      * @brief Recognize one quoted or mode-permitted identifier member name.
      * @par Requirements
      * P033; P035; J5-017; J5-019; J5-020; J5-041.
@@ -50,6 +66,22 @@ namespace adaptive_json5
     [[nodiscard]] result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
                                                                                const storage_callbacks& storage,
                                                                                std::size_t max_units) noexcept;
+
+    /**
+     * @brief Recognize a member name like consume_member_name, but measure it without allocating.
+     * @par Requirements
+     * P033; P035; J5-017; J5-019; J5-020; J5-041; J5-046; J5-047.
+     * @param source Cursor positioned after caller-managed trivia.
+     * @param mode Selected input syntax.
+     * @param max_units Inclusive decoded-name limit for this recognition.
+     * @return A measurement, successful nullopt on no-match,
+     * or the same located failure consume_member_name reports for the same input.
+     * @note Tries a quoted name first, then an identifier name in JSON5 mode only.
+     * Failure and no-match preserve source.
+     * Performs no allocation and needs no storage provider (ADR 0003, decision 7).
+     */
+    [[nodiscard]] result<std::optional<member_name_measure>> measure_member_name(cursor& source, syntax_mode mode,
+                                                                                 std::size_t max_units) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

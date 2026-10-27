@@ -51,6 +51,7 @@ namespace adaptive_json5
    * The storage provider state must outlive returned owned string content.
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
+   * Keep the alternative order identical to measure_scalar, which the counting pre-pass uses (ADR 0003, decision 7).
    */
   [[nodiscard]] result<std::optional<scalar_token>>
   consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_string_units,
@@ -70,6 +71,28 @@ namespace adaptive_json5
    */
   [[nodiscard]] result<std::optional<scalar_token>>
   consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units) noexcept;
+
+  /**
+   * @brief Recognize a primitive like consume_scalar, but measure it without allocating.
+   * @par Requirements
+   * P028; P032; J5-009; J5-023; J5-024; J5-041; J5-046; J5-047.
+   * @param source Cursor at a possible scalar value, after caller-managed trivia.
+   * @param mode Selected syntax.
+   * @param max_string_units Maximum decoded units in a string token.
+   * @param max_identifier_units Maximum decoded identifier units while rejecting unknown words.
+   * @param max_exponent_digits Maximum decimal exponent digits.
+   * @return A measurement, successful nullopt at EOF or structural punctuation,
+   * or the same located error consume_scalar reports for the same input and limits.
+   * @note Tries the alternatives in consume_scalar's order: string, number, literal, identifier.
+   * No-match and failure leave source unchanged.
+   * Performs no allocation and needs no storage provider (ADR 0003, decision 7).
+   * Does not skip trivia or join spellings across trivia.
+   */
+  [[nodiscard]] result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode,
+                                                                     std::size_t max_string_units,
+                                                                     std::size_t max_identifier_units,
+                                                                     std::size_t max_exponent_digits) noexcept;
+
 } // namespace adaptive_json5
 
 #endif /* SCALAR_LEXER_HPP_ */

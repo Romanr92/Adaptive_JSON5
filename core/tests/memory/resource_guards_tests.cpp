@@ -225,6 +225,39 @@ namespace
   }
   /* ----------------------------------------------------------------------------------- */
   /*
+   * ReportsPeakDepthAndReservedNodes.
+   * Arrange: A budget with ample limits.
+   * Act: Enter two levels, leave both, enter one again; reserve three values and release one;
+   *      fail one entry at the depth limit.
+   * Expect: The peak stays at two after leaving, a failed entry does not raise it,
+   *         and the node count follows reservations and releases (ADR 0003, decision 7).
+   */
+  TEST(J5_047_Reservations, ReportsPeakDepthAndReservedNodes)
+  {
+    /* Arrange */
+    resource_limits limits;
+    limits.max_depth = 2;
+    resource_budget budget{limits};
+    /* Act */
+    const std::size_t initial_peak = budget.peak_depth();
+    ASSERT_TRUE(budget.enter_container().has_value());
+    ASSERT_TRUE(budget.enter_container().has_value());
+    const auto excess = budget.enter_container();
+    ASSERT_TRUE(budget.leave_container().has_value());
+    ASSERT_TRUE(budget.leave_container().has_value());
+    ASSERT_TRUE(budget.enter_container().has_value());
+    ASSERT_TRUE(budget.reserve_value(false).has_value());
+    ASSERT_TRUE(budget.reserve_value(true).has_value());
+    ASSERT_TRUE(budget.reserve_value(false).has_value());
+    ASSERT_TRUE(budget.release_value(false).has_value());
+    /* Expect */
+    EXPECT_EQ(initial_peak, 0U);
+    EXPECT_FALSE(excess.has_value());
+    EXPECT_EQ(budget.peak_depth(), 2U);
+    EXPECT_EQ(budget.reserved_nodes(), 2U);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
    * BoundsAndReleasesDiagnostics.
    * Arrange: Configure an inclusive limit of two and an independent zero limit.
    * Act: Reserve at and above the boundary, release, then reuse.

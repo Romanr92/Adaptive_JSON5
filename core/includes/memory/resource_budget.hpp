@@ -29,6 +29,7 @@ namespace adaptive_json5
       std::size_t m_nodes{};
       std::size_t m_members{};
       std::size_t m_depth{};
+      std::size_t m_peak_depth{};
       std::size_t m_string_units{};
       std::size_t m_diagnostics{};
 
@@ -151,6 +152,24 @@ namespace adaptive_json5
        * P031; J5-047.
        */
       [[nodiscard]] status_result release_diagnostic() noexcept;
+
+      /**
+       * @brief Report the number of value reservations currently held.
+       * @par Requirements
+       * P031; J5-046; J5-047.
+       * @note After a successful counting pre-pass this is the exact record count to reserve
+       * (ADR 0003, decision 7). Changes no state.
+       */
+      [[nodiscard]] std::size_t reserved_nodes() const noexcept;
+
+      /**
+       * @brief Report the deepest nesting reserved at any time.
+       * @par Requirements
+       * P031; J5-046; J5-048.
+       * @note Not reduced by leave_container(), so after a successful counting pre-pass it is
+       * the exact parser frame count to reserve (ADR 0003, decision 7). Changes no state.
+       */
+      [[nodiscard]] std::size_t peak_depth() const noexcept;
   };
 } // namespace adaptive_json5
 

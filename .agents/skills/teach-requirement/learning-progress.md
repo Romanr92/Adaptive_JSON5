@@ -132,3 +132,9 @@ One-line guard blocks for learned concepts stay as they are.
   confirmed this was inattention, not a misunderstanding: they understand the
   guard. Treat it as a slip; the concept stays learned and needs no extra hints.
   Just point the slip out in review.
+  2026-10-27, step 7 lesson 3 (`measure_scalar`): four of five one-line guards
+  correct; the identifier guard was again `if (!identifier.error_if())`, the
+  same inverted form as in step 9. This is the second time with this exact
+  spelling, so it is a pattern: writing `error_if()` in the condition. Keep the
+  concept as learned, but in the next one-line blocks name the condition in the
+  block text ("condition: `!x.has_value()`") for a few lessons, then drop the hint.
