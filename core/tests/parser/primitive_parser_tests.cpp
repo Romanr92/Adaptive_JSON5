@@ -498,6 +498,8 @@ namespace
       limit_case{"WorkAbove", "true", &resource_limits::max_work_units, 12, true},
       limit_case{"WorkTrailingDenied", " true ", &resource_limits::max_work_units, 12, false},
       limit_case{"WorkTrailingExact", " true ", &resource_limits::max_work_units, 13, true},
+      limit_case{"StringWorkDenied", "\"ab\"", &resource_limits::max_work_units, 14, false},
+      limit_case{"StringWorkExact", "\"ab\"", &resource_limits::max_work_units, 15, true},
       limit_case{"NoWarningDiagnostic", "\"x\"", &resource_limits::max_diagnostics, 0, true},
       limit_case{"WarningDiagnosticDenied", "\"\xE2\x80\xA8\"", &resource_limits::max_diagnostics, 0, false},
       limit_case{"OneRetainedWarning", "\"\xE2\x80\xA8\xE2\x80\xA9\"", &resource_limits::max_diagnostics, 1, true},

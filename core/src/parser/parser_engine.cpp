@@ -260,6 +260,14 @@ namespace adaptive_json5
         warning_count = string->warning_count;
       }
 
+      // The lexer walked the string twice, counting then decoding, so its bytes are charged again.
+      const auto decoded_charged = m_work.charge(string_length);
+
+      if (!decoded_charged.has_value())
+      {
+        return status_result::failure(*decoded_charged.error_if());
+      }
+
       const auto reserved_string = m_resources.reserve_string_units(0, string_units);
 
       if (!reserved_string.has_value())
@@ -381,6 +389,14 @@ namespace adaptive_json5
       }
 
       auto& name = **recognized.value_if();
+
+      // Quoted and identifier names are both walked twice, counting then decoding.
+      const auto decode_charge = m_work.charge(name.byte_length);
+
+      if (!decode_charge.has_value())
+      {
+        return status_result::failure(*decode_charge.error_if());
+      }
 
       // Reject decoded collisions before committing the name, cursor or retained metadata.
       if (m_options.duplicate_names == duplicate_name_policy::reject_duplicates)

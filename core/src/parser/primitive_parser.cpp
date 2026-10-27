@@ -143,6 +143,7 @@ namespace adaptive_json5
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
    * Recognition scans within the remaining work and charges the bytes it reads (ADR 0003, decision 5).
+   * A string is charged its bytes once more for its decoding pass.
    * Construction charges token bytes plus c_record_construction_work.
    * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
@@ -203,6 +204,14 @@ namespace adaptive_json5
     if (const auto* string = std::get_if<string_token>(&**token.value_if()); string != nullptr)
     {
       constexpr std::size_t c_retained_warning_entries = 1;
+
+      // The lexer walked the string twice, counting then decoding, so its bytes are charged again.
+      const auto decode_charge = work.charge(value.byte_length);
+
+      if (!decode_charge.has_value())
+      {
+        return primitive_result::failure(*decode_charge.error_if());
+      }
 
       // Reject diagnostic publication before changing the destination document.
       if ((string->first_warning.has_value()) && (c_retained_warning_entries > options.limits.max_diagnostics))

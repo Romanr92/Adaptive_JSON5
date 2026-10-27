@@ -267,6 +267,53 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
+  /* Verify a string value pays for both lexer passes, counting and decoding.
+   * Arrange: Arrays holding a 200-byte number and a 200-byte string; both tokens are the
+   *          same length, so scanning and construction cost the same.
+   * Act: Find the minimal successful work ceiling for each document.
+   * Expect: The string needs at least one extra unit per token byte for its decode pass.
+   */
+  TEST(J5_049_ParserWork, StringDecodePassIsCharged)
+  {
+    /* Arrange */
+    const std::string number = "[" + std::string(200, '1') + "]";
+    const std::string string = "[\"" + std::string(198, 'a') + "\"]";
+    ASSERT_EQ(number.size(), string.size());
+    /* Act */
+    const std::size_t number_work = minimum_work(number);
+    const std::size_t string_work = minimum_work(string);
+    /* Expect */
+    EXPECT_GE(string_work, number_work + 200);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify member names pay for both lexer passes, quoted and identifier alike.
+   * Arrange: Objects whose single member name is 10 or 110 bytes longer.
+   * Act: Find the minimal successful work ceiling for each document.
+   * Expect: 100 more name bytes cost at least 200 more units: 100 for the scan and 100
+   *         for the decode pass.
+   */
+  TEST(J5_049_ParserWork, MemberNameDecodePassIsCharged)
+  {
+    for (const bool quoted : {false, true})
+    {
+      /* Arrange */
+      const auto object = [quoted](std::size_t length)
+      {
+        const std::string name(length, 'a');
+        return "{" + (quoted ? "\"" + name + "\"" : name) + ":1}";
+      };
+      /* Act */
+      const std::size_t short_work = minimum_work(object(10));
+      const std::size_t long_work = minimum_work(object(110));
+      /* Expect */
+      EXPECT_GE(long_work, short_work + 200) << (quoted ? "quoted" : "identifier");
+    }
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
   /**
    * @brief One document whose every insufficient work budget must fail with resource_limit.
    * @par Requirements

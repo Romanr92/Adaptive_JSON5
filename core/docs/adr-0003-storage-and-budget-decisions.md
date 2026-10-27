@@ -407,6 +407,17 @@ bytes.
   The re-scan in `retain_warnings` walks a string the lexer already validated, so
   its byte length is known. Charge that length before the re-scan instead of
   giving it a limited view. This is exact and stops before any work.
+- **The decode pass is charged after the token (clarified by the user, 2026-10-27).**
+  With decision 2, the lexer walks each string value and member name twice inside
+  one call: first to count, then to decode. The parser charges the token's byte
+  length a second time once the lexer returns, in `read_value`, `read_name` and
+  `consume_primitive`. The charge cannot come first without a work parameter in
+  every lexer (rejected alternative C3).
+  - *Bound:* the work done can exceed `max_work_units` by at most one token's
+    bytes. The token lies inside the limited view, so the overrun is never larger
+    than the work that remained before the scan.
+  - *Effect:* every string value and member name costs about two work units per
+    byte, as decision 2 anticipated.
 
 ### Rationale
 

@@ -105,6 +105,7 @@ namespace adaptive_json5
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
    * Recognition scans within the remaining work and charges the bytes it reads (ADR 0003, decision 5).
+   * A string is charged its bytes once more for its decoding pass.
    * Construction charges token bytes plus c_record_construction_work.
    * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
