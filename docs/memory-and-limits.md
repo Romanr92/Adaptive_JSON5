@@ -136,6 +136,7 @@ These change what you observe once implemented:
 |---|---|
 | Default `max_work_units` becomes **131072** (8 × `max_input_bytes`) | Documents near the size limits parse with default options. If you raise `max_input_bytes`, raise the work limit in the same proportion. The default work budgets of number conversion and comparison rise with it. |
 | Counting pre-pass, then exact allocation | Memory used for values, frames and strings equals what the document needs, with no spare capacity. Invalid or over-limit input fails **before any allocation**. A successful parse makes few, fixed-size allocations, so pools fragment less. |
+| Duplicate names are checked after the pre-pass | With `reject_duplicates`, a document that has a duplicate name **and** another error reports the other error (syntax, encoding or limit), not the duplicate. A document whose only problem is a duplicate still reports it, with both locations. |
 
 **Known cost:** with `duplicate_name_policy::reject_duplicates`, checking a large
 object costs work that grows with the square of its member count. One object with

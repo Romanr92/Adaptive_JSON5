@@ -30,12 +30,33 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   switch. One typo in a message literal (`escapeg`), a slip rather than a concept
   issue. Use exercise blocks for later enum-to-value mappings.
 
+## Exercise block wording (learner feedback, 2026-10-27)
+
+The step 7 lesson 2 block "Build an identifier_measure from totals, start and the
+distance counting moved, then move source to counting and return the measurement
+as success" was unclear to the learner. Write every multi-step exercise block as:
+
+- numbered steps, one action per line;
+- exact names from the code (`counting.offset() - start`), never a paraphrase
+  such as "the distance counting moved";
+- the field-to-value mapping when a struct is built, and any formula spelled out;
+- a pointer to an earlier identical pattern when one exists ("like in
+  `measure_string`").
+
+One-line guard blocks for learned concepts stay as they are.
+
 ## Retry after further guided practice
 
 - Committing a successful private cursor to the caller: the scalar finish helper
   exercise needed help. Supplied `source = candidate;` and explained references,
   cursor copies and ordering after validation/result construction. Keep guided
   support for now and retry this operation later rather than immediately.
+  2026-10-27, ADR 0003 step 7 lesson 2 (`measure_identifier`): the combined
+  block "build the measurement by aggregate initialisation, commit the cursor,
+  return success" needed help. Supplied all three lines and explained field
+  order, `counting.offset() - start` and the commit. Lesson 1's same ending had
+  been supplied, so this was its first exercise. Keep it supplied in lesson 3,
+  then retry it as a block with a pointer to the struct's field order.
 
 - Forwarding a same-typed result (2026-10-25): #96 step 3c `format_warning`
   wrapped `format_warning_at(...)` in `result<std::size_t>::success(...)`, passed
@@ -74,6 +95,15 @@ normal code comments; exercise placeholders use concise `/* ... */` blocks.
   The same lesson's error guard used `!started.error_if()` instead of
   `!started.has_value()`. Explained outer result versus inner optional and what
   `error_if()` returns. Keep supplying nested inspections with an explanation.
+  2026-10-27 (ADR 0003 step 7 lesson 2, `consume_identifier`): the no-match
+  check `!measured.value_if()->has_value()` was missing after the rewrite. The
+  lesson supplied it without an intent comment and its notes did not say that
+  the old check (`totals.units == 0`, after `totals`) had to move before
+  `totals` and change form, so editing the old function in place hid it. This
+  was a lesson-presentation gap, not a misunderstanding: once its role was
+  explained, the learner placed it correctly. Keep supplying the check with an
+  intent comment, and in review check that it sits between the failure guard
+  and the double dereference.
 - Error-propagation exercise blocks (2026-10-25): across the P038 floating,
   comparison and P039 warning-list lessons the learner filled the guards
   correctly, except one `warning_list::reserve()` guard that returned

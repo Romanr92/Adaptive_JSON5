@@ -237,6 +237,52 @@ namespace adaptive_json5
   } // namespace detail
 
   /**
+   * @brief Validate one complete quoted string and count its units without allocating.
+   * @par Requirements
+   * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041; J5-046; J5-047.
+   * @param source Cursor positioned at a possible opening quote.
+   * @param mode Selected input syntax.
+   * @param max_units Maximum decoded UTF-16 units.
+   * @return The measurement, nullopt for nonquote input or EOF, or a located failure.
+   * @note Performs no allocation (ADR 0003, decisions 2 and 7).
+   */
+  result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode, std::size_t max_units) noexcept
+  {
+    using measure_result = result<std::optional<string_measure>>;
+
+    const std::size_t start = source.offset();
+
+    // Keep all token consumption private until the complete operation succeeds.
+    cursor candidate = source;
+    const auto opening = consume_string_opening(candidate, mode);
+
+    if (!opening.has_value())
+    {
+      return measure_result::failure(*opening.error_if());
+    }
+
+    if (!opening.value_if()->has_value())
+    {
+      return measure_result::success(std::nullopt);
+    }
+
+    // A null builder makes the walk validate and count only.
+    const auto counted = walk_string_body(candidate, start, **opening.value_if(), mode, max_units, nullptr);
+
+    if (!counted.has_value())
+    {
+      return measure_result::failure(*counted.error_if());
+    }
+
+    const string_walk& totals = *counted.value_if();
+    const string_measure measured{totals.units, start, candidate.offset() - start, totals.warning_count,
+                                  totals.first_warning};
+
+    source = candidate;
+    return measure_result::success(measured);
+  }
+
+  /**
    * @brief Consume one complete quoted string into owned decoded storage.
    * @par Requirements
    * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041; J5-046.
@@ -249,7 +295,7 @@ namespace adaptive_json5
    * or an explicit located failure.
    * @note Success consumes through the matching closing quote only.
    * No-match and failure leave the caller's cursor unchanged.
-   * Counts units first, then makes one allocation of exactly that size (ADR 0003, decision 2).
+   * Measures with measure_string, then makes one allocation of exactly that size (ADR 0003, decision 2).
    * Partial owned storage is released on failure.
    * No warning callbacks occur for a string that fails validation or storage.
    * Input must remain unchanged throughout both passes and callbacks.
@@ -262,34 +308,27 @@ namespace adaptive_json5
   {
     using string_result = result<std::optional<string_token>>;
 
-    const std::size_t start = source.offset();
+    // First pass: the same measurement the parser's pre-pass uses, so both agree by construction.
+    cursor counting = source;
+    const auto measured = measure_string(counting, mode, max_units);
 
-    // Keep all token consumption private until the complete operation succeeds.
-    cursor candidate = source;
-    const auto opening = consume_string_opening(candidate, mode);
-    if (!opening.has_value())
+    if (!measured.has_value())
     {
-      return string_result::failure(*opening.error_if());
+      return string_result::failure(*measured.error_if());
     }
 
-    if (!opening.value_if()->has_value())
+    if (!measured.value_if()->has_value())
     {
       return string_result::success(std::nullopt);
     }
 
-    const string_quote quote = **opening.value_if();
-    const cursor body = candidate;
+    const string_measure& totals = **measured.value_if();
+    const std::size_t start = totals.byte_offset;
 
-    // First pass: validate, count units and warnings, and allocate nothing.
-    cursor counting = body;
-    const auto counted = walk_string_body(counting, start, quote, mode, max_units, nullptr);
-
-    if (!counted.has_value())
-    {
-      return string_result::failure(*counted.error_if());
-    }
-
-    const string_walk& totals = *counted.value_if();
+    // Both quote characters are one byte, so the body starts right after the opening quote.
+    const string_quote quote = (*source.peek() == '\'') ? string_quote::single : string_quote::double_quote;
+    cursor body = source;
+    body.advance(1);
 
     // One allocation of exactly the counted size; an empty string makes none.
     decoded_string_builder builder(storage, max_units);
@@ -313,7 +352,7 @@ namespace adaptive_json5
       return string_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    string_token token{builder.finish(), start, counting.offset() - start, totals.warning_count, totals.first_warning};
+    string_token token{builder.finish(), start, totals.byte_length, totals.warning_count, totals.first_warning};
 
     // Construct the complete result before publishing any warning callbacks.
     auto completed = string_result::success(std::optional<string_token>{std::move(token)});

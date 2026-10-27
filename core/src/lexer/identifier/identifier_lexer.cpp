@@ -150,6 +150,46 @@ namespace adaptive_json5
       return walk_result::success(walk);
     }
   } // namespace
+
+  /**
+   * @brief Validate one identifier and count its units without allocating.
+   * @par Requirements
+   * P022; P023; J5-019; J5-020; J5-041; J5-046; J5-047.
+   * @param source Cursor positioned at a possible identifier start.
+   * @param max_units Maximum decoded UTF-16 unit count.
+   * @return The measurement, nullopt for no-match, or a located failure.
+   * @note Performs no allocation (ADR 0003, decisions 2 and 7).
+   */
+  result<std::optional<identifier_measure>> measure_identifier(cursor& source, std::size_t max_units) noexcept
+  {
+    using measure_result = result<std::optional<identifier_measure>>;
+
+    const std::size_t start = source.offset();
+
+    // Validate and count privately; publish nothing until the end.
+    cursor counting = source;
+    const auto counted = walk_identifier(counting, max_units, nullptr);
+
+    if (!counted.has_value())
+    {
+      return measure_result::failure(*counted.error_if());
+    }
+
+    const identifier_walk& totals = *counted.value_if();
+
+    // Every identifier character decodes to at least one unit, so zero units means no-match.
+    if (totals.units == std::size_t{})
+    {
+      return measure_result::success(std::nullopt);
+    }
+
+    const identifier_measure measured{totals.units, start, counting.offset() - start, totals.contains_escape};
+
+    source = counting;
+
+    return measure_result::success(measured);
+  }
+
   /**
    * @brief Consume an identifier with ordinary UTF-8 characters or Unicode escapes.
    * @par Requirements
@@ -166,7 +206,7 @@ namespace adaptive_json5
    * No-match and failure leave source unchanged.
    * Recognition is independent of key/value context and syntax mode.
    * Strict JSON member-name rejection belongs to the context-aware caller.
-   * Counts units first, then makes one allocation of exactly that size (ADR 0003, decision 2).
+   * Measures with measure_identifier, then makes one allocation of exactly that size (ADR 0003, decision 2).
    * The storage provider state must outlive a returned token.
    */
   result<std::optional<identifier_token>> consume_identifier(cursor& source, const storage_callbacks& storage,
@@ -174,37 +214,33 @@ namespace adaptive_json5
   {
     using identifier_result = result<std::optional<identifier_token>>;
 
-    constexpr std::size_t c_backslash_byte_count = 1;
-
-    const std::size_t start = source.offset();
-
-    // First pass: validate and count, allocating nothing; publish nothing until the end.
+    // First pass: the same measurement the parser's pre-pass uses, so both agree by construction.
     cursor counting = source;
-    const auto counted = walk_identifier(counting, max_units, nullptr);
+    const auto measured = measure_identifier(counting, max_units);
 
-    if (!counted.has_value())
+    if (!measured.has_value())
     {
-      return identifier_result::failure(*counted.error_if());
+      return identifier_result::failure(*measured.error_if());
     }
 
-    const identifier_walk& totals = *counted.value_if();
-
-    // Every identifier character decodes to at least one unit, so zero units means no-match.
-    if (totals.units == std::size_t{})
+    if (!measured.value_if()->has_value())
     {
       return identifier_result::success(std::nullopt);
     }
+
+    const identifier_measure& totals = **measured.value_if();
 
     decoded_string_builder builder(storage, max_units);
     const auto reserved = builder.reserve_exact(totals.units);
     if (!reserved.has_value())
     {
-      return identifier_result::failure(error::at_offset(reserved.error_if()->code, start));
+      return identifier_result::failure(error::at_offset(reserved.error_if()->code, totals.byte_offset));
     }
 
-    // Second pass: write the units into the exact reservation.
+    // Second pass: an identifier has no opening delimiter, so decoding starts at source itself.
     cursor decoding = source;
     const auto decoded = walk_identifier(decoding, max_units, &builder);
+
     if (!decoded.has_value())
     {
       return identifier_result::failure(*decoded.error_if());
@@ -216,7 +252,7 @@ namespace adaptive_json5
       return identifier_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    identifier_token token{builder.finish(), start, counting.offset() - start, totals.contains_escape};
+    identifier_token token{builder.finish(), totals.byte_offset, totals.byte_length, totals.contains_escape};
 
     // Prepare the owned result before committing the caller's position.
     auto completed = identifier_result::success(std::optional<identifier_token>{std::move(token)});

@@ -25,6 +25,23 @@ namespace adaptive_json5
       std::size_t byte_length{};
       bool contains_escape{};
   };
+
+  /**
+   * @brief Describe one validated identifier without owning its decoded units.
+   * @par Requirements
+   * P022; P023; J5-019; J5-020; J5-046; J5-047.
+   * @note byte_offset and byte_length describe the original source bytes,
+   * including any Unicode escape spellings.
+   * contains_escape records whether any character used an escape.
+   * Owns nothing, so it can be produced and discarded without a storage provider.
+   */
+  struct [[nodiscard]] identifier_measure
+  {
+      std::size_t units{};
+      std::size_t byte_offset{};
+      std::size_t byte_length{};
+      bool contains_escape{};
+  };
 } // namespace adaptive_json5
 
 #endif /* IDENTIFIER_TOKEN_HPP_ */

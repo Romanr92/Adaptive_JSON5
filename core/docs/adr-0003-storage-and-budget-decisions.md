@@ -19,7 +19,7 @@ allocation), J5-047 (configurable limits), J5-048 (bounded traversal) and J5-049
 | 4 | `warning_list` own capacity limit | Decided: W2 default; adaptive policy opt-in (T = 64, doubling); full table fails |
 | 5 | Scan charging before or after lexing | Decided: C4, budget-limited view |
 | 6 | `attach_child` ancestor walk | Decided: AW1, parser path without walk (rationale corrected: analyzability, not cost); public builder keeps it |
-| 7 | `value_storage` relocation charging | Decided: V3, counting pre-pass and exact reservation; default work 131072 |
+| 7 | `value_storage` relocation charging | Decided: V3, counting pre-pass and exact reservation; default work 131072; duplicates checked in the build pass (C1) |
 | 8 | Single or duplicated string-unit counter | Decided: K1, single counter in `resource_budget` |
 | 9 | Reservation rollback on failure | Decided: R1, single-use parser state, no rollback |
 
@@ -600,7 +600,48 @@ allocate once, never grow.
   `core/src/parser/parser_stack.cpp`).
 - Units: one allocation each for records and frames, at exactly the counted sizes;
   syntax and limit failures make no allocation; error offsets are identical to the
-  current single-pass parser; work is charged for both passes.
+  current single-pass parser, except for the deviation below; work is charged for
+  both passes.
+
+### Known deviation: duplicate-name precedence (C1)
+
+Decided by the user, 2026-10-27.
+
+The pre-pass does not detect duplicate names. Comparing names needs the decoded
+names of earlier members of the same object. Holding them would allocate storage
+proportional to the document, which breaks the rule that the pre-pass allocates
+nothing. So under `duplicate_name_policy::reject_duplicates`, the duplicate check
+runs in the build pass only.
+
+Consequence: a `duplicate_policy` error is reported only for documents that are
+otherwise valid and within limits. A document with a duplicate and a later syntax,
+encoding or limit error reports that later error, while the single-pass parser
+reported the duplicate. The exact point where a work-budget failure occurs can move
+for the same reason. Documents with only a duplicate, and every document under
+`preserve_all`, report the same errors as before.
+
+This is an exception to the identical-errors rule above, and it stays within the
+requirements:
+
+- RFC 8259 section 4 and ECMA-404 do not require rejecting duplicates and define
+  no precedence between errors; the JSON5 specification adds no such rule.
+- J5-032 requires that reject-duplicates reports both occurrences before returning
+  any successful document. That still holds: no document with a duplicate is ever
+  returned, and the duplicate error keeps both spans (J5-043, J5-044).
+
+Rejected:
+
+- **C2, duplicate detection in the pre-pass without allocating.** `"a"`, `'a'`,
+  `"a"` and the identifier `a` are the same name, so comparing raw spans needs
+  a second decoder over borrowed input. A lot of code and flash for one
+  policy's error precedence.
+- **C3, replay the build pass up to the pre-pass error offset.** Reproduces the
+  old precedence exactly, but invalid input then allocates under this policy, a
+  third path through `run()` needs its own units, and worst-case work rises to
+  three passes. It can be added later inside `run()` without changing this design.
+
+Units: a duplicate in an otherwise valid document is reported with both original
+spans, as before; a duplicate followed by a syntax error reports the syntax error.
 
 ### Decision 7b: default work budget
 

@@ -29,6 +29,23 @@ namespace adaptive_json5
   } // namespace detail
 
   /**
+   * @brief Validate one complete quoted string and count its units without allocating.
+   * @par Requirements
+   * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041; J5-046; J5-047.
+   * @param source Cursor positioned at a possible opening quote.
+   * @param mode Selected input syntax.
+   * @param max_units Maximum decoded UTF-16 units.
+   * @return The measurement, successful nullopt before nonquote input or EOF,
+   * or the same located failure consume_string reports for the same input.
+   * @note Success consumes through the matching closing quote only.
+   * No-match and failure leave the caller's cursor unchanged.
+   * Performs no allocation and invokes no warning callbacks (ADR 0003, decisions 2 and 7).
+   * Does not skip trivia or validate input following the closing quote.
+   */
+  [[nodiscard]] result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode,
+                                                                     std::size_t max_units) noexcept;
+
+  /**
    * @brief Consume one complete quoted string into owned decoded storage.
    * @par Requirements
    * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041; J5-046.
