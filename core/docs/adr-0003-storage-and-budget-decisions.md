@@ -22,6 +22,7 @@ allocation), J5-047 (configurable limits), J5-048 (bounded traversal) and J5-049
 | 7 | `value_storage` relocation charging | Decided: V3, counting pre-pass and exact reservation; default work 131072; duplicates checked in the build pass (C1) |
 | 8 | Single or duplicated string-unit counter | Decided: K1, single counter in `resource_budget` |
 | 9 | Reservation rollback on failure | Decided: R1, single-use parser state, no rollback |
+| 10 | Double work after decisions 1–9 | Decided: reduce F, E, D (parser-only sink, today's order) and comparison chunks; keep double work that would cost memory |
 
 ## Decision 1: pre-size `big_unsigned` from the numeric spelling (A2)
 
@@ -822,3 +823,64 @@ Consequences:
 
 Rejected: **R2, roll back every reservation.** It is consistent, but adds code
 paths and tests whose effect no caller can observe.
+
+## Decision 10: remove double work only where it costs no memory (follow-up review)
+
+Decided by the user, 2026-10-28.
+
+After decisions 1 to 9, every place that reads the same input more than once was
+reviewed. Rule from the user: reduce double work only where it needs no extra
+memory; otherwise keep it. All options below were checked against the JSON5
+specification (https://spec.json5.org/): none affects it. Raw U+2028/U+2029 still
+produce the warning of §5.2, invalid text is still a syntax error (§9.2), and limits
+remain implementation limits (§10).
+
+### Reduced
+
+- **F, reject unknown words without decoding them.** `consume_scalar` builds the
+  `unknown_literal` error from `measure_identifier` instead of decoding the word
+  through `consume_identifier`. One walk and one allocation fewer per rejected word.
+  Consequence (accepted): when that allocation would have failed, the error is now
+  `unknown_literal` instead of `allocation_failure`; an error report no longer
+  depends on free memory. The parser's pre-pass already reported it this way.
+- **E, do not re-validate numbers the parser already validated.** The parser copies
+  an already-lexed number spelling through an internal path, with its known kind,
+  instead of `owned_number::copy_spelling` lexing it again. The public
+  `copy_spelling` keeps validating, because it accepts untrusted input. The
+  `max_number_bytes` check and its error are unchanged. One walk fewer per number;
+  work units unchanged (the copy is charged per byte as before).
+- **D, record warnings during the decode walk.** The re-scan in
+  `parser_engine::retain_warnings` is removed:
+  - **Parser-only sink (D-a).** A new internal "reserve, then record" warning sink is
+    passed only by the parser engine. `consume_string`'s existing
+    `string_warning_observer` keeps its contract (callbacks only after complete string
+    success) and its units. Rejected: replacing the observer, which would weaken that
+    contract for little saving.
+  - **Today's order (D-b).** String units, string allocation, then diagnostic entries
+    and warning-table slots, as before. Errors, offsets and allocation-failure points
+    stay identical; only work counts change. Rejected: reserving warnings first, which
+    saves nothing and only re-orders units.
+  - Saves one walk and its work charge per string with warnings. The decision 7b
+    measured table and the user guide figure are re-measured.
+- **Comparison chunks (completes decision 1b).** `number_comparison.cpp` scales and
+  loads decimal digits in steps of up to 10^4, as floating conversion already does.
+  Comparison work counts drop and are re-baselined, with chunk-boundary units.
+
+### Kept (reducing them would cost memory)
+
+- **Two passes over the document (decision 7).** Skipping the second read needs
+  per-token storage.
+- **Count, then decode, for each string and identifier name (decision 2).**
+  Alternatives: reserving from the byte length (up to 3x memory for CJK text, 6x for
+  `\u` escapes; rejected by decision 2), or carrying each string's count from the
+  pre-pass (a table of up to 2048 entries, about 16 KB with default limits).
+- **`analyse_number` on each conversion or comparison call.** Caching it costs about
+  24 bytes per number in every document.
+- **Limit checks in both passes.** Counters only; they detect pass disagreement.
+
+### Possible future decision, not taken
+
+Decoding all strings into one block sized from the pre-pass total would need one walk
+per string, exact memory and one allocation instead of one per string. It changes the
+public ownership model of `decoded_string` (each string owns its block and can be
+moved on its own, J5-040), so it needs its own ADR.
