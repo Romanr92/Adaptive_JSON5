@@ -31,11 +31,43 @@ namespace adaptive_json5
        */
       retained_source() noexcept = default;
 
+      /**
+       * @brief Transfer the retained copy and leave other empty.
+       * @par Requirements
+       * P039; J5-041.
+       * @note Performs no allocation.
+       */
       retained_source(retained_source&& other) noexcept = default;
+
+      /**
+       * @brief Release the retained copy through its original provider.
+       * @par Requirements
+       * P039; J5-040; J5-041.
+       */
       ~retained_source() noexcept = default;
 
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P039; J5-041.
+       * @note A copy needs storage, which can fail; request retention in parse_options instead.
+       */
       retained_source(const retained_source&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P039; J5-041.
+       * @note Same reason as the copy constructor.
+       */
       retained_source& operator=(const retained_source&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P039; J5-041.
+       * @note Replacing a live copy would release it first; construct a new object instead.
+       */
       retained_source& operator=(retained_source&&) = delete;
 
       /**

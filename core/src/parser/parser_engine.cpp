@@ -17,8 +17,6 @@
 #include "lexer/punctuation.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
-#include "lexer/string/string_boundary.hpp"
-#include "lexer/string/string_lexer.hpp"
 #include "lexer/string/string_token.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"

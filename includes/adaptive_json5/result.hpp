@@ -50,7 +50,13 @@ namespace adaptive_json5
       static constexpr std::size_t c_value_index = 0;
       static constexpr std::size_t c_error_index = 1;
 
-      // Require callers to explicitely select success or failure.
+      /**
+       * @brief Default construction is not allowed.
+       * @par Requirements
+       * P002; J5-003.
+       * @note Every result is either a success or a failure; callers choose explicitly
+       * through success() or failure().
+       */
       result() = delete;
 
       // Variant manages the lifetime of the active value or error
@@ -111,8 +117,21 @@ namespace adaptive_json5
        */
       result(result&&) noexcept = default;
 
-      // Defer state-changing assignment until it's lifetime contract is implemented.
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P002; J5-003.
+       * @note Assignment would have to switch a live value or error in place; construct a
+       * new result instead.
+       */
       result& operator=(const result&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P002; J5-003.
+       * @note Same reason as copy assignment.
+       */
       result& operator=(result&&) = delete;
 
       /**

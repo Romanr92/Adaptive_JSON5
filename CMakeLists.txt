@@ -16,6 +16,8 @@ option(ADAPTIVE_JSON5_BUILD_EXECUTABLE
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project targets"
     OFF)
 option(ADAPTIVE_JSON5_ENABLE_RTTI "Enable RTTI in project unit targets" OFF)
+option(ADAPTIVE_JSON5_BUILD_HOSTED
+    "Build the optional hosted one-call parse API (uses the global heap)" OFF)
 if(ADAPTIVE_JSON5_BUILD_SCHEMA)
     message(FATAL_ERROR
         "The optional schema implementation is not available yet; build the "
@@ -119,9 +121,17 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY)
     install(TARGETS adaptive_json5_build_options adaptive_json5_parser EXPORT
         AdaptiveJSON5Targets
         ARCHIVE DESTINATION ${ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR})
-    install(DIRECTORY includes/adaptive_json5 DESTINATION
-        ${CMAKE_INSTALL_INCLUDEDIR}
-        FILES_MATCHING PATTERN "*.hpp")
+        if(ADAPTIVE_JSON5_BUILD_HOSTED)
+            install(TARGETS adaptive_json5_hosted EXPORT AdaptiveJSON5Targets
+                ARCHIVE DESTINATION ${ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR})
+              set(adaptive_json5_header_excludes)
+        else()
+        # Without the hosted library its header would only produce link errors.
+            set(adaptive_json5_header_excludes PATTERN "hosted" EXCLUDE)
+        endif()
+        install(DIRECTORY includes/adaptive_json5 DESTINATION
+            ${CMAKE_INSTALL_INCLUDEDIR}
+            FILES_MATCHING PATTERN "*.hpp" ${adaptive_json5_header_excludes})
     install(EXPORT AdaptiveJSON5Targets FILE AdaptiveJSON5Targets.cmake
         NAMESPACE AdaptiveJSON5:: DESTINATION ${adaptive_json5_package_dir})
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdaptiveJSON5Config.cmake

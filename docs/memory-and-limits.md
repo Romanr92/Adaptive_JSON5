@@ -39,6 +39,32 @@ if (!parsed.has_value())
 }
 ```
 
+### One call on hosted systems (optional)
+
+On desktop or server systems that have a global heap, the optional hosted component
+parses in a single call. Build it with `-DADAPTIVE_JSON5_BUILD_HOSTED=ON` and link
+`AdaptiveJSON5::hosted`:
+
+```cpp
+#include "adaptive_json5/hosted/parse.hpp"
+
+const auto parsed = adaptive_json5::parse({text, text_size});   // default options
+if (parsed.has_value())
+{
+  const adaptive_json5::document& values = parsed.value_if()->values();
+}
+```
+
+- `parse(input, options = {})` parses exactly like `parse_document`: same limits,
+  errors and warnings.
+- The returned `hosted_document` owns its storage, so nothing else has to stay alive.
+  It can be moved; `current_bytes()` and `peak_bytes()` report its memory.
+- Memory comes from `::operator new(std::nothrow)`, still bounded by
+  `max_owned_bytes`. A small control block per call is not counted against it.
+- This component uses the global heap, so it is never part of the embedded parser
+  library. On targets without a reliable heap, use `parse_document` with your own
+  storage as shown above.
+
 ## Failure behavior (current behavior)
 
 **Each call to `parse_document` stands alone.** There is no parser object to

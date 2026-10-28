@@ -96,3 +96,8 @@ foreach(header IN LISTS adaptive_json5_public_headers)
         CONTENT "// Public-header unit compilation: no other includes.\n#include <adaptive_json5/${header}>\n")
     target_sources(adaptive_json5_public_library_unit_tests PRIVATE "${header_unit}")
 endforeach()
+
+# The hosted convenience API is a separate optional target (J5-101), linked only here.
+adaptive_json5_add_unit(adaptive_json5_hosted_parse_unit_tests hosted_parse_units
+    hosted_parse_tests.cpp)
+target_link_libraries(adaptive_json5_hosted_parse_unit_tests PRIVATE AdaptiveJSON5::hosted)

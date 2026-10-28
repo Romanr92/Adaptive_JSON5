@@ -47,10 +47,37 @@ namespace adaptive_json5
        */
       decoded_string_builder(const storage_callbacks& provider, std::size_t max_units) noexcept;
 
-      // Keep one stable owner while vuilding the string.
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P021; J5-046.
+       * @note A string under construction has one owner of its reserved storage.
+       */
       decoded_string_builder(const decoded_string_builder&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P021; J5-046.
+       * @note Same reason as the copy constructor.
+       */
       decoded_string_builder& operator=(const decoded_string_builder&) = delete;
+
+      /**
+       * @brief Moving is not allowed.
+       * @par Requirements
+       * P021; J5-046.
+       * @note The builder stays with its owner while the string is decoded; finish() hands
+       * the result over instead.
+       */
       decoded_string_builder(decoded_string_builder&&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P021; J5-046.
+       * @note Same reason as the move constructor.
+       */
       decoded_string_builder& operator=(decoded_string_builder&&) = delete;
 
       /**

@@ -62,9 +62,30 @@ namespace adaptive_json5
        */
       ~decoded_string() noexcept = default;
 
-      // copies would duplicate ownership; assignment follows owneed_block's policy.
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P021; J5-040.
+       * @note Two strings would own the same units; use copy_units() for an independent,
+       * fallible copy.
+       */
       decoded_string(const decoded_string&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P021; J5-040.
+       * @note Same reason as the copy constructor.
+       */
       decoded_string& operator=(const decoded_string&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P021; J5-040.
+       * @note Replacing a live string would release its units first; construct a new
+       * string instead.
+       */
       decoded_string& operator=(decoded_string&&) = delete;
 
       /**
