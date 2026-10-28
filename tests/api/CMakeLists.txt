@@ -104,3 +104,6 @@ target_link_libraries(adaptive_json5_hosted_parse_unit_tests PRIVATE AdaptiveJSO
 
 adaptive_json5_add_unit(adaptive_json5_json5_document_unit_tests json5_document_units
     json5_document_tests.cpp)
+
+adaptive_json5_add_unit(adaptive_json5_json5_value_unit_tests json5_value_units
+    json5_value_tests.cpp)
