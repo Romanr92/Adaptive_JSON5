@@ -105,5 +105,14 @@ destruction; input and storage must not overlap while parsing. Reusing the buffe
 for another document while the first lives is unsupported. Do not silently force
 source retention: source-location behavior is completed in step 5.
 
-Production implementation remains Romanr92's next checkpoint; no step 3 units or
-implementation evidence exist yet.
+The developer implemented `document_storage_owner` and the private
+`make_buffer_document_storage` factory. Their internal units live in
+`core/tests/memory/document_storage_tests.cpp`: nine cases passed in each of
+`debug-unit-tests` and `debug-unit-tests-exceptions` on 2026-10-28, with RTTI OFF
+in both. clang-format 18.1.8 passed the new unit file. This covers ownership
+transfer/release, misaligned caller buffers and guards, unusable buffers, physical
+exhaustion/retry, a zero accounting ceiling and buffer reuse after destruction.
+
+Step 3 remains in progress: `json5_document` and its parse factory are still the
+next production checkpoint. These scoped storage results do not establish that
+document parsing or the complete step is implemented or verified.

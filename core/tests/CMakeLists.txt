@@ -1,3 +1,7 @@
+adaptive_json5_add_unit(adaptive_json5_document_storage_unit_tests document_storage_units
+    memory/document_storage_tests.cpp)
+target_include_directories(adaptive_json5_document_storage_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
+
 adaptive_json5_add_unit(adaptive_json5_parser_engine_unit_tests parser_engine_units
     parser/parser_engine_tests.cpp
     parser/array_grammar_tests.cpp
