@@ -7,6 +7,7 @@
 #include "adaptive_json5/value/value_index.hpp"
 #include "lexer/punctuation.hpp"
 #include "memory/work_budget.hpp"
+#include "parser/parser_frame.hpp"
 #include "parser/parser_stack.hpp"
 
 #include <cstddef>
@@ -15,6 +16,20 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    /**
+     * @brief Check that a closing token may close a container in the given grammar state.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-041; J5-043.
+     * @param state Grammar state of the innermost open container.
+     * @param closing Recognized right bracket or right brace.
+     * @param mode Selected syntax mode.
+     * @return Success, or a syntax error located at the closing token.
+     * @note Shared by the counting pre-pass and close_container, so both report the same
+     * errors (ADR 0003, decision 7). Performs no allocation and charges no work.
+     */
+    [[nodiscard]] status_result check_container_close(parser_state state, const punctuation_token& closing,
+                                                      syntax_mode mode) noexcept;
+
     /**
      * @brief Complete and remove the innermost open-container frame.
      * @par Requirements

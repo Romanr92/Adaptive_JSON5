@@ -139,6 +139,13 @@ namespace adaptive_json5
     }
 
     ++m_depth;
+
+    // The pre-pass sizes the frame stack from the deepest point, not the final depth.
+    if (m_depth > m_peak_depth)
+    {
+      m_peak_depth = m_depth;
+    }
+
     return status_result::success();
   }
 
@@ -205,6 +212,27 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Report the decoded-unit allowance for the next string or member name.
+   * @par Requirements
+   * P031; J5-047.
+   * @return min(max_string_units, max_total_string_units - reserved units).
+   * @note Single source for the lexer limit; reserves nothing and changes no state.
+   * Returns zero if the reserved total ever exceeded the aggregate limit.
+   */
+  std::size_t resource_budget::string_unit_allowance() const noexcept
+  {
+    // Validate before subtracting so a broken invariant cannot wrap around.
+    if (m_string_units > m_limits.max_total_string_units)
+    {
+      return c_no_resources;
+    }
+
+    const std::size_t remaining = m_limits.max_total_string_units - m_string_units;
+
+    return (m_limits.max_string_units < remaining) ? m_limits.max_string_units : remaining;
+  }
+
+  /**
    * @brief Reserve one retained diagnostic entry.
    * @par Requirements
    * P031; J5-047.
@@ -237,5 +265,29 @@ namespace adaptive_json5
 
     --m_diagnostics;
     return status_result::success();
+  }
+
+  /**
+   * @brief Report the number of value reservations currently held.
+   * @par Requirements
+   * P031; J5-046;
+   * J5-047.
+   * @note Changes no state.
+   */
+  std::size_t resource_budget::reserved_nodes() const noexcept
+  {
+    return m_nodes;
+  }
+
+  /**
+   * @brief Report the deepest nesting reserved at any time.
+   * @par Requirements
+   * P031; J5-046; J5-048.
+
+   * * @note Changes no state.
+   */
+  std::size_t resource_budget::peak_depth() const noexcept
+  {
+    return m_peak_depth;
   }
 } // namespace adaptive_json5

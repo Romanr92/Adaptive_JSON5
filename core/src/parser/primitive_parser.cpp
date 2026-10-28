@@ -15,10 +15,10 @@
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
 #include "lexer/string/string_token.hpp"
-#include "lexer/trivia.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_work.hpp"
+#include "value/number_access.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -41,7 +41,7 @@ namespace adaptive_json5
      * @return New value index or an explicit failure.
      * @note Tokens must originate from the scalar lexer using this input
      * and syntax mode. Input must remain alive and unchanged during the call.
-     * String content is transferred; numeric spelling is independently copied.
+     * String content is transferred; the lexer-validated numeric spelling is copied without re-validation.
      * Provider state must outlive any transferred or copied allocation.
      * Failure leaves existing document values and its root unchanged.
      * Consumed string content may be released on failure.
@@ -68,7 +68,9 @@ namespace adaptive_json5
 
         const input_view spelling{input.data + number->byte_offset, number->byte_length};
 
-        auto owned = owned_number::copy_spelling(spelling, options.syntax, storage, options.limits.max_number_bytes);
+        // The lexer already validated this spelling, so copy it without lexing it again (ADR 0003, decision 10, E).
+        auto owned =
+          number_access::copy_validated_spelling(spelling, number->kind, storage, options.limits.max_number_bytes);
 
         if (!owned.has_value())
         {
@@ -87,12 +89,6 @@ namespace adaptive_json5
           }
 
           return result<value_index>::failure(reason);
-        }
-
-        // Reject metadata inconsistent with the independently checked spelling.
-        if (owned.value_if()->kind() != number->kind)
-        {
-          return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
         }
 
         return destination.make_number(std::move(*owned.value_if()));
@@ -143,9 +139,9 @@ namespace adaptive_json5
    * A retained first-warning descriptor consumes one diagnostic entry.
    * warning_count summarizes occurrences without retaining additional entries.
    * Diagnostic checks bound returned metadata, not temporary lexical metadata.
-   * Recognition charges one unit per remaining input byte before scanning.
+   * Recognition scans within the remaining work and charges the bytes it reads (ADR 0003, decision 5).
+   * A string is charged its bytes once more for its decoding pass.
    * Construction charges token bytes plus c_record_construction_work.
-   * Construction charges conservatively include possible record relocation.
    * These are phase-accounting units, not measured execution time.
    */
   result<std::optional<primitive_value>> consume_primitive(document& destination, cursor& source, input_view input,
@@ -159,29 +155,36 @@ namespace adaptive_json5
       return primitive_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    // Admit recognition before its scanning or temporary allocations begin.
-    const auto recognition = work.charge(source.remaining());
-
-    if (!recognition.has_value())
-    {
-      return primitive_result::failure(*recognition.error_if());
-    }
-
-    // Recognition must not publish cursor advancement before ownership succeeds.
-    cursor candidate = source;
-
     // A primitive root can contain only one owned string value.
     const std::size_t string_limit = (options.limits.max_string_units < options.limits.max_total_string_units)
                                        ? options.limits.max_string_units
                                        : options.limits.max_total_string_units;
 
+    // Recognition must not publish cursor advancement before ownership succeeds.
+    const auto started = detail::begin_limited_scan(input, source.offset(), work);
+
+    if (!started.has_value())
+    {
+      return primitive_result::failure(*started.error_if());
+    }
+
+    detail::limited_scan scan = *started.value_if();
+
     // Temporary identifier decoding cannot produce more units than input bytes.
-    auto token =
-      consume_scalar(candidate, options.syntax, storage, string_limit, input.size, options.limits.max_exponent_digits);
+    auto token = consume_scalar(scan.source, options.syntax, storage, string_limit, input.size,
+                                options.limits.max_exponent_digits);
 
     if (!token.has_value())
     {
-      return primitive_result::failure(*token.error_if());
+      return primitive_result::failure(detail::limited_scan_error(scan, *token.error_if()));
+    }
+
+    // Charge before the no-match check, so an exhausted budget reports resource_limit.
+    const auto recognition = detail::finish_limited_scan(scan, scan.source.offset(), work);
+
+    if (!recognition.has_value())
+    {
+      return primitive_result::failure(*recognition.error_if());
     }
 
     if (!token.value_if()->has_value())
@@ -191,12 +194,20 @@ namespace adaptive_json5
 
     primitive_value value{};
     value.byte_offset = source.offset();
-    value.byte_length = candidate.offset() - source.offset();
+    value.byte_length = scan.source.offset() - source.offset();
 
     // Preserve metadata before transferring the token's owned string content.
     if (const auto* string = std::get_if<string_token>(&**token.value_if()); string != nullptr)
     {
       constexpr std::size_t c_retained_warning_entries = 1;
+
+      // The lexer walked the string twice, counting then decoding, so its bytes are charged again.
+      const auto decode_charge = work.charge(value.byte_length);
+
+      if (!decode_charge.has_value())
+      {
+        return primitive_result::failure(*decode_charge.error_if());
+      }
 
       // Reject diagnostic publication before changing the destination document.
       if ((string->first_warning.has_value()) && (c_retained_warning_entries > options.limits.max_diagnostics))
@@ -237,7 +248,7 @@ namespace adaptive_json5
     auto completed = primitive_result::success(std::optional<primitive_value>{value});
 
     // Publish cursor advancement only after construction of the success result.
-    source = candidate;
+    source.advance(value.byte_length);
 
     return completed;
   }
@@ -261,7 +272,7 @@ namespace adaptive_json5
    * The single root string obeys per-string and total decoded-unit limits.
    * Decimal exponent digits are checked during recognition.
    * The optional first-warning descriptor obeys the retained diagnostic limit.
-   * Each trivia scan charges one unit per remaining input byte before scanning.
+   * Each trivia scan runs within the remaining work and charges the bytes it reads.
    * Primitive recognition and construction charge the same shared work budget.
    * Charges are conservative phase allowances, not measured execution time.
    * Successful charges remain consumed when a later phase fails.
@@ -302,15 +313,7 @@ namespace adaptive_json5
     document candidate{storage, options.limits.max_nodes};
     cursor source{input};
 
-    // Admit the complete available range before scanning leading trivia.
-    const auto leading_work = work.charge(source.remaining());
-
-    if (!leading_work.has_value())
-    {
-      return document_result::failure(*leading_work.error_if());
-    }
-
-    const auto leading = skip_trivia(source, options.syntax);
+    const auto leading = detail::skip_trivia_within_budget(source, input, options.syntax, work);
 
     if (!leading.has_value())
     {
@@ -331,15 +334,7 @@ namespace adaptive_json5
                                                                           : syntax_error_reason::unexpected_character));
     }
 
-    // Admit the remaining suffix before scanning trailing trivia.
-    const auto trailing_work = work.charge(source.remaining());
-
-    if (!trailing_work.has_value())
-    {
-      return document_result::failure(*trailing_work.error_if());
-    }
-
-    const auto trailing = skip_trivia(source, options.syntax);
+    const auto trailing = detail::skip_trivia_within_budget(source, input, options.syntax, work);
 
     if (!trailing.has_value())
     {

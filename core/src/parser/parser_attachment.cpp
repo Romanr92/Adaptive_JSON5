@@ -8,6 +8,7 @@
 #include "memory/work_budget.hpp"
 #include "parser/parser_frame.hpp"
 #include "parser/parser_work.hpp"
+#include "value/document_access.hpp"
 
 #include <cstddef>
 #include <utility>
@@ -36,6 +37,8 @@ namespace adaptive_json5
      * Success transfers an object's pending name and records its original span.
      * Does not establish a root, change the cursor or reserve resources.
      * The caller handles node/member/string accounting and duplicate policy.
+     * The parser attaches without ancestor traversal; frame.container must be detached, which holds because containers
+     * attach only when they close.
      */
     status_result attach_parsed_value(document& destination, parser_frame& frame, value_index child, work_budget& work,
                                       std::size_t input_size) noexcept
@@ -79,9 +82,11 @@ namespace adaptive_json5
       const source_span name_span{frame.name_offset, frame.name_length};
 
       // P034: append elements in source order; P035: retain every member with its decoded name.
-      const auto attached = object_member ? destination.append_member(frame.container, std::move(*frame.pending_name),
-                                                                      child, name_span, input_size)
-                                          : destination.append_element(frame.container, child);
+      // Open containers stay detached until they close, so the loop-free attach applies.
+      const auto attached = object_member ? document_access::attach_parsed_member(destination, frame.container,
+                                                                                  std::move(*frame.pending_name), child,
+                                                                                  name_span, input_size)
+                                          : document_access::attach_parsed_element(destination, frame.container, child);
 
       if (!attached.has_value())
       {

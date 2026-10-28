@@ -9,7 +9,7 @@ Implementation and passing tests do not promote these requirement rows to Verifi
 This backlog is adapted from the user-supplied standalone parser proposal dated
 2026-10-11. The user's subsequent scope decisions take precedence: a generic
 C++17 library for compatible C++ projects, native development without WSL, and
-only GoogleTest unit tests and formatting as automated quality checks. The user also requires OS-agnostic embedded usability after compilation into the consuming project, and prohibits agents from writing production C++. See
+only GoogleTest unit tests and formatting as automated quality checks. The user also requires OS-agnostic embedded usability after compilation into the consuming project, and allows AI agents to change build setup, documentation and unit tests, not production code. See
 [scope decision](adr/0001-project-scope.md). AdaptivePi is an optional example,
 not a dependency or release authority. The existing Apache-2.0 license is retained.
 

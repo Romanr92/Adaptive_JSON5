@@ -126,6 +126,70 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
+  /**
+   * @brief Describe the reservation bound expected from one numeric spelling.
+   * @par Requirements
+   * P038; J5-036; J5-046.
+   */
+  struct scale_case
+  {
+      const char* name;
+      const char* spelling;        // Input JSON5 numeric spelling.
+      std::size_t digit_count;     // Expected significand digits, leading zeros included.
+      bool scale_negative;         // Expected sign of the combined power-of-ten scale.
+      std::size_t scale_magnitude; // Expected absolute combined scale.
+  };
+
+  std::ostream& operator<<(std::ostream& stream, const scale_case& value)
+  {
+    return stream << value.name;
+  }
+
+  class NumberScaleUnits : public ::testing::TestWithParam<scale_case>
+  {
+  };
+
+  /* Verify analysis reports the digit count and combined scale that bound exact-integer reservations.
+   * Arrange: Own the case spelling.
+   * Act: Analyse it with an ample budget.
+   * Expect: The case digit count, scale sign and scale magnitude.
+   */
+  TEST_P(NumberScaleUnits, ReportsDigitCountAndScale)
+  {
+    /* Arrange */
+    const scale_case& param = GetParam();
+    guard_provider provider;
+    const auto number = make_number(provider, param.spelling);
+    ASSERT_TRUE(number.has_value());
+    work_budget work{c_ample_work};
+    /* Act */
+    const auto analysis = detail::analyse_number(*number.value_if(), work);
+    /* Expect */
+    ASSERT_TRUE(analysis.has_value());
+    EXPECT_EQ(analysis.value_if()->digit_count, param.digit_count);
+    EXPECT_EQ(analysis.value_if()->scale_negative, param.scale_negative);
+    EXPECT_EQ(analysis.value_if()->scale_magnitude, param.scale_magnitude);
+  }
+
+  // Saturated exponents stop at the spelling size plus the documented 2048 margin.
+  INSTANTIATE_TEST_SUITE_P(
+    J5_036_NumberAnalysis, NumberScaleUnits,
+    ::testing::Values(
+      scale_case{"Integer", "123", 3U, false, 0U}, scale_case{"LeadingZerosCounted", "-0.0012500", 8U, true, 7U},
+      scale_case{"ExponentExceedsFraction", "1.5e3", 2U, false, 2U},
+      scale_case{"ExponentCancelsFraction", ".5e1", 1U, false, 0U},
+      scale_case{"ExponentBelowFraction", "1.25e1", 3U, true, 1U}, scale_case{"NegativeExponent", "1e-3", 1U, true, 3U},
+      scale_case{"NegativeExponentAddsFraction", "1.5e-3", 2U, true, 4U},
+      scale_case{"SaturatedPositive", "1e99999999999999999999999", 1U, false, 2073U},
+      scale_case{"SaturatedNegative", "1.5e-99999999999999999999999", 2U, true, 2077U},
+      scale_case{"HexadecimalDigits", "-0x00FF", 4U, false, 0U}, scale_case{"NonFinite", "-Infinity", 0U, false, 0U}),
+    [](const ::testing::TestParamInfo<scale_case>& info)
+    {
+      return info.param.name;
+    });
+
+  /* ----------------------------------------------------------------------------------- */
+
   /* Verify analysis charges one unit per spelling byte before scanning.
    * Arrange: Own "123.45" and budgets one unit short and exactly sufficient.
    * Act: Analyse with each budget.

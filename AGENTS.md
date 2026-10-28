@@ -1,4 +1,4 @@
-# Repository agent scope
+# AI agent guidelines
 
 ## Source of truth
 
@@ -11,10 +11,10 @@ Do not silently change a requirement or invent implementation evidence.
 
 ## Authorized work and constraints
 
-The user permits CMake/build setup, GoogleTest unit tests, documentation,
-requirements and repository/issue organization. **Do not create or modify
-production C++ implementation or public C++ headers.** Production implementation
-belongs to a human developer unless the user explicitly changes this instruction.
+AI agents can change build setup, documentation and unit tests, not production
+code. This covers CMake, GoogleTest units, documentation, requirements and
+repository/issue organization. **Do not create or modify production C++
+implementation or public C++ headers.** Production code is written by Romanr92.
 
 Test-only C++ under top-level `tests/` and `core/tests/` is permitted. Internal
 component units belong in `core/tests/`; public-header/API and whole-library
@@ -53,24 +53,22 @@ for all new work and guidance: `includes/` contains supported public headers,
 substantial non-template implementations. Group files by topic. Internal units
 live in `core/tests/`; public-interface/library units stay in top-level `tests/`
 without private include access.
-Teaching must follow the compiled architecture: read the corresponding header,
+Guidance must follow the compiled architecture: read the corresponding header,
 implementation and CMake source list; present declaration/source pairs when a
-change needs both. Do not teach substantial ordinary implementations as
+change needs both. Do not present substantial ordinary implementations as
 header-only code for convenience. Templates and required compile-time definitions
-remain legitimate header definitions. See the teaching skill for pacing and
-explicit guidance on translation units, linking and dependency boundaries.
-Public headers must not depend on the private include tree. The user explicitly
-authorized the completed structural migration from `include/adaptive_json5/`;
-do not recreate that legacy tree or a parallel header-only implementation.
-That task-specific authorization does not permit AI to implement subsequent
-production features; the normal restriction still applies to future moves/splits
-unless authorized.
+remain legitimate header definitions. See the requirement guidance skill for
+translation units, linking and dependency boundaries.
+Public headers must not depend on the private include tree. The legacy
+`include/adaptive_json5/` tree has been migrated; do not recreate it or a parallel
+header-only implementation. Future production moves/splits follow the normal
+restriction above.
 
 For explanations, design guidance or review of a requirement, use
-`.agents/skills/teach-requirement/SKILL.md`. For GoogleTest edits, use
-`.agents/skills/write-unit-tests/SKILL.md`. These are adaptations of AdaptivePi's
-workflows, rewritten for this repository; its release-wide approval, `ara::*`
-APIs, deployment and platform policies do not apply here.
+`.agents/skills/guide-requirement/SKILL.md`. For GoogleTest edits, use
+`.agents/skills/write-unit-tests/SKILL.md`. Both are adapted from AdaptivePi (see
+`NOTICE`); AdaptivePi's release approval, `ara::*` APIs, deployment and platform
+policies do not apply here.
 
 Use the adapted requirements and implementation sequence. Automated quality checks are unit
 tests and formatting only. Keep generic/embedded parser dependencies separate
@@ -94,7 +92,7 @@ does not block this core parser sequence.
 The P001–P066 parser and optional-component checklist is the documented baseline
 and requires no user review or approval before implementation work. Follow official
 source semantics and marked project additions. Record implementation and unit
-evidence separately; this authorization does not permit agents to write production C++.
+evidence separately; AI agents still do not change production code.
 
 The sequential baseline now includes optional schema P042–P055, CLI/example
 P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.
@@ -109,8 +107,8 @@ Reuse existing anchors, at most three active issues per subsystem. Verify curren
 assignment, comments, branch/PR and timeline activity before administrative closures;
 redirect consolidated children and never imply implementation completion.
 
-Romanr92 writes all production C++ and public headers; AI creates independent
-GoogleTest units. No separate per-issue documentation report, design narrative or
+Romanr92 writes all production C++ and public headers. AI agents can change build
+setup, documentation and unit tests, not production code. No separate per-issue documentation report, design narrative or
 generic Documentation checkbox is required. Preserve essential public API,
 ownership, errors, limits/defaults/accounting, cancellation, concurrency, provenance,
 known deviations and brief usage contracts. Keep named tests and actual execution

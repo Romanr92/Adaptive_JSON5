@@ -12,6 +12,11 @@
 
 namespace adaptive_json5
 {
+  namespace detail
+  {
+    struct number_access;
+  } // namespace detail
+
   /**
    * @brief Own one validated numeric spelling without numeric conversion.
    * @par Requirements
@@ -26,6 +31,9 @@ namespace adaptive_json5
   class [[nodiscard]] owned_number
   {
     private:
+      // Internal parser access for spellings it already validated; not a supported public API.
+      friend struct detail::number_access;
+
       owned_block m_storage;
       number_kind m_kind;
 

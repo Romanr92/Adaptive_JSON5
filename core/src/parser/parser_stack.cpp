@@ -4,7 +4,6 @@
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
-#include "common/checked_size.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_frame.hpp"
 
@@ -52,67 +51,40 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Ensure storage for the requested number of frames.
+     * @brief Allocate exactly the given number of frames once, before any push.
      * @par Requirements
-     * P033; J5-046; J5-048; J5-049; J5-051.
-     * @note Failure preserves existing frames.
-     * Growth costs one work unit per relocated frame.
-     * Old and new allocations coexist during relocation.
+     * P033; J5-046; J5-048.
+     * @param frames Exact number of frames, the pre-pass peak depth.
+     * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
+     * @note Failure leaves the stack unchanged.
      */
-    status_result parser_stack::reserve(std::size_t required, work_budget& work) noexcept
+    status_result parser_stack::reserve_exact(std::size_t frames) noexcept
     {
-      if (required > m_max_frames)
+      // One reservation, made while empty, so nothing ever needs relocating.
+      if ((m_capacity != 0) || (m_size != 0))
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      if (frames > m_max_frames)
       {
         return status_result::failure(error::without_location(error_code::resource_limit));
       }
 
-      if (required <= m_capacity)
+      if (frames == 0)
       {
         return status_result::success();
       }
 
-      std::size_t capacity = required;
-      const auto doubled = checked_add(m_capacity, m_capacity);
-
-      // Doubling is optional; overflow can fall back to the required size.
-      if (doubled.has_value())
-      {
-        const std::size_t bounded = (*doubled.value_if() > m_max_frames) ? m_max_frames : *doubled.value_if();
-
-        if (bounded > capacity)
-        {
-          capacity = bounded;
-        }
-      }
-
-      // Reserve relocation work before allocating or moving any frames.
-      const auto charged = work.charge(m_size);
-
-      if (!charged.has_value())
-      {
-        return status_result::failure(*charged.error_if());
-      }
-
-      auto allocation = allocate_array(m_provider, capacity, sizeof(parser_frame), alignof(parser_frame));
+      auto allocation = allocate_array(m_provider, frames, sizeof(parser_frame), alignof(parser_frame));
 
       if (!allocation.has_value())
       {
         return status_result::failure(*allocation.error_if());
       }
 
-      for (std::size_t index{}; index < m_size; ++index)
-      {
-        // Construct new objects so their owned names transfer safely.
-        ::new (slot_address(*allocation.value_if(), index)) parser_frame(std::move(*live_frame(index)));
-      }
-
-      const std::size_t retained_size = m_size;
-
-      //  Non-throwing moves make it safe to destroy the old objects now.
-      clear();
       m_storage = std::move(*allocation.value_if());
-      m_size = retained_size;
-      m_capacity = capacity;
+      m_capacity = frames;
 
       return status_result::success();
     }
@@ -162,17 +134,14 @@ namespace adaptive_json5
         return status_result::failure(*charged.error_if());
       }
 
-      // The frame-limit check proves adding one cannot overflow.
-      const std::size_t required = m_size + 1;
-      const auto reserved = reserve(required, work);
-
-      if (!reserved.has_value())
+      // Frames are reserved once from the pre-pass peak depth, so needing more means the passes disagree.
+      if (m_size >= m_capacity)
       {
-        return status_result::failure(*reserved.error_if());
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
       ::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));
-      m_size = required;
+      ++m_size;
 
       return status_result::success();
     }

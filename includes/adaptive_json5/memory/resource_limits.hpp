@@ -48,7 +48,9 @@ namespace adaptive_json5
       std::size_t max_diagnostics = 16;
 
       // Bound cumulative charged work using operation-specific accounting rules.
-      std::size_t max_work_units = 32768;
+      // The default is 8 x max_input_bytes: scale it with the input limit (ADR 0003, decision 7b).
+      // Every 16384-byte worst case of ADR 0003 parses within it with reject-duplicates off.
+      std::size_t max_work_units = 131072;
   };
 } // namespace adaptive_json5
 

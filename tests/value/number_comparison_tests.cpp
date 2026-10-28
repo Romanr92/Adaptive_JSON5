@@ -186,6 +186,30 @@ namespace
       return info.param.name;
     });
 
+  // Chunk boundaries of the 10^4 steps (ADR 0003, decisions 1b and 10): digit runs of 3, 4, 5, 8 and 9
+  // digits, scale differences of 3, 4, 5 and 8, and hexadecimal values whose decimal digit count is
+  // found in whole chunks plus single steps.
+  INSTANTIATE_TEST_SUITE_P(J5_037_ComparisonChunks, NumberComparisonUnits,
+                           ::testing::Values(comparison_case{"ThreeDigitRun", "123", "1.23e2", c_equal},
+                                             comparison_case{"FourDigitRun", "1234", "12340e-1", c_equal},
+                                             comparison_case{"FiveDigitRun", "12345", "1.2345e4", c_equal},
+                                             comparison_case{"EightDigitRun", "12345678", "123456780e-1", c_equal},
+                                             comparison_case{"NineDigitRun", "123456789", "123456789.1", c_less},
+                                             comparison_case{"ScaleDifferenceThree", "1000", "1e3", c_equal},
+                                             comparison_case{"ScaleDifferenceFour", "10000", "1e4", c_equal},
+                                             comparison_case{"ScaleDifferenceFive", "100000", "1e5", c_equal},
+                                             comparison_case{"ScaleDifferenceEight", "100000001", "1e8", c_greater},
+                                             comparison_case{"HexFourDigits", "0x270F", "9.999e3", c_equal},
+                                             comparison_case{"HexFiveDigits", "0x2710", "1e4", c_equal},
+                                             comparison_case{"HexEightDigits", "0x5F5E0FF", "99999999", c_equal},
+                                             comparison_case{"HexNineDigits", "0x5F5E100", "1e8", c_equal},
+                                             comparison_case{"HexNineteenDigits", "0xDE0B6B3A7640000", "1e18", c_equal},
+                                             comparison_case{"HexJustBelowPower", "0xDE0B6B3A763FFFF", "1e18", c_less}),
+                           [](const ::testing::TestParamInfo<comparison_case>& info)
+                           {
+                             return info.param.name;
+                           });
+
   /* ----------------------------------------------------------------------------------- */
 
   /* Verify zeros, infinities and NaN compare without scratch allocation.

@@ -1,11 +1,11 @@
 ---
-name: teach-requirement
-description: Explain Adaptive_JSON5 J5 requirements and teach their implementation step by step using existing repository APIs. Use for requirement meaning, API design, implementation walkthroughs or review; guide production C++ changes without editing production files.
+name: guide-requirement
+description: Explain Adaptive_JSON5 J5 requirements and guide their implementation step by step using existing repository APIs. Use for requirement meaning, API design, implementation walkthroughs or review; guide production C++ changes without editing production files.
 ---
 
 <!-- Adapted from Romanr92/adaptive-pi; changed for Adaptive_JSON5 native development and scope. See NOTICE. SPDX-License-Identifier: Apache-2.0. -->
 
-# Teach an Adaptive_JSON5 requirement
+# Guide an Adaptive_JSON5 requirement
 
 Read `AGENTS.md`, `README.md`, the requested entry in `docs/requirements.md`, its
 owner/test inventory in `docs/traceability.md` and relevant ADRs. The original
@@ -21,10 +21,10 @@ Unicode, schema or reference behavior matters.
 
 Illustrative snippets or pseudocode may explain ownership, results, policies and
 budgets, but do not write production C++ files or present sketches as the finished
-library. Explain where a human developer should make a production change. CMake,
-GoogleTest, documentation and requirements work is permitted by AGENTS.md.
+library. Explain where the developer should make a production change. AI agents
+can change build setup, documentation and unit tests, not production code.
 
-## Teach implementation in context
+## Guide implementation in context
 
 Follow [ADR 0002](../../../core/docs/adr-0002-public-private-source-layout.md) for new
 file proposals: supported public headers under `includes/`, private headers under
@@ -32,7 +32,7 @@ file proposals: supported public headers under `includes/`, private headers unde
 Internal test guidance uses `core/tests/`; public-interface and whole-library
 behavior units remain under top-level `tests/` without private-header access.
 Read actual current files before guidance; the old `include/` tree has been
-migrated under explicit user authorization. Do not duplicate it or expose private
+migrated. Do not duplicate it or expose private
 headers through public includes. Public document headers retain supporting
 representation declarations without adding opaque-state allocation; see ADR 0002.
 
@@ -60,7 +60,7 @@ In a walkthrough, cover the following where they affect the implementation:
   below. Explain unfamiliar C++ constructs when they are needed, and
   connect non-obvious operations to the problem they solve.
 - Trace a concrete input through the algorithm with exact offsets or state
-  transitions. Use examples to teach behavior without claiming executed evidence.
+  transitions. Use examples to explain behavior without claiming executed evidence.
 - Explain the relevant design choices and their consequences. In particular,
   transactional cursor advancement, error locations and helper composition are
   design decisions unless the active contract already fixes them. Do not present
@@ -69,16 +69,14 @@ In a walkthrough, cover the following where they affect the implementation:
   write next and what remains. Offer review of their code without making an
   upload or confirmation a prerequisite for further explanation.
 
-Keep teaching sketches in the conversation; do not write production files or
-hide production implementation in test helpers. Do not repeatedly ask for an
-exception to the production-code restriction when the user has asked to learn.
+Keep illustrative sketches in the conversation; do not write production files or
+hide production implementation in test helpers.
 
-## Respect the teaching stage
+## Guidance format
 
-### Teach the compiled C++ architecture
+### Follow the compiled C++ architecture
 
-The user explicitly requires normal declaration/implementation separation in
-future lessons. Follow [the current architecture](../../../core/docs/design-architecture.md)
+Guidance uses normal declaration/implementation separation. Follow [the current architecture](../../../core/docs/design-architecture.md)
 and [source layout](../../../core/docs/design-source-layout.md). Do not return to header-only
 implementation merely because it is easier to present in a conversation.
 
@@ -98,7 +96,7 @@ implementation merely because it is easier to present in a conversation.
   definition must stay visible instead of treating that exception as permission
   for a header-only module.
 - Explain declaration versus definition, translation units, compilation and
-  linking when the learner encounters them. A class header defines its layout
+  linking where a change depends on them. A class header defines its layout
   and declares its operations; it need not contain those operations' bodies.
   Use `ClassName::method` for out-of-line definitions, preserve `noexcept`, and
   keep default arguments on the declaration rather than repeating them.
@@ -107,12 +105,12 @@ implementation merely because it is easier to present in a conversation.
   Use forward declarations only where complete types are unnecessary. Public
   headers must compile without the private include tree. Do not silently change
   by-value layout, allocation, view lifetimes or ownership to hide a type.
-- Name both affected files when a lesson spans a declaration and definition.
+- Name both affected files when a change spans a declaration and definition.
   Present a header/source pair as separately labeled complete-file blocks when
   that is the useful coherent checkpoint, explaining each file's role. If the
-  files need separate lessons, explicitly identify what is still undefined and
+  files need separate steps, explicitly identify what is still undefined and
   continue with the matching source before declaring implementation complete.
-  Do not satisfy the complete-file teaching format by merging everything into a
+  Do not satisfy the complete-file format by merging everything into a
   header. An existing declaration may require only a `.cpp` implementation change.
 - Identify CMake registration for any new `.cpp`, under the compiled
   `AdaptiveJSON5::parser` target. A declaration alone is not an implemented or
@@ -123,25 +121,19 @@ implementation merely because it is easier to present in a conversation.
   failures. Keep internal units in `core/tests/` and public-interface units in
   top-level `tests/`; honor any requested pause before unit work.
 
-### Learner's current needs and gradual independence
+### Presenting a change
 
-The user currently knows C better than C++ and is still learning what a parser
-needs. Begin with explicit, patient guidance for each requirement: name the exact
-file to create or edit and explain its role in the architecture and why that
-design fits. Teach one coherent class/module change at a time using complete
-files, with separately labeled header and source blocks when both are needed.
-Headers carry guards, required includes, namespaces and declarations; matching
-`.cpp` files carry implementation includes and out-of-line bodies. Do not require
-the learner to assemble disconnected fragments or place ordinary definitions in
-a header for convenience. Read each existing file before presenting its proposed
+For each requirement, name the exact file to create or edit and explain its role
+in the architecture and why that design fits. Present one coherent class/module
+change at a time using complete files, with separately labeled header and source
+blocks when both are needed. Headers carry guards, required includes, namespaces
+and declarations; matching `.cpp` files carry implementation includes and
+out-of-line bodies. Read each existing file before presenting its proposed
 updated contents and preserve unrelated code. Proposed new files must be
-identified as proposals. Explain
-the illustrative C++ line by line, including why each piece is
-needed by the parser. Do not assume familiarity with templates, references,
-`std::optional`, result types, constructors, namespaces or other C++ concepts
-merely because they appeared in an earlier answer. Explain relevant differences
-from C when the construct is introduced. Keep the lesson focused on that coherent change;
-do not dump every file for a grouped issue at once.
+identified as proposals. Explain non-obvious C++ and why each piece is needed by
+the parser. When a change rewrites an existing function, name every check or line
+that moves, changes form or disappears. Keep each step focused on one coherent
+change; do not dump every file for a grouped issue at once.
 
 Place a Doxygen block comment before every function shown, using the coding-style
 convention below. Add short `//` comments immediately above non-obvious lines or
@@ -150,53 +142,13 @@ failure it avoids. Explain C++ syntax and mechanisms in the surrounding prose,
 not in `//` comments. Keep code comments focused on intent rather than narrating
 what the language construct does.
 
-Build independence very slowly and separately for each concept. After substantial
-guided practice, gradually remove implementation details for familiar operations
-from the complete-file teaching format, replacing selected code with precise
-implementation comments describing the expected behavior. Keep unfamiliar code
-and its explanations supplied. Preserve normal Doxygen and intent comments as
-they would appear in the completed implementation. Put exercise instructions in
-separate `/* ... */` blocks exactly where the learner must remove the block and
-write code. Keep instructions clear and concise: name the relevant objects,
-required behavior and important success/failure ordering. Do not use `// EXERCISE`
-placeholders or turn ordinary code comments into exercise instructions. State
-outside the code that the file remains incomplete until placeholders are replaced
-and may not compile or behave correctly. Never remove necessary code silently
-or describe an exercise as a finished file.
-Do not remove code from actual repository files as a teaching exercise.
-After review confirms independent exercise success, record the specific concept
-as learned in [learning-progress.md](learning-progress.md). On later applications
-of that concept, supply only the concise exercise block in place of its code,
-keeping normal implementation comments and unfamiliar surrounding code supplied.
-Do not preemptively repeat the solution. If the user proceeds without asking for
-help, inspect their implementation before treating the concept as learned. Do not treat
-mere silence, a topic change or elapsed time as evidence of learning. Do not jump
-from familiarity with one operation to assuming mastery of unrelated C++ or parser
-concepts.
-
-If the user asks for the implementation or says they do not understand, supply an
-illustrative implementation promptly with line-by-line explanation. Keep that
-concept at the guided level until later interaction supports reducing help;
-do not immediately repeat the same unaided exercise or withhold requested code.
-Record concepts requiring implementation help in the retry list in
-[learning-progress.md](learning-progress.md), noting the help provided. After
-further guided practice, try a small comment-only task on another familiar
-concept. Later still, gently retry the original concept without supplying code
-first. A request for help means the concept needs more support now, not that it
-must never be tried independently again. Space these attempts gradually, respond
-to the learner's progress, and always provide an implementation when requested.
-Use the ongoing conversation and any explicit user feedback to track which
-concepts still need support. The eventual goal is requirement-only assignments,
-but do not advance to that level ahead of demonstrated understanding. This
-teaching preference does not authorize edits to production C++ files.
-
 Honor requested pacing and stopping points. If the user says to tell them before
-unit tests, teach implementation and review first. Once the relevant production
+unit tests, guide implementation and review first. Once the relevant production
 work is ready for units, announce that transition and stop before writing or
 running tests until the user asks to proceed. Do not claim that milestone merely
 because a design has been explained; inspect the developer's implementation when
 available and state any remaining uncertainty. Brief behavior examples are
-appropriate during teaching, but defer a unit-test plan or test-authoring work
+appropriate during guidance, but defer a unit-test plan or test-authoring work
 when the user has reserved that stage.
 
 For a review, lead with concrete findings against the active contract and explain
@@ -222,7 +174,6 @@ why that approach is needed. Requirement links do not imply verification.
 For enums, keep enumerator descriptions in the Doxygen block before the enum
 declaration, using a `@par Policies` list for policy enums. Do not place separate
 Doxygen blocks inside the enum body; keep its enumerator list uncluttered.
-This is the user's explicit teaching preference.
 
 ## Contracts that shape guidance
 
@@ -255,7 +206,7 @@ injection over mere acceptance. Follow `write-unit-tests` for actual test edits.
 Do not infer Agreed/Implemented/Verified status from an explanation or passing
 build-setting smoke tests.
 
-Adapted from AdaptivePi's teaching workflow; source provenance is recorded in
+Adapted from AdaptivePi's requirement workflow; source provenance is recorded in
 `docs/dependencies.md`. No AdaptivePi release gate or `ara::*` API is imported.
 
 Library error reporting is non-throwing in every supported build. Test explicit

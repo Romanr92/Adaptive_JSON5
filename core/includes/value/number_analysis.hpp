@@ -6,6 +6,8 @@
 #include "adaptive_json5/value/owned_number.hpp"
 #include "memory/work_budget.hpp"
 
+#include <cstddef>
+
 namespace adaptive_json5
 {
   namespace detail
@@ -19,6 +21,8 @@ namespace adaptive_json5
      * Infinity and NaN have is_zero and is_integral set to false.
      * Negative zero retains negative and is_zero set to true.
      * Contains no borrowed pointers and owns no allocated storage.
+     * digit_count and the scale bound exact-integer reservations (ADR 0003, decision 1); hexadecimal and non-finite
+     * numbers have zero scale.
      */
     struct [[nodiscard]] number_analysis
     {
@@ -26,6 +30,10 @@ namespace adaptive_json5
         bool negative{};
         bool is_zero{};
         bool is_integral{};
+        std::size_t digit_count{};     // Significand digits, leading zeros and hexadecimal digits included.
+        bool scale_negative{};         // Sign of the combined power-of-ten exponent.
+        std::size_t scale_magnitude{}; // Absolute combined scale; the written exponent magnitude saturates at input
+                                       // size + 2048 before combining it with the fractional digit count.
     };
 
     /**

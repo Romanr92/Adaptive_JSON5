@@ -2,6 +2,7 @@
 #include "lexer/number/number_lexer.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "parser/primitive_parser.hpp"
+#include "value/number_access.hpp"
 
 #include <array>
 #include <cstddef>
@@ -492,12 +493,14 @@ namespace
       limit_case{"ExponentFree", "1", &resource_limits::max_exponent_digits, 0, true},
       limit_case{"HexDigitsAreNotExponent", "0xE1", &resource_limits::max_exponent_digits, 0, true},
       limit_case{"WorkZero", "true", &resource_limits::max_work_units, 0, false},
-      limit_case{"WorkBeforeLexing", "true", &resource_limits::max_work_units, 4, false},
-      limit_case{"WorkBeforeConstruction", "true", &resource_limits::max_work_units, 14, false},
-      limit_case{"WorkExact", "true", &resource_limits::max_work_units, 15, true},
-      limit_case{"WorkAbove", "true", &resource_limits::max_work_units, 16, true},
-      limit_case{"WorkTrailingDenied", " true ", &resource_limits::max_work_units, 18, false},
-      limit_case{"WorkTrailingExact", " true ", &resource_limits::max_work_units, 19, true},
+      limit_case{"WorkBeforeLexing", "true", &resource_limits::max_work_units, 3, false},
+      limit_case{"WorkBeforeConstruction", "true", &resource_limits::max_work_units, 8, false},
+      limit_case{"WorkExact", "true", &resource_limits::max_work_units, 9, true},
+      limit_case{"WorkAbove", "true", &resource_limits::max_work_units, 10, true},
+      limit_case{"WorkTrailingDenied", " true ", &resource_limits::max_work_units, 10, false},
+      limit_case{"WorkTrailingExact", " true ", &resource_limits::max_work_units, 11, true},
+      limit_case{"StringWorkDenied", "\"ab\"", &resource_limits::max_work_units, 12, false},
+      limit_case{"StringWorkExact", "\"ab\"", &resource_limits::max_work_units, 13, true},
       limit_case{"NoWarningDiagnostic", "\"x\"", &resource_limits::max_diagnostics, 0, true},
       limit_case{"WarningDiagnosticDenied", "\"\xE2\x80\xA8\"", &resource_limits::max_diagnostics, 0, false},
       limit_case{"OneRetainedWarning", "\"\xE2\x80\xA8\xE2\x80\xA9\"", &resource_limits::max_diagnostics, 1, true},
@@ -978,6 +981,56 @@ namespace
     EXPECT_EQ(kind.error_if()->code, error_code::wrong_type_or_access);
     EXPECT_EQ(doc.size(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * CopiesValidatedSpellingLikeCopySpelling.
+   * Arrange: Valid spellings of every number family and a limit below one spelling's size.
+   * Act: Copy each through the parser's trusted path and through the public copy_spelling.
+   * Expect: The same bytes and kind, the same limit error at offset 0, and a mismatched kind
+   *         rejected with wrong_type_or_access (ADR 0003, decision 10, E).
+   */
+  TEST(J5_046_NumberAccess, CopiesValidatedSpellingLikeCopySpelling)
+  {
+    struct spelling_case
+    {
+        const char* text; // Valid numeric spelling.
+        number_kind kind; // Family the lexer reports for it.
+    };
+    constexpr spelling_case c_cases[] = {{"-0.50e+3", number_kind::decimal},
+                                         {".5", number_kind::decimal},
+                                         {"+0x1F", number_kind::hexadecimal},
+                                         {"-Infinity", number_kind::infinity},
+                                         {"NaN", number_kind::nan}};
+    primitive_provider provider;
+
+    for (const spelling_case& item : c_cases)
+    {
+      /* Arrange */
+      const input_view text{item.text, std::string{item.text}.size()};
+      /* Act */
+      const auto trusted = detail::number_access::copy_validated_spelling(text, item.kind, provider.callbacks(), 64);
+      const auto checked = owned_number::copy_spelling(text, syntax_mode::json5, provider.callbacks(), 64);
+      /* Expect */
+      ASSERT_TRUE(trusted.has_value()) << item.text;
+      ASSERT_TRUE(checked.has_value()) << item.text;
+      EXPECT_EQ(trusted.value_if()->kind(), checked.value_if()->kind()) << item.text;
+      const input_view copied = trusted.value_if()->spelling();
+      EXPECT_EQ(std::string(copied.data, copied.size), std::string(item.text)) << item.text;
+    }
+
+    const input_view long_number{"123", 3};
+    const auto trusted_limit =
+      detail::number_access::copy_validated_spelling(long_number, number_kind::decimal, provider.callbacks(), 2);
+    const auto checked_limit = owned_number::copy_spelling(long_number, syntax_mode::json5, provider.callbacks(), 2);
+    const auto mismatch =
+      detail::number_access::copy_validated_spelling(long_number, number_kind::hexadecimal, provider.callbacks(), 64);
+    ASSERT_FALSE(trusted_limit.has_value());
+    ASSERT_FALSE(checked_limit.has_value());
+    EXPECT_EQ(trusted_limit.error_if()->code, checked_limit.error_if()->code);
+    EXPECT_EQ(trusted_limit.error_if()->byte_offset, checked_limit.error_if()->byte_offset);
+    ASSERT_FALSE(mismatch.has_value());
+    EXPECT_EQ(mismatch.error_if()->code, error_code::wrong_type_or_access);
   }
   /* ----------------------------------------------------------------------------------- */
   /*

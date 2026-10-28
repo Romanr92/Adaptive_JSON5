@@ -23,6 +23,11 @@ namespace adaptive_json5
    * P036; J5-032; J5-033.
    * @note Equality uses exact decoded UTF-16 units.
    * The policy applies independently within each object in either syntax mode.
+   * reject_duplicates compares each name with the earlier names of its object, so work grows
+   * with the square of the member count: one object with 1024 members needs about 524 000
+   * work units. Raise resource_limits::max_work_units when using it with large objects.
+   * Duplicates are checked after syntax and limits, so another error in the same document
+   * is reported instead of the duplicate (ADR 0003, decision 7, C1).
    */
   enum class duplicate_name_policy
   {
@@ -62,6 +67,24 @@ namespace adaptive_json5
   };
 
   /**
+   * @brief Select how the warning table of a parsed document is allocated.
+   * @par Requirements
+   * P039; J5-017; J5-046; J5-047.
+   * @par Policies
+   * - fixed: the first warning allocates max_diagnostics entries at once, and the
+   *   table never grows. Default; the worst case is known at configuration time.
+   * - adaptive: the first warning allocates min(max_diagnostics, 64) entries; the
+   *   table then doubles as needed, capped at max_diagnostics.
+   * @note A document without warnings allocates nothing under either policy.
+   * More warnings than max_diagnostics fail the parse with resource_limit under either policy.
+   */
+  enum class warning_storage_policy
+  {
+    fixed,
+    adaptive
+  };
+
+  /**
    * @brief Configure syntax, resource limits and duplicate-name handling.
    * @par Requirements
    * P031; P036; P039; P040; J5-005; J5-025; J5-032; J5-041; J5-047.
@@ -87,6 +110,9 @@ namespace adaptive_json5
 
       // JSON permits ignoring a leading byte order mark, but only when the caller asks for it.
       strict_bom_policy strict_bom = strict_bom_policy::reject;
+
+      // A fixed table has a worst case known in advance, so it suits embedded targets.
+      warning_storage_policy warning_storage = warning_storage_policy::fixed;
   };
 } // namespace adaptive_json5
 #endif /* OPTIONS_HPP_ */

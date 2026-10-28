@@ -13,7 +13,7 @@ Reference revision: 1134cbfea9b587649e32d58c9305fe211fd7f4af
 
 Material: .clang-format, .vscode settings/extensions/tasks/launch/snippet,
 CMake dependency/preset patterns and the teach-requirement/write-unit-tests
-skills. The formatter rules are copied unchanged; other material is adapted for
+skills (here guide-requirement and write-unit-tests). The formatter rules are copied unchanged; other material is adapted for
 native JSON5 development, host-only tests, repository-specific names, presets,
 paths and scope. No AdaptivePi production C++ is included.
 

@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstring>
 #include <gtest/gtest.h>
 #include <limits>
 #include <ostream>
@@ -29,18 +30,30 @@ namespace
   constexpr std::size_t c_ample_work = 1000000;
 
   /**
-   * @brief Append every digit of a test literal to an exact integer.
+   * @brief Reserve the documented bound for a test literal, then append every digit.
    * @par Requirements
-   * P038; J5-037.
-   * @param target Integer receiving the digits.
+   * P038; J5-037; J5-046.
+   * @param target Zero integer without a reservation, receiving the digits.
    * @param digits Decimal or uppercase hexadecimal digits without prefix or sign.
    * @param radix Spelling base passed unchanged to append_digit.
    * @param work Shared budget charged by each append.
-   * @return True when every append succeeded.
+   * @param extra_limbs Limbs reserved beyond the bound, for later shifts.
+   * @return True when the reservation and every append succeeded.
    * @note Only maps characters to digit values; arithmetic remains in the unit under test.
+   * The bound mirrors the production callers: decimal_digit_bits for decimal, four bits per hexadecimal digit.
    */
-  bool load_digits(big_unsigned& target, const char* digits, unsigned int radix, work_budget& work)
+  bool load_digits(big_unsigned& target, const char* digits, unsigned int radix, work_budget& work,
+                   std::size_t extra_limbs = 0)
   {
+    const std::size_t count = std::strlen(digits);
+    const auto bits = (radix == 16U) ? result<std::size_t>::success(count * 4U) : detail::decimal_digit_bits(count);
+    const auto limbs = bits.has_value() ? detail::limbs_for_bits(*bits.value_if()) : bits;
+
+    if (!limbs.has_value() || !target.reserve(*limbs.value_if() + extra_limbs).has_value())
+    {
+      return false;
+    }
+
     for (const char* current = digits; *current != '\0'; ++current)
     {
       const char character = *current;
@@ -276,7 +289,9 @@ namespace
                                              invalid_digit_case{"HexDigitInDecimal", 15U, 10U},
                                              invalid_digit_case{"HexDigitEqualsRadix", 16U, 16U},
                                              invalid_digit_case{"OctalRadix", 1U, 8U},
-                                             invalid_digit_case{"ZeroRadix", 0U, 0U}),
+                                             invalid_digit_case{"ZeroRadix", 0U, 0U},
+                                             invalid_digit_case{"ChunkEqualsRadix", 10000U, 10000U},
+                                             invalid_digit_case{"FiveDigitChunk", 1U, 100000U}),
                            [](const ::testing::TestParamInfo<invalid_digit_case>& info)
                            {
                              return info.param.name;
@@ -335,7 +350,8 @@ namespace
     work_budget work{c_ample_work};
     big_unsigned value{provider.callbacks()};
     big_unsigned expected{provider.callbacks()};
-    ASSERT_TRUE(load_digits(value, param.value, 10U, work));
+    // A shift needs its whole limbs plus one partial slot beyond the loaded value.
+    ASSERT_TRUE(load_digits(value, param.value, 10U, work, (param.bits / 16U) + 1U));
     ASSERT_TRUE(load_digits(expected, param.expected, 10U, work));
     /* Act */
     const auto shifted = value.shift_left(param.bits, work);
@@ -465,6 +481,7 @@ namespace
     big_unsigned reference{provider.callbacks()};
     ASSERT_TRUE(load_digits(source, "65537", 10U, work));
     ASSERT_TRUE(load_digits(reference, "65537", 10U, work));
+    ASSERT_TRUE(destination.reserve(2U).has_value());
     /* Act */
     const auto copied = destination.assign(source, work);
     const auto modified = source.append_digit(9U, 10U, work);
@@ -545,12 +562,77 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
-  /* Verify growth, shift and copy allocation failures preserve values and release storage.
-   * Arrange: Load 65535 (one full limb) and an empty destination.
-   * Act: Inject failure on the next request before a growing append, a shift and an assignment; retry.
-   * Expect: allocation_failure without mutation; retry succeeds; the guard sees balanced releases.
+  /* Verify a failed reservation leaves zero and can be retried.
+   * Arrange: A zero integer and a provider failing its next request.
+   * Act: Reserve two limbs, then retry without failure and append 65536.
+   * Expect: allocation_failure leaving zero; the retry makes one allocation and holds the value.
    */
-  TEST(J5_037_BigUnsigned, AllocationFailurePreservesValueAndAllowsRetry)
+  TEST(J5_037_BigUnsigned, ReservationFailurePreservesZeroAndAllowsRetry)
+  {
+    /* Arrange */
+    guard_provider provider;
+    work_budget work{c_ample_work};
+    big_unsigned value{provider.callbacks()};
+    big_unsigned reference{provider.callbacks()};
+    ASSERT_TRUE(load_digits(reference, "65536", 10U, work));
+    const std::size_t allocations = provider.m_allocations;
+    provider.m_fail_on = provider.m_attempts + 1U;
+    /* Act */
+    const auto failed = value.reserve(2U);
+    const bool zero_after_failure = value.is_zero();
+    provider.m_fail_on = 0U;
+    const auto retried = value.reserve(2U);
+    bool loaded = retried.has_value();
+    for (const unsigned int digit : {6U, 5U, 5U, 3U, 6U})
+    {
+      loaded = loaded && value.append_digit(digit, 10U, work).has_value();
+    }
+    /* Expect */
+    ASSERT_FALSE(failed.has_value());
+    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+    EXPECT_TRUE(zero_after_failure);
+    EXPECT_TRUE(loaded);
+    EXPECT_EQ(provider.m_allocations, allocations + 1U);
+    EXPECT_EQ(order_of(value, reference), magnitude_order::equal);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify an integer is reserved at most once, while zero, and zero limbs allocate nothing.
+   * Arrange: A zero integer over a guarded provider.
+   * Act: Reserve zero limbs, then two limbs, then two limbs again.
+   * Expect: Success without a request, success with one allocation, then wrong_type_or_access without a request.
+   */
+  TEST(J5_037_BigUnsigned, ReservesOnceWhileZero)
+  {
+    /* Arrange */
+    guard_provider provider;
+    big_unsigned value{provider.callbacks()};
+    /* Act */
+    const auto empty = value.reserve(0U);
+    const std::size_t attempts_after_empty = provider.m_attempts;
+    const auto first = value.reserve(2U);
+    const std::size_t attempts_after_first = provider.m_attempts;
+    const auto repeated = value.reserve(2U);
+    /* Expect */
+    EXPECT_TRUE(empty.has_value());
+    EXPECT_EQ(attempts_after_empty, 0U);
+    EXPECT_TRUE(first.has_value());
+    EXPECT_EQ(attempts_after_first, 1U);
+    ASSERT_FALSE(repeated.has_value());
+    EXPECT_EQ(repeated.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(provider.m_attempts, attempts_after_first);
+    EXPECT_TRUE(value.is_zero());
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify results beyond the reservation fail before mutation and never allocate.
+   * Arrange: Load 65535 into exactly one reserved limb; keep a destination with no reservation.
+   * Act: Append a digit, shift by three bits and copy into the destination.
+   * Expect: wrong_type_or_access for each, unchanged values and no provider request.
+   */
+  TEST(J5_037_BigUnsigned, ResultsBeyondReservationFailWithoutMutation)
   {
     /* Arrange */
     guard_provider provider;
@@ -558,28 +640,93 @@ namespace
     big_unsigned value{provider.callbacks()};
     big_unsigned reference{provider.callbacks()};
     big_unsigned destination{provider.callbacks()};
-    ASSERT_TRUE(load_digits(value, "65535", 10U, work));
+    ASSERT_TRUE(value.reserve(1U).has_value());
+    for (const unsigned int digit : {6U, 5U, 5U, 3U, 5U})
+    {
+      ASSERT_TRUE(value.append_digit(digit, 10U, work).has_value());
+    }
     ASSERT_TRUE(load_digits(reference, "65535", 10U, work));
+    const std::size_t attempts = provider.m_attempts;
     /* Act */
-    provider.m_fail_on = provider.m_attempts + 1U;
     const auto grown = value.append_digit(0U, 10U, work);
-    provider.m_fail_on = provider.m_attempts + 1U;
     const auto shifted = value.shift_left(3U, work);
-    provider.m_fail_on = provider.m_attempts + 1U;
     const auto copied = destination.assign(value, work);
-    const magnitude_order after_failures = order_of(value, reference);
-    provider.m_fail_on = 0U;
-    const auto retried = value.append_digit(0U, 10U, work);
     /* Expect */
     for (const auto* failure : {&grown, &shifted, &copied})
     {
       ASSERT_FALSE(failure->has_value());
-      EXPECT_EQ(failure->error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(failure->error_if()->code, error_code::wrong_type_or_access);
     }
-    EXPECT_EQ(after_failures, magnitude_order::equal);
+    EXPECT_EQ(order_of(value, reference), magnitude_order::equal);
     EXPECT_TRUE(destination.is_zero());
-    ASSERT_TRUE(retried.has_value());
-    EXPECT_EQ(order_of(value, reference), magnitude_order::greater);
+    EXPECT_EQ(provider.m_attempts, attempts);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify decimal chunks of two to four digits equal digit-by-digit loading.
+   * Arrange: A reserved integer and a reference loaded from "1234567890".
+   * Act: Append 1, 2345 (radix 10000), 678 (radix 1000) and 90 (radix 100).
+   * Expect: Equal magnitudes.
+   */
+  TEST(J5_037_BigUnsigned, AppendsDecimalChunks)
+  {
+    /* Arrange */
+    guard_provider provider;
+    work_budget work{c_ample_work};
+    big_unsigned value{provider.callbacks()};
+    big_unsigned reference{provider.callbacks()};
+    ASSERT_TRUE(load_digits(reference, "1234567890", 10U, work));
+    ASSERT_TRUE(value.reserve(3U).has_value());
+    /* Act */
+    const auto first = value.append_digit(1U, 10U, work);
+    const auto four = value.append_digit(2345U, 10000U, work);
+    const auto three = value.append_digit(678U, 1000U, work);
+    const auto two = value.append_digit(90U, 100U, work);
+    /* Expect */
+    for (const auto* appended : {&first, &four, &three, &two})
+    {
+      EXPECT_TRUE(appended->has_value());
+    }
+    EXPECT_EQ(order_of(value, reference), magnitude_order::equal);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify the reservation bounds and their overflow reporting.
+   * Arrange: Digit and bit counts at the edges of the formulas, and the size_t maximum.
+   * Act: Compute decimal_digit_bits and limbs_for_bits.
+   * Expect: ceil(10d/3) bits, ceil(b/16)+1 limbs, and resource_limit on overflow.
+   */
+  TEST(J5_037_BigUnsigned, ReservationBoundsRoundUpAndReportOverflow)
+  {
+    /* Arrange */
+    constexpr std::size_t c_max = std::numeric_limits<std::size_t>::max();
+    /* Act */
+    const auto zero_bits = detail::decimal_digit_bits(0U);
+    const auto one_bits = detail::decimal_digit_bits(1U);
+    const auto three_bits = detail::decimal_digit_bits(3U);
+    const auto twenty_bits = detail::decimal_digit_bits(20U);
+    const auto overflow_bits = detail::decimal_digit_bits(c_max);
+    const auto zero_limbs = detail::limbs_for_bits(0U);
+    const auto full_limbs = detail::limbs_for_bits(16U);
+    const auto partial_limbs = detail::limbs_for_bits(17U);
+    const auto overflow_limbs = detail::limbs_for_bits(c_max);
+    /* Expect */
+    ASSERT_TRUE(zero_bits.has_value() && one_bits.has_value() && three_bits.has_value() && twenty_bits.has_value());
+    EXPECT_EQ(*zero_bits.value_if(), 0U);
+    EXPECT_EQ(*one_bits.value_if(), 4U);
+    EXPECT_EQ(*three_bits.value_if(), 10U);
+    // 10^20 needs 67 bits; the bound must not be smaller.
+    EXPECT_EQ(*twenty_bits.value_if(), 67U);
+    ASSERT_FALSE(overflow_bits.has_value());
+    EXPECT_EQ(overflow_bits.error_if()->code, error_code::resource_limit);
+    ASSERT_TRUE(zero_limbs.has_value() && full_limbs.has_value() && partial_limbs.has_value());
+    EXPECT_EQ(*zero_limbs.value_if(), 1U);
+    EXPECT_EQ(*full_limbs.value_if(), 2U);
+    EXPECT_EQ(*partial_limbs.value_if(), 3U);
+    ASSERT_FALSE(overflow_limbs.has_value());
+    EXPECT_EQ(overflow_limbs.error_if()->code, error_code::resource_limit);
   }
   /* ================================= End Test_J5_037 ================================= */
   /* =================================== Test_J5_038 =================================== */

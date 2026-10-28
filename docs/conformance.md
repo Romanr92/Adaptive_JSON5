@@ -168,8 +168,8 @@ No additional functional blocker was identified in this acceptance-focused revie
 The machine-readable P038–P041 trackers also needed their owner/status and CI
 scope synchronized; that documentation correction is in the current working tree.
 The review found copied float wording in `to_double()`'s Doxygen text. It is
-corrected in this documentation-only follow-up under explicit user authorization;
-the `result<double>` signature and implementation are unchanged.
+corrected as a documentation-only change; the `result<double>` signature and
+implementation are unchanged.
 
 ## Executed results
 

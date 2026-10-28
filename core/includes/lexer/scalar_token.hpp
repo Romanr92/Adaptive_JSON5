@@ -47,6 +47,18 @@ namespace adaptive_json5
    * Transfer tokens by move and inspect alternatives through std::get_if.
    */
   using scalar_token = std::variant<string_token, number_token, literal_token>;
+
+  /**
+   * @brief Describe one recognized string, number or literal without owning anything.
+   * @par Requirements
+   * P028; J5-023; J5-024; J5-046; J5-047.
+   * @note Exactly one alternative is active.
+   * Number and literal tokens already own nothing, so they are reused unchanged;
+   * a string is described by its measurement instead of its decoded units.
+   * Copyable, because no alternative owns storage.
+   */
+  using scalar_measure = std::variant<string_measure, number_token, literal_token>;
+
 } // namespace adaptive_json5
 
 #endif /* SCALAR_TOKEN_HPP_ */

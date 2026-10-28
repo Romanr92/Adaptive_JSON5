@@ -284,13 +284,51 @@ namespace
         rejection_case{"AdjacentStrings", R"("a""b")", 3, 3, false},
         rejection_case{"StringPoint", R"("a".)", 3, 3, false}, rejection_case{"StrictSingleQuote", "'a'x", 3, 0, false},
         rejection_case{"LoneSlash", "1/", 1, 1, true}, rejection_case{"NotComment", "1/x", 1, 1, true},
-        rejection_case{"NulSuffix", std::string("1\0", 2), 1, 1, true}),
+        rejection_case{"NulSuffix", std::string("1\0", 2), 1, 1, true},
+        rejection_case{"LiteralEscapedPart", R"(true\u0041)", 0, 0, false},
+        rejection_case{"LiteralEscapedPoint", R"(true\u002e)", 4, 4, false},
+        rejection_case{"LiteralUnicodePart", "true\xC3\xA9", 0, 0, false},
+        rejection_case{"TruncatedNull", "nul", 0, 0, false}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
     [](const testing::TestParamInfo<std::tuple<rejection_case, syntax_mode>>& info)
     {
       return std::string(std::get<0>(info.param).name) +
              (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
+  /* ----------------------------------------------------------------------------------- */
+  /* Report an unknown value identifier with the range of the whole identifier.
+   * Arrange: Unknown, literal-prefixed and escaped identifiers at a nonzero offset.
+   * Act: Consume a scalar in both syntax modes.
+   * Expect: unknown_literal at the identifier start, a source range covering the whole
+   *         identifier, and the original cursor.
+   */
+  TEST(J5_024_Scalar, ReportsUnknownLiteralRange)
+  {
+    for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
+    {
+      for (const std::string text :
+           {std::string{"nul"}, std::string{"trueish"}, std::string{R"(\u0074rue)"}, std::string{"foo"}})
+      {
+        /* Arrange */
+        const std::string input = "!!" + text + "]";
+        lexer_provider provider;
+        cursor source({input.data(), input.size()});
+        source.advance(2);
+        /* Act */
+        auto actual = consume_scalar(source, mode, provider.callbacks(), 64);
+        /* Expect */
+        ASSERT_FALSE(actual.has_value()) << text;
+        EXPECT_EQ(actual.error_if()->code, error_code::syntax) << text;
+        EXPECT_EQ(actual.error_if()->syntax_reason, syntax_error_reason::unknown_literal) << text;
+        EXPECT_EQ(actual.error_if()->byte_offset, 2u) << text;
+        ASSERT_TRUE(actual.error_if()->source_range.has_value()) << text;
+        EXPECT_EQ(actual.error_if()->source_range->byte_offset, 2u) << text;
+        EXPECT_EQ(actual.error_if()->source_range->byte_length, text.size()) << text;
+        EXPECT_EQ(source.offset(), 2u) << text;
+        EXPECT_EQ(provider.m_live_bytes, 0u) << text;
+      }
+    }
+  }
   /* ----------------------------------------------------------------------------------- */
   /* Return exact variant alternatives and leave admitted boundaries unconsumed.
    * Arrange: Valid literals, each numeric family and strings with caller storage.
@@ -540,15 +578,16 @@ namespace
 
   /* ================================== End Test_J5_024 ================================== */
   /* ==================================== Test_J5_046 ==================================== */
-  /* Fail every observed string/literal allocation and retry without partial tokens.
-   * Arrange: Measure actual requests, then inject each failure for strings and literals.
+  /* Fail every observed string allocation and retry without partial tokens.
+   * Arrange: Measure actual requests, then inject each failure for a string.
    * Act: Recognize, fail, and retry from the unchanged caller cursor.
    * Expect: Explicit allocation failure, balanced cleanup and successful retry.
    */
   TEST(J5_046_ScalarStorage, FailsEveryAllocationAndAllowsRetry)
   {
     /* Arrange */
-    for (const std::string input : {std::string{R"("abcdefghijklmnopq")"}, std::string{"false"}})
+    // Literals make no requests (ADR 0003, decision 3), so only strings have failure points.
+    for (const std::string input : {std::string{R"("abcdefghijklmnopq")"}})
     {
       std::size_t attempts{};
       {
@@ -585,14 +624,17 @@ namespace
   }
   /* ----------------------------------------------------------------------------------- */
   /* Enforce decoded storage limits and release content after later boundary failure.
-   * Arrange: A literal, owned string and warning-bearing string with explicit limits.
-   * Act: Recognize with insufficient limits or invalid following source.
-   * Expect: Located errors, no partial cursor commit and no leaked owned storage.
+   * Arrange: A rejected literal-prefixed identifier, owned string, warning-bearing string
+   *          and a literal without a storage provider.
+   * Act: Recognize with insufficient limits, invalid following source or no provider.
+   * Expect: Located errors, no partial cursor commit, no leaked owned storage, and a
+   *         literal that succeeds without storage.
    */
   TEST(J5_046_ScalarStorage, EnforcesLimitsAndReleasesBoundaryFailures)
   {
     /* Arrange */
-    for (const std::string input : {std::string{"false"}, std::string{R"("abcde")"}})
+    // falsex is rejected through the identifier path, which still applies the unit limit.
+    for (const std::string input : {std::string{"falsex"}, std::string{R"("abcde")"}})
     {
       lexer_provider provider;
       cursor source({input.data(), input.size()});
@@ -616,11 +658,13 @@ namespace
     EXPECT_EQ(source.offset(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_GT(provider.m_allocations, 0u);
+    // Literal recognition never calls storage, so a missing provider is irrelevant.
     cursor missing({"true", 4});
     auto no_provider = consume_scalar(missing, syntax_mode::json5, {}, 4);
-    ASSERT_FALSE(no_provider.has_value());
-    EXPECT_EQ(no_provider.error_if()->code, error_code::allocation_failure);
-    EXPECT_EQ(missing.offset(), 0u);
+    ASSERT_TRUE(no_provider.has_value());
+    ASSERT_TRUE(no_provider.value_if()->has_value());
+    EXPECT_TRUE(std::holds_alternative<literal_token>(**no_provider.value_if()));
+    EXPECT_EQ(missing.offset(), 4u);
   }
   /* ================================== End Test_J5_046 ================================== */
   /* ==================================== Test_J5_040 ==================================== */

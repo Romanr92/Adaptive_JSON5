@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
+#include "common/checked_size.hpp"
 
 #include <cstddef>
 
@@ -10,6 +11,12 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    namespace
+    {
+      // Exceeds every supported decimal range, so a saturated exponent is certainly out of range.
+      constexpr std::size_t c_exponent_margin = 2048;
+    } // namespace
+
     /**
      * @brief Analyse a validated owned number without machine-number conversion.
      * @par Requirements
@@ -17,7 +24,7 @@ namespace adaptive_json5
      * @param number Borrowed number to inspect without mutation.
      * @param work Mutable work budget charged before scanning.
      * @return result<number_analysis> containing exact properties or an error.
-     * @note Match the header declaration, including noexcept. Allocate no storage.
+     * @note Allocates no storage.
      */
     result<number_analysis> analyse_number(const owned_number& number, work_budget& work) noexcept
     {
@@ -69,6 +76,7 @@ namespace adaptive_json5
             analysis.is_zero = false;
           }
 
+          ++analysis.digit_count;
           ++position;
         }
 
@@ -98,6 +106,8 @@ namespace adaptive_json5
         }
         else
         {
+          ++analysis.digit_count;
+
           if (after_point)
           {
             ++fractional_digits;
@@ -125,6 +135,16 @@ namespace adaptive_json5
       bool exponent_exceeds_threshold{};
       std::size_t exponent_magnitude{};
 
+      const auto scale_limit = checked_add(spelling.size, c_exponent_margin);
+
+      if (!scale_limit.has_value())
+      {
+        return analysis_result::failure(*scale_limit.error_if());
+      }
+
+      // The size bound needs the full exponent, so it saturates separately from the integrality threshold.
+      std::size_t scale_exponent{};
+
       if (has_exponent)
       {
         // Validated exponent syntax guarantees a byte after it's introducer.
@@ -141,6 +161,14 @@ namespace adaptive_json5
           const auto digit = static_cast<std::size_t>(spelling.data[position] - '0');
           ++position;
 
+          if (scale_exponent < *scale_limit.value_if())
+          {
+            // Saturate before multiplying so arbitrarily long exponents cannot wrap.
+            scale_exponent = (scale_exponent > ((*scale_limit.value_if() - digit) / 10))
+                               ? *scale_limit.value_if()
+                               : (scale_exponent * 10) + digit;
+          }
+
           if (!exponent_exceeds_threshold)
           {
             // Compare before multiplication to avoid overflowing size_t.
@@ -155,6 +183,29 @@ namespace adaptive_json5
             }
           }
         }
+      }
+
+      // Combine the written exponent with the implied fractional scale without unsigned wrap.
+      if (exponent_negative)
+      {
+        const auto magnitude = checked_add(scale_exponent, fractional_digits);
+
+        if (!magnitude.has_value())
+        {
+          return analysis_result::failure(*magnitude.error_if());
+        }
+
+        analysis.scale_negative = true;
+        analysis.scale_magnitude = *magnitude.value_if();
+      }
+      else if (scale_exponent >= fractional_digits)
+      {
+        analysis.scale_magnitude = scale_exponent - fractional_digits;
+      }
+      else
+      {
+        analysis.scale_negative = true;
+        analysis.scale_magnitude = fractional_digits - scale_exponent;
       }
 
       if (analysis.is_zero)
@@ -173,44 +224,5 @@ namespace adaptive_json5
 
       return analysis_result::success(analysis);
     }
-
-    /*
-     * 1. Obtain spelling from number.spelling().
-     * Reject empty spelling with unlocated wrong_type_or_access.
-     * Charge spelling.size work units and propagate failure before reading bytes.
-     * Successful charges are not refunded. Scan each byte at most once.
-     */
-
-    /*
-     * 2. Create number_analysis analysis with default field values.
-     * Set analysis.kind from number.kind().
-     * Create std::size_t position initialized to zero.
-     * Record a leading minus in analysis.negative; skip either optional sign.
-     * For infinity or NaN, return success with zero/integral flags false.
-     */
-
-    /*
-     * 3. For hexadecimal numbers, skip the validated 0x/0X prefix.
-     * Set analysis.is_zero true, then clear it if any remaining digit is not '0'.
-     * Set analysis.is_integral true and return success.
-     * Do not accumulate digits into a machine integer.
-     */
-
-    /*
-     * 4. For decimals, scan significand digits and the optional decimal point.
-     * Track whether all significand digits are zero, the number of digits after
-     * the point and the number of trailing zero significand digits.
-     * Do not include exponent digits in these counts.
-     */
-
-    /*
-     * 5. Inspect the optional exponent sign and digits; absent exponent means zero.
-     * Do not assume the exponent fits a machine integer.
-     * Zero is integral regardless of exponent; preserve its original sign.
-     * For nonzero values, determine exactly whether:
-     * exponent + trailing_zero_count >= fractional_digit_count.
-     * Compare against the required threshold without overflowing arithmetic or
-     * expanding the value. Set the zero/integral fields and return success.
-     */
   } // namespace detail
 } // namespace adaptive_json5

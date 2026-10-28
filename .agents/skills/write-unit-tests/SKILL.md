@@ -43,9 +43,8 @@ core when available, and grant private header access only to internal component
 units. Both trees are host-only GoogleTest units, excluded from production sources
 and installation. Split mixed internal/public test files as appropriate rather
 than copying test bodies. The compiled target and layout now exist; inspect
-actual paths and CMake before edits. The user authorized the completed structural
-refactor specifically; future production moves/splits retain the normal
-human-owned workflow unless separately authorized.
+actual paths and CMake before edits. Production moves/splits follow the normal
+human-owned workflow.
 
 Follow [core/docs/design-coding-style.md](../../../core/docs/design-coding-style.md). Class data members,
 including test fixture members, use `m_<varName>` with no trailing underscore,

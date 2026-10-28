@@ -35,7 +35,7 @@ namespace adaptive_json5
      * @par Requirements
      * P033; P034; P035; J5-013; J5-048.
      * @note The parser must initialize container and state before use.
-     * Container indices survive relocation of document records.
+     * Container indices stay valid for the whole parse.
      * pending_name owns a decoded object name until member attachment.
      * This type neither allocates frame storage nor enforces budgets.
      */

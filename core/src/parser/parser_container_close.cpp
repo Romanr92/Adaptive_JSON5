@@ -18,6 +18,68 @@ namespace adaptive_json5
   namespace detail
   {
     /**
+     * @brief Check that a closing token may close a container in the given grammar state.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-041; J5-043.
+     * @param state Grammar state of the innermost open container.
+     * @param closing Recognized right bracket or right brace.
+     * @param mode Selected syntax mode.
+     * @return Success, or a syntax error located at the closing token.
+     * @note Performs no allocation and charges no work.
+     */
+    status_result check_container_close(parser_state state, const punctuation_token& closing, syntax_mode mode) noexcept
+    {
+      bool array = false;
+      bool trailing_comma = false;
+
+      switch (state)
+      {
+      case parser_state::array_first_or_end:
+      case parser_state::array_comma_or_end:
+        array = true;
+        break;
+
+      case parser_state::array_value_after_comma:
+        array = true;
+        trailing_comma = true;
+        break;
+
+      case parser_state::object_first_name_or_end:
+      case parser_state::object_comma_or_end:
+        break;
+
+      case parser_state::object_name_after_comma:
+        trailing_comma = true;
+        break;
+
+      default:
+      {
+        // A member awaiting its colon or value cannot close successfully.
+        return status_result::failure(error::syntax_at(closing.byte_offset, (state == parser_state::object_colon)
+                                                                              ? syntax_error_reason::missing_colon
+                                                                              : syntax_error_reason::missing_value));
+      }
+      }
+
+      const auto expected = array ? punctuation_kind::right_bracket : punctuation_kind::right_brace;
+
+      if (closing.kind != expected)
+      {
+        return status_result::failure(
+          error::syntax_at(closing.byte_offset, syntax_error_reason::unexpected_closing_bracket));
+      }
+
+      // P034/P035: only JSON5 permits closing after one completed item and its comma.
+      if (trailing_comma && (mode != syntax_mode::json5))
+      {
+        return status_result::failure(
+          error::syntax_at(closing.byte_offset, syntax_error_reason::not_allowed_in_strict_json));
+      }
+
+      return status_result::success();
+    }
+
+    /**
      * @brief Complete and remove the innermost open-container frame.
      * @par Requirements
      * P033; P034; P035; J5-013; J5-041; J5-048; J5-049.
@@ -58,51 +120,12 @@ namespace adaptive_json5
         return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
-      bool array = false;
-      bool trailing_comma = false;
+      // The pre-pass uses the same check, so both passes report the same close errors.
+      const auto closable = check_container_close(frame->state, closing, mode);
 
-      switch (frame->state)
+      if (!closable.has_value())
       {
-      case parser_state::array_first_or_end:
-      case parser_state::array_comma_or_end:
-        array = true;
-        break;
-
-      case parser_state::array_value_after_comma:
-        array = true;
-        trailing_comma = true;
-        break;
-
-      case parser_state::object_first_name_or_end:
-      case parser_state::object_comma_or_end:
-        break;
-
-      case parser_state::object_name_after_comma:
-        trailing_comma = true;
-        break;
-
-      default:
-      {
-        // A member awaiting its colon or value cannot close successfully.
-        return result<value_index>::failure(error::syntax_at(
-          closing.byte_offset, (frame->state == parser_state::object_colon) ? syntax_error_reason::missing_colon
-                                                                            : syntax_error_reason::missing_value));
-      }
-      }
-
-      const auto expected = array ? punctuation_kind::right_bracket : punctuation_kind::right_brace;
-
-      if (closing.kind != expected)
-      {
-        return result<value_index>::failure(
-          error::syntax_at(closing.byte_offset, syntax_error_reason::unexpected_closing_bracket));
-      }
-
-      // P034/P035: only JSON5 permits closing after one completed item and its comma.
-      if (trailing_comma && (mode != syntax_mode::json5))
-      {
-        return result<value_index>::failure(
-          error::syntax_at(closing.byte_offset, syntax_error_reason::not_allowed_in_strict_json));
+        return result<value_index>::failure(*closable.error_if());
       }
 
       // Every closable object has already transferred its pending name.

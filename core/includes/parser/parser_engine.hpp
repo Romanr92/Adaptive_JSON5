@@ -3,16 +3,19 @@
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
+#include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
 #include "input/cursor.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_dispatch.hpp"
+#include "parser/parser_frame.hpp"
 #include "parser/parser_stack.hpp"
 
 #include <cstddef>
@@ -44,6 +47,9 @@ namespace adaptive_json5
      * @par Requirements
      * P033; P034; P035; J5-013; J5-027; J5-048.
      * @note Internal operation object; construct a fresh instance for each run.
+     * Single use: after any result, construct a new engine to parse again.
+     * Resource reservations are not rolled back after failure; the failed state is
+     * discarded as a whole and owned storage is released by destructors (ADR 0003, decision 9).
      * Partial documents are never returned after failure.
      * No recursive descent is used.
      */
@@ -62,8 +68,87 @@ namespace adaptive_json5
         parser_stack m_frames;
 
         value_index m_root{};
-        std::size_t m_string_units{};
         warning_list m_warnings;
+
+        // Counting pre-pass state (ADR 0003, decision 7). The innermost container keeps its full
+        // grammar state; each open level keeps one bit, set for an object (decision 7, D1).
+        static constexpr std::size_t c_inline_nesting_bits = 512;
+        static constexpr std::size_t c_bits_per_byte = 8;
+
+        parser_frame m_count_top{};
+        std::size_t m_count_depth{};
+        bool m_count_root_done{};
+        unsigned char m_inline_kinds[c_inline_nesting_bits / c_bits_per_byte]{};
+        owned_block m_extra_kinds{};
+
+        /**
+         * @brief Address the nesting-kind bits for the current pre-pass.
+         * @par Requirements
+         * P033; J5-046; J5-048.
+         * @note The inline array unless max_depth exceeded it and extra bits were allocated.
+         */
+        [[nodiscard]] unsigned char* nesting_kinds() noexcept;
+
+        /**
+         * @brief Count one value without building it: reserve its resources and validate it.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+         * @note Reports the same errors as read_value and allocates nothing (ADR 0003, decision 7).
+         * Charges the same scanning work as read_value, but no construction or decode work.
+         */
+        [[nodiscard]] status_result count_value() noexcept;
+
+        /**
+         * @brief Count one member name without decoding it.
+         * @par Requirements
+         * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+         * @note Reports the same errors as read_name except duplicate names, which are checked
+         * only in the build pass (ADR 0003, decision 7, C1). Allocates nothing.
+         */
+        [[nodiscard]] status_result count_name() noexcept;
+
+        /**
+         * @brief Consume a dispatched colon or comma in the pre-pass.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027.
+         * @note Same validation and errors as consume_separator.
+         */
+        [[nodiscard]] status_result count_separator(parser_action action) noexcept;
+
+        /**
+         * @brief Close the innermost container in the pre-pass.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-048.
+         * @note Uses check_container_close, like close_container, so errors are identical.
+         */
+        [[nodiscard]] status_result count_close() noexcept;
+
+        /**
+         * @brief Record a completed value in the pre-pass: finish the root or advance the parent.
+         * @par Requirements
+         * P033; P034; P035; J5-013.
+         */
+        [[nodiscard]] status_result count_completed_value() noexcept;
+
+        /**
+         * @brief Run the counting pre-pass over the whole document.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @param complete True to also require complete input consumption, as run_complete does.
+         * @return Success with the counts held in m_resources, or the first error.
+         * @note Allocates nothing with max_depth up to 512; above that, one block of nesting bits
+         * that is released before returning. Leaves m_source where the pre-pass stopped.
+         */
+        [[nodiscard]] status_result count_document(bool complete) noexcept;
+
+        /**
+         * @brief Count, reserve exactly, then build one root value.
+         * @par Requirements
+         * P033; P037; J5-013; J5-026; J5-040; J5-046; J5-048; J5-049.
+         * @param complete True to require complete input consumption.
+         * @note Shared body of run() and run_complete() (ADR 0003, decision 7).
+         */
+        [[nodiscard]] result<parsed_value_tree> parse(bool complete) noexcept;
 
         /**
          * @brief Start a container or construct and accept a scalar value.
@@ -128,17 +213,35 @@ namespace adaptive_json5
          */
         [[nodiscard]] status_result accept_completed_value(value_index completed) noexcept;
 
+        // Set by the warning-sink hooks while one value or name is lexed (ADR 0003, decision 10, D).
+        bool m_string_reserved{};
+        bool m_warning_record_failed{};
+
         /**
-         * @brief Reserve and record every warning of one validated quoted string.
+         * @brief Sink reserve hook: reserve units, diagnostics and warning slots for one string.
          * @par Requirements
          * P039; J5-017; J5-041; J5-046; J5-047.
-         * @param token_offset Original offset of the string's opening quote.
-         * @param count Number of warnings the lexer reported for that string.
-         * @return Success, or an explicit diagnostic-limit, storage or internal failure.
-         * @note Reserves one diagnostic entry and one list slot per warning before recording any.
+         * @param context The engine.
+         * @param units Decoded units of the string.
+         * @param warning_count Warnings the decode walk will record.
+         * @return Success, or an explicit diagnostic-limit, unit-limit or storage failure.
+         * @note Called by consume_string after the string's own allocation, so the order is the
+         * one used before: string allocation, units, diagnostics, then warning-table slots.
          * Failure may leave partial reservations; the engine must then be abandoned.
          */
-        [[nodiscard]] status_result retain_warnings(std::size_t token_offset, std::size_t count) noexcept;
+        [[nodiscard]] static status_result reserve_string(void* context, std::size_t units,
+                                                          std::size_t warning_count) noexcept;
+
+        /**
+         * @brief Sink record hook: append one warning into a reserved warning-table slot.
+         * @par Requirements
+         * P039; J5-017; J5-041.
+         * @param context The engine.
+         * @param warning Warning found by the decode walk, in source order.
+         * @note A failed append means the reservation and the walk disagree; it is reported after
+         * lexing as wrong_type_or_access.
+         */
+        static void record_warning(void* context, const string_warning& warning) noexcept;
 
       public:
         /**
@@ -155,6 +258,9 @@ namespace adaptive_json5
          * @par Requirements
          * P033; P034; P035; J5-013; J5-027; J5-040; J5-048.
          * @note Invoke once on a fresh engine.
+         * Single use: after any result, construct a new engine to parse again.
+         * Counts in an allocation-free pre-pass, reserves records and frames exactly once,
+         * then builds; syntax and limit failures occur before any allocation (ADR 0003, decision 7).
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
          */
@@ -165,7 +271,9 @@ namespace adaptive_json5
          * @par Requirements
          * P037; J5-026; J5-049; J5-051.
          * @note Invoke once on a fresh engine instead of run().
+         * Single use: after any result, construct a new engine to parse again.
          * Admits trailing trivia according to the selected syntax mode.
+         * The pre-pass also checks trailing content, so it fails before any allocation.
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
          */

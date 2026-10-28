@@ -47,6 +47,7 @@ namespace adaptive_json5
    * Retained source text is copied only after the complete input is accepted;
    * a failed copy publishes no document.
    * No caller warning callbacks are invoked.
+   * Limits, failure/retry behavior and memory sizing: docs/memory-and-limits.md.
    * Thread safety: uses no global mutable state, so concurrent calls are safe when each
    * uses its own accounting object. input and options are only read and may be shared.
    * An accounting object or provider shared between threads needs caller synchronization.

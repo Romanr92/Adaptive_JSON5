@@ -32,7 +32,7 @@ generic C++ library with native development rather than WSL.
   agent policies, SDK, filesystem, service model and release governance are not
   dependencies. No WSL, Yocto, QEMU or ARM64 deployment is required.
 - Preserve the original proposal Markdown as historical Draft input; add J5-101 for the later embedded requirement.
-- Agents may edit CMake, GoogleTest tests, documentation and requirements, but shall not write production C++ or public C++ headers. Record this in AGENTS.md and adapt the two repository skills from AdaptivePi.
+- AI agents can change build setup (CMake), documentation, requirements and GoogleTest unit tests, not production code (production C++ or public C++ headers). Record this in AGENTS.md and adapt the two repository skills from AdaptivePi.
 - Keep the 100 original stable requirement IDs and record adaptations explicitly. The
   contracts remain Draft until reviewed; repository preparation is not proof of
   implementation or conformance.

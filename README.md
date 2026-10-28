@@ -20,8 +20,9 @@ limits, implementation-defined behaviour, deviations and executed results. Requi
 rows remain Draft.
 GoogleTest inventories are in [traceability](docs/traceability.md), and the
 per-production view is the [grammar evidence matrix](core/docs/design-grammar-evidence.md).
-Production C++ and public headers are reserved for Romanr92; AI creates
-unit tests. See [AGENTS.md](AGENTS.md).
+Production code (C++ sources and public headers) is written by Romanr92. AI agents
+can change build setup, documentation and unit tests, not production code. See
+[AGENTS.md](AGENTS.md).
 
 The [delivery scope](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
 P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.
@@ -96,6 +97,10 @@ cmake --build --preset library
 cmake --install build/library --config Release --prefix path/to/install
 ```
 
+Before calling `parse_document`, read [memory, limits and failure behavior](docs/memory-and-limits.md).
+It covers the storage you supply, what each limit counts, what happens when a
+parse fails and how to retry, and decided changes that are not yet implemented.
+
 Use `find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)` with the installation prefix
 in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
 not a supported parser release.
@@ -126,6 +131,7 @@ The command-line executable will be implemented later; no production C++ is adde
 - [Original proposal Markdown](core/docs/requirements-proposal-json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
 - [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.
 - [Implementation sequence and issue tracking](core/docs/requirements-json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
+- [Memory, limits and failure behavior](docs/memory-and-limits.md) for library users, and [storage and budget decisions](core/docs/adr-0003-storage-and-budget-decisions.md) (ADR 0003).
 - [Architecture](core/docs/design-architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
 - [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
 - [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).

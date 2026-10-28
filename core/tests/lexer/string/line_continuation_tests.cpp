@@ -120,6 +120,8 @@ namespace
     const std::string input = std::string("\"A\\") + param.bytes + " B\"";
     cursor source({input.data(), input.size()});
     decoded_string_builder builder(c_test_storage, 3);
+    // "A", the space and "B" decode to three units; the builder needs its exact reservation first.
+    ASSERT_TRUE(builder.reserve_exact(3).has_value());
     const auto opening = consume_string_opening(source, syntax_mode::json5);
     ASSERT_TRUE(opening.has_value());
     ASSERT_TRUE(opening.value_if()->has_value());

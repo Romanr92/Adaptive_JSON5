@@ -42,7 +42,7 @@ namespace
 
   /* Verify independent boundary encodings in both directions.
    * Arrange: Select a scalar and literal expected units and bytes.
-   * Act: Encode, build, finish, decode and export.
+   * Act: Encode, reserve the expected units, build, finish, decode and export.
    * Expect: Exact units, scalar, consumed count and UTF-8 bytes with intact guards.
    */
   TEST_P(J5_018_Scalar, PreservesBoundaryRepresentations)
@@ -55,6 +55,7 @@ namespace
     output.fill(0xA5);
     /* Act */
     const auto encoded = encode_utf16(param.scalar);
+    const auto reserved = builder.reserve_exact(param.units.size());
     const auto appended = builder.append_scalar(param.scalar);
     auto text = builder.finish();
     const auto decoded = decode_utf16(text, 0);
@@ -67,6 +68,7 @@ namespace
     {
       EXPECT_EQ(encoded.value_if()->units[i], param.units[i]);
     }
+    ASSERT_TRUE(reserved.has_value());
     ASSERT_TRUE(appended.has_value());
     expect_units(text, param.units);
     ASSERT_TRUE(decoded.has_value());
@@ -120,6 +122,8 @@ namespace
     /* Arrange */
     string_provider provider;
     decoded_string_builder builder(provider.callbacks(), 8);
+    // Room for the seed and a pair, so only the invalid scalar can cause the failure.
+    ASSERT_TRUE(builder.reserve_exact(3).has_value());
     ASSERT_TRUE(builder.append_unit(u'A').has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
@@ -209,8 +213,9 @@ namespace
 
   /* Verify every empty operation avoids the provider and permits null output.
    * Arrange: Use default strings and a zero-limit builder without callbacks.
-   * Act: Copy empty input, finish twice, measure and export.
-   * Expect: Empty successes and checked failures for reads and nonempty appends.
+   * Act: Reserve zero units, copy empty input, finish twice, measure, export and append.
+   * Expect: Empty successes, checked read failures, and an append past the empty
+   *         reservation rejected as an internal error.
    */
   TEST(J5_029_StringStorage, HandlesEmptyWithoutProvider)
   {
@@ -218,6 +223,7 @@ namespace
     decoded_string empty;
     decoded_string_builder builder({}, 0);
     /* Act */
+    const auto reserved = builder.reserve_exact(0);
     auto copied = decoded_string::copy_units({}, nullptr, 0);
     auto first = builder.finish();
     auto second = builder.finish();
@@ -225,6 +231,7 @@ namespace
     const auto exported = export_utf8(empty, nullptr, 0);
     const auto append = builder.append_unit(u'A');
     /* Expect */
+    EXPECT_TRUE(reserved.has_value());
     ASSERT_TRUE(copied.has_value());
     EXPECT_EQ(copied.value_if()->size(), 0u);
     EXPECT_EQ(first.size(), 0u);
@@ -235,7 +242,8 @@ namespace
     EXPECT_EQ(*exported.value_if(), 0u);
     expect_error(empty.unit_at(0), error_code::wrong_type_or_access);
     expect_error(decode_utf16(empty, 0), error_code::wrong_type_or_access);
-    expect_error(append, error_code::resource_limit);
+    // Appends never grow storage, so content beyond the reservation is a contract violation.
+    expect_error(append, error_code::wrong_type_or_access);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -252,6 +260,7 @@ namespace
   static_assert(std::is_nothrow_move_constructible_v<decoded_string>);
   static_assert(std::is_nothrow_destructible_v<decoded_string>);
   static_assert(noexcept(decoded_string::copy_units({}, nullptr, 0)));
+  static_assert(noexcept(std::declval<decoded_string_builder&>().reserve_exact(std::size_t{})));
   static_assert(noexcept(std::declval<decoded_string_builder&>().append_unit(char16_t{})));
   static_assert(noexcept(std::declval<decoded_string_builder&>().append_scalar(char32_t{})));
   static_assert(noexcept(std::declval<decoded_string_builder&>().finish()));
@@ -261,8 +270,8 @@ namespace
   /* ----------------------------------------------------------------------------------- */
 
   /* Verify finish transfers ownership and a reused builder cannot overwrite old data.
-   * Arrange: Build content requiring several growth operations.
-   * Act: Finish, finish empty again, then reuse and destroy the builder.
+   * Arrange: Reserve and build five units, including NUL and unpaired surrogates.
+   * Act: Finish, finish empty again, then reserve again, reuse and destroy the builder.
    * Expect: Independent completed strings, no finish allocation and balanced cleanup.
    */
   TEST(J5_040_StringBuilder, TransfersStorageAndSupportsReuse)
@@ -272,6 +281,7 @@ namespace
     auto first = [&provider]()
     {
       decoded_string_builder builder(provider.callbacks(), 20);
+      EXPECT_TRUE(builder.reserve_exact(5).has_value());
       for (char16_t unit : std::u16string{u'A', 0, 0xD800, u'B', 0xDC00})
       {
         EXPECT_TRUE(builder.append_unit(unit).has_value());
@@ -283,6 +293,8 @@ namespace
       EXPECT_EQ(builder.size(), 0u);
       EXPECT_EQ(empty.size(), 0u);
       EXPECT_EQ(provider.m_attempts, attempts);
+      // finish() leaves the builder empty, so a new string takes a new reservation.
+      EXPECT_TRUE(builder.reserve_exact(1).has_value());
       EXPECT_TRUE(builder.append_unit(u'Z').has_value());
       auto second = builder.finish();
       /* Expect */
@@ -298,8 +310,8 @@ namespace
 
   /* Verify abandoned builder storage is released without needing finish.
    * Arrange: Keep the provider outside the builder scope.
-   * Act: Append enough units to grow and destroy the builder directly.
-   * Expect: All successful allocations are released with exact descriptions.
+   * Act: Reserve and append nine units, then destroy the builder directly.
+   * Expect: One allocation, released with its exact description.
    */
   TEST(J5_040_StringBuilder, ReleasesUnfinishedContent)
   {
@@ -308,13 +320,14 @@ namespace
     {
       decoded_string_builder builder(provider.callbacks(), 20);
       /* Act */
+      ASSERT_TRUE(builder.reserve_exact(9).has_value());
       for (int i = 0; i < 9; ++i)
       {
         ASSERT_TRUE(builder.append_unit(u'A').has_value());
       }
     }
     /* Expect */
-    EXPECT_GT(provider.m_allocations, 1u);
+    EXPECT_EQ(provider.m_allocations, 1u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_EQ(provider.m_allocations, provider.m_releases);
   }
@@ -327,113 +340,145 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
-  class J5_046_GrowthFailure : public ::testing::TestWithParam<std::size_t>
-  {
-  };
-
-  /* Verify each growth allocation can fail without losing accepted content.
-   * Arrange: Fail one of the five allocations needed to append nine units.
-   * Act: Append until failure, disable injection and retry the same unit.
-   * Expect: Failure preserves size; retry and finish preserve all units and cleanup.
+  /* Verify the single reservation can fail and be retried without leftover state.
+   * Arrange: Inject failure into the first allocation request.
+   * Act: Reserve nine units, retry after disabling injection, then append and finish.
+   * Expect: allocation_failure with no content or capacity, then one successful
+   *         allocation holding exactly the nine units.
    */
-  TEST_P(J5_046_GrowthFailure, PreservesContentAndAllowsRetry)
+  TEST(J5_046_StringBuilder, ReservationFailureAllowsRetry)
   {
     /* Arrange */
+    const std::u16string units{u'A', 0, 0xD800, u'B', 0xDC00, u'C', u'D', u'E', u'F'};
     string_provider provider;
-    provider.m_fail_on = GetParam();
-    decoded_string_builder builder(provider.callbacks(), 9);
-    std::u16string expected;
-    bool failed = false;
+    provider.m_fail_on = 1;
+    decoded_string_builder builder(provider.callbacks(), units.size());
     /* Act */
-    for (char16_t unit : std::u16string{u'A', 0, 0xD800, u'B', 0xDC00, u'C', u'D', u'E', u'F'})
+    const auto failed = builder.reserve_exact(units.size());
+    const auto failed_append = builder.append_unit(u'A');
+    provider.m_fail_on = 0;
+    const auto retried = builder.reserve_exact(units.size());
+    for (char16_t unit : units)
     {
-      const auto appended = builder.append_unit(unit);
-      if (!appended.has_value())
-      {
-        /* Expect */
-        failed = true;
-        expect_error(appended, error_code::allocation_failure);
-        EXPECT_EQ(builder.size(), expected.size());
-        provider.m_fail_on = 0;
-        ASSERT_TRUE(builder.append_unit(unit).has_value());
-      }
-      expected.push_back(unit);
+      ASSERT_TRUE(builder.append_unit(unit).has_value());
     }
     auto text = builder.finish();
-    EXPECT_TRUE(failed);
-    expect_units(text, expected);
+    /* Expect */
+    expect_error(failed, error_code::allocation_failure);
+    // A failed reservation leaves no capacity, so nothing can be appended.
+    expect_error(failed_append, error_code::wrong_type_or_access);
+    ASSERT_TRUE(retried.has_value());
+    expect_units(text, units);
+    EXPECT_EQ(provider.m_allocations, 1u);
+    EXPECT_EQ(provider.m_live_bytes, units.size() * sizeof(char16_t));
   }
-  INSTANTIATE_TEST_SUITE_P(Allocations, J5_046_GrowthFailure, ::testing::Values(1u, 2u, 3u, 4u, 5u));
 
   /* ----------------------------------------------------------------------------------- */
 
   /* Verify supplementary appends never publish only half a pair.
-   * Arrange: Seed ASCII and inject failure on the pair's required allocation.
+   * Arrange: Reserve two units and seed ASCII, leaving room for one unit only.
    * Act: Append a supplementary scalar, then finish the existing content.
-   * Expect: Allocation failure and exactly the original ASCII unit.
+   * Expect: wrong_type_or_access, no provider request and exactly the original ASCII unit.
    */
-  TEST(J5_046_StringBuilder, PairAllocationFailureIsAtomic)
+  TEST(J5_046_StringBuilder, PairBeyondReservationIsAtomic)
   {
     /* Arrange */
     string_provider provider;
     decoded_string_builder builder(provider.callbacks(), 3);
+    ASSERT_TRUE(builder.reserve_exact(2).has_value());
     ASSERT_TRUE(builder.append_unit(u'A').has_value());
-    provider.m_fail_on = provider.m_attempts + 1;
+    const auto attempts = provider.m_attempts;
     /* Act */
     const auto appended = builder.append_scalar(0x1F3BC);
     auto text = builder.finish();
     /* Expect */
-    expect_error(appended, error_code::allocation_failure);
+    expect_error(appended, error_code::wrong_type_or_access);
+    EXPECT_EQ(provider.m_attempts, attempts);
     expect_units(text, u"A");
   }
 
   /* ----------------------------------------------------------------------------------- */
 
-  /* Verify exact unit limits and surrogate-pair rejection without allocation.
-   * Arrange: Give the builder room for ASCII and a complete pair only.
-   * Act: Append at and beyond the limit; also try a pair with only one free unit.
-   * Expect: Complete accepted content and resource errors without provider requests.
+  /* Verify the unit limit applies to the reservation, before any provider request.
+   * Arrange: A builder limited to three units.
+   * Act: Reserve four units, then exactly three, fill them with ASCII and a pair, and
+   *      append one more unit.
+   * Expect: resource_limit without a provider request for four units; complete content
+   *         at the limit; wrong_type_or_access for the unit beyond the reservation.
    */
   TEST(J5_046_StringBuilder, EnforcesExactUnitLimits)
   {
     /* Arrange */
     string_provider provider;
     decoded_string_builder exact(provider.callbacks(), 3);
-    decoded_string_builder short_pair(provider.callbacks(), 2);
-    ASSERT_TRUE(exact.append_unit(u'A').has_value());
-    ASSERT_TRUE(short_pair.append_unit(u'B').has_value());
     /* Act */
-    const auto accepted = exact.append_scalar(0x1F3BC);
-    const auto attempts = provider.m_attempts;
+    const auto above = exact.reserve_exact(4);
+    const auto attempts_after_above = provider.m_attempts;
+    const auto reserved = exact.reserve_exact(3);
+    const auto first = exact.append_unit(u'A');
+    const auto pair = exact.append_scalar(0x1F3BC);
     const auto beyond = exact.append_unit(u'C');
-    const auto partial = short_pair.append_scalar(0x1F3BC);
     auto full = exact.finish();
-    auto original = short_pair.finish();
     /* Expect */
-    ASSERT_TRUE(accepted.has_value());
-    expect_error(beyond, error_code::resource_limit);
-    expect_error(partial, error_code::resource_limit);
-    EXPECT_EQ(provider.m_attempts, attempts);
+    expect_error(above, error_code::resource_limit);
+    EXPECT_EQ(attempts_after_above, 0u);
+    ASSERT_TRUE(reserved.has_value());
+    ASSERT_TRUE(first.has_value());
+    ASSERT_TRUE(pair.has_value());
+    expect_error(beyond, error_code::wrong_type_or_access);
+    EXPECT_EQ(provider.m_allocations, 1u);
     expect_units(full, {u'A', 0xD83C, 0xDFBC});
-    expect_units(original, u"B");
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify appending past the reservation fails without allocating or changing content.
+   * Arrange: Reserve two units and fill them.
+   * Act: Append a third unit, then try a second reservation.
+   * Expect: wrong_type_or_access for both, no new provider request, unchanged content
+   *         and exactly the reserved bytes live.
+   */
+  TEST(J5_046_StringBuilder, AppendPastReservationFailsWithoutAllocating)
+  {
+    /* Arrange */
+    string_provider provider;
+    decoded_string_builder builder(provider.callbacks(), 8);
+    ASSERT_TRUE(builder.reserve_exact(2).has_value());
+    ASSERT_TRUE(builder.append_unit(u'A').has_value());
+    ASSERT_TRUE(builder.append_unit(u'B').has_value());
+    const auto attempts = provider.m_attempts;
+    /* Act */
+    const auto beyond = builder.append_unit(u'C');
+    const auto second_reservation = builder.reserve_exact(4);
+    /* Expect */
+    expect_error(beyond, error_code::wrong_type_or_access);
+    expect_error(second_reservation, error_code::wrong_type_or_access);
+    EXPECT_EQ(provider.m_attempts, attempts);
+    EXPECT_EQ(builder.size(), 2u);
+    EXPECT_EQ(provider.m_live_bytes, 2 * sizeof(char16_t));
+    auto text = builder.finish();
+    expect_units(text, u"AB");
   }
 
   /* ----------------------------------------------------------------------------------- */
 
   /* Verify an unusable provider fails without publishing a unit.
    * Arrange: Construct a nonzero-limit builder without storage callbacks.
-   * Act: Append a unit and finish after failure.
-   * Expect: Allocation error and an empty completed string.
+   * Act: Reserve one unit, append a unit and finish after failure.
+   * Expect: Allocation error for the reservation, no appendable capacity and an
+   *         empty completed string.
    */
   TEST(J5_046_StringBuilder, RejectsMissingProvider)
   {
     /* Arrange */
     decoded_string_builder builder({}, 3);
     /* Act */
-    const auto actual = builder.append_unit(u'A');
+    const auto reserved = builder.reserve_exact(1);
+    const auto appended = builder.append_unit(u'A');
     auto text = builder.finish();
     /* Expect */
-    expect_error(actual, error_code::allocation_failure);
+    expect_error(reserved, error_code::allocation_failure);
+    expect_error(appended, error_code::wrong_type_or_access);
     EXPECT_EQ(text.size(), 0u);
   }
 

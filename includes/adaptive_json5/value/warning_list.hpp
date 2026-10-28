@@ -3,6 +3,7 @@
 
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 
@@ -27,24 +28,36 @@ namespace adaptive_json5
       owned_block m_storage{};
       std::size_t m_size{};
       std::size_t m_capacity{};
+      std::size_t m_max_entries{};
+      warning_storage_policy m_policy{warning_storage_policy::fixed};
 
     public:
+      /**
+       * @brief Entries allocated first under the adaptive policy (ADR 0003, decision 4b).
+       * @par Requirements
+       * P039; J5-046.
+       */
+      static constexpr std::size_t c_adaptive_initial_entries = 64;
+
       /**
        * @brief Construct an empty list without a storage provider.
        * @par Requirements
        * P039; J5-046.
-       * @note Performs no allocation; only reserve(0) can succeed.
+       * @note Performs no allocation; with a maximum of zero, only reserve(0) can succeed.
        */
       warning_list() noexcept = default;
 
       /**
-       * @brief Construct an empty list that allocates through a borrowed provider.
+       * @brief Construct an empty list with a maximum entry count and a storage policy.
        * @par Requirements
-       * P039; J5-046.
+       * P039; J5-046; J5-047.
        * @param provider Fallible storage provider that must outlive the list.
+       * @param max_entries Maximum retained entries, normally max_diagnostics; no reservation exceeds it.
+       * @param policy How the first and later reservations size the table.
        * @note Performs no allocation.
        */
-      explicit warning_list(const storage_callbacks& provider) noexcept;
+      warning_list(const storage_callbacks& provider, std::size_t max_entries,
+                   warning_storage_policy policy = warning_storage_policy::fixed) noexcept;
 
       /**
        * @brief Transfer all entries and storage, leaving the source empty.
@@ -71,8 +84,11 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-046.
        * @param additional Number of further entries the caller will append.
-       * @return Success, or an explicit resource/storage failure that leaves the list unchanged.
-       * @note Grows to at least double the old capacity; the old allocation is retained during copying.
+       * @return Success, resource_limit when size() + additional exceeds the maximum, or an
+       * allocation failure; the list is unchanged on failure.
+       * @note fixed: the first allocation holds the maximum and never grows. adaptive: the
+       * first allocation holds min(maximum, 64) entries, later growth doubles, capped at the maximum.
+       * The old allocation is retained during copying.
        */
       [[nodiscard]] status_result reserve(std::size_t additional) noexcept;
 

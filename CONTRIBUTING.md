@@ -42,6 +42,7 @@ when contributing copied or adapted material. Repository copyright attribution i
 recorded in [NOTICE](NOTICE); third-party rights remain with their owners.
 
 The [issue tracking section](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking) groups consecutive P
-steps without reducing technical acceptance. Romanr92 implements production C++;
-AI creates independent GoogleTest units and does not fix production files. Full
+steps without reducing technical acceptance. Romanr92 implements production C++.
+AI agents can change build setup, documentation and unit tests, not production
+code; unit tests stay independent of the implementation. Full
 schema, minimal testing CLI and advanced accounting remain in the selected delivery.

@@ -329,10 +329,11 @@ namespace
   }
   /* ----------------------------------------------------------------------------------- */
 
-  /* Fail each observed allocation and retry using the unchanged cursor.
+  /* Fail the single exact allocation and retry using the unchanged cursor.
    * Arrange: Measure a successful long name's allocation requests, then inject each failure.
    * Act: Recognize, fail and retry.
-   * Expect: Explicit allocation error, balanced release and exact successful retry content.
+   * Expect: Exactly one request (ADR 0003, decision 2), allocation error at the name start,
+   *         balanced release and exact successful retry content.
    */
   TEST(J5_019_IdentifierStorage, FailsEveryAllocationAndAllowsRetry)
   {
@@ -347,7 +348,8 @@ namespace
       ASSERT_TRUE(baseline.value_if()->has_value());
       attempts = provider.m_attempts;
     }
-    ASSERT_GT(attempts, 1u);
+    // Counting first makes one allocation of exactly the decoded size.
+    ASSERT_EQ(attempts, 1u);
     for (std::size_t failure = 1; failure <= attempts; ++failure)
     {
       lexer_provider provider;
@@ -359,7 +361,7 @@ namespace
       ASSERT_FALSE(actual.has_value());
       EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
       EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_LT(actual.error_if()->byte_offset, input.size());
+      EXPECT_EQ(actual.error_if()->byte_offset, 0u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
       EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -583,7 +585,8 @@ namespace
   /* Inject every allocation failure while constructing escaped content.
    * Arrange: Measure a fully escaped name's actual allocation count.
    * Act: Fail each request, then retry from the original cursor.
-   * Expect: Allocation failure at an escape start, no leaked storage and exact retry.
+   * Expect: Exactly one request (ADR 0003, decision 2), allocation failure at the name start,
+   *         no leaked storage and exact retry.
    */
   TEST(J5_020_IdentifierStorage, FailsEveryAllocationAndRetriesEscapedName)
   {
@@ -598,7 +601,8 @@ namespace
       ASSERT_TRUE(actual.value_if()->has_value());
       attempts = provider.m_attempts;
     }
-    ASSERT_GT(attempts, 1u);
+    // Counting first makes one allocation of exactly the decoded size.
+    ASSERT_EQ(attempts, 1u);
     for (std::size_t failure = 1; failure <= attempts; ++failure)
     {
       lexer_provider provider;
@@ -610,8 +614,7 @@ namespace
       ASSERT_FALSE(actual.has_value());
       EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
       EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset % 6, 0u);
-      EXPECT_LT(actual.error_if()->byte_offset, input.size());
+      EXPECT_EQ(actual.error_if()->byte_offset, 0u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
       EXPECT_EQ(provider.m_allocations, provider.m_releases);

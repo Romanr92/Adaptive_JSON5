@@ -44,6 +44,8 @@ namespace
     const auto container = values.make_array();
     ASSERT_TRUE(container.has_value());
     parser_stack frames{provider.callbacks(), 2};
+    // Frames are reserved once before any push (ADR 0003, decision 7).
+    ASSERT_TRUE(frames.reserve_exact(2).has_value());
     parser_frame frame;
     frame.container = *container.value_if();
     punctuation_token closing{punctuation_kind::right_bracket, 1, 1};

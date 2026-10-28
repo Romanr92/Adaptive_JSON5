@@ -1,6 +1,7 @@
 #ifndef STRING_TOKEN_HPP_
 #define STRING_TOKEN_HPP_
 
+#include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 
@@ -38,6 +39,36 @@ namespace adaptive_json5
   };
 
   /**
+   * @brief Reserve resources for one validated string before it is decoded.
+   * @par Requirements
+   * P039; J5-017; J5-046; J5-047.
+   * @param context Caller-owned sink state.
+   * @param units Decoded UTF-16 units of the string.
+   * @param warning_count Warnings the decode walk will record.
+   * @return Success, or the caller's failure, which consume_string returns unchanged.
+   */
+  using string_reserve_function = status_result (*)(void* context, std::size_t units,
+                                                    std::size_t warning_count) noexcept;
+
+  /**
+   * @brief Borrow an optional parser sink that records warnings during the decode walk.
+   * @par Requirements
+   * P039; J5-017; J5-046; J5-049.
+   * @note Used only by the parser engine (ADR 0003, decision 10, D); string_warning_observer
+   * keeps its own contract for other callers.
+   * reserve is called once per string, after its decoded storage is allocated and before
+   * decoding; record is then called for each warning in source order during the decode walk.
+   * If decoding fails after reserve, some warnings may already be recorded; the parser then
+   * abandons its state (ADR 0003, decision 9). Both functions are required.
+   */
+  struct [[nodiscard]] string_warning_sink
+  {
+      void* context = nullptr;
+      string_reserve_function reserve = nullptr;
+      string_warning_function record = nullptr;
+  };
+
+  /**
    * @brief Own one decoded string token and its source metadata.
    * @par Requirements
    * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-041.
@@ -52,6 +83,24 @@ namespace adaptive_json5
   struct [[nodiscard]] string_token
   {
       decoded_string value{};
+      std::size_t byte_offset{};
+      std::size_t byte_length{};
+      std::size_t warning_count{};
+      std::optional<string_warning> first_warning{};
+  };
+
+  /**
+   * @brief Describe one validated quoted string without owning its decoded units.
+   * @par Requirements
+   * P021; J5-017; J5-046; J5-047.
+   * @note byte_offset and byte_length include both source quotation marks.
+   * warning_count counts all raw separator warnings.
+   * first_warning is present exactly when warning_count is nonzero.
+   * Owns nothing, so it can be produced and discarded without a storage provider.
+   */
+  struct [[nodiscard]] string_measure
+  {
+      std::size_t units{};
       std::size_t byte_offset{};
       std::size_t byte_length{};
       std::size_t warning_count{};
