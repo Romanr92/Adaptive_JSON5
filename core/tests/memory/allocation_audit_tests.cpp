@@ -4,6 +4,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "input/cursor.hpp"
 #include "lexer/scalar_lexer.hpp"
@@ -223,6 +224,49 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
+  /* Verify unknown words are rejected without decoding or allocating them.
+   * Arrange: Plain, escaped and multibyte unknown words and a provider that counts attempts.
+   * Act: Recognize each as a JSON5 scalar, and once more with a provider that fails every request.
+   * Expect: unknown_literal with the word's range both times, the cursor unchanged and zero
+   *         allocation attempts (ADR 0003, decision 10, F).
+   */
+  TEST(J5_046_ScalarLexer, UnknownWordsDoNotAllocate)
+  {
+    struct word_case
+    {
+        const char* input;  // Input starting with an unknown word.
+        std::size_t length; // Expected byte length of the word's range.
+    };
+    constexpr word_case c_cases[] = {{"foo]", 3}, {"tru\\u0065", 9}, {"caf\xC3\xA9 ", 5}};
+
+    for (const word_case& item : c_cases)
+    {
+      for (const bool failing : {false, true})
+      {
+        /* Arrange */
+        const std::string input = item.input;
+        string_provider provider;
+        provider.m_fail_on = failing ? 1U : 0U;
+        cursor source{input_view{input.data(), input.size()}};
+        /* Act */
+        const auto token = consume_scalar(source, syntax_mode::json5, provider.callbacks(), 64, 64,
+                                          std::numeric_limits<std::size_t>::max());
+        /* Expect */
+        ASSERT_FALSE(token.has_value()) << input;
+        const error& failure = *token.error_if();
+        EXPECT_EQ(failure.code, error_code::syntax) << input;
+        EXPECT_EQ(failure.syntax_reason, syntax_error_reason::unknown_literal) << input;
+        ASSERT_TRUE(failure.source_range.has_value()) << input;
+        EXPECT_EQ(failure.source_range->byte_offset, 0U) << input;
+        EXPECT_EQ(failure.source_range->byte_length, item.length) << input;
+        EXPECT_EQ(source.offset(), 0U) << input;
+        EXPECT_EQ(provider.m_attempts, 0U) << input;
+      }
+    }
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
   /**
    * @brief Bytes retained by the result of one parse.
    * @par Requirements
@@ -277,13 +321,14 @@ namespace
   /* ================================= End Test_J5_046 ================================= */
 
   /* =================================== Test_J5_049 =================================== */
-  /* Verify the second pass that collects a string's warnings is charged as work.
+  /* Verify a string's warnings are recorded without a second pass over the string.
    * Arrange: Two arrays holding a 203-byte string body; one ends in U+4E00, the other in
    *          U+2028, which has the same UTF-8 and UTF-16 length but emits a warning.
    * Act: Find the minimal successful work ceiling for each document.
-   * Expect: The warning document needs at least one extra unit per rescanned body byte.
+   * Expect: Both need the same work: the warning is recorded during the decode walk, so
+   *         nothing is re-scanned (ADR 0003, decision 10, D; replaces WarningRescanIsCharged).
    */
-  TEST(J5_049_ParserWork, WarningRescanIsCharged)
+  TEST(J5_049_ParserWork, WarningsNeedNoRescan)
   {
     /* Arrange */
     const std::string body(200, 'a');
@@ -294,7 +339,7 @@ namespace
     const std::size_t plain_work = minimum_work(plain);
     const std::size_t warned_work = minimum_work(warned);
     /* Expect */
-    EXPECT_GE(warned_work, plain_work + body.size());
+    EXPECT_EQ(warned_work, plain_work);
   }
 
   /* ----------------------------------------------------------------------------------- */

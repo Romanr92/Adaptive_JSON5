@@ -47,17 +47,6 @@ namespace adaptive_json5
       constexpr std::size_t c_byte_order_mark_bytes = 3;
 
       /**
-       * @brief Carry the destination list and any append failure through the warning callback.
-       * @par Requirements
-       * P039; J5-017.
-       */
-      struct warning_sink
-      {
-          warning_list* list;
-          bool failed{};
-      };
-
-      /**
        * @brief Report whether input begins with the UTF-8 encoding of U+FEFF.
        * @par Requirements
        * P040; J5-025.
@@ -75,24 +64,6 @@ namespace adaptive_json5
         const auto* bytes = reinterpret_cast<const unsigned char*>(input.data);
 
         return (bytes[0] == 0xEFU) && (bytes[1] == 0xBBU) && (bytes[2] == 0xBFU);
-      }
-
-      /**
-       * @brief Append one re-reported warning into previously reserved capacity.
-       * @par Requirements
-       * P039; J5-017.
-       * @param context Borrowed warning_sink.
-       * @param warning Warning reported by the string walk.
-       * @note The callback type cannot return a failure, so one is recorded in the sink instead.
-       */
-      void collect_warning(void* context, const string_warning& warning) noexcept
-      {
-        auto& sink = *static_cast<warning_sink*>(context);
-
-        if (!sink.list->append_reserved(warning).has_value())
-        {
-          sink.failed = true;
-        }
       }
     } // namespace
 
@@ -223,9 +194,15 @@ namespace adaptive_json5
 
       limited_scan scan = *started.value_if();
 
+      // A string reserves its units, diagnostics and warning slots through the sink and records its
+      // warnings while it is decoded, so it is never re-scanned (ADR 0003, decision 10, D).
+      m_string_reserved = false;
+      m_warning_record_failed = false;
+      const string_warning_sink sink{this, &reserve_string, &record_warning};
+
       // Temporary identifier decoding is separate from retained string content.
       auto recognized = consume_scalar(scan.source, m_options.syntax, m_storage, string_limit, m_input.size,
-                                       limits.max_exponent_digits);
+                                       limits.max_exponent_digits, &sink);
 
       if (!recognized.has_value())
       {
@@ -248,18 +225,24 @@ namespace adaptive_json5
 
       auto& token = **recognized.value_if();
 
-      std::size_t string_units = 0;
-      std::size_t string_offset = 0;
       std::size_t string_length = 0;
-      std::size_t warning_count = 0;
 
       // Capture metadata before construction transfers the token's string.
       if (const auto* string = std::get_if<string_token>(&token); string != nullptr)
       {
-        string_units = string->value.size();
-        string_offset = string->byte_offset;
         string_length = string->byte_length;
-        warning_count = string->warning_count;
+      }
+
+      // Every string reached the sink's reserve hook; anything else here means the lexer skipped it.
+      if ((string_length != 0) != m_string_reserved)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
+      if (m_warning_record_failed)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
       }
 
       // The lexer walked the string twice, counting then decoding, so its bytes are charged again.
@@ -268,20 +251,6 @@ namespace adaptive_json5
       if (!decoded_charged.has_value())
       {
         return status_result::failure(*decoded_charged.error_if());
-      }
-
-      const auto reserved_string = m_resources.reserve_string_units(0, string_units);
-
-      if (!reserved_string.has_value())
-      {
-        return status_result::failure(*reserved_string.error_if());
-      }
-
-      const auto retained = retain_warnings(string_offset, string_length, warning_count);
-
-      if (!retained.has_value())
-      {
-        return status_result::failure(*retained.error_if());
       }
 
       const source_span span{m_source.offset(), scan.source.offset() - m_source.offset()};
@@ -369,7 +338,13 @@ namespace adaptive_json5
       }
 
       limited_scan scan = *started.value_if();
-      auto recognized = consume_member_name(scan.source, m_options.syntax, m_storage, max_units);
+
+      // A quoted name reserves and records its warnings through the sink while it is decoded (decision 10, D).
+      m_string_reserved = false;
+      m_warning_record_failed = false;
+      const string_warning_sink sink{this, &reserve_string, &record_warning};
+
+      auto recognized = consume_member_name(scan.source, m_options.syntax, m_storage, max_units, &sink);
 
       if (!recognized.has_value())
       {
@@ -392,6 +367,12 @@ namespace adaptive_json5
 
       auto& name = **recognized.value_if();
 
+      // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
+      if (m_warning_record_failed)
+      {
+        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
       // Quoted and identifier names are both walked twice, counting then decoding.
       const auto decode_charge = m_work.charge(name.byte_length);
 
@@ -413,19 +394,15 @@ namespace adaptive_json5
         }
       }
 
-      const auto reserved = m_resources.reserve_string_units(0, name.value.size());
-
-      if (!reserved.has_value())
+      // Quoted names reserved their units in the sink; identifier names never reach it.
+      if (!m_string_reserved)
       {
-        return status_result::failure(*reserved.error_if());
-      }
+        const auto reserved = m_resources.reserve_string_units(0, name.value.size());
 
-      // Identifier names report no warnings, so only quoted names reach the string walk.
-      const auto retained = retain_warnings(name.byte_offset, name.byte_length, name.warning_count);
-
-      if (!retained.has_value())
-      {
-        return status_result::failure(*retained.error_if());
+        if (!reserved.has_value())
+        {
+          return status_result::failure(*reserved.error_if());
+        }
       }
 
       // P035: own the decoded name until its scalar or nested container value is attached.
@@ -592,30 +569,29 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Reserve diagnostics and list capacity, then re-walk the string to record its warnings.
+     * @brief Sink reserve hook: reserve units, diagnostics and warning slots for one string.
      * @par Requirements
-     * P039; J5-017; J5-041; J5-046; J5-047; J5-049.
+     * P039; J5-017; J5-041; J5-046; J5-047.
+     * @param context The engine.
+     * @param units Decoded units of the string.
+     * @param warning_count Warnings the decode walk will record.
+     * @return Success, or an explicit diagnostic-limit, unit-limit or storage failure.
      */
-    status_result parser_engine::retain_warnings(std::size_t token_offset, std::size_t token_length,
-                                                 std::size_t count) noexcept
+    status_result parser_engine::reserve_string(void* context, std::size_t units, std::size_t warning_count) noexcept
     {
-      if (count == 0)
-      {
-        return status_result::success();
-      }
+      auto& self = *static_cast<parser_engine*>(context);
 
-      // The string was already validated and its length is known, so admit the whole re-scan up front.
-      const auto rescan_charged = m_work.charge(token_length);
+      const auto reserved_units = self.m_resources.reserve_string_units(0, units);
 
-      if (!rescan_charged.has_value())
+      if (!reserved_units.has_value())
       {
-        return status_result::failure(*rescan_charged.error_if());
+        return status_result::failure(*reserved_units.error_if());
       }
 
       // Every retained warning is a diagnostic entry, not only the first one.
-      for (std::size_t index{}; index < count; ++index)
+      for (std::size_t index{}; index < warning_count; ++index)
       {
-        const auto diagnostic = m_resources.reserve_diagnostic();
+        const auto diagnostic = self.m_resources.reserve_diagnostic();
 
         if (!diagnostic.has_value())
         {
@@ -623,37 +599,36 @@ namespace adaptive_json5
         }
       }
 
-      const auto reserved = m_warnings.reserve(count);
-
-      if (!reserved.has_value())
+      if (warning_count != 0)
       {
-        return status_result::failure(*reserved.error_if());
+        const auto slots = self.m_warnings.reserve(warning_count);
+
+        if (!slots.has_value())
+        {
+          return status_result::failure(*slots.error_if());
+        }
       }
 
-      // The lexer already validated this string, so walking it again only re-reports its warnings.
-      cursor body{m_input};
-      body.advance(token_offset + 1);
-
-      const string_quote quote =
-        (m_input.data[token_offset] == '\'') ? string_quote::single : string_quote::double_quote;
-
-      warning_sink sink{&m_warnings};
-      const string_warning_observer observer{&sink, &collect_warning};
-
-      const auto notified = notify_string_warnings(body, quote, m_options.syntax, observer);
-
-      if (!notified.has_value())
-      {
-        return status_result::failure(*notified.error_if());
-      }
-
-      // Exactly count slots were reserved, so a failed append means the two passes disagree.
-      if (sink.failed)
-      {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
-      }
-
+      self.m_string_reserved = true;
       return status_result::success();
+    }
+
+    /**
+     * @brief Sink record hook: append one warning into a reserved warning-table slot.
+     * @par Requirements
+     * P039; J5-017; J5-041.
+     * @param context The engine.
+     * @param warning Warning found by the decode walk, in source order.
+     * @note The hook type cannot return a failure, so one is recorded for the caller to report.
+     */
+    void parser_engine::record_warning(void* context, const string_warning& warning) noexcept
+    {
+      auto& self = *static_cast<parser_engine*>(context);
+
+      if (!self.m_warnings.append_reserved(warning).has_value())
+      {
+        self.m_warning_record_failed = true;
+      }
     }
 
     /**

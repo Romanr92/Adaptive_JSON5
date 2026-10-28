@@ -20,6 +20,11 @@ namespace adaptive_json5
   namespace
   {
     constexpr unsigned int c_decimal_radix = 10;
+    // Largest decimal chunk per big_unsigned step: 16-bit limbs keep limb x 10^4 + carry below 2^32 (decision 1b).
+    constexpr std::size_t c_chunk_digits = 4;
+    constexpr unsigned int c_chunk_radix = 10000;
+    // 10^4 < 2^14, so a power more than 14 bits below a value stays at or below it after one chunk step.
+    constexpr std::size_t c_chunk_bits = 14;
     constexpr unsigned int c_hexadecimal_radix = 16;
     constexpr unsigned int c_hexadecimal_letter_offset = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
@@ -110,6 +115,53 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Return 10^digits for a decimal chunk of one to four digits.
+     * @par Requirements
+     * P038; J5-037.
+     * @param digits Chunk length from 1 to c_chunk_digits.
+     */
+    [[nodiscard]] unsigned int chunk_power(std::size_t digits) noexcept
+    {
+      unsigned int power = 1;
+
+      for (std::size_t index{}; index < digits; ++index)
+      {
+        power *= c_decimal_radix;
+      }
+
+      return power;
+    }
+
+    /**
+     * @brief Multiply an exact integer by 10^count in steps of up to 10^4.
+     * @par Requirements
+     * P038; J5-037; J5-048.
+     * @param value Integer reserved for the scaled result.
+     * @param count Decimal exponent to apply.
+     * @param work Shared comparison work budget.
+     * @return Success or the first failure; earlier steps are not undone.
+     * @note Uses ceil(count / 4) multiplications instead of count (ADR 0003, decision 1b).
+     */
+    [[nodiscard]] status_result scale_by_power_of_ten(detail::big_unsigned& value, std::size_t count,
+                                                      work_budget& work) noexcept
+    {
+      while (count != 0)
+      {
+        const std::size_t step = (count < c_chunk_digits) ? count : c_chunk_digits;
+        const auto multiplied = value.append_digit(0, chunk_power(step), work);
+
+        if (!multiplied.has_value())
+        {
+          return multiplied;
+        }
+
+        count -= step;
+      }
+
+      return status_result::success();
+    }
+
+    /**
      * @brief Count the decimal digits of a nonzero exact integer.
      * @par Requirements
      * P038; J5-036; J5-048.
@@ -162,6 +214,32 @@ namespace adaptive_json5
       }
 
       std::size_t count{};
+
+      // While power is more than 14 bits shorter than value, power x 10^4 cannot pass value, so
+      // whole chunks need no comparison; bit lengths are read in constant time (decision 1b).
+      while (true)
+      {
+        const auto power_bits_now = power.bit_length();
+
+        if (!power_bits_now.has_value())
+        {
+          return counter_result::failure(*power_bits_now.error_if());
+        }
+
+        if ((*power_bits_now.value_if() + c_chunk_bits) >= *value_bits.value_if())
+        {
+          break;
+        }
+
+        const auto chunked = power.append_digit(0, c_chunk_radix, work);
+
+        if (!chunked.has_value())
+        {
+          return counter_result::failure(*chunked.error_if());
+        }
+
+        count += c_chunk_digits;
+      }
 
       // 10^count <= value means value still has more than count digits.
       while (true)
@@ -254,6 +332,10 @@ namespace adaptive_json5
       std::size_t fractional_digits{};
       std::size_t significant_digits{};
 
+      // Up to four digits are collected and appended in one step (ADR 0003, decision 1b).
+      unsigned int chunk{};
+      std::size_t chunk_digits{};
+
       while (position < spelling.size)
       {
         const char current = spelling.data[position];
@@ -271,11 +353,20 @@ namespace adaptive_json5
         }
 
         const auto digit = static_cast<unsigned int>(current - '0');
-        const auto appended = digits.append_digit(digit, c_decimal_radix, work);
+        chunk = (chunk * c_decimal_radix) + digit;
+        ++chunk_digits;
 
-        if (!appended.has_value())
+        if (chunk_digits == c_chunk_digits)
         {
-          return form_result::failure(*appended.error_if());
+          const auto appended = digits.append_digit(chunk, c_chunk_radix, work);
+
+          if (!appended.has_value())
+          {
+            return form_result::failure(*appended.error_if());
+          }
+
+          chunk = 0;
+          chunk_digits = 0;
         }
 
         if (after_point)
@@ -292,6 +383,17 @@ namespace adaptive_json5
         if (seen_nonzero)
         {
           ++significant_digits;
+        }
+      }
+
+      // A shorter final chunk is appended with its own power of ten.
+      if (chunk_digits != 0)
+      {
+        const auto appended = digits.append_digit(chunk, chunk_power(chunk_digits), work);
+
+        if (!appended.has_value())
+        {
+          return form_result::failure(*appended.error_if());
         }
       }
 
@@ -445,14 +547,11 @@ namespace adaptive_json5
       const std::ptrdiff_t difference =
         left_larger_scale ? (left_parts.scale - right_parts.scale) : (right_parts.scale - left_parts.scale);
 
-      for (std::ptrdiff_t index{}; index < difference; ++index)
-      {
-        const auto multiplied = scaled.append_digit(0, c_decimal_radix, work);
+      const auto multiplied = scale_by_power_of_ten(scaled, static_cast<std::size_t>(difference), work);
 
-        if (!multiplied.has_value())
-        {
-          return order_result::failure(*multiplied.error_if());
-        }
+      if (!multiplied.has_value())
+      {
+        return order_result::failure(*multiplied.error_if());
       }
 
       const auto order = left_digits.compare(right_digits, work);

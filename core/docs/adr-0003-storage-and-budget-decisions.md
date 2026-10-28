@@ -734,11 +734,11 @@ requirement and fails with `resource_limit` one unit below it
 | Document shape | Estimate | Measured |
 |---|---|---|
 | Few nodes, plain strings (4 strings of 4090 units) | about 51 000 | 65 527 |
-| Strings that all carry warnings (16 strings of about 1000 bytes, one raw U+2028 each) | about 74 000 | 81 091 |
+| Strings that all carry warnings (16 strings of about 1000 bytes, one raw U+2028 each) | about 74 000 | 81 091; 65 011 since decision 10 D removed the re-scan |
 | 1023 numbers of 15 bytes | about 57 000 | 53 231 |
 | 1023 members, many tokens and padding | about 50 000 | 41 978 |
 
-The largest requirement leaves 1.62x margin to the default (the estimate was 1.75x).
+The largest requirement left 1.62x margin to the default (the estimate was 1.75x). Since decision 10 D, the largest is the plain-strings case (65 527), which leaves 2.0x.
 
 **Construction charge (E1, decided by the user, 2026-10-28).** With records reserved
 exactly, nothing is relocated, so `c_record_construction_work` drops from 3 to 1 unit
@@ -884,3 +884,27 @@ Decoding all strings into one block sized from the pre-pass total would need one
 per string, exact memory and one allocation instead of one per string. It changes the
 public ownership model of `decoded_string` (each string owns its block and can be
 moved on its own, J5-040), so it needs its own ADR.
+
+### Implementation (2026-10-28)
+
+Full suite 2457/2457 with exceptions OFF and ON, clang-format clean on changed files.
+
+- **F:** `consume_scalar` rejects through `measure_identifier`. Unit
+  `J5_046_ScalarLexer.UnknownWordsDoNotAllocate` (also with a provider that fails every
+  request: still `unknown_literal`, zero requests).
+- **E:** `detail::number_access::copy_validated_spelling`
+  (`core/includes/value/number_access.hpp`, `core/src/value/number_access.cpp`), befriended
+  by `owned_number`; used by `append_primitive_token`. To keep rejecting token metadata whose
+  kind does not match its spelling, it checks the kind from the spelling's leading bytes in
+  constant time instead of re-lexing. Unit `J5_046_NumberAccess.CopiesValidatedSpellingLikeCopySpelling`.
+- **D:** `string_warning_sink` (`core/includes/lexer/string/string_token.hpp`), an optional
+  parameter of `consume_string`, `consume_scalar` and `consume_member_name`; the engine's
+  `reserve_string` / `record_warning` hooks replace `retain_warnings`. Unit
+  `J5_049_ParserWork.WarningsNeedNoRescan` replaces `WarningRescanIsCharged`; the warning
+  worst case of decision 7b is re-baselined to 65 011.
+- **Comparison chunks:** `number_comparison.cpp` loads decimal digits in chunks, aligns
+  scales with `scale_by_power_of_ten`, and counts the decimal digits of hexadecimal values
+  in whole 10^4 steps while the bit lengths prove no overshoot (10^4 < 2^14), then single
+  steps. Units `J5_037_ComparisonChunks/NumberComparisonUnits.OrdersExactValuesSymmetrically`
+  (15 boundary cases).
+- Comment typos fixed in `decoded_string_builder.cpp` and `value_storage.cpp`.

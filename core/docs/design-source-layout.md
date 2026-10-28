@@ -135,17 +135,17 @@ clang-format 18.1.8, and the tests-disabled Release build/install succeeded.
 These are local results, not CI, embedded-device or full-parser conformance
 claims; J5 statuses remain unchanged.
 
-## Implementation lessons and reviews
+## Implementation guidance and reviews
 
-Future lessons use this compiled architecture. Each coherent change identifies
+Implementation guidance uses this compiled architecture. Each coherent change identifies
 the public/internal boundary, matching declaration and implementation files, and
 any new entry in the compiled target's CMake source list. Where both files change,
-teach separately labeled header/source blocks rather than putting all bodies in
+present separately labeled header/source blocks rather than putting all bodies in
 a header. Existing declarations can be implemented by changing only the `.cpp`.
 
 Explain complete-type requirements, forward declarations, qualified method
 definitions, default arguments, compilation and linking as needed. Review the
 header and implementation together. Preserve fallible storage and ownership;
 do not introduce extra allocation or an abstraction solely to conceal a type.
-The [teaching skill](../../.agents/skills/teach-requirement/SKILL.md) records the
-required teaching workflow and the narrow template/compile-time exceptions.
+The [requirement guidance skill](../../.agents/skills/guide-requirement/SKILL.md) records
+the guidance workflow and the narrow template/compile-time exceptions.

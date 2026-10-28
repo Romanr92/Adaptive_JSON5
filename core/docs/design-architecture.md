@@ -64,10 +64,10 @@ immutable tables remain private header facilities. These exceptions do not make
 the parser header-only. Forward declarations are appropriate for some borrowed
 pointer/reference types; by-value data members require complete types.
 
-Teaching and reviews must follow these boundaries. Inspect the header, matching
+Guidance and reviews must follow these boundaries. Inspect the header, matching
 source and CMake entry before guidance. Present declaration/definition pairs
 when the change needs both; do not put ordinary implementation into a header to
-simplify a lesson. Preserve the existing allocation strategy instead of adding
+simplify an explanation. Preserve the existing allocation strategy instead of adding
 PImpl, virtual dispatch or other abstractions without a concrete requirement.
 
 The public document header contains the supporting `detail::value_storage`
@@ -894,7 +894,7 @@ mutually nested arrays and objects avoid C++ call-stack recursion.
 
 ## 8. Implemented internal engine
 
-The teaching design is now implemented in the private engine header and
+The engine design is implemented in the private engine header and
 `core/src/parser/parser_engine.cpp`. These types are internal, not supported public
 APIs. The class shape and prefix contract below remain unchanged by the refactor.
 

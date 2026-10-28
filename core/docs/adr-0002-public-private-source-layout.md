@@ -1,14 +1,13 @@
 # ADR 0002: Public headers, private headers and compiled implementation
 
-Status: Accepted by the user, 2026-10-19. Physical migration implemented under
-the user's explicit authorization to refactor production files; unit
+Status: Accepted by the user, 2026-10-19. Physical migration implemented; unit
 evidence is recorded in [traceability](../../docs/traceability.md).
 The [source layout guide](design-source-layout.md) describes the implemented tree
 and day-to-day build/test conventions, including the final `core/src/` location.
 
 ## Issue #98 amendment (2026-10-25)
 
-The user authorized the complete structural migration for this issue. The outer
+The complete structural migration is done for this issue. The outer
 component is now `core/`. Private includes omit the former namespace folders,
 for example `"parser/parser_engine.hpp"`; the C++ `adaptive_json5::detail`
 namespace and public `adaptive_json5/` include prefix are unchanged.
@@ -188,10 +187,9 @@ clang-format, under the existing quality scope. No new automated quality gate
 is authorized by this layout decision. Previous test results describe the
 pre-migration implementation until rerun against the migrated code.
 
-Romanr92 normally authors production C++ and public headers. The user explicitly
-authorized AI to perform this structural refactor; that authorization does not
-extend to implementing subsequent parser features. AI may continue to maintain
-build setup, tests, documentation and guidance under the normal repository scope.
+Romanr92 authors production C++ and public headers, including subsequent parser
+features. AI agents can change build setup, documentation and unit tests, not
+production code.
 This refactor does not implement P037 or change J5 Draft/Verified status.
 
 ## Issue #98 local verification

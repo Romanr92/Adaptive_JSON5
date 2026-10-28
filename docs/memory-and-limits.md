@@ -141,7 +141,7 @@ document into storage reserved once at exactly those sizes.
   number. Nothing grows or is relocated, so memory pools fragment less.
 - **Work:** both passes are charged. The default `max_work_units` of 131072 covers
   every maximum-size (16384-byte) document shape measured for ADR 0003: the
-  heaviest, sixteen long strings that all carry a warning, needs 81 091 units.
+  heaviest, four strings of 4090 units, needs 65 527 units.
 - **Duplicate names** are checked in the second pass only. With
   `reject_duplicates`, a document that has a duplicate name **and** another error
   reports the other error (syntax, encoding or limit), not the duplicate. A

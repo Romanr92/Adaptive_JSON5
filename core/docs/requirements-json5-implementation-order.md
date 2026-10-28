@@ -11,8 +11,8 @@ identifiers, not numbers issued by the JSON5 authors. Each prerequisite has a
 smaller number: implement in ascending order; no step requires a later one.
 Acceptance at an early step is a unit-level component check, not a finished-parser
 claim. Containers' mutual recursion is deliberately implemented together in P033.
-Tests, formatting and build setup remain agent-authorized; production C++ remains
-reserved for the developer.
+AI agents can change build setup, documentation and unit tests, not production
+code; production C++ remains reserved for the developer.
 
 ## Official sources and authority
 
@@ -48,8 +48,9 @@ This section replaces the former roadmap and issue-consolidation plan.
 Full schema P043–P055, minimal testing CLI P056–P059 and full advanced memory
 accounting are in the selected delivery scope; optional consumer build flags do
 not remove them. Editor P060–P066 and consumer #70/#71 remain tracked in the
-backlog. Romanr92 writes production C++ and public headers; AI creates
-independent unit tests and must not patch production C++ to make tests pass.
+backlog. Romanr92 writes production C++ and public headers. AI agents can change
+build setup, documentation and unit tests, not production code; they must not
+patch production C++ to make tests pass.
 No separate per-issue documentation report is required. Keep essential public
 API, ownership, limits/accounting, provenance, deviations and usage contracts.
 Required PR checks are one exceptions-OFF/RTTI-OFF GoogleTest job and one

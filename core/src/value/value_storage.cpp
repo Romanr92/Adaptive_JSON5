@@ -115,7 +115,7 @@ namespace adaptive_json5
 
       for (std::size_t index{}; index < m_size; ++index)
       {
-        // Start each new object's lifetime by transferring it's owned payload.
+        // Start each new object's lifetime by transferring its owned payload.
         ::new (slot_address(*allocation.value_if(), index)) value_record(std::move(*live_record(index)));
       }
 

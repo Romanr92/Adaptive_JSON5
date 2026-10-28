@@ -54,6 +54,7 @@ namespace adaptive_json5
    * @param storage Caller-owned fallible storage provider.
    * @param max_units Maximum decoded UTF-16 unit capacity.
    * @param observer Optional observer for all successful-string warnings.
+   * @param sink Optional parser sink: reserve after the string is allocated, record during decoding.
    * @return Owned token, successful nullopt before nonquote input or EOF,
    * or an explicit located failure.
    * @note Success consumes through the matching closing quote only.
@@ -66,10 +67,9 @@ namespace adaptive_json5
    * Does not skip trivia or validate input following the closing quote.
    * max_units is a component limit, not complete parser memory accounting.
    */
-  [[nodiscard]] result<std::optional<string_token>> consume_string(cursor& source, syntax_mode mode,
-                                                                   const storage_callbacks& storage,
-                                                                   std::size_t max_units,
-                                                                   string_warning_observer observer = {}) noexcept;
+  [[nodiscard]] result<std::optional<string_token>>
+  consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units,
+                 string_warning_observer observer = {}, const string_warning_sink* sink = nullptr) noexcept;
 } // namespace adaptive_json5
 
 #endif /* STRING_LEXER_HPP_ */

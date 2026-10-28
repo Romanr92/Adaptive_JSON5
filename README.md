@@ -20,8 +20,9 @@ limits, implementation-defined behaviour, deviations and executed results. Requi
 rows remain Draft.
 GoogleTest inventories are in [traceability](docs/traceability.md), and the
 per-production view is the [grammar evidence matrix](core/docs/design-grammar-evidence.md).
-Production C++ and public headers are reserved for Romanr92; AI creates
-unit tests. See [AGENTS.md](AGENTS.md).
+Production code (C++ sources and public headers) is written by Romanr92. AI agents
+can change build setup, documentation and unit tests, not production code. See
+[AGENTS.md](AGENTS.md).
 
 The [delivery scope](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
 P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.

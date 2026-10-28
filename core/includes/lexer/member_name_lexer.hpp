@@ -7,6 +7,7 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "input/cursor.hpp"
+#include "lexer/string/string_token.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -56,16 +57,17 @@ namespace adaptive_json5
      * @param mode Selected input syntax.
      * @param storage Fallible provider for decoded name storage.
      * @param max_units Inclusive decoded-name limit for this recognition.
+     * @param sink Optional parser sink for quoted names: reserve after allocation, record while decoding.
      * @return Owned name, successful nullopt on no-match, or an explicit failure.
      * @note Failure and no-match preserve source.
      * Success consumes only the name, leaving the colon unconsumed.
      * Does not classify reserved words as value literals.
-     * Does not skip trivia, update frames or invoke warning callbacks.
+     * Does not skip trivia, update frames or invoke warning callbacks; identifier names never use the sink.
      * The caller handles shared resource and work accounting.
      */
-    [[nodiscard]] result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
-                                                                               const storage_callbacks& storage,
-                                                                               std::size_t max_units) noexcept;
+    [[nodiscard]] result<std::optional<member_name_token>>
+    consume_member_name(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units,
+                        const string_warning_sink* sink = nullptr) noexcept;
 
     /**
      * @brief Recognize a member name like consume_member_name, but measure it without allocating.

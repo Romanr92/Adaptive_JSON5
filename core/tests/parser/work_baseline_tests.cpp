@@ -221,7 +221,7 @@ namespace
 
   INSTANTIATE_TEST_SUITE_P(J5_049_WorkBaseline, WorkBaselineUnits,
                            ::testing::Values(baseline_case{"PlainStrings", &plain_strings, 5, 65527},
-                                             baseline_case{"WarningStrings", &warning_strings, 17, 81091},
+                                             baseline_case{"WarningStrings", &warning_strings, 17, 65011},
                                              baseline_case{"Numbers", &numbers, 1024, 53231},
                                              baseline_case{"SmallNodes", &small_nodes, 1024, 41978}),
                            [](const ::testing::TestParamInfo<baseline_case>& info)

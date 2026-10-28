@@ -16,8 +16,8 @@ For file placement and header/source separation, follow
 [ADR 0002](adr-0002-public-private-source-layout.md). New guidance uses the agreed
 public `includes/`, private `core/includes/` and topic-based source/test layout;
 internal units use `core/tests/`, while public-interface/library units use
-top-level `tests/`. The structural migration was explicitly user-authorized;
-subsequent production features retain the normal human-owned workflow.
+top-level `tests/`. Production changes follow the normal human-owned
+workflow.
 
 For new implementation guidance, use declaration headers plus out-of-line
 definitions in the corresponding `core/src/<topic>/*.cpp` files. Keep ordinary
@@ -27,7 +27,7 @@ justify collapsing a module into a header. Templates, required compile-time
 definitions and documented small inline operations are the appropriate exceptions.
 
 Follow **MISRA C++:2023** and the **SEI CERT C++ Coding Standard** when designing,
-writing, teaching and reviewing C++ in this repository. MISRA C++:2023 is the
+writing, explaining and reviewing C++ in this repository. MISRA C++:2023 is the
 selected C++17 coding baseline; use the published CERT C++ 2016 edition with
 its official errata as the reproducible CERT reference. Consult the official
 online CERT material for clarifications, identifying the revision/access date
@@ -36,7 +36,7 @@ when relying on evolving guidance.
 - [MISRA C++:2023, official publication](https://misra.org.uk/product/misra-cpp2023/).
 - [SEI CERT C++ Coding Standard and published edition/errata](https://cmu-sei.github.io/secure-coding-standards/sei-cert-cpp-coding-standard/).
 
-Apply the relevant rules to production C++, public headers, teaching examples
+Apply the relevant rules to production C++, public headers, illustrative examples
 and test code. Identify host-only GoogleTest facilities and incorporated code
 separately when assessing applicability; their use is not evidence that they
 conform to the production coding baseline. Preserve upstream notices and versions.
@@ -222,6 +222,6 @@ self-explanatory statements free of redundant comments.
 return m_error ? &*m_error : nullptr;
 ```
 
-Apply this convention to future teaching examples and authorized C++ work.
+Apply this convention to illustrative examples and all C++ work.
 GoogleTest test declarations retain the unit-test skill's prescribed purpose
 and Arrange/Act/Expect block comments rather than receiving duplicate blocks.

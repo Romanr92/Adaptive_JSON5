@@ -140,7 +140,7 @@ namespace adaptive_json5
   {
     decoded_string output{std::move(m_storage), m_size};
 
-    // The builder no longwe owns storage or has capacity to append into.
+    // The builder no longer owns storage or has capacity to append into.
     m_size = std::size_t{};
     m_capacity = std::size_t{};
 

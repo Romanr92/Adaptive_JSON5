@@ -56,14 +56,15 @@ namespace adaptive_json5
      */
     result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
                                                                  const storage_callbacks& storage,
-                                                                 std::size_t max_units) noexcept
+                                                                 std::size_t max_units,
+                                                                 const string_warning_sink* sink) noexcept
     {
       using name_result = result<std::optional<member_name_token>>;
 
       cursor candidate = source;
 
       // P035: quoted and identifier names must produce the same owned decoded representation.
-      auto quoted = consume_string(candidate, mode, storage, max_units);
+      auto quoted = consume_string(candidate, mode, storage, max_units, {}, sink);
 
       if (!quoted.has_value())
       {

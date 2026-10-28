@@ -18,6 +18,7 @@
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_work.hpp"
+#include "value/number_access.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -40,7 +41,7 @@ namespace adaptive_json5
      * @return New value index or an explicit failure.
      * @note Tokens must originate from the scalar lexer using this input
      * and syntax mode. Input must remain alive and unchanged during the call.
-     * String content is transferred; numeric spelling is independently copied.
+     * String content is transferred; the lexer-validated numeric spelling is copied without re-validation.
      * Provider state must outlive any transferred or copied allocation.
      * Failure leaves existing document values and its root unchanged.
      * Consumed string content may be released on failure.
@@ -67,7 +68,9 @@ namespace adaptive_json5
 
         const input_view spelling{input.data + number->byte_offset, number->byte_length};
 
-        auto owned = owned_number::copy_spelling(spelling, options.syntax, storage, options.limits.max_number_bytes);
+        // The lexer already validated this spelling, so copy it without lexing it again (ADR 0003, decision 10, E).
+        auto owned =
+          number_access::copy_validated_spelling(spelling, number->kind, storage, options.limits.max_number_bytes);
 
         if (!owned.has_value())
         {
@@ -86,12 +89,6 @@ namespace adaptive_json5
           }
 
           return result<value_index>::failure(reason);
-        }
-
-        // Reject metadata inconsistent with the independently checked spelling.
-        if (owned.value_if()->kind() != number->kind)
-        {
-          return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
         }
 
         return destination.make_number(std::move(*owned.value_if()));

@@ -8,6 +8,7 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
 #include "input/cursor.hpp"
@@ -212,21 +213,35 @@ namespace adaptive_json5
          */
         [[nodiscard]] status_result accept_completed_value(value_index completed) noexcept;
 
+        // Set by the warning-sink hooks while one value or name is lexed (ADR 0003, decision 10, D).
+        bool m_string_reserved{};
+        bool m_warning_record_failed{};
+
         /**
-         * @brief Reserve and record every warning of one validated quoted string.
+         * @brief Sink reserve hook: reserve units, diagnostics and warning slots for one string.
          * @par Requirements
-         * P039; J5-017; J5-041; J5-046; J5-047; J5-049.
-         * @param token_offset Original offset of the string's opening quote.
-         * @param token_length Byte length of the string token, including both quotes.
-         * @param count Number of warnings the lexer reported for that string.
-         * @return Success, or an explicit work, diagnostic-limit, storage or internal failure.
-         * @note Charges token_length work units before the re-scan; a string without
-         * warnings is not re-scanned and not charged.
-         * Reserves one diagnostic entry and one list slot per warning before recording any.
+         * P039; J5-017; J5-041; J5-046; J5-047.
+         * @param context The engine.
+         * @param units Decoded units of the string.
+         * @param warning_count Warnings the decode walk will record.
+         * @return Success, or an explicit diagnostic-limit, unit-limit or storage failure.
+         * @note Called by consume_string after the string's own allocation, so the order is the
+         * one used before: string allocation, units, diagnostics, then warning-table slots.
          * Failure may leave partial reservations; the engine must then be abandoned.
          */
-        [[nodiscard]] status_result retain_warnings(std::size_t token_offset, std::size_t token_length,
-                                                    std::size_t count) noexcept;
+        [[nodiscard]] static status_result reserve_string(void* context, std::size_t units,
+                                                          std::size_t warning_count) noexcept;
+
+        /**
+         * @brief Sink record hook: append one warning into a reserved warning-table slot.
+         * @par Requirements
+         * P039; J5-017; J5-041.
+         * @param context The engine.
+         * @param warning Warning found by the decode walk, in source order.
+         * @note A failed append means the reservation and the walk disagree; it is reported after
+         * lexing as wrong_type_or_access.
+         */
+        static void record_warning(void* context, const string_warning& warning) noexcept;
 
       public:
         /**

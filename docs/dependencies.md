@@ -12,15 +12,16 @@ incorporated Unicode data retains its own license. See [LICENSE](../LICENSE).
 | clang-format | 18.1.8 development package | Apache-2.0 WITH LLVM-exception for upstream LLVM; installed package may include additional notices | C++ formatting only |
 | Unicode Character Database | 17.0.0 and historical 3.0.0; exact source hashes in [manifest](../tools/unicode-data/sources.json) | Unicode License V3; full notice retained in LICENSES and generated header | Immutable parser classification tables; original inputs retained for offline regeneration |
 | Original supplied proposal | 2026-10-11 snapshot | User-provided project document | Historical Draft input in docs/requirements/proposals |
-| Adapted repository skills | Source file SHAs recorded below | AdaptivePi repository Apache-2.0 context; independently rewritten here | Teaching and GoogleTest workflow |
+| Adapted repository skills | Source file SHAs recorded below | AdaptivePi repository Apache-2.0 context; independently rewritten here | Requirement guidance and GoogleTest workflow |
 
 The skill adaptations use the behaviors in
 `Romanr92/adaptive-pi/.agents/skills/teach-requirement/SKILL.md` (blob
 `1820508840c48a72d98ff162f6718b587d846803`) and
 `write-unit-tests/SKILL.md` (blob `557f1e5b782719ecba8d3bad7f5d9e3ce43084a9`).
 They remove AdaptivePi release-wide approval gates, ara APIs, WSL/Yocto/deployment
-assumptions and CI-only exception-enabled execution. Preserve requirement-based
-teaching, no production-code edits, GoogleTest parameterization, documented test
+assumptions and CI-only exception-enabled execution. The local copy is
+`.agents/skills/guide-requirement/SKILL.md`. Preserve requirement-based
+guidance, no production-code edits, GoogleTest parameterization, documented test
 steps and explicit test evidence. No AdaptivePi production code is copied.
 
 Development also uses CMake 3.25+, Python 3.9+ and a compatible C++17 compiler.

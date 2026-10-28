@@ -39,6 +39,7 @@ namespace adaptive_json5
    * @param max_string_units Maximum decoded units in a string token.
    * @param max_identifier_units Maximum temporary decoded identifier units.
    * @param max_exponent_digits Maximum decimal exponent digits.
+   * @param sink Optional parser sink: reserve after the string is allocated, record during decoding.
    * @return A scalar token, successful nullopt at EOF or structural punctuation,
    * or an explicit located error.
    * @note No-match and failure leave source unchanged.
@@ -46,8 +47,8 @@ namespace adaptive_json5
    * Does not skip trivia or join spellings across trivia.
    * Number/literal results contain source metadata without owning input.
    * String results own decoded storage and retain their warning metadata.
-   * No warning callbacks are exposed or invoked by this operation.
-   * Literals never allocate; strings and the rejection of other identifiers may allocate.
+   * No warning observer callbacks are invoked; only a supplied sink is used, for strings.
+   * Only strings allocate; literals and the rejection of other identifiers never do.
    * The storage provider state must outlive returned owned string content.
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
@@ -55,7 +56,8 @@ namespace adaptive_json5
    */
   [[nodiscard]] result<std::optional<scalar_token>>
   consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_string_units,
-                 std::size_t max_identifier_units, std::size_t max_exponent_digits) noexcept;
+                 std::size_t max_identifier_units, std::size_t max_exponent_digits,
+                 const string_warning_sink* sink = nullptr) noexcept;
 
   /**
    * @brief Recognize a primitive using the original shared decoded-unit limit.

@@ -43,12 +43,14 @@ namespace adaptive_json5
      * @param mode Selected input syntax.
      * @param max_units Maximum decoded UTF-16 units.
      * @param output Null to count only; otherwise a builder reserved for this string.
+     * @param sink Optional parser sink that records each warning; used only while decoding.
      * @return Unit and warning totals, or a located error.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
      * resource_limit is reported at the piece that first exceeds max_units.
      */
     result<string_walk> walk_string_body(cursor& source, std::size_t start, string_quote quote, syntax_mode mode,
-                                         std::size_t max_units, decoded_string_builder* output) noexcept
+                                         std::size_t max_units, decoded_string_builder* output,
+                                         const string_warning_sink* sink) noexcept
     {
       using walk_result = result<string_walk>;
 
@@ -56,7 +58,7 @@ namespace adaptive_json5
       detail::surrogate_pairing pairing{};
 
       // Each warning covers distinct source bytes, so the count cannot exceed input size.
-      const auto record = [&walk](const string_warning& warning) noexcept
+      const auto record = [&walk, sink](const string_warning& warning) noexcept
       {
         if (!walk.first_warning.has_value())
         {
@@ -64,6 +66,12 @@ namespace adaptive_json5
         }
 
         ++walk.warning_count;
+
+        // Recording during this walk replaces a separate re-scan of the string (ADR 0003, decision 10, D).
+        if (sink != nullptr)
+        {
+          sink->record(sink->context, warning);
+        }
       };
       const auto record_all = [&record](const detail::surrogate_warnings& found) noexcept
       {
@@ -267,7 +275,7 @@ namespace adaptive_json5
     }
 
     // A null builder makes the walk validate and count only.
-    const auto counted = walk_string_body(candidate, start, **opening.value_if(), mode, max_units, nullptr);
+    const auto counted = walk_string_body(candidate, start, **opening.value_if(), mode, max_units, nullptr, nullptr);
 
     if (!counted.has_value())
     {
@@ -304,7 +312,8 @@ namespace adaptive_json5
    * max_units is a component limit, not complete parser memory accounting.
    */
   result<std::optional<string_token>> consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage,
-                                                     std::size_t max_units, string_warning_observer observer) noexcept
+                                                     std::size_t max_units, string_warning_observer observer,
+                                                     const string_warning_sink* sink) noexcept
   {
     using string_result = result<std::optional<string_token>>;
 
@@ -338,9 +347,20 @@ namespace adaptive_json5
       return string_result::failure(error::at_offset(reserved.error_if()->code, start));
     }
 
+    // The parser reserves units, diagnostics and warning slots after the string's own allocation, as before.
+    if (sink != nullptr)
+    {
+      const auto sink_reserved = sink->reserve(sink->context, totals.units, totals.warning_count);
+
+      if (!sink_reserved.has_value())
+      {
+        return string_result::failure(*sink_reserved.error_if());
+      }
+    }
+
     // Second pass: write the units into the reservation.
     cursor decoding = body;
-    const auto decoded = walk_string_body(decoding, start, quote, mode, max_units, &builder);
+    const auto decoded = walk_string_body(decoding, start, quote, mode, max_units, &builder, sink);
     if (!decoded.has_value())
     {
       return string_result::failure(*decoded.error_if());

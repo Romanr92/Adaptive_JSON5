@@ -172,7 +172,7 @@ namespace adaptive_json5
    * Number/literal results contain source metadata without owning input.
    * String results own decoded storage and retain their warning metadata.
    * No warning callbacks are exposed or invoked by this operation.
-   * Literals never allocate; strings and the rejection of other identifiers may allocate.
+   * Only strings allocate; literals and the rejection of other identifiers never do.
    * The storage provider state must outlive returned owned string content.
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
@@ -180,7 +180,8 @@ namespace adaptive_json5
    */
   result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_string_units, std::size_t max_identifier_units,
-                                                     std::size_t max_exponent_digits) noexcept
+                                                     std::size_t max_exponent_digits,
+                                                     const string_warning_sink* sink) noexcept
   {
     using scalar_result = result<std::optional<scalar_token>>;
 
@@ -201,7 +202,7 @@ namespace adaptive_json5
     cursor candidate = source;
 
     // Delay public success until the following boundary also validates.
-    auto string = consume_string(candidate, mode, storage, max_string_units);
+    auto string = consume_string(candidate, mode, storage, max_string_units, {}, sink);
     if (!string.has_value())
     {
       return scalar_result::failure(*string.error_if());
@@ -235,8 +236,9 @@ namespace adaptive_json5
       return detail::finish_scalar_token(source, candidate, std::move(token), mode);
     }
 
-    // Only rejection remains: reuse the identifier lexer so errors match the original path.
-    auto identifier = consume_identifier(candidate, storage, max_identifier_units);
+    // Only rejection remains; measuring the word gives the same errors without decoding or allocating it
+    // (ADR 0003, decision 10, F).
+    const auto identifier = measure_identifier(candidate, max_identifier_units);
     if (!identifier.has_value())
     {
       return scalar_result::failure(*identifier.error_if());
