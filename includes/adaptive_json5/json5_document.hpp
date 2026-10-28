@@ -2,6 +2,7 @@
 #define JSON5_DOCUMENT_HPP_
 
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/json5_value.hpp"
 #include "adaptive_json5/memory/document_storage_owner.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/parser.hpp"
@@ -92,6 +93,16 @@ namespace adaptive_json5
        * J5-040; J5-051.
        */
       json5_document& operator=(json5_document&&) = delete;
+
+      /**
+       * @brief Start navigating at the root value.
+       * @par Requirements
+       * J5-026; J5-028; J5-040.
+       * @return The root, or a value holding the error of document::root(), for example
+       * after this document was moved from.
+       * @note The returned value borrows this document and must not outlive it or a move.
+       */
+      [[nodiscard]] json5_value root() const noexcept;
 
       /**
        * @brief Borrow the parsed values through the advanced document API.
