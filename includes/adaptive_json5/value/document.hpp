@@ -115,8 +115,30 @@ namespace adaptive_json5
          */
         ~value_storage() noexcept;
 
+        /**
+         * @brief Copying is not allowed.
+         * @par Requirements
+         * P030; J5-040; J5-046.
+         * @note Copying every record needs storage, which can fail, and would duplicate
+         * ownership of their payloads.
+         */
         value_storage(const value_storage&) = delete;
+
+        /**
+         * @brief Copy assignment is not allowed.
+         * @par Requirements
+         * P030; J5-040.
+         * @note Same reason as the copy constructor.
+         */
         value_storage& operator=(const value_storage&) = delete;
+
+        /**
+         * @brief Move assignment is not allowed.
+         * @par Requirements
+         * P030; J5-040.
+         * @note Replacing live records would have to destroy them first; construct new
+         * storage instead.
+         */
         value_storage& operator=(value_storage&&) = delete;
 
         /**
@@ -222,8 +244,30 @@ namespace adaptive_json5
        */
       ~document() noexcept = default;
 
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P030; J5-040; J5-046.
+       * @note A copy of every value needs storage, which can fail, and would duplicate
+       * ownership; documents are moved instead.
+       */
       document(const document&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Same reason as the copy constructor.
+       */
       document& operator=(const document&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Replacing a live document would release its values first; construct a new
+       * document instead.
+       */
       document& operator=(document&&) = delete;
 
       /**

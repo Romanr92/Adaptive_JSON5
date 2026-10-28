@@ -46,7 +46,20 @@ namespace
         m_saved = (current != nullptr) ? current : "C";
       }
 
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P038; J5-052.
+       * @note Two restorers would each restore the saved locale.
+       */
       locale_restorer(const locale_restorer&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P038; J5-052.
+       * @note Same reason as the copy constructor.
+       */
       locale_restorer& operator=(const locale_restorer&) = delete;
 
       /**

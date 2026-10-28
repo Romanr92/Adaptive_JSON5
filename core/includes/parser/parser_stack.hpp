@@ -78,10 +78,37 @@ namespace adaptive_json5
          */
         ~parser_stack() noexcept;
 
-        // Keep the operation-local stack at stable address.
+        /**
+         * @brief Copying is not allowed.
+         * @par Requirements
+         * P033; J5-048.
+         * @note The stack belongs to one parse operation; its frames own pending names.
+         */
         parser_stack(const parser_stack&) = delete;
+
+        /**
+         * @brief Copy assignment is not allowed.
+         * @par Requirements
+         * P033; J5-048.
+         * @note Same reason as the copy constructor.
+         */
         parser_stack& operator=(const parser_stack&) = delete;
+
+        /**
+         * @brief Moving is not allowed.
+         * @par Requirements
+         * P033; J5-048.
+         * @note The stack stays at a stable address for its whole parse operation; callers
+         * borrow frames through top().
+         */
         parser_stack(parser_stack&&) = delete;
+
+        /**
+         * @brief Move assignment is not allowed.
+         * @par Requirements
+         * P033; J5-048.
+         * @note Same reason as the move constructor.
+         */
         parser_stack& operator=(parser_stack&&) = delete;
 
         /**

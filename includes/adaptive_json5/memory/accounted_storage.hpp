@@ -69,10 +69,38 @@ namespace adaptive_json5
        */
       ~accounted_storage() noexcept = default;
 
-      // Returned blocks retain this object's address as their callback context.
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P031; J5-046; J5-047.
+       * @note Returned blocks keep this object's address as their callback context; a copy
+       * would account for blocks it never allocated.
+       */
       accounted_storage(const accounted_storage&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P031; J5-046; J5-047.
+       * @note Same reason as the copy constructor.
+       */
       accounted_storage& operator=(const accounted_storage&) = delete;
+
+      /**
+       * @brief Moving is not allowed.
+       * @par Requirements
+       * P031; J5-046; J5-047.
+       * @note Returned blocks keep this object's address, so it must stay where it is until
+       * every block is released.
+       */
       accounted_storage(accounted_storage&&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P031; J5-046; J5-047.
+       * @note Same reason as the move constructor.
+       */
       accounted_storage& operator=(accounted_storage&&) = delete;
 
       /**

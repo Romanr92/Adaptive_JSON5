@@ -1,0 +1,3 @@
+# neocmakelsp lint settings (Zed neocmake extension).
+# Allow CMake lines up to 120 characters, matching the C++ column limit.
+line_max_words = 120

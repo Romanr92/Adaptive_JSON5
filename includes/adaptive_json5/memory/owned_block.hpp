@@ -62,8 +62,20 @@ namespace adaptive_json5
         }
       }
 
-      // Copying would duplicate ownership.
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P003; J5-040.
+       * @note Two owners would release the same block twice; ownership moves instead.
+       */
       owned_block(const owned_block&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P003; J5-040.
+       * @note Same reason as the copy constructor.
+       */
       owned_block& operator=(const owned_block&) = delete;
 
       /**

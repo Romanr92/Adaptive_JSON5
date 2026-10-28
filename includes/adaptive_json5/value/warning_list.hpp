@@ -75,8 +75,29 @@ namespace adaptive_json5
        */
       ~warning_list() noexcept = default;
 
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P039; J5-040.
+       * @note Copying the entries needs storage, which can fail; lists are moved instead.
+       */
       warning_list(const warning_list&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P039; J5-040.
+       * @note Same reason as the copy constructor.
+       */
       warning_list& operator=(const warning_list&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P039; J5-040.
+       * @note Replacing a live list would release its entries first; construct a new list
+       * instead.
+       */
       warning_list& operator=(warning_list&&) = delete;
 
       /**

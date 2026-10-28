@@ -101,6 +101,9 @@ Before calling `parse_document`, read [memory, limits and failure behavior](docs
 It covers the storage you supply, what each limit counts, what happens when a
 parse fails and how to retry, and decided changes that are not yet implemented.
 
+On hosted systems, the optional `AdaptiveJSON5::hosted` component offers a one-call
+`parse(input)` with heap storage; see [one call on hosted systems](docs/memory-and-limits.md#one-call-on-hosted-systems-optional).
+
 Use `find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)` with the installation prefix
 in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
 not a supported parser release.

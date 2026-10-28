@@ -84,9 +84,36 @@ namespace adaptive_json5::detail
        */
       ~big_unsigned() noexcept = default;
 
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P038; J5-037; J5-046.
+       * @note A copy needs storage, which can fail; use assign(), which reports the failure.
+       */
       big_unsigned(const big_unsigned&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P038; J5-037; J5-046.
+       * @note Use assign(), which copies into the reservation and reports failure.
+       */
       big_unsigned& operator=(const big_unsigned&) = delete;
+
+      /**
+       * @brief Moving is not allowed.
+       * @par Requirements
+       * P038; J5-037.
+       * @note An integer stays with the scope that reserved it; no caller needs to move one.
+       */
       big_unsigned(big_unsigned&&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P038; J5-037.
+       * @note Same reason as the move constructor.
+       */
       big_unsigned& operator=(big_unsigned&&) = delete;
 
       /**

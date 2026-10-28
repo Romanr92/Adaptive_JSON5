@@ -63,9 +63,30 @@ namespace adaptive_json5
        */
       ~owned_number() noexcept = default;
 
-      // Independent copies require an explicit fallible storage operation.
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P029; J5-034; J5-040.
+       * @note An independent copy needs storage, which can fail; use copy_spelling() with
+       * spelling() instead.
+       */
       owned_number(const owned_number&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P029; J5-034; J5-040.
+       * @note Same reason as the copy constructor.
+       */
       owned_number& operator=(const owned_number&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P029; J5-034; J5-040.
+       * @note Replacing a live number would release its spelling first; construct a new
+       * number instead.
+       */
       owned_number& operator=(owned_number&&) = delete;
 
       /**
