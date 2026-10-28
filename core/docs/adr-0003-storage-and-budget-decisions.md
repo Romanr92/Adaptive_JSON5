@@ -908,3 +908,46 @@ Full suite 2457/2457 with exceptions OFF and ON, clang-format clean on changed f
   steps. Units `J5_037_ComparisonChunks/NumberComparisonUnits.OrdersExactValuesSymmetrically`
   (15 boundary cases).
 - Comment typos fixed in `decoded_string_builder.cpp` and `value_storage.cpp`.
+
+## Implementation record
+
+All decisions above are implemented. The final state, after decision 10, passed the
+full unit suite (2457/2457) and the validation tests (921/921) with exceptions OFF
+and ON, and the repository-wide clang-format check. Unit inventories per requirement
+are in [traceability](../../docs/traceability.md).
+
+| Decision | Implemented | Main units |
+|---|---|---|
+| 8 (K1) | `resource_budget::string_unit_allowance`; the engine's own string counter removed | `J5_047_StringAllowance.ReportsMinimumOfPerStringAndRemainingTotal`, `TracksReservationsAndReleases`; `P037/J5_047_CompleteLimit` case `AggregateAcrossNamesAndValues` |
+| 6 (AW1) | `attach_child` split into `attach_child` / `attach_to_detached_parent`, reached by the parser through `document_access` | `J5_039_DetachedParentAttach.RejectsAttachedParentThatAttachChildAccepts`, `LinksElementAndNamedMemberWithSpan`; `J5_039_AttachmentValidation.DetachedParentEntryRejectsDamagedLinksBeforeChangingChild` |
+| 3 (L1) | `match_literal_bytes` before the identifier path in `consume_scalar` | `J5_046_ScalarLexer.LiteralsDoNotAllocate`, `NonFiniteSpellingsDoNotAllocate`; `P028/J5_024_TokenRejection` literal cases |
+| 5 (C4) | `limited_scan` helpers and `skip_trivia_within_budget` in `parser_work`; `unknown_literal` errors carry the word's range | `J5_049_ParserWork.ChargesScanBeforeLexing`; `J5_049_ScanCut.BudgetBelowMinimumFailsWithResourceLimit`; `J5_049_ScanCutError.KeepsLexerErrorBeforeCut`; `J5_024_Scalar.ReportsUnknownLiteralRange` |
+| 2 (S4) | `decoded_string_builder::reserve_exact` without a growth path; counting then decoding walks in the string and identifier lexers | `J5_046_DecodedStringBuilder.FinishRetainsExactUnits`; `J5_046_StringBuilder.AppendPastReservationFailsWithoutAllocating`; `J5_049_ParserWork.StringDecodePassIsCharged`, `MemberNameDecodePassIsCharged` |
+| 4 (W2) | `warning_storage_policy` and `parse_options::warning_storage`; `warning_list` takes its maximum and policy | `J5_046_WarningList.FixedPolicyAllocatesMaximumOnce`, `AdaptivePolicyGrowsByDoublingToTheMaximum`; `J5_046_ParserWarnings.WarningTableFollowsPolicy` |
+| 7 (V3, option 1, D1, C1) | `measure_string`, `measure_identifier`, `measure_scalar`, `measure_member_name`; `resource_budget::peak_depth` / `reserved_nodes`; `value_storage::reserve_exact` (growth kept for hand-built documents) via `document_access::reserve_records_exact`; `parser_stack::reserve_exact` without doubling; engine pre-pass (`count_document` and the `count_*` steps) with inline nesting bits; shared `check_container_close`; `run` / `run_complete` through `parse` | `measure_tests.cpp`; `two_pass_tests.cpp` (`J5_046_TwoPassParse.*`, `J5_032_TwoPassDuplicates.*`); `J5_046_Document.ReserveExactAllocatesOnceAndNeverGrows`; `J5_048_ParserStack.ReserveExactAllocatesOnceWithoutWork`, `PushBeyondReservationPreservesFramesAndInput` |
+| 7b, E1 | `max_work_units` default 131072; `c_record_construction_work` 1; duplicate-policy cost documented on `duplicate_name_policy` | `J5_049_WorkBaseline/WorkBaselineUnits.FitsDefaultAndFailsJustBelowMeasuredRequirement` |
+| 1 (A2, B1, 1c) | `big_unsigned::reserve` with `decimal_digit_bits` / `limbs_for_bits`, no growth in `append_digit`, `shift_left` or `assign`; decimal chunks up to 10^4; `analyse_number` reports `digit_count` and the combined scale | `J5_046_BigUnsigned.DigitsLoadIntoOneReservation`; `J5_037_BigUnsigned.ResultsBeyondReservationFailWithoutMutation`, `AppendsDecimalChunks`, `ReservationBoundsRoundUpAndReportOverflow`; `J5_036_NumberAnalysis/NumberScaleUnits.ReportsDigitCountAndScale` |
+| 10 | See decision 10, "Implementation" | — |
+
+Units restated or replaced while implementing:
+
+- `J5_046_BigUnsigned.DigitGrowthIsGeometric` became `DigitsLoadIntoOneReservation`;
+  `J5_037_BigUnsigned.AllocationFailurePreservesValueAndAllowsRetry` became
+  `ReservationFailurePreservesZeroAndAllowsRetry`.
+- `J5_048_ParserStack.PreservesFramesAndInputOnGrowthAllocationFailure` became
+  `PushBeyondReservationPreservesFramesAndInput`;
+  `PreservesOwnedNamesAcrossGrowthAndLimitFailure` became
+  `PreservesOwnedNamesAndLimitFailure`.
+- `J5_017_WarningList.GrowthPreservesEntries` became `AdaptiveGrowthPreservesEntries`.
+- `J5_049_ParserWork.WarningRescanIsCharged` (decision 5) became
+  `WarningsNeedNoRescan` when decision 10 D removed the re-scan.
+
+Work counts re-baselined with each charging change, for example
+`P037/J5_047_CompleteLimit` case `WorkIncludesTrailingScan`: 17 (before decision 5),
+14 (decision 5), 21 (decision 7, both passes charged), 19 (E1). The primitive-parser
+`Work*` cases followed the same changes.
+
+Correction recorded during decision 3: the `P028/J5_024_TokenRejection` cases
+`LiteralEscapedPart` and `LiteralEscapedPoint` had lost their backslash when first
+written, so one run tested `trueA` and `true.` instead of escaped literals. They were
+restored and pass.
