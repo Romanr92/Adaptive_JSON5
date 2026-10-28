@@ -4,9 +4,9 @@
 #include "adaptive_json5/memory/buffer_arena.hpp"
 #include "adaptive_json5/memory/document_storage_owner.hpp"
 #include "adaptive_json5/result.hpp"
+#include "memory/pointer_alignment.hpp"
 
 #include <cstddef>
-#include <memory>
 #include <new>
 
 namespace adaptive_json5
@@ -70,7 +70,8 @@ namespace adaptive_json5
       std::size_t space = size;
 
       // Reserve aligned control storage before constructing objects, in the buffer.
-      void* aligned = std::align(alignof(buffer_document_storage), sizeof(buffer_document_storage), position, space);
+      void* aligned =
+        detail::align_within(alignof(buffer_document_storage), sizeof(buffer_document_storage), position, space);
 
       if (aligned == nullptr)
       {

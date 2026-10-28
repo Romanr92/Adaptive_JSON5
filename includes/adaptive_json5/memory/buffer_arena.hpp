@@ -47,7 +47,8 @@ namespace adaptive_json5
        * @note The memory itself is reused only after the last live allocation is released.
        * A release without a live allocation is ignored.
        */
-      static void deallocate_callback(void* context, void* address, std::size_t bytes, std::size_t alignment) noexcept;
+      static void deallocate_callback(void* context, void* /* address */, std::size_t /* bytes */,
+                                      std::size_t /* alignment */) noexcept;
 
     public:
       /**
@@ -115,7 +116,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-046.
        */
-      [[nodiscard]] const std::size_t capacity() const noexcept;
+      [[nodiscard]] std::size_t capacity() const noexcept;
 
       /**
        * @brief Report the bytes consumed so far, including alignment padding.
@@ -123,14 +124,14 @@ namespace adaptive_json5
        * J5-046.
        * @note Returns to zero when the last live allocation is released.
        */
-      [[nodiscard]] const std::size_t used() const noexcept;
+      [[nodiscard]] std::size_t used() const noexcept;
 
       /**
        * @brief Report how many allocations have not been released yet.
        * @par Requirements
        * J5-040; J5-046.
        */
-      [[nodiscard]] const std::size_t live_allocations() const noexcept;
+      [[nodiscard]] std::size_t live_allocations() const noexcept;
   };
 } // namespace adaptive_json5
 

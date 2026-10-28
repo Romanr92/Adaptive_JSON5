@@ -3,9 +3,9 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
+#include "memory/pointer_alignment.hpp"
 
 #include <cstddef>
-#include <memory>
 
 namespace adaptive_json5
 {
@@ -22,9 +22,9 @@ namespace adaptive_json5
     void* position = self.m_begin + self.m_used;
     std::size_t space = self.m_capacity - self.m_used;
 
-    // std::align moves position up to the alignment and shrinks space by the padding, or
+    // detail::align_with moves position up to the alignment and shrinks space by the padding, or
     // returns nullptr and leaves both unchanged when bytes no longer fit.
-    void* aligned = std::align(alignment, bytes, position, space);
+    void* aligned = detail::align_within(alignment, bytes, position, space);
 
     if (aligned == nullptr)
     {
@@ -88,7 +88,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-046.
    */
-  const std::size_t buffer_arena::capacity() const noexcept
+  std::size_t buffer_arena::capacity() const noexcept
   {
     return m_capacity;
   }
@@ -98,7 +98,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-046.
    */
-  const std::size_t buffer_arena::used() const noexcept
+  std::size_t buffer_arena::used() const noexcept
   {
     return m_used;
   }
@@ -108,7 +108,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-040; J5-046.
    */
-  const std::size_t buffer_arena::live_allocations() const noexcept
+  std::size_t buffer_arena::live_allocations() const noexcept
   {
     return m_live;
   }

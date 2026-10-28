@@ -65,4 +65,5 @@ add_library(adaptive_json5_parser STATIC
     memory/buffer_arena.cpp
     memory/document_storage_owner.cpp
     memory/buffer_document_storage.cpp
+    memory/pointer_alignment.cpp
 )
