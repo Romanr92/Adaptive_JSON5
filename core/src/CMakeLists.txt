@@ -62,4 +62,5 @@ add_library(adaptive_json5_parser STATIC
     diagnostics/diagnostic_format.cpp
     value/document_access.cpp
     value/number_access.cpp
+    memory/buffer_arena.cpp
 )

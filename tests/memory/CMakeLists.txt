@@ -3,3 +3,6 @@ adaptive_json5_add_unit(adaptive_json5_storage_unit_tests storage_units
 
 adaptive_json5_add_unit(adaptive_json5_accounted_storage_unit_tests resource_guards_units
     accounted_storage_tests.cpp)
+
+adaptive_json5_add_unit(adaptive_json5_buffer_arena_unit_tests buffer_arena_units
+    buffer_arena_tests.cpp)
