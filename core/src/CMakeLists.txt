@@ -66,4 +66,5 @@ add_library(adaptive_json5_parser STATIC
     memory/document_storage_owner.cpp
     memory/buffer_document_storage.cpp
     memory/pointer_alignment.cpp
+    memory/json5_document.cpp
 )
