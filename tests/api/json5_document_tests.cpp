@@ -1,15 +1,18 @@
 #include "../shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/diagnostic_format.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/json5_document.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 
 #include <cstddef>
 #include <cstring>
 #include <gtest/gtest.h>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -287,4 +290,180 @@ namespace
     EXPECT_EQ(again.value_if()->values().size(), 6U);
   }
   /* ================================= End Test_J5_040 ================================= */
+  /* =================================== Test_J5_017 =================================== */
+
+  /* Verify the document exposes every retained warning in source order.
+   * Arrange: Two strings holding a raw U+2028 and a raw U+2029, and one without warnings.
+   * Act: Parse both and read the warnings by index.
+   * Expect: Two warnings with their codes and original spans, wrong_type_or_access past the
+   *         last one, and no warnings for the plain document.
+   */
+  TEST(J5_017_Json5Document, ExposesWarningsInSourceOrder)
+  {
+    /* Arrange */
+    const std::string text{"['\xE2\x80\xA8', '\xE2\x80\xA9']"};
+    const std::string plain{"['a', 'b']"};
+    caller_buffer memory{};
+    caller_buffer plain_memory{};
+    /* Act */
+    const auto parsed = json5_document::parse({text.data(), text.size()}, memory.bytes, sizeof(memory.bytes));
+    const auto parsed_plain =
+      json5_document::parse({plain.data(), plain.size()}, plain_memory.bytes, sizeof(plain_memory.bytes));
+    /* Expect */
+    ASSERT_TRUE(parsed.has_value());
+    const json5_document& document = *parsed.value_if();
+    ASSERT_EQ(document.warning_count(), 2U);
+    const auto first = document.warning(0U);
+    const auto second = document.warning(1U);
+    const auto past_end = document.warning(2U);
+    ASSERT_TRUE(first.has_value());
+    EXPECT_EQ(first.value_if()->code, string_warning_code::raw_line_separator);
+    EXPECT_EQ(first.value_if()->byte_offset, 2U);
+    EXPECT_EQ(first.value_if()->byte_length, 3U);
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(second.value_if()->code, string_warning_code::raw_paragraph_separator);
+    EXPECT_EQ(second.value_if()->byte_offset, 9U);
+    EXPECT_EQ(second.value_if()->byte_length, 3U);
+    ASSERT_FALSE(past_end.has_value());
+    EXPECT_EQ(past_end.error_if()->code, error_code::wrong_type_or_access);
+    ASSERT_TRUE(parsed_plain.has_value());
+    EXPECT_EQ(parsed_plain.value_if()->warning_count(), 0U);
+    EXPECT_FALSE(parsed_plain.value_if()->warning(0U).has_value());
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify moving transfers the warnings and leaves the source without any.
+   * Arrange: A parsed string holding a raw U+2028.
+   * Act: Move the document into a new object.
+   * Expect: The destination has the warning; the source reports none and rejects index 0.
+   */
+  TEST(J5_017_Json5Document, MoveTransfersWarnings)
+  {
+    /* Arrange */
+    const std::string text{"'\xE2\x80\xA8'"};
+    caller_buffer memory{};
+    auto parsed = json5_document::parse({text.data(), text.size()}, memory.bytes, sizeof(memory.bytes));
+    ASSERT_TRUE(parsed.has_value());
+    json5_document& source = *parsed.value_if();
+    /* Act */
+    const json5_document destination{std::move(source)};
+    /* Expect */
+    EXPECT_EQ(destination.warning_count(), 1U);
+    EXPECT_TRUE(destination.warning(0U).has_value());
+    EXPECT_EQ(source.warning_count(), 0U);
+    const auto moved_from = source.warning(0U);
+    ASSERT_FALSE(moved_from.has_value());
+    EXPECT_EQ(moved_from.error_if()->code, error_code::wrong_type_or_access);
+  }
+  /* ================================= End Test_J5_017 ================================= */
+  /* =================================== Test_J5_044 =================================== */
+
+  /* Verify describe writes the same text as the formatters and views it in the buffer.
+   * Arrange: A failed parse, an unlocated error and a document with one warning.
+   * Act: Describe each into a character array and format each into a second buffer.
+   * Expect: Each view starts at its array and equals the formatter's text.
+   */
+  TEST(J5_044_Json5Document, DescribesErrorsAndWarningsLikeTheFormatters)
+  {
+    /* Arrange */
+    const std::string broken{"[1, "};
+    const std::string warned{"['\xE2\x80\xA8']"};
+    const input_view broken_input{broken.data(), broken.size()};
+    const input_view warned_input{warned.data(), warned.size()};
+    caller_buffer memory{};
+    caller_buffer warned_memory{};
+    const auto failed = json5_document::parse(broken_input, memory.bytes, sizeof(memory.bytes));
+    ASSERT_FALSE(failed.has_value());
+    const error located = *failed.error_if();
+    const error unlocated = error::without_location(error_code::allocation_failure);
+    const auto parsed = json5_document::parse(warned_input, warned_memory.bytes, sizeof(warned_memory.bytes));
+    ASSERT_TRUE(parsed.has_value());
+    const auto warning = parsed.value_if()->warning(0U);
+    ASSERT_TRUE(warning.has_value());
+    char located_text[128]{};
+    char unlocated_text[128]{};
+    char warning_text[128]{};
+    char expected[128]{};
+    /* Act */
+    const auto located_view = describe(located, broken_input, located_text);
+    const auto unlocated_view = describe(unlocated, broken_input, unlocated_text);
+    const auto warning_view = describe(*warning.value_if(), warned_input, warning_text);
+    /* Expect */
+    ASSERT_TRUE(located_view.has_value());
+    ASSERT_TRUE(format_error(located, broken_input, expected, sizeof(expected)).has_value());
+    EXPECT_EQ(located_view.value_if()->data(), located_text);
+    EXPECT_EQ(*located_view.value_if(), std::string_view{expected});
+    ASSERT_TRUE(unlocated_view.has_value());
+    ASSERT_TRUE(format_error(unlocated, broken_input, expected, sizeof(expected)).has_value());
+    EXPECT_EQ(unlocated_view.value_if()->data(), unlocated_text);
+    EXPECT_EQ(*unlocated_view.value_if(), std::string_view{expected});
+    ASSERT_TRUE(warning_view.has_value());
+    ASSERT_TRUE(format_warning(*warning.value_if(), warned_input, expected, sizeof(expected)).has_value());
+    EXPECT_EQ(warning_view.value_if()->data(), warning_text);
+    EXPECT_EQ(*warning_view.value_if(), std::string_view{expected});
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify a buffer too small for the text yields the truncated, NUL-terminated part.
+   * Arrange: A located error and a warning whose full texts exceed 8 bytes.
+   * Act: Describe each into 8 bytes, and the error into zero bytes without a buffer.
+   * Expect: Views of the first 7 bytes followed by a NUL; an empty view for zero bytes.
+   */
+  TEST(J5_044_Json5Document, TruncatesToTheBuffer)
+  {
+    /* Arrange */
+    const std::string text{"'\xE2\x80\xA8'"};
+    const input_view input{text.data(), text.size()};
+    const error located = error::at_offset(error_code::syntax, 1U);
+    const string_warning warning{string_warning_code::raw_line_separator, 1U, 3U};
+    char full[128]{};
+    char error_text[8];
+    char warning_text[8];
+    /* Act */
+    const auto error_view = describe(located, input, error_text);
+    const auto warning_view = describe(warning, input, warning_text);
+    const auto empty_view = describe(located, input, nullptr, 0U);
+    /* Expect */
+    ASSERT_TRUE(error_view.has_value());
+    ASSERT_TRUE(format_error(located, input, full, sizeof(full)).has_value());
+    EXPECT_EQ(*error_view.value_if(), std::string_view{full}.substr(0, 7));
+    EXPECT_EQ(error_text[7], '\0');
+    ASSERT_TRUE(warning_view.has_value());
+    ASSERT_TRUE(format_warning(warning, input, full, sizeof(full)).has_value());
+    EXPECT_EQ(*warning_view.value_if(), std::string_view{full}.substr(0, 7));
+    EXPECT_EQ(warning_text[7], '\0');
+    ASSERT_TRUE(empty_view.has_value());
+    EXPECT_TRUE(empty_view.value_if()->empty());
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify describe forwards the formatters' argument errors.
+   * Arrange: A null buffer with nonzero capacity, and an error and a warning beyond the input.
+   * Act: Describe each.
+   * Expect: wrong_type_or_access every time.
+   */
+  TEST(J5_044_Json5Document, RejectsInvalidBufferOrLocation)
+  {
+    /* Arrange */
+    const std::string text{"[1]"};
+    const input_view input{text.data(), text.size()};
+    const error inside = error::at_offset(error_code::syntax, 1U);
+    const error beyond = error::at_offset(error_code::syntax, 100U);
+    const string_warning warning_beyond{string_warning_code::raw_line_separator, 100U, 3U};
+    char buffer[64]{};
+    /* Act */
+    const auto null_buffer = describe(inside, input, nullptr, 8U);
+    const auto error_beyond = describe(beyond, input, buffer);
+    const auto warning_view = describe(warning_beyond, input, buffer);
+    /* Expect */
+    for (const auto* failed : {&null_buffer, &error_beyond, &warning_view})
+    {
+      ASSERT_FALSE(failed->has_value());
+      EXPECT_EQ(failed->error_if()->code, error_code::wrong_type_or_access);
+    }
+  }
+  /* ================================= End Test_J5_044 ================================= */
 } // namespace
