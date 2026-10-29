@@ -8,8 +8,10 @@
 #include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 
 #include <cstddef>
+#include <string_view>
 
 namespace adaptive_json5
 {
@@ -105,6 +107,25 @@ namespace adaptive_json5
       [[nodiscard]] json5_value root() const noexcept;
 
       /**
+       * @brief Report how many warnings the parse retained.
+       * @par Requirements
+       * J5-017; J5-041.
+       * @return The warning count; zero after this document was moved from.
+       * @note Warnings are raw U+2028/U+2029 in strings (JSON5 specification section 5.2);
+       * they never make a valid document fail.
+       */
+      [[nodiscard]] std::size_t warning_count() const noexcept;
+
+      /**
+       * @brief Read one retained warning, in source order.
+       * @par Requirements
+       * J5-017; J5-041.
+       * @param index Zero-based position, below warning_count().
+       * @return The warning, or wrong_type_or_access when index is out of range.
+       */
+      [[nodiscard]] result<string_warning> warning(std::size_t index) const noexcept;
+
+      /**
        * @brief Borrow the parsed values through the advanced document API.
        * @par Requirements
        * J5-028; J5-040.
@@ -127,6 +148,62 @@ namespace adaptive_json5
        */
       [[nodiscard]] std::size_t peak_bytes() const noexcept;
   };
+
+  /**
+   * @brief Describe an error as "line L, column C: message" in a caller buffer.
+   * @par Requirements
+   * J5-043; J5-044.
+   * @param failure Error returned by a library operation.
+   * @param input The input the error's offsets refer to.
+   * @param buffer Destination; receives NUL-terminated text when capacity is nonzero.
+   * @param capacity Bytes in buffer, including room for the NUL.
+   * @return A view of the text written (without the NUL), truncated when the buffer is too
+   * small; wrong_type_or_access for a null buffer with nonzero capacity or an offset beyond input.
+   * @note Allocates nothing. Unlocated errors give only the message. Use format_error() for
+   * the untruncated length.
+   */
+  [[nodiscard]] result<std::string_view> describe(const error& failure, input_view input, char* buffer,
+                                                  std::size_t capacity) noexcept;
+
+  /**
+   * @brief Describe a warning as "line: L, column: C: warning: message" in a caller buffer.
+   * @par Requirements
+   * J5-017; J5-044.
+   * @param warning Warning read from json5_document::warning().
+   * @param input The input the document was parsed from.
+   * @param buffer Destination; receives NUL-terminated text when capacity is nonzero.
+   * @param capacity Bytes in buffer, including room for the NUL.
+   * @return A view of the text written, truncated when the buffer is too small, or the
+   * errors of format_warning().
+   * @note Allocates nothing.
+   */
+  [[nodiscard]] result<std::string_view> describe(const string_warning& warning, input_view input, char* buffer,
+                                                  std::size_t capacity) noexcept;
+
+  /**
+   * @brief Describe an error into a character array, deducing its size.
+   * @par Requirements
+   * J5-043; J5-044.
+   * @note Same as describe(failure, input, buffer, N).
+   */
+  template <std::size_t N>
+  [[nodiscard]] result<std::string_view> describe(const error& failure, input_view input, char (&buffer)[N]) noexcept
+  {
+    return describe(failure, input, buffer, N);
+  }
+
+  /**
+   * @brief Describe a warning into a character array, deducing its size.
+   * @par Requirements
+   * J5-017; J5-044.
+   * @note Same as describe(warning, input, buffer, N).
+   */
+  template <std::size_t N>
+  [[nodiscard]] result<std::string_view> describe(const string_warning& warning, input_view input,
+                                                  char (&buffer)[N]) noexcept
+  {
+    return describe(warning, input, buffer, N);
+  }
 } // namespace adaptive_json5
 
 #endif /* JSON5_DOCUMENT_HPP_ */

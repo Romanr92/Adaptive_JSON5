@@ -1,5 +1,6 @@
 #include "adaptive_json5/json5_document.hpp"
 
+#include "adaptive_json5/diagnostic_format.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
@@ -9,10 +10,13 @@
 #include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "memory/buffer_document_storage.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <string_view>
 #include <utility>
 
 namespace adaptive_json5
@@ -44,6 +48,21 @@ namespace adaptive_json5
       // Two ranges overlap when each starts before the other one ends; subtraction avoids overflow.
       return (input_begin < buffer_begin) ? ((buffer_begin - input_begin) < input.size)
                                           : ((input_begin - buffer_begin) < buffer_size);
+    }
+
+    /**
+     * @brief Turn a formatter's full length into a view of the text kept in the buffer.
+     * @par Requirements
+     * J5-043; J5-044.
+     * @param length Full message length reported by format_error() or format_warning().
+     * @return A view of at most capacity - 1 bytes, the part that fit before the NUL.
+     */
+    [[nodiscard]] std::string_view kept_text(const char* buffer, std::size_t capacity, std::size_t length) noexcept
+    {
+      // The formatters report the full length even when they had to truncate.
+      const std::size_t kept = (capacity == 0) ? 0 : std::min(length, capacity - 1);
+
+      return std::string_view{buffer, kept};
     }
   } // namespace
 
@@ -115,6 +134,26 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Report how many warnings the parse retained.
+   * @par Requirements
+   * J5-017; J5-041.
+   */
+  std::size_t json5_document::warning_count() const noexcept
+  {
+    return m_parsed.warnings.size();
+  }
+
+  /**
+   * @brief Read one retained warning, in source order.
+   * @par Requirements
+   * J5-017; J5-041.
+   */
+  result<string_warning> json5_document::warning(std::size_t index) const noexcept
+  {
+    return m_parsed.warnings.at(index);
+  }
+
+  /**
    * @brief Transfer parsed data and ownership, leaving other empty.
    * @par Requirements
    * J5-040; J5-051.
@@ -161,5 +200,40 @@ namespace adaptive_json5
   std::size_t json5_document::peak_bytes() const noexcept
   {
     return ((m_storage.accounting() != nullptr) ? m_storage.accounting()->peak_bytes() : 0);
+  }
+
+  /**
+   * @brief Describe an error as "line L, column C: message" in a caller buffer.
+   * @par Requirements
+   * J5-043; J5-044.
+   */
+  result<std::string_view> describe(const error& failure, input_view input, char* buffer, std::size_t capacity) noexcept
+  {
+    const auto length = format_error(failure, input, buffer, capacity);
+
+    if (!length.has_value())
+    {
+      return result<std::string_view>::failure(*length.error_if());
+    }
+
+    return result<std::string_view>::success(kept_text(buffer, capacity, *length.value_if()));
+  }
+
+  /**
+   * @brief Describe a warning as "line: L, column: C: warning: message" in a caller buffer.
+   * @par Requirements
+   * J5-017; J5-044.
+   */
+  result<std::string_view> describe(const string_warning& warning, input_view input, char* buffer,
+                                    std::size_t capacity) noexcept
+  {
+    const auto length = format_warning(warning, input, buffer, capacity);
+
+    if (!length.has_value())
+    {
+      return result<std::string_view>::failure(*length.error_if());
+    }
+
+    return result<std::string_view>::success(kept_text(buffer, capacity, *length.value_if()));
   }
 } // namespace adaptive_json5
