@@ -22,8 +22,8 @@ namespace adaptive_json5
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
    * @return Full message length excluding the NUL, even when the buffer was too small;
    *         wrong_type_or_access for a null buffer with nonzero capacity or an offset beyond input.
-   * @note Output is "line L, column C: message"; located duplicates append
-   * " (first at line L, column C)"; unlocated errors print only the message.
+   * @note Output is "line: L, column: C: message"; located duplicates append
+   * " (first at line: L, column: C)"; unlocated errors print only the message.
    * Truncated output is always NUL-terminated when capacity is nonzero.
    * Text is English, stable and contains no input bytes; callers use error codes, not text.
    * Performs no allocation and no locale-dependent operation. Scans input up to each offset.

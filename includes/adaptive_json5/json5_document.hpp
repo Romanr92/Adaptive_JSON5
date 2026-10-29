@@ -166,7 +166,7 @@ namespace adaptive_json5
   };
 
   /**
-   * @brief Describe an error as "line L, column C: message" in a caller buffer.
+   * @brief Describe an error as "line: L, column: C: message" in a caller buffer.
    * @par Requirements
    * J5-043; J5-044.
    * @param failure Error returned by a library operation.
