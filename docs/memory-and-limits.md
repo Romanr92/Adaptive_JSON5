@@ -1,14 +1,87 @@
 # Memory, limits and failure behavior
 
-This page is for people who import the library and call `parse_document`. It
-explains what you provide, what the limits mean, and what happens when a parse
-fails. Internal design reasons are in
-[ADR 0003](../core/docs/adr-0003-storage-and-budget-decisions.md).
+This page is for people who import the library, through the simple
+`json5_document` API or the explicit `parse_document` API. It explains what you
+provide, what the limits mean, and what happens when a parse fails. Internal design
+reasons are in [ADR 0003](../core/docs/adr-0003-storage-and-budget-decisions.md)
+and [ADR 0004](adr/0004-simple-api-and-umbrella-header.md).
 
 Each section says whether it describes **current behavior** (implemented, and
 documented in the public headers) or a **planned change** (decided, not yet
 implemented). Don't rely on a planned change until a release says it is
 implemented.
+
+## Simple API: `json5_document` (current behavior)
+
+Include `adaptive_json5/adaptive_json5.hpp` and link `AdaptiveJSON5::parser`.
+
+### Parse into a buffer
+
+```cpp
+static unsigned char memory[16384];
+
+const auto parsed = adaptive_json5::json5_document::parse({text, text_size}, memory, sizeof(memory));
+```
+
+- **The buffer** can be any writable bytes; alignment is handled inside. It holds a
+  small control block at its start and every allocation of the document. It must
+  stay alive, and must not be used for anything else, until the document is
+  destroyed. After that, or after a failed parse, it can be reused.
+- **The input** is only read during the call; the document keeps its own copies.
+  Input and buffer must not overlap (`wrong_type_or_access`).
+- **Options** are the same `parse_options` as for `parse_document`, and every limit
+  below applies. A buffer that is too small reports `allocation_failure`; a
+  configured limit reports `resource_limit`.
+- **Sizing:** parse your largest real documents with a generous buffer and read
+  `peak_bytes()`. Size the buffer from that value, plus a margin for the control
+  block and alignment, which `peak_bytes()` does not count.
+- **Ownership:** a `json5_document` can be moved but not copied or assigned. A
+  moved-from document is empty and reports zero bytes.
+
+### Read values
+
+```cpp
+const adaptive_json5::json5_value root = parsed.value_if()->root();
+
+const auto port = root.member("server").member("port").as_int64();   // result<std::int64_t>
+const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
+```
+
+- `member(name)`, `at(index)`, `size()`, `kind()` and `is_null()` … `is_object()`
+  navigate. A failed step returns a `json5_value` that holds the error, so steps can be
+  chained and the final read reports it. `ok()` and `error_if()` check a step directly.
+- **Duplicate names:** JSON5 allows an object to repeat a member name, and the
+  document keeps every member. `member(name)` then reports `wrong_type_or_access`
+  instead of choosing one. Iterate through `values()` to see all of them.
+- `as_bool`, `as_int64` and `as_uint64` read exactly; `1.0` is an integer, `1.5`
+  is not. `as_double` rounds once. `as_string(buffer, capacity)` writes UTF-8 without
+  a terminating NUL and reports `resource_limit` when the buffer is too small.
+- A `json5_value` borrows its document: don't keep it after the document is
+  destroyed or moved.
+
+### Errors and warnings as text
+
+```cpp
+char message[128];
+const auto text_view = adaptive_json5::describe(*parsed.error_if(), {text, text_size}, message);
+// "line: 1, column: 5: unexpected end of input"
+```
+
+- `describe` writes `line: L, column: C: message` into your buffer, NUL-terminated,
+  and returns a view of it. A buffer that is too short gets the shortened text. Pass
+  the same input that was parsed: the document keeps no copy of it unless you ask
+  for source retention.
+- Valid documents can still carry warnings, for example a raw U+2028 or U+2029
+  inside a string (JSON5 specification, section 5.2). Read them with
+  `warning_count()` and `warning(index)`, and turn each into
+  `line: L, column: C: warning: message` with `describe`.
+
+### Advanced use
+
+`values()` returns the full `document`: iteration over every member, exact numbers,
+conversion options and source spans. `current_bytes()` and `peak_bytes()` report the
+document's memory. `parse_document`, described next, parses with your own storage
+callbacks instead of a buffer.
 
 ## What you provide
 
@@ -43,22 +116,25 @@ if (!parsed.has_value())
 
 On desktop or server systems that have a global heap, the optional hosted component
 parses in a single call. Build it with `-DADAPTIVE_JSON5_BUILD_HOSTED=ON` and link
-`AdaptiveJSON5::hosted`:
+`AdaptiveJSON5::hosted`; the README's
+[memory switch tutorial](../README.md#memory-switch-adaptive_json5_build_hosted)
+shows how to turn it on and off:
 
 ```cpp
 #include "adaptive_json5/hosted/parse.hpp"
 
-const auto parsed = adaptive_json5::parse({text, text_size});   // default options
+const auto parsed = adaptive_json5::hosted::parse({text, text_size});   // default options
 if (parsed.has_value())
 {
-  const adaptive_json5::document& values = parsed.value_if()->values();
+  const adaptive_json5::json5_value root = parsed.value_if()->root();
 }
 ```
 
-- `parse(input, options = {})` parses exactly like `parse_document`: same limits,
-  errors and warnings.
-- The returned `hosted_document` owns its storage, so nothing else has to stay alive.
-  It can be moved; `current_bytes()` and `peak_bytes()` report its memory.
+- `hosted::parse(input, options = {})` parses exactly like `parse_document`: same
+  limits, errors and warnings.
+- It returns the same `json5_document` as the caller-buffer path, owning its heap
+  storage, so nothing else has to stay alive. It can be moved; `current_bytes()` and
+  `peak_bytes()` report its memory.
 - Memory comes from `::operator new(std::nothrow)`, still bounded by
   `max_owned_bytes`. A small control block per call is not counted against it.
 - This component uses the global heap, so it is never part of the embedded parser

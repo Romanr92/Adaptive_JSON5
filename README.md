@@ -13,7 +13,9 @@ validation, a CLI and VS Code support are independently optional components.
 **Status: the compiled C++17 core parses complete JSON5 1.0.0 and strict JSON
 documents through `parse_document()`, with exact numeric conversion and
 comparison, warnings, line/column lookup and optional source retention
-(P001–P040).** The P041 technical review is recorded; final claim status and
+(P001–P040).** A simple API, `json5_document` with `json5_value`, parses into a
+caller buffer and is reachable through one umbrella header (see the quick start below).
+The P041 technical review is recorded; final claim status and
 required PR evidence are in the
 [JSON5 1.0.0 support statement](docs/conformance.md), together with versions,
 limits, implementation-defined behaviour, deviations and executed results. Requirement
@@ -36,6 +38,52 @@ Native development requires no WSL. The parser
 requires neither AdaptivePi, an operating-system service, Node.js, VS Code nor
 network access. [Embedded requirements](docs/embedded.md) define the bare-metal
 boundary. AdaptivePi is inspiration and an optional consumer example.
+
+## Quick start
+
+Include one header, link one library and parse into memory you provide:
+
+```cpp
+#include "adaptive_json5/adaptive_json5.hpp"
+
+#include <cstdio>
+
+static unsigned char memory[16384];   // the parsed document lives here; no heap is used
+
+void read_config(const char* text, std::size_t size)
+{
+  const auto parsed = adaptive_json5::json5_document::parse({text, size}, memory, sizeof(memory));
+  if (!parsed.has_value())
+  {
+    char message[128];
+    const auto described = adaptive_json5::describe(*parsed.error_if(), {text, size}, message);
+    std::puts(described.has_value() ? message : "invalid input");   // "line: 1, column: 5: ..."
+    return;
+  }
+
+  const auto port = parsed.value_if()->root().member("port").as_int64();
+  if (port.has_value())
+  {
+    std::printf("port %lld\n", static_cast<long long>(*port.value_if()));
+  }
+}
+```
+
+```cmake
+target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
+```
+
+- Every call returns a `result`: check `has_value()` before `value_if()`. Errors are
+  values, never exceptions.
+- `member()` and `at()` can be chained; a missing member or a wrong type is reported
+  by the final read.
+- `memory` must stay alive, and must not be used for anything else, while the
+  document exists.
+
+The [user guide](docs/memory-and-limits.md#simple-api-json5_document-current-behavior)
+covers buffer sizing, warnings, limits and the advanced API. On desktop or server
+systems the heap can replace the buffer; see the
+[memory switch](#memory-switch-adaptive_json5_build_hosted).
 
 ## Start development
 
@@ -79,9 +127,10 @@ clang-format 18 only**. GoogleTest is host-only and never a parser runtime depen
 
 The source/install package exports the compiled static `AdaptiveJSON5::parser`
 target and the supporting `AdaptiveJSON5::build_options` metadata target.
-Consumers receive only the public `includes/` search root. The core currently
-exposes owned document/value/storage components and the public `parse_document`
-entry; the optional schema target remains later work.
+Consumers receive only the public `includes/` search root. The default include is
+`adaptive_json5/adaptive_json5.hpp`, which contains the whole embedded API: the
+simple `json5_document` and the advanced owned document/value/storage components
+with `parse_document`. The optional schema target remains later work.
 
 ```cmake
 add_subdirectory(path/to/Adaptive_JSON5)
@@ -97,12 +146,79 @@ cmake --build --preset library
 cmake --install build/library --config Release --prefix path/to/install
 ```
 
-Before calling `parse_document`, read [memory, limits and failure behavior](docs/memory-and-limits.md).
-It covers the storage you supply, what each limit counts, what happens when a
-parse fails and how to retry, and decided changes that are not yet implemented.
+Before parsing, read [memory, limits and failure behavior](docs/memory-and-limits.md).
+It covers the simple API, the storage you supply, what each limit counts, what
+happens when a parse fails and how to retry.
 
-On hosted systems, the optional `AdaptiveJSON5::hosted` component offers a one-call
-`parse(input)` with heap storage; see [one call on hosted systems](docs/memory-and-limits.md#one-call-on-hosted-systems-optional).
+### Memory switch: `ADAPTIVE_JSON5_BUILD_HOSTED`
+
+The CMake option `ADAPTIVE_JSON5_BUILD_HOSTED` decides whether the library may use
+the global heap. It is **OFF by default**.
+
+| | OFF (default) | ON |
+|---|---|---|
+| Libraries | `AdaptiveJSON5::parser` | `AdaptiveJSON5::parser` and `AdaptiveJSON5::hosted` |
+| Static library files (GCC/Clang) | `libadaptive_json5_parser.a` | `libadaptive_json5_parser.a` and `libadaptive_json5_hosted.a` |
+| Memory | a caller buffer (`json5_document::parse`) or your storage callbacks (`parse_document`) | additionally the heap, through `hosted::parse` |
+| Headers installed | all public headers except `adaptive_json5/hosted/` | all public headers |
+| Suits | embedded devices and any target without a reliable heap | desktop and server applications |
+
+Both modes return the same `json5_document`, and every limit applies in both.
+
+**Activate it**
+
+1. Configure with the option ON, then build and install:
+
+   ```sh
+   cmake -S . -B build/hosted -DADAPTIVE_JSON5_BUILD_HOSTED=ON
+   cmake --build build/hosted
+   cmake --install build/hosted --prefix path/to/install
+   ```
+
+   As a subproject, set it before `add_subdirectory`:
+
+   ```cmake
+   set(ADAPTIVE_JSON5_BUILD_HOSTED ON CACHE BOOL "" FORCE)
+   add_subdirectory(path/to/Adaptive_JSON5)
+   ```
+
+2. Link `AdaptiveJSON5::hosted`. It brings `AdaptiveJSON5::parser` with it:
+
+   ```cmake
+   target_link_libraries(my_application PRIVATE AdaptiveJSON5::hosted)
+   ```
+
+3. Add the hosted include next to the umbrella header and parse in one call:
+
+   ```cpp
+   #include "adaptive_json5/adaptive_json5.hpp"
+   #include "adaptive_json5/hosted/parse.hpp"
+
+   const auto parsed = adaptive_json5::hosted::parse({text, size});   // heap storage
+   ```
+
+4. Check the installation: `include/adaptive_json5/hosted/parse.hpp` and
+   `lib/libadaptive_json5_hosted.a` exist under the prefix, and after
+   `find_package(AdaptiveJSON5 CONFIG REQUIRED)` the condition
+   `if(TARGET AdaptiveJSON5::hosted)` is true.
+
+**Deactivate it**
+
+1. Configure with `-DADAPTIVE_JSON5_BUILD_HOSTED=OFF`, or remove the `set(...)` line.
+   An existing build directory keeps the cached value, so pass `OFF` explicitly or
+   configure a fresh directory (`cmake --fresh`).
+2. Link `AdaptiveJSON5::parser` instead of `AdaptiveJSON5::hosted`.
+3. Remove the hosted include and replace `hosted::parse(input)` with
+   `json5_document::parse(input, buffer, sizeof(buffer))`. The result is the same
+   `json5_document`, so the code that reads it stays unchanged.
+
+A leftover hosted include then fails at compile time, because the header is not
+installed. Building the unit tests compiles the hosted library for its own tests
+even when the option is OFF; it is installed only when the option is ON.
+
+**Which to choose:** keep it OFF for embedded targets, for code that must bound its
+memory up front, and whenever no reliable heap exists. Turn it ON for desktop and
+server tools that prefer one call without managing a buffer.
 
 Use `find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)` with the installation prefix
 in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
@@ -136,6 +252,7 @@ The command-line executable will be implemented later; no production C++ is adde
 - [Implementation sequence and issue tracking](core/docs/requirements-json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
 - [Memory, limits and failure behavior](docs/memory-and-limits.md) for library users, and [storage and budget decisions](core/docs/adr-0003-storage-and-budget-decisions.md) (ADR 0003).
 - [Architecture](core/docs/design-architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
+- [Simple API, umbrella header and memory switch](docs/adr/0004-simple-api-and-umbrella-header.md) (ADR 0004).
 - [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
 - [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).
 

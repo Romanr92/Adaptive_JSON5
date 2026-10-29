@@ -18,6 +18,8 @@ if(ADAPTIVE_JSON5_BUILD_HOSTED OR ADAPTIVE_JSON5_BUILD_TESTS)
     add_library(AdaptiveJSON5::hosted ALIAS adaptive_json5_hosted)
     set_target_properties(adaptive_json5_hosted PROPERTIES EXPORT_NAME hosted)
     target_link_libraries(adaptive_json5_hosted PUBLIC AdaptiveJSON5::parser)
+    # Private headers shared with the parser, e.g. the json5_document construction access.
+    target_include_directories(adaptive_json5_hosted PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
     adaptive_json5_configure_target(adaptive_json5_hosted)
 endif()
 

@@ -62,4 +62,11 @@ add_library(adaptive_json5_parser STATIC
     diagnostics/diagnostic_format.cpp
     value/document_access.cpp
     value/number_access.cpp
+    memory/buffer_arena.cpp
+    memory/document_storage_owner.cpp
+    memory/buffer_document_storage.cpp
+    memory/pointer_alignment.cpp
+    memory/json5_document.cpp
+    value/utf8_name_equal.cpp
+    value/json5_value.cpp
 )
