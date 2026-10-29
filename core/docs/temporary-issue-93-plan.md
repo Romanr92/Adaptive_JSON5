@@ -18,7 +18,7 @@ Branch: `93-umbrella-header-adaptive_json5adaptive_json5hpp`.
 | 3 | `json5_document` with buffer parsing and the storage owner (`includes/adaptive_json5/json5_document.hpp`) + units | done; overlap check added; 11 units in `tests/api/json5_document_tests.cpp`; full suite 2494/2494 OFF and ON; clang-format passed. `std::align` replaced by `detail::align_within` (J5-042 allowlist) |
 | 4 | `json5_value`: navigation, UTF-8 member lookup (private, non-allocating), scalar reads + units | done; 10 units in `tests/api/json5_value_tests.cpp`; full suite 2504/2504 OFF and ON; clang-format passed |
 | 5 | `describe` error/warning text, warning access + units | done; 5 units added to `tests/api/json5_document_tests.cpp`; full suite 2509/2509 OFF and ON; clang-format passed |
-| 6 | `hosted::parse` returns `json5_document`; remove `hosted_document`; restate #94 units and guide section | unblocked: #108 merged (5eac8ef is in this branch) |
+| 6 | `hosted::parse` returns `json5_document`; remove `hosted_document`; restate #94 units and guide section | done; shared construction through private `detail::json5_document_access`; hosted target gets `core/includes` privately; `json5_document::source()` added; 10 units in `tests/api/hosted_parse_tests.cpp`; full suite 2510/2510 OFF and ON; clang-format passed |
 | 7 | Umbrella `adaptive_json5.hpp` (all public headers except `hosted/`) + compile unit + coverage unit | not started |
 | 8 | README: default include, one short example, memory-switch tutorial; user guide; traceability; ADR 0004 status to implemented | not started |
 
@@ -35,11 +35,11 @@ documentation and test runs are not included.
 | 3 | `json5_document`: storage owner (buffer arena or heap block), `parse(text, buffer, options)`, ownership and move | 4 | Done |
 | 4 | `json5_value`: navigation, kind checks, scalar reads; private UTF-8 member-name comparison without allocation | 5 | Done |
 | 5 | Error and warning text (`describe`), warning count and access | 2 | Done |
-| 6 | `hosted::parse` returning `json5_document`; remove `hosted_document`; CMake unchanged | 2 | Not done |
+| 6 | `hosted::parse` returning `json5_document`; remove `hosted_document`; CMake unchanged | 2 | Done |
 | 7 | Umbrella header `adaptive_json5.hpp` | 0.5 | Not done |
 | 8 | Review README tutorial, user guide and ADR 0004 status | 1 | Not done |
 | 9 | Replace #93's issue description; final CI check and merge | 0.5 | Not done |
-| | **Total** | **18.5** | **14.5 estimated hours of tasks done** |
+| | **Total** | **18.5** | **16.5 estimated hours of tasks done** |
 
 ## Details to remember
 

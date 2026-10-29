@@ -84,6 +84,10 @@ would still manage storage and ownership types themselves.
 - `json5_document` holds its storage through a small owner that is either the arena
   in the caller's buffer or the heap block; moving a document never moves its
   accounting.
+- Both paths build the document through one private friend,
+  `detail::json5_document_access` (`core/includes/memory/`), which parses through
+  the owner's accounting. The public header only forward-declares it, so it names no
+  hosted function and gives users no way to construct a document from raw storage.
 
 Rejected:
 

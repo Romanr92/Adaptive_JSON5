@@ -8,6 +8,7 @@
 #include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/retained_source.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 
 #include <cstddef>
@@ -15,6 +16,11 @@
 
 namespace adaptive_json5
 {
+  namespace detail
+  {
+    struct json5_document_access;
+  } // namespace detail
+
   /**
    * @brief Own parsed values and their storage control block.
    * @par Requirements
@@ -38,6 +44,8 @@ namespace adaptive_json5
        * @note parsed must have been allocated through storage's accounting.
        */
       json5_document(detail::document_storage_owner&& storage, parsed_document&& parsed) noexcept;
+
+      friend struct detail::json5_document_access;
 
     public:
       /**
@@ -131,6 +139,14 @@ namespace adaptive_json5
        * J5-028; J5-040.
        */
       [[nodiscard]] const document& values() const noexcept;
+
+      /**
+       * @brief Borrow the retained source copy.
+       * @par Requirements
+       * J5-041.
+       * @return The copy, empty unless parse_options requested source retention.
+       */
+      [[nodiscard]] const retained_source& source() const noexcept;
 
       /**
        * @brief Report outstanding requested allocation bytes.

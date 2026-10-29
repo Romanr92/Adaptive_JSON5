@@ -10,8 +10,10 @@
 #include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/retained_source.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "memory/buffer_document_storage.hpp"
+#include "memory/json5_document_access.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -89,8 +91,8 @@ namespace adaptive_json5
    * @return The document; wrong_type_or_access when input and buffer overlap;
    * allocation_failure when the buffer cannot hold the control block or the document;
    * or the error of parse_document, unchanged.
-   * @note The arena and the accounting are placed at the start of the buffer. On failure
-   * the parser has released its allocations and the control block is destroyed.
+   * @note The arena and the accounting are placed at the start of the buffer; parsing and
+   * the failure cleanup are done by json5_document_access::parse_with_storage.
    */
   result<json5_document> json5_document::parse(input_view input, void* buffer, std::size_t buffer_size,
                                                const parse_options& options) noexcept
@@ -109,14 +111,7 @@ namespace adaptive_json5
       return document_result::failure(*storage.error_if());
     }
 
-    auto parsed = parse_document(input, options, *storage.value_if()->accounting());
-
-    if (!parsed.has_value())
-    {
-      return document_result::failure(*parsed.error_if());
-    }
-
-    return document_result::success(json5_document{std::move(*storage.value_if()), std::move(*parsed.value_if())});
+    return detail::json5_document_access::parse_with_storage(input, options, std::move(*storage.value_if()));
   }
 
   /**
@@ -181,6 +176,17 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Borrow the retained source copy.
+   * @par Requirements
+   * J5-041.
+   * @return A reference to m_parsed.source.
+   */
+  const retained_source& json5_document::source() const noexcept
+  {
+    return m_parsed.source;
+  }
+
+  /**
    * @brief Report outstanding requested allocation bytes.
    * @par Requirements
    * J5-046; J5-047.
@@ -236,4 +242,28 @@ namespace adaptive_json5
 
     return result<std::string_view>::success(kept_text(buffer, capacity, *length.value_if()));
   }
+
+  namespace detail
+  {
+    /**
+     * @brief Parse one complete document through the storage of an owner.
+     * @par Requirements
+     * P037; J5-026; J5-040; J5-046; J5-051.
+     */
+    result<json5_document> json5_document_access::parse_with_storage(input_view input, const parse_options& options,
+                                                                     document_storage_owner&& storage) noexcept
+    {
+      using document_result = result<json5_document>;
+
+      auto parsed = parse_document(input, options, *storage.accounting());
+
+      // On failure the parser already released its allocations; storage then destroys the block.
+      if (!parsed.has_value())
+      {
+        return document_result::failure(*parsed.error_if());
+      }
+
+      return document_result::success(json5_document{std::move(storage), std::move(*parsed.value_if())});
+    }
+  } // namespace detail
 } // namespace adaptive_json5

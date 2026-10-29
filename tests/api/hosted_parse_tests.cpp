@@ -1,9 +1,11 @@
 #include "../shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/hosted/parse.hpp"
+#include "adaptive_json5/json5_document.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/value/retained_source.hpp"
 
 #include <cstddef>
 #include <gtest/gtest.h>
@@ -18,12 +20,9 @@ namespace
   using adaptive_json5_test::document_provider;
   /* ==================================== Fixtures ===================================== */
 
-  static_assert(noexcept(parse(std::declval<input_view>())));
-  static_assert(noexcept(parse(std::declval<input_view>(), std::declval<const parse_options&>())));
-  static_assert(std::is_nothrow_move_constructible_v<hosted_document>);
-  static_assert(!std::is_copy_constructible_v<hosted_document>);
-  static_assert(!std::is_copy_assignable_v<hosted_document>);
-  static_assert(!std::is_move_assignable_v<hosted_document>);
+  static_assert(noexcept(hosted::parse(std::declval<input_view>())));
+  static_assert(noexcept(hosted::parse(std::declval<input_view>(), std::declval<const parse_options&>())));
+  static_assert(std::is_same_v<decltype(hosted::parse(std::declval<input_view>())), result<json5_document>>);
 
   /**
    * @brief Parse text through the explicit-storage API with the same options.
@@ -73,7 +72,7 @@ namespace
 
   /* Verify the one-call parse succeeds with default options and owns its storage.
    * Arrange: A JSON5 document with an identifier name, a single-quoted string and one raw U+2028.
-   * Act: Parse it with parse(input) only.
+   * Act: Parse it with hosted::parse(input) only.
    * Expect: Four values, one retained warning, owned bytes equal to the explicit API's, and a
    *         peak at least as high as the current bytes.
    */
@@ -84,12 +83,12 @@ namespace
     const auto explicit_bytes = parse_explicitly(text, parse_options{});
     ASSERT_TRUE(explicit_bytes.has_value());
     /* Act */
-    const auto parsed = parse({text.data(), text.size()});
+    const auto parsed = hosted::parse({text.data(), text.size()});
     /* Expect */
     ASSERT_TRUE(parsed.has_value());
-    const hosted_document& document = *parsed.value_if();
+    const json5_document& document = *parsed.value_if();
     EXPECT_EQ(document.values().size(), 4U);
-    EXPECT_EQ(document.warnings().size(), 1U);
+    EXPECT_EQ(document.warning_count(), 1U);
     EXPECT_EQ(document.current_bytes(), *explicit_bytes.value_if());
     EXPECT_GE(document.peak_bytes(), document.current_bytes());
   }
@@ -110,8 +109,8 @@ namespace
     const auto explicit_strict = parse_explicitly(text, strict);
     ASSERT_FALSE(explicit_strict.has_value());
     /* Act */
-    const auto lenient = parse({text.data(), text.size()});
-    const auto rejected = parse({text.data(), text.size()}, strict);
+    const auto lenient = hosted::parse({text.data(), text.size()});
+    const auto rejected = hosted::parse({text.data(), text.size()}, strict);
     /* Expect */
     EXPECT_TRUE(lenient.has_value());
     ASSERT_FALSE(rejected.has_value());
@@ -124,7 +123,7 @@ namespace
 
   /* Verify failures are reported exactly as by the explicit-storage API.
    * Arrange: The case input, syntax and nesting limit.
-   * Act: Parse through parse() and through parse_document().
+   * Act: Parse through hosted::parse() and through parse_document().
    * Expect: The same error code, location presence, offset and syntax reason.
    */
   TEST_P(HostedParseFailureUnits, MatchesParseDocumentErrors)
@@ -138,7 +137,7 @@ namespace
     const auto expected = parse_explicitly(text, options);
     ASSERT_FALSE(expected.has_value());
     /* Act */
-    const auto parsed = parse({text.data(), text.size()}, options);
+    const auto parsed = hosted::parse({text.data(), text.size()}, options);
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
@@ -164,20 +163,20 @@ namespace
 
   /* Verify moving keeps the document usable and empties the source.
    * Arrange: A parsed array of three numbers.
-   * Act: Move the hosted document into a new object.
+   * Act: Move the document into a new object.
    * Expect: The destination keeps its values and byte counts; the source reports zero bytes.
    */
   TEST(J5_040_HostedParse, MoveKeepsDocumentAndStorage)
   {
     /* Arrange */
     const std::string text = "[1, 2, 3]";
-    auto parsed = parse({text.data(), text.size()});
+    auto parsed = hosted::parse({text.data(), text.size()});
     ASSERT_TRUE(parsed.has_value());
-    hosted_document& source = *parsed.value_if();
+    json5_document& source = *parsed.value_if();
     const std::size_t bytes = source.current_bytes();
     const std::size_t peak = source.peak_bytes();
     /* Act */
-    const hosted_document destination{std::move(source)};
+    const json5_document destination{std::move(source)};
     /* Expect */
     EXPECT_EQ(destination.values().size(), 4U);
     EXPECT_EQ(destination.current_bytes(), bytes);
@@ -204,8 +203,8 @@ namespace
     ASSERT_TRUE(small_bytes.has_value());
     ASSERT_TRUE(large_bytes.has_value());
     /* Act */
-    const auto first = parse({small.data(), small.size()});
-    const auto second = parse({large.data(), large.size()});
+    const auto first = hosted::parse({small.data(), small.size()});
+    const auto second = hosted::parse({large.data(), large.size()});
     /* Expect */
     ASSERT_TRUE(first.has_value());
     ASSERT_TRUE(second.has_value());
@@ -213,4 +212,35 @@ namespace
     EXPECT_EQ(second.value_if()->current_bytes(), *large_bytes.value_if());
   }
   /* ================================= End Test_J5_040 ================================= */
+  /* =================================== Test_J5_041 =================================== */
+
+  /* Verify the heap path keeps a source copy only on request and navigates like the buffer path.
+   * Arrange: An object with one string member, parsed with retain_copy and with the default.
+   * Act: Read the retained source of both and the member through root().
+   * Expect: Only the retain_copy document holds a copy equal to the input; both read the member.
+   */
+  TEST(J5_041_HostedParse, RetainsSourceOnRequestAndNavigates)
+  {
+    /* Arrange */
+    std::string text = "{name: 'heap'}";
+    parse_options retain{};
+    retain.source_text = source_retention_policy::retain_copy;
+    char name[8]{};
+    /* Act */
+    const auto retained = hosted::parse({text.data(), text.size()}, retain);
+    const auto discarded = hosted::parse({text.data(), text.size()});
+    const std::string original = text;
+    text.assign(text.size(), '#');
+    /* Expect */
+    ASSERT_TRUE(retained.has_value());
+    ASSERT_TRUE(discarded.has_value());
+    const retained_source& copy = retained.value_if()->source();
+    ASSERT_TRUE(copy.is_retained());
+    EXPECT_EQ(std::string(copy.text().data, copy.text().size), original);
+    EXPECT_FALSE(discarded.value_if()->source().is_retained());
+    const auto value = retained.value_if()->root().member("name").as_string(name, sizeof(name));
+    ASSERT_TRUE(value.has_value());
+    EXPECT_EQ(*value.value_if(), "heap");
+  }
+  /* ================================= End Test_J5_041 ================================= */
 } // namespace

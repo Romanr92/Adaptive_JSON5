@@ -48,17 +48,18 @@ parses in a single call. Build it with `-DADAPTIVE_JSON5_BUILD_HOSTED=ON` and li
 ```cpp
 #include "adaptive_json5/hosted/parse.hpp"
 
-const auto parsed = adaptive_json5::parse({text, text_size});   // default options
+const auto parsed = adaptive_json5::hosted::parse({text, text_size});   // default options
 if (parsed.has_value())
 {
-  const adaptive_json5::document& values = parsed.value_if()->values();
+  const adaptive_json5::json5_value root = parsed.value_if()->root();
 }
 ```
 
-- `parse(input, options = {})` parses exactly like `parse_document`: same limits,
-  errors and warnings.
-- The returned `hosted_document` owns its storage, so nothing else has to stay alive.
-  It can be moved; `current_bytes()` and `peak_bytes()` report its memory.
+- `hosted::parse(input, options = {})` parses exactly like `parse_document`: same
+  limits, errors and warnings.
+- It returns the same `json5_document` as the caller-buffer path, owning its heap
+  storage, so nothing else has to stay alive. It can be moved; `current_bytes()` and
+  `peak_bytes()` report its memory.
 - Memory comes from `::operator new(std::nothrow)`, still bounded by
   `max_owned_bytes`. A small control block per call is not counted against it.
 - This component uses the global heap, so it is never part of the embedded parser
