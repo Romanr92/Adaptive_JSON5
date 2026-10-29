@@ -1,0 +1,5 @@
+// Input of handle_error.cpp: intentionally invalid, do not correct it.
+{
+  // The second element is missing, so the parser rejects the comma on the next line.
+  values: [1,,2],
+}

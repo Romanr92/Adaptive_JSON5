@@ -1,0 +1,1 @@
+examples/data/parse_file.json5: valid, 0 warning(s), <N> bytes used

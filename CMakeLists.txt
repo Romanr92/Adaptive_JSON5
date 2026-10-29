@@ -107,6 +107,7 @@ if(ADAPTIVE_JSON5_BUILD_EXECUTABLE)
             "The example executable is host-only; disable "
             "ADAPTIVE_JSON5_BUILD_EXECUTABLE for embedded builds")
     endif()
+    enable_testing()
     add_subdirectory(examples)
 endif()
 

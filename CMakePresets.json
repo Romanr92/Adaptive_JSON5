@@ -194,6 +194,17 @@
   ],
   "testPresets": [
     {
+      "name": "debug-example",
+      "configurePreset": "debug-example",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
       "name": "debug-unit-tests",
       "configurePreset": "debug-unit-tests",
       "configuration": "Debug",

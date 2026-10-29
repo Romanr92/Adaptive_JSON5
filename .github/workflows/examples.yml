@@ -1,0 +1,31 @@
+name: examples
+
+on:
+  pull_request:
+
+concurrency:
+  group: examples-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  examples:
+    name: examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Configure
+        run: cmake --preset debug-example
+      # Named targets make this job fail if a program is missing, not silently skip it.
+      - name: Build example programs
+        run: >-
+          cmake --build --preset debug-example --parallel --target
+          adaptive_json5_example_parse_file
+          adaptive_json5_example_read_value
+          adaptive_json5_example_handle_error
+      - name: Run example programs and check their output
+        run: ctest --preset debug-example

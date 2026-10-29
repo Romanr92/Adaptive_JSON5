@@ -1,0 +1,8 @@
+// Input of read_value.cpp: one value of each type the program reads.
+{
+  name: 'sensor',
+  port: 8080,
+  ratio: 0.5,
+  enabled: true,
+  ranges: [10, 20,],
+}

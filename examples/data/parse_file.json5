@@ -1,0 +1,8 @@
+// Input of parse_file.cpp: a small document using JSON5 features.
+{
+  title: 'Parse a file',
+  description: "Comments, unquoted names and both quote styles are allowed.",
+  version: 1,
+  hex_mask: 0xFF,
+  tags: ['json5', 'example',],
+}
