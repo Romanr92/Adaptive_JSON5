@@ -1,6 +1,9 @@
 # ADR 0004: Simple API, umbrella header and memory switch
 
-Status: Accepted by the user, 2026-10-28. Not yet implemented; tracked in #93.
+Status: Accepted by the user, 2026-10-28. Implemented in #93, 2026-10-29: all eight
+steps below. Evidence on the #93 branch: 2514 unit tests passed with exceptions OFF and
+ON (RTTI OFF), 921 validation tests passed in both modes, and the repository-wide
+clang-format 18 check passed. Pull-request CI results are recorded on the pull request.
 
 ## Context
 

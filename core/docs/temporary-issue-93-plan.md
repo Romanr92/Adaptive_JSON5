@@ -20,7 +20,7 @@ Branch: `93-umbrella-header-adaptive_json5adaptive_json5hpp`.
 | 5 | `describe` error/warning text, warning access + units | done; 5 units added to `tests/api/json5_document_tests.cpp`; full suite 2509/2509 OFF and ON; clang-format passed |
 | 6 | `hosted::parse` returns `json5_document`; remove `hosted_document`; restate #94 units and guide section | done; shared construction through private `detail::json5_document_access`; hosted target gets `core/includes` privately; `json5_document::source()` added; 10 units in `tests/api/hosted_parse_tests.cpp`; full suite 2510/2510 OFF and ON; clang-format passed |
 | 7 | Umbrella `adaptive_json5.hpp` (all public headers except `hosted/`) + compile unit + coverage unit | done; 4 units in `tests/api/umbrella_header_tests.cpp` and `umbrella_coverage_tests.cpp`; standalone header units now also cover the #93 headers and the umbrella; full suite 2514/2514 OFF and ON; clang-format passed |
-| 8 | README: default include, one short example, memory-switch tutorial; user guide; traceability; ADR 0004 status to implemented | not started |
+| 8 | README: default include, one short example, memory-switch tutorial; user guide; traceability; ADR 0004 status to implemented | done; README quick start compiled and run outside the repo (exceptions/RTTI OFF); user guide section in `docs/memory-and-limits.md`; ADR 0004 implemented with evidence: units 2514/2514 OFF and ON, validation 921/921 OFF and ON, clang-format passed |
 
 ## Developer effort
 
