@@ -119,8 +119,9 @@ namespace adaptive_json5
        * @par Requirements
        * J5-017; J5-041.
        * @return The warning count; zero after this document was moved from.
-       * @note Warnings are raw U+2028/U+2029 in strings (JSON5 specification section 5.2);
-       * they never make a valid document fail.
+       * @note Warnings are raw U+2028/U+2029 in JSON5 strings (JSON5 specification
+       * section 5.2) and Unicode escapes that decode to an unpaired surrogate, in either syntax
+       * mode; they never make a valid document fail.
        */
       [[nodiscard]] std::size_t warning_count() const noexcept;
 
