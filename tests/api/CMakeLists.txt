@@ -57,15 +57,20 @@ adaptive_json5_add_unit(adaptive_json5_diagnostic_format_unit_tests
 
 # Compile every public header in its own test translation unit, without private paths.
 set(adaptive_json5_public_headers
+    adaptive_json5.hpp
     diagnostic_format.hpp
     error.hpp
     input.hpp
+    json5_document.hpp
+    json5_value.hpp
     options.hpp
     parser.hpp
     result.hpp
     syntax_error_reason.hpp
     text_position.hpp
     memory/accounted_storage.hpp
+    memory/buffer_arena.hpp
+    memory/document_storage_owner.hpp
     memory/owned_block.hpp
     memory/resource_limits.hpp
     memory/storage.hpp
@@ -107,3 +112,10 @@ adaptive_json5_add_unit(adaptive_json5_json5_document_unit_tests json5_document_
 
 adaptive_json5_add_unit(adaptive_json5_json5_value_unit_tests json5_value_units
     json5_value_tests.cpp)
+
+# One translation unit includes only the umbrella header; the coverage scan reads includes/.
+adaptive_json5_add_unit(adaptive_json5_umbrella_header_unit_tests umbrella_header_units
+    umbrella_header_tests.cpp
+    umbrella_coverage_tests.cpp)
+target_compile_definitions(adaptive_json5_umbrella_header_unit_tests PRIVATE
+    "ADAPTIVE_JSON5_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")

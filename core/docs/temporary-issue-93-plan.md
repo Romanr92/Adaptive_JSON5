@@ -19,7 +19,7 @@ Branch: `93-umbrella-header-adaptive_json5adaptive_json5hpp`.
 | 4 | `json5_value`: navigation, UTF-8 member lookup (private, non-allocating), scalar reads + units | done; 10 units in `tests/api/json5_value_tests.cpp`; full suite 2504/2504 OFF and ON; clang-format passed |
 | 5 | `describe` error/warning text, warning access + units | done; 5 units added to `tests/api/json5_document_tests.cpp`; full suite 2509/2509 OFF and ON; clang-format passed |
 | 6 | `hosted::parse` returns `json5_document`; remove `hosted_document`; restate #94 units and guide section | done; shared construction through private `detail::json5_document_access`; hosted target gets `core/includes` privately; `json5_document::source()` added; 10 units in `tests/api/hosted_parse_tests.cpp`; full suite 2510/2510 OFF and ON; clang-format passed |
-| 7 | Umbrella `adaptive_json5.hpp` (all public headers except `hosted/`) + compile unit + coverage unit | not started |
+| 7 | Umbrella `adaptive_json5.hpp` (all public headers except `hosted/`) + compile unit + coverage unit | done; 4 units in `tests/api/umbrella_header_tests.cpp` and `umbrella_coverage_tests.cpp`; standalone header units now also cover the #93 headers and the umbrella; full suite 2514/2514 OFF and ON; clang-format passed |
 | 8 | README: default include, one short example, memory-switch tutorial; user guide; traceability; ADR 0004 status to implemented | not started |
 
 ## Developer effort
@@ -36,10 +36,10 @@ documentation and test runs are not included.
 | 4 | `json5_value`: navigation, kind checks, scalar reads; private UTF-8 member-name comparison without allocation | 5 | Done |
 | 5 | Error and warning text (`describe`), warning count and access | 2 | Done |
 | 6 | `hosted::parse` returning `json5_document`; remove `hosted_document`; CMake unchanged | 2 | Done |
-| 7 | Umbrella header `adaptive_json5.hpp` | 0.5 | Not done |
+| 7 | Umbrella header `adaptive_json5.hpp` | 0.5 | Done |
 | 8 | Review README tutorial, user guide and ADR 0004 status | 1 | Not done |
 | 9 | Replace #93's issue description; final CI check and merge | 0.5 | Not done |
-| | **Total** | **18.5** | **16.5 estimated hours of tasks done** |
+| | **Total** | **18.5** | **17 estimated hours of tasks done** |
 
 ## Details to remember
 
