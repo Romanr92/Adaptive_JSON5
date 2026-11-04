@@ -19,6 +19,12 @@ and conformance. Checked numeric operations (P038), expanded diagnostics
 are in [conformance](../../docs/conformance.md). Some diagrams below predate those steps
 and are retained as historical architecture sketches.
 
+The simple API ([ADR 0004](../../docs/adr/0004-simple-api-and-umbrella-header.md)) sits above
+`parse_document()`: `json5_document` owns a parsed document and its storage, and
+`json5_value` navigates it. `buffer_arena` supplies memory from a caller buffer. The optional
+`AdaptiveJSON5::hosted` library adds `hosted::parse`, which returns the same `json5_document`
+with heap storage. The parser target itself never uses the global heap.
+
 The active [requirements](../../docs/requirements.md), [traceability](../../docs/traceability.md),
 [implementation sequence](requirements-json5-implementation-order.md),
 [scope ADR](../../docs/adr/0001-project-scope.md) and [embedded boundary](../../docs/embedded.md)
@@ -238,13 +244,13 @@ explicit caller integration, not automatic enforcement by every accessor.
 ```mermaid
 classDiagram
     class CompleteDocumentEntry {
-        <<planned role P037>>
+        <<implemented P037>>
     }
     class parser_engine {
         <<internal P033>>
     }
     class DuplicatePolicy {
-        <<planned role P036>>
+        <<implemented P036>>
     }
     class parse_options
     class input_view
@@ -521,7 +527,8 @@ The defaults are conservative, chosen for untrusted input; valid documents
 beyond them fail with `resource_limit` until the caller raises the limits. Every
 file in the small pinned JSON and JSON5 corpora parses with them, including 500
 nested arrays and a 131-digit exponent. Final defaults and per-value memory cost
-(about 400-550 owned bytes per value) are tracked by
+(about 208 owned bytes per value on a 64-bit host, plus number spelling and decoded
+string or name storage, and about 112 bytes per open nesting level while parsing; measured with GCC at `a7f98f2`) are tracked by
 [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69).
 
 Parser work charges grow linearly with the input and the number of values:
@@ -737,7 +744,9 @@ It is a variant, not a polymorphic base class: there is no virtual value hierarc
 
 `document_links.hpp` implements the internal `attach_child()` operation. It
 checks detached-child and container invariants, prevents cycles, updates the
-ordered sibling chain and moves an object name only after validation. Lookup
+ordered sibling chain and moves an object name only after validation. The parser
+uses `attach_to_detached_parent()` instead, which requires a detached parent and so
+needs no ancestor walk ([ADR 0003](adr-0003-storage-and-budget-decisions.md), decision 6). Lookup
 uses direct-child iteration plus exact decoded-name comparison; it never
 silently selects the first or last duplicate.
 
@@ -748,7 +757,9 @@ to children through indices; it does not recursively own child objects. Thus
 destroying a deeply nested document destroys records iteratively. Destroying a
 record releases its own string/number/name allocations without walking children.
 
-Appending may relocate record objects. Keep `value_index` across growth, then
+The parser reserves its records exactly and never relocates them
+([ADR 0003](adr-0003-storage-and-budget-decisions.md), decision 7). Documents built by hand can
+still grow, so appending may relocate record objects. Keep `value_index` across growth, then
 reacquire pointers. A `value_view` resolves its index on each access while its
 storage owner remains in place; pointers returned by accessors are invalidated
 by storage growth. Moving/destroying the document invalidates existing views

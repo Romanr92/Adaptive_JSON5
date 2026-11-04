@@ -145,11 +145,18 @@ Embedded builds use a caller-owned CMake toolchain file and
 See [embedded requirements](../../docs/embedded.md). Embedded compiler/runtime and device-specific execution remain unverified until
 the consuming project supplies them. No particular SDK or vendor port is mandated.
 
-GitHub Actions runs one host GoogleTest job on Ubuntu with exceptions OFF and
-RTTI OFF, plus one formatting job, only for pull requests. Updating a pull request
-cancels its older in-progress runs.
-Both unit-tests and formatting are required by the prepared
-main branch ruleset (`.github/rulesets/main.json`) once imported and activated in repository settings.
+GitHub Actions runs these jobs only for pull requests; updating a pull request cancels
+its older in-progress runs:
+
+- `unit-tests`: host GoogleTest on Ubuntu, exceptions OFF and ON, RTTI OFF.
+- `GCC units`: the same units with GCC on Linux aarch64 and Windows MinGW.
+- Validation tests over the pinned fixtures, exceptions OFF and ON.
+- `formatting`: clang-format 18.1.8.
+- `examples`: builds the example programs and checks their output. It is non-blocking.
+
+`unit-tests`, `formatting` and both validation jobs are required by the prepared
+main branch ruleset (`.github/rulesets/main.json`) once imported and activated in
+repository settings.
 No integration, fuzz, sanitizer, benchmark, coverage or static-analysis gate is added.
 
 ## Component switches and bottom toolbar
@@ -159,7 +166,7 @@ Three independent component switches select what to prepare/build:
 | Switch | Default | Current scaffold behavior |
 | --- | --- | --- |
 | `ADAPTIVE_JSON5_BUILD_LIBRARY` | ON | Build/export/install the compiled core and public headers |
-| `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example data and future `examples/main.cpp` target; executable C++ pending |
+| `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example programs and data; the future command-line `examples/main.cpp` target is pending |
 | `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root, OFF as subproject | Fetch/build/run host GoogleTest units |
 | `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` | OFF | Build/run the conformance validation tests in `tests/validation` |
 
