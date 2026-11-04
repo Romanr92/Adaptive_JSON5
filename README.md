@@ -204,8 +204,9 @@ so its final total counts cases. Suite labels such as `result_units` select grou
 Exceptions and RTTI default OFF; the second preset enables exceptions. Run
 Windows commands in a Visual Studio developer terminal when using its compiler.
 See [native development](core/docs/design-development.md) for offline GoogleTest, formatting
-and toolchain configuration. Automated checks are **GoogleTest unit tests and
-clang-format 18 only**. GoogleTest is host-only and never a parser runtime dependency.
+and toolchain configuration. Automated checks are **GoogleTest unit tests, validation
+tests and clang-format 18**, plus a non-blocking CI job that builds the example programs
+and checks their output. GoogleTest is host-only and never a parser runtime dependency.
 
 ## CMake consumption
 
