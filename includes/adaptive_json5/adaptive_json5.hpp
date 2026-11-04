@@ -15,6 +15,7 @@
  * Includes no private header and adds no declarations of its own.
  */
 
+// IWYU pragma: begin_exports
 #include "adaptive_json5/diagnostic_format.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
@@ -51,5 +52,6 @@
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
+// IWYU pragma: end_exports
 
 #endif /* ADAPTIVE_JSON5_HPP_ */

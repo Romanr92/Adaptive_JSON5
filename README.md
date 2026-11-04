@@ -242,10 +242,12 @@ behavior units stay under top-level `tests/`. This is the direction for new work
 the former `include/` layout has been migrated. Internal declarations are not
 installed, and public headers compile without the private include root.
 
-The [examples folder](examples/README.md) contains JSON/JSON5 inputs, intentional
-failures, an optional schema and a planned requirement demonstration manifest.
-Enable `ADAPTIVE_JSON5_BUILD_EXECUTABLE` to expose its data target in CMake.
-The command-line executable will be implemented later; no production C++ is added.
+The [examples folder](examples/README.md) contains small programs that
+[parse a file](examples/parse_file.cpp), [read a value](examples/read_value.cpp) and
+[handle an error](examples/handle_error.cpp). It also holds JSON/JSON5 inputs,
+intentional failures, an optional schema and a planned requirement demonstration
+manifest. Enable `ADAPTIVE_JSON5_BUILD_EXECUTABLE`, or use the `debug-example` preset,
+to build the programs. The command-line executable will be implemented later.
 
 - [Original proposal Markdown](core/docs/requirements-proposal-json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
 - [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.

@@ -1,0 +1,2 @@
+rejected: line: 4, column: 14: unexpected comma
+fix the input; parsing it again gives the same error
