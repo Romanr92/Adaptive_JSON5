@@ -41,49 +41,133 @@ boundary. AdaptivePi is inspiration and an optional consumer example.
 
 ## Quick start
 
-Include one header, link one library and parse into memory you provide:
+This goes from nothing to a first parsed value. You need CMake 3.25+, Git, a C++17
+compiler and network access for the download. Create an empty folder with these two
+files.
+
+`CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.25)
+project(hello LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(FetchContent)
+set(ADAPTIVE_JSON5_BUILD_HOSTED ON CACHE BOOL "" FORCE)
+FetchContent_Declare(AdaptiveJSON5
+    GIT_REPOSITORY https://github.com/Romanr92/Adaptive_JSON5.git
+    GIT_TAG 4d855d2571e2d6b7ff09cf0733ceaee4929cd5a5)
+FetchContent_MakeAvailable(AdaptiveJSON5)
+
+add_executable(hello main.cpp)
+target_link_libraries(hello PRIVATE AdaptiveJSON5::hosted)
+```
+
+`main.cpp`:
 
 ```cpp
 #include "adaptive_json5/adaptive_json5.hpp"
+#include "adaptive_json5/hosted/parse.hpp"
 
 #include <cstdio>
+#include <string_view>
 
-static unsigned char memory[16384];   // the parsed document lives here; no heap is used
-
-void read_config(const char* text, std::size_t size)
+int main()
 {
-  const auto parsed = adaptive_json5::json5_document::parse({text, size}, memory, sizeof(memory));
+  constexpr std::string_view text = "{ name: 'sensor', port: 8080, }"; // JSON5: unquoted names, trailing comma
+
+  const auto parsed = adaptive_json5::hosted::parse({text.data(), text.size()});
   if (!parsed.has_value())
   {
     char message[128];
-    const auto described = adaptive_json5::describe(*parsed.error_if(), {text, size}, message);
-    std::puts(described.has_value() ? message : "invalid input");   // "line: 1, column: 5: ..."
-    return;
+    const auto described = adaptive_json5::describe(*parsed.error_if(), {text.data(), text.size()}, message);
+    std::puts(described.has_value() ? message : "invalid input");
+    return 1;
   }
 
   const auto port = parsed.value_if()->root().member("port").as_int64();
-  if (port.has_value())
+  if (!port.has_value())
   {
-    std::printf("port %lld\n", static_cast<long long>(*port.value_if()));
+    std::puts("port is missing or is not an integer");
+    return 1;
   }
+
+  std::printf("port: %lld\n", static_cast<long long>(*port.value_if()));
+  return 0;
 }
 ```
 
-```cmake
-target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
+Build and run it from that folder:
+
+```sh
+cmake -S . -B build
+cmake --build build
+./build/hello
 ```
+
+It prints `port: 8080`. If CMake cannot find a compiler or build tool on Windows, add
+`-G Ninja` to the first command (for example with MinGW GCC and Ninja installed).
+
+`GIT_TAG` pins a commit because no release tag contains this API yet; `0.1.0` predates
+it. Use a release tag once one includes it.
 
 - Every call returns a `result`: check `has_value()` before `value_if()`. Errors are
   values, never exceptions.
 - `member()` and `at()` can be chained; a missing member or a wrong type is reported
   by the final read.
-- `memory` must stay alive, and must not be used for anything else, while the
-  document exists.
+
+### Without the heap
+
+For embedded targets, parse into memory you provide. The reading code stays the same:
+
+1. In `CMakeLists.txt`, remove the `ADAPTIVE_JSON5_BUILD_HOSTED` line and link
+   `AdaptiveJSON5::parser` instead of `AdaptiveJSON5::hosted`.
+2. In `main.cpp`, remove the `hosted/parse.hpp` include and add this above `main`:
+
+   ```cpp
+   static unsigned char memory[16384]; // the document lives here; no heap is used
+   ```
+
+3. Replace the parse call with:
+
+   ```cpp
+   const auto parsed = adaptive_json5::json5_document::parse({text.data(), text.size()}, memory, sizeof(memory));
+   ```
+
+`memory` must stay alive, and must not be used for anything else, while the document
+exists.
+
+### Using an installed library
+
+To build against an installed copy instead of downloading during configure, install it
+once:
+
+```sh
+git clone https://github.com/Romanr92/Adaptive_JSON5.git
+cmake -S Adaptive_JSON5 -B lib-build -DCMAKE_BUILD_TYPE=Release -DADAPTIVE_JSON5_BUILD_TESTS=OFF -DADAPTIVE_JSON5_BUILD_HOSTED=ON
+cmake --build lib-build
+cmake --install lib-build --prefix install
+```
+
+In `CMakeLists.txt`, replace the `include(FetchContent)` block, through
+`FetchContent_MakeAvailable`, with:
+
+```cmake
+find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)
+```
+
+Then configure with the absolute path of that `install` folder:
+
+```sh
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/absolute/path/to/install
+```
 
 The [user guide](docs/memory-and-limits.md#simple-api-json5_document-current-behavior)
-covers buffer sizing, warnings, limits and the advanced API. On desktop or server
-systems the heap can replace the buffer; see the
-[memory switch](#memory-switch-adaptive_json5_build_hosted).
+covers buffer sizing, warnings, limits and the advanced API. The
+[memory switch](#memory-switch-adaptive_json5_build_hosted) explains the heap option, and
+the [example programs](examples/README.md) show reading files, typed values and errors.
 
 ## Start development
 
@@ -120,8 +204,9 @@ so its final total counts cases. Suite labels such as `result_units` select grou
 Exceptions and RTTI default OFF; the second preset enables exceptions. Run
 Windows commands in a Visual Studio developer terminal when using its compiler.
 See [native development](core/docs/design-development.md) for offline GoogleTest, formatting
-and toolchain configuration. Automated checks are **GoogleTest unit tests and
-clang-format 18 only**. GoogleTest is host-only and never a parser runtime dependency.
+and toolchain configuration. Automated checks are **GoogleTest unit tests, validation
+tests and clang-format 18**, plus a non-blocking CI job that builds the example programs
+and checks their output. GoogleTest is host-only and never a parser runtime dependency.
 
 ## CMake consumption
 
