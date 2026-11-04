@@ -8,6 +8,43 @@ is full JSON5 1.0.0 parsing within the documented encoding, policies and limits.
 Requirement rows remain
 Draft; this review does not verify optional components or promote shared rows.
 
+**Status for the coming 0.2.0 release (issue #72):** that review and the results below
+predate ADR 0003 (storage and budgets) and ADR 0004 (simple API). The parser has
+changed since, so they are historical until new results are recorded for the release
+commit. See [release scope](#release-scope).
+
+## Release scope
+
+The coming `0.2.0` is a core-parser release. The published `0.1.0` tag predates the
+simple API and this review.
+
+| Shipped | Not shipped |
+| --- | --- |
+| JSON5 1.0.0 and strict JSON parsing, owned values, exact numeric conversion and comparison, warnings and diagnostics | Draft-07 schema validation |
+| `parse_document`, `json5_document` / `json5_value`, the umbrella header | The command-line tool |
+| Caller storage (`buffer_arena`, storage callbacks) and the optional `AdaptiveJSON5::hosted` library | The VS Code extension and the optional consumer example |
+| Example programs (not installed) | |
+
+**Known limits of this release:**
+
+- Full cross-component memory accounting (#69) is planned for M4. Parser, number and
+  diagnostic budgets exist and are tested, but #69's whole contract, including schema and
+  CLI, is not complete, and its final defaults and per-value memory cost may change.
+- Requirement rows remain Draft.
+- No embedded device has run this code: host units do not establish device execution,
+  universal compiler support or certification.
+
+## Toolchains
+
+| Toolchain | Status | Evidence |
+| --- | --- | --- |
+| GCC on Linux x86-64 and Linux aarch64, exceptions OFF and ON, RTTI OFF | Required by J5-099 | GCC 13.3.0 at `66a425a` (see [executed results](#executed-results)); to be re-recorded for the release commit |
+| MinGW-w64 GCC on Windows, exceptions OFF and ON, RTTI OFF | Required by J5-099 | GCC 16.2.0 in CI at `66a425a`; local development also uses GCC 15.2.0. The CI version floats with MSYS2, so each result records its own |
+| clang-format 18.1.8, CMake 3.25+ | Required | Local development uses CMake 4.0.1 |
+| MSVC, Clang, macOS | Unexecuted, unsupported | None; macOS release packages are out of scope |
+| RTTI ON | Unexecuted | None |
+| AdaptivePi Yocto SDK and other cross toolchains | Packaging build only | `release-library.yml`; no tests are run on a target |
+
 ## Versions
 
 | Item | Version |
@@ -51,8 +88,9 @@ The defaults are conservative, chosen for untrusted input: for example 16 KiB of
 input, 1024 values, 1024 members and 4096 UTF-16 units per string. Valid
 documents beyond them fail until the caller raises the limits. Accepted pinned
 fixtures fit within the defaults, including 500 nested arrays and
-a 131-digit exponent. The final defaults and per-value memory cost (about
-400-550 owned bytes per value) are tracked by
+a 131-digit exponent. The final defaults and per-value memory cost
+(about 208 owned bytes per value on a 64-bit host, plus number spelling and decoded
+string or name storage, and about 112 bytes per open nesting level while parsing; measured with GCC at `a7f98f2`) are tracked by
 [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69). Parser work grows
 linearly with the input and the number of values, except duplicate rejection,
 which is quadratic in the members of one object.
@@ -139,6 +177,23 @@ Schema, editor and manifest rows are outside P041.
 
 ## Contract reviews
 
+### Review for 0.2.0 (in progress, 2026-11-05)
+
+Documentation and test-inventory review against commit `a7f98f2`. "Reviewed" means the
+documents and named units were compared; it does not replace the release-commit results.
+
+| Contract | Result |
+| --- | --- |
+| J5-008 public contracts | Reviewed. The simple API's lifetimes and limits are in `json5_document.hpp`, `json5_value.hpp`, `buffer_arena.hpp` and the [user guide](memory-and-limits.md); every public function of those headers is called by a unit in `tests/`. |
+| J5-002 build components | No unit maps to this row; it is a build contract. The `library` presets configure the library without tests, and the hosted library is opt-in. |
+| J5-007 license and provenance | No unit maps to this row; it is a documentation contract. No third-party material was added since the review below. |
+| J5-091 native portability | Unit results for the release commit are pending; see [toolchains](#toolchains). |
+| J5-093 versioned consumption | Pending the release: `0.2.0` must be tagged and its packages built. The README quick start currently pins a commit. |
+| J5-099 build matrix | Pending results for the release commit, in the four required configurations. Validation tests and the `examples` job go beyond what this row requires. |
+| J5-100 release completeness | Pending the items above. Named units in `tests/` and `core/tests/` match `traceability.md` in both directions. |
+
+### Review for the JSON5 claim (historical)
+
 Parser-scoped technical review at `803dca3` plus the P041 follow-up, 2026-10-25.
 This reviews the documented API/source boundaries, production-to-unit matrix and
 executed evidence; it is not a line-by-line proof or MISRA/CERT certification.
@@ -201,6 +256,5 @@ The J5-042 units passed in CI at `6e24e8b` ([unit-tests](https://github.com/Roma
 
 All required PR checks for `66a425ab2213f8239643101ec7c45fd405413e1b` completed
 successfully. These results cover the concurrent-context and project-outcome
-tests. PR #100 remains subject to developer review and merge; no merge was
-performed. This review's documentation-only corrections are not part of the
-tested commit. Requirement rows remain Draft.
+tests. This review's documentation-only corrections are not part of the
+tested commit. Requirement rows remain Draft. PR #100 has since been merged.

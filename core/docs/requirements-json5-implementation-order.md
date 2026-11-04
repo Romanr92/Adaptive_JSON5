@@ -53,8 +53,8 @@ build setup, documentation and unit tests, not production code; they must not
 patch production C++ to make tests pass.
 No separate per-issue documentation report is required. Keep essential public
 API, ownership, limits/accounting, provenance, deviations and usage contracts.
-Required PR checks are one exceptions-OFF/RTTI-OFF GoogleTest job and one
-formatting job; `main` requires pull requests with both checks passing.
+Required PR checks are the `unit-tests` job, both validation-test jobs and the
+formatting job; the `examples` job is non-blocking.
 
 GitHub anchors group consecutive steps, at most three active issues per
 subsystem. Each step's `Tracking:` line names its issue. Grouping does not make

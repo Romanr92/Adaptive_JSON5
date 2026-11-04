@@ -6,10 +6,8 @@ provide, what the limits mean, and what happens when a parse fails. Internal des
 reasons are in [ADR 0003](../core/docs/adr-0003-storage-and-budget-decisions.md)
 and [ADR 0004](adr/0004-simple-api-and-umbrella-header.md).
 
-Each section says whether it describes **current behavior** (implemented, and
-documented in the public headers) or a **planned change** (decided, not yet
-implemented). Don't rely on a planned change until a release says it is
-implemented.
+Everything here describes current behavior, implemented and documented in the
+public headers.
 
 ## Simple API: `json5_document` (current behavior)
 
