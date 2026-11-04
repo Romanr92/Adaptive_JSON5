@@ -154,9 +154,9 @@ its older in-progress runs:
 - `formatting`: clang-format 18.1.8.
 - `examples`: builds the example programs and checks their output. It is non-blocking.
 
-`unit-tests`, `formatting` and both validation jobs are required by the prepared
-main branch ruleset (`.github/rulesets/main.json`) once imported and activated in
-repository settings.
+`unit-tests`, `formatting` and both validation jobs are required by the branch protection
+on `main`, including for admins. `.github/rulesets/main.json` is an unimported copy of the
+same rules; branch protection is what enforces them.
 No integration, fuzz, sanitizer, benchmark, coverage or static-analysis gate is added.
 
 ## Component switches and bottom toolbar
