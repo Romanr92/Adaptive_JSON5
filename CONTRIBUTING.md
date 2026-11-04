@@ -24,7 +24,7 @@ For each implementation change:
 5. Submit a focused pull request using the template.
 
 The automated quality checks are unit tests, validation tests and formatting. CI also
-builds the example programs and checks their output. Do not add integration, end-to-end, sanitizer, fuzz, benchmark, static-analysis or coverage
+builds the example programs and checks their output, as a non-blocking job. Do not add integration, end-to-end, sanitizer, fuzz, benchmark, static-analysis or coverage
 gates without a later scope decision. Required fixture coverage belongs in unit
 tests, with pinned versions, licenses and expected behavior.
 

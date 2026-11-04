@@ -37,7 +37,9 @@ restriction, and never include `core/tests/` in production source lists.
   `tests/validation`, built only by `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` and run
   as a separate pull-request gate. Do not add
   integration, end-to-end, fuzz, sanitizer, benchmark, coverage or static-analysis
-  gates unless the user changes this scope.
+  gates unless the user changes this scope. As a user-approved exception, the
+  non-blocking `examples` workflow builds the programs in `examples/` and checks
+  their output; it is not a merge requirement.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
   must pass all host unit-test jobs, validation-test jobs and formatting before
   merging into main.
