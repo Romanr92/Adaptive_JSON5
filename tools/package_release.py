@@ -39,7 +39,7 @@ def release_version(tag):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--platform", choices=PROFILES, required=True)
-    parser.add_argument("--version", required=True, help="Exact release tag, e.g. 0.1.0, v0.1.0 or 0.1.0-rc.1")
+    parser.add_argument("--version", required=True, help="Exact release tag, e.g. 0.2.0, v0.2.0 or 0.2.0-rc.1")
     parser.add_argument("--source-dir", type=Path, help="Released source checkout; defaults to this tool's repository")
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=Path("dist"))

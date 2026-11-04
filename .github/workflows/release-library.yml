@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Exact release tag (0.1.0 or v0.1.0); must match the CMake project version'
+        description: 'Exact release tag (0.2.0 or v0.2.0); must match the CMake project version'
         required: true
-        default: v0.1.0
+        default: v0.2.0
       publish:
         description: 'Attach packages to this existing release (build its tagged source)'
         type: boolean

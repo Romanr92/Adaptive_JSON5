@@ -155,7 +155,7 @@ In `CMakeLists.txt`, replace the `include(FetchContent)` block, through
 `FetchContent_MakeAvailable`, with:
 
 ```cmake
-find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)
+find_package(AdaptiveJSON5 0.2 CONFIG REQUIRED)
 ```
 
 Then configure with the absolute path of that `install` folder:
@@ -305,7 +305,7 @@ even when the option is OFF; it is installed only when the option is ON.
 memory up front, and whenever no reliable heap exists. Turn it ON for desktop and
 server tools that prefer one call without managing a buffer.
 
-Use `find_package(AdaptiveJSON5 0.1 CONFIG REQUIRED)` with the installation prefix
+Use `find_package(AdaptiveJSON5 0.2 CONFIG REQUIRED)` with the installation prefix
 in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
 not a supported parser release.
 
