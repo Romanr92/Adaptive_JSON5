@@ -3,7 +3,7 @@
 Publishing a GitHub release runs `release-library.yml` for the released commit.
 Published prereleases are included; saving a draft does not publish packages.
 The numeric tag version must match `project(AdaptiveJSON5 VERSION ...)`, e.g.
-`0.1.0`, `v0.1.0`, `0.1.0-rc.1` or `v0.1.0-rc.1` for CMake version `0.1.0`.
+`0.2.0`, `v0.2.0`, `0.2.0-rc.1` or `v0.2.0-rc.1` for CMake version `0.2.0`.
 The optional `v` prefix is preserved in archive names and download URLs; use the
 exact tag when importing a package. Packaging does not establish
 parser conformance or ECU runtime verification.
@@ -61,7 +61,7 @@ rebuild from source.
 After extracting, set `CMAKE_PREFIX_PATH` to the package root and use:
 
 ```cmake
-find_package(AdaptiveJSON5 0.1.0 EXACT CONFIG REQUIRED COMPONENTS parser)
+find_package(AdaptiveJSON5 0.2.0 EXACT CONFIG REQUIRED COMPONENTS parser)
 target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
 ```
 
@@ -82,7 +82,7 @@ it does not edit AdaptivePi or implement manifest parsing. After the consumer's
 ```cmake
 include(cmake/ImportAdaptiveJSON5.cmake)
 adaptive_json5_import_release(
-    VERSION v0.1.0
+    VERSION 0.2.0
     SHA256 "<replace with the reviewed 64-digit archive SHA-256>"
 )
 target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
@@ -123,7 +123,7 @@ The helper never acquires GoogleTest or changes parent flags.
 Native example, with GCC, CMake 3.25+, Ninja and Python 3.9+:
 
 ```sh
-python3 tools/package_release.py --version v0.1.0 \
+python3 tools/package_release.py --version 0.2.0 \
   --platform linux-x86_64-gcc --compiler g++-13 --build-dir build/release-package
 ```
 
