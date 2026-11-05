@@ -8,6 +8,16 @@
 | Reviewer | Claude Code (AI agent) |
 | Status | **Complete** — all plan steps 0–9 done; [follow-up re-check](#follow-up--re-check-of-newer-branches-2026-11-06) on 2026-11-06 |
 | Re-checked refs | `origin/main` `903aedc` (= tag `0.2.0`), `72-release-packaging` `0b8957e`, `44-schema-1-…-p043p046` `f103fc2` |
+| Compared with | Independent ChatGPT review `full-repository-review-2026-11-06.md` (its baseline `1455359` is older than `0.2.0`); see [comparison](#comparison-with-the-independent-chatgpt-review-2026-11-06) |
+
+**Revision note (2026-11-06, comparison).** Compared with an independent ChatGPT review
+of the older baseline `1455359`. Every item in it was re-checked at `0.2.0`. Valid items
+missing here were copied in: LOG-11, ARC-09, DOC-18, DOC-19, REPO-15, a standards
+applicability table, BARR-C tailoring details, a CERT/MISRA edition note, a TARA row on
+configuration authenticity, five evidence rows and new questions and improvements. Items
+no longer valid at `0.2.0` were not copied; the
+[comparison](#comparison-with-the-independent-chatgpt-review-2026-11-06) lists each
+disposition. Totals are now 86 (5 High, 27 Medium, 40 Low, 14 Info).
 
 **Revision note (2026-11-06).** Re-checked the branches pushed after the review (see
 [follow-up](#follow-up--re-check-of-newer-branches-2026-11-06)). Tag `0.2.0` contains
@@ -40,13 +50,13 @@ tracker and writes its findings to the "Step N results" section with the same nu
 | --- | --- | --- | --- |
 | 0 | Method, severity scale and finding format | Done | [Step 0](#step-0--method) |
 | 1 | Preparation: source of truth, baseline build and test evidence | Done | [Baseline evidence](#step-1-results--baseline-evidence) |
-| 2 | Logic review of production code | Done | [LOG-01 … LOG-10](#step-2-results--logic-findings) |
+| 2 | Logic review of production code | Done | [LOG-01 … LOG-11](#step-2-results--logic-findings) |
 | 3 | Coding standards: MISRA C++:2023, AUTOSAR C++14, CERT C++, BARR-C:2018 and related automotive guidelines | Done | [STD-01 … STD-15](#step-3-results--coding-standards-findings-misra-autosar-cert-barr-c) |
 | 4 | ISO 26262 (functional safety) | Done | [FS-01 … FS-10](#step-4-results--iso-26262-findings) |
 | 5 | ISO/SAE 21434 (cybersecurity) | Done | [CS-01 … CS-07](#step-5-results--isosae-21434-findings) |
-| 6 | Architecture | Done | [ARC-01 … ARC-08](#step-6-results--architecture-findings) |
-| 7 | Documentation | Done | [DOC-01 … DOC-17](#step-7-results--documentation-findings) |
-| 8 | Full repository (build, CI, tests, tools, licensing, housekeeping) | Done | [REPO-01 … REPO-14](#step-8-results--full-repository-findings) |
+| 6 | Architecture | Done | [ARC-01 … ARC-09](#step-6-results--architecture-findings) |
+| 7 | Documentation | Done | [DOC-01 … DOC-19](#step-7-results--documentation-findings) |
+| 8 | Full repository (build, CI, tests, tools, licensing, housekeeping) | Done | [REPO-01 … REPO-15](#step-8-results--full-repository-findings) |
 | 9 | Consolidation, open questions and further improvements | Done | [Summary](#step-9-results--summary), [Questions](#step-9-results--questions-no-answer-needed-during-the-review), [Improvements](#step-9-results--further-improvements) |
 | F | Follow-up: re-check of branches pushed after the review | Done (2026-11-06) | [Follow-up](#follow-up--re-check-of-newer-branches-2026-11-06) |
 
@@ -221,6 +231,11 @@ Executed on 2026-11-05 in the review container against the baseline commit.
 | `validation-tests-exceptions` | ON | OFF | **921 / 921 passed** |
 | `python3 tools/format.py --check` | — | — | **Passed** for 257 C++ files |
 | Project warning flags (GCC/Clang) | — | — | Only `-Wparentheses -Werror` (see STD-01) |
+| Each of the 38 public headers compiled alone (`-fsyntax-only`, C++17, public include root only, `-Wall -Wextra`) | OFF | OFF | **38 / 38 passed** (added 2026-11-06) |
+| `python3 -m unittest discover -s tools/tests` | — | — | **4 / 4 passed** (added 2026-11-06) |
+| Offline `tools/generate_unicode_tables.py` regeneration | — | — | **Byte-identical** to `core/includes/unicode/unicode_tables.hpp` (SHA-256 `2d7a18ca…f3ae1`) (added 2026-11-06) |
+| `library` preset: Release build and install, tests OFF | OFF | OFF | Succeeded; installed CMake exports and headers reference neither GoogleTest nor the private include tree; `hosted/` header not installed by default (added 2026-11-06) |
+| `tools/package_release.py --platform linux-x86_64-gcc --version 0.2.0` on tag `0.2.0` | OFF | OFF | **Fails** with "Installed public-header inventory differs from supported headers" (REPO-06); succeeds with the script from `72-release-packaging` (added 2026-11-06) |
 
 The skipped locale case is counted as "passed" by CTest's summary line; it is not
 an executed locale comparison (the repository's own conformance page already says
@@ -268,6 +283,7 @@ to the repository.
 | LOG-08 | Low | `core/src/memory/owned_block.cpp:126-134` | A non-power-of-two or zero alignment is reported as `resource_limit`. It is an invalid argument, not an exhausted limit. | Documented in the header, but inconsistent with the error-code table in `docs/memory-and-limits.md` (`wrong_type_or_access` = invalid argument). | Report `wrong_type_or_access` for invalid alignment. |
 | LOG-09 | Info | `core/src/lexer/whitespace.cpp`; `core/src/lexer/identifier/identifier_lexer.cpp` | Each whitespace character is UTF-8 decoded twice (line-terminator check, then classification); each string and identifier is walked three to four times (count-pass measure, build-pass measure, build-pass decode, optional warning notification). All walks are charged to the work budget, so this is bounded, but it is the dominant CPU cost on small targets. | Performance only; no correctness impact. | Consider a single-decode whitespace loop and reusing the count-pass measure in the build pass (see Further improvements). |
 | LOG-10 | Info | `docs/conformance.md:135` | JSON5 whitespace accepts the union of Unicode 17.0 `Zs` and Unicode 3.0 `Zs` (e.g. U+200B, which is `Cf` today). This is a documented, deliberate choice. | Interoperability: documents accepted here may be rejected by parsers using only current Unicode data. | Keep documented; consider exposing it in the support statement's deviations table rather than only in the choices table. |
+| LOG-11 | Medium | `core/src/value/json5_value.cpp:176-178` (`member()`); `core/src/value/value_view.cpp:291-307` (`element_at`/`member_at`); `core/src/value/member_lookup.cpp:35`; `decoded_name_equal.cpp`; `utf8_export.cpp` | *Added 2026-11-06 from the comparison (ChatGPT G07, sharpened).* `json5_value::member()` loops over `member_at(position)`, and each `member_at` walks the sibling list from the first member, so one lookup costs O(n²) record steps for an object with n members; it always scans every member to detect duplicates. `at(i)` costs O(i). No post-parse operation (lookup, name comparison, UTF-8 export) takes a work budget or cancellation context (`member_lookup.cpp:35`: "P031 adds configurable work accounting"), so the parse-time work budget does not bound later reads. | *Probe:* object with 1024 members (the default `max_members`), library built `-O2`: about **2.5 ms per `member()` call** on an x86-64 host, whichever key is requested (about 27 ms with the Debug library). A configuration within default limits can therefore make every lookup expensive on small targets. | Walk the sibling chain once in `member()` (carry the current `value_view` instead of calling `member_at(position)`), making lookup O(n); document per-operation costs; decide whether post-parse operations need their own work budget. |
 
 ## Step 3 results — Coding standards findings (MISRA, AUTOSAR, CERT, BARR-C)
 
@@ -277,6 +293,30 @@ checked against the authoritative text. The licensed MISRA and AUTOSAR texts wer
 available to the reviewer, so every rule number below is a **candidate mapping to be
 confirmed** against the licensed text before it is recorded as a deviation. No
 compliance claim is made or implied.
+
+Record the exact edition and any published technical corrigenda of MISRA C++:2023, and the
+CERT C++ errata, used for an assessment, so that it can be reproduced (added from the
+comparison).
+
+**Applicability of automotive standards** (added from the comparison). "All automotive
+standards" is not a finite checklist without a product, customer contract, target and
+safety role. For this generic library:
+
+| Standard / framework | Applicability to this repository | Where covered |
+| --- | --- | --- |
+| MISRA C++:2023 (C++17) | Primary coding baseline selected by the project | This step |
+| SEI CERT C++ (2016 + errata) | Selected by the project as secondary baseline | This step (CERT paragraph) |
+| AUTOSAR C++14 | Targets C++14; supplementary only, unless a customer contract requires a separate assessment | STD-13 |
+| BARR-C:2018 | C99 standard; usable by analogy only after explicit tailoring | BARR-C paragraphs below |
+| HIS source-code metrics | Common OEM/supplier metric set; used for complexity evidence | STD-07 |
+| ISO 26262:2018 | Applies only for safety-related use; reviewed as a gap analysis | Step 4 |
+| ISO/SAE 21434:2021 | Applies to cybersecurity engineering of the consuming item; reviewed as a gap analysis | Step 5 |
+| Automotive SPICE | Process capability model; cannot be rated from a repository snapshot; the contractual model version must be chosen first | Not assessed |
+| UN R155 / R156, ISO 24089 | Vehicle cybersecurity and software-update management; relevant only when the library is integrated into a vehicle product; no update management is supplied here | Not applicable to the library alone |
+| ISO 21448 (SOTIF) | Concerns intended driving functionality; applies to an integrating function, not to a generic parser | Not applicable |
+| IATF 16949 / ISO 9001 | Organizational quality management; no conclusion possible from source review | Not assessed |
+| IEEE 1003.13 PSE51/PSE52 | Conditional platform profile already acknowledged in the coding-style guide; the core stays OS-agnostic | Not assessed |
+| AUTOSAR APIs/manifests, hardware/EMC/network standards | Apply only to selected adapters or products; the core is not an `ara::*` runtime or manifest validator | Not applicable |
 
 **Evidence gathered for this step** (review-only, nothing added to CI):
 
@@ -305,7 +345,7 @@ snake_case); full Doxygen headers with requirement trace tags.
 | STD-06 | Info | Whole production code (211 / 383 functions); `core/docs/design-coding-style.md` | Early returns on failure (`if (!x.has_value()) return failure(...)`) are the dominant style. The owner confirmed (2026-11-05) that the project follows **MISRA with a fail-fast principle**, so this is intentional. MISRA C++:2023 and AUTOSAR C++14 contain no single-exit rule, so it is **not a MISRA deviation**. Residual gap: the fail-fast principle is not written in the coding-style guide (a repository-wide search finds no mention). | Conforms to MISRA C++:2023. It departs only from the *older/stricter* single-exit rules — MISRA C++:2008 6-6-5, JSF AV 113, BARR-C:2018 §6.2 (a "preferred practice") — and from ISO 26262-6 Table 6 item 1a (see FS-04). | Record the fail-fast principle in `design-coding-style.md` (what may return early, that every early return passes the error through unchanged, that resources are released by RAII owners). The same text then serves as the ISO 26262 Table 6 1a rationale. <br>**Update 2026-11-06:** documented in `design-coding-style.md` ("Control flow and error handling") on branch `44-schema-1-…-p043p046` (`f103fc2`), **not yet merged**. Accuracy remarks on that text are in DOC-17. |
 | STD-07 | Medium | Functions listed in the metrics row above | 46 functions exceed cyclomatic complexity 10 and 10 exceed 100 lines; `convert_to_floating` has CCN 54 and 239 lines. (Its 31 `return` statements are fail-fast exits and are not counted as a problem here; see STD-06.) | HIS metrics (v(G) ≤ 10, ≤ 50 statements; the HIS "one return" metric is not applied under the fail-fast principle); BARR-C:2018 §6.2 (≈100 lines); ISO 26262-6 Table 6 item 1h/“restricted size and complexity” | Split the largest functions along their natural phases (e.g. `convert_to_floating`: analysis → scratch sizing → load → scale → divide → round), and record accepted thresholds in the coding-style guide. |
 | STD-08 | Low | `includes/adaptive_json5/error.hpp:60-62`; `string_warning.hpp:32-33`; private token/span structs | Several aggregates (`error`, `string_warning`, `decoded_character`, span structs, `unicode_range`) have members without default initializers; `error e;` leaves `code`, `byte_offset` and `has_byte_offset` indeterminate. Three locals are declared without initializer (`punctuation.cpp:32`, `string_boundary.cpp:34`, `string_warning.cpp:133`). | MISRA C++:2023 (initialization rules, Rule 11.6.x); AUTOSAR A8-5-0; CERT EXP53-CPP | Add default member initializers to public aggregates (e.g. `error_code code{error_code::syntax}` or a value-initialized default) and initialize the three locals. |
-| STD-09 | Low | `includes/adaptive_json5/*.hpp` (22 of 38 public headers), most private headers | Public headers use unprefixed include guards such as `INPUT_HPP_`, `OPTIONS_HPP_`, `PARSER_HPP_`, `DOCUMENT_HPP_`, `STORAGE_HPP_`; 16 public headers use `ADAPTIVE_JSON5_*`. A consumer header with the same common guard silently suppresses the library header (or vice versa). | BARR-C:2018 §4.2 (header guards); MISRA C++:2023 Rule 19.2.1 (guards present – complied) | Prefix every installed header guard with `ADAPTIVE_JSON5_` and the path (the coding-style guide currently prescribes the bare filename). |
+| STD-09 | Low | `includes/adaptive_json5/*.hpp` (22 of 38 public headers), most private headers | Public headers use unprefixed include guards such as `INPUT_HPP_`, `OPTIONS_HPP_`, `PARSER_HPP_`, `DOCUMENT_HPP_`, `STORAGE_HPP_`; 16 public headers use `ADAPTIVE_JSON5_*`. A consumer header with the same common guard silently suppresses the library header (or vice versa). | BARR-C:2018 §4.2 (header guards); MISRA C++:2023 Rule 19.2.1 (guards present – complied) | Prefix every installed header guard with `ADAPTIVE_JSON5_` and the path (the coding-style guide currently prescribes the bare filename). <br>**Reproduced 2026-11-06 (comparison):** a translation unit that includes `adaptive_json5/adaptive_json5.hpp` compiles normally but fails with `-DOPTIONS_HPP_` (`'syntax_mode' has not been declared` in `owned_number.hpp`). |
 | STD-10 | Low | `core/src/value/big_unsigned.cpp`, `floating_conversion.cpp`, `number_comparison.cpp:573-642`, `core/includes/value/floating_format.hpp:22-26` | Basic types `unsigned int` and `int` are used for arithmetic (radix, chunks, signs, float format constants) instead of fixed-width types; ranges are small and correct on 16-bit-`int` targets, but this is not documented. | AUTOSAR A3-9-1; BARR-C:2018 §5.2 (fixed-width types) | Use `std::uint_least16_t`/`std::int_least32_t` (or document the minimum-range reasoning) for portability evidence. |
 | STD-11 | Low | 537 `auto` declarations | `auto` is used for nearly every local, mostly for `result<...>` returned by calls (permitted case). A few deduce non-obvious arithmetic types. | AUTOSAR A7-1-5 | Acceptable for call results; spell out the type where arithmetic types are deduced. |
 | STD-12 | Low | 32 `-Wswitch-enum` sites (e.g. `parser_container_close.cpp:35`, `parser_attachment.cpp:48`, `parser_dispatch.cpp`) | Switches over `parser_state`/`punctuation_kind` handle several enumerators through `default`, so adding a state will not be diagnosed. | MISRA C++:2023 Rule 9.4.2 (switch structure); AUTOSAR M6-4-6 | List every enumerator explicitly and keep `default` only as an unreachable guard, or enable `-Wswitch-enum` for the parser directory. |
@@ -320,6 +360,13 @@ hits), include guards on every header, `default` in every switch, no `goto`, and
 length), STD-09 (guard naming) and STD-10 (fixed-width types). BARR-C's *preferred*
 single exit (§6.2) is consciously replaced by the project's fail-fast principle
 (STD-06).
+
+**BARR-C tailoring** (added from the comparison). BARR-C:2018 targets C99, so it cannot be
+applied literally: its 80-column limit (§1.2) differs from the project's 120 columns, its
+four-space indentation (§3.4) from the project's two spaces (`.clang-format` `IndentWidth: 2`),
+and its C99 language choice (§1.1) and restriction of the `auto` keyword (§1.7) do not transfer
+to C++17 type deduction. Its brace rules (§1.3) are met. Record the selected subset and the
+precedence over MISRA C++:2023 before claiming BARR-C conformance.
 
 **CERT C++.** No violations found for ERR (no exceptions), MEM51/MEM54 (matched
 allocation/deallocation, aligned placement new), DCL50 (no variadics), DCL59 (no
@@ -413,8 +460,9 @@ repository gate):
 | Asset / property | Threat scenario | Existing controls | Residual risk / finding |
 | --- | --- | --- | --- |
 | Integrity and confidentiality of process memory | Crafted input triggers out-of-bounds read/write or integer wrap | Bounds-checked cursor, checked size arithmetic, transactional lexers, no recursion, no global state; sanitizer and fuzz evidence above | Low; no continuous robustness testing (CS-02) |
-| Availability of the consuming service/ECU | Deep nesting, huge strings/numbers, many members, pathological duplicates, long comments | Configurable limits with conservative defaults, work budget charged per scanned byte, quadratic duplicate check bounded by the work budget, scratch bound for numeric conversion | **LOG-01** lets attacker-chosen numbers exhaust a caller buffer during later reads (CS-03); no time bound per work unit (FS-06) |
+| Availability of the consuming service/ECU | Deep nesting, huge strings/numbers, many members, pathological duplicates, long comments | Configurable limits with conservative defaults, work budget charged per scanned byte, quadratic duplicate check bounded by the work budget, scratch bound for numeric conversion | **LOG-01** lets attacker-chosen numbers exhaust a caller buffer during later reads (CS-03); no time bound per work unit (FS-06) <br>*Added 2026-11-06:* LOG-11 — every `member()` lookup is O(n²) in the object's member count and unbudgeted. |
 | Integrity of configuration semantics | Duplicate-key or Unicode confusion makes this parser and another component interpret the same file differently | Every duplicate is preserved and the simple API refuses ambiguous lookups; exact UTF-16 equality without normalization; lone surrogates preserved and rejected on UTF-8 export | Iteration-based consumers may still pick the first or last duplicate; embedded NUL survives `as_string` (CS-05) |
+| Authenticity and authorization of configuration | An attacker replaces or edits a configuration file or a document received over a channel | None in the parser, by design: accepting the syntax does not authenticate the content (added from the comparison) | Integrator responsibility: authenticate the source (signature, secure storage, access control) before parsing; state it as an assumption of use (CS-01) |
 | Confidentiality of input | Diagnostics leak document content | Messages never echo input bytes; source retention is opt-in | None found |
 | Integrity of delivered library | Tampered dependency, action, toolchain or release archive | Pinned GoogleTest SHA (host only), pinned fixtures, SHA-pinned actions in release jobs, SHA-256 files and SDK digest check | Mixed pinning, floating runners/toolchains, no signatures/provenance/SBOM (CS-04) |
 
@@ -449,6 +497,7 @@ target triple, thread model, libstdc++ ABI or MinGW CRT (`cmake/AdaptiveJSON5Con
 | ARC-06 | Low | `cmake/AdaptiveJSON5Config.cmake.in:77-79` | The package config sets `AdaptiveJSON5_parser_FOUND` and `AdaptiveJSON5_build_options_FOUND` but not `AdaptiveJSON5_hosted_FOUND`, so `find_package(AdaptiveJSON5 CONFIG REQUIRED COMPONENTS hosted)` fails even when the hosted library is installed; consumers must use `if(TARGET AdaptiveJSON5::hosted)`. | Unidiomatic component discovery. | Set `AdaptiveJSON5_hosted_FOUND` when the target exists. |
 | ARC-07 | Low | `CMakeLists.txt:121` | Package compatibility is `SameMinorVersion`, but there is no ABI policy (no inline versioned namespace, no statement on which build options change the ABI beyond the recorded exceptions/RTTI values). | Mixing two 0.2.x builds with different options is not detected. | Document the ABI policy; consider an inline namespace (e.g. `adaptive_json5::v0_2`) once the API stabilizes. |
 | ARC-08 | Info | `CMakeLists.txt:12-15`, `cli/README.md`, `schema/README.md`, `editor/README.md` | `ADAPTIVE_JSON5_BUILD_SCHEMA` fails configuration ("not available yet") and `ADAPTIVE_JSON5_BUILD_EXECUTABLE` builds the example programs, not a CLI. The optional components are placeholders. | Option names promise more than they deliver. | Rename `ADAPTIVE_JSON5_BUILD_EXECUTABLE` to `ADAPTIVE_JSON5_BUILD_EXAMPLES` (keep the old name as an alias) until the CLI exists. |
+| ARC-09 | Info | `includes/adaptive_json5/value/value_index.hpp`; `core/src/value/value_storage.cpp:249-280` | *Added 2026-11-06 from the comparison.* `value_index` carries no document identity. An index from document A used with document B is bounds-checked (no memory error) but silently addresses an unrelated record. Document, view and accounting lifetimes are caller preconditions. | Misuse yields wrong data instead of an error. | Keep it as a documented precondition, or add an owner tag (for example a per-document serial) to indices and views if misuse is observed. |
 
 ## Step 7 results — Documentation findings
 
@@ -469,7 +518,7 @@ requirement tags; the ADRs record rejected alternatives.
 | --- | --- | --- | --- | --- |
 | DOC-01 | Medium | `docs/memory-and-limits.md` ("Parse into a buffer" → *Sizing*); `includes/adaptive_json5/json5_value.hpp` | The buffer-sizing method (`peak_bytes()` plus a margin) and the `json5_value` contract ("owns nothing and allocates nothing, except `as_double()`, which uses scratch memory from the document's own storage") do not say that this scratch is never returned to a caller buffer while the document lives (LOG-01). | Fix LOG-01, or document the per-call consumption and the resulting read limit until it is fixed. |
 | DOC-02 | Medium | `includes/adaptive_json5/json5_document.hpp`, `json5_value.hpp` | No thread-safety statement for the simple API, while `document.hpp:209` promises lock-free concurrent const reads for `document` (LOG-02). | Add an explicit statement to both headers and to the user guide. |
-| DOC-03 | Medium | `docs/embedded.md:22-23`; J5-101 | The embedded page says to "record static initialization, alignment, byte order, integer-size assumptions, stack/work storage and actual compiler/device limitations", but records none of them (no stack figure, no static-initialization statement, no data-model assumptions). | Fill in the figures (stack per entry point, no static constructors, required C++ runtime subset, assumed `CHAR_BIT == 8`, two's-complement, `std::uintptr_t` availability, alignment needs). |
+| DOC-03 | Medium | `docs/embedded.md:22-23`; J5-101 | The embedded page says to "record static initialization, alignment, byte order, integer-size assumptions, stack/work storage and actual compiler/device limitations", but records none of them (no stack figure, no static-initialization statement, no data-model assumptions). | Fill in the figures (stack per entry point, no static constructors, required C++ runtime subset, assumed `CHAR_BIT == 8`, two's-complement, `std::uintptr_t` availability, alignment needs). <br>*Added from the comparison:* the facilities to list include `std::variant`, `std::optional`, `<type_traits>`, `std::memcpy`, placement new and `std::launder`, plus the octet/character-representation assumptions of the UTF-8 code. |
 | DOC-04 | Low | `docs/memory-and-limits.md:237-238` | "Invalid or over-limit input fails before any allocation … every limit in the table above [is] found in the first pass." `max_owned_bytes` can only fail when allocating (second pass), and `max_work_units` can also fail in the second pass because both passes are charged. | Narrow the sentence to the limits that the count pass actually checks. |
 | DOC-05 | Low | `docs/memory-and-limits.md:214-215` | Unknown-word diagnostics are documented as always covering the whole word; words beginning with `N`/`I` do not (LOG-04). | Fix LOG-04 or document the exception. |
 | DOC-06 | Low | `docs/memory-and-limits.md` error table ("`resource_limit` … Raise the specific limit") | Users cannot identify the specific limit from the error (LOG-03). | Add the limit reason, then reference it here. |
@@ -484,6 +533,8 @@ requirement tags; the ADRs record rejected alternatives.
 | DOC-15 | Info | `README.md:356-363`, `AGENTS.md:89-96`, `docs/requirements.md:226-232` | The same "official-specification implementation sequence" paragraph pair is repeated verbatim in three documents; the README's copy is appended after the License section. | Keep it in one place (the implementation-order document) and link to it. |
 | DOC-16 | Info | Whole `docs/` tree | There is no CHANGELOG/release notes and no known-anomalies list; the conformance page carries release scope and limits instead. | Add release notes per tag with a known-anomalies section (also needed for FS-09 and CS-06). |
 | DOC-17 | Low | `core/docs/design-coding-style.md` "Control flow and error handling" on branch `44-schema-1-…-p043p046` (`f103fc2`, unmerged) | *Added 2026-11-06.* The new section correctly records the fail-fast convention, but several rules are stated more absolutely than the code behaves: (a) "propagate the first error unchanged" — `limited_scan_error` (`core/src/parser/parser_work.cpp:85-100`) deliberately turns errors near a work-budget cut into `resource_limit` (ADR 0003 decision 5; see LOG-06); (b) "a failed operation leaves its inputs and the object as they were" — the internal `parser_engine` is single-use and is discarded as a whole on failure without rolling back its counters, as `docs/memory-and-limits.md` states; (c) "charge before work" — the string decode pass is charged after it ran (`parser_engine.cpp:247`), and limited scans bound work by shortening the view and charge afterwards; (d) "never ignore a returned result" — see STD-15; (e) the section does not say that RAII owners release resources on every early return, which is the key argument for the ISO 26262 Table 6 1a rationale (FS-04). The same file still says quality checks are "unit tests and formatting" (lines 56 and 80, DOC-10) and still prescribes unprefixed header guards (STD-09). | State the intended exceptions (single-use parser state, limited-scan charging, near-cut reclassification) or adjust the rules; add one sentence on RAII cleanup; fix the two stale quality-check sentences while editing the file. |
+| DOC-18 | Low | `.agents/skills/guide-requirement/SKILL.md:180`; `.zed/README.md:39` | *Added 2026-11-06 from the comparison (residue of ChatGPT F04).* The requirement-guidance skill still calls the complete-document entry "future", although `parse_document()` exists, and the Zed guide says "currently 98 cases" while CTest registers 2514. The other stale status statements ChatGPT listed no longer exist at `0.2.0` (those files were rewritten or removed); DOC-12 is the remaining architecture-diagram case. | Update both statements; avoid hard-coded test totals in guides, or date them. |
+| DOC-19 | Low | `docs/requirements.md:83` (J5-017) vs `docs/memory-and-limits.md:217-219` and `includes/adaptive_json5/memory/resource_limits.hpp` (`max_diagnostics`) | *Added 2026-11-06 from the comparison (ChatGPT F05).* J5-017 says warnings "shall not turn valid parsing into failure", but a valid document whose warnings exceed `max_diagnostics` fails with `resource_limit`. *Probe:* with `max_diagnostics = 0`, a single raw U+2028 inside a string fails the parse, while the same input succeeds with the default limit and one warning. The user guide documents this behavior; the requirement contradicts it. | Decide the precedence (operational limit before advisory success, or succeed with a count but no descriptor) and align J5-017, the API note and the units. |
 
 ## Step 8 results — Full repository findings
 
@@ -508,7 +559,7 @@ production code (see CS evidence).
 | REPO-03 | Low | `tests/api/pure_memory_tests.cpp:24-66`; `tests/api/diagnostic_format_tests.cpp:45-63` | These units replace the global `operator new`/`operator delete` with `malloc`/`free` but not every overload. Under ASan, memory allocated by a non-replaced overload (e.g. GoogleTest's `std::get_temporary_buffer` path) is freed through the replaced sized `operator delete`, giving 59 `alloc-dealloc-mismatch` failures in the review's sanitizer run. In normal builds they pass. | Replace all overloads consistently (plain, nothrow, aligned, sized, array forms) so the suite is sanitizer-clean; this keeps a future sanitizer run (even a local one) meaningful. |
 | REPO-04 | Low | `cmake/Dependencies.cmake:5-9,17-20` | When unit tests are enabled the module sets `FETCHCONTENT_UPDATES_DISCONNECTED` in the including scope, `FORCE`s `BUILD_GMOCK`/`INSTALL_GTEST`/`gtest_force_shared_crt` into the cache, and downloads GoogleTest into the *source* tree (`tools/gtest`). In a parent project that enables this subproject's tests, this overrides the parent's GoogleTest settings and writes into a possibly read-only source directory; parallel build directories share one checkout. | Scope the settings (e.g. `block()`/function scope), avoid `FORCE` on generic GoogleTest options, and default `SOURCE_DIR` to the binary directory. |
 | REPO-05 | Low | `.github/workflows/*.yml` | `ubuntu-latest` is used in four workflows; `actions/checkout@v7` and `actions/setup-python@v7` are tag-pinned in `unit-tests.yml` (first job), `formatting.yml` and `examples.yml`, while other jobs pin SHAs. `pip install clang-format==18.1.8` has no hash pin. | Pin runner images and all actions by SHA consistently; use `--require-hashes` (or a hashed requirements file) for Python tools. Covered further in CS-04. |
-| REPO-06 | Low | `tools/tests/test_package_release.py`; `tools/generate_unicode_tables.py` | The packaging script's Python tests are not run by any workflow, and no job checks that `core/includes/unicode/unicode_tables.hpp` regenerates byte-identically from `tools/unicode-data/`. | Add a lightweight `tools` job (pure Python, no new C++ gate) or document both as manual release steps. <br>**Update 2026-11-06:** confirmed by the release itself — the first 0.2.0 packaging run failed its header inventory check because `tools/package_release.py` expected the optional `hosted/` header; the fix is on `72-release-packaging` (`6caab0d`, unmerged). Running the packaging tests/script on pull requests would have caught it before the tag. |
+| REPO-06 | Low | `tools/tests/test_package_release.py`; `tools/generate_unicode_tables.py` | The packaging script's Python tests are not run by any workflow, and no job checks that `core/includes/unicode/unicode_tables.hpp` regenerates byte-identically from `tools/unicode-data/`. | Add a lightweight `tools` job (pure Python, no new C++ gate) or document both as manual release steps. <br>**Update 2026-11-06:** confirmed by the release itself — the first 0.2.0 packaging run failed its header inventory check because `tools/package_release.py` expected the optional `hosted/` header; the fix is on `72-release-packaging` (`6caab0d`, unmerged). Running the packaging tests/script on pull requests would have caught it before the tag. <br>**Update 2026-11-06 (comparison):** reproduced locally — packaging tag `0.2.0` with the tool from the release commit fails the header inventory check; the Python units (4/4) pass and the Unicode header regenerates byte-identically, so both checks are cheap to add to CI. |
 | REPO-07 | Low | `tests/value/numeric_locale_tests.cpp:91,163` | The locale-independence unit (J5-052) is skipped on every Linux runner because no comma-decimal locale is installed; it executes only on the Windows job. | Install a comma-decimal locale (e.g. `de_DE.UTF-8`) in the Linux jobs. |
 | REPO-08 | Low | `.gitattributes` | Only `tests/fixtures/third_party/** -text` is declared; there is no `* text=auto eol=lf` normalization although development happens on Windows and Linux. | Add text normalization to avoid CRLF churn and formatter differences. |
 | REPO-09 | Low | 171 of 172 production C++ files | No per-file copyright/SPDX header (only one file has `SPDX-License-Identifier`); tests have none. Apache-2.0 does not require it, but automotive supplier audits and SBOM tooling commonly expect it. | Add `// SPDX-License-Identifier: Apache-2.0` and a copyright line to each source file. |
@@ -517,6 +568,7 @@ production code (see CS evidence).
 | REPO-12 | Info | `core/docs/requirements-issue-backlog-before-consolidation-2026-10-13.json` (158 kB), `core/docs/requirements-issue-backlog-before-p-sequence.json` (71 kB) | Historical backlog snapshots live beside the current backlog and implementation-order JSON. | Move snapshots to an `archive/` folder or rely on git history. |
 | REPO-13 | Info | `.zed/user-config/AGENTS.md`, `.zed/user-config/settings.json` | Personal editor configuration (including a commit-message prompt) is committed. | Keep project-wide editor settings only, or document why user-level settings are shared. |
 | REPO-14 | Info | Branch `44-schema-1-component-owned-references-exact-equality-and-bounded-evaluation-p043p046` | *Added 2026-11-06.* The coding-style decision (a docs-only change) is the only commit on the schema P043–P046 feature branch, which is based on `64510be` and one commit behind `main`; the commit subject has a typo ("conding"). Merging it with the schema work ties a project-wide convention to an unrelated feature review. | Land the coding-style change in its own small documentation PR (and fix the subject), then rebase the schema branch on `main`. |
+| REPO-15 | Medium | `cmake/ImportAdaptiveJSON5.cmake:14-17, 94-101` | *Added 2026-11-06 from the comparison (ChatGPT F01), reproduced at `0.2.0`.* The import helper reduces the requested tag to its numeric version and checks only `find_package(... EXACT)` and the profile; it never compares the package's `build-info.json` `release_tag`, and the tag is not exported as a package variable. *Probe:* a locally built `0.2.0` package imported through `ROOT` was accepted when `VERSION 0.2.0-rc.9` and `VERSION v0.2.0-beta.1` were requested (exit 0, `AdaptiveJSON5_VERSION=0.2.0`). The download/`ARCHIVE` path is protected by the consumer-pinned SHA-256 and the archive folder name. | Compare the exact release tag on the `ROOT` and reused-cache paths (decide whether a `v` prefix is an alias; keep pre-release identity distinct), export it as `AdaptiveJSON5_RELEASE_TAG`, and add matching and mismatching cases to the tool tests. Relevant to FS-09 (configuration identity). |
 
 ## Step 9 results — Summary
 
@@ -533,18 +585,18 @@ claim.
 
 | Area | High | Medium | Low | Info | Total |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Step 2 — Logic (LOG) | 1 | 2 | 5 | 2 | 10 |
+| Step 2 — Logic (LOG) | 1 | 3 | 5 | 2 | 11 |
 | Step 3 — Coding standards (STD) | 0 | 6 | 6 | 3 | 15 |
 | Step 4 — ISO 26262 (FS) | 3 | 6 | 1 | 0 | 10 |
 | Step 5 — ISO/SAE 21434 (CS) | 1 | 3 | 2 | 1 | 7 |
-| Step 6 — Architecture (ARC) | 0 | 3 | 4 | 1 | 8 |
-| Step 7 — Documentation (DOC) | 0 | 3 | 12 | 2 | 17 |
-| Step 8 — Full repository (REPO) | 0 | 2 | 8 | 4 | 14 |
-| **Total** | **5** | **25** | **38** | **13** | **81** |
+| Step 6 — Architecture (ARC) | 0 | 3 | 4 | 2 | 9 |
+| Step 7 — Documentation (DOC) | 0 | 3 | 14 | 2 | 19 |
+| Step 8 — Full repository (REPO) | 0 | 3 | 8 | 4 | 15 |
+| **Total** | **5** | **27** | **40** | **14** | **86** |
 
 **Prioritized recommendations**
 
-1. **Fix LOG-01/LOG-02** (with ARC-01, CS-03, DOC-01, DOC-02): make `as_double()`
+1. **Fix LOG-01/LOG-02 and LOG-11** (with ARC-01, CS-03, DOC-01, DOC-02): walk the member list once in `member()` instead of quadratically; make `as_double()`
    independent of the document's arena or make the arena reclaim LIFO releases; add a
    regression test that loops `as_double()` on a small buffer and checks arena
    capacity, not only `current_bytes()`; state the simple API's thread-safety rule.
@@ -602,6 +654,26 @@ would refine severities and priorities in a follow-up.
     review record planned (FS-02)?
 11. Should `.zed/user-config/` stay in the repository (REPO-13)?
 
+Questions added from the comparison with the ChatGPT review (2026-11-06):
+
+12. Which ECU/CPU, compiler/runtime and data models are the intended targets, and is
+    parsing limited to start-up or allowed inside a real-time task? (This decides how much
+    LOG-11 and FS-06 matter.)
+13. Which exact MISRA edition and corrigenda, CERT errata and OEM/customer coding rules are
+    contractual? Is a tailored BARR-C subset or a separate AUTOSAR C++14 assessment required?
+14. Are safety plans or manuals, a TARA, cybersecurity cases, tool-confidence records or a
+    disclosure procedure maintained outside this repository?
+15. With zero diagnostic slots, should a valid document with a warning fail with
+    `resource_limit` or succeed with only a warning count (DOC-19)?
+16. Should `v0.2.0` and `0.2.0` be aliases for package identity, while pre-release
+    identifiers stay distinct (REPO-15)?
+17. Should consumers have one work allowance across parsing and later lookup, traversal and
+    export, or a separate work/cancellation context per operation (LOG-11)?
+18. Do the live GitHub required checks include the Linux aarch64 and Windows MinGW unit jobs?
+    The versioned ruleset was removed in `64510be`, so only the repository settings can show it.
+19. Should cross-document indices and document/accounting lifetimes remain caller
+    preconditions, or should owner-bound handles enforce them (ARC-09)?
+
 ## Step 9 results — Further improvements
 
 Improvements that are not defects and are outside the findings above:
@@ -637,6 +709,16 @@ Improvements that are not defects and are outside the findings above:
   `* text=auto eol=lf` in `.gitattributes` (REPO-08).
 - **MC/DC:** evaluate GCC 14 `-fcondition-coverage` locally to see the gap before
   deciding on any safety target (FS-07).
+- **One component-status table** keyed by P step, with separate implementation, named-unit
+  and executed-evidence columns, linked from the architecture page, the implementation order
+  and the skills, so status text cannot drift again (DOC-12, DOC-18; from the comparison).
+- **Sizing examples for limits:** publish small representative documents with the limit each
+  one exhausts, so users can size `max_work_units` and `max_diagnostics` (from the comparison).
+- **Package identity end to end:** keep tag, source revision, toolchain and packaging identity
+  together and test matching and mismatching imports (REPO-15; from the comparison).
+- **Owner-bound handles** for indices and views, if misuse is observed (ARC-09).
+- **Authenticated release manifests or signatures** where the consumer's threat model needs
+  them; a checksum fetched from the same channel proves integrity, not authenticity (CS-04).
 
 ---
 
@@ -675,3 +757,48 @@ release notes that list LOG-01 (and LOG-02) as known anomalies with the workarou
 "use `values()` with `to_double()` and your own scratch storage, or the hosted
 library, for repeated floating-point reads". Land the coding-style text as its own
 documentation PR with the DOC-17 adjustments.
+
+---
+
+## Comparison with the independent ChatGPT review (2026-11-06)
+
+**Source.** `full-repository-review-2026-11-06.md`, supplied by the owner. Its baseline is
+`1455359` ("Fix release tags without v and add safe existing-release recovery (#92)"), which
+is older than this review's `64510be` / tag `0.2.0`: since then the source tree was
+restructured (`src/` → `core/`), several documents were rewritten or removed, the ruleset was
+deleted, and the suite grew from 1,710 to 2,514 unit cases. Every ChatGPT item was therefore
+re-checked against `0.2.0` before anything was copied; nothing was taken over on trust.
+
+| ChatGPT item | Re-check at `0.2.0` | Disposition here |
+| --- | --- | --- |
+| F01 — import helper ignores exact pre-release identity | **Valid**, reproduced with a locally built `0.2.0` package (`0.2.0-rc.9` and `v0.2.0-beta.1` accepted via `ROOT`) | Added as **REPO-15** (Medium) |
+| F02 — CI actions selected through mutable tags | Valid | Already covered by REPO-05 and CS-04 |
+| F03 — generic public include guards | Valid, reproduced (`-DOPTIONS_HPP_` breaks the umbrella header) | Already STD-09; reproduction evidence added |
+| F04 — status documents contradict the implemented code | Mostly obsolete: `docs/roadmap.md`, `docs/current-architecture.md`, `docs/architecture.md` no longer exist and `docs/requirements.md`/`traceability.md` now describe the implemented parser. Still valid: the skill's "future complete-document entry" and the Zed guide's "98 cases" | Residue added as **DOC-18** (Low); DOC-12 already covers the architecture diagram |
+| F05 — warning success versus diagnostic budget | **Valid**, reproduced (`max_diagnostics = 0` + raw U+2028 → `resource_limit`); its remark that only the first warning is retained is obsolete | Added as **DOC-19** (Low) and question 15 |
+| F06 — stored ruleset omits portability checks | Obsolete: `.github/rulesets/main.json` and `docs/branch-protection.md` were removed in `64510be` | Not copied as a finding; the live-settings concern became question 18 |
+| F07 — tracked `__cmake_systeminformation/` | Obsolete: no longer tracked (ignored in `.gitignore`) | Not copied |
+| G01 — coding-standard evidence incomplete | Valid | Already FS-10 and the STD basis; edition/corrigenda note added |
+| G02 — safety role and assumptions | Valid | Already FS-01 |
+| G03 — traceability is not safety verification | Valid | Already FS-02 |
+| G04 — target, timing, interference, tool confidence | Valid | Already FS-06 and FS-08 |
+| G05 — no TARA or cybersecurity lifecycle | Valid; its point that syntax acceptance does not authenticate configuration was missing | Already CS-01; **authenticity row added to the TARA** |
+| G06 — no vulnerability intake | Valid | Already CS-01 and CS-06 |
+| G07 — post-parse operations not budgeted | **Valid**, and sharper than stated: `json5_value::member()` itself is quadratic (about 2.5 ms per lookup on a 1024-member object, `-O2`) | Added as **LOG-11** (Medium) and question 17 |
+| G08 — embedded runtime/data-model contract | Valid | Already DOC-03; facility list added |
+| Logic observation — 301/401-byte work-budget example | Obsolete: both documents parse with default limits at `0.2.0` (work accounting changed with ADR 0003) | Not copied; the sizing-examples idea kept as an improvement |
+| Logic observation — document indices lack owner identity | Valid | Added as **ARC-09** (Info) and question 19 |
+| Standards applicability (ASPICE, UN R155/R156, ISO 24089, SOTIF, IATF 16949, PSE51/52, AUTOSAR APIs) | Valid and missing | Applicability table added to Step 3 (without unverified edition claims) |
+| BARR-C tailoring (80 columns, 4-space indent, C99, `auto`) | Valid against `.clang-format` (`ColumnLimit: 120`, `IndentWidth: 2`) | BARR-C tailoring paragraph added to Step 3 |
+| Evidence: standalone public headers, Python units, Unicode regeneration, tests-off install | Re-executed at `0.2.0`: 38/38 headers, 4/4 Python units, byte-identical tables, clean install | Five evidence rows added to Step 1 (plus the packaging reproduction) |
+| Non-blocking questions 1–10 | Q1/Q4 overlapped existing questions; the rest were valid | Added as questions 12–19 |
+| Further improvements 1–10 | Most overlapped existing items; five were new and valid | Added to the improvements list |
+
+**What this review has that the ChatGPT review does not** (for context; not changed by the
+comparison): the High defect LOG-01 (`as_double()` exhausts a caller buffer) and the related
+data race LOG-02; the limit-error location/reason gap LOG-03; the warning-flag finding STD-01
+with an extended-warning sweep; MISRA construct mapping STD-02 … STD-05; complexity metrics
+STD-07; Release-versus-Debug test configuration FS-07 with measured coverage; and executed
+sanitizer and fuzzing evidence (ChatGPT ran neither). ChatGPT's conclusion that no P0/P1
+defect exists did not cover the simple `json5_document` API, which did not exist at its
+baseline.
