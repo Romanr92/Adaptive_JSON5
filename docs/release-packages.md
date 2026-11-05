@@ -82,7 +82,7 @@ it does not edit AdaptivePi or implement manifest parsing. After the consumer's
 ```cmake
 include(cmake/ImportAdaptiveJSON5.cmake)
 adaptive_json5_import_release(
-    VERSION v0.2.0
+    VERSION 0.2.0
     SHA256 "<replace with the reviewed 64-digit archive SHA-256>"
 )
 target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
@@ -123,7 +123,7 @@ The helper never acquires GoogleTest or changes parent flags.
 Native example, with GCC, CMake 3.25+, Ninja and Python 3.9+:
 
 ```sh
-python3 tools/package_release.py --version v0.2.0 \
+python3 tools/package_release.py --version 0.2.0 \
   --platform linux-x86_64-gcc --compiler g++-13 --build-dir build/release-package
 ```
 

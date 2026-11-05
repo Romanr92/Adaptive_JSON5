@@ -8,7 +8,7 @@ on:
       version:
         description: 'Exact release tag (0.2.0 or v0.2.0); must match the CMake project version'
         required: true
-        default: v0.2.0
+        default: 0.2.0
       publish:
         description: 'Attach packages to this existing release (build its tagged source)'
         type: boolean
