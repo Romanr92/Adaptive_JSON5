@@ -79,6 +79,65 @@ The pinned host GoogleTest targets also receive the helper in the dependency
 setup; this does not establish dependency standards compliance. It also applies when compiler exceptions are
 enabled. Automated quality checks remain unit tests and formatting.
 
+## Control flow and error handling
+
+These project conventions apply together with MISRA C++:2023 and CERT C++. They are user
+decisions dated 2026-11-06 and describe how the existing code is written.
+
+**Return early on failure.** Check each fallible call immediately. If it failed, return
+its error at once, unchanged, and continue with the success path at the outer level. Do not
+nest the success path inside `if (ok)` blocks, and do not collect a status variable to return
+from a single exit point.
+
+```cpp
+status_result parser_stack::push(parser_frame&& frame, work_budget& work) noexcept
+{
+  // Precondition: reject before charging or allocating anything.
+  if (m_size >= m_max_frames)
+  {
+    return status_result::failure(error::without_location(error_code::resource_limit));
+  }
+
+  const auto charged = work.charge(1);
+
+  if (!charged.has_value())
+  {
+    return status_result::failure(*charged.error_if());
+  }
+
+  // ... the success path continues here, unindented ...
+  return status_result::success();
+}
+```
+
+Multiple `return` statements are therefore intended. MISRA C++:2008 required a single point
+of exit; MISRA C++:2023 is the selected baseline. This choice has not yet been checked
+against the licensed 2023 text: if that review finds a conflicting rule, record a deviation
+as described above rather than changing this convention silently.
+
+The other conventions:
+
+- **Errors are values.** Every fallible operation returns `result<T>` or `status_result`, is
+  `noexcept` and `[[nodiscard]]`. Never throw, never use exceptions for control flow, and never
+  ignore a returned result.
+- **Propagate the first error unchanged.** Pass the callee's `error` on as it is, so its code
+  and location survive. Add a location only where the caller knows it and the callee did not.
+- **Validate before changing state.** Run every check that can fail before the first
+  visible change: work on a copy (for example a candidate `cursor`) and publish it, move
+  ownership or update counters only after everything has succeeded. A failed operation leaves
+  its inputs and the object as they were.
+- **Charge before work.** Reserve limits, work units and memory before the loop, copy or
+  allocation they pay for, not afterwards.
+- **Check arithmetic before doing it.** Use `checked_add` and `checked_multiply`, or compare in
+  subtraction form (`additional > limit - current`) so that the check itself cannot overflow.
+- **No recursion and no hidden allocation.** Iterate with explicit, bounded state. All memory
+  comes from the caller's storage callbacks; never use the global heap outside the optional
+  hosted library.
+- **Braces on every branch,** even a single statement, and one condition per early return where
+  that keeps the reason clear.
+- **Declare `const` wherever possible,** including local results and computed sizes.
+- **List private members first.** In a class, the `private:` section comes before `public:`.
+
 ## Real-time profiles and freedom from interference
 
 Where a consuming real-time environment requires it, follow **IEEE Std
