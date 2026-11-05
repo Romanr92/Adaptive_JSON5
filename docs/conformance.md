@@ -8,15 +8,17 @@ is full JSON5 1.0.0 parsing within the documented encoding, policies and limits.
 Requirement rows remain
 Draft; this review does not verify optional components or promote shared rows.
 
-**Status for the coming 0.2.0 release (issue #72):** that review and the results below
-predate ADR 0003 (storage and budgets) and ADR 0004 (simple API). The parser has
-changed since, so they are historical until new results are recorded for the release
-commit. See [release scope](#release-scope).
+**Status for the 0.2.0 release (issue #72):** that review predates ADR 0003 (storage and
+budgets) and ADR 0004 (simple API), so it is historical. The parser has changed since.
+Current test results are recorded for `64510be` under
+[executed results](#executed-results), and [release scope](#release-scope) states what
+ships. The review for 0.2.0 compared documents and test inventories; it did not repeat the
+production-by-production grammar review.
 
 ## Release scope
 
-The coming `0.2.0` is a core-parser release. The published `0.1.0` tag predates the
-simple API and this review.
+`0.2.0` is a core-parser release. The published `0.1.0` tag predates the simple API and
+this review.
 
 | Shipped | Not shipped |
 | --- | --- |
@@ -38,8 +40,8 @@ simple API and this review.
 
 | Toolchain | Status | Evidence |
 | --- | --- | --- |
-| GCC on Linux x86-64 and Linux aarch64, exceptions OFF and ON, RTTI OFF | Required by J5-099 | GCC 13.3.0 at `66a425a` (see [executed results](#executed-results)); to be re-recorded for the release commit |
-| MinGW-w64 GCC on Windows, exceptions OFF and ON, RTTI OFF | Required by J5-099 | GCC 16.2.0 in CI at `66a425a`; local development also uses GCC 15.2.0. The CI version floats with MSYS2, so each result records its own |
+| GCC on Linux x86-64 and Linux aarch64, exceptions OFF and ON, RTTI OFF | Required by J5-099 | GCC 13.3.0 at `64510be`; see [executed results](#executed-results) |
+| MinGW-w64 GCC on Windows, exceptions OFF and ON, RTTI OFF | Required by J5-099 | GCC 16.2.0 in CI at `64510be`; local development also uses GCC 15.2.0. The CI version floats with MSYS2, so each result records its own |
 | clang-format 18.1.8, CMake 3.25+ | Required | Local development uses CMake 4.0.1 |
 | MSVC, Clang, macOS | Unexecuted, unsupported | None; macOS release packages are out of scope |
 | RTTI ON | Unexecuted | None |
@@ -177,20 +179,21 @@ Schema, editor and manifest rows are outside P041.
 
 ## Contract reviews
 
-### Review for 0.2.0 (in progress, 2026-11-05)
+### Review for 0.2.0 (2026-11-05)
 
-Documentation and test-inventory review against commit `a7f98f2`. "Reviewed" means the
-documents and named units were compared; it does not replace the release-commit results.
+Documentation and test-inventory review against `a7f98f2`, with test results at the
+release commit `64510be`. "Reviewed" means the documents and named units were compared. It
+is not a line-by-line proof or certification.
 
 | Contract | Result |
 | --- | --- |
 | J5-008 public contracts | Reviewed. The simple API's lifetimes and limits are in `json5_document.hpp`, `json5_value.hpp`, `buffer_arena.hpp` and the [user guide](memory-and-limits.md); every public function of those headers is called by a unit in `tests/`. |
 | J5-002 build components | No unit maps to this row; it is a build contract. The `library` presets configure the library without tests, and the hosted library is opt-in. |
 | J5-007 license and provenance | No unit maps to this row; it is a documentation contract. No third-party material was added since the review below. |
-| J5-091 native portability | Unit results for the release commit are pending; see [toolchains](#toolchains). |
+| J5-091 native portability | Units pass with GCC on Linux x86-64, Linux aarch64 and Windows MinGW at `64510be`. Other compilers are unexecuted; see [toolchains](#toolchains). |
 | J5-093 versioned consumption | Pending the release: `0.2.0` must be tagged and its packages built. The README quick start currently pins a commit. |
-| J5-099 build matrix | Pending results for the release commit, in the four required configurations. Validation tests and the `examples` job go beyond what this row requires. |
-| J5-100 release completeness | Pending the items above. Named units in `tests/` and `core/tests/` match `traceability.md` in both directions. |
+| J5-099 build matrix | Results recorded at `64510be` for all four required configurations, with the clang-format check; see [executed results](#executed-results). Linux aarch64 runs in addition. Validation tests and the `examples` job go beyond what this row requires. |
+| J5-100 release completeness | Versions, scope, limits, deviations, provenance, package usage and results are linked from this statement. Pending only the published tag and packages (J5-093). Named units in `tests/` and `core/tests/` match `traceability.md` in both directions. |
 
 ### Review for the JSON5 claim (historical)
 
@@ -227,6 +230,23 @@ corrected as a documentation-only change; the `result<double>` signature and
 implementation are unchanged.
 
 ## Executed results
+
+### 0.2.0 release commit
+
+CI ran on the pull request head `03932f9`. It merged as `64510be`, and the two commits have
+identical content, so these results apply to `64510be`. RTTI is OFF in every run. Local
+results are not listed for this commit.
+
+| Where | Configuration | Result |
+| --- | --- | --- |
+| [unit-tests](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/41938631641) | Linux x86-64, GCC 13.3.0, exceptions OFF and ON | 2514/2514 passed in each mode |
+| [GCC units](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/41938631641) | Linux aarch64, GCC 13.3.0, exceptions OFF and ON | 2514/2514 passed in each mode |
+| [GCC units](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/41938631641) | Windows MinGW, GCC 16.2.0, exceptions OFF and ON | 2514/2514 passed in each mode |
+| [validation](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/41938631859) | Linux x86-64, GCC 13.3.0, exceptions OFF and ON | 921/921 passed in each mode |
+| [formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/41938631726) | clang-format 18.1.8 | Passed for 257 C++ files |
+| [examples](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/41938631772) | Linux x86-64, GCC 13.3.0, exceptions OFF (non-blocking job) | 3/3 passed |
+
+### Earlier results (historical)
 
 | Where | Commit | Configuration | Result |
 | --- | --- | --- | --- |
