@@ -69,7 +69,7 @@ Owner of all work products: Romanr92.
 | 1 | SEooC assumptions and decomposition rationale | [`seooc-assumptions.md`](seooc-assumptions.md) | Draft, A-01 to A-08 |
 | 2 | Safety plan | This document | Draft |
 | 3 | Software safety requirements | [Section K of `docs/requirements.md`](../requirements.md#k-software-safety-requirements-iso-26262) | Draft, SSR-01 to SSR-08 |
-| 4 | Software architecture and safety analysis (FMEA, dependent failure analysis) | [`software-safety-analysis.md`](software-safety-analysis.md); architecture in [`core/docs/design-architecture.md`](../../core/docs/design-architecture.md) | Draft: FMEA method and dependent failure analysis done. FMEA rows and the safety view of the architecture are still to do (see below). |
+| 4 | Software architecture and safety analysis (FMEA, dependent failure analysis) | [`software-safety-analysis.md`](software-safety-analysis.md); architecture in [`core/docs/design-architecture.md`](../../core/docs/design-architecture.md) | Draft: FMEA rows and dependent failure analysis reviewed with the owner. A separate interface view of the architecture is still to do. |
 | 5 | Coding guidelines, building on the MISRA fail-fast rules (see #137) | [`coding-guidelines.md`](coding-guidelines.md) | Draft |
 | 6 | Verification and structural coverage strategy | Not started | Not started |
 | 7 | Tool confidence evaluation (ISO 26262-8, clause 11) | Not started | Not started |
