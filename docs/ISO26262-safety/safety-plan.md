@@ -69,12 +69,19 @@ Owner of all work products: Romanr92.
 | 1 | SEooC assumptions and decomposition rationale | [`seooc-assumptions.md`](seooc-assumptions.md) | Draft, A-01 to A-08 |
 | 2 | Safety plan | This document | Draft |
 | 3 | Software safety requirements | [Section K of `docs/requirements.md`](../requirements.md#k-software-safety-requirements-iso-26262) | Draft, SSR-01 to SSR-08 |
-| 4 | Software architecture and safety analysis (FMEA, dependent failure analysis) | Not started | Not started |
-| 5 | Coding guidelines, building on the MISRA fail-fast rules (see #137) | Not started | Not started |
+| 4 | Software architecture and safety analysis (FMEA, dependent failure analysis) | [`software-safety-analysis.md`](software-safety-analysis.md); architecture in [`core/docs/design-architecture.md`](../../core/docs/design-architecture.md) | Draft: FMEA method and dependent failure analysis done. FMEA rows and the safety view of the architecture are still to do (see below). |
+| 5 | Coding guidelines, building on the MISRA fail-fast rules (see #137) | [`coding-guidelines.md`](coding-guidelines.md) | Draft |
 | 6 | Verification and structural coverage strategy | Not started | Not started |
 | 7 | Tool confidence evaluation (ISO 26262-8, clause 11) | Not started | Not started |
 | 8 | Traceability | Not started | Not started |
 | 9 | Safety Manual for integrators | Not started | Not started |
+
+**How the architecture and the FMEA rows are produced.** An AI agent reads the code
+and the existing design documents and drafts each part: what it does, its interfaces,
+which errors it can return, and its FMEA rows. Nothing is committed at that stage.
+The owner then goes through the draft part by part and confirms or corrects each one
+before it is written into the work product. The agent does the reading; the owner
+makes the decisions.
 
 ## 4. Supporting processes
 
@@ -115,3 +122,19 @@ tool and the repository's own scripts is evaluated in work product 7.
   level of independence required by ISO 26262-2 for an ASIL B(D) element still has
   to be determined. Until a reviewer is found, this is an open item that integrators
   cover (see section 1).
+
+## 6. Safety is never finished
+
+Issue #138 sets up the **first safety baseline**. Closing it does not close the safety
+work: safety evolves with the library for as long as it is developed.
+
+- **Every milestone gets its own safety review issue.** In it, the SEooC assumptions,
+  the software safety requirements, the safety analysis and the other work products
+  are reviewed against everything that changed in that milestone, and updated where
+  needed.
+- **Between milestones**, the safety impact check in every pull request (section 4)
+  catches changes that affect a safety requirement or assumption.
+- **Before each release**, the reviews in section 5 confirm that the safety documents
+  still match the code, and the release tag freezes them.
+- New features, such as the planned serializer, start with an update of the SEooC
+  assumptions and the safety requirements before they are implemented.
