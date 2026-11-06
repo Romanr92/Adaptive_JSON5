@@ -14,6 +14,16 @@ without its own extra analysis.
 
 No compliance, certification or "verified" status is claimed in this document.
 
+## Scope of these assumptions
+
+These assumptions currently cover the **parser** only. A serializer that writes JSON
+for vehicle networks such as Ethernet is planned but does not exist yet. These
+assumptions will be extended when it is added, and until then nothing in this
+document applies to serialization.
+
+The assumed integrity level is **ASIL B(D)**: the library is one part of an ASIL D
+decomposition, and the integrator provides the other, independent part (see A-08).
+
 ## A-01 Target platforms
 
 The library is assumed to run on any platform from a bare-metal microcontroller
@@ -74,3 +84,75 @@ enforces them.
   memory use and parsing time fit their memory, stack and timing budget.
 - The library guarantees that it never goes past a configured limit. When a limit
   is reached, parsing stops and returns an explicit resource-limit error.
+
+## A-05 Memory: no heap, and which library is which
+
+The heap is never used in a safety-related build. The repository builds two
+libraries, and only one of them is in safety scope.
+
+| Library | CMake target | Where memory comes from | Safety scope |
+| --- | --- | --- | --- |
+| Parser library | `AdaptiveJSON5::parser` | Only a buffer or memory functions that the integrator passes in. It never calls `new`, `malloc` or any other heap function. | **In scope, ASIL B(D)** |
+| Hosted add-on | `AdaptiveJSON5::hosted` | The global heap, through non-throwing `operator new`. It is still capped by `max_owned_bytes`. | **Out of scope, QM only** |
+
+- **Parser library.** This is the actual JSON5 and JSON parser. The integrator calls
+  `json5_document::parse(input, buffer, buffer_size, options)` with their own buffer,
+  or uses the advanced API with their own memory functions (`storage_callbacks`).
+  Everything the parser creates lives in that memory.
+- **Hosted add-on.** This is a small convenience wrapper for desktop and server use.
+  `hosted::parse(input)` takes only the input and gets the memory from the heap. It
+  runs the same parser underneath; the only difference is where the memory comes
+  from. It is behind the build switch `ADAPTIVE_JSON5_BUILD_HOSTED`, which is off by
+  default, and it is not included in the release packages. The quick start in the
+  README uses it only because the first example is shorter that way.
+- A safety-related build must have `ADAPTIVE_JSON5_BUILD_HOSTED=OFF` and must link
+  only `AdaptiveJSON5::parser`. The hosted add-on may be used for tools, tests and
+  desktop use, never in a safety-related function.
+- If the integrator supplies their own memory functions (`storage_callbacks`), those
+  functions must not use the heap either. They must hand out memory from storage that
+  is reserved in advance, for example a static buffer or a fixed pool.
+
+## A-06 Every result is checked, and any error rejects the whole document
+
+The integrator checks every result the library returns, and treats any error as
+"this data is invalid".
+
+- This applies to every call that returns a result: parsing, and every later access
+  and conversion, such as looking up a member or converting a number with
+  `as_int64()`, `as_uint64()` or `as_double()`.
+- If any error occurs, the integrator rejects the **whole** document. A document that
+  produced an error is never partly used.
+- Only the integrator knows what "safe" means in their system, so the integrator
+  defines the reaction: for example, keeping the last valid data, using a safe
+  default, or switching to a degraded mode.
+- Results are marked `[[nodiscard]]`, so the compiler warns when a result is ignored.
+  This helps, but it is not proof that every result is handled correctly, so the
+  integrator remains responsible for it.
+
+## A-07 Hardware faults and freedom from interference
+
+The library does not detect or handle random hardware faults, and it does not
+protect itself from other software.
+
+- Faults such as bit flips in RAM, faulty registers or a misbehaving CPU are handled
+  by the integrator's hardware and safety mechanisms, for example ECC memory, lockstep
+  cores and the end-to-end protection in A-08.
+- If the library runs on the same processor as software with a different ASIL or QM
+  software, the integrator must provide freedom from interference, for example with
+  memory protection (MPU or MMU), separate partitions, and timing supervision such as
+  a watchdog. Other software must not be able to corrupt the library's input,
+  buffers, documents or stack.
+
+## A-08 Decomposition: the integrator provides an independent E2E check
+
+The integrator provides the second, independent ASIL B(D) part of the decomposition.
+
+- That part consists of end-to-end protection on every message the library parses,
+  for example AUTOSAR E2E with a CRC, a sequence counter and a timeout check, plus
+  plausibility checks on the values the application takes from parsed documents.
+- That part must be truly independent of this library. It must not use this library,
+  or code shared with it, to do its job, so that a single fault cannot break both
+  parts at the same time. The integrator documents this independence in their own
+  dependent failure analysis.
+- Without this second part, the library alone does not support ASIL D. In that case
+  the integrator has to do their own analysis.
