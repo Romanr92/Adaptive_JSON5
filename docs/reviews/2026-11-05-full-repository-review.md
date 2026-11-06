@@ -802,3 +802,876 @@ STD-07; Release-versus-Debug test configuration FS-07 with measured coverage; an
 sanitizer and fuzzing evidence (ChatGPT ran neither). ChatGPT's conclusion that no P0/P1
 defect exists did not cover the simple `json5_document` API, which did not exist at its
 baseline.
+
+---
+
+## Proposed GitHub issues (copy-ready)
+
+**How this section is organized.** The 86 findings are grouped into 16 proposed issues
+(I-01 … I-16). Every finding maps to exactly one issue (table below). The issues are
+written for #117 ("M7 — Independent three-model full repository re-review and
+remediation"), which asks to "create remediation issues, owner fixes production C++, AI
+tests only"; add each one as a sub-issue of #117. The repository's issue workflow allows
+at most three active issues per subsystem, so the issues are split into waves: open
+**Wave 1** now and the others when a slot frees up. Bodies follow the repository's
+`Bug report` and `Implementation task` templates, plus a findings list and a
+responsibilities section (`AGENTS.md`: Romanr92 writes production C++ and public headers;
+AI may change unit tests, CMake, CI and documentation).
+
+None of these issues were created by the reviewer. Labels are from the repository's
+existing set (`bug`, `enhancement`, `documentation`, `component:core`,
+`requirements:draft`); add a new label only if you want one.
+
+**Recommended order of work.**
+
+1. **Now, independent of any safety or security scope:** fix the confirmed defects and
+   test gaps — I-01 (High bug), I-06, I-07, I-02. They are wrong behavior under any scope.
+2. **Then decide the scope** (one owner decision, review question 1): QM only, or a
+   Safety Element out of Context with an *assumed* ASIL, and the assumed trust level of the
+   input (review question 2).
+3. **Before re-triaging the remaining findings, document the scope:** I-15 (assumptions of
+   use and assumed safety requirements — a library has no HARA of its own) and I-16
+   (out-of-context cybersecurity assumptions and a component threat analysis — the item
+   TARA belongs to the integrator). These documents decide which process findings become
+   mandatory (coverage/MC/DC, deviation register, tool confidence, fuzzing) and which can
+   be closed as not applicable.
+4. **Re-triage** I-03, I-04, I-05, I-08 … I-14 against that scope, then run the #117
+   re-review on the frozen commit.
+
+### Overview
+
+| Issue | Title | Highest severity | Subsystem | Wave | Related existing issues |
+| --- | --- | --- | --- | --- | --- |
+| I-01 | Simple API reads exhaust caller buffers, race, and lookups are quadratic | **High** | core | 1 | #117, #69 |
+| I-02 | Error model: locate and explain limit, access and internal failures | Medium | core | 1 | #117, #69 |
+| I-03 | Enable extended compiler warnings and fix mechanical coding-rule findings | Medium | core | 1 | #117 |
+| I-04 | Reduce complexity hot spots and generate both parser passes from one walker | Medium | core | 2 | #117 |
+| I-05 | Settle the public API surface before 1.0 | Medium | core | 2 | #117 |
+| I-06 | Package import: check the exact release tag and expose the hosted component | Medium | build | 1 | #117 |
+| I-07 | CI: test the shipped Release configuration and run gates on main | **High** | CI | 1 | #117 |
+| I-08 | Supply-chain hardening for workflows and release artifacts | Medium | CI | 1 | #117 |
+| I-09 | Optional sanitizer and fuzz workflow (needs scope decision) | Medium | CI | 2 | #117, #116 |
+| I-10 | Build and repository hygiene | Low | build | 2 | #117 |
+| I-11 | Documentation corrections from the full review | Medium | docs | 1 | #117 |
+| I-12 | Release notes, known anomalies and release baselines | Medium | docs | 1 | #117 |
+| I-13 | Embedded integration figures: stack, runtime facilities, data model, timing | Medium | docs | 1 | #117, #115, #69 |
+| I-14 | Coding-standard governance: fail-fast text, deviation register, tailoring | Medium | process | 1 | #117, #44 |
+| I-15 | ISO 26262 readiness (SEooC scope, requirements baseline, analyses, tools) | **High** | process | 1 | #117 |
+| I-16 | ISO/SAE 21434 readiness (security policy, TARA, guidance) | **High** | process | 1 | #117 |
+
+### Finding-to-issue map
+
+| Issue | Findings |
+| --- | --- |
+| I-01 | LOG-01, LOG-02, LOG-11, ARC-01, CS-03, DOC-01, DOC-02 |
+| I-02 | LOG-03, LOG-04, LOG-05, LOG-06, LOG-07, LOG-08, ARC-04, FS-05, DOC-05, DOC-06, DOC-19 |
+| I-03 | STD-01, STD-04, STD-08, STD-09, STD-10, STD-11, STD-12, STD-14, STD-15 |
+| I-04 | LOG-09, STD-07, ARC-02 |
+| I-05 | ARC-03, ARC-05, ARC-07, ARC-09 |
+| I-06 | REPO-15, ARC-06 |
+| I-07 | FS-07, REPO-01, REPO-02, REPO-06, REPO-07 |
+| I-08 | CS-04, REPO-05 |
+| I-09 | CS-02, REPO-03 |
+| I-10 | ARC-08, REPO-04, REPO-08, REPO-09, REPO-10, REPO-11, REPO-12, REPO-13 |
+| I-11 | LOG-10, DOC-04, DOC-07, DOC-08, DOC-09, DOC-10, DOC-11, DOC-12, DOC-14, DOC-15, DOC-18 |
+| I-12 | FS-09, DOC-13, DOC-16 |
+| I-13 | FS-06, DOC-03 |
+| I-14 | STD-02, STD-03, STD-05, STD-06, STD-13, FS-04, FS-10, DOC-17, REPO-14 |
+| I-15 | FS-01, FS-02, FS-03, FS-08 |
+| I-16 | CS-01, CS-05, CS-06, CS-07 |
+
+---
+
+### I-01 — Simple API reads exhaust caller buffers, race, and lookups are quadratic
+
+**Title:** `[Bug] json5_value::as_double() exhausts caller buffers; member() is quadratic`
+**Labels:** `bug`, `component:core`, `requirements:draft` · **Template:** Bug report ·
+**Wave:** 1 · **Parent:** #117 · **Related:** #69 (J5-048/049/050)
+
+````markdown
+### Expected and actual behavior
+
+Expected: reading values from a parsed `json5_document` is repeatable, does not consume
+the caller's buffer, is safe to do from several threads on a `const` document, and a
+member lookup costs time proportional to the object's size.
+
+Actual:
+1. `json5_value::as_double()` takes big-integer scratch from the document's own storage.
+   For a caller-buffer document, `buffer_arena` only rewinds when every allocation is
+   released, which never happens while the document lives. Every `as_double()` call
+   consumes arena space permanently; `to_double` reserves two scratch integers for every
+   finite non-zero value. `current_bytes()`/`peak_bytes()` do not show it, so the
+   documented sizing method cannot detect it.
+2. Because `as_double()` (a `const` member) mutates the document's accounting and arena,
+   two threads reading numbers from one `json5_document` race on
+   `accounted_storage::m_current_bytes/m_peak_bytes` and `buffer_arena::m_used/m_live`.
+   `document.hpp:209` promises concurrent const reads; `json5_document.hpp` says nothing.
+3. `json5_value::member()` loops over `member_at(position)`, and each `member_at` walks
+   the sibling list from the first member, so one lookup is O(n²) for n members and
+   always scans every member. No post-parse operation takes a work budget.
+
+### Minimal reproduction
+
+```cpp
+#include "adaptive_json5/adaptive_json5.hpp"
+#include <cstdio>
+#include <string_view>
+
+int main()
+{
+  static unsigned char memory[4096];
+  constexpr std::string_view text = "{ port: 8080, ratio: 1.5 }";
+  const auto parsed = adaptive_json5::json5_document::parse({text.data(), text.size()}, memory, sizeof(memory));
+  const auto root = parsed.value_if()->root();
+  for (int i = 1; i <= 100000; ++i)
+  {
+    const auto d = root.member("ratio").as_double();
+    if (!d.has_value())
+    {
+      std::printf("failed at read %d, code %d\n", i, static_cast<int>(d.error_if()->code));
+      return 1;
+    }
+  }
+  return 0;
+}
+```
+
+Result at `0.2.0`: `failed at read 163, code 7` (`allocation_failure`), while
+`current_bytes()` stays 649 and `peak_bytes()` 761.
+
+Lookup cost: an object with 1024 members (the default `max_members`) takes about 2.5 ms per
+`member()` call on an x86-64 host with an `-O2` library, whichever key is requested.
+
+### Version and build configuration
+
+Tag `0.2.0` (`903aedc`; production code identical to the reviewed `64510be`). Linux x86-64,
+GCC 13.3.0, exceptions OFF, RTTI OFF, caller-buffer (`json5_document::parse`) path.
+
+### Review findings covered
+
+LOG-01 (High), LOG-02, LOG-11, ARC-01, CS-03, DOC-01, DOC-02 in
+`docs/reviews/2026-11-05-full-repository-review.md`.
+
+### Proposed direction (owner decides)
+
+- Make value reads allocation-free for the common case (fast path for spellings with
+  ≤ 19 significant digits and small exponents), or make `buffer_arena` reclaim LIFO
+  releases (the two scratch integers are already released in reverse order), or take
+  scratch from a separate caller-supplied provider.
+- Walk the sibling chain once in `member()` (carry the current `value_view`), making it O(n).
+- State the thread-safety rule in `json5_document.hpp` and `json5_value.hpp`.
+- Decide whether lookups/exports need their own work budget (review question 17).
+
+### Unit-test acceptance criteria
+
+- 10 000 `as_double()` reads on a 4 KiB caller buffer succeed, including values with
+  300-digit spellings; the same for `hosted::parse`.
+- `J5_037_Json5Value.ReadsDoublesUsingDocumentScratch` gains an oracle that detects arena
+  consumption (not only `current_bytes()`).
+- Either two threads reading numbers from one document are race-free (document why), or
+  the header states that concurrent `as_double()` on one document is not supported.
+- `member()` on 0, 1, 1024 members: first, last, missing and duplicated names give the same
+  results as today; if a lookup work budget is added, exhaustion at the boundary returns
+  `resource_limit`.
+- All existing units pass with exceptions OFF and ON, RTTI OFF.
+
+### Responsibilities
+
+- Romanr92: production C++ and public headers.
+- AI: the unit tests above and the documentation updates (`docs/memory-and-limits.md`).
+````
+
+---
+
+### I-02 — Error model: locate and explain limit, access and internal failures
+
+**Title:** `[Implementation] Error reasons and locations for limits, access and internal faults`
+**Labels:** `enhancement`, `component:core`, `requirements:draft` · **Template:**
+Implementation task · **Wave:** 1 · **Parent:** #117 · **Related:** #69
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-017, J5-039, J5-043, J5-044, J5-045. No prerequisite issue.
+
+### Behavior and scope
+
+Make every failure identifiable without reading prose:
+
+1. Exceeding `max_depth`, `max_nodes`, `max_members` (and `max_input_bytes`) returns
+   `resource_limit` without a byte offset, and no `resource_limit` says which limit was hit
+   (`core/src/parser/parser_engine.cpp:126-148, 684-698`). Add the offset of the token that
+   would exceed the limit and an optional limit reason (input, depth, nodes, members,
+   string, total string, number bytes, exponent digits, owned bytes, diagnostics, work).
+2. `json5_value::member()` returns the same `wrong_type_or_access` for a missing member, a
+   duplicated member and a non-object. Add an access reason (wrong type, absent member,
+   duplicate member, index out of range).
+3. Internal invariant violations (pass disagreement) are reported as
+   `wrong_type_or_access`; add an `internal_error` category or reason.
+   `limited_scan_error` (`parser_work.cpp:85-100`) turns any unlocated error (e.g.
+   `allocation_failure`) into `resource_limit` when the scan was cut; restrict that to
+   `syntax`/`encoding` errors.
+4. Unknown words starting with `N` or `I` (`None`, `Index`, `Nan`) are reported mid-word
+   without `source_range`, unlike `nul`/`trueish`.
+5. `allocate_block` reports an invalid alignment as `resource_limit`; it is an invalid
+   argument.
+6. `accounted_storage::deallocate_callback` subtracts without an underflow check; a
+   mismatched release wraps the counter. Saturate and latch a fault state.
+7. Decide the J5-017 precedence: with `max_diagnostics = 0` a valid document with one raw
+   U+2028 fails with `resource_limit`, while J5-017 says warnings never turn valid parsing
+   into failure. Align J5-017, the API note and `docs/memory-and-limits.md`.
+8. Consider a compact `error` layout while adding reasons (today 104 bytes on x86-64,
+   inline in every `result<T>`).
+
+### Unit-test acceptance criteria
+
+- Each limit at limit + 1: `resource_limit`, the documented reason, and an offset at the
+  offending token (or an explicit "no location" rule for `max_input_bytes`).
+- `member()` cases: absent, duplicated, non-object, invalid UTF-8 name → distinct reasons.
+- A cut scan with an allocation failure keeps `allocation_failure`.
+- `[None]`, `[Index]`, `[Nan]` → `unknown_literal` with a whole-word `source_range`.
+- Invalid alignment → `wrong_type_or_access`.
+- Mismatched release does not wrap `current_bytes()`.
+- `max_diagnostics` 0 and 1 with a value warning and a member-name warning follow the
+  decided precedence.
+- All in both exception modes, RTTI OFF.
+
+### Review findings covered
+
+LOG-03, LOG-04, LOG-05, LOG-06, LOG-07, LOG-08, ARC-04, FS-05, DOC-05, DOC-06, DOC-19.
+
+### Responsibilities
+
+- Romanr92: `error.hpp`, parser and memory production code, J5-017 decision.
+- AI: unit tests, `docs/memory-and-limits.md` and requirement text after the decision.
+````
+
+---
+
+### I-03 — Enable extended compiler warnings and fix mechanical coding-rule findings
+
+**Title:** `[Implementation] Extended warnings, prefixed include guards and mechanical MISRA fixes`
+**Labels:** `enhancement`, `component:core` · **Template:** Implementation task ·
+**Wave:** 1 · **Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+Coding baseline in `core/docs/design-coding-style.md` (MISRA C++:2023, CERT C++). Land
+I-14's guide changes first or together.
+
+### Behavior and scope
+
+1. GCC/Clang targets use only `-Wparentheses -Werror` (`CMakeLists.txt:62-63`). Add at least
+   `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wshadow -Wold-style-cast`.
+   Review sweep at `0.2.0`: 65 of 71 production TUs already clean; remaining diagnostics are
+   an unused typedef (`json5_value.cpp:226`), two useless casts
+   (`pointer_alignment.cpp:18,21`) and 32 `-Wswitch-enum` sites. Test targets also need a pass.
+2. Prefix every installed include guard with `ADAPTIVE_JSON5_` (22 of 38 public headers use
+   e.g. `INPUT_HPP_`, `OPTIONS_HPP_`; `-DOPTIONS_HPP_` breaks the umbrella header) and update
+   the coding-style guide rule.
+3. Default member initializers for public aggregates (`error`, `string_warning`, span
+   structs); initialize the three uninitialized locals (`punctuation.cpp:32`,
+   `string_boundary.cpp:34`, `string_warning.cpp:133`).
+4. `parser_stack::pop()` returns `bool` but all three callers ignore it; return `void` or
+   mark `[[nodiscard]]` and check it.
+5. List every enumerator in switches over `parser_state`/`punctuation_kind` (or enable
+   `-Wswitch-enum` for the parser directory).
+6. Replace pointer↔`uintptr_t` alignment arithmetic by `std::align` where possible.
+7. Use fixed-width types (or documented minimum-range reasoning) instead of `int`/`unsigned
+   int` in numeric code; spell out deduced arithmetic types where `auto` hides them.
+8. Fix the comment typos listed in STD-14.
+
+### Unit-test acceptance criteria
+
+- All project targets (library, hosted, units, validation) build warning-free with the new
+  flags in both exception modes.
+- A compile-only unit: a translation unit that defines `INPUT_HPP_`, `OPTIONS_HPP_`,
+  `PARSER_HPP_`, `DOCUMENT_HPP_` and `STORAGE_HPP_` before including the umbrella header
+  compiles.
+- `error{}` value-initializes `code`, `byte_offset` and `has_byte_offset` (static check).
+- All existing units pass unchanged.
+
+### Review findings covered
+
+STD-01, STD-04, STD-08, STD-09, STD-10, STD-11, STD-12, STD-14, STD-15.
+
+### Responsibilities
+
+- Romanr92: production and public-header edits.
+- AI: CMake flag change, test-code warning fixes, compile-only units, coding-guide text.
+````
+
+---
+
+### I-04 — Reduce complexity hot spots and generate both parser passes from one walker
+
+**Title:** `[Implementation] Split high-complexity functions and unify count/build passes`
+**Labels:** `enhancement`, `component:core` · **Template:** Implementation task ·
+**Wave:** 2 · **Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+No behavior change intended. Prerequisite: I-03 (warnings) to keep the refactor safe.
+
+### Behavior and scope
+
+1. 46 functions exceed cyclomatic complexity 10 and 10 exceed 100 lines. Largest:
+   `convert_to_floating` (CCN 54, 239 lines), `read_integer_magnitude` (36),
+   `analyse_number` (36), `consume_decimal` (32), `parser_engine::read_value` (31). Split
+   along natural phases and record the accepted thresholds in the coding-style guide.
+2. The count pass (`count_value/count_name/count_separator/count_close`) duplicates the
+   build pass state machine; agreement is only checked at run time. Generate both from one
+   templated walker with a counting and a building policy.
+3. Optional performance follow-ups: single-decode whitespace loop; reuse the count-pass
+   measurement in the build pass.
+
+### Unit-test acceptance criteria
+
+- All 2514 unit and 921 validation cases pass unchanged in both exception modes.
+- No function above the recorded thresholds, or each exception justified in the guide.
+- Work charged per document is unchanged or documented where intentionally reduced.
+
+### Review findings covered
+
+LOG-09, STD-07, ARC-02.
+
+### Responsibilities
+
+- Romanr92: production refactor.
+- AI: metric report, any unit additions for newly separated helpers (internal units in
+  `core/tests/`).
+````
+
+---
+
+### I-05 — Settle the public API surface before 1.0
+
+**Title:** `[Implementation] Decide public API surface: builder, storage callbacks, ABI, index identity`
+**Labels:** `enhancement`, `component:core`, `requirements:draft` · **Template:**
+Implementation task · **Wave:** 2 · **Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-008, J5-092, J5-093. Record decisions in an ADR before code changes.
+
+### Behavior and scope
+
+1. Public headers expose construction internals: `document::make_*`, `append_*`,
+   `set_source_span`, `set_root`, `owned_block`/`allocate_block`, `detail::value_storage`,
+   `detail::document_storage_owner`. A consumer can mutate a parsed document (an append to
+   an exact-reserved document then fails with the internal-error code). Decide on a
+   read-only view versus a separate builder and an explicitly unsupported `detail/` folder.
+2. `storage_callbacks` has two allocation entry points (`allocate`, `allocate_result`);
+   decide whether to keep one in the next breaking release.
+3. Write an ABI policy (which options change the ABI; consider an inline versioned
+   namespace once the API stabilizes).
+4. `value_index` has no document identity; an index from another document silently
+   addresses an unrelated record. Keep it as a documented precondition or add an owner tag.
+
+### Unit-test acceptance criteria
+
+- Per decision: compile-only units for the supported surface; a misuse case for the index
+  identity rule (documented error or documented precondition).
+- Umbrella coverage unit updated if headers move.
+
+### Review findings covered
+
+ARC-03, ARC-05, ARC-07, ARC-09.
+
+### Responsibilities
+
+- Romanr92: ADR decisions, public headers, production code.
+- AI: ADR drafting on request, units, documentation.
+````
+
+---
+
+### I-06 — Package import: check the exact release tag and expose the hosted component
+
+**Title:** `[Bug] Import helper accepts a different release tag; hosted component not discoverable`
+**Labels:** `bug` · **Template:** Bug report · **Wave:** 1 · **Parent:** #117
+
+````markdown
+### Expected and actual behavior
+
+Expected: `adaptive_json5_import_release(VERSION 0.2.0-rc.9 ROOT <dir>)` fails when `<dir>`
+contains the final `0.2.0` package, and `find_package(AdaptiveJSON5 CONFIG COMPONENTS hosted)`
+works when the hosted library is installed.
+
+Actual:
+1. `cmake/ImportAdaptiveJSON5.cmake:14-17` reduces the tag to its numeric version and lines
+   94-101 check only `find_package(... EXACT)` and the profile. `build-info.json`
+   `release_tag` is never compared and not exported.
+2. `cmake/AdaptiveJSON5Config.cmake.in` sets `AdaptiveJSON5_parser_FOUND` and
+   `AdaptiveJSON5_build_options_FOUND` but never `AdaptiveJSON5_hosted_FOUND`.
+
+### Minimal reproduction
+
+Build a `linux-x86_64-gcc` package of tag `0.2.0` (with the packaging fix from
+`72-release-packaging`), extract it, and configure a consumer with
+`adaptive_json5_import_release(VERSION 0.2.0-rc.9 ROOT <extracted>)` or
+`VERSION v0.2.0-beta.1`: both exit 0 and report `AdaptiveJSON5_VERSION=0.2.0`.
+
+### Version and build configuration
+
+Tag `0.2.0`, CMake 3.28, GCC 13.3.0, Linux x86-64.
+
+### Review findings covered
+
+REPO-15, ARC-06.
+
+### Unit-test acceptance criteria
+
+- Tool tests (Python or CMake script mode): matching tag succeeds; `rc.1` vs `rc.2`,
+  pre-release vs final and (per decision) `v`-prefix mismatches fail on the `ROOT` and
+  reused-cache paths; wrong profile/numeric version still fail.
+- `AdaptiveJSON5_RELEASE_TAG` exported.
+- `find_package(AdaptiveJSON5 CONFIG REQUIRED COMPONENTS hosted)` succeeds with a hosted
+  install and fails clearly without it.
+
+### Responsibilities
+
+CMake and tests only: AI may implement; owner reviews.
+````
+
+---
+
+### I-07 — CI: test the shipped Release configuration and run gates on main
+
+**Title:** `[Implementation] CI: Release unit leg, push/schedule triggers, tool checks, locale`
+**Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 1 ·
+**Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-052, J5-091, J5-099, J5-100. Uses existing unit/validation tests only (no new gate type).
+
+### Behavior and scope
+
+1. All test jobs build `Debug`; `tools/package_release.py` ships `Release` with tests OFF.
+   Add a `Release` (or `RelWithDebInfo`) unit leg matching the packaging flags.
+2. Gates run on `pull_request` only. Add `push: branches: [main]` and a weekly `schedule`
+   (MSYS2 GCC and `ubuntu-latest` drift).
+3. Run `python3 -m unittest discover -s tools/tests` and an offline Unicode-table
+   regeneration diff on pull requests. The 0.2.0 packaging failure (header inventory check)
+   would have been caught by exercising the packaging script before the tag.
+4. Install a comma-decimal locale (e.g. `de_DE.UTF-8`) on Linux jobs so
+   `J5_052_NumericLocale.ResultsIgnoreProcessLocale` executes instead of being skipped.
+5. Record, per release, which configurations the evidence covers (Debug/Release, host
+   only, no target execution).
+
+### Unit-test acceptance criteria
+
+- New Release leg: 2514/2514 units pass in both exception modes.
+- Locale case reported as passed (not skipped) on Linux.
+- Tool job: 4/4 Python units and byte-identical Unicode regeneration.
+- A deliberately broken `tools/package_release.py` fails a PR job (one-time check).
+
+### Review findings covered
+
+FS-07, REPO-01, REPO-02, REPO-06, REPO-07.
+
+### Responsibilities
+
+CI/CMake/tests only: AI may implement; owner approves the scope of item 3 if it counts as a
+new job.
+````
+
+---
+
+### I-08 — Supply-chain hardening for workflows and release artifacts
+
+**Title:** `[Implementation] Pin actions and runners, attest releases, publish SBOM`
+**Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 1 ·
+**Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-007, J5-093. No prerequisite.
+
+### Behavior and scope
+
+1. Pin by full SHA: `actions/checkout@v7` and `actions/setup-python@v7` in
+   `unit-tests.yml` (first job), `formatting.yml`, `examples.yml` (other jobs already pin).
+2. Replace `ubuntu-latest` by a fixed image; record exact `g++-13` and MSYS2 package versions
+   in release jobs.
+3. `pip install clang-format==18.1.8` → hashed requirements file (`--require-hashes`).
+4. Release integrity: SHA-256 files uploaded to the same release detect corruption, not
+   tampering. Add GitHub artifact attestations (SLSA provenance) or Sigstore signatures and
+   an SPDX or CycloneDX SBOM per archive.
+5. Enable Dependabot for GitHub Actions.
+
+### Unit-test acceptance criteria
+
+- Every `uses:` is a 40-character SHA with a version comment.
+- A release dry run produces attestation/signature and SBOM next to each archive.
+- Existing unit, validation and formatting jobs stay green.
+
+### Review findings covered
+
+CS-04, REPO-05.
+
+### Responsibilities
+
+CI/packaging only: AI may implement; owner approves release changes.
+````
+
+---
+
+### I-09 — Optional sanitizer and fuzz workflow (needs scope decision)
+
+**Title:** `[Implementation] Non-blocking sanitizer and fuzz workflow; sanitizer-clean tests`
+**Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 2 ·
+**Parent:** #117 · **Related:** #116 (fuzzing)
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-097, J5-098. **Needs an owner decision:** `AGENTS.md` excludes sanitizer and fuzz gates;
+this proposes a scheduled, non-blocking job like the existing `examples` workflow. #117's
+exit criteria already list a sanitizer/fuzz rerun.
+
+### Behavior and scope
+
+1. Review evidence at `0.2.0`: all 3435 unit and validation cases under ASan+UBSan show no
+   production defect; 59 failures are `alloc-dealloc-mismatch` from incomplete global
+   `operator new/delete` replacements in `tests/api/pure_memory_tests.cpp:24-66` and
+   `tests/api/diagnostic_format_tests.cpp:45-63`. Replace all overloads (plain, nothrow,
+   aligned, sized, array) consistently.
+2. Commit a test-only libFuzzer harness under `tests/` (parse both modes and policies, walk
+   the value tree, numeric conversions, UTF-8 export, `format_error`, simple API) with a
+   seed corpus from the committed fixtures. A 10-minute review run (21.5 M executions) found
+   no crash.
+3. Scheduled, non-blocking workflow: ASan+UBSan unit run plus a short fuzz run.
+
+### Unit-test acceptance criteria
+
+- Sanitizer job: all units and validation cases pass (no `alloc-dealloc-mismatch`).
+- Fuzz smoke run (e.g. 60 s) completes without a crash, timeout or OOM.
+- Normal jobs unaffected.
+
+### Review findings covered
+
+CS-02, REPO-03.
+
+### Responsibilities
+
+Test code and CI only: AI may implement after the owner's scope decision.
+````
+
+---
+
+### I-10 — Build and repository hygiene
+
+**Title:** `[Implementation] Build and repository hygiene from the full review`
+**Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 2 ·
+**Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-007, J5-092. No prerequisite.
+
+### Behavior and scope
+
+1. `cmake/Dependencies.cmake`: scope `FETCHCONTENT_UPDATES_DISCONNECTED`, avoid `FORCE` on
+   generic GoogleTest cache options, and download GoogleTest into the binary directory
+   instead of `tools/gtest` in the source tree.
+2. Add `* text=auto eol=lf` to `.gitattributes`.
+3. Add `SPDX-License-Identifier: Apache-2.0` and a copyright line to every source file
+   (171 of 172 production files and all tests lack it).
+4. Align `.github/pull_request_template.md` with the required checks (validation tests,
+   exceptions-ON leg).
+5. Reformat the `install(...)`/hosted block in `CMakeLists.txt:122-135`.
+6. Move historical backlog snapshots in `core/docs/*.json` to an archive folder.
+7. Decide whether `.zed/user-config/` belongs in the repository.
+8. Rename `ADAPTIVE_JSON5_BUILD_EXECUTABLE` to `ADAPTIVE_JSON5_BUILD_EXAMPLES` with a
+   compatibility alias until a CLI exists.
+
+### Unit-test acceptance criteria
+
+- Parent-project probe: enabling this subproject's tests does not change the parent's
+  GoogleTest cache options.
+- All existing jobs green; formatting unchanged except the reformatted CMake block.
+
+### Review findings covered
+
+ARC-08, REPO-04, REPO-08, REPO-09, REPO-10, REPO-11, REPO-12, REPO-13.
+
+### Responsibilities
+
+CMake, configuration and headers' comment lines: AI may implement CMake/config; SPDX lines in
+production files need owner approval (production files).
+````
+
+---
+
+### I-11 — Documentation corrections from the full review
+
+**Title:** `[Documentation] Correct stale and inaccurate statements found in the full review`
+**Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
+**Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-008, J5-100. No prerequisite.
+
+### Behavior and scope
+
+1. `docs/memory-and-limits.md:237-238`: "every limit … found in the first pass" is not true
+   for `max_owned_bytes` and partly `max_work_units`.
+2. `docs/conformance.md:158`: broken anchor `requirements.md#minimum-unit-regression-checklist`
+   → `../core/docs/requirements-quality.md#minimum-unit-regression-checklist`.
+3. `docs/traceability.md:26-70`: duplicated "Layout and mapping rules" block and empty
+   "Core requirements" heading.
+4. `AGENTS.md:8`, `docs/dependencies.md:14`: proposal path `docs/requirements/proposals/`
+   does not exist.
+5. `docs/requirements.md:12`, `core/docs/requirements-quality.md` (J5-099): "unit tests and
+   formatting only" — validation tests and the examples job exist.
+6. `docs/adr/0001-project-scope.md:21`: macOS target conflicts with requirements and README.
+7. `core/docs/design-architecture.md:137`: "Remaining: P034/P035 …" node is stale.
+8. `includes/adaptive_json5/result.hpp:230,245`: `error_if()` Doxygen brief says "Construct
+   failure with a payload" (public header — owner edit).
+9. Repeated "official-specification implementation sequence" paragraph in README, AGENTS.md
+   and requirements.md; keep one copy.
+10. `.agents/skills/guide-requirement/SKILL.md:180` calls the complete-document entry
+    "future"; `.zed/README.md:39` says "currently 98 cases".
+11. Move the U+200B whitespace choice into the conformance deviations table.
+
+### Unit-test acceptance criteria
+
+- Relative-link and anchor check over all Markdown files reports no errors.
+- No hard-coded current test totals in guides (or dated ones).
+
+### Review findings covered
+
+LOG-10, DOC-04, DOC-07, DOC-08, DOC-09, DOC-10, DOC-11, DOC-12, DOC-14, DOC-15, DOC-18.
+
+### Responsibilities
+
+AI may implement all documentation items; item 8 is a public-header comment (owner).
+````
+
+---
+
+### I-12 — Release notes, known anomalies and release baselines
+
+**Title:** `[Documentation] 0.2.0 release notes with known anomalies; release baseline process`
+**Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
+**Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-093, J5-100. Prerequisite: merge `72-release-packaging` (README pin to `0.2.0`, packaging
+inventory fix).
+
+### Behavior and scope
+
+1. Publish 0.2.0 release notes with a **known anomalies** section: LOG-01 (`as_double()`
+   exhausts caller buffers), LOG-02 (data race on shared reads), LOG-11 (quadratic
+   `member()`), with the workaround "use `values()` with `to_double()` and your own scratch
+   storage, or the hosted library, for repeated floating-point reads".
+2. Add a CHANGELOG or release-notes template (supported versions, evidence links, known
+   anomalies).
+3. Keep documentation pinned to release tags (README quick start).
+
+### Unit-test acceptance criteria
+
+Documentation only: release notes linked from `docs/conformance.md`; README quick start
+compiles and prints `port: 8080` with `GIT_TAG 0.2.0`.
+
+### Review findings covered
+
+FS-09, DOC-13, DOC-16.
+
+### Responsibilities
+
+AI may draft; owner publishes the GitHub release text.
+````
+
+---
+
+### I-13 — Embedded integration figures: stack, runtime facilities, data model, timing
+
+**Title:** `[Documentation] Record embedded runtime facilities, stack usage and timing method`
+**Labels:** `documentation`, `component:core`, `requirements:draft` · **Template:**
+Implementation task · **Wave:** 1 · **Parent:** #117 · **Related:** #115, #69 (J5-101)
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-101, J5-048. Related to #115 (embedded examples and release evidence) and #69.
+
+### Behavior and scope
+
+`docs/embedded.md:22-23` lists what must be recorded but records none of it. Add:
+
+1. Worst-case stack usage per public entry point (GCC `-fstack-usage` plus call-graph
+   analysis). Review probe on x86-64: `sizeof(parser_engine)` = 968 B, `sizeof(error)` =
+   104 B, `sizeof(json5_value)` = 144 B.
+2. Required C++ runtime facilities: `std::variant`, `std::optional`, `<type_traits>`,
+   `std::memcpy`, placement new, `std::launder`; no static constructors (confirm).
+3. Data-model assumptions: `CHAR_BIT == 8`, two's complement, `std::uintptr_t`
+   availability, alignment requirements, octet/character representation for UTF-8.
+4. A method to convert work units into time on a target, and the statement that work
+   counters are not WCET.
+5. Plan for executing the unit suite on a representative target (e.g. the AdaptivePi
+   AArch64 profile).
+
+### Unit-test acceptance criteria
+
+- A host unit (or static assertion) for each documented data-model assumption.
+- Stack figures reproducible from a documented command.
+
+### Review findings covered
+
+FS-06, DOC-03.
+
+### Responsibilities
+
+AI may measure on the host and write the documentation; owner confirms target plans.
+````
+
+---
+
+### I-14 — Coding-standard governance: fail-fast text, deviation register, tailoring
+
+**Title:** `[Documentation] Coding-standard deviation register and accurate fail-fast rules`
+**Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
+**Parent:** #117 · **Related:** #44 (the branch currently carrying the coding-style commit)
+
+````markdown
+### Requirement IDs and prerequisites
+
+`core/docs/design-coding-style.md`. Land separately from the schema work in #44.
+
+### Behavior and scope
+
+1. Move commit `f103fc2` ("Control flow and error handling") from branch
+   `44-schema-1-…-p043p046` into its own documentation PR (fix the subject typo "conding").
+2. Make the rules match the code, or state the exceptions: near-cut error reclassification
+   (`parser_work.cpp:85-100`), the single-use parser state that is discarded instead of
+   rolled back, limited-scan charging after the scan (`parser_engine.cpp:247`), and the
+   ignored `pop()` result (I-03). Add one sentence: RAII owners release resources on every
+   early return — the ISO 26262-6 Table 6 item 1a rationale.
+3. Fix the two stale "unit tests and formatting" sentences (lines 56 and 80) and the bare
+   header-guard rule (see I-03).
+4. Start a deviation register (rule, edition, scope, rationale, compensating measures):
+   placement new/explicit destructor calls (STD-02), heap use in the hosted library
+   (STD-03), `void*` callback contexts (STD-05), pointer↔integer casts (STD-04 residue).
+5. Record the exact MISRA C++:2023 edition and technical corrigenda, CERT errata, the AUTOSAR
+   C++14 stance (C++14 only; supplementary) and a BARR-C:2018 tailoring (80 vs 120 columns,
+   4 vs 2 spaces, C99 and `auto`).
+
+### Unit-test acceptance criteria
+
+Documentation only; every register entry references code locations that exist at the
+release commit.
+
+### Review findings covered
+
+STD-02, STD-03, STD-05, STD-06, STD-13, FS-04, FS-10, DOC-17, REPO-14.
+
+### Responsibilities
+
+AI may draft the guide and register; owner approves each deviation.
+````
+
+---
+
+### I-15 — ISO 26262 readiness (SEooC scope, requirements baseline, analyses, tools)
+
+**Title:** `[Implementation] ISO 26262 readiness: safety scope, requirements baseline, analyses, tool confidence`
+**Labels:** `enhancement`, `requirements:draft` · **Template:** Implementation task ·
+**Wave:** 1 · **Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+All J5 rows (status remains Draft until reviewed). **Owner decision first:** QM-only use,
+or Safety Element out of Context up to a target ASIL (review question 1).
+
+### Behavior and scope
+
+1. Safety scope: no HARA at library level — the HARA, safety goals and ASIL belong to the
+   integrator's item. The library records an *assumed* ASIL (or QM), assumptions of use (input trust, single-threaded use
+   per document, caller storage guarantees, timing budget), software safety requirements,
+   safety manual with integration obligations and known anomalies.
+2. Requirements baseline: split rows into atomic, verifiable statements; add attributes
+   (ASIL/QM, status, verification method, result reference); hold and record a requirements
+   review; baseline per release. 45 rows have no unit test today.
+3. Architecture and analyses: current static and dynamic architecture view, interface table
+   (resources, errors per component), software FMEA (wrong value accepted, valid input
+   rejected, hang, memory corruption, wrong error category) and dependent-failure analysis
+   for shared storage.
+4. Tool confidence: TI/TD/TCL evaluation for compilers (GCC, MinGW, Yocto SDK), CMake,
+   `tools/generate_unicode_tables.py` (reference `core/tests/unicode/unicode_tables_tests.cpp`
+   as detection), `tools/package_release.py`, clang-format, GoogleTest and gcovr.
+5. Structural coverage per release (review run: 95.7 % lines, 98.5 % functions, 90.0 %
+   branches; MC/DC not measured) with justification of uncovered branches; MC/DC tooling if
+   ASIL C/D is targeted.
+
+### Unit-test acceptance criteria
+
+Process issue: each item produces a reviewed document; new units only where the analyses
+identify untested failure modes.
+
+### Review findings covered
+
+FS-01, FS-02, FS-03, FS-08 (FS-04 → I-14, FS-05 → I-02, FS-06 → I-13, FS-07 → I-07,
+FS-09 → I-12, FS-10 → I-14).
+
+### Responsibilities
+
+Owner: scope decision and approvals. AI may draft documents and add units.
+````
+
+---
+
+### I-16 — ISO/SAE 21434 readiness (security policy, TARA, guidance)
+
+**Title:** `[Documentation] SECURITY.md, TARA and cybersecurity guidance for integrators`
+**Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
+**Parent:** #117
+
+````markdown
+### Requirement IDs and prerequisites
+
+J5-032, J5-047. Prerequisite for supply-chain items: I-08.
+
+### Behavior and scope
+
+1. Add `SECURITY.md`: private reporting channel, supported versions, response targets,
+   advisory process; enable GitHub security advisories.
+2. The item TARA (damage scenarios, impact ratings, cybersecurity goals) belongs to the
+   integrator. At library level, turn the review's TARA-lite into a maintained
+   out-of-context threat analysis with an assumed assurance level (CAL): assets, threats (memory
+   corruption, resource exhaustion, semantic confusion, disclosure, supply chain),
+   controls, residual risks, and out-of-context assumptions — including that syntax
+   acceptance does **not** authenticate a configuration (integrator must authenticate the
+   source).
+3. Integrator guidance: use `reject_duplicates` for security-relevant configuration; note
+   that `as_string()` may return embedded NUL bytes (C-string consumers truncate); prefer
+   the caller-buffer or callback storage path over the hosted (global heap) library.
+4. Known-anomaly and fix process for released versions (links to I-12).
+
+### Unit-test acceptance criteria
+
+Documentation only; optionally a unit demonstrating the NUL behavior and the
+duplicate-policy guidance.
+
+### Review findings covered
+
+CS-01, CS-05, CS-06, CS-07 (CS-02 → I-09, CS-03 → I-01, CS-04 → I-08).
+
+### Responsibilities
+
+AI may draft; owner approves policy and contact details.
+````
