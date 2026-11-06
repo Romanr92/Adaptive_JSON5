@@ -73,8 +73,8 @@ Owner of all work products: Romanr92.
 | 5 | Coding guidelines, building on the MISRA fail-fast rules (see #137) | [`coding-guidelines.md`](coding-guidelines.md) | Draft |
 | 6 | Verification and structural coverage strategy | [`verification-strategy.md`](verification-strategy.md) | Draft; most new checks still to be implemented (#132, #141) |
 | 7 | Tool confidence evaluation (ISO 26262-8, clause 11) | [`tool-confidence.md`](tool-confidence.md) | Draft |
-| 8 | Traceability | Not started | Not started |
-| 9 | Safety Manual for integrators | Not started | Not started |
+| 8 | Traceability | [`traceability.md`](traceability.md), chain kept in [`docs/traceability.md`](../traceability.md#safety-traceability-iso-26262) | Draft; structure in place, most links still missing |
+| 9 | Safety Manual for integrators | [`safety-manual.md`](safety-manual.md) | Draft |
 
 **How the architecture and the FMEA rows are produced.** An AI agent reads the code
 and the existing design documents and drafts each part: what it does, its interfaces,
