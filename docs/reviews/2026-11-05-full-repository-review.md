@@ -819,9 +819,12 @@ at most three active issues per subsystem, so the issues are split into waves: o
 responsibilities section (`AGENTS.md`: Romanr92 writes production C++ and public headers;
 AI may change unit tests, CMake, CI and documentation).
 
-None of these issues were created by the reviewer. Labels are from the repository's
+**Created on GitHub on 2026-11-06** at the owner's request: #124 … #139 in milestone
+"M4 — JSON Schema Draft-07 and CLI", titles prefixed with their proposal ID
+(`[Bug] I-01 — …`). I-01, I-02, I-06 and I-07 are assigned to Romanr92; the others are
+unassigned and not yet linked as sub-issues of #117. Labels are from the repository's
 existing set (`bug`, `enhancement`, `documentation`, `component:core`,
-`requirements:draft`); add a new label only if you want one.
+`requirements:draft`).
 
 ### Order of work: scope documents (HARA/TARA) versus review findings
 
@@ -862,24 +865,24 @@ component to be qualified for that project (ISO 26262-8 clause 12).
 
 ### Overview
 
-| Issue | Title | Highest severity | Subsystem | Wave | Related existing issues |
-| --- | --- | --- | --- | --- | --- |
-| I-01 | Simple API reads exhaust caller buffers, race, and lookups are quadratic | **High** | core | 1 | #117, #69 |
-| I-02 | Error model: locate and explain limit, access and internal failures | Medium | core | 1 | #117, #69 |
-| I-03 | Enable extended compiler warnings and fix mechanical coding-rule findings | Medium | core | 1 | #117 |
-| I-04 | Reduce complexity hot spots and generate both parser passes from one walker | Medium | core | 2 | #117 |
-| I-05 | Settle the public API surface before 1.0 | Medium | core | 2 | #117 |
-| I-06 | Package import: check the exact release tag and expose the hosted component | Medium | build | 1 | #117 |
-| I-07 | CI: test the shipped Release configuration and run gates on main | **High** | CI | 1 | #117 |
-| I-08 | Supply-chain hardening for workflows and release artifacts | Medium | CI | 1 | #117 |
-| I-09 | Optional sanitizer and fuzz workflow (needs scope decision) | Medium | CI | 2 | #117, #116 |
-| I-10 | Build and repository hygiene | Low | build | 2 | #117 |
-| I-11 | Documentation corrections from the full review | Medium | docs | 1 | #117 |
-| I-12 | Release notes, known anomalies and release baselines | Medium | docs | 1 | #117 |
-| I-13 | Embedded integration figures: stack, runtime facilities, data model, timing | Medium | docs | 1 | #117, #115, #69 |
-| I-14 | Coding-standard governance: fail-fast text, deviation register, tailoring | Medium | process | 1 | #117, #44 |
-| I-15 | ISO 26262 readiness (SEooC scope, requirements baseline, analyses, tools) | **High** | process | 1 | #117 |
-| I-16 | ISO/SAE 21434 readiness (security policy, TARA, guidance) | **High** | process | 1 | #117 |
+| Issue | GitHub | Title | Highest severity | Subsystem | Wave | Related existing issues |
+| --- | --- | --- | --- | --- | --- | --- |
+| I-01 | #124 (assigned) | Simple API reads exhaust caller buffers, race, and lookups are quadratic | **High** | core | 1 | #117, #69 |
+| I-02 | #125 (assigned) | Error model: locate and explain limit, access and internal failures | Medium | core | 1 | #117, #69 |
+| I-03 | #126 | Enable extended compiler warnings and fix mechanical coding-rule findings | Medium | core | 1 | #117 |
+| I-04 | #127 | Reduce complexity hot spots and generate both parser passes from one walker | Medium | core | 2 | #117 |
+| I-05 | #128 | Settle the public API surface before 1.0 | Medium | core | 2 | #117 |
+| I-06 | #129 (assigned) | Package import: check the exact release tag and expose the hosted component | Medium | build | 1 | #117 |
+| I-07 | #130 (assigned) | CI: test the shipped Release configuration and run gates on main | **High** | CI | 1 | #117 |
+| I-08 | #131 | Supply-chain hardening for workflows and release artifacts | Medium | CI | 1 | #117 |
+| I-09 | #132 | Optional sanitizer and fuzz workflow (needs scope decision) | Medium | CI | 2 | #117, #116 |
+| I-10 | #133 | Build and repository hygiene | Low | build | 2 | #117 |
+| I-11 | #134 | Documentation corrections from the full review | Medium | docs | 1 | #117 |
+| I-12 | #135 | Release notes, known anomalies and release baselines | Medium | docs | 1 | #117 |
+| I-13 | #136 | Embedded integration figures: stack, runtime facilities, data model, timing | Medium | docs | 1 | #117, #115, #69 |
+| I-14 | #137 | Coding-standard governance: fail-fast text, deviation register, tailoring | Medium | process | 1 | #117, #44 |
+| I-15 | #138 | ISO 26262 readiness (SEooC scope, requirements baseline, analyses, tools) | **High** | process | 1 | #117 |
+| I-16 | #139 | ISO/SAE 21434 readiness (security policy, TARA, guidance) | **High** | process | 1 | #117 |
 
 ### Finding-to-issue map
 
@@ -906,7 +909,7 @@ component to be qualified for that project (ISO 26262-8 clause 12).
 
 ### I-01 — Simple API reads exhaust caller buffers, race, and lookups are quadratic
 
-**Title:** `[Bug] json5_value::as_double() exhausts caller buffers; member() is quadratic`
+**Title:** `[Bug] I-01 — json5_value::as_double() exhausts caller buffers; member() is quadratic` · **GitHub:** #124 (assigned to Romanr92)
 **Labels:** `bug`, `component:core`, `requirements:draft` · **Template:** Bug report ·
 **Wave:** 1 · **Parent:** #117 · **Related:** #69 (J5-048/049/050)
 
@@ -1007,7 +1010,7 @@ LOG-01 (High), LOG-02, LOG-11, ARC-01, CS-03, DOC-01, DOC-02 in
 
 ### I-02 — Error model: locate and explain limit, access and internal failures
 
-**Title:** `[Implementation] Error reasons and locations for limits, access and internal faults`
+**Title:** `[Implementation] I-02 — Error reasons and locations for limits, access and internal faults` · **GitHub:** #125 (assigned to Romanr92)
 **Labels:** `enhancement`, `component:core`, `requirements:draft` · **Template:**
 Implementation task · **Wave:** 1 · **Parent:** #117 · **Related:** #69
 
@@ -1072,7 +1075,7 @@ LOG-03, LOG-04, LOG-05, LOG-06, LOG-07, LOG-08, ARC-04, FS-05, DOC-05, DOC-06, D
 
 ### I-03 — Enable extended compiler warnings and fix mechanical coding-rule findings
 
-**Title:** `[Implementation] Extended warnings, prefixed include guards and mechanical MISRA fixes`
+**Title:** `[Implementation] I-03 — Extended warnings, prefixed include guards and mechanical MISRA fixes` · **GitHub:** #126
 **Labels:** `enhancement`, `component:core` · **Template:** Implementation task ·
 **Wave:** 1 · **Parent:** #117
 
@@ -1128,7 +1131,7 @@ STD-01, STD-04, STD-08, STD-09, STD-10, STD-11, STD-12, STD-14, STD-15.
 
 ### I-04 — Reduce complexity hot spots and generate both parser passes from one walker
 
-**Title:** `[Implementation] Split high-complexity functions and unify count/build passes`
+**Title:** `[Implementation] I-04 — Split high-complexity functions and unify count/build passes` · **GitHub:** #127
 **Labels:** `enhancement`, `component:core` · **Template:** Implementation task ·
 **Wave:** 2 · **Parent:** #117
 
@@ -1170,7 +1173,7 @@ LOG-09, STD-07, ARC-02.
 
 ### I-05 — Settle the public API surface before 1.0
 
-**Title:** `[Implementation] Decide public API surface: builder, storage callbacks, ABI, index identity`
+**Title:** `[Implementation] I-05 — Decide public API surface: builder, storage callbacks, ABI, index identity` · **GitHub:** #128
 **Labels:** `enhancement`, `component:core`, `requirements:draft` · **Template:**
 Implementation task · **Wave:** 2 · **Parent:** #117
 
@@ -1213,7 +1216,7 @@ ARC-03, ARC-05, ARC-07, ARC-09.
 
 ### I-06 — Package import: check the exact release tag and expose the hosted component
 
-**Title:** `[Bug] Import helper accepts a different release tag; hosted component not discoverable`
+**Title:** `[Bug] I-06 — Import helper accepts a different release tag; hosted component not discoverable` · **GitHub:** #129 (assigned to Romanr92)
 **Labels:** `bug` · **Template:** Bug report · **Wave:** 1 · **Parent:** #117
 
 ````markdown
@@ -1263,7 +1266,7 @@ CMake and tests only: AI may implement; owner reviews.
 
 ### I-07 — CI: test the shipped Release configuration and run gates on main
 
-**Title:** `[Implementation] CI: Release unit leg, push/schedule triggers, tool checks, locale`
+**Title:** `[Implementation] I-07 — CI: Release unit leg, push/schedule triggers, tool checks, locale` · **GitHub:** #130 (assigned to Romanr92)
 **Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 1 ·
 **Parent:** #117
 
@@ -1307,7 +1310,7 @@ new job.
 
 ### I-08 — Supply-chain hardening for workflows and release artifacts
 
-**Title:** `[Implementation] Pin actions and runners, attest releases, publish SBOM`
+**Title:** `[Implementation] I-08 — Pin actions and runners, attest releases, publish SBOM` · **GitHub:** #131
 **Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 1 ·
 **Parent:** #117
 
@@ -1347,7 +1350,7 @@ CI/packaging only: AI may implement; owner approves release changes.
 
 ### I-09 — Optional sanitizer and fuzz workflow (needs scope decision)
 
-**Title:** `[Implementation] Non-blocking sanitizer and fuzz workflow; sanitizer-clean tests`
+**Title:** `[Implementation] I-09 — Non-blocking sanitizer and fuzz workflow; sanitizer-clean tests` · **GitHub:** #132
 **Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 2 ·
 **Parent:** #117 · **Related:** #116 (fuzzing)
 
@@ -1390,7 +1393,7 @@ Test code and CI only: AI may implement after the owner's scope decision.
 
 ### I-10 — Build and repository hygiene
 
-**Title:** `[Implementation] Build and repository hygiene from the full review`
+**Title:** `[Implementation] I-10 — Build and repository hygiene from the full review` · **GitHub:** #133
 **Labels:** `enhancement` · **Template:** Implementation task · **Wave:** 2 ·
 **Parent:** #117
 
@@ -1435,7 +1438,7 @@ production files need owner approval (production files).
 
 ### I-11 — Documentation corrections from the full review
 
-**Title:** `[Documentation] Correct stale and inaccurate statements found in the full review`
+**Title:** `[Documentation] I-11 — Correct stale and inaccurate statements found in the full review` · **GitHub:** #134
 **Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
 **Parent:** #117
 
@@ -1484,7 +1487,7 @@ AI may implement all documentation items; item 8 is a public-header comment (own
 
 ### I-12 — Release notes, known anomalies and release baselines
 
-**Title:** `[Documentation] 0.2.0 release notes with known anomalies; release baseline process`
+**Title:** `[Documentation] I-12 — 0.2.0 release notes with known anomalies; release baseline process` · **GitHub:** #135
 **Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
 **Parent:** #117
 
@@ -1522,7 +1525,7 @@ AI may draft; owner publishes the GitHub release text.
 
 ### I-13 — Embedded integration figures: stack, runtime facilities, data model, timing
 
-**Title:** `[Documentation] Record embedded runtime facilities, stack usage and timing method`
+**Title:** `[Documentation] I-13 — Record embedded runtime facilities, stack usage and timing method` · **GitHub:** #136
 **Labels:** `documentation`, `component:core`, `requirements:draft` · **Template:**
 Implementation task · **Wave:** 1 · **Parent:** #117 · **Related:** #115, #69 (J5-101)
 
@@ -1565,7 +1568,7 @@ AI may measure on the host and write the documentation; owner confirms target pl
 
 ### I-14 — Coding-standard governance: fail-fast text, deviation register, tailoring
 
-**Title:** `[Documentation] Coding-standard deviation register and accurate fail-fast rules`
+**Title:** `[Documentation] I-14 — Coding-standard deviation register and accurate fail-fast rules` · **GitHub:** #137
 **Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
 **Parent:** #117 · **Related:** #44 (the branch currently carrying the coding-style commit)
 
@@ -1610,7 +1613,7 @@ AI may draft the guide and register; owner approves each deviation.
 
 ### I-15 — ISO 26262 readiness (SEooC scope, requirements baseline, analyses, tools)
 
-**Title:** `[Implementation] ISO 26262 readiness: safety scope, requirements baseline, analyses, tool confidence`
+**Title:** `[Implementation] I-15 — ISO 26262 readiness: safety scope, requirements baseline, analyses, tool confidence` · **GitHub:** #138
 **Labels:** `enhancement`, `requirements:draft` · **Template:** Implementation task ·
 **Wave:** 1 · **Parent:** #117
 
@@ -1659,7 +1662,7 @@ Owner: scope decision and approvals. AI may draft documents and add units.
 
 ### I-16 — ISO/SAE 21434 readiness (security policy, TARA, guidance)
 
-**Title:** `[Documentation] SECURITY.md, TARA and cybersecurity guidance for integrators`
+**Title:** `[Documentation] I-16 — SECURITY.md, TARA and cybersecurity guidance for integrators` · **GitHub:** #139
 **Labels:** `documentation` · **Template:** Implementation task · **Wave:** 1 ·
 **Parent:** #117
 
