@@ -71,8 +71,8 @@ Owner of all work products: Romanr92.
 | 3 | Software safety requirements | [Section K of `docs/requirements.md`](../requirements.md#k-software-safety-requirements-iso-26262) | Draft, SSR-01 to SSR-08 |
 | 4 | Software architecture and safety analysis (FMEA, dependent failure analysis) | [`software-safety-analysis.md`](software-safety-analysis.md); architecture in [`core/docs/design-architecture.md`](../../core/docs/design-architecture.md) | Draft: FMEA rows and dependent failure analysis reviewed with the owner. A separate interface view of the architecture is still to do. |
 | 5 | Coding guidelines, building on the MISRA fail-fast rules (see #137) | [`coding-guidelines.md`](coding-guidelines.md) | Draft |
-| 6 | Verification and structural coverage strategy | Not started | Not started |
-| 7 | Tool confidence evaluation (ISO 26262-8, clause 11) | Not started | Not started |
+| 6 | Verification and structural coverage strategy | [`verification-strategy.md`](verification-strategy.md) | Draft; most new checks still to be implemented (#132, #141) |
+| 7 | Tool confidence evaluation (ISO 26262-8, clause 11) | [`tool-confidence.md`](tool-confidence.md) | Draft |
 | 8 | Traceability | Not started | Not started |
 | 9 | Safety Manual for integrators | Not started | Not started |
 
@@ -101,14 +101,16 @@ makes the decisions.
 
 ### Verification
 
-How the library is verified, including structural coverage, is defined in work
-product 6. Until then, the current automated checks are GoogleTest unit tests,
-validation tests over the pinned third-party fixtures, and formatting.
+How the library is verified, including structural coverage, is defined in the
+[verification strategy](verification-strategy.md) (work product 6). Besides unit
+tests, validation tests and formatting, it adds blocking sanitizer runs, fuzzing,
+a second compiler and, once full branch coverage is reached, branch coverage.
 
 ### Tool confidence
 
-Tool confidence for the compiler, CMake, GoogleTest, clang-format, the coverage
-tool and the repository's own scripts is evaluated in work product 7.
+Tool confidence for the compilers, CMake, GoogleTest, clang-format, the coverage
+tools and the repository's own scripts is evaluated in the
+[tool confidence evaluation](tool-confidence.md) (work product 7).
 
 ## 5. Confirmation measures and reviews
 
