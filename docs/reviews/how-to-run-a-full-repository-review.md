@@ -7,7 +7,7 @@ three-reviewer re-review in #117), whether a person or an AI agent performs it.
 
 **Outputs of one review:**
 
-1. A review document `doc/review/<YYYY-MM-DD>-full-repository-review-<version>.md`.
+1. A review document `docs/reviews/<YYYY-MM-DD>-full-repository-review-<version>.md`.
 2. Raw evidence (logs, probes, harnesses) kept **outside** the repository.
 3. GitHub issues that cover every finding, in the agreed milestone.
 4. One pull request that adds the review document.
@@ -381,7 +381,7 @@ Read these before starting. Each comes from `AGENTS.md` or from a lesson of the
 
 ## Step 12 — Publish
 
-1. Move the document to `doc/review/<YYYY-MM-DD>-full-repository-review-<version>.md`
+1. Move the document to `docs/reviews/<YYYY-MM-DD>-full-repository-review-<version>.md`
    and update self-references and links in the created issues.
 2. Open one pull request with the review document (and any updates to this guide),
    following `.github/pull_request_template.md`. The PR changes documentation only;
@@ -405,4 +405,4 @@ Read these before starting. Each comes from `AGENTS.md` or from a lesson of the
 - [ ] Step 9 consolidation: counts, IDs, anchors and line references verified
 - [ ] Step 10 re-check of newer refs and other reviewers' findings (if any)
 - [ ] Step 11 issues: one issue per finding group, waves, order of work, owner approval
-- [ ] Step 12 publication: document in `doc/review/`, pull request opened
+- [ ] Step 12 publication: document in `docs/reviews/`, pull request opened

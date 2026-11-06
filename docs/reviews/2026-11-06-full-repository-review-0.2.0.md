@@ -5,7 +5,7 @@
 | Review date | 2026-11-05 – 2026-11-06 |
 | Baseline | `64510bef5486bc5825ee6eaf3fb0079d8918fa04` (`main`, version 0.2.0) |
 | Review branch | `claude/keen-edison-0aacft` |
-| Document | `doc/review/2026-11-06-full-repository-review-0.2.0.md` (first drafted as `docs/reviews/2026-11-05-full-repository-review.md`); companion guide: [`how-to-run-a-full-repository-review.md`](how-to-run-a-full-repository-review.md) |
+| Document | `docs/reviews/2026-11-06-full-repository-review-0.2.0.md` (first drafted as `docs/reviews/2026-11-05-full-repository-review.md`, briefly published under `doc/review/`); companion guide: [`how-to-run-a-full-repository-review.md`](how-to-run-a-full-repository-review.md) |
 | Reviewer | Claude Code (AI agent) |
 | Status | **Complete** — all plan steps 0–9 done; [follow-up re-check](#follow-up--re-check-of-newer-branches-2026-11-06) on 2026-11-06; [proposed GitHub issues](#proposed-github-issues-copy-ready) and [order of work](#order-of-work-scope-documents-haratara-versus-review-findings) |
 | Re-checked refs | `origin/main` `903aedc` (= tag `0.2.0`), `72-release-packaging` `0b8957e`, `44-schema-1-…-p043p046` `f103fc2` |
@@ -17,7 +17,7 @@ ARC-01 (`json5_document.cpp:122-127`), LOG-01 (`buffer_arena.cpp:46-64`), ARC-06
 (`AdaptiveJSON5Config.cmake.in:73-74`) and DOC-18 (`.zed/README.md:38`). The follow-up
 status was re-checked on 2026-11-06: `main` is still `903aedc` (tag `0.2.0`), and
 `72-release-packaging` and `f103fc2` are still unmerged. The document moved to
-`doc/review/` and a step-by-step guide for future reviews was added beside it.
+`docs/reviews/` and a step-by-step guide for future reviews was added beside it.
 
 **Revision note (2026-11-06, comparison).** Compared with an independent ChatGPT review
 of the older baseline `1455359`. Every item in it was re-checked at `0.2.0`. Valid items
@@ -987,7 +987,7 @@ GCC 13.3.0, exceptions OFF, RTTI OFF, caller-buffer (`json5_document::parse`) pa
 ### Review findings covered
 
 LOG-01 (High), LOG-02, LOG-11, ARC-01, CS-03, DOC-01, DOC-02 in
-`doc/review/2026-11-06-full-repository-review-0.2.0.md`.
+`docs/reviews/2026-11-06-full-repository-review-0.2.0.md`.
 
 ### Proposed direction (owner decides)
 
