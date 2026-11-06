@@ -57,6 +57,8 @@ namespace adaptive_json5
 
         /**
          * @brief Create the storage accounting for one document, bounded by max_owned_bytes.
+         * @par Requirements
+         * J5-040; J5-046.
          * @par ID
          * SWU-HOSTED-003
          */

@@ -258,6 +258,8 @@ namespace adaptive_json5
 
       /**
        * @brief Report whether this result is a success.
+       * @par Requirements
+       * P002; J5-003.
        * @par ID
        * SWU-API-020
        */
@@ -267,9 +269,9 @@ namespace adaptive_json5
       }
 
       /**
-       * @brief Construct failure with a payload.
+       * @brief Inspect the failure information, or nullptr on success.
        * @par Requirements
-       * P002; J5-003.
+       * P002; J5-003; J5-045.
        * @par ID
        * SWU-API-021
        */
@@ -283,6 +285,8 @@ namespace adaptive_json5
 
       /**
        * @brief Construct a failure holding reason.
+       * @par Requirements
+       * P002; J5-003; J5-045.
        * @par ID
        * SWU-API-022
        */
