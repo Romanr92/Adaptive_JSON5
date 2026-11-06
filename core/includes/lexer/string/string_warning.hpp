@@ -22,6 +22,8 @@ namespace adaptive_json5
    * Call only for source pieces, never reconstructed decoded escape values.
    * Strict JSON receives no JSON5 separator advisory.
    * No allocation or callback is performed.
+   * @par ID
+   * SWU-LEXER-046
    */
   [[nodiscard]] std::optional<string_warning> raw_separator_warning_for(const string_piece& piece,
                                                                         syntax_mode mode) noexcept;
@@ -64,6 +66,8 @@ namespace adaptive_json5
          * @param units Units decoded from the escape; zero for a line continuation.
          * @param byte_offset Original offset of the escape's backslash.
          * @param byte_length Original length of the whole escape sequence.
+         * @par ID
+         * SWU-LEXER-043
          */
         [[nodiscard]] surrogate_warnings escape(const encoded_utf16& units, std::size_t byte_offset,
                                                 std::size_t byte_length) noexcept;
@@ -72,6 +76,8 @@ namespace adaptive_json5
          * @brief Record a raw source character, which ends any pending high surrogate.
          * @par Requirements
          * P041; J5-017; J5-018.
+         * @par ID
+         * SWU-LEXER-044
          */
         [[nodiscard]] surrogate_warnings character() noexcept;
 
@@ -79,6 +85,8 @@ namespace adaptive_json5
          * @brief Record the closing quote, which ends any pending high surrogate.
          * @par Requirements
          * P041; J5-017; J5-018.
+         * @par ID
+         * SWU-LEXER-045
          */
         [[nodiscard]] surrogate_warnings finish() noexcept;
     };

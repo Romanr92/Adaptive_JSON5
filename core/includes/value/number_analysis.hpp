@@ -48,6 +48,8 @@ namespace adaptive_json5
      * Failed charging returns resource_limit without scanning.
      * Successful charges are not refunded.
      * Performs one forward scan without allocation or locale-dependent operations.
+     * @par ID
+     * SWU-VALUE-080
      */
     [[nodiscard]] result<number_analysis> analyse_number(const owned_number& number, work_budget& work) noexcept;
   } // namespace detail

@@ -32,6 +32,8 @@ namespace adaptive_json5
    * @note Requires no allocation. Encoding failure reports the sequence's
    * starting byte offset and leaves the cursor unchanged.
    * BOM, NUL and noncharacters are decoded without applying grammar policy.
+   * @par ID
+   * SWU-UNICODE-008
    */
   [[nodiscard]] result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept;
 } // namespace adaptive_json5

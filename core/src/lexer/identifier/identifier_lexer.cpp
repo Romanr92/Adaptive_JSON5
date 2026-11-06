@@ -42,6 +42,8 @@ namespace adaptive_json5
      * @return Unit totals, zero units for no-match, or a located error.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
      * resource_limit is reported at the character that first exceeds max_units.
+     * @par ID
+     * SWU-LEXER-007
      */
     result<identifier_walk> walk_identifier(cursor& source, std::size_t max_units,
                                             decoded_string_builder* output) noexcept
@@ -159,6 +161,8 @@ namespace adaptive_json5
    * @param max_units Maximum decoded UTF-16 unit count.
    * @return The measurement, nullopt for no-match, or a located failure.
    * @note Performs no allocation (ADR 0003, decisions 2 and 7).
+   * @par ID
+   * SWU-LEXER-008
    */
   result<std::optional<identifier_measure>> measure_identifier(cursor& source, std::size_t max_units) noexcept
   {
@@ -208,6 +212,8 @@ namespace adaptive_json5
    * Strict JSON member-name rejection belongs to the context-aware caller.
    * Measures with measure_identifier, then makes one allocation of exactly that size (ADR 0003, decision 2).
    * The storage provider state must outlive a returned token.
+   * @par ID
+   * SWU-LEXER-009
    */
   result<std::optional<identifier_token>> consume_identifier(cursor& source, const storage_callbacks& storage,
                                                              std::size_t max_units) noexcept

@@ -34,6 +34,8 @@ namespace adaptive_json5::detail
    * @param digits Number of decimal digits, or the exponent of a power of ten.
    * @return ceil(digits * 10 / 3) bits, or resource_limit on overflow.
    * @note 10/3 is above log2(10), so the bound is never too small (ADR 0003, decision 1).
+   * @par ID
+   * SWU-VALUE-005
    */
   [[nodiscard]] result<std::size_t> decimal_digit_bits(std::size_t digits) noexcept;
 
@@ -43,6 +45,8 @@ namespace adaptive_json5::detail
    * P038; J5-037; J5-046.
    * @param bits Upper bound on significant bits.
    * @return ceil(bits / 16) + 1 limbs, or resource_limit on overflow.
+   * @par ID
+   * SWU-VALUE-006
    */
   [[nodiscard]] result<std::size_t> limbs_for_bits(std::size_t bits) noexcept;
 
@@ -73,6 +77,8 @@ namespace adaptive_json5::detail
        * @par Requirements
        * P038; J5-046.
        * @param provider Fallible storage provider borrowed for future allocations.
+       * @par ID
+       * SWU-VALUE-007
        */
       explicit big_unsigned(const storage_callbacks& provider) noexcept;
 
@@ -126,6 +132,8 @@ namespace adaptive_json5::detail
        * @note Makes at most one allocation; zero limbs allocate nothing.
        * Charges no work: the storage is not zero-filled, and its size is checked by the
        * provider's byte ceiling (ADR 0003, decision 1c).
+       * @par ID
+       * SWU-VALUE-008
        */
       [[nodiscard]] status_result reserve(std::size_t limbs) noexcept;
 
@@ -134,6 +142,8 @@ namespace adaptive_json5::detail
        * @par Requirements
        * P038; J5-037.
        * @note Performs constant work without allocation.
+       * @par ID
+       * SWU-VALUE-009
        */
       [[nodiscard]] bool is_zero() const noexcept;
 
@@ -143,6 +153,8 @@ namespace adaptive_json5::detail
        * P038; J5-003; J5-037.
        * @return Zero for zero; otherwise the position of the highest set bit plus one or explicit error.
        * @note Inspects only the most significant limb; performs no allocation or work charge.
+       * @par ID
+       * SWU-VALUE-010
        */
       [[nodiscard]] result<std::size_t> bit_length() const noexcept;
 
@@ -159,6 +171,8 @@ namespace adaptive_json5::detail
        * Charges two work units per existing limb plus one.
        * Failure preserves the integer; successful work charges are not refunded.
        * Never allocates; a carry beyond the reservation fails before mutation.
+       * @par ID
+       * SWU-VALUE-011
        */
       [[nodiscard]] status_result append_digit(unsigned int digit, unsigned int radix, work_budget& work) noexcept;
 
@@ -173,6 +187,8 @@ namespace adaptive_json5::detail
        * Charges one setup unit and, for equal limb counts, one unit per limb.
        * Reserves the full traversal charge even when a difference is found early.
        * Relies on zero having no limbs and nonzero values having no leading zero limbs.
+       * @par ID
+       * SWU-VALUE-012
        */
       [[nodiscard]] result<magnitude_order> compare(const big_unsigned& other, work_budget& work) const noexcept;
 
@@ -189,6 +205,8 @@ namespace adaptive_json5::detail
        * Charges one setup unit, one per source limb and one per destination slot.
        * A partial-limb shift needs one additional slot, possibly unused.
        * Unused capacity does not count as a significant limb.
+       * @par ID
+       * SWU-VALUE-013
        */
       [[nodiscard]] status_result shift_left(std::size_t bit_count, work_budget& work) noexcept;
 
@@ -206,6 +224,8 @@ namespace adaptive_json5::detail
        * destination limb plus one before mutation.
        * Removes zero most-significant limbs from the significant count.
        * Existing storage remains allocated, including when the result is zero.
+       * @par ID
+       * SWU-VALUE-014
        */
       [[nodiscard]] status_result subtract(const big_unsigned& other, work_budget& work) noexcept;
 
@@ -221,6 +241,8 @@ namespace adaptive_json5::detail
        * Failure preserves the destination; successful charges are not refunded.
        * Copying zero retains existing storage but clears the significant count.
        * Copies into the reservation; a larger source fails with wrong_type_or_access.
+       * @par ID
+       * SWU-VALUE-015
        */
       [[nodiscard]] status_result assign(const big_unsigned& other, work_budget& work) noexcept;
   };

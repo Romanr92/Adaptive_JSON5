@@ -28,6 +28,8 @@ namespace adaptive_json5
      * No-match leaves source unchanged before trying another recognizer.
      * This helper does not establish a complete token boundary.
      * Exponent limits apply only to decimal spellings.
+     * @par ID
+     * SWU-LEXER-019
      */
     result<std::optional<number_token>> consume_number_spelling(cursor& source, syntax_mode mode,
                                                                 std::size_t max_exponent_digits) noexcept
@@ -75,6 +77,8 @@ namespace adaptive_json5
    * Source metadata does not own the numeric spelling.
    * Excess exponent digits preserve the decimal recognizer's resource error.
    * The default permits any exponent digit count representable by size_t.
+   * @par ID
+   * SWU-LEXER-020
    */
   result<std::optional<number_token>> consume_number(cursor& source, syntax_mode mode,
                                                      std::size_t max_exponent_digits) noexcept

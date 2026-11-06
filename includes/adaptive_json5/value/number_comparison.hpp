@@ -58,6 +58,8 @@ namespace adaptive_json5
    * Exponent magnitudes above PTRDIFF_MAX / 4 return resource_limit (documented project limit).
    * Work or scratch-limit exhaustion returns resource_limit; provider exhaustion returns allocation_failure.
    * All temporary allocations are released before returning.
+   * @par ID
+   * SWU-VALUE-091
    */
   [[nodiscard]] result<number_order> compare_numbers(const owned_number& left, const owned_number& right,
                                                      const storage_callbacks& scratch,

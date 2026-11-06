@@ -38,6 +38,8 @@ namespace adaptive_json5
        * P030; J5-039.
        * @param position Value-storage position, or c_unset_position for unset.
        * @note Construction does not validate document bounds or membership.
+       * @par ID
+       * SWU-VALUE-147
        */
       constexpr explicit value_index(std::size_t position) noexcept : m_position(position) {}
 
@@ -46,6 +48,8 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-039.
        * @note A set index can still be outside a particular document's bounds.
+       * @par ID
+       * SWU-VALUE-148
        */
       [[nodiscard]] constexpr bool is_set() const noexcept
       {
@@ -57,6 +61,8 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-039.
        * @note Callers must validate the index before indexing document storage.
+       * @par ID
+       * SWU-VALUE-149
        */
       [[nodiscard]] constexpr std::size_t position() const noexcept
       {

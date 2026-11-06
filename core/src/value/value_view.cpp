@@ -22,6 +22,8 @@ namespace adaptive_json5
    * @par Requirements
    * P030; J5-039.
    * @note Reacquires the record instead of retaining a growth-sensitive pointer.
+   * @par ID
+   * SWU-VALUE-122
    */
   result<const detail::value_record*> value_view::record() const noexcept
   {
@@ -38,6 +40,8 @@ namespace adaptive_json5
    * @par Requirements
    * P030; J5-028; J5-039.
    * @note Returns a borrowed pointer without numeric or Boolean coercion.
+   * @par ID
+   * SWU-VALUE-123
    */
   template <typename T>
   result<const T*> value_view::payload_as() const noexcept
@@ -67,6 +71,8 @@ namespace adaptive_json5
    * @note Requires document relationships maintained by validated operations.
    * Traversal is iterative and visits at most position plus one records.
    * P031 adds configurable work accounting.
+   * @par ID
+   * SWU-VALUE-124
    */
   result<value_view> value_view::child_at(std::size_t position, bool object) const noexcept
   {
@@ -141,6 +147,8 @@ namespace adaptive_json5
    * P030; J5-039; J5-040.
    * @note The storage must remain alive at the same address.
    * Construction does not validate the index; accessors perform that check.
+   * @par ID
+   * SWU-VALUE-125
    */
   value_view::value_view(const detail::value_storage& storage, value_index index) noexcept
       : m_storage(&storage), m_index(index)
@@ -151,6 +159,8 @@ namespace adaptive_json5
    * @brief Return the stored value type without conversion.
    * @par Requirements
    * P030; J5-028; J5-039.
+   * @par ID
+   * SWU-VALUE-126
    */
   result<value_kind> value_view::kind() const noexcept
   {
@@ -194,6 +204,8 @@ namespace adaptive_json5
    * @brief Read a Boolean value without accepting numeric substitutes.
    * @par Requirements
    * P030; J5-028; J5-039.
+   * @par ID
+   * SWU-VALUE-127
    */
   result<bool> value_view::as_boolean() const noexcept
   {
@@ -212,6 +224,8 @@ namespace adaptive_json5
    * @par Requirements
    * P030; J5-028; J5-039; J5-040.
    * @note The returned pointer is invalidated by storage growth or destruction.
+   * @par ID
+   * SWU-VALUE-128
    */
   result<const decoded_string*> value_view::as_string() const noexcept
   {
@@ -224,6 +238,8 @@ namespace adaptive_json5
    * P030; J5-028; J5-039; J5-040.
    * @note Performs no numeric conversion.
    * The returned pointer is invalidated by storage growth or destruction.
+   * @par ID
+   * SWU-VALUE-129
    */
   result<const owned_number*> value_view::as_number() const noexcept
   {
@@ -238,6 +254,8 @@ namespace adaptive_json5
    * @note Absence of metadata is distinct from an invalid view.
    * Returned metadata owns no input text and extends no input lifetime.
    * The copied span remains valid independently of record storage.
+   * @par ID
+   * SWU-VALUE-130
    */
   result<std::optional<adaptive_json5::source_span>> value_view::source_span() const noexcept
   {
@@ -256,6 +274,8 @@ namespace adaptive_json5
    * @par Requirements
    * P030; J5-030; J5-031; J5-039.
    * @note Rejects scalar values rather than treating them as empty containers.
+   * @par ID
+   * SWU-VALUE-131
    */
   result<std::size_t> value_view::container_size() const noexcept
   {
@@ -287,6 +307,8 @@ namespace adaptive_json5
    * P030; J5-030; J5-039; J5-040.
    * @note Rejects nonarrays and out-of-range positions.
    * Linear traversal; repeated indexed enumeration has quadratic total cost.
+   * @par ID
+   * SWU-VALUE-132
    */
   result<value_view> value_view::element_at(std::size_t position) const noexcept
   {
@@ -300,6 +322,8 @@ namespace adaptive_json5
    * @note Includes every duplicate-name occurrence.
    * Rejects nonobjects and out-of-range positions.
    * Linear traversal; repeated indexed enumeration has quadratic total cost.
+   * @par ID
+   * SWU-VALUE-133
    */
   result<value_view> value_view::member_at(std::size_t position) const noexcept
   {
@@ -312,6 +336,8 @@ namespace adaptive_json5
    * P030; J5-031; J5-039; J5-040.
    * @note An empty member name succeeds; an absent name is an access error.
    * The returned pointer is invalidated by storage growth or destruction.
+   * @par ID
+   * SWU-VALUE-134
    */
   result<const decoded_string*> value_view::member_name() const noexcept
   {
@@ -340,6 +366,8 @@ namespace adaptive_json5
    * @note An empty decoded member name is valid.
    * Quoted-name spans include their quotation marks.
    * Returned metadata contains no source pointer and performs no allocation.
+   * @par ID
+   * SWU-VALUE-135
    */
   result<std::optional<adaptive_json5::source_span>> value_view::member_name_source_span() const noexcept
   {

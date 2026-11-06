@@ -32,6 +32,8 @@ namespace adaptive_json5
    * @note Leaves the terminating line break unread.
    * No match or encoding failure leaves source unchanged.
    * Requires no allocation and throws no exceptions.
+   * @par ID
+   * SWU-LEXER-003
    */
   [[nodiscard]] result<std::optional<comment_span>> consume_line_comment(cursor& source) noexcept;
 
@@ -47,6 +49,8 @@ namespace adaptive_json5
    * No match or failure leaves source unchanged.
    * Requires no allocation and throws no exceptions.
    * This recognizer does not enforce strict JSON mode.
+   * @par ID
+   * SWU-LEXER-004
    */
   [[nodiscard]] result<std::optional<comment_span>> consume_block_comment(cursor& source) noexcept;
 

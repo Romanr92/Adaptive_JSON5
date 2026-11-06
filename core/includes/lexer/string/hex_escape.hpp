@@ -15,6 +15,8 @@ namespace adaptive_json5
    * P016; J5-016.
    * @return A value from zero through fifteen, or nullopt for nonhex input.
    * @note Classification is independent of locale.
+   * @par ID
+   * SWU-LEXER-029
    */
   [[nodiscard]] std::optional<char16_t> hex_digit_value(char32_t character) noexcept;
 
@@ -30,6 +32,8 @@ namespace adaptive_json5
    * Strict JSON rejects x at its original offset.
    * Missing digits report EOF; nonhex characters report their starting offset.
    * Nonmatching input is not validated. No allocation is performed.
+   * @par ID
+   * SWU-LEXER-030
    */
   [[nodiscard]] result<std::optional<char16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5

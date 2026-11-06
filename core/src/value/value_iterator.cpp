@@ -17,6 +17,8 @@ namespace adaptive_json5
    * @brief Retain the validated container's direct-child traversal state.
    * @par Requirements
    * P030; J5-030; J5-031; J5-039.
+   * @par ID
+   * SWU-VALUE-106
    */
   value_iterator::value_iterator(const detail::value_storage& storage, value_index parent, const container_links& links,
                                  bool object) noexcept
@@ -30,6 +32,8 @@ namespace adaptive_json5
    * P030; J5-030; J5-031; J5-039.
    * @note Rejects scalar values and invalid container indices.
    * Requires relationships maintained by validated document operations.
+   * @par ID
+   * SWU-VALUE-107
    */
   result<value_iterator> value_iterator::create(const detail::value_storage& storage, value_index parent) noexcept
   {
@@ -85,6 +89,8 @@ namespace adaptive_json5
    * @note Failure leaves traversal state unchanged.
    * Repeated calls after completion return successful empty optionals.
    * Each call performs constant work; P031 adds work accounting.
+   * @par ID
+   * SWU-VALUE-108
    */
   result<std::optional<value_view>> value_iterator::next() noexcept
   {

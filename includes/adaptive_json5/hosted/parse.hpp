@@ -22,6 +22,8 @@ namespace adaptive_json5
      * An unavailable heap block reports allocation_failure without a location.
      * Optional hosted component (AdaptiveJSON5::hosted); not part of the embedded parser
      * target (J5-101). Thread safety as parse_document: each call has its own storage.
+     * @par ID
+     * SWU-HOSTED-005
      */
     [[nodiscard]] result<json5_document> parse(input_view input, const parse_options& options = {}) noexcept;
   } // namespace hosted

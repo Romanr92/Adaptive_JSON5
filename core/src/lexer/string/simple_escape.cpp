@@ -23,6 +23,8 @@ namespace adaptive_json5
    * A JSON5 zero escape fails if followed by any decimal digit.
    * EOF after an accepted zero still requires the enclosing string to close.
    * No allocation is performed.
+   * @par ID
+   * SWU-LEXER-033
    */
   result<std::optional<char16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept
   {

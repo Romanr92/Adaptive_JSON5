@@ -14,6 +14,8 @@ namespace adaptive_json5
    * @par Requirements
    * P003; J5-046.
    * @return Aligned storage, or allocation_failure when the rest of the buffer is too small.
+   * @par ID
+   * SWU-MEMORY-010
    */
   result<void*> buffer_arena::allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept
   {
@@ -42,6 +44,8 @@ namespace adaptive_json5
    * @brief Count one release and reset the arena when none remain.
    * @par Requirements
    * P003; J5-040; J5-051.
+   * @par ID
+   * SWU-MEMORY-011
    */
   void buffer_arena::deallocate_callback(void* context, void* /* address */, std::size_t /* bytes */,
                                          std::size_t /* alignment */) noexcept
@@ -67,6 +71,8 @@ namespace adaptive_json5
    * @brief Use a caller-supplied byte buffer as allocation space.
    * @par Requirements
    * P003; J5-046; J5-101.
+   * @par ID
+   * SWU-MEMORY-012
    */
   buffer_arena::buffer_arena(void* buffer, std::size_t size) noexcept
       : m_begin(static_cast<unsigned char*>(buffer)), m_capacity((buffer != nullptr) ? size : 0)
@@ -77,6 +83,8 @@ namespace adaptive_json5
    * @brief Borrow callbacks that allocate from this arena.
    * @par Requirements
    * P003; J5-046.
+   * @par ID
+   * SWU-MEMORY-013
    */
   storage_callbacks buffer_arena::callbacks() noexcept
   {
@@ -87,6 +95,8 @@ namespace adaptive_json5
    * @brief Report the buffer size this arena allocates from.
    * @par Requirements
    * J5-046.
+   * @par ID
+   * SWU-MEMORY-014
    */
   std::size_t buffer_arena::capacity() const noexcept
   {
@@ -97,6 +107,8 @@ namespace adaptive_json5
    * @brief Report the bytes consumed so far, including alignment padding.
    * @par Requirements
    * J5-046.
+   * @par ID
+   * SWU-MEMORY-015
    */
   std::size_t buffer_arena::used() const noexcept
   {
@@ -107,6 +119,8 @@ namespace adaptive_json5
    * @brief Report how many allocations have not been released yet.
    * @par Requirements
    * J5-040; J5-046.
+   * @par ID
+   * SWU-MEMORY-016
    */
   std::size_t buffer_arena::live_allocations() const noexcept
   {

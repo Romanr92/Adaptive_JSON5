@@ -52,6 +52,8 @@ namespace adaptive_json5
          * P030; J5-040; J5-046.
          * @note Private callers provide index below the allocated capacity.
          * This returns storage, without assuming a record is alive there.
+         * @par ID
+         * SWU-VALUE-109
          */
         [[nodiscard]] static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
 
@@ -60,6 +62,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-039; J5-040.
          * @note Private callers provide index below the constructed record count.
+         * @par ID
+         * SWU-VALUE-110
          */
         [[nodiscard]] value_record* live_record(std::size_t index) noexcept;
 
@@ -68,6 +72,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-039; J5-040.
          * @note Private callers provide index below the constructed record count.
+         * @par ID
+         * SWU-VALUE-111
          */
         [[nodiscard]] const value_record* live_record(std::size_t index) const noexcept;
 
@@ -76,6 +82,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-040.
          * @note Reverse-order iteration uses no recursive child traversal.
+         * @par ID
+         * SWU-VALUE-112
          */
         void destroy_records() noexcept;
 
@@ -87,6 +95,8 @@ namespace adaptive_json5
          * Growth temporarily retains both old and new raw blocks.
          * After reserve_exact(), a requirement beyond the capacity fails with
          * wrong_type_or_access instead of growing.
+         * @par ID
+         * SWU-VALUE-113
          */
         [[nodiscard]] status_result reserve(std::size_t required) noexcept;
 
@@ -96,6 +106,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-040; J5-046.
          * @note Construction allocates nothing; a zero limit permits no records.
+         * @par ID
+         * SWU-VALUE-114
          */
         value_storage(const storage_callbacks& provider, std::size_t max_records) noexcept;
 
@@ -104,6 +116,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-040.
          * @note The source retains its provider and limit and can be reused.
+         * @par ID
+         * SWU-VALUE-115
          */
         value_storage(value_storage&& other) noexcept;
 
@@ -112,6 +126,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-040.
          * @note Performs no allocation and does not recursively follow children.
+         * @par ID
+         * SWU-VALUE-117
          */
         ~value_storage() noexcept;
 
@@ -151,6 +167,8 @@ namespace adaptive_json5
          * @note Call on empty storage only. Zero records allocate nothing.
          * Afterwards, an append beyond records fails with wrong_type_or_access and never
          * allocates (ADR 0003, decision 7). Failure leaves the storage growable and unchanged.
+         * @par ID
+         * SWU-VALUE-116
          */
         [[nodiscard]] status_result reserve_exact(std::size_t records) noexcept;
 
@@ -163,6 +181,8 @@ namespace adaptive_json5
          * @note Failure leaves existing records and the incoming record unchanged.
          * Success moves from record. Growth invalidates earlier record pointers.
          * Relationship invariants are enforced by the later document builder.
+         * @par ID
+         * SWU-VALUE-118
          */
         [[nodiscard]] result<value_index> append(value_record&& record) noexcept;
 
@@ -171,6 +191,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-039.
          * @note Returned pointers are invalidated by growth or storage destruction.
+         * @par ID
+         * SWU-VALUE-119
          */
         [[nodiscard]] result<value_record*> at(value_index index) noexcept;
 
@@ -179,6 +201,8 @@ namespace adaptive_json5
          * @par Requirements
          * P030; J5-039.
          * @note Returned pointers are invalidated by growth or storage destruction.
+         * @par ID
+         * SWU-VALUE-120
          */
         [[nodiscard]] result<const value_record*> at(value_index index) const noexcept;
 
@@ -186,6 +210,8 @@ namespace adaptive_json5
          * @brief Return the number of constructed records.
          * @par Requirements
          * P030; J5-028.
+         * @par ID
+         * SWU-VALUE-121
          */
         [[nodiscard]] std::size_t size() const noexcept;
     };
@@ -225,6 +251,8 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-028; J5-040.
        * @note Allocates nothing and initially has no root.
+       * @par ID
+       * SWU-VALUE-023
        */
       document(const storage_callbacks& storage, std::size_t max_records) noexcept;
 
@@ -234,6 +262,8 @@ namespace adaptive_json5
        * P030; J5-040.
        * @note Existing views into either moved-from document state are invalid.
        * The source retains its storage configuration and can be reused.
+       * @par ID
+       * SWU-VALUE-024
        */
       document(document&& other) noexcept;
 
@@ -274,6 +304,8 @@ namespace adaptive_json5
        * @brief Create a detached null value.
        * @par Requirements
        * P030; J5-028; J5-046.
+       * @par ID
+       * SWU-VALUE-025
        */
       [[nodiscard]] result<value_index> make_null() noexcept;
 
@@ -281,6 +313,8 @@ namespace adaptive_json5
        * @brief Create a detached Boolean without numeric coercion.
        * @par Requirements
        * P030; J5-028; J5-046.
+       * @par ID
+       * SWU-VALUE-026
        */
       [[nodiscard]] result<value_index> make_boolean(bool value) noexcept;
 
@@ -290,6 +324,8 @@ namespace adaptive_json5
        * P030; J5-028; J5-040; J5-046.
        * @note Consumes value on entry, even if record allocation subsequently fails.
        * Empty decoded strings are valid values.
+       * @par ID
+       * SWU-VALUE-027
        */
       [[nodiscard]] result<value_index> make_string(decoded_string value) noexcept;
 
@@ -299,6 +335,8 @@ namespace adaptive_json5
        * P030; J5-028; J5-034; J5-038; J5-040; J5-046.
        * @note Consumes value on entry, even if record allocation subsequently fails.
        * Rejects moved-from owners with empty spelling.
+       * @par ID
+       * SWU-VALUE-028
        */
       [[nodiscard]] result<value_index> make_number(owned_number value) noexcept;
 
@@ -306,6 +344,8 @@ namespace adaptive_json5
        * @brief Create a detached empty array.
        * @par Requirements
        * P030; J5-028; J5-030; J5-046.
+       * @par ID
+       * SWU-VALUE-029
        */
       [[nodiscard]] result<value_index> make_array() noexcept;
 
@@ -313,6 +353,8 @@ namespace adaptive_json5
        * @brief Create a detached empty object.
        * @par Requirements
        * P030; J5-028; J5-031; J5-046.
+       * @par ID
+       * SWU-VALUE-030
        */
       [[nodiscard]] result<value_index> make_object() noexcept;
 
@@ -327,6 +369,8 @@ namespace adaptive_json5
        * Rejects wrong container type, existing attachment, root reuse and cycles.
        * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
        * Failure leaves the document unchanged.
+       * @par ID
+       * SWU-VALUE-031
        */
       [[nodiscard]] status_result append_element(value_index array, value_index child) noexcept;
 
@@ -343,6 +387,8 @@ namespace adaptive_json5
        * Failure leaves the document and supplied name unchanged.
        * Success moves from name. Its provider must outlive the transferred allocation.
        * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
+       * @par ID
+       * SWU-VALUE-032
        */
       [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
 
@@ -362,6 +408,8 @@ namespace adaptive_json5
        * Stores no input pointer and performs no allocation.
        * Does not enforce duplicate-name rejection.
        * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
+       * @par ID
+       * SWU-VALUE-033
        */
       [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child,
                                                 adaptive_json5::source_span name_span, std::size_t input_size) noexcept;
@@ -379,6 +427,8 @@ namespace adaptive_json5
        * Stores no input pointer and performs no allocation.
        * The caller must supply the correct original input size and provenance.
        * Bounds validation does not prove that the range spells this value.
+       * @par ID
+       * SWU-VALUE-034
        */
       [[nodiscard]] status_result set_source_span(value_index index, adaptive_json5::source_span span,
                                                   std::size_t input_size) noexcept;
@@ -396,6 +446,8 @@ namespace adaptive_json5
        * Failure leaves existing metadata unchanged.
        * Stores no input pointer and performs no allocation.
        * The caller supplies the correct input size and source provenance.
+       * @par ID
+       * SWU-VALUE-035
        */
       [[nodiscard]] status_result set_member_name_source_span(value_index index, adaptive_json5::source_span span,
                                                               std::size_t input_size) noexcept;
@@ -406,6 +458,8 @@ namespace adaptive_json5
        * P030; J5-028; J5-039.
        * @note Rejects an existing root, invalid index or attached/member record.
        * Failure leaves the document unchanged.
+       * @par ID
+       * SWU-VALUE-036
        */
       [[nodiscard]] status_result set_root(value_index index) noexcept;
 
@@ -414,6 +468,8 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-039; J5-040.
        * @note The returned view does not extend this document's lifetime.
+       * @par ID
+       * SWU-VALUE-037
        */
       [[nodiscard]] result<value_view> view(value_index index) const noexcept;
 
@@ -427,6 +483,8 @@ namespace adaptive_json5
        * The iterator borrows this document and allocates nothing.
        * Moving or destroying this document invalidates the iterator.
        * Do not modify document relationships during iteration.
+       * @par ID
+       * SWU-VALUE-038
        */
       [[nodiscard]] result<value_iterator> iterate(value_index container) const noexcept;
 
@@ -442,6 +500,8 @@ namespace adaptive_json5
        * Preserves duplicate members and never selects among ambiguous matches.
        * Allocates nothing and does not modify the document or name.
        * Moving or destroying the document invalidates any returned view.
+       * @par ID
+       * SWU-VALUE-039
        */
       [[nodiscard]] result<member_lookup> lookup_member(value_index object, const decoded_string& name) const noexcept;
 
@@ -450,6 +510,8 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-028; J5-039; J5-040.
        * @note An absent root is an access error, not a null value.
+       * @par ID
+       * SWU-VALUE-040
        */
       [[nodiscard]] result<value_view> root() const noexcept;
 
@@ -457,6 +519,8 @@ namespace adaptive_json5
        * @brief Return the number of owned records, including detached values.
        * @par Requirements
        * P030; J5-028.
+       * @par ID
+       * SWU-VALUE-041
        */
       [[nodiscard]] std::size_t size() const noexcept;
   };

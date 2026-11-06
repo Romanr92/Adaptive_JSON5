@@ -23,6 +23,8 @@ namespace adaptive_json5
      * Control-block bytes and alignment padding consume buffer capacity but are
      * excluded from max_owned_bytes, following accounted_storage's contract.
      * Performs no heap allocation. Failure constructs no live control block.
+     * @par ID
+     * SWU-MEMORY-019
      */
     [[nodiscard]] result<document_storage_owner> make_buffer_document_storage(void* buffer, std::size_t size,
                                                                               std::size_t max_owned_bytes) noexcept;

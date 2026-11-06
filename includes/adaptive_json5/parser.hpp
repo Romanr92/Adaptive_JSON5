@@ -51,6 +51,8 @@ namespace adaptive_json5
    * Thread safety: uses no global mutable state, so concurrent calls are safe when each
    * uses its own accounting object. input and options are only read and may be shared.
    * An accounting object or provider shared between threads needs caller synchronization.
+   * @par ID
+   * SWU-PARSER-001
    */
   [[nodiscard]] result<parsed_document> parse_document(input_view input, const parse_options& options,
                                                        accounted_storage& accounting) noexcept;

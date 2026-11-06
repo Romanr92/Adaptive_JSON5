@@ -42,6 +42,8 @@ namespace adaptive_json5
          * P033; J5-046.
          * @note Private callers supply an index below allocated capacity.
          * No frame lifetime is assumed at this address.
+         * @par ID
+         * SWU-PARSER-028
          */
         [[nodiscard]] static void* slot_address(const owned_block& storage, std::size_t index) noexcept;
 
@@ -50,6 +52,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-040.
          * @note Private callers supply an index below m_size.
+         * @par ID
+         * SWU-PARSER-029
          */
         [[nodiscard]] parser_frame* live_frame(std::size_t index) noexcept;
 
@@ -58,6 +62,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-040.
          * @note Private callers supply an index below m_size.
+         * @par ID
+         * SWU-PARSER-030
          */
         [[nodiscard]] const parser_frame* live_frame(std::size_t index) const noexcept;
 
@@ -67,6 +73,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-046; J5-048.
          * @note Construction allocates nothing. Zero permits no frames.
+         * @par ID
+         * SWU-PARSER-032
          */
         parser_stack(const storage_callbacks& provider, std::size_t max_frames) noexcept;
 
@@ -75,6 +83,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-040; J5-048.
          * @note Cleanup is iterative and does not charge work.
+         * @par ID
+         * SWU-PARSER-033
          */
         ~parser_stack() noexcept;
 
@@ -120,6 +130,8 @@ namespace adaptive_json5
          * wrong_type_or_access when storage was already allocated.
          * @note Zero frames allocate nothing. Charges no work: nothing is relocated
          * (ADR 0003, decision 7). Failure leaves the stack unchanged.
+         * @par ID
+         * SWU-PARSER-031
          */
         [[nodiscard]] status_result reserve_exact(std::size_t frames) noexcept;
 
@@ -132,6 +144,8 @@ namespace adaptive_json5
          * Failure preserves frames and the incoming frame.
          * Each push attempt passing the frame limit costs one work unit.
          * Successful work charges are not refunded after later failure.
+         * @par ID
+         * SWU-PARSER-034
          */
         [[nodiscard]] status_result push(parser_frame&& frame, work_budget& work) noexcept;
 
@@ -141,6 +155,8 @@ namespace adaptive_json5
          * P033; J5-013.
          * @return Pointer to the top frame, or nullptr when empty.
          * @note Removal or destruction can invalidate the pointer.
+         * @par ID
+         * SWU-PARSER-035
          */
         [[nodiscard]] parser_frame* top() noexcept;
 
@@ -149,6 +165,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-013.
          * @return Pointer to the top frame, or nullptr when empty.
+         * @par ID
+         * SWU-PARSER-036
          */
         [[nodiscard]] const parser_frame* top() const noexcept;
 
@@ -158,6 +176,8 @@ namespace adaptive_json5
          * P033; J5-040; J5-048.
          * @return True when a frame was removed.
          * @note Performs no allocation or work charge.
+         * @par ID
+         * SWU-PARSER-037
          */
         bool pop() noexcept;
 
@@ -166,6 +186,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-040; J5-048.
          * @note Also works after work-budget exhaustion.
+         * @par ID
+         * SWU-PARSER-038
          */
         void clear() noexcept;
 
@@ -173,6 +195,8 @@ namespace adaptive_json5
          * @brief Return the number of live frames.
          * @par Requirements
          * P033; J5-048.
+         * @par ID
+         * SWU-PARSER-039
          */
         [[nodiscard]] std::size_t size() const noexcept;
     };

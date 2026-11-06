@@ -22,6 +22,8 @@ namespace adaptive_json5
    * @return Exact unsigned value or an explicit error.
    * @note Negative zero is accepted. Negative nonzero values are rejected.
    * Performs no allocation and never modifies the stored spelling.
+   * @par ID
+   * SWU-VALUE-092
    */
   result<std::uintmax_t> to_unsigned_integer(const owned_number& number,
                                              const numeric_conversion_options& options) noexcept
@@ -59,6 +61,8 @@ namespace adaptive_json5
    * @return Exact signed value or an explicit error.
    * @note Checks magnitude before signed conversion or negation.
    * Performs no allocation and preserves the stored spelling.
+   * @par ID
+   * SWU-VALUE-093
    */
   result<std::intmax_t> to_signed_integer(const owned_number& number,
                                           const numeric_conversion_options& options) noexcept
@@ -116,6 +120,8 @@ namespace adaptive_json5
    * @param options Work ceiling for this query.
    * @return Exact integrality or an explicit operational/access failure.
    * @note No conversion to an integer or floating-point destination occurs.
+   * @par ID
+   * SWU-VALUE-094
    */
   result<bool> is_integral_number(const owned_number& number, const numeric_conversion_options& options) noexcept
   {
@@ -141,6 +147,8 @@ namespace adaptive_json5
    * @param options Work ceiling passed to the owned-number query.
    * @return Exact integrality or an explicit access/analysis failure.
    * @note Delegation starts one numeric-analysis budget and retains no pointers.
+   * @par ID
+   * SWU-VALUE-095
    */
   result<bool> is_integral_number(const value_view& value, const numeric_conversion_options& options) noexcept
   {

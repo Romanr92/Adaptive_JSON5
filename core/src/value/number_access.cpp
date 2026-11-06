@@ -25,6 +25,8 @@ namespace adaptive_json5
        * @param text Non-empty numeric spelling.
        * @return The family the full lexer would report for a valid spelling.
        * @note Constant time: looks at an optional sign and at most the next two bytes.
+       * @par ID
+       * SWU-VALUE-078
        */
       number_kind leading_kind(input_view text) noexcept
       {
@@ -68,6 +70,8 @@ namespace adaptive_json5
      * @param storage Caller-owned fallible storage provider.
      * @param max_bytes Maximum owned spelling length in bytes.
      * @return An owned number or the same errors as owned_number::copy_spelling.
+     * @par ID
+     * SWU-VALUE-079
      */
     result<owned_number> number_access::copy_validated_spelling(input_view text, number_kind kind,
                                                                 const storage_callbacks& storage,

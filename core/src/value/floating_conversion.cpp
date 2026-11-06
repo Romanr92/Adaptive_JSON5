@@ -38,6 +38,8 @@ namespace adaptive_json5
      * @param digit Validated hexadecimal digit.
      * @return Digit value from 0 to 15.
      * @note Uses explicit ranges rather than locale-dependent classification.
+     * @par ID
+     * SWU-VALUE-049
      */
     [[nodiscard]] unsigned int hexadecimal_digit_value(char digit) noexcept
     {
@@ -60,6 +62,8 @@ namespace adaptive_json5
      * P038; J5-037.
      * @param value Quotient or rounded significand.
      * @return Zero for zero; otherwise the highest set bit position plus one.
+     * @par ID
+     * SWU-VALUE-050
      */
     [[nodiscard]] std::size_t bit_length_of(std::uint_least64_t value) noexcept
     {
@@ -86,6 +90,8 @@ namespace adaptive_json5
      * @note Loads decimal chunks of up to four digits and single hexadecimal digits.
      * Ignores the decimal point and stops before the decimal exponent.
      * The caller reserves sufficient capacity before calling.
+     * @par ID
+     * SWU-VALUE-051
      */
     [[nodiscard]] status_result load_significand(input_view spelling, number_kind kind, detail::big_unsigned& digits,
                                                  work_budget& work) noexcept
@@ -172,6 +178,8 @@ namespace adaptive_json5
      * @param negative Sign of the original value.
      * @param options Conversion policies.
      * @return Signed zero or an explicit underflow failure.
+     * @par ID
+     * SWU-VALUE-052
      */
     template <typename T>
     [[nodiscard]] result<T> finish_underflow(bool negative, const floating_conversion_options& options) noexcept
@@ -197,6 +205,8 @@ namespace adaptive_json5
      * @return Correctly rounded value or an explicit error.
      * @note Rounds once, directly to T, with ties to an even significand.
      * All scratch storage is released before returning.
+     * @par ID
+     * SWU-VALUE-053
      */
     template <typename T>
     [[nodiscard]] result<T> convert_to_floating(const owned_number& number, const storage_callbacks& scratch,
@@ -551,6 +561,8 @@ namespace adaptive_json5
    * @brief Convert directly to float without an intermediate double.
    * @par Requirements
    * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
+   * @par ID
+   * SWU-VALUE-054
    */
   result<float> to_float(const owned_number& number, const storage_callbacks& scratch,
                          const floating_conversion_options& options) noexcept
@@ -562,6 +574,8 @@ namespace adaptive_json5
    * @brief Convert directly to double.
    * @par Requirements
    * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
+   * @par ID
+   * SWU-VALUE-055
    */
   result<double> to_double(const owned_number& number, const storage_callbacks& scratch,
                            const floating_conversion_options& options) noexcept

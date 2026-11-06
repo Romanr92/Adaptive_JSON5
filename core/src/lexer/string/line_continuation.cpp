@@ -24,6 +24,8 @@ namespace adaptive_json5
    * EOF after the backslash reports syntax at the current end offset.
    * Failure and no-match leave source unchanged.
    * No allocation is performed.
+   * @par ID
+   * SWU-LEXER-031
    */
   result<std::optional<line_terminator_span>> consume_line_continuation(cursor& source, syntax_mode mode) noexcept
   {

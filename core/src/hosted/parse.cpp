@@ -23,6 +23,8 @@ namespace adaptive_json5
      * @par Requirements
      * J5-046.
      * @return Storage, or nullptr when the heap cannot supply it.
+     * @par ID
+     * SWU-HOSTED-001
      */
     void* hosted_allocate(void* /* context */, std::size_t bytes, std::size_t alignment) noexcept
     {
@@ -33,6 +35,8 @@ namespace adaptive_json5
      * @brief Release storage obtained from hosted_allocate.
      * @par Requirements
      * J5-040.
+     * @par ID
+     * SWU-HOSTED-002
      */
     void hosted_deallocate(void* /* context */, void* address, std::size_t /* bytes */, std::size_t alignment) noexcept
     {
@@ -51,6 +55,11 @@ namespace adaptive_json5
     {
         accounted_storage accounting;
 
+        /**
+         * @brief Create the storage accounting for one document, bounded by max_owned_bytes.
+         * @par ID
+         * SWU-HOSTED-003
+         */
         explicit hosted_storage_block(std::size_t max_owned_bytes) noexcept
             : accounting(c_hosted_provider, max_owned_bytes)
         {
@@ -62,6 +71,8 @@ namespace adaptive_json5
      * @par Requirements
      * J5-040; J5-051.
      * @param block A block created by hosted::parse.
+     * @par ID
+     * SWU-HOSTED-004
      */
     void release_hosted_block(void* block) noexcept
     {
@@ -75,6 +86,8 @@ namespace adaptive_json5
      * @brief Parse a complete document with heap storage and default or given options.
      * @par Requirements
      * P037; J5-026; J5-040; J5-046; J5-047; J5-051.
+     * @par ID
+     * SWU-HOSTED-005
      */
     result<json5_document> parse(input_view input, const parse_options& options) noexcept
     {

@@ -31,6 +31,8 @@ namespace adaptive_json5::detail
    * NaN payload and sign preservation are not promised.
    * Performs constant bounded work without scanning or allocation.
    * The enclosing operation accounts for analysis before calling this helper.
+   * @par ID
+   * SWU-VALUE-002
    */
   template <typename T>
   [[nodiscard]] result<std::optional<T>> convert_special_floating(const number_analysis& analysis,

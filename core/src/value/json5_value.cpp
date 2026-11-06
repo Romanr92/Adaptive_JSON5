@@ -24,6 +24,8 @@ namespace adaptive_json5
      * @brief Build the error every navigation step reports for the wrong kind or a missing value.
      * @par Requirements
      * J5-039.
+     * @par ID
+     * SWU-VALUE-058
      */
     [[nodiscard]] error wrong_access() noexcept
     {
@@ -35,6 +37,8 @@ namespace adaptive_json5
    * @brief Wrap a value or an error together with the document's scratch storage.
    * @par Requirements
    * J5-040.
+   * @par ID
+   * SWU-VALUE-059
    */
   json5_value::json5_value(result<value_view> value, const storage_callbacks& scratch) noexcept
       : m_value(std::move(value)), m_scratch(scratch)
@@ -45,6 +49,8 @@ namespace adaptive_json5
    * @brief Report whether this object holds a value rather than an error.
    * @par Requirements
    * J5-003; J5-039.
+   * @par ID
+   * SWU-VALUE-060
    */
   bool json5_value::ok() const noexcept
   {
@@ -55,6 +61,8 @@ namespace adaptive_json5
    * @brief Borrow the error this object holds, if any.
    * @par Requirements
    * J5-003; J5-043.
+   * @par ID
+   * SWU-VALUE-061
    */
   const error* json5_value::error_if() const noexcept
   {
@@ -65,6 +73,8 @@ namespace adaptive_json5
    * @brief Report the kind of the value.
    * @par Requirements
    * J5-028; J5-039.
+   * @par ID
+   * SWU-VALUE-062
    */
   result<value_kind> json5_value::kind() const noexcept
   {
@@ -80,6 +90,8 @@ namespace adaptive_json5
    * @brief Report whether the value is null.
    * @par Requirements
    * J5-028.
+   * @par ID
+   * SWU-VALUE-063
    */
   bool json5_value::is_null() const noexcept
   {
@@ -91,6 +103,8 @@ namespace adaptive_json5
    * @brief Report whether the value is a boolean.
    * @par Requirements
    * J5-028.
+   * @par ID
+   * SWU-VALUE-064
    */
   bool json5_value::is_boolean() const noexcept
   {
@@ -102,6 +116,8 @@ namespace adaptive_json5
    * @brief Report whether the value is a string.
    * @par Requirements
    * J5-028.
+   * @par ID
+   * SWU-VALUE-065
    */
   bool json5_value::is_string() const noexcept
   {
@@ -113,6 +129,8 @@ namespace adaptive_json5
    * @brief Report whether the value is a number.
    * @par Requirements
    * J5-028.
+   * @par ID
+   * SWU-VALUE-066
    */
   bool json5_value::is_number() const noexcept
   {
@@ -124,6 +142,8 @@ namespace adaptive_json5
    * @brief Report whether the value is an array.
    * @par Requirements
    * J5-028.
+   * @par ID
+   * SWU-VALUE-067
    */
   bool json5_value::is_array() const noexcept
   {
@@ -135,6 +155,8 @@ namespace adaptive_json5
    * @brief Report whether the value is an object.
    * @par Requirements
    * J5-028.
+   * @par ID
+   * SWU-VALUE-068
    */
   bool json5_value::is_object() const noexcept
   {
@@ -146,6 +168,8 @@ namespace adaptive_json5
    * @brief Select the member of an object by its UTF-8 name.
    * @par Requirements
    * J5-030; J5-031; J5-033; J5-039.
+   * @par ID
+   * SWU-VALUE-069
    */
   json5_value json5_value::member(std::string_view name) const noexcept
   {
@@ -220,6 +244,8 @@ namespace adaptive_json5
    * @brief Select the element of an array by position.
    * @par Requirements
    * J5-030; J5-039.
+   * @par ID
+   * SWU-VALUE-070
    */
   json5_value json5_value::at(std::size_t index) const noexcept
   {
@@ -238,6 +264,8 @@ namespace adaptive_json5
    * @brief Report the number of elements of an array or members of an object.
    * @par Requirements
    * J5-030; J5-031.
+   * @par ID
+   * SWU-VALUE-071
    */
   result<std::size_t> json5_value::size() const noexcept
   {
@@ -254,6 +282,8 @@ namespace adaptive_json5
    * @brief Read a boolean value.
    * @par Requirements
    * J5-028; J5-039.
+   * @par ID
+   * SWU-VALUE-072
    */
   result<bool> json5_value::as_bool() const noexcept
   {
@@ -269,6 +299,8 @@ namespace adaptive_json5
    * @brief Read a number as a signed 64-bit integer, exactly.
    * @par Requirements
    * J5-034; J5-036; J5-039.
+   * @par ID
+   * SWU-VALUE-073
    */
   result<std::int64_t> json5_value::as_int64() const noexcept
   {
@@ -284,6 +316,8 @@ namespace adaptive_json5
    * @brief Read a number as an unsigned 64-bit integer, exactly.
    * @par Requirements
    * J5-034; J5-036; J5-039.
+   * @par ID
+   * SWU-VALUE-074
    */
   result<std::uint64_t> json5_value::as_uint64() const noexcept
   {
@@ -299,6 +333,8 @@ namespace adaptive_json5
    * @brief Read a number as a double, rounded once.
    * @par Requirements
    * J5-034; J5-037; J5-039.
+   * @par ID
+   * SWU-VALUE-075
    */
   result<double> json5_value::as_double() const noexcept
   {
@@ -322,6 +358,8 @@ namespace adaptive_json5
    * @brief Copy a string value as UTF-8 into a caller buffer.
    * @par Requirements
    * J5-029; J5-039; J5-041.
+   * @par ID
+   * SWU-VALUE-076
    */
   result<std::string_view> json5_value::as_string(char* buffer, std::size_t capacity) const noexcept
   {

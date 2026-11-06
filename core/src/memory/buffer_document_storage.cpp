@@ -32,6 +32,8 @@ namespace adaptive_json5
            * @par Requirements
            * J5-046; J5-047.
            * @note Construction performs no allocation.
+           * @par ID
+           * SWU-MEMORY-017
            */
           buffer_document_storage(void* buffer, std::size_t size, std::size_t max_owned_bytes) noexcept
               : arena(buffer, size), accounting(arena.callbacks(), max_owned_bytes)
@@ -44,6 +46,8 @@ namespace adaptive_json5
        * @par Requirements
        * J5-040; J5-051; J5-101.
        * @note Every document allocation must already have been released.
+       * @par ID
+       * SWU-MEMORY-018
        */
       void release_buffer_document_storage(void* block) noexcept
       {
@@ -55,6 +59,8 @@ namespace adaptive_json5
      * @brief Place a stable storage control block inside the supplied buffer.
      * @par Requirements
      * P003; P037; J5-040; J5-046; J5-047; J5-051; J5-101.
+     * @par ID
+     * SWU-MEMORY-019
      */
     result<document_storage_owner> make_buffer_document_storage(void* buffer, std::size_t size,
                                                                 std::size_t max_owned_bytes) noexcept

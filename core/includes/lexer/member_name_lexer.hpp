@@ -64,6 +64,8 @@ namespace adaptive_json5
      * Does not classify reserved words as value literals.
      * Does not skip trivia, update frames or invoke warning callbacks; identifier names never use the sink.
      * The caller handles shared resource and work accounting.
+     * @par ID
+     * SWU-LEXER-012
      */
     [[nodiscard]] result<std::optional<member_name_token>>
     consume_member_name(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units,
@@ -81,6 +83,8 @@ namespace adaptive_json5
      * @note Tries a quoted name first, then an identifier name in JSON5 mode only.
      * Failure and no-match preserve source.
      * Performs no allocation and needs no storage provider (ADR 0003, decision 7).
+     * @par ID
+     * SWU-LEXER-013
      */
     [[nodiscard]] result<std::optional<member_name_measure>> measure_member_name(cursor& source, syntax_mode mode,
                                                                                  std::size_t max_units) noexcept;

@@ -27,6 +27,8 @@ namespace adaptive_json5
        * @brief Construct a cursor over borrowed input.
        * @par Requirements
        * P004; J5-004.
+       * @par ID
+       * SWU-INPUT-001
        */
       constexpr explicit cursor(input_view view) noexcept : m_view(view), m_offset(c_zero_bytes) {}
 
@@ -36,6 +38,8 @@ namespace adaptive_json5
        * @brief Check if the cursor has reached or exceeded the end of the input.
        * @par Requirements
        * P004; J5-004.
+       * @par ID
+       * SWU-INPUT-002
        */
       [[nodiscard]] constexpr bool is_at_end() const noexcept
       {
@@ -46,6 +50,8 @@ namespace adaptive_json5
        * @brief Return the zero-based original byte offset in input.
        * @par Requirements
        * P004; J5-041; J5-044.
+       * @par ID
+       * SWU-INPUT-003
        */
       [[nodiscard]] constexpr std::size_t offset() const noexcept
       {
@@ -56,6 +62,8 @@ namespace adaptive_json5
        * @brief Return the number of unconsumed bytes remaining.
        * @par Requirements
        * P004; J5-004.
+       * @par ID
+       * SWU-INPUT-004
        */
       [[nodiscard]] constexpr std::size_t remaining() const noexcept
       {
@@ -67,6 +75,8 @@ namespace adaptive_json5
        * @par Requirements
        * P004; J5-004; J5-044.
        * @return The current byte, or std::nullopt if at end of input.
+       * @par ID
+       * SWU-INPUT-005
        */
       [[nodiscard]] constexpr std::optional<char> peek() const noexcept
       {
@@ -83,6 +93,8 @@ namespace adaptive_json5
        * P004; J5-004.
        * @param delta Zero-based lookahead index from current position.
        * @return The byte at (offset + delta), or std::nullopt if past end.
+       * @par ID
+       * SWU-INPUT-006
        */
       [[nodiscard]] constexpr std::optional<char> peek(std::size_t delta) const noexcept
       {
@@ -98,6 +110,8 @@ namespace adaptive_json5
        * @par Requirements
        * P004; J5-004.
        * @return The consumed byte, or std::nullopt if at end of input.
+       * @par ID
+       * SWU-INPUT-007
        */
       [[nodiscard]] constexpr std::optional<char> next() noexcept
       {
@@ -112,6 +126,8 @@ namespace adaptive_json5
        * @brief Advance the cursor forward by count bytes, clamped to end.
        * @par Requirements
        * P004; J5-004.
+       * @par ID
+       * SWU-INPUT-008
        */
       constexpr void advance(std::size_t count) noexcept
       {
@@ -123,6 +139,8 @@ namespace adaptive_json5
        * @brief Return an input_view spanning from start_offset to current offset.
        * @par Requirements
        * P004; J5-041.
+       * @par ID
+       * SWU-INPUT-009
        */
       [[nodiscard]] constexpr input_view span_from(std::size_t start_offset) const noexcept
       {

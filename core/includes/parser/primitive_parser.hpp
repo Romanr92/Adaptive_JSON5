@@ -72,6 +72,8 @@ namespace adaptive_json5
      * Does not establish a root, advance a cursor or parse containers.
      * Source spans and string-warning publication are handled by composition.
      * Does not itself integrate owned-byte or work accounting.
+     * @par ID
+     * SWU-PARSER-044
      */
     [[nodiscard]] result<value_index> append_primitive_token(document& destination, scalar_token token,
                                                              input_view input, const parse_options& options,
@@ -108,6 +110,8 @@ namespace adaptive_json5
    * A string is charged its bytes once more for its decoding pass.
    * Construction charges token bytes plus c_record_construction_work.
    * These are phase-accounting units, not measured execution time.
+   * @par ID
+   * SWU-PARSER-045
    */
   [[nodiscard]] result<std::optional<primitive_value>> consume_primitive(document& destination, cursor& source,
                                                                          input_view input, const parse_options& options,
@@ -139,6 +143,8 @@ namespace adaptive_json5
    * Successful charges remain consumed when a later phase fails.
    * Cleanup releases owned storage without requiring additional work charges.
    * The root span is stored in its value record and returned root metadata.
+   * @par ID
+   * SWU-PARSER-046
    */
   [[nodiscard]] result<primitive_document> parse_primitive_document(input_view input, const parse_options& options,
                                                                     accounted_storage& accounting) noexcept;

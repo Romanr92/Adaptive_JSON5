@@ -24,6 +24,8 @@ namespace adaptive_json5
    * Failure and no-match leave source unchanged.
    * The returned span excludes the already-consumed backslash.
    * No allocation is performed.
+   * @par ID
+   * SWU-LEXER-032
    */
   result<std::optional<decoded_character>> consume_non_escape(cursor& source, syntax_mode mode) noexcept
   {

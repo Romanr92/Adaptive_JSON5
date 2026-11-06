@@ -12,6 +12,8 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-049.
    * @param max_work_units Inclusive maximum cumulative work units.
+   * @par ID
+   * SWU-MEMORY-071
    */
   work_budget::work_budget(std::size_t max_work_units) noexcept : m_limit(max_work_units) {}
 
@@ -23,6 +25,8 @@ namespace adaptive_json5
    * @return Success or resource_limit without changing consumed work.
    * @note Exactly exhausting the remaining budget succeeds.
    * Zero units succeed even when the budget is exhausted.
+   * @par ID
+   * SWU-MEMORY-072
    */
   status_result work_budget::charge(std::size_t units) noexcept
   {
@@ -40,6 +44,8 @@ namespace adaptive_json5
    * @brief Return the cumulative successfully charged work.
    * @par Requirements
    * P031; J5-049.
+   * @par ID
+   * SWU-MEMORY-073
    */
   std::size_t work_budget::consumed() const noexcept
   {
@@ -51,6 +57,8 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-049.
    * @note Successful charges preserve consumed <= limit.
+   * @par ID
+   * SWU-MEMORY-074
    */
   std::size_t work_budget::remaining() const noexcept
   {

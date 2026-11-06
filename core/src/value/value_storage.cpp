@@ -24,6 +24,8 @@ namespace adaptive_json5
      * P030; J5-040; J5-046.
      * @note Private callers provide index below the allocated capacity.
      * This returns storage, without assuming a record is alive there.
+     * @par ID
+     * SWU-VALUE-109
      */
     void* value_storage::slot_address(const owned_block& storage, std::size_t index) noexcept
     {
@@ -36,6 +38,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-039; J5-040.
      * @note Private callers provide index below the constructed record count.
+     * @par ID
+     * SWU-VALUE-110
      */
     value_record* value_storage::live_record(std::size_t index) noexcept
     {
@@ -47,6 +51,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-039; J5-040.
      * @note Private callers provide index below the constructed record count.
+     * @par ID
+     * SWU-VALUE-111
      */
     const value_record* value_storage::live_record(std::size_t index) const noexcept
     {
@@ -58,6 +64,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040.
      * @note Reverse-order iteration uses no recursive child traversal.
+     * @par ID
+     * SWU-VALUE-112
      */
     void value_storage::destroy_records() noexcept
     {
@@ -74,6 +82,8 @@ namespace adaptive_json5
      * P030; J5-040; J5-046.
      * @note Allocation failure leaves existing records unchanged.
      * Growth temporarily retains both old and new raw blocks.
+     * @par ID
+     * SWU-VALUE-113
      */
     status_result value_storage::reserve(std::size_t required) noexcept
     {
@@ -135,6 +145,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040; J5-046.
      * @note Construction allocates nothing; a zero limit permits no records.
+     * @par ID
+     * SWU-VALUE-114
      */
     value_storage::value_storage(const storage_callbacks& provider, std::size_t max_records) noexcept
         : m_provider(provider), m_max_records(max_records)
@@ -146,6 +158,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040.
      * @note The source retains its provider and limit and can be reused.
+     * @par ID
+     * SWU-VALUE-115
      */
     value_storage::value_storage(value_storage&& other) noexcept
         : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
@@ -164,6 +178,8 @@ namespace adaptive_json5
      * @param records Exact number of records this storage will hold.
      * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
      * @note Failure leaves the storage growable and unchanged.
+     * @par ID
+     * SWU-VALUE-116
      */
     status_result value_storage::reserve_exact(std::size_t records) noexcept
     {
@@ -200,6 +216,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040.
      * @note Performs no allocation and does not recursively follow children.
+     * @par ID
+     * SWU-VALUE-117
      */
     value_storage::~value_storage() noexcept
     {
@@ -215,6 +233,8 @@ namespace adaptive_json5
      * @note Failure leaves existing records and the incoming record unchanged.
      * Success moves from record. Growth invalidates earlier record pointers.
      * Relationship invariants are enforced by the later document builder.
+     * @par ID
+     * SWU-VALUE-118
      */
     result<value_index> value_storage::append(value_record&& record) noexcept
     {
@@ -245,6 +265,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-039.
      * @note Returned pointers are invalidated by growth or storage destruction.
+     * @par ID
+     * SWU-VALUE-119
      */
     result<value_record*> value_storage::at(value_index index) noexcept
     {
@@ -261,6 +283,8 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-039.
      * @note Returned pointers are invalidated by growth or storage destruction.
+     * @par ID
+     * SWU-VALUE-120
      */
     result<const value_record*> value_storage::at(value_index index) const noexcept
     {
@@ -276,6 +300,8 @@ namespace adaptive_json5
      * @brief Return the number of constructed records.
      * @par Requirements
      * P030; J5-028.
+     * @par ID
+     * SWU-VALUE-121
      */
     std::size_t value_storage::size() const noexcept
     {

@@ -24,6 +24,8 @@ namespace adaptive_json5
         /**
          * @brief Append a completed value to a detached array without ancestor traversal.
          * @return Success or an explicit relationship/access error; failure changes nothing.
+         * @par ID
+         * SWU-VALUE-042
          */
         [[nodiscard]] static status_result attach_parsed_element(document& values, value_index array,
                                                                  value_index child) noexcept;
@@ -32,6 +34,8 @@ namespace adaptive_json5
          * @brief Append a completed named value to a detached object without ancestor traversal.
          * @return Success or an explicit relationship/access/range error.
          * @note Success transfers name; failure leaves it unchanged.
+         * @par ID
+         * SWU-VALUE-043
          */
         [[nodiscard]] static status_result attach_parsed_member(document& values, value_index object,
                                                                 decoded_string&& name, value_index child,
@@ -41,6 +45,8 @@ namespace adaptive_json5
          * @brief Reserve exactly the counted number of records in an empty document.
          * @return Success, or value_storage::reserve_exact's failure with the document unchanged.
          * @note Afterwards appends beyond records fail instead of growing (ADR 0003, decision 7).
+         * @par ID
+         * SWU-VALUE-044
          */
         [[nodiscard]] static status_result reserve_records_exact(document& values, std::size_t records) noexcept;
     };

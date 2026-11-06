@@ -10,6 +10,8 @@ namespace adaptive_json5
      * @brief Adopt a stable storage block and its destruction operation.
      * @par Requirements
      * J5-040; J5-046.
+     * @par ID
+     * SWU-MEMORY-027
      */
     document_storage_owner::document_storage_owner(void* block, accounted_storage* accounting,
                                                    void (*release)(void*) noexcept) noexcept
@@ -21,6 +23,8 @@ namespace adaptive_json5
      * @brief Destroy the owned control block, if ownership remains.
      * @par Requirements
      * J5-040; J5-051.
+     * @par ID
+     * SWU-MEMORY-028
      */
     document_storage_owner::~document_storage_owner() noexcept
     {
@@ -34,6 +38,8 @@ namespace adaptive_json5
      * @brief Transfer the pointers and leave the original owner empty.
      * @par Requirements
      * J5-040; J5-051.
+     * @par ID
+     * SWU-MEMORY-029
      */
     document_storage_owner::document_storage_owner(document_storage_owner&& other) noexcept
         : m_block(std::exchange(other.m_block, nullptr)), m_accounting(std::exchange(other.m_accounting, nullptr)),
@@ -45,6 +51,8 @@ namespace adaptive_json5
      * @brief Borrow accounting without changing storage ownership.
      * @par Requirements
      * J5-040; J5-046.
+     * @par ID
+     * SWU-MEMORY-030
      */
     [[nodiscard]] accounted_storage* document_storage_owner::accounting() const noexcept
     {
