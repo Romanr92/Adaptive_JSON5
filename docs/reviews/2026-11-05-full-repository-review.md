@@ -6,7 +6,7 @@
 | Baseline | `64510bef5486bc5825ee6eaf3fb0079d8918fa04` (`main`, version 0.2.0) |
 | Review branch | `claude/keen-edison-0aacft` |
 | Reviewer | Claude Code (AI agent) |
-| Status | **Complete** — all plan steps 0–9 done; [follow-up re-check](#follow-up--re-check-of-newer-branches-2026-11-06) on 2026-11-06 |
+| Status | **Complete** — all plan steps 0–9 done; [follow-up re-check](#follow-up--re-check-of-newer-branches-2026-11-06) on 2026-11-06; [proposed GitHub issues](#proposed-github-issues-copy-ready) and [order of work](#order-of-work-scope-documents-haratara-versus-review-findings) |
 | Re-checked refs | `origin/main` `903aedc` (= tag `0.2.0`), `72-release-packaging` `0b8957e`, `44-schema-1-…-p043p046` `f103fc2` |
 | Compared with | Independent ChatGPT review `full-repository-review-2026-11-06.md` (its baseline `1455359` is older than `0.2.0`); see [comparison](#comparison-with-the-independent-chatgpt-review-2026-11-06) |
 
@@ -594,7 +594,8 @@ claim.
 | Step 8 — Full repository (REPO) | 0 | 3 | 8 | 4 | 15 |
 | **Total** | **5** | **27** | **40** | **14** | **86** |
 
-**Prioritized recommendations**
+**Prioritized recommendations** (for their sequence relative to the safety and security
+scope documents, see [order of work](#order-of-work-scope-documents-haratara-versus-review-findings))
 
 1. **Fix LOG-01/LOG-02 and LOG-11** (with ARC-01, CS-03, DOC-01, DOC-02): walk the member list once in `member()` instead of quadratically; make `as_double()`
    independent of the document's arena or make the arena reclaim LIFO releases; add a
@@ -822,21 +823,42 @@ None of these issues were created by the reviewer. Labels are from the repositor
 existing set (`bug`, `enhancement`, `documentation`, `component:core`,
 `requirements:draft`); add a new label only if you want one.
 
-**Recommended order of work.**
+### Order of work: scope documents (HARA/TARA) versus review findings
 
-1. **Now, independent of any safety or security scope:** fix the confirmed defects and
-   test gaps — I-01 (High bug), I-06, I-07, I-02. They are wrong behavior under any scope.
-2. **Then decide the scope** (one owner decision, review question 1): QM only, or a
-   Safety Element out of Context with an *assumed* ASIL, and the assumed trust level of the
-   input (review question 2).
-3. **Before re-triaging the remaining findings, document the scope:** I-15 (assumptions of
-   use and assumed safety requirements — a library has no HARA of its own) and I-16
-   (out-of-context cybersecurity assumptions and a component threat analysis — the item
-   TARA belongs to the integrator). These documents decide which process findings become
-   mandatory (coverage/MC/DC, deviation register, tool confidence, fuzzing) and which can
-   be closed as not applicable.
-4. **Re-triage** I-03, I-04, I-05, I-08 … I-14 against that scope, then run the #117
-   re-review on the frozen commit.
+**Short answer:** decide and document the safety and security scope *before* working
+through most review findings, but fix the confirmed bugs now.
+
+**Why there is no HARA or item TARA in this repository.** A HARA (and the item-level TARA)
+is performed for a vehicle *item*, a function with hazards; a JSON5 parser has none on its
+own. The integrator's HARA produces the safety goals and the ASIL, and the integrator's TARA
+produces the cybersecurity goals. The library instead documents itself out of context:
+
+- **ISO 26262:** Safety Element out of Context with an *assumed* ASIL (or QM only),
+  assumptions of use (input trust, one thread per document, caller storage, timing),
+  assumed safety requirements and a safety manual (I-15).
+- **ISO/SAE 21434:** out-of-context cybersecurity assumptions, a component-level threat
+  analysis (the review's TARA-lite) and an assumed assurance level (CAL) (I-16). Accepting
+  the syntax does not authenticate a configuration; the integrator has to do that.
+
+**Order:**
+
+1. **Now — independent of any scope:** fix the confirmed defects and test gaps: I-01
+   (`as_double()` buffer exhaustion, data race, quadratic `member()`), I-06 (import helper
+   ignores the release tag), I-07 (no Release-configuration test leg) and I-02 (missing
+   error reasons and locations). They are wrong behavior under any scope.
+2. **Next — decide the scope** (one owner decision; review questions 1 and 2): QM only, or a
+   Safety Element out of Context with an assumed ASIL, and the assumed trust level of the
+   input.
+3. **Then — write the scope documents before re-triaging the remaining findings:** I-15
+   (safety assumptions) and I-16 (security assumptions). They decide whether MC/DC, the
+   MISRA deviation register, tool confidence and fuzzing become mandatory, or whether those
+   findings can be closed as not applicable.
+4. **Finally — re-triage and re-review:** re-triage I-03, I-04, I-05 and I-08 … I-14 against
+   the documented scope, freeze the commit and run the #117 re-review against it.
+
+**If a real vehicle project already has a HARA/TARA,** use its ASIL/CAL and the requirements
+it allocates to the library instead of assumptions. The library then becomes a software
+component to be qualified for that project (ISO 26262-8 clause 12).
 
 ### Overview
 
