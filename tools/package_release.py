@@ -83,6 +83,7 @@ def main():
         "-DADAPTIVE_JSON5_BUILD_TESTS=OFF", "-DADAPTIVE_JSON5_BUILD_LIBRARY=ON",
         "-DADAPTIVE_JSON5_BUILD_SCHEMA=OFF", "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
         "-DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF", "-DADAPTIVE_JSON5_ENABLE_RTTI=OFF",
+        "-DADAPTIVE_JSON5_BUILD_HOSTED=OFF",
         "-DCMAKE_INSTALL_LIBDIR=lib", "-DCMAKE_INSTALL_INCLUDEDIR=include",
         "-DADAPTIVE_JSON5_INSTALL_ARCHIVEDIR=.",
         f"-DADAPTIVE_JSON5_PACKAGE_PROFILE={args.platform}",
@@ -110,7 +111,9 @@ def main():
         subprocess.run(["cmake", "--install", str(build), "--prefix", str(stage)], check=True)
         if not (stage / "libadaptive_json5_parser.a").is_file():
             parser.error("Installed static .a archive is missing")
-        expected = {p.relative_to(source / "includes") for p in (source / "includes").rglob("*.hpp")}
+        # Packages ship the embedded parser only; the optional hosted header is not installed.
+        expected = {p.relative_to(source / "includes") for p in (source / "includes").rglob("*.hpp")
+                    if "hosted" not in p.relative_to(source / "includes").parts}
         actual = {p.relative_to(stage / "include") for p in (stage / "include").rglob("*.hpp")}
         if expected != actual:
             parser.error("Installed public-header inventory differs from supported headers")

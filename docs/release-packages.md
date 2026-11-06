@@ -26,13 +26,15 @@ Each `AdaptiveJSON5-<tag>-<profile>.tar.gz` extracts to:
 ```text
 AdaptiveJSON5-<tag>-<profile>/
   libadaptive_json5_parser.a
-  include/adaptive_json5/          # All public .hpp files and topic folders
+  include/adaptive_json5/          # Public .hpp files, except the optional hosted/ header
   lib/cmake/AdaptiveJSON5/        # Relocatable targets and version/build information
   build-info.json
   share/AdaptiveJSON5/            # Licenses, dependency notices and import helper
 ```
 
-The `.a` sits beside `include/`. Private headers, tests and GoogleTest are
+Packages contain the embedded parser only. They are built with `ADAPTIVE_JSON5_BUILD_HOSTED=OFF`,
+so `AdaptiveJSON5::hosted` and `hosted/parse.hpp` are not included; build from source to
+use the hosted option. The `.a` sits beside `include/`. Private headers, tests and GoogleTest are
 excluded. Adjacent release assets `<archive>.sha256` and `<archive>.json` identify
 its checksum and exact source/toolchain/build metadata. The package still needs
 the matching C/C++ runtime: `.a` does not incorporate libstdc++, libgcc or libc

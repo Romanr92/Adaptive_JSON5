@@ -58,7 +58,7 @@ include(FetchContent)
 set(ADAPTIVE_JSON5_BUILD_HOSTED ON CACHE BOOL "" FORCE)
 FetchContent_Declare(AdaptiveJSON5
     GIT_REPOSITORY https://github.com/Romanr92/Adaptive_JSON5.git
-    GIT_TAG 4d855d2571e2d6b7ff09cf0733ceaee4929cd5a5)
+    GIT_TAG 0.2.0)
 FetchContent_MakeAvailable(AdaptiveJSON5)
 
 add_executable(hello main.cpp)
@@ -110,8 +110,7 @@ cmake --build build
 It prints `port: 8080`. If CMake cannot find a compiler or build tool on Windows, add
 `-G Ninja` to the first command (for example with MinGW GCC and Ninja installed).
 
-`GIT_TAG` pins a commit because no release tag contains this API yet; `0.1.0` predates
-it. Use a release tag once one includes it.
+`GIT_TAG` pins the `0.2.0` release. Use a later release tag to update.
 
 - Every call returns a `result`: check `has_value()` before `value_if()`. Errors are
   values, never exceptions.

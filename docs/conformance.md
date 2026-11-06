@@ -191,7 +191,7 @@ is not a line-by-line proof or certification.
 | J5-002 build components | No unit maps to this row; it is a build contract. The `library` presets configure the library without tests, and the hosted library is opt-in. |
 | J5-007 license and provenance | No unit maps to this row; it is a documentation contract. No third-party material was added since the review below. |
 | J5-091 native portability | Units pass with GCC on Linux x86-64, Linux aarch64 and Windows MinGW at `64510be`. Other compilers are unexecuted; see [toolchains](#toolchains). |
-| J5-093 versioned consumption | Pending the release: `0.2.0` must be tagged and its packages built. The README quick start currently pins a commit. |
+| J5-093 versioned consumption | The `0.2.0` tag is published at `903aedc`, and the README quick start pins it. Release packages are pending: the first packaging run failed its header inventory check, and the fix in this change must be merged before the packages are rebuilt. |
 | J5-099 build matrix | Results recorded at `64510be` for all four required configurations, with the clang-format check; see [executed results](#executed-results). Linux aarch64 runs in addition. Validation tests and the `examples` job go beyond what this row requires. |
 | J5-100 release completeness | Versions, scope, limits, deviations, provenance, package usage and results are linked from this statement. Pending only the published tag and packages (J5-093). Named units in `tests/` and `core/tests/` match `traceability.md` in both directions. |
 
