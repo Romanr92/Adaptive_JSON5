@@ -158,6 +158,6 @@ outcome.
 
 - Implement the two CI self-checks that the TD1 argument for GoogleTest and gcovr
   relies on (a deliberately failing test that must fail the run; a gcovr report on a
-  reference file with known coverage). GitHub issues in M4 are still to be created.
+  reference file with known coverage): #142 and #143.
 - Add the Release test job (#130), so that the TD1 argument for the compilers also
   covers the shipped configuration.
