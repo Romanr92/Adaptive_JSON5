@@ -35,12 +35,32 @@ only through high error detection (TD1).
 | clang-format | 18.1.8 | Formatting production and test source | TI2 | It rewrites source files. | TD1 | It changes layout only. Every change is visible in the pull-request diff and is followed by a full build and test run. | TCL1 |
 | CMake (and Ninja) | 3.25 or later | Configuring and building | TI2 | A wrong option or source list could build something different from what was reviewed. | TD1 | The tests run on what CMake built; `build_configuration_tests` checks the build settings. | TCL1 |
 | `tools/package_release.py` | Repository version | Building the release archives | TI2 | A wrong file or setting could end up in a release. | TD1 | `tools/tests/test_package_release.py` checks the package contents; #130 runs it on pull requests. | TCL1 |
-| GoogleTest | 1.17.0 (pinned commit) | Running the unit and validation tests | TI2 | It could report a pass for a failing test, so a bug would go undetected. | TD1, to be confirmed | Widely used; the same code is also exercised independently by sanitizers, fuzzing and coverage, so a wrong pass on its own is unlikely to hide a defect. Open item: a CI self-check that a deliberately failing test makes the job fail. | TCL1 |
-| gcov and gcovr | gcov from the GCC used; gcovr 8.6 | Measuring coverage | TI2 | A wrong report could hide untested code. | TD1, to be confirmed | Coverage gaps are cross-checked against the test inventory in `docs/traceability.md`. | TCL1 |
+| GoogleTest | 1.17.0 (pinned commit) | Running the unit and validation tests | TI2 | It could report a pass for a failing test, or not run tests at all, so a bug would go undetected. | TD1 | A CI self-check proves it reports a failing test as failed, and CI already fails when no tests are found (`--no-tests=error`). Independent checks back it up (section 2.1). | TCL1 |
+| gcov and gcovr | gcov from the GCC used; gcovr 8.6 | Measuring coverage | TI2 | A wrong report could hide untested code. | TD1 | A CI self-check runs gcovr on a small reference file with known coverage (for example two branches, one taken) and fails if the report differs. | TCL1 |
 | AddressSanitizer, UndefinedBehaviorSanitizer, libFuzzer (planned, V4 and V5) | From the compiler used | Detecting memory errors and undefined behaviour | TI2 | They could miss an error. | TD1 | They are extra detection on top of the unit tests, not the only one. | TCL1 |
 
 **Result:** all tools are proposed at **TCL1**. The compiler used by the integrator is
 the integrator's responsibility.
+
+### 2.1 Why a missed bug would still be noticed
+
+A self-check only proves that a verification tool works in a known case. It does not
+prove that the tests would catch a real bug. That part of the TD1 argument rests on
+**several independent checks**: a bug that the unit tests miss would also have to get
+past the sanitizer runs, the fuzzer, the Clang build and the third-party conformance
+fixtures (V2 to V8 in the [verification strategy](verification-strategy.md)). These
+do not depend on GoogleTest or on each other's results, so all of them missing the
+same defect is unlikely. No method can promise that every bug is caught.
+
+### 2.2 Idea, not planned: mutation testing
+
+Mutation testing would measure directly how good the tests are at catching bugs. A
+mutation tool plants small deliberate bugs in the compiled code, for example turning
+`<` into `<=`, runs the existing GoogleTest suite against each change, and reports
+every change that no test noticed. GoogleTest has no such feature itself; it would only
+run the tests. Options for C++ are **Mull** (built on Clang, so it would fit the Clang
+job in #141) and **Dextool** (from Saab). It would run weekly or before a release
+because it is slow. This is recorded as an idea only; it is not planned.
 
 ## 3. Compilers
 
@@ -136,7 +156,8 @@ outcome.
 
 ## 5. Open items
 
-- Confirm TD1 for GoogleTest and gcovr, for example with a CI self-check that a
-  deliberately failing test fails the job.
+- Implement the two CI self-checks that the TD1 argument for GoogleTest and gcovr
+  relies on (a deliberately failing test that must fail the run; a gcovr report on a
+  reference file with known coverage). GitHub issues in M4 are still to be created.
 - Add the Release test job (#130), so that the TD1 argument for the compilers also
   covers the shipped configuration.
