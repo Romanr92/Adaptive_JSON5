@@ -31,8 +31,7 @@ namespace adaptive_json5
      * Frame growth invalidates previously obtained frame pointers.
      * Record construction charges c_record_construction_work.
      * Frame pushing additionally follows parser_stack's charging rules.
-     * @par ID
-     * SWU-PARSER-005
+     * @par ID SWU-PARSER-005
      */
     [[nodiscard]] result<value_index> open_container(document& destination, parser_stack& frames,
                                                      const punctuation_token& opening, work_budget& work) noexcept;

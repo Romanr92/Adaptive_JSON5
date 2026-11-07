@@ -28,8 +28,7 @@ namespace adaptive_json5
        * @return True when the first character is an identifier start or a backslash.
        * @note Decodes one character only and allocates nothing.
        * Lets strict mode name the violation instead of reporting a missing name.
-       * @par ID
-       * SWU-LEXER-011
+       * @par ID SWU-LEXER-011
        */
       bool starts_identifier_name(cursor source) noexcept
       {
@@ -55,8 +54,7 @@ namespace adaptive_json5
      * Does not classify reserved words as value literals.
      * Does not skip trivia, update frames or invoke warning callbacks.
      * The caller handles shared resource and work accounting.
-     * @par ID
-     * SWU-LEXER-012
+     * @par ID SWU-LEXER-012
      */
     result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
                                                                  const storage_callbacks& storage,
@@ -134,8 +132,7 @@ namespace adaptive_json5
      * @param max_units Inclusive decoded-name limit for this recognition.
      * @return A measurement, nullopt on no-match, or a located failure.
      * @note Keeps consume_member_name's order so both report the same errors (ADR 0003, decision 7).
-     * @par ID
-     * SWU-LEXER-013
+     * @par ID SWU-LEXER-013
      */
     result<std::optional<member_name_measure>> measure_member_name(cursor& source, syntax_mode mode,
                                                                    std::size_t max_units) noexcept

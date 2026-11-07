@@ -212,8 +212,8 @@ or verification.
  */
 ```
 
-Every function also carries a unique software unit ID in its Doxygen block, as an
-`@par ID` line followed by `SWU-<MODULE>-<number>`, for example `SWU-PARSER-012`.
+Every function also carries a unique software unit ID in its Doxygen block, on a
+single `@par ID SWU-<MODULE>-<number>` line, for example `@par ID SWU-PARSER-012`.
 When a function is declared in a header and defined in a `.cpp` file, both blocks
 carry the same ID. A new function takes the next free ID of its module from the
 [software unit ID registry](software-unit-ids.md), and the registry gets a new row
@@ -226,8 +226,7 @@ connect functions to the [safety traceability](../../docs/traceability.md#safety
  * @brief Non-throwing success/error result without a success payload.
  * @par Requirements
  * P002; J5-003; J5-045.
- * @par ID
- * SWU-API-013
+ * @par ID SWU-API-013
  */
 ```
 

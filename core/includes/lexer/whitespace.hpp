@@ -32,8 +32,7 @@ namespace adaptive_json5
    * @return True for a named JSON5 space or admitted space separator.
    * @note Preserves Unicode 3.0 whitespace memberships alongside
    * the selected Unicode 17.0.0 category data.
-   * @par ID
-   * SWU-LEXER-002
+   * @par ID SWU-LEXER-002
    */
   [[nodiscard]] inline constexpr bool is_json5_space(char32_t value) noexcept
   {
@@ -73,8 +72,7 @@ namespace adaptive_json5
    * Encoding failure leaves source unchanged, including any preceding
    * whitespace from this attempted run. Requires no allocation.
    * This operation implements JSON5 whitespace, not strict JSON policy.
-   * @par ID
-   * SWU-LEXER-051
+   * @par ID SWU-LEXER-051
    */
   [[nodiscard]] result<whitespace_span> skip_json5_whitespace(cursor& source) noexcept;
 } // namespace adaptive_json5

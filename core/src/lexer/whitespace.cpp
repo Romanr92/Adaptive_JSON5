@@ -20,8 +20,7 @@ namespace adaptive_json5
    * Encoding failure leaves source unchanged, including any preceding
    * whitespace from this attempted run. Requires no allocation.
    * This operation implements JSON5 whitespace, not strict JSON policy.
-   * @par ID
-   * SWU-LEXER-051
+   * @par ID SWU-LEXER-051
    */
   result<whitespace_span> skip_json5_whitespace(cursor& source) noexcept
   {

@@ -19,8 +19,7 @@ namespace adaptive_json5
      * @par Requirements
      * P025; J5-021; J5-022.
      * @note Does not skip trivia or convert the digits into a number.
-     * @par ID
-     * SWU-LEXER-014
+     * @par ID SWU-LEXER-014
      */
     void consume_decimal_digits(cursor& source) noexcept
     {
@@ -37,8 +36,7 @@ namespace adaptive_json5
      * @note Malformed UTF-8 at this position retains its encoding error.
      * Otherwise reports syntax at the current byte, including EOF.
      * The cursor is passed by value and the caller is unchanged.
-     * @par ID
-     * SWU-LEXER-015
+     * @par ID SWU-LEXER-015
      */
     error decimal_expected_error(cursor source) noexcept
     {
@@ -73,8 +71,7 @@ namespace adaptive_json5
    * Excess exponent digits report resource_limit at the first excess digit.
    * Zero permits exponent-free numbers but rejects any exponent digit.
    * The default permits any digit count representable by size_t.
-   * @par ID
-   * SWU-LEXER-016
+   * @par ID SWU-LEXER-016
    */
   result<std::optional<number_token>> consume_decimal(cursor& source, syntax_mode mode,
                                                       std::size_t max_exponent_digits) noexcept

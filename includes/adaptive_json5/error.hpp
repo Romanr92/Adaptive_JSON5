@@ -78,8 +78,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-043; J5-044; J5-045.
        * @note Duplicate-name metadata is absent.
-       * @par ID
-       * SWU-API-001
+       * @par ID SWU-API-001
        */
       [[nodiscard]] static constexpr error at_offset(error_code code, std::size_t byte_offset) noexcept
       {
@@ -94,8 +93,7 @@ namespace adaptive_json5
        * @param byte_offset Primary zero-based location, e.g. where a closing delimiter was expected.
        * @param range Original-input extent of the offending token.
        * @note Performs no allocation; duplicate-name and numeric metadata are absent.
-       * @par ID
-       * SWU-API-002
+       * @par ID SWU-API-002
        */
       [[nodiscard]] static constexpr error at_range(error_code code, std::size_t byte_offset,
                                                     source_span range) noexcept
@@ -108,8 +106,7 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-043; J5-045.
        * @note Duplicate-name metadata is absent.
-       * @par ID
-       * SWU-API-003
+       * @par ID SWU-API-003
        */
       [[nodiscard]] static constexpr error without_location(error_code code) noexcept
       {
@@ -124,8 +121,7 @@ namespace adaptive_json5
        * @param repeated Later name rejected by the selected policy.
        * @note The caller supplies validated original-input spans.
        * The primary location points to the repeated occurrence.
-       * @par ID
-       * SWU-API-004
+       * @par ID SWU-API-004
        */
       [[nodiscard]] static constexpr error duplicate_member(source_span first, source_span repeated) noexcept
       {
@@ -141,8 +137,7 @@ namespace adaptive_json5
        * @return Numeric-conversion error containing the supplied reason.
        * @note Conversion may inspect numbers without source metadata.
        * Duplicate-name metadata is absent. Performs no allocation.
-       * @par ID
-       * SWU-API-005
+       * @par ID SWU-API-005
        */
       [[nodiscard]] static constexpr error numeric_failure(numeric_conversion_reason reason) noexcept
       {
@@ -157,8 +152,7 @@ namespace adaptive_json5
        * @param reason Why the input violates the selected grammar.
        * @return Syntax error carrying the reason; range, duplicate and numeric metadata are absent.
        * @note Performs no allocation.
-       * @par ID
-       * SWU-API-006
+       * @par ID SWU-API-006
        */
       [[nodiscard]] static constexpr error syntax_at(std::size_t byte_offset, syntax_error_reason reason) noexcept
       {
@@ -175,8 +169,7 @@ namespace adaptive_json5
        * @param reason Why the input violates the selected grammar.
        * @return Syntax error carrying both the range and the reason.
        * @note Performs no allocation.
-       * @par ID
-       * SWU-API-007
+       * @par ID SWU-API-007
        */
       [[nodiscard]] static constexpr error syntax_at_range(std::size_t byte_offset, source_span range,
                                                            syntax_error_reason reason) noexcept

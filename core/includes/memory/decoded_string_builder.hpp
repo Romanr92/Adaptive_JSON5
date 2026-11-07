@@ -34,8 +34,7 @@ namespace adaptive_json5
        * P013; J5-018; J5-029.
        * @note Private callers provide a valid nonempty local array.
        * The entire append must fit the reservation before any unit is written.
-       * @par ID
-       * SWU-MEMORY-020
+       * @par ID SWU-MEMORY-020
        */
       [[nodiscard]] status_result append_units(const char16_t* units, std::size_t count) noexcept;
 
@@ -46,8 +45,7 @@ namespace adaptive_json5
        * P013; J5-029; J5-040.
        * @note Construction allocates nothing.
        * A zero limit permits only empty content.
-       * @par ID
-       * SWU-MEMORY-021
+       * @par ID SWU-MEMORY-021
        */
       decoded_string_builder(const storage_callbacks& provider, std::size_t max_units) noexcept;
 
@@ -100,8 +98,7 @@ namespace adaptive_json5
        * wrong_type_or_access when content or a reservation already exists.
        * @note Makes at most one allocation; zero units allocate nothing.
        * Appends up to units then never allocate (ADR 0003, decision 2).
-       * @par ID
-       * SWU-MEMORY-022
+       * @par ID SWU-MEMORY-022
        */
       [[nodiscard]] status_result reserve_exact(std::size_t units) noexcept;
 
@@ -110,8 +107,7 @@ namespace adaptive_json5
        * @par Requirements
        * P013; J5-018; J5-029.
        * @note NUL and lone surrogate units are preserved.
-       * @par ID
-       * SWU-MEMORY-023
+       * @par ID SWU-MEMORY-023
        */
       [[nodiscard]] status_result append_unit(char16_t unit) noexcept;
 
@@ -121,8 +117,7 @@ namespace adaptive_json5
        * P013; J5-018.
        * @note An invalid scalar returns an encoding error.
        * A surrogate pair is appended completely or not at all.
-       * @par ID
-       * SWU-MEMORY-024
+       * @par ID SWU-MEMORY-024
        */
       [[nodiscard]] status_result append_scalar(char32_t scalar) noexcept;
 
@@ -135,8 +130,7 @@ namespace adaptive_json5
        * The returned string owns exactly the reserved storage.
        * The builder becomes empty and can be reused with its original
        * provider and unit limit. Repeated finish returns an empty string.
-       * @par ID
-       * SWU-MEMORY-025
+       * @par ID SWU-MEMORY-025
        */
       [[nodiscard]] decoded_string finish() noexcept;
 
@@ -144,8 +138,7 @@ namespace adaptive_json5
        * @brief Return the number of accumulated UTF-16 units.
        * @par Requirements
        * P013; J5-029.
-       * @par ID
-       * SWU-MEMORY-026
+       * @par ID SWU-MEMORY-026
        */
       [[nodiscard]] std::size_t size() const noexcept;
   };

@@ -20,8 +20,7 @@ namespace adaptive_json5
    * No-match and failure leave source unchanged.
    * Missing digits report EOF; nonhex characters report their starting offset.
    * Nonmatching input is not validated. No allocation is performed.
-   * @par ID
-   * SWU-LEXER-047
+   * @par ID SWU-LEXER-047
    */
   [[nodiscard]] result<std::optional<char16_t>> consume_unicode_escape(cursor& source) noexcept;
 } // namespace adaptive_json5

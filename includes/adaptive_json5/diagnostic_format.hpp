@@ -27,8 +27,7 @@ namespace adaptive_json5
    * Truncated output is always NUL-terminated when capacity is nonzero.
    * Text is English, stable and contains no input bytes; callers use error codes, not text.
    * Performs no allocation and no locale-dependent operation. Scans input up to each offset.
-   * @par ID
-   * SWU-DIAGNOSTICS-013
+   * @par ID SWU-DIAGNOSTICS-013
    */
   [[nodiscard]] result<std::size_t> format_error(const error& failure, input_view input, char* buffer,
                                                  std::size_t capacity) noexcept;
@@ -45,8 +44,7 @@ namespace adaptive_json5
    * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with nonzero capacity.
    * @note Produces exactly the text of format_error for the same positions, without scanning input.
    * Performs no allocation and no locale-dependent operation.
-   * @par ID
-   * SWU-DIAGNOSTICS-012
+   * @par ID SWU-DIAGNOSTICS-012
    */
   [[nodiscard]] result<std::size_t> format_error_at(const error& failure, text_position primary,
                                                     std::optional<text_position> first_duplicate, char* buffer,
@@ -63,8 +61,7 @@ namespace adaptive_json5
    * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with
    *         nonzero capacity or an offset beyond input.
    * @note Output is "line: L, column: C: warning: message". Same truncation, text and allocation rules as format_error.
-   * @par ID
-   * SWU-DIAGNOSTICS-015
+   * @par ID SWU-DIAGNOSTICS-015
    */
   [[nodiscard]] result<std::size_t> format_warning(const string_warning& warning, input_view input, char* buffer,
                                                    std::size_t capacity) noexcept;
@@ -79,8 +76,7 @@ namespace adaptive_json5
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
    * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with nonzero capacity.
    * @note Produces exactly the text of format_warning for the same position, without scanning input.
-   * @par ID
-   * SWU-DIAGNOSTICS-014
+   * @par ID SWU-DIAGNOSTICS-014
    */
   [[nodiscard]] result<std::size_t> format_warning_at(const string_warning& warning, text_position position,
                                                       char* buffer, std::size_t capacity) noexcept;

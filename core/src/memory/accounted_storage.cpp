@@ -18,8 +18,7 @@ namespace adaptive_json5
    * and nonzero bytes after provider usability has been checked.
    * Preserves explicit upstream failures without fallback.
    * Failure leaves current and peak accounting unchanged.
-   * @par ID
-   * SWU-MEMORY-001
+   * @par ID SWU-MEMORY-001
    */
   result<void*> accounted_storage::allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept
   {
@@ -71,8 +70,7 @@ namespace adaptive_json5
    * P031; J5-040; J5-046; J5-051.
    * @note owned_block supplies the original allocation description once.
    * The originating accounting object and provider must still be alive.
-   * @par ID
-   * SWU-MEMORY-002
+   * @par ID SWU-MEMORY-002
    */
   void accounted_storage::deallocate_callback(void* context, void* address, std::size_t bytes,
                                               std::size_t alignment) noexcept
@@ -92,8 +90,7 @@ namespace adaptive_json5
    * @param provider Caller storage whose state outlives returned blocks.
    * @param max_owned_bytes Inclusive maximum outstanding requested bytes.
    * @note Zero permits only empty blocks.
-   * @par ID
-   * SWU-MEMORY-003
+   * @par ID SWU-MEMORY-003
    */
   accounted_storage::accounted_storage(const storage_callbacks& provider, std::size_t max_owned_bytes) noexcept
       : m_provider(provider), m_limit(max_owned_bytes)
@@ -110,8 +107,7 @@ namespace adaptive_json5
    * Use allocate_block()/allocate_array() for validated allocation dispatch.
    * Direct callback use must satisfy the storage callback contracts.
    * Deallocation requires the original description exactly once.
-   * @par ID
-   * SWU-MEMORY-004
+   * @par ID SWU-MEMORY-004
    */
   storage_callbacks accounted_storage::callbacks() noexcept
   {
@@ -133,8 +129,7 @@ namespace adaptive_json5
    * @note Provider and alignment validation follow allocate_block().
    * Zero bytes produce an empty block without invoking the provider.
    * Failures leave current and peak accounting unchanged.
-   * @par ID
-   * SWU-MEMORY-005
+   * @par ID SWU-MEMORY-005
    */
   result<owned_block> accounted_storage::allocate(std::size_t bytes, std::size_t alignment) noexcept
   {
@@ -147,8 +142,7 @@ namespace adaptive_json5
    * P031; J5-046; J5-047.
    * @note Overflow and byte-limit failures never call the provider.
    * Raw storage is returned; element lifetimes are managed by the caller.
-   * @par ID
-   * SWU-MEMORY-006
+   * @par ID SWU-MEMORY-006
    */
   result<owned_block> accounted_storage::allocate_array(std::size_t count, std::size_t element_size,
                                                         std::size_t alignment) noexcept
@@ -167,8 +161,7 @@ namespace adaptive_json5
    * @par Requirements
    * P032; J5-047.
    * @note Does not change the ceiling or current accounting.
-   * @par ID
-   * SWU-MEMORY-007
+   * @par ID SWU-MEMORY-007
    */
   std::size_t accounted_storage::byte_limit() const noexcept
   {
@@ -179,8 +172,7 @@ namespace adaptive_json5
    * @brief Return currently outstanding requested allocation bytes.
    * @par Requirements
    * P031; J5-047.
-   * @par ID
-   * SWU-MEMORY-008
+   * @par ID SWU-MEMORY-008
    */
   std::size_t accounted_storage::current_bytes() const noexcept
   {
@@ -192,8 +184,7 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-047.
    * @note Releasing blocks reduces current bytes without reducing the peak.
-   * @par ID
-   * SWU-MEMORY-009
+   * @par ID SWU-MEMORY-009
    */
   std::size_t accounted_storage::peak_bytes() const noexcept
   {

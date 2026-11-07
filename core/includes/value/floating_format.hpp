@@ -15,8 +15,7 @@ namespace adaptive_json5::detail
    * @note Checks numeric properties without assuming byte order or object layout.
    * Does not make unsupported formats a parser compilation failure.
    * Performs no allocation or runtime environment inspection.
-   * @par ID
-   * SWU-VALUE-001
+   * @par ID SWU-VALUE-001
    */
   template <typename T>
   [[nodiscard]] constexpr bool supports_floating_conversion() noexcept

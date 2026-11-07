@@ -45,8 +45,7 @@ namespace adaptive_json5
      * P024; J5-023.
      * @note Performs no allocation, normalization or case folding.
      * Checked-access failures are propagated explicitly.
-     * @par ID
-     * SWU-LEXER-005
+     * @par ID SWU-LEXER-005
      */
     [[nodiscard]] result<bool> identifier_spelling_matches(const decoded_string& value,
                                                            std::u16string_view spelling) noexcept;
@@ -65,8 +64,7 @@ namespace adaptive_json5
    * Other value spellings return unrecognized_value, not a string value.
    * Input, token ownership and cursor position are unchanged.
    * Performs no allocation.
-   * @par ID
-   * SWU-LEXER-006
+   * @par ID SWU-LEXER-006
    */
   [[nodiscard]] result<identifier_classification>
   classify_identifier(const identifier_token& token, identifier_context context, syntax_mode mode) noexcept;

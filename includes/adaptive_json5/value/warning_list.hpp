@@ -55,8 +55,7 @@ namespace adaptive_json5
        * @param max_entries Maximum retained entries, normally max_diagnostics; no reservation exceeds it.
        * @param policy How the first and later reservations size the table.
        * @note Performs no allocation.
-       * @par ID
-       * SWU-VALUE-139
+       * @par ID SWU-VALUE-139
        */
       warning_list(const storage_callbacks& provider, std::size_t max_entries,
                    warning_storage_policy policy = warning_storage_policy::fixed) noexcept;
@@ -67,8 +66,7 @@ namespace adaptive_json5
        * P039; J5-040.
        * @param other List whose entries are transferred.
        * @note Performs no allocation; the source keeps its provider and reports size zero.
-       * @par ID
-       * SWU-VALUE-140
+       * @par ID SWU-VALUE-140
        */
       warning_list(warning_list&& other) noexcept;
 
@@ -114,8 +112,7 @@ namespace adaptive_json5
        * @note fixed: the first allocation holds the maximum and never grows. adaptive: the
        * first allocation holds min(maximum, 64) entries, later growth doubles, capped at the maximum.
        * The old allocation is retained during copying.
-       * @par ID
-       * SWU-VALUE-141
+       * @par ID SWU-VALUE-141
        */
       [[nodiscard]] status_result reserve(std::size_t additional) noexcept;
 
@@ -126,8 +123,7 @@ namespace adaptive_json5
        * @param warning Entry to store, in source order.
        * @return Success, or wrong_type_or_access when no reserved capacity remains.
        * @note Never allocates, so it is safe inside a warning observer.
-       * @par ID
-       * SWU-VALUE-142
+       * @par ID SWU-VALUE-142
        */
       [[nodiscard]] status_result append_reserved(const string_warning& warning) noexcept;
 
@@ -135,8 +131,7 @@ namespace adaptive_json5
        * @brief Report the number of retained entries.
        * @par Requirements
        * P039; J5-017.
-       * @par ID
-       * SWU-VALUE-143
+       * @par ID SWU-VALUE-143
        */
       [[nodiscard]] std::size_t size() const noexcept;
 
@@ -146,8 +141,7 @@ namespace adaptive_json5
        * P039; J5-003; J5-017; J5-044.
        * @param index Zero-based position in source order.
        * @return A copy of the entry, or wrong_type_or_access when index is out of range.
-       * @par ID
-       * SWU-VALUE-144
+       * @par ID SWU-VALUE-144
        */
       [[nodiscard]] result<string_warning> at(std::size_t index) const noexcept;
   };

@@ -39,8 +39,7 @@ namespace adaptive_json5::detail
      * @return Stored limb value.
      * @note Caller guarantees an in-bounds initialized limb.
      * Byte copying avoids constructing typed objects inside raw storage.
-     * @par ID
-     * SWU-VALUE-003
+     * @par ID SWU-VALUE-003
      */
     [[nodiscard]] limb_type read_limb(const owned_block& storage, std::size_t index) noexcept
     {
@@ -60,8 +59,7 @@ namespace adaptive_json5::detail
      * @param index Allocated limb-slot index.
      * @param value Limb value below the limb radix.
      * @note Caller guarantees an in-bounds slot.
-     * @par ID
-     * SWU-VALUE-004
+     * @par ID SWU-VALUE-004
      */
     void write_limb(owned_block& storage, std::size_t index, limb_type value) noexcept
     {
@@ -77,8 +75,7 @@ namespace adaptive_json5::detail
    * P038; J5-037; J5-046.
    * @param digits Number of decimal digits, or the exponent of a power of ten.
    * @return ceil(digits * 10 / 3) bits, or resource_limit on overflow.
-   * @par ID
-   * SWU-VALUE-005
+   * @par ID SWU-VALUE-005
    */
   result<std::size_t> decimal_digit_bits(std::size_t digits) noexcept
   {
@@ -109,8 +106,7 @@ namespace adaptive_json5::detail
    * P038; J5-037; J5-046.
    * @param bits Upper bound on significant bits.
    * @return ceil(bits / 16) + 1 limbs, or resource_limit on overflow.
-   * @par ID
-   * SWU-VALUE-006
+   * @par ID SWU-VALUE-006
    */
   result<std::size_t> limbs_for_bits(std::size_t bits) noexcept
   {
@@ -130,8 +126,7 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P038; J5-046.
    * @param provider Borrowed fallible storage provider.
-   * @par ID
-   * SWU-VALUE-007
+   * @par ID SWU-VALUE-007
    */
   big_unsigned::big_unsigned(const storage_callbacks& provider) noexcept : m_provider(provider) {}
 
@@ -141,8 +136,7 @@ namespace adaptive_json5::detail
    * P038; J5-037; J5-046.
    * @param limbs Upper bound on the limbs this integer will hold.
    * @return Success, a provider failure, or wrong_type_or_access when nonzero or already reserved.
-   * @par ID
-   * SWU-VALUE-008
+   * @par ID SWU-VALUE-008
    */
   status_result big_unsigned::reserve(std::size_t limbs) noexcept
   {
@@ -174,8 +168,7 @@ namespace adaptive_json5::detail
    * @brief Report whether no nonzero limbs are stored.
    * @par Requirements
    * P038; J5-037.
-   * @par ID
-   * SWU-VALUE-009
+   * @par ID SWU-VALUE-009
    */
   bool big_unsigned::is_zero() const noexcept
   {
@@ -188,8 +181,7 @@ namespace adaptive_json5::detail
    * P038; J5-003; J5-037.
    * @return Exact significant bit count or an explicit size failure.
    * @note Limb storage bounds bytes, not bits, so the count uses checked arithmetic.
-   * @par ID
-   * SWU-VALUE-010
+   * @par ID SWU-VALUE-010
    */
   result<std::size_t> big_unsigned::bit_length() const noexcept
   {
@@ -236,8 +228,7 @@ namespace adaptive_json5::detail
    * @param work Shared work budget.
    * @return Success or an explicit failure preserving the original value.
    * @note Budget and capacity checks precede mutation; performs no allocation.
-   * @par ID
-   * SWU-VALUE-011
+   * @par ID SWU-VALUE-011
    */
   status_result big_unsigned::append_digit(unsigned int digit, unsigned int radix, work_budget& work) noexcept
   {
@@ -318,8 +309,7 @@ namespace adaptive_json5::detail
    * @param work Shared budget charged before comparison.
    * @return Exact ordering or an explicit resource failure.
    * @note Performs no allocation or mutation.
-   * @par ID
-   * SWU-VALUE-012
+   * @par ID SWU-VALUE-012
    */
   result<magnitude_order> big_unsigned::compare(const big_unsigned& other, work_budget& work) const noexcept
   {
@@ -385,8 +375,7 @@ namespace adaptive_json5::detail
    * @param work Shared budget charged before limb processing.
    * @return Success or an explicit failure preserving the original value.
    * @note Allocation and size checks precede all writes to replacement storage.
-   * @par ID
-   * SWU-VALUE-013
+   * @par ID SWU-VALUE-013
    */
   status_result big_unsigned::shift_left(std::size_t bit_count, work_budget& work) noexcept
   {
@@ -502,8 +491,7 @@ namespace adaptive_json5::detail
    * @param work Shared work budget.
    * @return Success or an explicit failure before mutation.
    * @note Retains allocated storage and restores canonical significant-limb count.
-   * @par ID
-   * SWU-VALUE-014
+   * @par ID SWU-VALUE-014
    */
   status_result big_unsigned::subtract(const big_unsigned& other, work_budget& work) noexcept
   {
@@ -600,8 +588,7 @@ namespace adaptive_json5::detail
    * @param work Shared work budget.
    * @return Success or an explicit failure before destination mutation.
    * @note The destination retains its original storage provider.
-   * @par ID
-   * SWU-VALUE-015
+   * @par ID SWU-VALUE-015
    */
   status_result big_unsigned::assign(const big_unsigned& other, work_budget& work) noexcept
   {

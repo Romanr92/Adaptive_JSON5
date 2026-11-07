@@ -46,8 +46,7 @@ namespace adaptive_json5
    * Each recognized punctuator occupies exactly one byte.
    * Does not skip trivia or validate nonpunctuation input.
    * Requires no allocation and throws no exceptions.
-   * @par ID
-   * SWU-LEXER-021
+   * @par ID SWU-LEXER-021
    */
   [[nodiscard]] std::optional<punctuation_token> consume_punctuation(cursor& source) noexcept;
 } // namespace adaptive_json5

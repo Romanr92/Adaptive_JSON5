@@ -50,8 +50,7 @@ namespace
    * @return True for a backslash, an identifier-part character or malformed UTF-8.
    * @note Performs no allocation. True means "not provably a literal", so the caller
    * defers to the identifier path, which reports today's exact error.
-   * @par ID
-   * SWU-LEXER-022
+   * @par ID SWU-LEXER-022
    */
   bool may_continue_identifier(adaptive_json5::cursor after) noexcept
   {
@@ -85,8 +84,7 @@ namespace
    * @param source Cursor at a possible value literal; not advanced.
    * @return The literal token when the bytes spell a complete literal, otherwise nullopt.
    * @note Never decodes into storage and never calls storage callbacks (ADR 0003, decision 3).
-   * @par ID
-   * SWU-LEXER-023
+   * @par ID SWU-LEXER-023
    */
   std::optional<adaptive_json5::literal_token> match_literal_bytes(const adaptive_json5::cursor& source) noexcept
   {
@@ -138,8 +136,7 @@ namespace adaptive_json5
      * @param mode Selected syntax.
      * @note Failure releases any owned token storage without advancing source.
      * No warning observer is invoked.
-     * @par ID
-     * SWU-LEXER-024
+     * @par ID SWU-LEXER-024
      */
     result<std::optional<scalar_token>> finish_scalar_token(cursor& source, cursor candidate, scalar_token token,
                                                             syntax_mode mode) noexcept
@@ -183,8 +180,7 @@ namespace adaptive_json5
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
    * Keep the alternative order identical to measure_scalar, which the counting pre-pass uses (ADR 0003, decision 7).
-   * @par ID
-   * SWU-LEXER-025
+   * @par ID SWU-LEXER-025
    */
   result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_string_units, std::size_t max_identifier_units,
@@ -275,8 +271,7 @@ namespace adaptive_json5
    * @return The independently limited overload's recognition result.
    * @note Preserves the original four-argument call behavior.
    * Permits any exponent digit count representable by size_t.
-   * @par ID
-   * SWU-LEXER-026
+   * @par ID SWU-LEXER-026
    */
   result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_units) noexcept
@@ -296,8 +291,7 @@ namespace adaptive_json5
      * @param mode Selected syntax.
      * @return The measurement, or the boundary error with source unchanged.
      * @note The measuring counterpart of detail::finish_scalar_token.
-     * @par ID
-     * SWU-LEXER-027
+     * @par ID SWU-LEXER-027
      */
     result<std::optional<scalar_measure>>
     finish_scalar_measure(cursor& source, cursor candidate, const scalar_measure& measured, syntax_mode mode) noexcept
@@ -328,8 +322,7 @@ namespace adaptive_json5
    * @param max_exponent_digits Maximum decimal exponent digits.
    * @return A measurement, nullopt at EOF or structural punctuation, or a located error.
    * @note Keeps consume_scalar's order so both report the same errors (ADR 0003, decision 7).
-   * @par ID
-   * SWU-LEXER-028
+   * @par ID SWU-LEXER-028
    */
   result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode, std::size_t max_string_units,
                                                        std::size_t max_identifier_units,

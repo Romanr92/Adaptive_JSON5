@@ -57,8 +57,7 @@ namespace adaptive_json5
      * @param digit Validated hexadecimal digit.
      * @return Digit value from 0 to 15.
      * @note Uses explicit ranges rather than locale-dependent classification.
-     * @par ID
-     * SWU-VALUE-081
+     * @par ID SWU-VALUE-081
      */
     [[nodiscard]] unsigned int hexadecimal_digit_value(char digit) noexcept
     {
@@ -84,8 +83,7 @@ namespace adaptive_json5
      * @return Limb count or resource_limit on overflow.
      * @note Scaling happens only for equal leading exponents; the power of ten then has
      * at most as many digits as the other operand's significand (ADR 0003, decision 1).
-     * @par ID
-     * SWU-VALUE-082
+     * @par ID SWU-VALUE-082
      */
     [[nodiscard]] result<std::size_t> operand_limbs(const detail::number_analysis& own,
                                                     const detail::number_analysis& other) noexcept
@@ -123,8 +121,7 @@ namespace adaptive_json5
      * @par Requirements
      * P038; J5-037.
      * @param digits Chunk length from 1 to c_chunk_digits.
-     * @par ID
-     * SWU-VALUE-083
+     * @par ID SWU-VALUE-083
      */
     [[nodiscard]] unsigned int chunk_power(std::size_t digits) noexcept
     {
@@ -147,8 +144,7 @@ namespace adaptive_json5
      * @param work Shared comparison work budget.
      * @return Success or the first failure; earlier steps are not undone.
      * @note Uses ceil(count / 4) multiplications instead of count (ADR 0003, decision 1b).
-     * @par ID
-     * SWU-VALUE-084
+     * @par ID SWU-VALUE-084
      */
     [[nodiscard]] status_result scale_by_power_of_ten(detail::big_unsigned& value, std::size_t count,
                                                       work_budget& work) noexcept
@@ -178,8 +174,7 @@ namespace adaptive_json5
      * @param work Shared comparison work budget.
      * @return Number of decimal digits or an explicit resource/storage failure.
      * @note Reserves 10^count once from the value’s bit length, then multiplies it until it exceeds value.
-     * @par ID
-     * SWU-VALUE-085
+     * @par ID SWU-VALUE-085
      */
     [[nodiscard]] result<std::size_t> count_decimal_digits(const detail::big_unsigned& value,
                                                            const storage_callbacks& provider,
@@ -289,8 +284,7 @@ namespace adaptive_json5
      * @return Exact scale and leading exponent, or an explicit failure.
      * @note Exponents above c_max_exponent return resource_limit instead of saturating,
      * because saturation would make different values compare equal.
-     * @par ID
-     * SWU-VALUE-086
+     * @par ID SWU-VALUE-086
      */
     [[nodiscard]] result<decimal_form> read_decimal_form(input_view spelling, number_kind kind,
                                                          detail::big_unsigned& digits,
@@ -447,8 +441,7 @@ namespace adaptive_json5
      * @brief Translate a private magnitude ordering into the public ordering.
      * @par Requirements
      * P038; J5-036.
-     * @par ID
-     * SWU-VALUE-087
+     * @par ID SWU-VALUE-087
      */
     [[nodiscard]] number_order to_number_order(detail::magnitude_order order) noexcept
     {
@@ -478,8 +471,7 @@ namespace adaptive_json5
      * @param left_info Analysis of left, providing its digit count.
      * @param right_info Analysis of right.
      * @note Releases all scratch before returning.
-     * @par ID
-     * SWU-VALUE-088
+     * @par ID SWU-VALUE-088
      */
     [[nodiscard]] result<number_order> compare_finite_magnitudes(const owned_number& left, const owned_number& right,
                                                                  const detail::number_analysis& left_info,
@@ -585,8 +577,7 @@ namespace adaptive_json5
      * @par Requirements
      * P038; J5-036; J5-038.
      * @return -1, 0 or 1; zero ignores its spelled sign.
-     * @par ID
-     * SWU-VALUE-089
+     * @par ID SWU-VALUE-089
      */
     [[nodiscard]] int sign_of(const detail::number_analysis& analysis) noexcept
     {
@@ -602,8 +593,7 @@ namespace adaptive_json5
      * @brief Mirror an ordering for two negative operands.
      * @par Requirements
      * P038; J5-036.
-     * @par ID
-     * SWU-VALUE-090
+     * @par ID SWU-VALUE-090
      */
     [[nodiscard]] number_order reversed(number_order order) noexcept
     {
@@ -626,8 +616,7 @@ namespace adaptive_json5
    * @brief Classify signs and special values, then compare finite magnitudes exactly.
    * @par Requirements
    * P038; J5-003; J5-036; J5-038; J5-046; J5-048; J5-052.
-   * @par ID
-   * SWU-VALUE-091
+   * @par ID SWU-VALUE-091
    */
   result<number_order> compare_numbers(const owned_number& left, const owned_number& right,
                                        const storage_callbacks& scratch,

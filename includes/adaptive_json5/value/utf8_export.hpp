@@ -15,8 +15,7 @@ namespace adaptive_json5
    * @return Required bytes, encoding error for unpaired surrogates,
    * or resource_limit if the byte count cannot be represented.
    * @note No terminating NUL is included. Performs no allocation.
-   * @par ID
-   * SWU-VALUE-103
+   * @par ID SWU-VALUE-103
    */
   [[nodiscard]] result<std::size_t> utf8_size(const decoded_string& source) noexcept;
 
@@ -33,8 +32,7 @@ namespace adaptive_json5
    * Validation and capacity failures leave the destination unchanged.
    * Source and destination storage must not overlap.
    * The source must remain unchanged throughout this call.
-   * @par ID
-   * SWU-VALUE-104
+   * @par ID SWU-VALUE-104
    */
   [[nodiscard]] result<std::size_t> export_utf8(const decoded_string& source, unsigned char* destination,
                                                 std::size_t capacity) noexcept;

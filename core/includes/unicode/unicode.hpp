@@ -15,8 +15,7 @@ namespace adaptive_json5
      * @par Requirements
      * P006; J5-009.
      * @note Surrogates are UTF-16 code units, not Unicode scalars.
-     * @par ID
-     * SWU-UNICODE-001
+     * @par ID SWU-UNICODE-001
      */
     [[nodiscard]] inline constexpr bool is_unicode_scalar(char32_t value) noexcept
     {
@@ -36,8 +35,7 @@ namespace adaptive_json5
      * @param ranges Immutable, sorted, nonoverlapping property ranges.
      * @return True when one range contains the scalar.
      * @note Binary search requires no allocation or locale facilities.
-     * @par ID
-     * SWU-UNICODE-002
+     * @par ID SWU-UNICODE-002
      */
     template <std::size_t RangeCount>
     [[nodiscard]] inline constexpr bool contains_unicode(char32_t value,
@@ -87,8 +85,7 @@ namespace adaptive_json5
    * @par Requirements
    * P006; J5-006; J5-052.
    * @note This property query does not implement complete JSON5 whitespace.
-   * @par ID
-   * SWU-UNICODE-003
+   * @par ID SWU-UNICODE-003
    */
   [[nodiscard]] inline constexpr bool is_unicode_space_separator(char32_t value) noexcept
   {
@@ -100,8 +97,7 @@ namespace adaptive_json5
    * @par Requirements
    * P006; J5-006; J5-019; J5-052.
    * @note Uses versioned Unicode letter categories plus explicit ES5 additions.
-   * @par ID
-   * SWU-UNICODE-004
+   * @par ID SWU-UNICODE-004
    */
   [[nodiscard]] inline constexpr bool is_identifier_start(char32_t value) noexcept
   {
@@ -122,8 +118,7 @@ namespace adaptive_json5
    * @par Requirements
    * P006; J5-006; J5-019; J5-052.
    * @note Identifier continuation includes every valid starting character.
-   * @par ID
-   * SWU-UNICODE-005
+   * @par ID SWU-UNICODE-005
    */
   [[nodiscard]] inline constexpr bool is_identifier_part(char32_t value) noexcept
   {

@@ -22,8 +22,7 @@ namespace adaptive_json5::detail
    * @param maximum Inclusive permitted magnitude.
    * @return Exact updated magnitude or an explicit error.
    * @note Checks precede arithmetic that could overflow. Performs no allocation.
-   * @par ID
-   * SWU-VALUE-056
+   * @par ID SWU-VALUE-056
    */
   result<std::uintmax_t> append_integer_digit(std::uintmax_t current, unsigned int digit, unsigned int radix,
                                               std::uintmax_t maximum) noexcept
@@ -62,8 +61,7 @@ namespace adaptive_json5::detail
    * @param work Shared budget charged before spelling processing.
    * @return Exact magnitude and sign, or an explicit error.
    * @note Allocates nothing and never modifies the number.
-   * @par ID
-   * SWU-VALUE-057
+   * @par ID SWU-VALUE-057
    */
   result<integer_magnitude> read_integer_magnitude(const owned_number& number, std::uintmax_t maximum,
                                                    work_budget& work) noexcept

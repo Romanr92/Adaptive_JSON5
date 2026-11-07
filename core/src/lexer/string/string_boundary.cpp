@@ -19,8 +19,7 @@ namespace adaptive_json5
    * or syntax error for a single quote in strict JSON.
    * @note Failure and no-match leave the cursor unchanged.
    * Does not skip trivia or validate nonquote input.
-   * @par ID
-   * SWU-LEXER-034
+   * @par ID SWU-LEXER-034
    */
   result<std::optional<string_quote>> consume_string_opening(cursor& source, syntax_mode mode) noexcept
   {
@@ -70,8 +69,7 @@ namespace adaptive_json5
    * following escape before calling this function again.
    * Raw U+2028/U+2029 are characters; warning handling belongs to P020.
    * Whole-string rollback belongs to the later composing lexer.
-   * @par ID
-   * SWU-LEXER-035
+   * @par ID SWU-LEXER-035
    */
   result<string_piece> consume_string_piece(cursor& source, string_quote quote, syntax_mode mode) noexcept
   {

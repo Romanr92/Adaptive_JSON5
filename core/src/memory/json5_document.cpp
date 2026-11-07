@@ -36,8 +36,7 @@ namespace adaptive_json5
      * empty.
      * @note Compares address differences, so no range end is computed and nothing overflows.
      * Writing parse storage over the input would corrupt it while it is still read.
-     * @par ID
-     * SWU-MEMORY-031
+     * @par ID SWU-MEMORY-031
      */
     [[nodiscard]] bool overlaps(input_view input, const void* buffer, std::size_t buffer_size) noexcept
     {
@@ -60,8 +59,7 @@ namespace adaptive_json5
      * J5-043; J5-044.
      * @param length Full message length reported by format_error() or format_warning().
      * @return A view of at most capacity - 1 bytes, the part that fit before the NUL.
-     * @par ID
-     * SWU-MEMORY-032
+     * @par ID SWU-MEMORY-032
      */
     [[nodiscard]] std::string_view kept_text(const char* buffer, std::size_t capacity, std::size_t length) noexcept
     {
@@ -78,8 +76,7 @@ namespace adaptive_json5
    * J5-040; J5-051.
    * @param storage Owner of the control block whose accounting allocated parsed.
    * @param parsed Document, warnings and retained source parsed through that accounting.
-   * @par ID
-   * SWU-MEMORY-033
+   * @par ID SWU-MEMORY-033
    */
   json5_document::json5_document(detail::document_storage_owner&& storage, parsed_document&& parsed) noexcept
       : m_storage(std::move(storage)), m_parsed(std::move(parsed))
@@ -99,8 +96,7 @@ namespace adaptive_json5
    * or the error of parse_document, unchanged.
    * @note The arena and the accounting are placed at the start of the buffer; parsing and
    * the failure cleanup are done by json5_document_access::parse_with_storage.
-   * @par ID
-   * SWU-MEMORY-034
+   * @par ID SWU-MEMORY-034
    */
   result<json5_document> json5_document::parse(input_view input, void* buffer, std::size_t buffer_size,
                                                const parse_options& options) noexcept
@@ -126,8 +122,7 @@ namespace adaptive_json5
    * @brief Start navigating at the root value.
    * @par Requirements
    * J5-026; J5-028; J5-040.
-   * @par ID
-   * SWU-MEMORY-035
+   * @par ID SWU-MEMORY-035
    */
   json5_value json5_document::root() const noexcept
   {
@@ -142,8 +137,7 @@ namespace adaptive_json5
    * @brief Report how many warnings the parse retained.
    * @par Requirements
    * J5-017; J5-041.
-   * @par ID
-   * SWU-MEMORY-036
+   * @par ID SWU-MEMORY-036
    */
   std::size_t json5_document::warning_count() const noexcept
   {
@@ -154,8 +148,7 @@ namespace adaptive_json5
    * @brief Read one retained warning, in source order.
    * @par Requirements
    * J5-017; J5-041.
-   * @par ID
-   * SWU-MEMORY-037
+   * @par ID SWU-MEMORY-037
    */
   result<string_warning> json5_document::warning(std::size_t index) const noexcept
   {
@@ -167,8 +160,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-040; J5-051.
    * @note The storage owner empties other, so the accounting keeps its address.
-   * @par ID
-   * SWU-MEMORY-038
+   * @par ID SWU-MEMORY-038
    */
   json5_document::json5_document(json5_document&& other) noexcept = default;
 
@@ -177,8 +169,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-040; J5-051.
    * @note Member order guarantees it: m_parsed is destroyed before m_storage.
-   * @par ID
-   * SWU-MEMORY-039
+   * @par ID SWU-MEMORY-039
    */
   json5_document::~json5_document() noexcept = default;
 
@@ -187,8 +178,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-028; J5-040.
    * @return A reference to m_parsed.values.
-   * @par ID
-   * SWU-MEMORY-040
+   * @par ID SWU-MEMORY-040
    */
   const document& json5_document::values() const noexcept
   {
@@ -200,8 +190,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-041.
    * @return A reference to m_parsed.source.
-   * @par ID
-   * SWU-MEMORY-041
+   * @par ID SWU-MEMORY-041
    */
   const retained_source& json5_document::source() const noexcept
   {
@@ -213,8 +202,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-046; J5-047.
    * @return The accounted bytes, or zero after this document was moved from.
-   * @par ID
-   * SWU-MEMORY-042
+   * @par ID SWU-MEMORY-042
    */
   std::size_t json5_document::current_bytes() const noexcept
   {
@@ -226,8 +214,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-046; J5-047.
    * @return The peak, or zero after this document was moved from.
-   * @par ID
-   * SWU-MEMORY-043
+   * @par ID SWU-MEMORY-043
    */
   std::size_t json5_document::peak_bytes() const noexcept
   {
@@ -238,8 +225,7 @@ namespace adaptive_json5
    * @brief Describe an error as "line: L, column: C: message" in a caller buffer.
    * @par Requirements
    * J5-043; J5-044.
-   * @par ID
-   * SWU-MEMORY-044
+   * @par ID SWU-MEMORY-044
    */
   result<std::string_view> describe(const error& failure, input_view input, char* buffer, std::size_t capacity) noexcept
   {
@@ -257,8 +243,7 @@ namespace adaptive_json5
    * @brief Describe a warning as "line: L, column: C: warning: message" in a caller buffer.
    * @par Requirements
    * J5-017; J5-044.
-   * @par ID
-   * SWU-MEMORY-045
+   * @par ID SWU-MEMORY-045
    */
   result<std::string_view> describe(const string_warning& warning, input_view input, char* buffer,
                                     std::size_t capacity) noexcept
@@ -279,8 +264,7 @@ namespace adaptive_json5
      * @brief Parse one complete document through the storage of an owner.
      * @par Requirements
      * P037; J5-026; J5-040; J5-046; J5-051.
-     * @par ID
-     * SWU-MEMORY-046
+     * @par ID SWU-MEMORY-046
      */
     result<json5_document> json5_document_access::parse_with_storage(input_view input, const parse_options& options,
                                                                      document_storage_owner&& storage) noexcept

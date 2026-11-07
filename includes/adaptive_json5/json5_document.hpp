@@ -42,8 +42,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-040; J5-051.
        * @note parsed must have been allocated through storage's accounting.
-       * @par ID
-       * SWU-MEMORY-033
+       * @par ID SWU-MEMORY-033
        */
       json5_document(detail::document_storage_owner&& storage, parsed_document&& parsed) noexcept;
 
@@ -66,8 +65,7 @@ namespace adaptive_json5
        * Physical exhaustion reports allocation_failure; configured limits report
        * resource_limit. Control-block overhead consumes buffer capacity but is
        * excluded from the requested-byte accounting ceiling.
-       * @par ID
-       * SWU-MEMORY-034
+       * @par ID SWU-MEMORY-034
        */
       [[nodiscard]] static result<json5_document> parse(input_view input, void* buffer, std::size_t buffer_size,
                                                         const parse_options& options = {}) noexcept;
@@ -77,8 +75,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-040; J5-051.
        * @note Storage accounting retains its original address.
-       * @par ID
-       * SWU-MEMORY-038
+       * @par ID SWU-MEMORY-038
        */
       json5_document(json5_document&& other) noexcept;
 
@@ -86,8 +83,7 @@ namespace adaptive_json5
        * @brief Release parsed allocations before destroying their storage.
        * @par Requirements
        * J5-040; J5-051.
-       * @par ID
-       * SWU-MEMORY-039
+       * @par ID SWU-MEMORY-039
        */
       ~json5_document() noexcept;
 
@@ -119,8 +115,7 @@ namespace adaptive_json5
        * @return The root, or a value holding the error of document::root(), for example
        * after this document was moved from.
        * @note The returned value borrows this document and must not outlive it or a move.
-       * @par ID
-       * SWU-MEMORY-035
+       * @par ID SWU-MEMORY-035
        */
       [[nodiscard]] json5_value root() const noexcept;
 
@@ -132,8 +127,7 @@ namespace adaptive_json5
        * @note Warnings are raw U+2028/U+2029 in JSON5 strings (JSON5 specification
        * section 5.2) and Unicode escapes that decode to an unpaired surrogate, in either syntax
        * mode; they never make a valid document fail.
-       * @par ID
-       * SWU-MEMORY-036
+       * @par ID SWU-MEMORY-036
        */
       [[nodiscard]] std::size_t warning_count() const noexcept;
 
@@ -143,8 +137,7 @@ namespace adaptive_json5
        * J5-017; J5-041.
        * @param index Zero-based position, below warning_count().
        * @return The warning, or wrong_type_or_access when index is out of range.
-       * @par ID
-       * SWU-MEMORY-037
+       * @par ID SWU-MEMORY-037
        */
       [[nodiscard]] result<string_warning> warning(std::size_t index) const noexcept;
 
@@ -152,8 +145,7 @@ namespace adaptive_json5
        * @brief Borrow the parsed values through the advanced document API.
        * @par Requirements
        * J5-028; J5-040.
-       * @par ID
-       * SWU-MEMORY-040
+       * @par ID SWU-MEMORY-040
        */
       [[nodiscard]] const document& values() const noexcept;
 
@@ -162,8 +154,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-041.
        * @return The copy, empty unless parse_options requested source retention.
-       * @par ID
-       * SWU-MEMORY-041
+       * @par ID SWU-MEMORY-041
        */
       [[nodiscard]] const retained_source& source() const noexcept;
 
@@ -172,8 +163,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-046; J5-047.
        * @note Returns zero after ownership has been moved away.
-       * @par ID
-       * SWU-MEMORY-042
+       * @par ID SWU-MEMORY-042
        */
       [[nodiscard]] std::size_t current_bytes() const noexcept;
 
@@ -182,8 +172,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-046; J5-047.
        * @note Returns zero after ownership has been moved away.
-       * @par ID
-       * SWU-MEMORY-043
+       * @par ID SWU-MEMORY-043
        */
       [[nodiscard]] std::size_t peak_bytes() const noexcept;
   };
@@ -200,8 +189,7 @@ namespace adaptive_json5
    * small; wrong_type_or_access for a null buffer with nonzero capacity or an offset beyond input.
    * @note Allocates nothing. Unlocated errors give only the message. Use format_error() for
    * the untruncated length.
-   * @par ID
-   * SWU-MEMORY-044
+   * @par ID SWU-MEMORY-044
    */
   [[nodiscard]] result<std::string_view> describe(const error& failure, input_view input, char* buffer,
                                                   std::size_t capacity) noexcept;
@@ -217,8 +205,7 @@ namespace adaptive_json5
    * @return A view of the text written, truncated when the buffer is too small, or the
    * errors of format_warning().
    * @note Allocates nothing.
-   * @par ID
-   * SWU-MEMORY-045
+   * @par ID SWU-MEMORY-045
    */
   [[nodiscard]] result<std::string_view> describe(const string_warning& warning, input_view input, char* buffer,
                                                   std::size_t capacity) noexcept;
@@ -228,8 +215,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-043; J5-044.
    * @note Same as describe(failure, input, buffer, N).
-   * @par ID
-   * SWU-API-008
+   * @par ID SWU-API-008
    */
   template <std::size_t N>
   [[nodiscard]] result<std::string_view> describe(const error& failure, input_view input, char (&buffer)[N]) noexcept
@@ -242,8 +228,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-017; J5-044.
    * @note Same as describe(warning, input, buffer, N).
-   * @par ID
-   * SWU-API-009
+   * @par ID SWU-API-009
    */
   template <std::size_t N>
   [[nodiscard]] result<std::string_view> describe(const string_warning& warning, input_view input,

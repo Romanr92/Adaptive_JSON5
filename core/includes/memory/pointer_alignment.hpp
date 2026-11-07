@@ -19,8 +19,7 @@ namespace adaptive_json5
      * @return The aligned position, or nullptr when bytes do not fit; then position and
      * space are unchanged.
      * @note Same contract as std::align; <memory> is not on the J5-042 allowlist.
-     * @par ID
-     * SWU-MEMORY-055
+     * @par ID SWU-MEMORY-055
      */
     [[nodiscard]] void* align_within(std::size_t alignment, std::size_t bytes, void*& position,
                                      std::size_t& space) noexcept;

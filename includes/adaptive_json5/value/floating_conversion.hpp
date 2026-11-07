@@ -56,8 +56,7 @@ namespace adaptive_json5
    * All temporary allocations are released before returning.
    * Provider state must remain alive throughout the call.
    * No returned value borrows the provider or number.
-   * @par ID
-   * SWU-VALUE-054
+   * @par ID SWU-VALUE-054
    */
   [[nodiscard]] result<float> to_float(const owned_number& number, const storage_callbacks& scratch,
                                        const floating_conversion_options& options = {}) noexcept;
@@ -82,8 +81,7 @@ namespace adaptive_json5
    * All temporary allocations are released before returning.
    * Provider state must remain alive throughout the call.
    * No returned value borrows the provider or number.
-   * @par ID
-   * SWU-VALUE-055
+   * @par ID SWU-VALUE-055
    */
   [[nodiscard]] result<double> to_double(const owned_number& number, const storage_callbacks& scratch,
                                          const floating_conversion_options& options = {}) noexcept;

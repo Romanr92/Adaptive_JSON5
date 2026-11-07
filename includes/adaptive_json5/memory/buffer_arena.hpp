@@ -36,8 +36,7 @@ namespace adaptive_json5
        * @return Aligned storage, or allocation_failure when the rest of the buffer is too small.
        * @note Called through allocate_block() with nonzero bytes and a validated power-of-two
        * alignment. Failure changes nothing.
-       * @par ID
-       * SWU-MEMORY-010
+       * @par ID SWU-MEMORY-010
        */
       [[nodiscard]] static result<void*> allocate_callback(void* context, std::size_t bytes,
                                                            std::size_t alignment) noexcept;
@@ -48,8 +47,7 @@ namespace adaptive_json5
        * P003; J5-040; J5-051.
        * @note The memory itself is reused only after the last live allocation is released.
        * A release without a live allocation is ignored.
-       * @par ID
-       * SWU-MEMORY-011
+       * @par ID SWU-MEMORY-011
        */
       static void deallocate_callback(void* context, void* /* address */, std::size_t /* bytes */,
                                       std::size_t /* alignment */) noexcept;
@@ -62,8 +60,7 @@ namespace adaptive_json5
        * @param buffer Start of the caller's buffer; it must outlive every allocation.
        * @param size Usable bytes in buffer.
        * @note A null buffer gives an arena with no capacity. Performs no allocation.
-       * @par ID
-       * SWU-MEMORY-012
+       * @par ID SWU-MEMORY-012
        */
       buffer_arena(void* buffer, std::size_t size) noexcept;
 
@@ -114,8 +111,7 @@ namespace adaptive_json5
        * P003; J5-046.
        * @return Callbacks whose context is this object.
        * @note Pass them to accounted_storage, or use them directly with allocate_block().
-       * @par ID
-       * SWU-MEMORY-013
+       * @par ID SWU-MEMORY-013
        */
       [[nodiscard]] storage_callbacks callbacks() noexcept;
 
@@ -123,8 +119,7 @@ namespace adaptive_json5
        * @brief Report the buffer size this arena allocates from.
        * @par Requirements
        * J5-046.
-       * @par ID
-       * SWU-MEMORY-014
+       * @par ID SWU-MEMORY-014
        */
       [[nodiscard]] std::size_t capacity() const noexcept;
 
@@ -133,8 +128,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-046.
        * @note Returns to zero when the last live allocation is released.
-       * @par ID
-       * SWU-MEMORY-015
+       * @par ID SWU-MEMORY-015
        */
       [[nodiscard]] std::size_t used() const noexcept;
 
@@ -142,8 +136,7 @@ namespace adaptive_json5
        * @brief Report how many allocations have not been released yet.
        * @par Requirements
        * J5-040; J5-046.
-       * @par ID
-       * SWU-MEMORY-016
+       * @par ID SWU-MEMORY-016
        */
       [[nodiscard]] std::size_t live_allocations() const noexcept;
   };

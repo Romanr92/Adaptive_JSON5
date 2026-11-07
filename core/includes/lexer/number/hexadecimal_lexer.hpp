@@ -26,8 +26,7 @@ namespace adaptive_json5
    * Malformed UTF-8 encountered during scanning reports an encoding error.
    * Other suffix/context validation remains P028 work.
    * Does not skip trivia, allocate, convert or own source text.
-   * @par ID
-   * SWU-LEXER-017
+   * @par ID SWU-LEXER-017
    */
   [[nodiscard]] result<std::optional<number_token>> consume_hexadecimal(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5

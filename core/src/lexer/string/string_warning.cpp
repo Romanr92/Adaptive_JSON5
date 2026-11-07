@@ -22,8 +22,7 @@ namespace adaptive_json5
      * @par Requirements
      * P041; J5-017; J5-018.
      * @note Callers never exceed capacity: one pending warning plus two units per escape.
-     * @par ID
-     * SWU-LEXER-042
+     * @par ID SWU-LEXER-042
      */
     void add(detail::surrogate_warnings& found, const string_warning& warning) noexcept
     {
@@ -43,8 +42,7 @@ namespace adaptive_json5
      * P041; J5-017; J5-018.
      * @note A pending high surrogate pairs with the next decoded low unit.
      * An escape producing no units (a line continuation) leaves pairing pending.
-     * @par ID
-     * SWU-LEXER-043
+     * @par ID SWU-LEXER-043
      */
     surrogate_warnings surrogate_pairing::escape(const encoded_utf16& units, std::size_t byte_offset,
                                                  std::size_t byte_length) noexcept
@@ -88,8 +86,7 @@ namespace adaptive_json5
      * @brief Record a raw source character, which ends any pending high surrogate.
      * @par Requirements
      * P041; J5-017; J5-018.
-     * @par ID
-     * SWU-LEXER-044
+     * @par ID SWU-LEXER-044
      */
     surrogate_warnings surrogate_pairing::character() noexcept
     {
@@ -100,8 +97,7 @@ namespace adaptive_json5
      * @brief Record the closing quote, which ends any pending high surrogate.
      * @par Requirements
      * P041; J5-017; J5-018.
-     * @par ID
-     * SWU-LEXER-045
+     * @par ID SWU-LEXER-045
      */
     surrogate_warnings surrogate_pairing::finish() noexcept
     {
@@ -127,8 +123,7 @@ namespace adaptive_json5
    * Call only for source pieces, never reconstructed decoded escape values.
    * Strict JSON receives no JSON5 separator advisory.
    * No allocation or callback is performed.
-   * @par ID
-   * SWU-LEXER-046
+   * @par ID SWU-LEXER-046
    */
   std::optional<string_warning> raw_separator_warning_for(const string_piece& piece, syntax_mode mode) noexcept
   {

@@ -42,8 +42,7 @@ namespace adaptive_json5
        * @par Requirements
        * P029; J5-034; J5-040.
        * @note Storage ownership transfers without another allocation.
-       * @par ID
-       * SWU-VALUE-096
+       * @par ID SWU-VALUE-096
        */
       owned_number(owned_block&& storage, number_kind kind) noexcept;
 
@@ -105,8 +104,7 @@ namespace adaptive_json5
        * Allocation failures preserve their error code without a source location.
        * Failure does not mutate input or retain a partial allocation.
        * This limit does not replace P031 accounting/work/exponent guards.
-       * @par ID
-       * SWU-VALUE-097
+       * @par ID SWU-VALUE-097
        */
       [[nodiscard]] static result<owned_number> copy_spelling(input_view text, syntax_mode mode,
                                                               const storage_callbacks& storage,
@@ -119,8 +117,7 @@ namespace adaptive_json5
        * @return Immutable bytes without a terminating NUL.
        * @note Empty after ownership has been moved away.
        * The view becomes invalid when its owning allocation is released.
-       * @par ID
-       * SWU-VALUE-098
+       * @par ID SWU-VALUE-098
        */
       [[nodiscard]] input_view spelling() const noexcept;
 
@@ -131,8 +128,7 @@ namespace adaptive_json5
        * @note Finite decimal spellings remain decimal regardless of
        * whether a later machine-number conversion would overflow.
        * A moved-from object's kind is metadata only.
-       * @par ID
-       * SWU-VALUE-099
+       * @par ID SWU-VALUE-099
        */
       [[nodiscard]] number_kind kind() const noexcept;
   };

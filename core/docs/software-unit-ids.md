@@ -1,7 +1,8 @@
 # Software unit ID registry
 
 Every production function has a unique software unit ID of the form
-`SWU-<MODULE>-<number>`, written in its Doxygen block as an `@par ID` line. When a
+`SWU-<MODULE>-<number>`, written in its Doxygen block on a single line,
+`@par ID SWU-<MODULE>-<number>`. When a
 function is declared in a header and defined in a `.cpp` file, both Doxygen blocks
 carry the same ID. The IDs are used for traceability (see
 [safety traceability](../../docs/traceability.md#safety-traceability-iso-26262)).

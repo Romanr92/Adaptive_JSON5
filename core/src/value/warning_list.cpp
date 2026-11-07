@@ -30,8 +30,7 @@ namespace adaptive_json5
      * @param index Initialized entry position.
      * @return Copy of the stored entry.
      * @note Byte copying avoids constructing objects inside raw storage.
-     * @par ID
-     * SWU-VALUE-136
+     * @par ID SWU-VALUE-136
      */
     [[nodiscard]] string_warning read_entry(const owned_block& storage, std::size_t index) noexcept
     {
@@ -50,8 +49,7 @@ namespace adaptive_json5
      * @param storage Block with room for at least index + 1 entries.
      * @param index Entry position to write.
      * @param entry Value to store.
-     * @par ID
-     * SWU-VALUE-137
+     * @par ID SWU-VALUE-137
      */
     void write_entry(owned_block& storage, std::size_t index, const string_warning& entry) noexcept
     {
@@ -69,8 +67,7 @@ namespace adaptive_json5
      * @param required Entries needed; not above maximum.
      * @param maximum Maximum entries of the list.
      * @return A capacity between required and maximum.
-     * @par ID
-     * SWU-VALUE-138
+     * @par ID SWU-VALUE-138
      */
     [[nodiscard]] std::size_t next_capacity(warning_storage_policy policy, std::size_t current, std::size_t required,
                                             std::size_t maximum) noexcept
@@ -103,8 +100,7 @@ namespace adaptive_json5
    * @brief Borrow the provider and record the maximum and policy without allocating.
    * @par Requirements
    * P039; J5-046; J5-047.
-   * @par ID
-   * SWU-VALUE-139
+   * @par ID SWU-VALUE-139
    */
   warning_list::warning_list(const storage_callbacks& provider, std::size_t max_entries,
                              warning_storage_policy policy) noexcept
@@ -116,8 +112,7 @@ namespace adaptive_json5
    * @brief Take over the storage and counts, then empty the source.
    * @par Requirements
    * P039; J5-040.
-   * @par ID
-   * SWU-VALUE-140
+   * @par ID SWU-VALUE-140
    */
   warning_list::warning_list(warning_list&& other) noexcept
       : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
@@ -132,8 +127,7 @@ namespace adaptive_json5
    * @brief Grow into a replacement block and publish it only after copying succeeds.
    * @par Requirements
    * P039; J5-003; J5-046.
-   * @par ID
-   * SWU-VALUE-141
+   * @par ID SWU-VALUE-141
    */
   status_result warning_list::reserve(std::size_t additional) noexcept
   {
@@ -182,8 +176,7 @@ namespace adaptive_json5
    * @brief Write into reserved space without allocating.
    * @par Requirements
    * P039; J5-003; J5-017.
-   * @par ID
-   * SWU-VALUE-142
+   * @par ID SWU-VALUE-142
    */
   status_result warning_list::append_reserved(const string_warning& warning) noexcept
   {
@@ -202,8 +195,7 @@ namespace adaptive_json5
    * @brief Report the retained entry count.
    * @par Requirements
    * P039; J5-017.
-   * @par ID
-   * SWU-VALUE-143
+   * @par ID SWU-VALUE-143
    */
   std::size_t warning_list::size() const noexcept
   {
@@ -214,8 +206,7 @@ namespace adaptive_json5
    * @brief Return a copy of one checked entry.
    * @par Requirements
    * P039; J5-003; J5-017; J5-044.
-   * @par ID
-   * SWU-VALUE-144
+   * @par ID SWU-VALUE-144
    */
   result<string_warning> warning_list::at(std::size_t index) const noexcept
   {

@@ -27,8 +27,7 @@ namespace adaptive_json5
    * Propagates widest-type conversion failures unchanged.
    * Destination-bound failures return numeric_conversion with out_of_range.
    * Performs no additional spelling scan or allocation.
-   * @par ID
-   * SWU-VALUE-145
+   * @par ID SWU-VALUE-145
    */
   template <typename T>
   [[nodiscard]] result<T> to_integer(const owned_number& number,
@@ -97,8 +96,7 @@ namespace adaptive_json5
    * The owning document must remain alive and unmodified during this call.
    * Does not retain the view or payload pointer after returning.
    * Performs no additional spelling scan or allocation.
-   * @par ID
-   * SWU-VALUE-146
+   * @par ID SWU-VALUE-146
    */
   template <typename T>
   [[nodiscard]] result<T> to_integer(const value_view& value, const numeric_conversion_options& options = {}) noexcept

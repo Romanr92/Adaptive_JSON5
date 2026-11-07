@@ -46,8 +46,7 @@ namespace adaptive_json5
        * @param value The value, or the error of the step that produced it.
        * @param scratch Storage callbacks of the owning document, used by as_double().
        * @note Only json5_document and json5_value itself create values.
-       * @par ID
-       * SWU-VALUE-059
+       * @par ID SWU-VALUE-059
        */
       json5_value(result<value_view> value, const storage_callbacks& scratch) noexcept;
 
@@ -59,8 +58,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-003; J5-039.
        * @return True for a value, false for an error.
-       * @par ID
-       * SWU-VALUE-060
+       * @par ID SWU-VALUE-060
        */
       [[nodiscard]] bool ok() const noexcept;
 
@@ -69,8 +67,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-003; J5-043.
        * @return The error, or nullptr when this object holds a value.
-       * @par ID
-       * SWU-VALUE-061
+       * @par ID SWU-VALUE-061
        */
       [[nodiscard]] const error* error_if() const noexcept;
 
@@ -79,8 +76,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028; J5-039.
        * @return The value's kind, or the held error.
-       * @par ID
-       * SWU-VALUE-062
+       * @par ID SWU-VALUE-062
        */
       [[nodiscard]] result<value_kind> kind() const noexcept;
 
@@ -89,8 +85,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028.
        * @return True only for a null value; false for every other kind and for an error.
-       * @par ID
-       * SWU-VALUE-063
+       * @par ID SWU-VALUE-063
        */
       [[nodiscard]] bool is_null() const noexcept;
 
@@ -99,8 +94,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028.
        * @return True only for a boolean value; false otherwise and for an error.
-       * @par ID
-       * SWU-VALUE-064
+       * @par ID SWU-VALUE-064
        */
       [[nodiscard]] bool is_boolean() const noexcept;
 
@@ -109,8 +103,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028.
        * @return True only for a string value; false otherwise and for an error.
-       * @par ID
-       * SWU-VALUE-065
+       * @par ID SWU-VALUE-065
        */
       [[nodiscard]] bool is_string() const noexcept;
 
@@ -120,8 +113,7 @@ namespace adaptive_json5
        * J5-028.
        * @return True only for a number, including Infinity and NaN; false otherwise and for
        * an error.
-       * @par ID
-       * SWU-VALUE-066
+       * @par ID SWU-VALUE-066
        */
       [[nodiscard]] bool is_number() const noexcept;
 
@@ -130,8 +122,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028.
        * @return True only for an array; false otherwise and for an error.
-       * @par ID
-       * SWU-VALUE-067
+       * @par ID SWU-VALUE-067
        */
       [[nodiscard]] bool is_array() const noexcept;
 
@@ -140,8 +131,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028.
        * @return True only for an object; false otherwise and for an error.
-       * @par ID
-       * SWU-VALUE-068
+       * @par ID SWU-VALUE-068
        */
       [[nodiscard]] bool is_object() const noexcept;
 
@@ -155,8 +145,7 @@ namespace adaptive_json5
        * more than one member has it; encoding when name is not valid UTF-8.
        * @note Exact comparison without normalization or case folding. Preserved duplicate
        * names are never resolved silently (J5-031). Allocates nothing.
-       * @par ID
-       * SWU-VALUE-069
+       * @par ID SWU-VALUE-069
        */
       [[nodiscard]] json5_value member(std::string_view name) const noexcept;
 
@@ -167,8 +156,7 @@ namespace adaptive_json5
        * @param index Zero-based position.
        * @return The element's value, or an object holding the error: the held error;
        * wrong_type_or_access when this is not an array or index is out of range.
-       * @par ID
-       * SWU-VALUE-070
+       * @par ID SWU-VALUE-070
        */
       [[nodiscard]] json5_value at(std::size_t index) const noexcept;
 
@@ -178,8 +166,7 @@ namespace adaptive_json5
        * J5-030; J5-031.
        * @return The count; the held error; or wrong_type_or_access for a scalar.
        * @note Members with the same name are each counted.
-       * @par ID
-       * SWU-VALUE-071
+       * @par ID SWU-VALUE-071
        */
       [[nodiscard]] result<std::size_t> size() const noexcept;
 
@@ -188,8 +175,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-028; J5-039.
        * @return The boolean; the held error; or wrong_type_or_access for another kind.
-       * @par ID
-       * SWU-VALUE-072
+       * @par ID SWU-VALUE-072
        */
       [[nodiscard]] result<bool> as_bool() const noexcept;
 
@@ -200,8 +186,7 @@ namespace adaptive_json5
        * @return The integer; the held error; wrong_type_or_access for a non-number; or the
        * numeric conversion error when the number is not an integer or is out of range.
        * @note Integrality is mathematical: 1.0 and 1e2 are integers, 1.5 is not.
-       * @par ID
-       * SWU-VALUE-073
+       * @par ID SWU-VALUE-073
        */
       [[nodiscard]] result<std::int64_t> as_int64() const noexcept;
 
@@ -210,8 +195,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-034; J5-036; J5-039.
        * @return As as_int64(), for std::uint64_t; negative numbers are out of range.
-       * @par ID
-       * SWU-VALUE-074
+       * @par ID SWU-VALUE-074
        */
       [[nodiscard]] result<std::uint64_t> as_uint64() const noexcept;
 
@@ -223,8 +207,7 @@ namespace adaptive_json5
        * numeric conversion error, for example for a non-finite value under the default policy.
        * @note Uses default floating conversion options. Scratch memory comes from the
        * document's own storage and is released before returning.
-       * @par ID
-       * SWU-VALUE-075
+       * @par ID SWU-VALUE-075
        */
       [[nodiscard]] result<double> as_double() const noexcept;
 
@@ -239,8 +222,7 @@ namespace adaptive_json5
        * encoding for an unpaired surrogate.
        * @note Allocates nothing. The view is valid while buffer is unchanged. Use utf8_size()
        * from adaptive_json5/value/utf8_export.hpp when the needed capacity is unknown.
-       * @par ID
-       * SWU-VALUE-076
+       * @par ID SWU-VALUE-076
        */
       [[nodiscard]] result<std::string_view> as_string(char* buffer, std::size_t capacity) const noexcept;
   };

@@ -25,8 +25,7 @@ namespace adaptive_json5
      * @param work Mutable work budget charged before scanning.
      * @return result<number_analysis> containing exact properties or an error.
      * @note Allocates no storage.
-     * @par ID
-     * SWU-VALUE-080
+     * @par ID SWU-VALUE-080
      */
     result<number_analysis> analyse_number(const owned_number& number, work_budget& work) noexcept
     {

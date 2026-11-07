@@ -15,8 +15,7 @@ namespace adaptive_json5
    * P003; J5-046; J5-051; J5-101.
    * @return Exact sum, or resource_limit when unrepresentable.
    * @note Failure reporting requires no allocation or input location.
-   * @par ID
-   * SWU-COMMON-001
+   * @par ID SWU-COMMON-001
    */
   [[nodiscard]] constexpr result<std::size_t> checked_add(std::size_t left, std::size_t right) noexcept
   {
@@ -37,8 +36,7 @@ namespace adaptive_json5
    * P003; J5-046; J5-051; J5-101.
    * @return Exact product, or resource_limit when unrepresentable.
    * @note Failure reporting requires no allocation or input location.
-   * @par ID
-   * SWU-COMMON-002
+   * @par ID SWU-COMMON-002
    */
   [[nodiscard]] constexpr result<std::size_t> checked_multiply(std::size_t left, std::size_t right) noexcept
   {
