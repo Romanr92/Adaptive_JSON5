@@ -34,23 +34,40 @@ only through high error detection (TD1).
 | `tools/generate_unicode_tables.py` | Repository version | Generating the production header `core/includes/unicode/unicode_tables.hpp` from the pinned Unicode data | TI2 | It writes production code; a wrong table would misclassify characters. | TD1 | `core/tests/unicode/unicode_tables_tests.cpp` checks the generated tables against the Unicode data. #130 adds a byte-identical regeneration check in CI. | TCL1 |
 | clang-format | 18.1.8 | Formatting production and test source | TI2 | It rewrites source files. | TD1 | It changes layout only. Every change is visible in the pull-request diff and is followed by a full build and test run. | TCL1 |
 | CMake (and Ninja) | 3.25 or later | Configuring and building | TI2 | A wrong option or source list could build something different from what was reviewed. | TD1 | The tests run on what CMake built; `build_configuration_tests` checks the build settings. | TCL1 |
-| `tools/package_release.py` | Repository version | Building the release archives | TI2 | A wrong file or setting could end up in a release. | TD1 | `tools/tests/test_package_release.py` checks the package contents; #130 runs it on pull requests. | TCL1 |
+| `tools/package_release.py` | Repository version | Building the release archives | TI2 | A wrong file or setting could end up in a release. | Not yet TD1 | The script checks itself that the static archive is present and that the installed public headers match the supported list. `tools/tests/test_package_release.py` only checks **release-tag validation** (which tag forms are accepted), not package contents. Evidence that a finished package has the right contents and build settings is **still missing**, and the script is not run on pull requests yet (#130). | TCL1 once that evidence exists |
 | GoogleTest | 1.17.0 (pinned commit) | Running the unit and validation tests | TI2 | It could report a pass for a failing test, or not run tests at all, so a bug would go undetected. | TD1 | A CI self-check proves it reports a failing test as failed, and CI already fails when no tests are found (`--no-tests=error`). Independent checks back it up (section 2.1). | TCL1 |
 | gcov and gcovr | gcov from the GCC used; gcovr 8.6 | Measuring coverage | TI2 | A wrong report could hide untested code. | TD1 | A CI self-check runs gcovr on a small reference file with known coverage (for example two branches, one taken) and fails if the report differs. | TCL1 |
 | AddressSanitizer, UndefinedBehaviorSanitizer, libFuzzer (planned, V4 and V5) | From the compiler used | Detecting memory errors and undefined behaviour | TI2 | They could miss an error. | TD1 | They are extra detection on top of the unit tests, not the only one. | TCL1 |
 
-**Result:** all tools are proposed at **TCL1**. The compiler used by the integrator is
+**Result:** all tools are proposed at **TCL1**; for `tools/package_release.py` this
+depends on the missing package-content evidence (section 5). The compiler used by the integrator is
 the integrator's responsibility.
 
 ### 2.1 Why a missed bug would still be noticed
 
 A self-check only proves that a verification tool works in a known case. It does not
 prove that the tests would catch a real bug. That part of the TD1 argument rests on
-**several independent checks**: a bug that the unit tests miss would also have to get
-past the sanitizer runs, the fuzzer, the Clang build and the third-party conformance
-fixtures (V2 to V8 in the [verification strategy](verification-strategy.md)). These
-do not depend on GoogleTest or on each other's results, so all of them missing the
-same defect is unlikely. No method can promise that every bug is caught.
+further checks, which must be read with their **shared dependencies** in mind:
+
+- **They share GoogleTest.** The validation tests (V2) are GoogleTest cases over the
+  third-party fixtures (`tests/validation/conformance_tests.cpp`), and the sanitizer
+  (V4) and Clang (V8) jobs rebuild and run the same GoogleTest suites. A fault in
+  GoogleTest itself, or a wrong expected value in a shared test, can therefore affect
+  V1, V2, V4 and V8 together. These jobs are independent of each other only in the
+  compiler, build and runtime checking they add, not in the test framework or the
+  test oracles.
+- **What does not depend on GoogleTest:**
+  - the fuzz harness (V5), a standalone libFuzzer program whose oracle is "no crash,
+    hang or memory error", not a GoogleTest assertion;
+  - the sanitizer runtime reports in V4, which flag memory errors and undefined
+    behaviour whether or not any test assertion checks for them;
+  - the coverage measurement (V6, V7), which the compiler records;
+  - the GoogleTest self-check (#142), which targets a framework fault directly.
+
+So a framework fault is caught mainly by the self-check, and a missed bug mainly by
+the fuzz harness and the sanitizer reports. A wrong expected value in a shared test is
+**not** caught by the GoogleTest-based jobs; it relies on review of the test against
+its requirement. No method can promise that every bug is caught.
 
 ### 2.2 Idea, not planned: mutation testing
 
@@ -161,3 +178,6 @@ outcome.
   reference file with known coverage): #142 and #143.
 - Add the Release test job (#130), so that the TD1 argument for the compilers also
   covers the shipped configuration.
+- Add evidence that a finished release package has the right contents and build
+  settings, and run the packaging script on pull requests (#130). Until then,
+  `tools/package_release.py` does not reach TD1.

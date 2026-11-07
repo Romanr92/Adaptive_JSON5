@@ -82,8 +82,10 @@ enforces them.
 - The built-in default values are only a starting point. They are not a safety
   argument. The integrator must choose each limit deliberately, so that worst-case
   memory use and parsing time fit their memory, stack and timing budget.
-- The library guarantees that it never goes past a configured limit. When a limit
-  is reached, parsing stops and returns an explicit resource-limit error.
+- The library guarantees that it never goes past a configured limit. Limits are
+  **inclusive**: using exactly the limit is allowed, for example an input of exactly
+  `max_input_bytes`. When an operation would **exceed** a limit, it stops before going
+  past it and returns an explicit resource-limit error.
 
 ## A-05 Memory: no heap, and which library is which
 
