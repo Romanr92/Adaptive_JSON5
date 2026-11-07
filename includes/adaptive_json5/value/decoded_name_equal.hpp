@@ -16,6 +16,7 @@ namespace adaptive_json5
    * @note Performs no allocation, normalization or case folding.
    * Embedded NUL and surrogate units participate unchanged.
    * Work is linear in the number of units examined.
+   * @par ID SWU-VALUE-016
    */
   [[nodiscard]] result<bool> decoded_name_equal(const decoded_string& left, const decoded_string& right) noexcept;
 } // namespace adaptive_json5

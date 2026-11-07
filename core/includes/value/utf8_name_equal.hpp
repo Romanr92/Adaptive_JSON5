@@ -20,6 +20,7 @@ namespace adaptive_json5
      * encoding error when the UTF-8 bytes reached before a difference are not valid.
      * @note Exact comparison: no normalization and no case folding, as reject_duplicates
      * uses. Stops at the first difference. Uses no storage.
+     * @par ID SWU-VALUE-105
      */
     [[nodiscard]] result<bool> utf8_name_equal(const decoded_string& name, std::string_view utf8) noexcept;
   } // namespace detail

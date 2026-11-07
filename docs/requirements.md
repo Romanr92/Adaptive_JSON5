@@ -233,3 +233,28 @@ P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent
 
 Internal quality contracts J5-094–100 and regression intentions are in
 [core requirements](../core/docs/requirements-quality.md). IDs and Draft status are unchanged.
+
+## K. Software safety requirements (ISO 26262)
+
+These are the library's software safety requirements (SSR) for its development as a
+Safety Element out of Context at **ASIL B(D)**. They follow from the
+[SEooC assumptions](ISO26262-safety/seooc-assumptions.md) and are managed under the
+[safety plan](ISO26262-safety/safety-plan.md) (issue #138). They currently cover the
+parser library `AdaptiveJSON5::parser` only; the hosted add-on is QM, and the planned
+serializer is not covered yet.
+
+All rows are Draft. The related J5 rows show where the behaviour is already
+specified; they do not mean that an SSR is implemented or verified. Verification
+evidence is recorded only after named unit tests have been executed. Assigning an
+ASIL to each J5 row is a later task in #138.
+
+| ID / title | Requirement | ASIL | Related J5 rows | Related assumptions | Status |
+| --- | --- | --- | --- | --- | --- |
+| SSR-01 — Robust input handling | The library shall handle any byte sequence of any length, as input and through every access to a parsed document, without crashing, hanging or undefined behaviour. | B(D) | J5-004, J5-026, J5-045, J5-097 | A-03 | Draft |
+| SSR-02 — Limit enforcement | The library shall enforce every configured resource limit and never go past one. Limits are inclusive: using exactly a limit is allowed. An operation that would exceed a limit shall stop before exceeding it and return an explicit resource-limit error. | B(D) | J5-047, J5-048, J5-049 | A-04 | Draft |
+| SSR-03 — Explicit failures | The library shall report every failure as an explicit error value. A wrong or incomplete result shall never be reported as success. | B(D) | J5-003, J5-043, J5-045, J5-051 | A-06 | Draft |
+| SSR-04 — Determinism | For the same input, the same options, equivalent storage conditions (for a caller buffer, the same usable capacity; for storage callbacks, the same sequence of allocation outcomes), the same library version and the same target and build configuration, the library shall always give the same result, including the same values, errors and warnings. | B(D) | J5-052 | — | Draft |
+| SSR-05 — No heap and no shared mutable state | The parser library shall not use the heap, and shall have no mutable global, static or thread-local state, so that independent documents cannot affect each other. | B(D) | J5-042, J5-046, J5-050, J5-101 | A-02, A-05 | Draft |
+| SSR-06 — Value correctness | Parsed strings, member names and numbers shall match the input exactly. A conversion such as `as_int64()`, `as_uint64()` or `as_double()` shall either return the exact value, or the value under the documented rounding rule, or an explicit error. It shall never return a silently cut-off or wrongly rounded value. | B(D) | J5-029, J5-033, J5-034, J5-035, J5-037 | A-06 | Draft |
+| SSR-07 — Bounded stack | The library's stack use shall have a known upper limit that depends only on the configured limits, so that it can be checked against the stack size of a small controller. | B(D) | J5-048, J5-101 (see #136) | A-01 | Draft |
+| SSR-08 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator. | B(D) | J5-004, J5-040, J5-046 | A-03, A-05 | Draft |

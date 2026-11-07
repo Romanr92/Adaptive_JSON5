@@ -12,6 +12,7 @@ namespace adaptive_json5
    * @return Encoded units, or encoding error for an invalid scalar.
    * @note Surrogates are rejected as scalar inputs.
    * Escaped UTF-16 units must be preserved separately without this conversion.
+   * @par ID SWU-UNICODE-006
    */
   result<encoded_utf16> encode_utf16(char32_t scalar) noexcept
   {

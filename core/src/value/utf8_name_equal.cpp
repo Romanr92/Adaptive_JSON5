@@ -18,6 +18,7 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-031; J5-033; J5-046.
      * @return True for the same characters, false otherwise, or the UTF-8 decoding error.
+     * @par ID SWU-VALUE-105
      */
     result<bool> utf8_name_equal(const decoded_string& name, std::string_view utf8) noexcept
     {

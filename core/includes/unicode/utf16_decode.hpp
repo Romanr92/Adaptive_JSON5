@@ -28,6 +28,7 @@ namespace adaptive_json5
    * invalid index, or encoding error for an unpaired surrogate.
    * @note Does not allocate, modify the string, or advance caller state.
    * Errors have no original input byte offset: index counts decoded units.
+   * @par ID SWU-UNICODE-007
    */
   [[nodiscard]] result<decoded_utf16> decode_utf16(const decoded_string& source, std::size_t index) noexcept;
 } // namespace adaptive_json5

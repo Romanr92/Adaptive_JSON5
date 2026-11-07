@@ -23,6 +23,7 @@ namespace adaptive_json5
      * P021; J5-015; J5-016; J5-018.
      * @note x and u always go to their owning decoders.
      * Their failures must never fall back to non-escape characters.
+     * @par ID SWU-LEXER-036
      */
     result<std::optional<char16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept
     {
@@ -53,6 +54,7 @@ namespace adaptive_json5
    * Success consumes the complete escape suffix.
    * Failure leaves source unchanged.
    * No allocation is performed.
+   * @par ID SWU-LEXER-037
    */
   result<encoded_utf16> consume_string_escape(cursor& source, syntax_mode mode) noexcept
   {

@@ -20,6 +20,7 @@ namespace adaptive_json5
    * Comment contents and later trivia require normal trivia processing.
    * Structural punctuation still requires grammatical context validation.
    * Intended for numbers, primitive literals and unquoted member names.
+   * @par ID SWU-LEXER-048
    */
   [[nodiscard]] status_result check_unquoted_token_boundary(cursor source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5

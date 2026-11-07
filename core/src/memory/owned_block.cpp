@@ -14,6 +14,7 @@ namespace adaptive_json5
    * @par Requirements
    * P003; J5-040; J5-046.
    * @note The allocation description must match the originating provider.
+   * @par ID SWU-MEMORY-047
    */
   owned_block::owned_block(const storage_callbacks& storage, void* data, std::size_t bytes,
                            std::size_t alignment) noexcept
@@ -25,6 +26,7 @@ namespace adaptive_json5
    * @brief Transfer ownership and leave the source empty.
    * @par Requirements
    * P003; J5-040; J5-051.
+   * @par ID SWU-MEMORY-048
    */
   owned_block::owned_block(owned_block&& other) noexcept
       : m_storage(other.m_storage), m_data(other.m_data), m_bytes(other.m_bytes), m_alignment(other.m_alignment)
@@ -44,6 +46,7 @@ namespace adaptive_json5
    * Otherwise, the source becomes empty.
    * Views into the released destination allocation become invalid.
    * No allocation is performed.
+   * @par ID SWU-MEMORY-049
    */
   owned_block& owned_block::operator=(owned_block&& other) noexcept
   {
@@ -78,6 +81,7 @@ namespace adaptive_json5
    * P003; J5-040.
    * @return Block address, or nullptr when empty.
    * @note The pointer remains dependent on this owner's lifetime.
+   * @par ID SWU-MEMORY-050
    */
   void* owned_block::data() const noexcept
   {
@@ -88,6 +92,7 @@ namespace adaptive_json5
    * @brief Return the owned allocation size in bytes.
    * @par Requirements
    * P003; J5-040.
+   * @par ID SWU-MEMORY-051
    */
   std::size_t owned_block::size() const noexcept
   {
@@ -98,6 +103,7 @@ namespace adaptive_json5
    * @brief Return the owned allocation's requested alignment.
    * @par Requirements
    * P003; J5-040.
+   * @par ID SWU-MEMORY-052
    */
   std::size_t owned_block::alignment() const noexcept
   {
@@ -117,6 +123,7 @@ namespace adaptive_json5
    * without invoking either allocation callback.
    * Explicit callback errors are preserved, including location metadata.
    * Failure reporting requires no allocation.
+   * @par ID SWU-MEMORY-053
    */
   result<owned_block> allocate_block(const storage_callbacks& storage, std::size_t bytes,
                                      std::size_t alignment) noexcept
@@ -172,6 +179,7 @@ namespace adaptive_json5
    * @return Owning block, resource_limit when count * element_size is unrepresentable,
    * or the allocate_block failure.
    * @note The provider is not called when the size calculation fails.
+   * @par ID SWU-MEMORY-054
    */
   result<owned_block> allocate_array(const storage_callbacks& storage, std::size_t count, std::size_t element_size,
                                      std::size_t alignment) noexcept

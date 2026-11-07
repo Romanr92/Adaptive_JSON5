@@ -23,6 +23,7 @@ namespace adaptive_json5
      * @note Requires the same unchanged input validated by the first pass.
      * The observer must satisfy string_warning_observer's lifetime contract.
      * Performs no allocation and does not modify the caller's cursor.
+     * @par ID SWU-LEXER-039
      */
     [[nodiscard]] status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
                                                        const string_warning_observer& observer) noexcept;
@@ -41,6 +42,7 @@ namespace adaptive_json5
    * No-match and failure leave the caller's cursor unchanged.
    * Performs no allocation and invokes no warning callbacks (ADR 0003, decisions 2 and 7).
    * Does not skip trivia or validate input following the closing quote.
+   * @par ID SWU-LEXER-040
    */
   [[nodiscard]] result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode,
                                                                      std::size_t max_units) noexcept;
@@ -66,6 +68,7 @@ namespace adaptive_json5
    * Observer callbacks must satisfy string_warning_observer's contract.
    * Does not skip trivia or validate input following the closing quote.
    * max_units is a component limit, not complete parser memory accounting.
+   * @par ID SWU-LEXER-041
    */
   [[nodiscard]] result<std::optional<string_token>>
   consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units,

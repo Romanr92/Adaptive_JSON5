@@ -15,6 +15,7 @@ namespace adaptive_json5
    * @brief Adopt storage containing copied unit representations.
    * @par Requirements
    * P013; J5-040.
+   * @par ID SWU-VALUE-017
    */
   decoded_string::decoded_string(owned_block&& storage, std::size_t size) noexcept
       : m_storage(std::move(storage)), m_size(size)
@@ -25,6 +26,7 @@ namespace adaptive_json5
    * @brief Transfer ownership and leave the source empty.
    * @par Requirements
    * P013; J5-040.
+   * @par ID SWU-VALUE-018
    */
   decoded_string::decoded_string(decoded_string&& other) noexcept
       : m_storage(std::move(other.m_storage)), m_size(other.m_size)
@@ -42,6 +44,7 @@ namespace adaptive_json5
    * @return Owned string or an explicit access, size or allocation error.
    * @note Empty input succeeds without requiring a storage provider.
    * Nonempty input must remain readable for this call only.
+   * @par ID SWU-VALUE-019
    */
   result<decoded_string> decoded_string::copy_units(const storage_callbacks& storage, const char16_t* units,
                                                     std::size_t count) noexcept
@@ -72,6 +75,7 @@ namespace adaptive_json5
    * @brief Return the number of stored UTF-16 units.
    * @par Requirements
    * P013; J5-029.
+   * @par ID SWU-VALUE-020
    */
   std::size_t decoded_string::size() const noexcept
   {
@@ -84,6 +88,7 @@ namespace adaptive_json5
    * P013; J5-018; J5-029.
    * @return Exact unit, or wrong_type_or_access for an invalid index.
    * @note Surrogate units are returned unchanged.
+   * @par ID SWU-VALUE-021
    */
   result<char16_t> decoded_string::unit_at(std::size_t index) const noexcept
   {

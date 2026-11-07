@@ -39,6 +39,7 @@ namespace adaptive_json5
    * Budget exhaustion returns resource_limit.
    * Each call starts a fresh work budget; parsing budgets are not reused.
    * Performs no allocation, rounding, wrapping or locale-dependent operations.
+   * @par ID SWU-VALUE-092
    */
   [[nodiscard]] result<std::uintmax_t> to_unsigned_integer(const owned_number& number,
                                                            const numeric_conversion_options& options = {}) noexcept;
@@ -58,6 +59,7 @@ namespace adaptive_json5
    * Budget exhaustion returns resource_limit.
    * Each call starts a fresh work budget.
    * Performs no allocation, rounding, wrapping or locale-dependent operations.
+   * @par ID SWU-VALUE-093
    */
   [[nodiscard]] result<std::intmax_t> to_signed_integer(const owned_number& number,
                                                         const numeric_conversion_options& options = {}) noexcept;
@@ -75,6 +77,7 @@ namespace adaptive_json5
    * Budget exhaustion returns resource_limit.
    * Each call starts a fresh work budget.
    * Performs no allocation, numeric conversion or locale-dependent operations.
+   * @par ID SWU-VALUE-094
    */
   [[nodiscard]] result<bool> is_integral_number(const owned_number& number,
                                                 const numeric_conversion_options& options = {}) noexcept;
@@ -91,6 +94,7 @@ namespace adaptive_json5
    * Booleans and numeric-looking strings are never coerced.
    * The owning document must remain alive and unmodified during this call.
    * Retains no borrowed pointers and performs no allocation.
+   * @par ID SWU-VALUE-095
    */
   [[nodiscard]] result<bool> is_integral_number(const value_view& value,
                                                 const numeric_conversion_options& options = {}) noexcept;

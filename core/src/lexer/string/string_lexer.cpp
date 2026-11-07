@@ -47,6 +47,7 @@ namespace adaptive_json5
      * @return Unit and warning totals, or a located error.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
      * resource_limit is reported at the piece that first exceeds max_units.
+     * @par ID SWU-LEXER-038
      */
     result<string_walk> walk_string_body(cursor& source, std::size_t start, string_quote quote, syntax_mode mode,
                                          std::size_t max_units, decoded_string_builder* output,
@@ -185,6 +186,7 @@ namespace adaptive_json5
      * @note Requires the same unchanged input validated by the first pass.
      * The observer must satisfy string_warning_observer's lifetime contract.
      * Performs no allocation and does not modify the caller's cursor.
+     * @par ID SWU-LEXER-039
      */
     status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
                                          const string_warning_observer& observer) noexcept
@@ -253,6 +255,7 @@ namespace adaptive_json5
    * @param max_units Maximum decoded UTF-16 units.
    * @return The measurement, nullopt for nonquote input or EOF, or a located failure.
    * @note Performs no allocation (ADR 0003, decisions 2 and 7).
+   * @par ID SWU-LEXER-040
    */
   result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode, std::size_t max_units) noexcept
   {
@@ -310,6 +313,7 @@ namespace adaptive_json5
    * Observer callbacks must satisfy string_warning_observer's contract.
    * Does not skip trivia or validate input following the closing quote.
    * max_units is a component limit, not complete parser memory accounting.
+   * @par ID SWU-LEXER-041
    */
   result<std::optional<string_token>> consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_units, string_warning_observer observer,

@@ -26,6 +26,7 @@ namespace adaptive_json5
      * @param mode Selected syntax mode.
      * @return Success, or a syntax error located at the closing token.
      * @note Performs no allocation and charges no work.
+     * @par ID SWU-PARSER-003
      */
     status_result check_container_close(parser_state state, const punctuation_token& closing, syntax_mode mode) noexcept
     {
@@ -97,6 +98,7 @@ namespace adaptive_json5
      * The caller releases depth after success; value/member reservations remain.
      * Performs no allocation and charges one work unit after validation.
      * Successful work charges are not refunded after later failure.
+     * @par ID SWU-PARSER-004
      */
     result<value_index> close_container(document& destination, parser_stack& frames, const punctuation_token& closing,
                                         syntax_mode mode, std::size_t input_size, work_budget& work) noexcept

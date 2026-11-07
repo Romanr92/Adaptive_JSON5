@@ -200,11 +200,36 @@ do not offer an exception-enabled-only solution as complete. Local and CI units
 may run both modes here. Describe unverified vendor target/editor behavior as
 pending, not proved by host tests.
 
-Verification guidance uses GoogleTest unit cases and formatting only. Prefer
+Verification guidance uses GoogleTest unit cases, run under the automated checks
+listed in `AGENTS.md` and `docs/ISO26262-safety/verification-strategy.md`. Prefer
 exact decoded values, spans, error codes, boundaries and controlled failure
 injection over mere acceptance. Follow `write-unit-tests` for actual test edits.
 Do not infer Agreed/Implemented/Verified status from an explanation or passing
 build-setting smoke tests.
+
+### Record the full traceability chain during verification
+
+When the verification step writes or names the unit tests for a requirement, also
+record the requirement's full traceability chain in `docs/traceability.md`. Keep the
+existing J5 rows as they are (source files, functions and `SuiteName.TestName`
+units), and update the **Safety traceability (ISO 26262)** section of the same file
+for every software safety requirement (SSR) the requirement serves:
+
+1. **Assumptions:** the SEooC assumptions (A-xx) in
+   `docs/ISO26262-safety/seooc-assumptions.md` that the SSR follows from.
+2. **Safety requirement:** the SSR ID from `docs/requirements.md` section K.
+3. **J5 rows:** the J5 IDs that specify the behaviour.
+4. **Software units:** the `SWU-<MODULE>-<number>` IDs from the `@par ID` lines in the
+   Doxygen blocks of the functions that implement it. Look them up in
+   `core/docs/software-unit-ids.md`; never invent an ID.
+5. **Unit tests:** the exact `SuiteName.TestName` units that show it.
+6. **FMEA rows:** the rows in `docs/ISO26262-safety/software-safety-analysis.md`
+   whose safety measure these tests demonstrate.
+
+If a link in the chain is missing, for example an SSR with no unit test or a function
+without an SWU ID, write "missing" in that cell rather than leaving it empty, and
+mention the gap to the owner. A complete chain records that tests exist; it is not a
+claim that the requirement is verified.
 
 Adapted from AdaptivePi's requirement workflow; source provenance is recorded in
 `docs/dependencies.md`. No AdaptivePi release gate or `ara::*` API is imported.

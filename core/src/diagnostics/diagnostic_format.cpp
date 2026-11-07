@@ -38,6 +38,7 @@ namespace adaptive_json5
          * Issue #96.
          * @param buffer Caller storage, or nullptr when capacity is 0.
          * @param capacity Size of buffer in bytes, including the NUL.
+         * @par ID SWU-DIAGNOSTICS-001
          */
         message_writer(char* buffer, std::size_t capacity) noexcept : m_buffer{buffer}, m_capacity{capacity} {}
 
@@ -50,6 +51,7 @@ namespace adaptive_json5
          * @param capacity Size of buffer in bytes, including the NUL.
          * @return The writer, or wrong_type_or_access for a null buffer with nonzero capacity.
          * @note A null buffer with zero capacity is a valid size query.
+         * @par ID SWU-DIAGNOSTICS-002
          */
         [[nodiscard]] static result<message_writer> create(char* buffer, std::size_t capacity) noexcept
         {
@@ -66,6 +68,7 @@ namespace adaptive_json5
          * @par Requirements
          * Issue #96.
          * @param text Characters to append; contains no input bytes.
+         * @par ID SWU-DIAGNOSTICS-003
          */
         void append(std::string_view text) noexcept
         {
@@ -86,6 +89,7 @@ namespace adaptive_json5
          * @par Requirements
          * Issue #96.
          * @param value Number to print, e.g. a line or column.
+         * @par ID SWU-DIAGNOSTICS-004
          */
         void append_number(std::size_t value) noexcept
         {
@@ -111,6 +115,7 @@ namespace adaptive_json5
          * Issue #96.
          * @return Untruncated length excluding the NUL.
          * @note Writes the NUL after the last stored character whenever capacity is nonzero.
+         * @par ID SWU-DIAGNOSTICS-005
          */
         std::size_t finish() noexcept
         {
@@ -131,6 +136,7 @@ namespace adaptive_json5
      * @param code Error category.
      * @return Static English text; "unknown error" for a value outside the enumeration.
      * @note No default label, so -Wswitch reports a newly added category without text.
+     * @par ID SWU-DIAGNOSTICS-006
      */
     std::string_view describe(error_code code) noexcept
     {
@@ -162,6 +168,7 @@ namespace adaptive_json5
      * J5-043; J5-044; issue #96.
      * @param reason Specific grammar violation.
      * @return Static English text; "syntax error" for a value outside the enumeration.
+     * @par ID SWU-DIAGNOSTICS-007
      */
     std::string_view describe(syntax_error_reason reason) noexcept
     {
@@ -218,6 +225,7 @@ namespace adaptive_json5
      * J5-035; J5-043; issue #96.
      * @param reason Why the conversion failed.
      * @return Static English text; "number cannot be converted" for a value outside the enumeration.
+     * @par ID SWU-DIAGNOSTICS-008
      */
     std::string_view describe(numeric_conversion_reason reason) noexcept
     {
@@ -244,6 +252,7 @@ namespace adaptive_json5
      * J5-017; issue #96.
      * @param code Warning category.
      * @return Static English text; "string warning" for a value outside the enumeration.
+     * @par ID SWU-DIAGNOSTICS-009
      */
     std::string_view describe(string_warning_code code) noexcept
     {
@@ -266,6 +275,7 @@ namespace adaptive_json5
      * J5-043; issue #96.
      * @param failure Error to describe.
      * @return The syntax or numeric reason text when present, otherwise the category text.
+     * @par ID SWU-DIAGNOSTICS-010
      */
     std::string_view describe(const error& failure) noexcept
     {
@@ -289,6 +299,7 @@ namespace adaptive_json5
      * J5-044; issue #96.
      * @param writer Message being assembled.
      * @param position 1-based line and column from locate().
+     * @par ID SWU-DIAGNOSTICS-011
      */
     void append_position(message_writer& writer, text_position position) noexcept
     {
@@ -304,6 +315,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-043; J5-044; J5-045; issue #96.
    * @note Validates storage once through message_writer::create; every later step cannot fail.
+   * @par ID SWU-DIAGNOSTICS-012
    */
   result<std::size_t> format_error_at(const error& failure, text_position primary,
                                       std::optional<text_position> first_duplicate, char* buffer,
@@ -343,6 +355,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-043; J5-044; J5-045; issue #96.
    * @note Routing through format_error_at guarantees both forms produce identical text.
+   * @par ID SWU-DIAGNOSTICS-013
    */
   result<std::size_t> format_error(const error& failure, input_view input, char* buffer, std::size_t capacity) noexcept
   {
@@ -380,6 +393,7 @@ namespace adaptive_json5
    * @brief Assemble the warning line from a caller-located position.
    * @par Requirements
    * J5-017; J5-044; issue #96.
+   * @par ID SWU-DIAGNOSTICS-014
    */
   result<std::size_t> format_warning_at(const string_warning& warning, text_position position, char* buffer,
                                         std::size_t capacity) noexcept
@@ -404,6 +418,7 @@ namespace adaptive_json5
    * @brief Locate the warning in input, then format through format_warning_at.
    * @par Requirements
    * J5-017; J5-044; issue #96.
+   * @par ID SWU-DIAGNOSTICS-015
    */
   result<std::size_t> format_warning(const string_warning& warning, input_view input, char* buffer,
                                      std::size_t capacity) noexcept

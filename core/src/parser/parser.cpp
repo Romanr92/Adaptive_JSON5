@@ -27,6 +27,7 @@ namespace adaptive_json5
    * Failure publishes no document and releases this call's allocations.
    * Each call uses fresh parsing state; accounting remains reusable.
    * No warning callbacks are invoked.
+   * @par ID SWU-PARSER-001
    */
   result<parsed_document> parse_document(input_view input, const parse_options& options,
                                          accounted_storage& accounting) noexcept

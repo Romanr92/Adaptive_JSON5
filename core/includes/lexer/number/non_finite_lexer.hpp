@@ -29,6 +29,7 @@ namespace adaptive_json5
    * Does not skip trivia, allocate, convert or own source text.
    * Use in value context; member names use identifier recognition instead.
    * Other suffix/context validation remains P028 work.
+   * @par ID SWU-LEXER-018
    */
   [[nodiscard]] result<std::optional<number_token>> consume_non_finite(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5

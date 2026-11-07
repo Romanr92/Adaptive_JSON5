@@ -24,6 +24,7 @@ namespace adaptive_json5
      * @param mode Selected syntax.
      * @note Failure releases any owned token storage without advancing source.
      * No warning observer is invoked.
+     * @par ID SWU-LEXER-024
      */
     [[nodiscard]] result<std::optional<scalar_token>>
     finish_scalar_token(cursor& source, cursor candidate, scalar_token token, syntax_mode mode) noexcept;
@@ -53,6 +54,7 @@ namespace adaptive_json5
    * Temporary identifier units do not consume the string-content limit.
    * Container grammar, later trivia and complete document validation are separate.
    * Keep the alternative order identical to measure_scalar, which the counting pre-pass uses (ADR 0003, decision 7).
+   * @par ID SWU-LEXER-025
    */
   [[nodiscard]] result<std::optional<scalar_token>>
   consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_string_units,
@@ -70,6 +72,7 @@ namespace adaptive_json5
    * @return The independently limited overload's recognition result.
    * @note Preserves the original four-argument call behavior.
    * Permits any exponent digit count representable by size_t.
+   * @par ID SWU-LEXER-026
    */
   [[nodiscard]] result<std::optional<scalar_token>>
   consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units) noexcept;
@@ -89,6 +92,7 @@ namespace adaptive_json5
    * No-match and failure leave source unchanged.
    * Performs no allocation and needs no storage provider (ADR 0003, decision 7).
    * Does not skip trivia or join spellings across trivia.
+   * @par ID SWU-LEXER-028
    */
   [[nodiscard]] result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode,
                                                                      std::size_t max_string_units,

@@ -11,6 +11,7 @@ namespace adaptive_json5
      * @brief Align a position inside a buffer, like std::align, without <memory>.
      * @par Requirements
      * J5-042; J5-046; J5-101.
+     * @par ID SWU-MEMORY-055
      */
     void* align_within(std::size_t alignment, std::size_t bytes, void*& position, std::size_t& space) noexcept
     {

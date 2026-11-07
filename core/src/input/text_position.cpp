@@ -26,6 +26,7 @@ namespace adaptive_json5
      * @param value Decoded Unicode scalar.
      * @return True for LF, CR, U+2028 and U+2029.
      * @note CRLF is recognized by the caller so that it counts as one break.
+     * @par ID SWU-INPUT-010
      */
     [[nodiscard]] bool is_line_break(char32_t value) noexcept
     {
@@ -38,6 +39,7 @@ namespace adaptive_json5
    * @brief Walk whole characters up to the offset, counting lines and code points.
    * @par Requirements
    * P039; J5-003; J5-044; J5-052.
+   * @par ID SWU-INPUT-011
    */
   result<text_position> locate(input_view input, std::size_t byte_offset) noexcept
   {

@@ -26,6 +26,7 @@ namespace adaptive_json5
      * @return Success, or a syntax error located at the closing token.
      * @note Shared by the counting pre-pass and close_container, so both report the same
      * errors (ADR 0003, decision 7). Performs no allocation and charges no work.
+     * @par ID SWU-PARSER-003
      */
     [[nodiscard]] status_result check_container_close(parser_state state, const punctuation_token& closing,
                                                       syntax_mode mode) noexcept;
@@ -48,6 +49,7 @@ namespace adaptive_json5
      * The caller releases depth after success; value/member reservations remain.
      * Performs no allocation and charges one work unit after validation.
      * Successful work charges are not refunded after later failure.
+     * @par ID SWU-PARSER-004
      */
     [[nodiscard]] result<value_index> close_container(document& destination, parser_stack& frames,
                                                       const punctuation_token& closing, syntax_mode mode,

@@ -29,6 +29,7 @@ namespace adaptive_json5
          * @return The document owning storage, or the error of parse_document, unchanged.
          * @note On failure the parser has released its allocations before storage is
          * destroyed.
+         * @par ID SWU-MEMORY-046
          */
         [[nodiscard]] static result<json5_document> parse_with_storage(input_view input, const parse_options& options,
                                                                        document_storage_owner&& storage) noexcept;

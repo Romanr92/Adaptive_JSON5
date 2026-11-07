@@ -177,3 +177,25 @@ and `tests/value` with shared test providers in `tests/shared_infrastructure`.
 | J5-097 | Deterministic robustness unit cases | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `includes/adaptive_json5/parser.hpp` / `core/src/parser/parser.cpp`: `parse_document`<br>`includes/adaptive_json5/value/number_comparison.hpp` / `core/src/value/number_comparison.cpp`: `compare_numbers` | `tests/api/grammar_evidence_tests.cpp`: `P040/J5_097_Equivalence.DecodesToReferenceDocument` |
 | J5-098 | Fault-injection evidence | Draft | [#38](https://github.com/Romanr92/Adaptive_JSON5/issues/38) | `includes/adaptive_json5/parser.hpp` / `core/src/parser/parser.cpp`: `parse_document` | `tests/api/grammar_evidence_tests.cpp`: `P040/J5_098_DocumentFaultSweep.ReleasesEverythingAtEveryAllocationFailure`<br>`tests/api/strict_json_tests.cpp`: `J5_098_StrictFaultSweep.ReleasesEverythingAtEveryAllocationFailure` |
 | J5-101 | OS-agnostic embedded integration | Draft | [#69](https://github.com/Romanr92/Adaptive_JSON5/issues/69) | <br>`includes/adaptive_json5/json5_document.hpp` / `core/src/memory/json5_document.cpp`: `json5_document`, `parse`, `values`, `current_bytes`, `peak_bytes` | `tests/api/build_configuration_tests.cpp`: `J5_101_BuildConfiguration.AppliesSelectedRttiMode`<br>`tests/api/json5_document_tests.cpp`: `J5_101_Json5Document.ParsesIntoCallerBuffer`; `J5_101_Json5Document.ReportsBuffersTooSmall`; `J5_101_Json5Document.EnforcesMaxOwnedBytes`; `J5_101_Json5Document/Json5DocumentFailureUnits.MatchesParseDocumentErrors`; `J5_101_Json5Document.RejectsOverlappingInputAndBuffer` |
+
+## Safety traceability (ISO 26262)
+
+This section traces each software safety requirement (SSR) of the
+[ISO 26262 work](ISO26262-safety/traceability.md) through the whole chain: SEooC
+assumption → SSR → J5 rows → software units (`SWU-…` IDs, see the
+[software unit ID registry](../core/docs/software-unit-ids.md)) → unit tests → FMEA
+rows of the [software safety analysis](ISO26262-safety/software-safety-analysis.md).
+The chain is completed during the verification step of the `guide-requirement` skill.
+"missing" marks a link that has not been recorded yet. A complete chain records that
+tests exist; it does not make a requirement Verified.
+
+| SSR | Assumptions | J5 rows | Software units | Unit tests | FMEA rows |
+| --- | --- | --- | --- | --- | --- |
+| SSR-01 — Robust input handling | A-03 | J5-004, J5-026, J5-045, J5-097 | missing | missing | IN-01, AP-02 |
+| SSR-02 — Limit enforcement | A-04 | J5-047, J5-048, J5-049 | missing | missing | IN-03, LX-05, PA-04, VM-03, VM-05, ME-02, ME-03, DG-03 |
+| SSR-03 — Explicit failures | A-06 | J5-003, J5-043, J5-045, J5-051 | missing | missing | IN-05, LX-02, LX-06, PA-01, PA-02, PA-03, PA-06, VM-06, VM-08, ME-04, ME-06, DG-01, DG-04, AP-05 |
+| SSR-04 — Determinism | — | J5-052 | missing | missing | missing |
+| SSR-05 — No heap and no shared mutable state | A-02, A-05 | J5-042, J5-046, J5-050, J5-101 | missing | missing | VM-04, AP-04 |
+| SSR-06 — Value correctness | A-06 | J5-029, J5-033, J5-034, J5-035, J5-037 | missing | missing | LX-01, LX-02, LX-04, VM-01, VM-02, VM-03 |
+| SSR-07 — Bounded stack | A-01 | J5-048, J5-101 | missing | missing | PA-04 |
+| SSR-08 — Memory bounds | A-03, A-05 | J5-004, J5-040, J5-046 | missing | missing | IN-01, IN-02, PA-05, ME-01, ME-03, DG-02 |

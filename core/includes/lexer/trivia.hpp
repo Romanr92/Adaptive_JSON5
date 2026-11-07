@@ -32,6 +32,7 @@ namespace adaptive_json5
    * Stops before the first other valid character.
    * Encoding failure leaves source unchanged.
    * Requires no allocation and throws no exceptions.
+   * @par ID SWU-LEXER-049
    */
   [[nodiscard]] status_result skip_strict_json_whitespace(cursor& source) noexcept;
 
@@ -47,6 +48,7 @@ namespace adaptive_json5
    * Failure leaves source unchanged, including preceding trivia in this run.
    * Requires no allocation and throws no exceptions.
    * Call between tokens, never inside a token spelling.
+   * @par ID SWU-LEXER-050
    */
   [[nodiscard]] result<trivia_span> skip_trivia(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5

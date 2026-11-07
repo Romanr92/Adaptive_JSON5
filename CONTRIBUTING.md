@@ -23,9 +23,12 @@ For each implementation change:
    report or implementation narrative is required.
 5. Submit a focused pull request using the template.
 
-The automated quality checks are unit tests, validation tests and formatting. CI also
-builds the example programs and checks their output, as a non-blocking job. Do not add integration, end-to-end, sanitizer, fuzz, benchmark, static-analysis or coverage
-gates without a later scope decision. Required fixture coverage belongs in unit
+The automated quality checks are unit tests, validation tests, formatting, sanitizer
+runs, fuzzing, branch coverage and a second compiler (Clang), as described in the
+[verification strategy](docs/ISO26262-safety/verification-strategy.md). CI also
+builds the example programs and checks their output, as a non-blocking job. Do not
+add integration, end-to-end, benchmark or static-analysis gates without a later
+scope decision. Required fixture coverage belongs in unit
 tests, with pinned versions, licenses and expected behavior.
 
 Do not mark a Draft requirement Verified just because an issue closes. Record

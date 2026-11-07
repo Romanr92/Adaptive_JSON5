@@ -30,6 +30,7 @@ namespace adaptive_json5
          * @note block, accounting and release must be nonnull.
          * accounting belongs to block. release must destroy the block without
          * throwing or allocating; caller-buffer storage must not free its buffer.
+         * @par ID SWU-MEMORY-027
          */
         document_storage_owner(void* block, accounted_storage* accounting, void (*release)(void*) noexcept) noexcept;
 
@@ -37,6 +38,7 @@ namespace adaptive_json5
          * @brief Release the control block after its allocations are destroyed.
          * @par Requirements
          * J5-040; J5-051.
+         * @par ID SWU-MEMORY-028
          */
         ~document_storage_owner() noexcept;
 
@@ -45,6 +47,7 @@ namespace adaptive_json5
          * @par Requirements
          * J5-040; J5-051.
          * @note Leaves other empty.
+         * @par ID SWU-MEMORY-029
          */
         document_storage_owner(document_storage_owner&& other) noexcept;
 
@@ -74,6 +77,7 @@ namespace adaptive_json5
          * @par Requirements
          * J5-040; J5-046.
          * @return Accounting pointer, or nullptr after ownership was moved away.
+         * @par ID SWU-MEMORY-030
          */
         [[nodiscard]] accounted_storage* accounting() const noexcept;
     };

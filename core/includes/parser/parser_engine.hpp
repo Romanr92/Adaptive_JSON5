@@ -86,6 +86,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-046; J5-048.
          * @note The inline array unless max_depth exceeded it and extra bits were allocated.
+         * @par ID SWU-PARSER-017
          */
         [[nodiscard]] unsigned char* nesting_kinds() noexcept;
 
@@ -95,6 +96,7 @@ namespace adaptive_json5
          * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
          * @note Reports the same errors as read_value and allocates nothing (ADR 0003, decision 7).
          * Charges the same scanning work as read_value, but no construction or decode work.
+         * @par ID SWU-PARSER-018
          */
         [[nodiscard]] status_result count_value() noexcept;
 
@@ -104,6 +106,7 @@ namespace adaptive_json5
          * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
          * @note Reports the same errors as read_name except duplicate names, which are checked
          * only in the build pass (ADR 0003, decision 7, C1). Allocates nothing.
+         * @par ID SWU-PARSER-019
          */
         [[nodiscard]] status_result count_name() noexcept;
 
@@ -112,6 +115,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; P034; P035; J5-013; J5-027.
          * @note Same validation and errors as consume_separator.
+         * @par ID SWU-PARSER-020
          */
         [[nodiscard]] status_result count_separator(parser_action action) noexcept;
 
@@ -120,6 +124,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; P034; P035; J5-013; J5-027; J5-048.
          * @note Uses check_container_close, like close_container, so errors are identical.
+         * @par ID SWU-PARSER-021
          */
         [[nodiscard]] status_result count_close() noexcept;
 
@@ -127,6 +132,7 @@ namespace adaptive_json5
          * @brief Record a completed value in the pre-pass: finish the root or advance the parent.
          * @par Requirements
          * P033; P034; P035; J5-013.
+         * @par ID SWU-PARSER-022
          */
         [[nodiscard]] status_result count_completed_value() noexcept;
 
@@ -138,6 +144,7 @@ namespace adaptive_json5
          * @return Success with the counts held in m_resources, or the first error.
          * @note Allocates nothing with max_depth up to 512; above that, one block of nesting bits
          * that is released before returning. Leaves m_source where the pre-pass stopped.
+         * @par ID SWU-PARSER-023
          */
         [[nodiscard]] status_result count_document(bool complete) noexcept;
 
@@ -147,6 +154,7 @@ namespace adaptive_json5
          * P033; P037; J5-013; J5-026; J5-040; J5-046; J5-048; J5-049.
          * @param complete True to require complete input consumption.
          * @note Shared body of run() and run_complete() (ADR 0003, decision 7).
+         * @par ID SWU-PARSER-025
          */
         [[nodiscard]] result<parsed_value_tree> parse(bool complete) noexcept;
 
@@ -161,6 +169,7 @@ namespace adaptive_json5
          * the failed engine must be abandoned.
          * Failed container opening releases its matching reservations.
          * Successful work charges are not refunded.
+         * @par ID SWU-PARSER-010
          */
         [[nodiscard]] status_result read_value() noexcept;
 
@@ -178,6 +187,7 @@ namespace adaptive_json5
          * before committing the name or cursor.
          * Duplicate failures retain both original name-token spans.
          * Preserve-all bypasses duplicate scanning.
+         * @par ID SWU-PARSER-011
          */
         [[nodiscard]] status_result read_name() noexcept;
 
@@ -189,6 +199,7 @@ namespace adaptive_json5
          * Success consumes exactly one byte.
          * Failure preserves the cursor and frame.
          * Dispatch work is charged by run().
+         * @par ID SWU-PARSER-012
          */
         [[nodiscard]] status_result consume_separator(parser_action action) noexcept;
 
@@ -201,6 +212,7 @@ namespace adaptive_json5
          * Failure requires abandoning this engine; earlier internal mutations
          * are not rolled back after a later attachment failure.
          * The source cursor is committed only after all steps succeed.
+         * @par ID SWU-PARSER-013
          */
         [[nodiscard]] status_result finish_container() noexcept;
 
@@ -210,6 +222,7 @@ namespace adaptive_json5
          * P033; P034; P035; J5-013; J5-027.
          * @note Reuse attach_parsed_value when a parent frame exists.
          * Otherwise record m_root without publishing the document yet.
+         * @par ID SWU-PARSER-014
          */
         [[nodiscard]] status_result accept_completed_value(value_index completed) noexcept;
 
@@ -228,6 +241,7 @@ namespace adaptive_json5
          * @note Called by consume_string after the string's own allocation, so the order is the
          * one used before: string allocation, units, diagnostics, then warning-table slots.
          * Failure may leave partial reservations; the engine must then be abandoned.
+         * @par ID SWU-PARSER-015
          */
         [[nodiscard]] static status_result reserve_string(void* context, std::size_t units,
                                                           std::size_t warning_count) noexcept;
@@ -240,6 +254,7 @@ namespace adaptive_json5
          * @param warning Warning found by the decode walk, in source order.
          * @note A failed append means the reservation and the walk disagree; it is reported after
          * lexing as wrong_type_or_access.
+         * @par ID SWU-PARSER-016
          */
         static void record_warning(void* context, const string_warning& warning) noexcept;
 
@@ -250,6 +265,7 @@ namespace adaptive_json5
          * P033; J5-040; J5-047; J5-048.
          * @note accounting and its upstream provider must outlive returned data.
          * Input must remain alive and unchanged throughout run().
+         * @par ID SWU-PARSER-024
          */
         parser_engine(input_view input, const parse_options& options, accounted_storage& accounting) noexcept;
 
@@ -263,6 +279,7 @@ namespace adaptive_json5
          * then builds; syntax and limit failures occur before any allocation (ADR 0003, decision 7).
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
+         * @par ID SWU-PARSER-026
          */
         [[nodiscard]] result<parsed_value_tree> run() noexcept;
 
@@ -276,6 +293,7 @@ namespace adaptive_json5
          * The pre-pass also checks trailing content, so it fails before any allocation.
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
+         * @par ID SWU-PARSER-027
          */
         [[nodiscard]] result<parsed_value_tree> run_complete() noexcept;
     };

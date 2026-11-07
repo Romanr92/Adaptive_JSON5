@@ -66,6 +66,7 @@ namespace adaptive_json5
        * @brief Initialize the success alternative directly.
        * @par Requirements
        * P002; J5-003.
+       * @par ID SWU-API-010
        */
       constexpr result(std::in_place_index_t<c_value_index>, T&& value) noexcept
           : m_storage(std::in_place_index<c_value_index>, std::move(value))
@@ -76,6 +77,7 @@ namespace adaptive_json5
        * @brief Initialize the error alternative directly.
        * @par Requirements
        * P002; J5-003; J5-045.
+       * @par ID SWU-API-011
        */
       constexpr result(std::in_place_index_t<c_error_index>, E&& reason) noexcept
           : m_storage(std::in_place_index<c_error_index>, std::move(reason))
@@ -87,6 +89,7 @@ namespace adaptive_json5
        * @brief Construct a successful result containing a value.
        * @par Requirements
        * P002; J5-003.
+       * @par ID SWU-API-012
        */
       [[nodiscard]] static constexpr result success(T value) noexcept
       {
@@ -97,6 +100,7 @@ namespace adaptive_json5
        * @brief Construct a failed result containing an error.
        * @par Requirements
        * P002; J5-003; J5-045.
+       * @par ID SWU-API-013
        */
       [[nodiscard]] static constexpr result failure(E reason) noexcept
       {
@@ -138,6 +142,7 @@ namespace adaptive_json5
        * @brief Report whether the result contains a success value.
        * @par Requirements
        * P002; J5-003.
+       * @par ID SWU-API-014
        */
       [[nodiscard]] constexpr bool has_value() const noexcept
       {
@@ -150,6 +155,7 @@ namespace adaptive_json5
        * P002; J5-003.
        * @return Pointer to the stored value, or nullptr on failure.
        * @note The pointer remains dependent on this result's lifetime.
+       * @par ID SWU-API-015
        */
       [[nodiscard]] constexpr const T* value_if() const noexcept
       {
@@ -163,6 +169,7 @@ namespace adaptive_json5
        * P002; J5-003.
        * @return Pointer to the stored value, or nullptr on failure.
        * @note The pointer remains dependent on this result's lifetime.
+       * @par ID SWU-API-016
        */
       [[nodiscard]] constexpr T* value_if() noexcept
       {
@@ -175,6 +182,7 @@ namespace adaptive_json5
        * P002; J5-003; J5-045.
        * @return Pointer to the stored error, or nullptr on success.
        * @note The pointer remains dependent on this result's lifetime.
+       * @par ID SWU-API-017
        */
       [[nodiscard]] constexpr const E* error_if() const noexcept
       {
@@ -220,6 +228,7 @@ namespace adaptive_json5
        * @brief Construct success without a payload.
        * @par Requirements
        * P002; J5-003.
+       * @par ID SWU-API-018
        */
       [[nodiscard]] static constexpr result success() noexcept
       {
@@ -230,21 +239,29 @@ namespace adaptive_json5
        * @brief Construct failure with a payload.
        * @par Requirements
        * P002; J5-003.
+       * @par ID SWU-API-019
        */
       [[nodiscard]] static constexpr result failure(E reason) noexcept
       {
         return result{reason};
       }
 
+      /**
+       * @brief Report whether this result is a success.
+       * @par Requirements
+       * P002; J5-003.
+       * @par ID SWU-API-020
+       */
       [[nodiscard]] constexpr bool has_value() const noexcept
       {
         return !m_error.has_value();
       }
 
       /**
-       * @brief Construct failure with a payload.
+       * @brief Inspect the failure information, or nullptr on success.
        * @par Requirements
-       * P002; J5-003.
+       * P002; J5-003; J5-045.
+       * @par ID SWU-API-021
        */
       [[nodiscard]] constexpr const E* error_if() const noexcept
       {
@@ -254,6 +271,12 @@ namespace adaptive_json5
     private:
       constexpr result() noexcept = default;
 
+      /**
+       * @brief Construct a failure holding reason.
+       * @par Requirements
+       * P002; J5-003; J5-045.
+       * @par ID SWU-API-022
+       */
       constexpr explicit result(E reason) noexcept : m_error(reason) {}
 
       std::optional<E> m_error;

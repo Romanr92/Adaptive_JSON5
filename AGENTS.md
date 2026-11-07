@@ -32,17 +32,27 @@ restriction, and never include `core/tests/` in production source lists.
   OS-agnostic; MICROSAR is only an example, not a required vendor port. Read `docs/embedded.md` and J5-101 for runtime/storage boundaries.
 - Do not require WSL, AdaptivePi, an OS service, SDK, Node.js, VS Code or host test
   dependencies in the parser. Schema, CLI, editor and examples remain optional.
-- Unit tests, validation tests and formatting are the only automated quality checks.
-  Validation tests are GoogleTest cases over the pinned third-party fixtures in
-  `tests/validation`, built only by `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` and run
-  as a separate pull-request gate. Do not add
-  integration, end-to-end, fuzz, sanitizer, benchmark, coverage or static-analysis
-  gates unless the user changes this scope. As a user-approved exception, the
-  non-blocking `examples` workflow builds the programs in `examples/` and checks
-  their output; it is not a merge requirement.
+- The automated quality checks are unit tests, validation tests, formatting and,
+  by the owner's decision of 2026-11-07 for the ISO 26262 work (#138), sanitizer
+  runs, fuzzing, branch coverage and a second compiler (Clang). See
+  `docs/ISO26262-safety/verification-strategy.md`. Validation tests are GoogleTest
+  cases over the pinned third-party fixtures in `tests/validation`, built only by
+  `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` and run as a separate pull-request gate.
+  Sanitizer runs rebuild the existing tests with AddressSanitizer and
+  UndefinedBehaviorSanitizer. Fuzzing runs a test-only libFuzzer harness under
+  `tests/` for a fixed time on every pull request and blocks only on a crash,
+  timeout or out-of-memory, with a longer weekly run. Branch coverage is measured
+  on every pull request and blocks once full branch coverage is reached (target:
+  end of M4); MC/DC is measured with GCC 14 and reported without blocking. These
+  are build, CI and test-code work, so agents may implement them. Do not add
+  integration, end-to-end, benchmark or static-analysis gates unless the user
+  changes this scope. As a user-approved exception, the non-blocking `examples`
+  workflow builds the programs in `examples/` and checks their output; it is not a
+  merge requirement.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
-  must pass all host unit-test jobs, validation-test jobs and formatting before
-  merging into main.
+  must pass all host unit-test jobs, validation-test jobs, formatting, the
+  sanitizer and fuzz jobs and the Clang job before merging into main, and the
+  coverage job once it becomes blocking.
 - Preserve Apache-2.0 and the notices/immutable versions of incorporated material.
 - Keep requirement review, implementation, test existence and executed results
   distinct. The initial build-setting units do not verify a parser or embedded runtime.
@@ -72,8 +82,8 @@ For explanations, design guidance or review of a requirement, use
 `NOTICE`); AdaptivePi's release approval, `ara::*` APIs, deployment and platform
 policies do not apply here.
 
-Use the adapted requirements and implementation sequence. Automated quality checks are unit
-tests and formatting only. Keep generic/embedded parser dependencies separate
+Use the adapted requirements and implementation sequence. Automated quality checks are
+listed above. Keep generic/embedded parser dependencies separate
 from optional schema, CLI, editor and consumer examples. Preserve Apache-2.0 and
 record incorporated material's provenance. Do not mark planned functionality
 implemented or verified without actual evidence.
@@ -98,6 +108,19 @@ evidence separately; AI agents still do not change production code.
 
 The sequential baseline now includes optional schema P042–P055, CLI/example
 P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.
+
+## ISO 26262 safety impact in pull requests
+
+The library is developed as an ISO 26262 Safety Element out of Context; see
+`docs/ISO26262-safety/`. Whenever an agent creates or updates a pull request, it
+must fill in the **Safety impact** section of `.github/pull_request_template.md`,
+even when the change is documentation or tests only. Check the change against the
+software safety requirements (SSR) in `docs/requirements.md` section K and the
+assumptions in `docs/ISO26262-safety/seooc-assumptions.md`. Either tick "does not
+affect", or tick "does affect" and name each affected SSR or assumption ID and how
+it is affected. Never leave the section empty or remove it. If the impact is unclear,
+say so in the section and ask the owner instead of guessing. Answering the check is
+not a safety approval; the owner decides.
 
 ## Current delivery and issue workflow
 

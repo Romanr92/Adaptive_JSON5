@@ -40,6 +40,7 @@ namespace adaptive_json5
      * Lexers validate value and name spellings after dispatch.
      * EOF inside an open container is always a syntax error.
      * Post-comma states are entered only after a completed element or member.
+     * @par ID SWU-PARSER-007
      */
     [[nodiscard]] result<parser_action> next_container_action(const parser_frame& frame, std::optional<char> current,
                                                               std::size_t byte_offset, syntax_mode mode) noexcept;

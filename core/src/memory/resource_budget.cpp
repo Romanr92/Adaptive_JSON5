@@ -13,6 +13,7 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-047; J5-048.
    * @note Subtraction is evaluated only after validating current.
+   * @par ID SWU-MEMORY-056
    */
   status_result resource_budget::check_addition(std::size_t current, std::size_t additional, std::size_t limit) noexcept
   {
@@ -31,6 +32,7 @@ namespace adaptive_json5
    * P031; J5-047.
    * @note Every size_t limit is supported, including zero.
    * Cross-limit inequalities are not inherently invalid configurations.
+   * @par ID SWU-MEMORY-057
    */
   resource_budget::resource_budget(const resource_limits& limits) noexcept : m_limits(limits) {}
 
@@ -39,6 +41,7 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-047.
    * @note Repeated checks do not accumulate input bytes.
+   * @par ID SWU-MEMORY-058
    */
   status_result resource_budget::check_input(std::size_t bytes) const noexcept
   {
@@ -52,6 +55,7 @@ namespace adaptive_json5
    * @note The caller supplies zero exponent digits when no exponent exists.
    * This operation checks lengths, not numeric grammar or exponent magnitude.
    * Call during scanning before accepting a byte that exceeds either limit.
+   * @par ID SWU-MEMORY-059
    */
   status_result resource_budget::check_number(std::size_t bytes, std::size_t exponent_digits) const noexcept
   {
@@ -71,6 +75,7 @@ namespace adaptive_json5
    * @param member True when this value is a direct object member.
    * @note The root, array elements and detached nonmember values use false.
    * Both limits are checked before either counter changes.
+   * @par ID SWU-MEMORY-060
    */
   status_result resource_budget::reserve_value(bool member) noexcept
   {
@@ -106,6 +111,7 @@ namespace adaptive_json5
    * @param member Must match the original reservation.
    * @note Callers must associate releases with their own reservations.
    * Invalid counter underflow is reported without changing either counter.
+   * @par ID SWU-MEMORY-061
    */
   status_result resource_budget::release_value(bool member) noexcept
   {
@@ -129,6 +135,7 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-047; J5-048.
    * @note Call before growing parser storage for the new nesting level.
+   * @par ID SWU-MEMORY-062
    */
   status_result resource_budget::enter_container() noexcept
   {
@@ -154,6 +161,7 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-047; J5-048.
    * @note Closing or rolling back a container releases its depth.
+   * @par ID SWU-MEMORY-063
    */
   status_result resource_budget::leave_container() noexcept
   {
@@ -174,6 +182,7 @@ namespace adaptive_json5
    * @param additional_units New units to reserve before growing its storage.
    * @note current_units must describe this string's existing reservations.
    * Checks both per-string and aggregate limits before changing accounting.
+   * @par ID SWU-MEMORY-064
    */
   status_result resource_budget::reserve_string_units(std::size_t current_units, std::size_t additional_units) noexcept
   {
@@ -199,6 +208,7 @@ namespace adaptive_json5
    * P031; J5-047.
    * @note units must belong to reservations owned by the caller.
    * Does not release any allocation; storage ownership is separate.
+   * @par ID SWU-MEMORY-065
    */
   status_result resource_budget::release_string_units(std::size_t units) noexcept
   {
@@ -218,6 +228,7 @@ namespace adaptive_json5
    * @return min(max_string_units, max_total_string_units - reserved units).
    * @note Single source for the lexer limit; reserves nothing and changes no state.
    * Returns zero if the reserved total ever exceeded the aggregate limit.
+   * @par ID SWU-MEMORY-066
    */
   std::size_t resource_budget::string_unit_allowance() const noexcept
   {
@@ -238,6 +249,7 @@ namespace adaptive_json5
    * P031; J5-047.
    * @note Call before allocating or publishing the entry.
    * A minimal result/error value does not consume a diagnostic entry.
+   * @par ID SWU-MEMORY-067
    */
   status_result resource_budget::reserve_diagnostic() noexcept
   {
@@ -255,6 +267,7 @@ namespace adaptive_json5
    * @brief Release one retained or rolled-back diagnostic reservation.
    * @par Requirements
    * P031; J5-047.
+   * @par ID SWU-MEMORY-068
    */
   status_result resource_budget::release_diagnostic() noexcept
   {
@@ -273,6 +286,7 @@ namespace adaptive_json5
    * P031; J5-046;
    * J5-047.
    * @note Changes no state.
+   * @par ID SWU-MEMORY-069
    */
   std::size_t resource_budget::reserved_nodes() const noexcept
   {
@@ -285,6 +299,7 @@ namespace adaptive_json5
    * P031; J5-046; J5-048.
 
    * * @note Changes no state.
+   * @par ID SWU-MEMORY-070
    */
   std::size_t resource_budget::peak_depth() const noexcept
   {

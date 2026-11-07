@@ -39,6 +39,7 @@ namespace adaptive_json5
      * The caller handles node/member/string accounting and duplicate policy.
      * The parser attaches without ancestor traversal; frame.container must be detached, which holds because containers
      * attach only when they close.
+     * @par ID SWU-PARSER-002
      */
     status_result attach_parsed_value(document& destination, parser_frame& frame, value_index child, work_budget& work,
                                       std::size_t input_size) noexcept

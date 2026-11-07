@@ -35,6 +35,7 @@ namespace adaptive_json5::detail
    * Exceeding maximum returns numeric_conversion with out_of_range.
    * Performs constant bounded work without allocation.
    * The enclosing conversion must account for each digit-processing step.
+   * @par ID SWU-VALUE-056
    */
   [[nodiscard]] result<std::uintmax_t> append_integer_digit(std::uintmax_t current, unsigned int digit,
                                                             unsigned int radix, std::uintmax_t maximum) noexcept;
@@ -59,6 +60,7 @@ namespace adaptive_json5::detail
    * Before each appended decimal zero, charges one additional work unit.
    * Additional spelling processing uses at most two forward scans.
    * Exponent handling must not overflow or expand an unbounded numeric value.
+   * @par ID SWU-VALUE-057
    */
   [[nodiscard]] result<integer_magnitude> read_integer_magnitude(const owned_number& number, std::uintmax_t maximum,
                                                                  work_budget& work) noexcept;

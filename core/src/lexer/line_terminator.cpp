@@ -18,6 +18,7 @@ namespace adaptive_json5
    * present, or an explicit encoding error.
    * @note EOF, nonterminators and encoding failures leave source unchanged.
    * Recognizes LF, CR, CRLF, U+2028 and U+2029 without allocation.
+   * @par ID SWU-LEXER-010
    */
   result<std::optional<line_terminator_span>> consume_line_terminator(cursor& source) noexcept
   {

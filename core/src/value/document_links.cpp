@@ -26,6 +26,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-039; J5-040.
        * @note Bounded by the stored record count; used only by the public builder path.
+       * @par ID SWU-VALUE-045
        */
       [[nodiscard]] status_result reject_ancestor_cycle(const value_storage& values, value_index parent,
                                                         value_index child) noexcept
@@ -60,6 +61,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
        * @note O(1): every check inspects at most the parent, child and previous last sibling.
+       * @par ID SWU-VALUE-046
        */
       [[nodiscard]] status_result link_child(value_storage& values, value_index root, value_index parent,
                                              value_index child, decoded_string* member_name,
@@ -219,6 +221,7 @@ namespace adaptive_json5
      * A supplied name span requires member_name and must fit input_size.
      * Success stores the optional name span together with the transferred name.
      * Failure also preserves existing child metadata.
+     * @par ID SWU-VALUE-047
      */
     status_result attach_child(value_storage& values, value_index root, value_index parent, value_index child,
                                decoded_string* member_name, std::optional<source_span> name_span,
@@ -250,6 +253,7 @@ namespace adaptive_json5
      * @note Rejects an attached parent: a parent without ancestors makes cycles impossible.
      * O(1) and loop-free; otherwise identical to attach_child, including atomic failure.
      * Used by the parser, whose open containers stay detached until they close.
+     * @par ID SWU-VALUE-048
      */
     status_result attach_to_detached_parent(value_storage& values, value_index root, value_index parent,
                                             value_index child, decoded_string* member_name,

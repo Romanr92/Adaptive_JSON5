@@ -68,6 +68,7 @@ namespace adaptive_json5
      * @param work Shared work budget; not charged here.
      * @return The limited scan, or wrong_type_or_access for an invalid input or offset.
      * @note Performs no allocation and reads no input bytes.
+     * @par ID SWU-PARSER-040
      */
     [[nodiscard]] result<limited_scan> begin_limited_scan(input_view input, std::size_t start_offset,
                                                           const work_budget& work) noexcept;
@@ -82,6 +83,7 @@ namespace adaptive_json5
      * @return Success after charging end_offset - start_offset, resource_limit at
      * view_end when the scan stopped within c_cut_margin_bytes of a cut, or wrong_type_or_access for a reversed range.
      * @note Call before the scan's result changes the document or cursor.
+     * @par ID SWU-PARSER-041
      */
     [[nodiscard]] status_result finish_limited_scan(const limited_scan& scan, std::size_t end_offset,
                                                     work_budget& work) noexcept;
@@ -95,6 +97,7 @@ namespace adaptive_json5
      * @return resource_limit at view_end when the failure lies within
      * c_cut_margin_bytes of a cut, has a source range ending there, or has no location;
      * otherwise failure unchanged.
+     * @par ID SWU-PARSER-042
      */
     [[nodiscard]] error limited_scan_error(const limited_scan& scan, const error& failure) noexcept;
 
@@ -108,6 +111,7 @@ namespace adaptive_json5
      * @param work Shared work budget for the parse operation.
      * @return Success, a trivia error, or resource_limit when the budget ends inside the trivia.
      * @note Shared by the container engine and the primitive parser so both charge trivia alike.
+     * @par ID SWU-PARSER-043
      */
     [[nodiscard]] status_result skip_trivia_within_budget(cursor& source, input_view input, syntax_mode mode,
                                                           work_budget& work) noexcept;

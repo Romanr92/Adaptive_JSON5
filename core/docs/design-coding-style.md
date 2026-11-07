@@ -212,6 +212,24 @@ or verification.
  */
 ```
 
+Every function also carries a unique software unit ID in its Doxygen block, on a
+single `@par ID SWU-<MODULE>-<number>` line, for example `@par ID SWU-PARSER-012`.
+When a function is declared in a header and defined in a `.cpp` file, both blocks
+carry the same ID. A new function takes the next free ID of its module from the
+[software unit ID registry](software-unit-ids.md), and the registry gets a new row
+marked **used**. When a function is deleted, its registry row is marked **deleted**;
+an ID is never reused. Deleted and defaulted special members get no ID. The IDs
+connect functions to the [safety traceability](../../docs/traceability.md#safety-traceability-iso-26262).
+
+```cpp
+/**
+ * @brief Non-throwing success/error result without a success payload.
+ * @par Requirements
+ * P002; J5-003; J5-045.
+ * @par ID SWU-API-013
+ */
+```
+
 For obscure or non-obvious code, place a `//` comment immediately above the
 relevant line or block explaining why that approach is necessary. Explain the
 constraint or reasoning, rather than paraphrasing the operation. Keep ordinary,

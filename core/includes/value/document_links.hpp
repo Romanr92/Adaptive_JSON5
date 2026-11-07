@@ -37,6 +37,7 @@ namespace adaptive_json5
      * A supplied name span requires member_name and must fit input_size.
      * Success stores the optional name span together with the transferred name.
      * Failure also preserves existing child metadata.
+     * @par ID SWU-VALUE-047
      */
     [[nodiscard]] status_result attach_child(value_storage& values, value_index root, value_index parent,
                                              value_index child, decoded_string* member_name,
@@ -58,6 +59,7 @@ namespace adaptive_json5
      * @note Rejects an attached parent: a parent without ancestors makes cycles impossible.
      * O(1) and loop-free; otherwise identical to attach_child, including atomic failure.
      * Used by the parser, whose open containers stay detached until they close.
+     * @par ID SWU-VALUE-048
      */
     [[nodiscard]] status_result attach_to_detached_parent(value_storage& values, value_index root, value_index parent,
                                                           value_index child, decoded_string* member_name,

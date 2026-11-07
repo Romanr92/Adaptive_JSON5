@@ -15,6 +15,7 @@ namespace adaptive_json5
    * @brief Allocate exactly the input size, then copy the bytes.
    * @par Requirements
    * P039; J5-003; J5-041; J5-046.
+   * @par ID SWU-VALUE-100
    */
   result<retained_source> retained_source::copy(input_view input, const storage_callbacks& storage) noexcept
   {
@@ -50,6 +51,7 @@ namespace adaptive_json5
    * @brief An owned block without data means nothing was retained.
    * @par Requirements
    * P039; J5-041.
+   * @par ID SWU-VALUE-101
    */
   bool retained_source::is_retained() const noexcept
   {
@@ -60,6 +62,7 @@ namespace adaptive_json5
    * @brief Expose the owned bytes as a borrowed view.
    * @par Requirements
    * P039; J5-041; J5-044.
+   * @par ID SWU-VALUE-102
    */
   input_view retained_source::text() const noexcept
   {
