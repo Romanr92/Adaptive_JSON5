@@ -194,11 +194,3 @@ handlers, must be compiled without it (`-mno-red-zone`).
 | Stack alignment | 16 bytes at calls | 16 bytes | 16 bytes |
 | Red zone | **128 bytes**, as on x86-64 Linux | None | None |
 | Page size | 4 KB | 4 KB | 4 KB |
-
----
-
-## Where this is used
-
-The [cybersecurity assumptions](ISO21434-cybersecurity/cybersecurity-assumptions.md#ca-03-how-memory-is-laid-out-and-why-it-matters)
-explain, per architecture, why the stack layout matters for an attacker and where an
-integrator should place guard regions.
