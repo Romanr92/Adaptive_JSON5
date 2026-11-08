@@ -63,16 +63,105 @@ rating, because more attackers can reach it.
 | Moderate | CAL 1 | CAL 1 | CAL 2 | CAL 3 |
 | Negligible | — | — | — | — |
 
-### The four levels
+### The levels and their rigour
 
-| Level | Assurance | In short |
+| Level | Assurance | Rigour |
 | --- | --- | --- |
-| CAL 1 | Low to moderate | Basic rigour |
-| CAL 2 | Moderate | More analysis and testing |
-| CAL 3 | Moderate to high | Adds, for example, penetration testing and more independent reviewers |
-| CAL 4 | High | The most rigour and independence |
+| No CAL | — | **No extra rigour** for this goal. Only the basic organisation-wide cybersecurity work applies. |
+| CAL 1 | Low to moderate | **Basic** |
+| CAL 2 | Moderate | **Moderate** |
+| CAL 3 | Moderate to high | **Thorough** |
+| CAL 4 | High | **Most thorough** |
 
-With negligible impact, no CAL is needed.
+**Is there something like QM?** Not by name. The closest equivalent is "no CAL", which
+applies when the impact is negligible. Unlike QM in safety, nothing is ever fully outside
+ISO/SAE 21434: basic work such as vulnerability monitoring and handling applies to every
+product.
+
+ISO/SAE 21434 does not list required methods per CAL the way ISO 26262 does per ASIL. It
+describes how rigour and independence should grow with the level. The sections below say
+what each rigour level means in practice. They are our interpretation, written for this
+kind of library; the suggested tools are examples, not requirements of the standard.
+
+#### Basic (CAL 1)
+
+What has to be done:
+
+- **Analysis:** a TARA of the component and the cybersecurity requirements derived from it.
+- **Development:** follow the coding guidelines; treat compiler warnings as errors.
+- **Testing:** requirements-based tests of the security functions and of failure handling.
+- **Reviews:** code and document reviews by **another person**, who may be on the same team.
+- **Vulnerabilities:** a way to receive reports and to fix them.
+
+Suggested tools and activities: compiler warnings as errors (`-Wall -Wextra -Werror`), unit
+tests (for example GoogleTest), peer review in pull requests, `SECURITY.md`.
+
+#### Moderate (CAL 2)
+
+Everything from Basic, plus:
+
+- **Analysis:** a more systematic look at weaknesses in the design and the interfaces.
+- **Testing:** interface tests and tests with malformed or unexpected input.
+- **Supply chain:** know every dependency and its version.
+- **Reviews:** still by another person; findings are tracked until they are closed.
+
+Suggested tools and activities: static analysis (for example clang-tidy or cppcheck), an
+SBOM (for example SPDX or CycloneDX), pinned dependency versions.
+
+#### Thorough (CAL 3)
+
+Everything from Moderate, plus:
+
+- **Analysis:** a deeper vulnerability analysis of every attack path from the TARA.
+- **Testing:** fuzz testing, testing with memory error detection, and **penetration testing**.
+- **Supply chain:** automatic scanning for known vulnerabilities in dependencies and CI.
+- **Reviews:** by a person from **another team**, not under the same lead as the developer.
+
+Suggested tools and activities: fuzzing (for example libFuzzer or AFL++), AddressSanitizer
+and UndefinedBehaviorSanitizer, dependency scanning (for example Dependabot or
+OSV-Scanner), security-focused static analysis (for example CodeQL), penetration testing.
+
+#### Most thorough (CAL 4)
+
+Everything from Thorough, plus:
+
+- **Analysis:** the deepest analysis, covering every interface and every path through the
+  security-relevant code.
+- **Testing:** continuous fuzzing, and penetration testing by specialists.
+- **Reviews and assessment:** by a person or organisation **independent of the development
+  team**, ideally an external security assessor.
+- **Evidence:** a complete cybersecurity case that ties every claim to its evidence.
+
+Suggested tools and activities: continuous fuzzing (for example OSS-Fuzz or a scheduled
+long fuzz run in CI), coding-standard checks (for example CodeQL with MISRA C++ queries),
+an independent security audit.
+
+### Risk treatment
+
+After the TARA, every risk gets one of four treatments:
+
+| Treatment | Meaning | Example |
+| --- | --- | --- |
+| **Avoid** | Remove the source of the risk, for example by dropping a feature | The library never interprets string content (T-06) |
+| **Reduce** | Add protections that lower the risk | Limits, bounds checks, fuzzing (T-01, T-03) |
+| **Share** | Hand part of the risk to another party, by agreement | The integrator authenticates input before parsing |
+| **Retain** | Accept a low risk without further protections, with a recorded reason | A residual risk after all other treatments |
+
+"Retain" is the closest idea to QM in safety: a deliberate, documented decision that no
+further measures are needed.
+
+### When an integrator may use a lower CAL
+
+The library is developed towards CAL 4 because it does not know its use. An integrator's
+own TARA can legitimately arrive at a lower CAL, for example when:
+
+- the input only arrives through **local or physical** access, such as a configuration file
+  installed in the factory or a signed software update that is verified before parsing;
+- the **impact** of a successful attack would be only **moderate or major**, for example
+  for a comfort or information-only function.
+
+That is fine: a component developed for a higher CAL can be used where a lower one is
+needed. The reverse is not true.
 
 **Differences from the ASIL:**
 
