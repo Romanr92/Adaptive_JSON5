@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <gtest/gtest.h>
 #include <limits>
 #include <optional>
@@ -343,7 +344,65 @@ namespace
     ASSERT_TRUE(empty.has_value());
     EXPECT_TRUE(empty.value_if()->empty());
   }
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify a string and a member name with an embedded zero byte keep their full length.
+   * Arrange: A member named "a\u0000b" whose value is "admin\u0000x".
+   * Act: Look up the member by its exact three-byte name and by the truncated name "a", and
+   *      export the value with as_string().
+   * Expect: The exact name finds the member and the truncated name does not; the value has
+   *         all 7 bytes with the zero byte at index 5, so a C string function such as
+   *         strlen() would see only "admin" (integrator guidance, TARA threat T-06).
+   */
+  TEST(J5_029_Json5Value, KeepsEmbeddedZeroBytesAtFullLength)
+  {
+    /* Arrange */
+    parsed_fixture fixture{R"({"a\u0000b": "admin\u0000x"})"};
+    ASSERT_TRUE(fixture.document.has_value());
+    const json5_value root = fixture.document->root();
+    char text[16]{};
+    /* Act */
+    const json5_value exact = root.member(std::string_view{"a\0b", 3U});
+    const json5_value truncated = root.member("a");
+    const auto value = exact.as_string(text, sizeof(text));
+    /* Expect */
+    ASSERT_TRUE(exact.ok());
+    EXPECT_FALSE(truncated.ok());
+    ASSERT_TRUE(value.has_value());
+    EXPECT_EQ(value.value_if()->size(), 7U);
+    EXPECT_EQ(*value.value_if(), (std::string_view{"admin\0x", 7U}));
+    EXPECT_EQ(text[5], '\0');
+    EXPECT_EQ(std::strlen(text), 5U);
+  }
   /* ================================= End Test_J5_029 ================================= */
+  /* =================================== Test_J5_032 =================================== */
+
+  /* Verify duplicate member names are rejected when reject_duplicates is selected.
+   * Arrange: An object with the member name "a" twice, parsed once with the default options,
+   *          and options selecting duplicate_name_policy::reject_duplicates.
+   * Act: Look up "a" in the default document, and parse the same text with reject_duplicates.
+   * Expect: Under the default policy member("a") fails instead of picking one value; with
+   *         reject_duplicates the parse fails with duplicate_policy (integrator guidance,
+   *         TARA threat T-02).
+   */
+  TEST(J5_032_Json5Document, RejectsDuplicateNamesWhenConfigured)
+  {
+    /* Arrange */
+    const std::string text{"{a: 1, a: 2}"};
+    parsed_fixture preserved{text};
+    ASSERT_TRUE(preserved.document.has_value());
+    alignas(std::max_align_t) static unsigned char buffer[4096];
+    parse_options strict_names;
+    strict_names.duplicate_names = duplicate_name_policy::reject_duplicates;
+    /* Act */
+    const json5_value ambiguous = preserved.document->root().member("a");
+    const auto rejected = json5_document::parse({text.data(), text.size()}, buffer, sizeof(buffer), strict_names);
+    /* Expect */
+    EXPECT_FALSE(ambiguous.ok());
+    ASSERT_FALSE(rejected.has_value());
+    EXPECT_EQ(rejected.error_if()->code, error_code::duplicate_policy);
+  }
+  /* ================================= End Test_J5_032 ================================= */
   /* =================================== Test_J5_040 =================================== */
 
   /* Verify root() of a moved-from document holds an error instead of failing unsafely.
