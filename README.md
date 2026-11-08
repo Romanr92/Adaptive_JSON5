@@ -315,8 +315,10 @@ not a supported parser release.
 - [Cybersecurity manual](docs/ISO21434-cybersecurity/cybersecurity-manual.md): the
   checklist for integrators.
 - [Cybersecurity assumptions](docs/ISO21434-cybersecurity/cybersecurity-assumptions.md),
-  [TARA](docs/ISO21434-cybersecurity/tara.md) and
-  [cybersecurity verification](docs/ISO21434-cybersecurity/cybersecurity-verification.md).
+  [TARA](docs/ISO21434-cybersecurity/tara.md),
+  [cybersecurity verification](docs/ISO21434-cybersecurity/cybersecurity-verification.md),
+  [cybersecurity case](docs/ISO21434-cybersecurity/cybersecurity-case.md) and
+  [interface agreement template](docs/ISO21434-cybersecurity/cybersecurity-interface-agreement.md).
 - [Security policy](SECURITY.md): how to report a vulnerability, and supported versions.
 
 **Design**

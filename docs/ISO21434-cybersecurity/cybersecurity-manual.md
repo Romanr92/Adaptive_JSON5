@@ -136,6 +136,7 @@ functional safety. If you use the library in a safety-related function, fill in 
   → [Cybersecurity plan, roles](cybersecurity-plan.md#2-roles)
 - [ ] **C-7.4** You agree with the library on who does what, using this checklist as the
   basis of your cybersecurity interface agreement.
+  → [Interface agreement template](cybersecurity-interface-agreement.md)
 
 ## 8. Known limits and open issues
 

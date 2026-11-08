@@ -79,8 +79,8 @@ otherwise. Owner of all work products: Romanr92.
 | 5 | Cybersecurity verification | [`cybersecurity-verification.md`](cybersecurity-verification.md) | Draft; most checks still to be implemented |
 | 6 | Vulnerability handling | [`SECURITY.md`](../../SECURITY.md) | Draft; private reporting not yet switched on |
 | 7 | Cybersecurity manual for integrators | [`cybersecurity-manual.md`](cybersecurity-manual.md) | Draft |
-| 8 | Cybersecurity case | Not started | Not started |
-| 9 | Cybersecurity interface agreement (template) | Based on the cybersecurity manual | Not started |
+| 8 | Cybersecurity case | [`cybersecurity-case.md`](cybersecurity-case.md) | Draft structure; most evidence missing |
+| 9 | Cybersecurity interface agreement (template) | [`cybersecurity-interface-agreement.md`](cybersecurity-interface-agreement.md) | Draft template |
 | 10 | End-of-support policy | [`SECURITY.md`, supported versions](../../SECURITY.md#supported-versions) | Draft |
 | 11 | Response targets and the process for known problems in released versions | [`SECURITY.md`](../../SECURITY.md#response-times-and-known-problems-in-releases) | To be defined with the 1.0.0 release (#135) |
 
@@ -99,7 +99,7 @@ For this library, "most thorough" means:
 | Supply chain | Pinned CI actions, hashed tool installs, SBOM and signed or attested releases; dependency vulnerability scanning | Planned (#131) |
 | Secure input handling | Opt-in secure mode | Planned (#145) |
 | Reviews | A security review in every milestone; an **independent** reviewer and assessor | Milestone review planned; independent reviewer **open** |
-| Evidence | A complete cybersecurity case | Not started |
+| Evidence | A complete cybersecurity case | Draft structure ([`cybersecurity-case.md`](cybersecurity-case.md)) |
 
 ## 6. Supporting processes
 
