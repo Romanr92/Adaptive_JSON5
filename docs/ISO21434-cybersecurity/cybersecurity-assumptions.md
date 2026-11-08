@@ -65,11 +65,7 @@ which direction they grow, so that integrators can place guard regions correctly
 The pictures show normal operation only.
 
 **Caveat: this depends on the architecture, the operating system and the linker
-script.** The pictures show the usual layout, not a guarantee. What every label in
-the pictures means (`.text`, `.rodata`, `.data`, `.bss`, heap, stack, guard region,
-MPU, PMP and so on) is explained in the
-[legend of the memory layout reference](../memory-layout.md#legend-what-every-label-means),
-together with the layout per operating system.
+script.** The pictures show the usual layout, not a guarantee.
 
 The classic picture: the stack starts at a high address and grows **down**, the heap
 starts lower and grows **up**, so they grow toward each other. Adaptive_JSON5 itself
