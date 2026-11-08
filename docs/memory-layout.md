@@ -39,7 +39,7 @@ arrow inside a block shows the direction in which it grows.
 | **OS / kernel stacks** | Stacks reserved for the operating system itself, often one per CPU core. |
 | **Heap** | Memory handed out while the program runs (`malloc`, `new`). It grows **up**. Often absent on safety-related microcontrollers; Adaptive_JSON5's parser library never uses it. |
 | **Process heaps** | On Windows, a process can have several heaps (the process heap, the C runtime heap and others) instead of one region. |
-| **`ucHeap`** | In FreeRTOS, the array of `configTOTAL_HEAP_SIZE` bytes, placed in `.bss`, from which `xTaskCreate()` takes task stacks and task control blocks. |
+| **`ucHeap`** | In FreeRTOS with the `heap_1`, `heap_2` or `heap_4` scheme, the array of `configTOTAL_HEAP_SIZE` bytes, placed in `.bss`, from which `xTaskCreate()` takes task stacks and task control blocks. `heap_3` uses the C library's `malloc` instead, and `heap_5` uses memory regions that the application defines. |
 | **TCB** | Task control block: the RTOS's record for one task (its state, priority and saved stack pointer). |
 | **Heap (brk)** | On Linux, the classic heap right after `.bss`, extended with the `brk` system call. Used for small allocations. |
 | **mmap area** | Memory mapped by the OS on request: shared libraries, thread stacks and large allocations. |
@@ -96,8 +96,14 @@ is no loader and usually no virtual memory. Code and constants stay in flash; `.
 ![FreeRTOS on a Cortex-M: flash holds the vector table, .text, .rodata and the .data load image; RAM holds the main stack, the FreeRTOS heap array, static task stacks and the globals.](images/memory-layout-freertos.svg)
 
 - **Every task has its own stack.** With `xTaskCreate()`, the stack and the task control
-  block come from the FreeRTOS heap: an array `ucHeap[configTOTAL_HEAP_SIZE]` in `.bss`,
-  managed by one of the `heap_1` to `heap_5` schemes. With `xTaskCreateStatic()`, the
+  block come from the FreeRTOS heap. Where that heap is depends on the scheme:
+  - `heap_1`, `heap_2` and `heap_4`: an array `ucHeap[configTOTAL_HEAP_SIZE]` in `.bss`,
+    as in the picture;
+  - `heap_3`: the C library's `malloc` and `free`, so the linker's heap region;
+  - `heap_5`: one or more memory regions the application defines with
+    `vPortDefineHeapRegions()`, which can be anywhere in RAM.
+
+  With `xTaskCreateStatic()`, the
   application provides the stack as its own array.
 - The **main stack** is used by the startup code and, on Cortex-M, by interrupts.
 - `configCHECK_FOR_STACK_OVERFLOW` adds a software check at context switches; an MPU

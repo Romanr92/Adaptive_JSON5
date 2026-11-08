@@ -193,9 +193,9 @@ tests exist; it does not make a requirement Verified.
 | --- | --- | --- | --- | --- | --- |
 | SSR-01 — Robust input handling | A-03 | J5-004, J5-026, J5-045, J5-097 | missing | missing | IN-01, AP-02 |
 | SSR-02 — Limit enforcement | A-04 | J5-047, J5-048, J5-049 | missing | missing | IN-03, LX-05, PA-04, VM-03, VM-05, ME-02, ME-03, DG-03 |
-| SSR-03 — Explicit failures | A-06 | J5-003, J5-043, J5-045, J5-051 | missing | missing | IN-05, LX-02, LX-06, PA-01, PA-02, PA-03, PA-06, VM-06, VM-08, ME-04, ME-06, DG-01, DG-04, AP-05 |
+| SSR-03 — Explicit failures | A-06 | J5-003, J5-043, J5-045, J5-051; J5-032 for duplicate names | SWU-PARSER-008, SWU-VALUE-077, SWU-VALUE-069, SWU-MEMORY-034 (duplicate names only; others missing) | `J5_032_Json5Document.RejectsDuplicateNamesWhenConfigured` (others missing) | IN-05, LX-02, LX-06, PA-01, PA-02, PA-03, PA-06, VM-06, VM-08, ME-04, ME-06, DG-01, DG-04, AP-05 |
 | SSR-04 — Determinism | — | J5-052 | missing | missing | missing |
 | SSR-05 — No heap and no shared mutable state | A-02, A-05 | J5-042, J5-046, J5-050, J5-101 | missing | missing | VM-04, AP-04 |
-| SSR-06 — Value correctness | A-06 | J5-029, J5-033, J5-034, J5-035, J5-037 | missing | missing | LX-01, LX-02, LX-04, VM-01, VM-02, VM-03 |
+| SSR-06 — Value correctness | A-06 | J5-029, J5-033, J5-034, J5-035, J5-037 | SWU-VALUE-076, SWU-VALUE-069, SWU-VALUE-077 (strings and names with zero bytes only; others missing) | `J5_029_Json5Value.KeepsEmbeddedZeroBytesAtFullLength` (others missing) | LX-01, LX-02, LX-04, VM-01, VM-02, VM-03 |
 | SSR-07 — Bounded stack | A-01 | J5-048, J5-101 | missing | missing | PA-04 |
 | SSR-08 — Memory bounds | A-03, A-05 | J5-004, J5-040, J5-046 | missing | missing | IN-01, IN-02, PA-05, ME-01, ME-03, DG-02 |

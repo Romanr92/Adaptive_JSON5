@@ -312,6 +312,12 @@ uses no heap: only the integrator's buffer and the stack.
   limit register. Protection comes from **PMP (physical memory protection)**, set up by
   the firmware or OS as a guard region below each stack. If nobody configures it,
   there is no protection.
+- **A PMP guard does not automatically apply to machine mode.** Under the standard PMP
+  rules, an entry that is not **locked** (L bit clear) is ignored for ordinary accesses
+  from M-mode, which is where bare-metal code usually runs. So either lock the guard
+  entry, run the code in a lower privilege mode (U-mode or S-mode), or use the
+  Smepmp extension's rules for M-mode. In every case, **check on the target** that
+  touching the guard region really raises a fault.
 
 ### LoongArch
 

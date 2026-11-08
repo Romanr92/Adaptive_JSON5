@@ -88,14 +88,25 @@ functional safety. If you use the library in a safety-related function, fill in 
   where it goes next: a shell command, a file path, a log line, a script or a database
   query. The library returns strings exactly and never escapes them.
   → [CSR-06](../requirements.md#l-cybersecurity-requirements-isosae-21434), [TARA, T-06](tara.md#3-threats)
-- [ ] **C-4.2** You do **not** use C string functions (`strlen`, `strcpy`, `printf("%s")`
-  and similar) on strings that may contain zero bytes; use the returned length.
+- [ ] **C-4.2** You use **the returned length** of every exported string. `as_string()`
+  writes no terminating zero byte, and a string may also contain zero bytes inside it,
+  so C string functions (`strlen`, `strcpy`, `printf("%s")` and similar) can read past
+  the end or stop too early. If an interface needs a C string, first check that the
+  string has no zero byte inside it and that the buffer has room, then append the
+  terminator yourself.
   → [TARA, T-06](tara.md#3-threats)
 - [ ] **C-4.3** You decide where error messages and any retained copy of the input
   (`retain_copy`) go, and do not send them to untrusted receivers.
   → [CSR-08](../requirements.md#l-cybersecurity-requirements-isosae-21434), [TARA, T-04](tara.md#3-threats)
 - [ ] **C-4.4** You check every result and reject the whole document on any error.
   → [A-06](../ISO26262-safety/seooc-assumptions.md#a-06-every-result-is-checked-and-any-error-rejects-the-whole-document)
+
+- [ ] **C-4.5 ⚠️ Bring your own mutex.** Each document, its buffer and every value from it
+  is used by only one thread or task at a time. If anything is shared, you protect all
+  access with your own mutex. Even reads are not safe to run at the same time: today
+  `as_double()` takes scratch memory from the document, so two simultaneous reads can
+  race (#124).
+  → [A-02](../ISO26262-safety/seooc-assumptions.md#a-02-concurrency-one-thread-per-document)
 
 ## 5. Your platform
 

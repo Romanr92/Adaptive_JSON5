@@ -213,8 +213,12 @@ This is the reasoning behind the assumed ASIL, step by step.
    independent mechanism: end-to-end protection (E2E), such as AUTOSAR E2E with a CRC, a
    sequence counter and a timeout check, plus plausibility checks on the values.
 6. **So ASIL D is decomposed into B(D) + B(D).** One part is the library. The other,
-   independent part is the integrator's E2E protection and plausibility checks, which
-   catch a wrong value no matter where it came from, including from this library.
+   independent part is the integrator's E2E protection and plausibility checks.
+   **This is a conditional assumption, not a given.** E2E protection only shows that the
+   bytes arrived intact; it cannot tell whether the parser then read them correctly.
+   A wrong value that is still plausible can also pass a range check. So the decomposition
+   holds only if the integrator **shows** that their independent part detects the
+   relevant parser failures for the safety requirement it protects (A-08).
 7. **Result: the library is developed to ASIL B(D).** The second part is an assumption on
    the integrator (A-08), and its independence is covered by the dependent failure
    analysis (DFA-02 in the [software safety analysis](software-safety-analysis.md#2-dependent-failure-analysis)).
@@ -348,6 +352,14 @@ The integrator provides the second, independent ASIL B(D) part of the decomposit
 - That part consists of end-to-end protection on every message the library parses,
   for example AUTOSAR E2E with a CRC, a sequence counter and a timeout check, plus
   plausibility checks on the values the application takes from parsed documents.
+- **E2E protection alone does not detect parser errors.** A CRC only shows that the
+  input bytes are intact; a correctly transmitted message can still be parsed into a
+  wrong value, and a wrong but plausible value can pass a range check. The integrator
+  must therefore **show** that the independent part detects the parser failures that
+  matter for the safety requirement it protects (for example the effects in the
+  [software FMEA](software-safety-analysis.md#15-fmea-table), such as a wrong value
+  reported as success), for instance with redundant information, cross-checks against
+  independent sources, or a second, diverse decoding of the critical values.
 - That part must be truly independent of this library. It must not use this library,
   or code shared with it, to do its job, so that a single fault cannot break both
   parts at the same time. The integrator documents this independence in their own
