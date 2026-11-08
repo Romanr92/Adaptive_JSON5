@@ -45,7 +45,11 @@ functional safety. If you use the library in a safety-related function, fill in 
   for example when the input only arrives through local access or the impact is limited.
   Using a library developed towards a higher CAL is fine.
   → [When an integrator may use a lower CAL](cybersecurity-assumptions.md#when-an-integrator-may-use-a-lower-cal)
-- [ ] **C-1.4** You have read the assumptions about the attacker: the attacker controls
+- [ ] **C-1.4** You use the caller-buffer path (`json5_document::parse`) or your own
+  storage callbacks (`parse_document`), not the hosted add-on, which takes its memory
+  from the heap and is not covered.
+  → [A-05](../ISO26262-safety/seooc-assumptions.md#a-05-memory-no-heap-and-which-library-is-which)
+- [ ] **C-1.5** You have read the assumptions about the attacker: the attacker controls
   the input, but cannot change code or memory directly.
   → [CA-01](cybersecurity-assumptions.md#ca-01-attacker-model)
 
@@ -57,39 +61,39 @@ functional safety. If you use the library in a safety-related function, fill in 
   the parser once the check has passed. **Never parse first and verify afterwards.**
   The library does not do this for you: a signature check needs keys and platform crypto,
   and it must stay independent of the parser.
-  → [TARA, T-02](tara.md#3-controls)
+  → [TARA, T-02](tara.md#4-controls)
 - [ ] **C-2.2** For data protection against random corruption (a CRC, a sequence counter
   and a timeout), use your end-to-end protection, as required for safety.
   → [A-08](../ISO26262-safety/seooc-assumptions.md#a-08-decomposition-the-integrator-provides-an-independent-e2e-check)
 - [ ] **C-2.3** You set every resource limit as tight as your use case allows.
   → [A-04](../ISO26262-safety/seooc-assumptions.md#a-04-the-integrator-sets-the-resource-limits),
-  [TARA, T-03](tara.md#2-threats)
+  [TARA, T-03](tara.md#3-threats)
 
 ## 3. While parsing
 
 - [ ] **C-3.1** Using **secure mode** is **advised** for data from a network or another
   untrusted source, once it is available. It is not required.
-  → [Secure mode](tara.md#4-secure-mode-planned), #145
+  → [Secure mode](tara.md#5-secure-mode-planned), #145
 - [ ] **C-3.2** If you do not use secure mode, you handle duplicate member names, zero bytes,
   control characters and unpaired surrogates yourself, for example with
   `reject_duplicates` and your own checks after parsing.
-  → [TARA, T-02 and T-06](tara.md#3-controls)
+  → [TARA, T-02 and T-06](tara.md#4-controls)
 
 > **⚠️ Secure mode is not fully standard JSON or JSON5.** It deliberately rejects some
-> documents that the standards allow. See the [TARA](tara.md#4-secure-mode-planned).
+> documents that the standards allow. See the [TARA](tara.md#5-secure-mode-planned).
 
 ## 4. After parsing
 
 - [ ] **C-4.1** You treat **every string and member name as untrusted**, and escape it for
   where it goes next: a shell command, a file path, a log line, a script or a database
   query. The library returns strings exactly and never escapes them.
-  → [CSR-06](../requirements.md#l-cybersecurity-requirements-isosae-21434), [TARA, T-06](tara.md#2-threats)
+  → [CSR-06](../requirements.md#l-cybersecurity-requirements-isosae-21434), [TARA, T-06](tara.md#3-threats)
 - [ ] **C-4.2** You do **not** use C string functions (`strlen`, `strcpy`, `printf("%s")`
   and similar) on strings that may contain zero bytes; use the returned length.
-  → [TARA, T-06](tara.md#2-threats)
+  → [TARA, T-06](tara.md#3-threats)
 - [ ] **C-4.3** You decide where error messages and any retained copy of the input
   (`retain_copy`) go, and do not send them to untrusted receivers.
-  → [CSR-08](../requirements.md#l-cybersecurity-requirements-isosae-21434), [TARA, T-04](tara.md#2-threats)
+  → [CSR-08](../requirements.md#l-cybersecurity-requirements-isosae-21434), [TARA, T-04](tara.md#3-threats)
 - [ ] **C-4.4** You check every result and reject the whole document on any error.
   → [A-06](../ISO26262-safety/seooc-assumptions.md#a-06-every-result-is-checked-and-any-error-rejects-the-whole-document)
 
