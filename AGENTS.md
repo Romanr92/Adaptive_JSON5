@@ -43,16 +43,18 @@ restriction, and never include `core/tests/` in production source lists.
   `tests/` for a fixed time on every pull request and blocks only on a crash,
   timeout or out-of-memory, with a longer weekly run. Branch coverage is measured
   on every pull request and blocks once full branch coverage is reached (target:
-  end of M4); MC/DC is measured with GCC 14 and reported without blocking. These
-  are build, CI and test-code work, so agents may implement them. Do not add
-  integration, end-to-end, benchmark or static-analysis gates unless the user
-  changes this scope. As a user-approved exception, the non-blocking `examples`
+  end of M4); MC/DC is measured with GCC 14 and reported without blocking. By the
+  owner's decision of 2026-11-08 for the ISO/SAE 21434 work (#139), static analysis
+  is also allowed: clang-tidy and CodeQL, including the MISRA C++:2023 query pack,
+  blocking new findings (#146). These are build, CI and test-code work, so agents may
+  implement them. Do not add integration, end-to-end or benchmark gates unless the
+  user changes this scope. As a user-approved exception, the non-blocking `examples`
   workflow builds the programs in `examples/` and checks their output; it is not a
   merge requirement.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
   must pass all host unit-test jobs, validation-test jobs, formatting, the
-  sanitizer and fuzz jobs and the Clang job before merging into main, and the
-  coverage job once it becomes blocking.
+  sanitizer and fuzz jobs, the Clang job and the static-analysis jobs before merging
+  into main, and the coverage job once it becomes blocking.
 - Preserve Apache-2.0 and the notices/immutable versions of incorporated material.
 - Keep requirement review, implementation, test existence and executed results
   distinct. The initial build-setting units do not verify a parser or embedded runtime.

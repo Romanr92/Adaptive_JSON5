@@ -94,7 +94,7 @@ For this library, "most thorough" means:
 | Every change | A pull request linked to an issue, all CI checks passing, and the **safety and security impact check** answered | In place |
 | Robust input | Blocking sanitizer runs and fuzzing on every pull request, plus a longer weekly fuzz run | Planned (#132) |
 | Compiler diversity | A blocking second compiler (Clang) | Planned (#141) |
-| Static analysis | clang-tidy and CodeQL, including the MISRA C++:2023 queries, blocking new findings | Planned (static analysis issue) |
+| Static analysis | clang-tidy and CodeQL, including the MISRA C++:2023 queries, blocking new findings | Planned (#146) |
 | Supply chain | Pinned CI actions, hashed tool installs, SBOM and signed or attested releases; dependency vulnerability scanning | Planned (#131) |
 | Secure input handling | Opt-in secure mode | Planned (#145) |
 | Reviews | A security review in every milestone; an **independent** reviewer and assessor | Milestone review planned; independent reviewer **open** |

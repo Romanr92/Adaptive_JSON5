@@ -38,6 +38,7 @@ only through high error detection (TD1).
 | GoogleTest | 1.17.0 (pinned commit) | Running the unit and validation tests | TI2 | It could report a pass for a failing test, or not run tests at all, so a bug would go undetected. | TD1 | A CI self-check proves it reports a failing test as failed, and CI already fails when no tests are found (`--no-tests=error`). Independent checks back it up (section 2.1). | TCL1 |
 | gcov and gcovr | gcov from the GCC used; gcovr 8.6 | Measuring coverage | TI2 | A wrong report could hide untested code. | TD1 | A CI self-check runs gcovr on a small reference file with known coverage (for example two branches, one taken) and fails if the report differs. | TCL1 |
 | AddressSanitizer, UndefinedBehaviorSanitizer, libFuzzer (planned, V4 and V5) | From the compiler used | Detecting memory errors and undefined behaviour | TI2 | They could miss an error. | TD1 | They are extra detection on top of the unit tests, not the only one. | TCL1 |
+| clang-tidy and CodeQL, including the MISRA C++:2023 query pack (planned, V9) | Pinned releases | Static analysis | TI2 | They could miss a defect or a coding-standard violation. | TD1 | They are extra detection on top of the tests, reviews and the other checks, not the only one. Their versions are recorded when #146 is implemented. | TCL1 |
 
 **Result:** all tools are proposed at **TCL1**; for `tools/package_release.py` this
 depends on the missing package-content evidence (section 5). The compiler used by the integrator is
