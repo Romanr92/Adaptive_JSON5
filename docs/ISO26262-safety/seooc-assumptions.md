@@ -111,6 +111,86 @@ of dependent failures, still have to respect the original ASIL D.
 Decomposition only works if the two parts cannot fail for the same reason. That is why
 the independence between them has to be shown with a dependent failure analysis.
 
+### What each ASIL requires
+
+The higher the ASIL, the more methods ISO 26262 expects. The table below summarizes
+the main software-level methods of ISO 26262-6 and the confirmation measures of
+ISO 26262-2, in our own words. It is a guide, not a copy of the standard: check the
+licensed standard for the exact, complete tables.
+
+**Legend**
+
+| Value | Meaning | Mark in the standard |
+| --- | --- | --- |
+| **Required** | Expected at this level. Leaving it out needs a written reason that shows an equivalent alternative. | `++` highly recommended |
+| **Advised** | Recommended. Do it unless there is a good reason not to. | `+` recommended |
+| **Optional** | Free to do, but not expected at this level; it adds little on its own. | `o` no recommendation |
+
+QM means normal quality management: none of the ISO 26262-specific methods are
+expected, so every row is optional, although good engineering practice still applies.
+
+**Coding guidelines** (ISO 26262-6)
+
+| Method | QM | A | B | C | D |
+| --- | --- | --- | --- | --- | --- |
+| Enforce low complexity | Optional | Required | Required | Required | Required |
+| Use a language subset (for example MISRA) | Optional | Required | Required | Required | Required |
+| Enforce strong typing | Optional | Required | Required | Required | Required |
+| Defensive implementation techniques | Optional | Advised | Advised | Required | Required |
+| Well-trusted design principles | Optional | Advised | Advised | Required | Required |
+| Style guides | Optional | Advised | Required | Required | Required |
+| Naming conventions | Optional | Required | Required | Required | Required |
+
+**Unit verification** (ISO 26262-6)
+
+| Method | QM | A | B | C | D |
+| --- | --- | --- | --- | --- | --- |
+| Walk-through (informal review) | Optional | Required | Advised | Optional | Optional |
+| Inspection (formal review with roles and checklists) | Optional | Advised | Required | Required | Required |
+| Static code analysis | Optional | Advised | Required | Required | Required |
+| Control flow and data flow analysis | Optional | Advised | Advised | Required | Required |
+| Formal verification | Optional | Optional | Optional | Advised | Advised |
+| Requirements-based tests | Optional | Required | Required | Required | Required |
+| Interface tests | Optional | Required | Required | Required | Required |
+| Fault injection tests | Optional | Advised | Advised | Advised | Required |
+| Resource usage evaluation (memory, stack, timing) | Optional | Advised | Advised | Advised | Required |
+
+**How test cases are derived** (ISO 26262-6)
+
+| Method | QM | A | B | C | D |
+| --- | --- | --- | --- | --- | --- |
+| Analysis of requirements | Optional | Required | Required | Required | Required |
+| Equivalence classes | Optional | Advised | Required | Required | Required |
+| Boundary values | Optional | Advised | Required | Required | Required |
+| Error guessing from experience | Optional | Advised | Advised | Advised | Advised |
+
+**Structural coverage at unit level** (ISO 26262-6)
+
+| Metric | QM | A | B | C | D |
+| --- | --- | --- | --- | --- | --- |
+| Statement coverage | Optional | Required | Required | Advised | Advised |
+| Branch coverage | Optional | Advised | Required | Required | Required |
+| MC/DC | Optional | Advised | Advised | Advised | Required |
+
+**Confirmation measures and independence** (ISO 26262-2)
+
+| Measure | QM | A | B | C | D |
+| --- | --- | --- | --- | --- | --- |
+| Confirmation reviews of work products by someone other than the author | Optional | Required | Required | Required | Required |
+| Functional safety audit (is the process being followed?) | Optional | Optional | Advised | Required | Required |
+| Functional safety assessment (is the result safe?) | Optional | Optional | Advised | Required | Required |
+| Independence of the reviewer or assessor | — | Another person | Another person | Another team | Another department or organization |
+
+The required independence also grows with the ASIL. The levels are usually written I0
+to I3: I0 means the measure should be done, I1 by a different person, I2 by a person
+from a different team, and I3 by a person from a different department or organization.
+
+**For this library:** as ASIL B(D), it follows the ASIL B column for development
+methods, while measures tied to the original ASIL D, such as the confirmation measures
+and the dependent failure analysis, respect ASIL D. The project already plans full
+branch coverage (required at B) and measures MC/DC as extra evidence (required at D);
+see the [verification strategy](verification-strategy.md).
+
 ## How we arrived at ASIL B(D)
 
 This is the reasoning behind the assumed ASIL, step by step.
