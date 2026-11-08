@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="436" viewBox="0 0 1080 436" font-family="Helvetica, Arial, sans-serif" fill="#0f172a">
+<defs><marker id="arrow-code" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-ro" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-data" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-bss" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-heap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#b7791f"/></marker><marker id="arrow-free" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker><marker id="arrow-stack" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#be3f86"/></marker><marker id="arrow-guard" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c53030"/></marker><marker id="arrow-kernel" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#6b7280"/></marker><marker id="arrow-map" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#7e57c2"/></marker><marker id="arrow-vec" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#4f5bd5"/></marker><marker id="arrow-os" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c2620f"/></marker><marker id="arrow-buf" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#0f8a7e"/></marker></defs>
+<rect width="1080" height="436" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" font-weight="bold">AUTOSAR Classic OS (example: Vector MICROSAR) - typical, licensed product</text>
+<text x="210.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">Flash</text>
+<rect x="80" y="80" width="260" height="40" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="97.0" text-anchor="middle" font-size="13" font-weight="bold">Calibration / NvM data</text>
+<text x="210.0" y="113.0" text-anchor="middle" font-size="11" font-weight="normal">project-specific</text>
+<rect x="80" y="120" width="260" height="40" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="137.0" text-anchor="middle" font-size="13" font-weight="bold">.data load image</text>
+<text x="210.0" y="153.0" text-anchor="middle" font-size="11" font-weight="normal">initial values, copied to RAM</text>
+<rect x="80" y="160" width="260" height="50" fill="#dbeafe" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="182.0" text-anchor="middle" font-size="13" font-weight="bold">.rodata</text>
+<text x="210.0" y="198.0" text-anchor="middle" font-size="11" font-weight="normal">constants, config tables</text>
+<rect x="80" y="210" width="260" height="80" fill="#cfe2ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="247.0" text-anchor="middle" font-size="13" font-weight="bold">.text</text>
+<text x="210.0" y="263.0" text-anchor="middle" font-size="11" font-weight="normal">OS, BSW, application code</text>
+<rect x="80" y="290" width="260" height="40" fill="#c7d2fe" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="307.0" text-anchor="middle" font-size="13" font-weight="bold">Vector / interrupt table</text>
+<text x="210.0" y="323.0" text-anchor="middle" font-size="11" font-weight="normal">reset vector, ISR entries</text>
+<text x="70" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="70" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="70" y="312" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="70" y="326" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="710.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">RAM</text>
+<rect x="580" y="80" width="260" height="50" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="710.0" y="102.0" text-anchor="middle" font-size="13" font-weight="bold">OS / kernel stacks</text>
+<text x="710.0" y="118.0" text-anchor="middle" font-size="11" font-weight="normal">per core, fixed size</text>
+<text x="852" y="109.0" font-size="11" fill="#334155">stacks grow down</text>
+<rect x="580" y="130" width="260" height="70" fill="#fed7aa" stroke="#334155" stroke-width="1.2"/>
+<text x="710.0" y="162.0" text-anchor="middle" font-size="13" font-weight="bold">Task and ISR stacks</text>
+<text x="710.0" y="178.0" text-anchor="middle" font-size="11" font-weight="normal">one per task / ISR group</text>
+<text x="852" y="169.0" font-size="11" fill="#334155">monitored, MPU-guarded</text>
+<rect x="580" y="200" width="260" height="50" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="710.0" y="222.0" text-anchor="middle" font-size="13" font-weight="bold">Partition B data</text>
+<text x="710.0" y="238.0" text-anchor="middle" font-size="11" font-weight="normal">OS-Application B</text>
+<text x="852" y="229.0" font-size="11" fill="#334155">MPU region per partition</text>
+<rect x="580" y="250" width="260" height="50" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="710.0" y="272.0" text-anchor="middle" font-size="13" font-weight="bold">Partition A data</text>
+<text x="710.0" y="288.0" text-anchor="middle" font-size="11" font-weight="normal">OS-Application A</text>
+<rect x="580" y="300" width="260" height="50" fill="#bbf7d0" stroke="#334155" stroke-width="1.2"/>
+<text x="710.0" y="322.0" text-anchor="middle" font-size="13" font-weight="bold">Shared / OS data</text>
+<text x="710.0" y="338.0" text-anchor="middle" font-size="11" font-weight="normal">.bss + .data</text>
+<text x="852" y="329.0" font-size="11" fill="#334155">no heap in a typical setup</text>
+<line x1="592" y1="86" x2="592" y2="124" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="592" y1="136" x2="592" y2="194" stroke="#c2620f" stroke-width="1.5" marker-end="url(#arrow-os)"/>
+<text x="570" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="570" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="570" y="332" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="570" y="346" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="20" y="380" font-size="12" fill="#334155">Everything is static: sections are placed by the project&#x27;s memory mapping and linker script, generated from the configuration.</text>
+<text x="20" y="398" font-size="12" fill="#334155">Licensed product: this is a typical structure only, not Vector&#x27;s actual layout. Your project&#x27;s configuration decides it.</text>
+<text x="20" y="416" font-size="12" fill="#334155">Small arrows show the direction in which a region grows: down for stacks, up for heaps.</text>
+</svg>

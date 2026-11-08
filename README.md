@@ -338,6 +338,8 @@ to build the programs. The command-line executable will be implemented later.
 - [Implementation sequence and issue tracking](core/docs/requirements-json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
 - [Memory, limits and failure behavior](docs/memory-and-limits.md) for library users, and [storage and budget decisions](core/docs/adr-0003-storage-and-budget-decisions.md) (ADR 0003).
 - [Architecture](core/docs/design-architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
+- [Memory layout reference](docs/memory-layout.md): sections, heap and stack per environment (bare metal and RTOS, Linux, Windows, FreeBSD).
+- [Security policy](SECURITY.md) and [cybersecurity work (ISO/SAE 21434)](docs/ISO21434-cybersecurity/cybersecurity-assumptions.md).
 - [Simple API, umbrella header and memory switch](docs/adr/0004-simple-api-and-umbrella-header.md) (ADR 0004).
 - [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
 - [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).

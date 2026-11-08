@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="827" height="536" viewBox="0 0 827 536" font-family="Helvetica, Arial, sans-serif" fill="#0f172a">
+<defs><marker id="arrow-code" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-ro" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-data" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-bss" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-heap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#b7791f"/></marker><marker id="arrow-free" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker><marker id="arrow-stack" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#be3f86"/></marker><marker id="arrow-guard" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c53030"/></marker><marker id="arrow-kernel" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#6b7280"/></marker><marker id="arrow-map" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#7e57c2"/></marker><marker id="arrow-vec" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#4f5bd5"/></marker><marker id="arrow-os" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c2620f"/></marker><marker id="arrow-buf" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#0f8a7e"/></marker></defs>
+<rect width="827" height="536" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" font-weight="bold">Windows process (PE image), typical</text>
+<text x="210.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">Virtual address space</text>
+<rect x="80" y="80" width="260" height="40" fill="#e5e7eb" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="105.0" text-anchor="middle" font-size="13" font-weight="bold">Kernel space</text>
+<rect x="80" y="120" width="260" height="50" fill="#e9d5ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="142.0" text-anchor="middle" font-size="13" font-weight="bold">DLLs</text>
+<text x="210.0" y="158.0" text-anchor="middle" font-size="11" font-weight="normal">system and application DLLs</text>
+<rect x="80" y="170" width="260" height="50" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="200.0" text-anchor="middle" font-size="13" font-weight="bold">free</text>
+<rect x="80" y="220" width="260" height="50" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="242.0" text-anchor="middle" font-size="13" font-weight="bold">Thread stack (committed)</text>
+<text x="210.0" y="258.0" text-anchor="middle" font-size="11" font-weight="normal">grows down page by page</text>
+<text x="352" y="249.0" font-size="11" fill="#334155">stack grows down</text>
+<rect x="80" y="270" width="260" height="30" fill="#fca5a5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="282.0" text-anchor="middle" font-size="13" font-weight="bold">Guard page</text>
+<text x="210.0" y="298.0" text-anchor="middle" font-size="11" font-weight="normal">PAGE_GUARD: commits the next page</text>
+<rect x="80" y="300" width="260" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="317.0" text-anchor="middle" font-size="13" font-weight="bold">Reserved stack</text>
+<text x="210.0" y="333.0" text-anchor="middle" font-size="11" font-weight="normal">default reserve 1 MB</text>
+<rect x="80" y="340" width="260" height="50" fill="#fde68a" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="362.0" text-anchor="middle" font-size="13" font-weight="bold">Process heaps</text>
+<text x="210.0" y="378.0" text-anchor="middle" font-size="11" font-weight="normal">HeapAlloc / malloc</text>
+<text x="352" y="369.0" font-size="11" fill="#334155">several heaps; each grows as needed</text>
+<rect x="80" y="390" width="260" height="60" fill="#cfe2ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="417.0" text-anchor="middle" font-size="13" font-weight="bold">EXE image: .text .rdata .data</text>
+<text x="210.0" y="433.0" text-anchor="middle" font-size="11" font-weight="normal">PE sections, .bss merged into .data</text>
+<line x1="92" y1="226" x2="92" y2="264" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="92" y1="384" x2="92" y2="346" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<text x="70" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="70" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="70" y="432" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="70" y="446" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="20" y="480" font-size="12" fill="#334155">Regions are placed by the loader and the memory manager, and ASLR randomises them; the order shown is only one possibility.</text>
+<text x="20" y="498" font-size="12" fill="#334155">Each thread reserves its stack up front; a guard page below the committed part extends it on demand.</text>
+<text x="20" y="516" font-size="12" fill="#334155">Small arrows show the direction in which a region grows: down for stacks, up for heaps.</text>
+</svg>

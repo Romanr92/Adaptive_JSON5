@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="705" height="596" viewBox="0 0 705 596" font-family="Helvetica, Arial, sans-serif" fill="#0f172a">
+<defs><marker id="arrow-code" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-ro" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-data" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-bss" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-heap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#b7791f"/></marker><marker id="arrow-free" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker><marker id="arrow-stack" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#be3f86"/></marker><marker id="arrow-guard" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c53030"/></marker><marker id="arrow-kernel" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#6b7280"/></marker><marker id="arrow-map" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#7e57c2"/></marker><marker id="arrow-vec" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#4f5bd5"/></marker><marker id="arrow-os" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c2620f"/></marker><marker id="arrow-buf" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#0f8a7e"/></marker></defs>
+<rect width="705" height="596" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" font-weight="bold">FreeBSD process (ELF), typical</text>
+<text x="210.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">Virtual address space</text>
+<rect x="80" y="80" width="260" height="40" fill="#e5e7eb" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="105.0" text-anchor="middle" font-size="13" font-weight="bold">Kernel space</text>
+<rect x="80" y="120" width="260" height="30" fill="#e9d5ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="132.0" text-anchor="middle" font-size="13" font-weight="bold">Shared page</text>
+<text x="210.0" y="148.0" text-anchor="middle" font-size="11" font-weight="normal">signal trampoline, timekeeping</text>
+<rect x="80" y="150" width="260" height="70" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="182.0" text-anchor="middle" font-size="13" font-weight="bold">Stack</text>
+<text x="210.0" y="198.0" text-anchor="middle" font-size="11" font-weight="normal">main thread</text>
+<text x="352" y="189.0" font-size="11" fill="#334155">guard gap below</text>
+<rect x="80" y="220" width="260" height="60" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="255.0" text-anchor="middle" font-size="13" font-weight="bold">free</text>
+<rect x="80" y="280" width="260" height="50" fill="#e9d5ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="302.0" text-anchor="middle" font-size="13" font-weight="bold">mmap area</text>
+<text x="210.0" y="318.0" text-anchor="middle" font-size="11" font-weight="normal">shared libraries, thread stacks</text>
+<rect x="80" y="330" width="260" height="50" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="360.0" text-anchor="middle" font-size="13" font-weight="bold">free</text>
+<rect x="80" y="380" width="260" height="50" fill="#fde68a" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="402.0" text-anchor="middle" font-size="13" font-weight="bold">Heap</text>
+<text x="210.0" y="418.0" text-anchor="middle" font-size="11" font-weight="normal">jemalloc (mmap-based)</text>
+<rect x="80" y="430" width="260" height="40" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="455.0" text-anchor="middle" font-size="13" font-weight="bold">.bss / .data</text>
+<rect x="80" y="470" width="260" height="40" fill="#cfe2ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="495.0" text-anchor="middle" font-size="13" font-weight="bold">.rodata / .text</text>
+<line x1="92" y1="156" x2="92" y2="214" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="318" y1="218" x2="318" y2="244" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<text x="312" y="235.0" text-anchor="end" font-size="10" font-style="italic" fill="#be3f86">grows down</text>
+<line x1="92" y1="424" x2="92" y2="386" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<line x1="318" y1="382" x2="318" y2="356" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<text x="312" y="373.0" text-anchor="end" font-size="10" font-style="italic" fill="#b7791f">grows up</text>
+<text x="70" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="70" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="70" y="492" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="70" y="506" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="20" y="540" font-size="12" fill="#334155">ELF like Linux, with a similar order. ASLR is enabled by default for 64-bit programs since FreeBSD 13.2.</text>
+<text x="20" y="558" font-size="12" fill="#334155">With ASLR the stack and shared page can also be randomised.</text>
+<text x="20" y="576" font-size="12" fill="#334155">Small arrows show the direction in which a region grows: down for stacks, up for heaps.</text>
+</svg>

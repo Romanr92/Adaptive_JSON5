@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="616" height="674" viewBox="0 0 616 674" font-family="Helvetica, Arial, sans-serif" fill="#0f172a">
+<defs><marker id="arrow-code" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-ro" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-data" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-bss" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-heap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#b7791f"/></marker><marker id="arrow-free" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker><marker id="arrow-stack" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#be3f86"/></marker><marker id="arrow-guard" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c53030"/></marker><marker id="arrow-kernel" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#6b7280"/></marker><marker id="arrow-map" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#7e57c2"/></marker><marker id="arrow-vec" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#4f5bd5"/></marker><marker id="arrow-os" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c2620f"/></marker><marker id="arrow-buf" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#0f8a7e"/></marker></defs>
+<rect width="616" height="674" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" font-weight="bold">Linux process (ELF), typical</text>
+<text x="210.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">Virtual address space</text>
+<rect x="80" y="80" width="260" height="40" fill="#e5e7eb" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="97.0" text-anchor="middle" font-size="13" font-weight="bold">Kernel space</text>
+<text x="210.0" y="113.0" text-anchor="middle" font-size="11" font-weight="normal">not accessible from user mode</text>
+<rect x="80" y="120" width="260" height="70" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="152.0" text-anchor="middle" font-size="13" font-weight="bold">Stack</text>
+<text x="210.0" y="168.0" text-anchor="middle" font-size="11" font-weight="normal">argv, envp, auxv at the top</text>
+<text x="352" y="159.0" font-size="11" fill="#334155">guard gap below</text>
+<rect x="80" y="190" width="260" height="50" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="220.0" text-anchor="middle" font-size="13" font-weight="bold">free</text>
+<rect x="80" y="240" width="260" height="60" fill="#e9d5ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="267.0" text-anchor="middle" font-size="13" font-weight="bold">mmap area</text>
+<text x="210.0" y="283.0" text-anchor="middle" font-size="11" font-weight="normal">shared libraries, thread stacks, large malloc</text>
+<text x="352" y="274.0" font-size="11" fill="#334155">new mappings placed top-down</text>
+<rect x="80" y="300" width="260" height="60" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="335.0" text-anchor="middle" font-size="13" font-weight="bold">free</text>
+<rect x="80" y="360" width="260" height="50" fill="#fde68a" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="382.0" text-anchor="middle" font-size="13" font-weight="bold">Heap (brk)</text>
+<text x="210.0" y="398.0" text-anchor="middle" font-size="11" font-weight="normal">small malloc</text>
+<rect x="80" y="410" width="260" height="34" fill="#bbf7d0" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="432.0" text-anchor="middle" font-size="13" font-weight="bold">.bss</text>
+<rect x="80" y="444" width="260" height="34" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="466.0" text-anchor="middle" font-size="13" font-weight="bold">.data</text>
+<rect x="80" y="478" width="260" height="34" fill="#dbeafe" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="500.0" text-anchor="middle" font-size="13" font-weight="bold">.rodata</text>
+<rect x="80" y="512" width="260" height="40" fill="#cfe2ff" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="537.0" text-anchor="middle" font-size="13" font-weight="bold">.text</text>
+<rect x="80" y="552" width="260" height="36" fill="#fca5a5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="567.0" text-anchor="middle" font-size="13" font-weight="bold">unmapped page 0</text>
+<text x="210.0" y="583.0" text-anchor="middle" font-size="11" font-weight="normal">NULL dereference faults</text>
+<line x1="92" y1="126" x2="92" y2="184" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="318" y1="188" x2="318" y2="214" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<text x="312" y="205.0" text-anchor="end" font-size="10" font-style="italic" fill="#be3f86">grows down</text>
+<line x1="92" y1="246" x2="92" y2="294" stroke="#7e57c2" stroke-width="1.5" marker-end="url(#arrow-map)"/>
+<line x1="92" y1="404" x2="92" y2="366" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<line x1="318" y1="362" x2="318" y2="336" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<text x="312" y="353.0" text-anchor="end" font-size="10" font-style="italic" fill="#b7791f">grows up</text>
+<text x="70" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="70" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="70" y="570" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="70" y="584" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="20" y="618" font-size="12" fill="#334155">ASLR randomises the base of the stack, mmap area, heap and PIE executables on every start.</text>
+<text x="20" y="636" font-size="12" fill="#334155">Each thread stack is an mmap region with its own guard page.</text>
+<text x="20" y="654" font-size="12" fill="#334155">Small arrows show the direction in which a region grows: down for stacks, up for heaps.</text>
+</svg>
