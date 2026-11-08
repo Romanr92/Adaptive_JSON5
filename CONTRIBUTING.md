@@ -50,3 +50,59 @@ steps without reducing technical acceptance. Romanr92 implements production C++.
 AI agents can change build setup, documentation and unit tests, not production
 code; unit tests stay independent of the implementation. Full
 schema, minimal testing CLI and advanced accounting remain in the selected delivery.
+
+## Project status and delivery details
+
+These details used to be at the top of the README.
+
+**Implementation status.** The compiled C++17 core parses complete JSON5 1.0.0 and strict
+JSON documents through `parse_document()`, with exact numeric conversion and comparison,
+warnings, line/column lookup and optional source retention (P001–P040). A simple API,
+`json5_document` with `json5_value`, parses into a caller buffer and is reachable through
+one umbrella header. The P041 technical review is recorded; final claim status and
+required PR evidence are in the [JSON5 1.0.0 support statement](docs/conformance.md),
+together with versions, limits, implementation-defined behaviour, deviations and executed
+results. Requirement rows remain Draft. GoogleTest inventories are in
+[traceability](docs/traceability.md), and the per-production view is the
+[grammar evidence matrix](core/docs/design-grammar-evidence.md). Draft-07 validation, a
+CLI and VS Code support are independently optional components.
+
+**Delivery scope.** The [delivery scope](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking)
+retains full schema P043–P055, a minimal testing CLI P056–P059 and full advanced memory
+accounting. Existing anchors group consecutive steps with at most three issues per
+subsystem. Schema/CLI remain optional for consumers, while required in this delivery
+scope. No per-issue documentation report is required; essential public API, limits,
+ownership, provenance and usage contracts remain. Ten working days is a checkpoint, not a
+credible full-completion promise; the plan states estimate assumptions.
+
+**Implementation sequence.** For core parser work, follow the
+[official-specification implementation sequence](core/docs/requirements-json5-implementation-order.md).
+P001–P066 are ordered so all prerequisites come earlier; existing J5 IDs remain unchanged
+for issue and requirement traceability. Optional schema/editor/CLI work does not block
+this core parser sequence. The sequential baseline includes optional schema P042–P055,
+CLI/example P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.
+The [original proposal](core/docs/requirements-proposal-json5-parser-repository.md) is
+preserved Draft input, superseded where later user decisions differ.
+
+**Dependencies.** Native development requires no WSL. The parser requires neither
+AdaptivePi, an operating-system service, Node.js, VS Code nor network access.
+[Embedded requirements](docs/embedded.md) define the bare-metal boundary. AdaptivePi is
+inspiration and an optional consumer example ([consumer example](docs/consumer-example.md)).
+
+**Source layout.** The [source layout guide](core/docs/design-source-layout.md) and
+[layout decision](core/docs/adr-0002-public-private-source-layout.md) separate public
+`includes/` from private `core/includes/`, with files grouped by topic. Compiled
+implementation files live under `core/src/<topic>/`. Internal units live under
+`core/tests/`; public-header/API and whole-library behavior units stay under top-level
+`tests/`. The former `include/` layout has been migrated. Internal declarations are not
+installed, and public headers compile without the private include root.
+
+**Examples.** The [examples folder](examples/README.md) contains small programs that
+[parse a file](examples/parse_file.cpp), [read a value](examples/read_value.cpp) and
+[handle an error](examples/handle_error.cpp). It also holds JSON/JSON5 inputs,
+intentional failures, an optional schema and a planned requirement demonstration
+manifest. Enable `ADAPTIVE_JSON5_BUILD_EXECUTABLE`, or use the `debug-example` preset,
+to build the programs. The command-line executable will be implemented later.
+
+**Package version.** The current CMake package version identifies the development
+package, not a supported parser release.
