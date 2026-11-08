@@ -82,6 +82,7 @@ otherwise. Owner of all work products: Romanr92.
 | 8 | Cybersecurity case | Not started | Not started |
 | 9 | Cybersecurity interface agreement (template) | Based on the cybersecurity manual | Not started |
 | 10 | End-of-support policy | [`SECURITY.md`, supported versions](../../SECURITY.md#supported-versions) | Draft |
+| 11 | Response targets and the process for known problems in released versions | [`SECURITY.md`](../../SECURITY.md#response-times-and-known-problems-in-releases) | To be defined with the 1.0.0 release (#135) |
 
 ## 5. What CAL 4 means for this project
 

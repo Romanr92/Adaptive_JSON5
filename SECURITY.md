@@ -33,6 +33,16 @@ Until private vulnerability reporting is switched on:
 3. The fix is prepared in the private advisory and published together with the
    advisory when it is ready.
 
+## Response times and known problems in releases
+
+These two points will be defined when **1.0.0** is released:
+
+- **Response targets:** how soon a report is acknowledged, assessed and fixed. Until
+  then, reports are handled on a best-effort basis.
+- **Known problems in released versions:** how a problem found in an already published
+  release is announced and how the fix is released. Until then, known problems are
+  listed in the release notes (see #135).
+
 ## What counts as a vulnerability
 
 Report it privately as above if crafted input, or the use of the public API as
