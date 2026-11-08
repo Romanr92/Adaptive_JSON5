@@ -17,6 +17,102 @@ own item and their own TARA.
 
 No compliance, certification or "secure" status is claimed in this document.
 
+## How a CAL is determined (general method)
+
+This section explains how a CAL is normally worked out, so that the reasoning in the
+next section can be followed. It is a summary in our own words. The standard's text is
+licensed: for a real rating, use ISO/SAE 21434 itself.
+
+A CAL (Cybersecurity Assurance Level) says **how much rigour** the cybersecurity work
+needs: how deep the analysis, the testing and the reviews go, and how independent the
+reviewers are. It comes from an **informative** annex of ISO/SAE 21434 (Annex E), so it
+is guidance rather than a mandatory formula. It is usually set early, in the concept
+phase, for each cybersecurity goal.
+
+Unlike the ASIL, which combines three factors, a CAL combines **two**: the impact of the
+damage and the attack vector.
+
+### Legend: the two factors
+
+**Impact: how bad the damage would be.** ISO/SAE 21434 rates it in four categories
+(safety, financial, operational and privacy) and uses the worst one.
+
+| Impact | Meaning | Example from the safety category |
+| --- | --- | --- |
+| Negligible | No noticeable damage | No injuries (like S0) |
+| Moderate | Noticeable but limited damage | Light or moderate injuries (like S1) |
+| Major | Serious damage | Severe injuries, survival probable (like S2) |
+| Severe | Very serious damage | Life-threatening or fatal injuries (like S3) |
+
+**Attack vector: how the attacker gets in.** The more remote the attack, the higher the
+rating, because more attackers can reach it.
+
+| Attack vector | Meaning | Example |
+| --- | --- | --- |
+| Physical | The attacker must touch the hardware | Opening the ECU, probing the circuit board |
+| Local | The attacker needs local access to the vehicle or ECU | A USB stick, an SD card, the diagnostic port |
+| Adjacent | The attacker must be nearby or on a local network | Bluetooth, Wi-Fi, short-range radio, the same in-vehicle bus |
+| Network | The attacker can be anywhere | Cellular, internet, remote services, messages relayed over Ethernet |
+
+### The CAL table
+
+| Impact | Physical | Local | Adjacent | Network |
+| --- | --- | --- | --- | --- |
+| Severe | CAL 2 | CAL 3 | CAL 4 | **CAL 4** |
+| Major | CAL 1 | CAL 2 | CAL 3 | CAL 4 |
+| Moderate | CAL 1 | CAL 1 | CAL 2 | CAL 3 |
+| Negligible | — | — | — | — |
+
+### The four levels
+
+| Level | Assurance | In short |
+| --- | --- | --- |
+| CAL 1 | Low to moderate | Basic rigour |
+| CAL 2 | Moderate | More analysis and testing |
+| CAL 3 | Moderate to high | Adds, for example, penetration testing and more independent reviewers |
+| CAL 4 | High | The most rigour and independence |
+
+With negligible impact, no CAL is needed.
+
+**Differences from the ASIL:**
+
+- A CAL is **informative**; the ASIL is normative.
+- There is **no decomposition** for a CAL. ISO/SAE 21434 has no rule for splitting a CAL
+  between two parts, as ISO 26262 has for the ASIL.
+- The CAL scheme is still evolving. ISO/SAE PAS 8475 is developing a revised scheme
+  (drafts reduce it to three levels). This document uses the four levels of
+  ISO/SAE 21434:2021.
+
+## How we arrived at CAL 4
+
+This is the reasoning behind the assumed CAL, step by step.
+
+1. **There is no item TARA for a library.** As with the ASIL, a JSON parser has no damage
+   scenarios of its own. As a component out of context it **assumes** a CAL, and each
+   integrator's TARA must confirm it.
+2. **We do not know the projects it will be used in.** So, as for safety, we assume the
+   worst case.
+3. **Impact: severe.** The library sits in a safety path: on the safety side it is
+   assumed to support functions up to ASIL D (as one part of a decomposition, see
+   [How we arrived at ASIL B(D)](../ISO26262-safety/seooc-assumptions.md#how-we-arrived-at-asil-bd)).
+   A successful attack could therefore lead to life-threatening harm, which is the
+   **severe** impact level.
+4. **Attack vector: network.** The library parses data that can arrive over vehicle
+   networks such as Ethernet, and the attacker is assumed to fully control that input
+   (CA-01). That is the **network** attack vector.
+5. **The table gives severe + network = CAL 4.**
+6. **The CAL is not lowered by the integrator's protection.** For safety, the integrator's
+   E2E check lets the library drop from ASIL D to B(D). For cybersecurity this does not
+   work in the same way:
+   - there is no decomposition for a CAL;
+   - even if the integrator authenticates every message, the sender itself can be
+     compromised, and then authentic messages carry crafted content. The library must
+     still survive that input on its own.
+7. **Result: the library assumes CAL 4**, the same "assume the worst" choice as for
+   safety. This means the highest rigour: deep verification such as fuzzing, and
+   reviewers independent of the developer. Until an independent reviewer is found, the
+   same gap applies as for safety (see the [safety plan](../ISO26262-safety/safety-plan.md#1-roles)).
+
 ## CA-01 Attacker model
 
 - **The attacker fully controls the JSON input.** Every byte, its length and its
