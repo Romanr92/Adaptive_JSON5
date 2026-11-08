@@ -11,17 +11,58 @@ operating system decide where each section goes. The pictures show a typical lay
 not a guarantee; check the map file of your own build. In every picture, high
 addresses are at the top, and small arrows show the direction in which a region grows.
 
-## The sections
+## Legend: what every label means
 
-| Section | Contains | Where it lives |
-| --- | --- | --- |
-| Vector table | Reset vector and interrupt handler addresses (microcontrollers) | Flash, usually at the start |
-| `.text` | Machine code | Flash, or read-only and executable pages |
-| `.rodata` | Constants, string literals, lookup tables | Flash, or read-only pages |
-| `.data` | Global and static variables with an initial value | RAM. On a microcontroller the initial values are stored in flash and **copied to RAM by the startup code** |
-| `.bss` | Global and static variables that start as zero | RAM, **cleared to zero by the startup code** (or by the OS); takes no space in the file |
-| Heap | Memory handed out at run time (`malloc`, `new`) | RAM, grows **up**. Often absent on safety-related microcontrollers |
-| Stack | Return addresses, saved registers and local variables | RAM, grows **down** on all architectures covered here |
+Read this first; it explains every name used in the pictures. Each block in the
+pictures has the colour of its kind (for example, all stacks are pink), and the small
+arrow inside a block shows the direction in which it grows.
+
+### Sections of the program
+
+| Name | Meaning | Contains | Where it lives |
+| --- | --- | --- | --- |
+| `.text` | "Text" is the traditional name for **code** | The machine instructions of the program | Flash on a microcontroller; read-only, executable pages under an OS |
+| `.rodata` | **Read-only data** | Constants, string literals, lookup tables | Flash, or read-only pages |
+| `.rdata` | Windows' name for `.rodata` in PE files | Same as `.rodata` | Read-only pages |
+| `.data` | **Initialized data** | Global and static variables that have a starting value, such as `int count = 5;` | RAM. On a microcontroller the starting values are kept in flash (the **`.data` load image**) and **copied to RAM by the startup code** |
+| `.bss` | **Zero-initialized data**. The name comes from an old assembler directive, "Block Started by Symbol" | Global and static variables that start as zero, such as `static char buffer[4096];` | RAM, **cleared to zero by the startup code** or by the OS. It takes no space in the program file, only its size is stored |
+| Vector table | The table the CPU reads on reset and on interrupts | The initial stack pointer (on Cortex-M), the reset address and the address of every interrupt handler | Flash, usually at the start |
+| Calibration / NvM data | Parameters that are tuned per vehicle, and non-volatile memory blocks | Calibration values, stored settings | Flash or EEPROM, project-specific |
+
+### Memory regions at run time
+
+| Name | Meaning |
+| --- | --- |
+| **Stack** | Memory for function calls: return addresses, saved registers and local variables. It grows **down**, toward lower addresses, on every architecture covered here. Every thread or task has its own. |
+| **Main stack (MSP)** | On ARM Cortex-M, the stack used by the startup code and by interrupts. Its start address is the first entry of the vector table. |
+| **Task stacks (PSP)** | On ARM Cortex-M, the stack of the currently running RTOS task. Each task has its own; the RTOS switches `PSP` between them. |
+| **OS / kernel stacks** | Stacks reserved for the operating system itself, often one per CPU core. |
+| **Heap** | Memory handed out while the program runs (`malloc`, `new`). It grows **up**. Often absent on safety-related microcontrollers; Adaptive_JSON5's parser library never uses it. |
+| **Process heaps** | On Windows, a process can have several heaps (the process heap, the C runtime heap and others) instead of one region. |
+| **`ucHeap`** | In FreeRTOS, the array of `configTOTAL_HEAP_SIZE` bytes, placed in `.bss`, from which `xTaskCreate()` takes task stacks and task control blocks. |
+| **TCB** | Task control block: the RTOS's record for one task (its state, priority and saved stack pointer). |
+| **Heap (brk)** | On Linux, the classic heap right after `.bss`, extended with the `brk` system call. Used for small allocations. |
+| **mmap area** | Memory mapped by the OS on request: shared libraries, thread stacks and large allocations. |
+| **Shared libraries / DLLs** | Code shared between programs: `.so` files on Linux and FreeBSD, `.dll` files on Windows. |
+| **Shared page** | On FreeBSD, a page the kernel maps into every process, holding the signal trampoline and timekeeping data. |
+| **Kernel space** | The part of the address space that belongs to the operating system. Programs cannot access it. |
+| **Free / free RAM** | Space nobody uses yet. The stack and the heap grow into it. |
+| **Reserved stack** | On Windows, address space set aside for a thread's stack (1 MB by default) but not yet backed by memory. |
+| **Partition / OS-Application** | In AUTOSAR, a group of tasks and their data that the OS keeps apart from other groups using memory protection. |
+| **Adaptive_JSON5 buffer** | The memory the integrator hands to the library; all parser storage lives in it. |
+
+### Protection
+
+| Name | Meaning |
+| --- | --- |
+| **Guard region / guard page / guard gap** | Memory placed below a stack that must never be touched. With memory protection active, any access to it raises a fault instead of silently overwriting the data below. |
+| **Guard page (Windows)** | A page marked `PAGE_GUARD` below a thread's committed stack. Touching it commits the next page of the stack and moves the guard down. |
+| **Unmapped page 0** | The lowest page of the address space is left unmapped, so using a null pointer faults immediately. |
+| **MPU** | Memory protection unit: hardware on microcontrollers that restricts which code may access which memory regions. |
+| **PMP** | Physical memory protection: the RISC-V equivalent of an MPU. |
+| **MMU** | Memory management unit: hardware that provides virtual memory and page permissions under a full OS. |
+| **`MSPLIM`, `PSPLIM`** | Stack limit registers on ARMv8-M cores (for example Cortex-M33). The hardware faults when the stack pointer goes below them. |
+| **ASLR** | Address space layout randomization: the OS places the stack, heap and libraries at random addresses on every start, which makes memory bugs harder to exploit. |
 
 ---
 
