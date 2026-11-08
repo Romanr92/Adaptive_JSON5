@@ -17,6 +17,27 @@ are in [SEooC assumptions](seooc-assumptions.md).
 
 No compliance, certification or "verified" status is claimed in this document.
 
+## Development setup and its limits
+
+> **⚠️ One developer, supported by AI. The independent steps are simulated, not fulfilled.**
+
+This project is developed by one person, Romanr92, with AI tools (Claude, ChatGPT and
+GitHub Copilot) that help draft documents and tests and run extra review passes.
+ISO 26262 and ISO/SAE 21434 both require reviews, audits and assessments by qualified
+humans who are independent of the developer. There is nobody else on this project to do
+that work, so the steps that need independence were simulated with an AI to follow the
+process as closely as possible.
+
+That has clear consequences:
+
+- **An AI review is not an independent review**, and it is not accepted as one.
+- The technical work, such as tests, analyses, coverage and fuzzing, is real, and its
+  evidence can be checked by anyone.
+- No confirmation review, audit or assessment that requires independence has been
+  fulfilled.
+- **ASIL B(D) is a design target, not an achieved level.** No ISO 26262 claim is valid
+  without an independent assessment by a qualified human.
+
 ## 1. Roles
 
 | Role | Who | Responsibilities |
@@ -90,7 +111,7 @@ makes the decisions.
 - Every change to `main` goes through a pull request that is linked to a GitHub issue.
 - A pull request is merged only when all required CI checks pass: host unit tests,
   validation tests and formatting.
-- Every pull request answers the **safety impact check** in the
+- Every pull request answers the **safety and security impact check** in the
   [pull request template](../../.github/pull_request_template.md): does the change
   affect a software safety requirement (SSR) or a SEooC assumption, and if so, which
   one and how. This is the change impact analysis required by ISO 26262-8,
@@ -134,7 +155,7 @@ work: safety evolves with the library for as long as it is developed.
   the software safety requirements, the safety analysis and the other work products
   are reviewed against everything that changed in that milestone, and updated where
   needed.
-- **Between milestones**, the safety impact check in every pull request (section 4)
+- **Between milestones**, the safety and security impact check in every pull request (section 4)
   catches changes that affect a safety requirement or assumption.
 - **Before each release**, the reviews in section 5 confirm that the safety documents
   still match the code, and the release tag freezes them.

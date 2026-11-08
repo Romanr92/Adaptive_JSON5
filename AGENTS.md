@@ -109,18 +109,21 @@ evidence separately; AI agents still do not change production code.
 The sequential baseline now includes optional schema P042–P055, CLI/example
 P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.
 
-## ISO 26262 safety impact in pull requests
+## Safety and security impact in pull requests
 
-The library is developed as an ISO 26262 Safety Element out of Context; see
-`docs/ISO26262-safety/`. Whenever an agent creates or updates a pull request, it
-must fill in the **Safety impact** section of `.github/pull_request_template.md`,
-even when the change is documentation or tests only. Check the change against the
-software safety requirements (SSR) in `docs/requirements.md` section K and the
-assumptions in `docs/ISO26262-safety/seooc-assumptions.md`. Either tick "does not
-affect", or tick "does affect" and name each affected SSR or assumption ID and how
+The library is developed as an ISO 26262 Safety Element out of Context and as an
+ISO/SAE 21434 component out of context; see `docs/ISO26262-safety/` and
+`docs/ISO21434-cybersecurity/`. Whenever an agent creates or updates a pull request, it
+must fill in the **Safety and security impact** section of
+`.github/pull_request_template.md`, even when the change is documentation or tests only.
+Check the change against the software safety requirements (SSR) in `docs/requirements.md`
+section K, the cybersecurity requirements (CSR) in section L, the assumptions in
+`docs/ISO26262-safety/seooc-assumptions.md` and those in
+`docs/ISO21434-cybersecurity/cybersecurity-assumptions.md`. Either tick "does not
+affect", or tick "does affect" and name each affected SSR, CSR or assumption ID and how
 it is affected. Never leave the section empty or remove it. If the impact is unclear,
 say so in the section and ask the owner instead of guessing. Answering the check is
-not a safety approval; the owner decides.
+not a safety or security approval; the owner decides.
 
 ## Current delivery and issue workflow
 
