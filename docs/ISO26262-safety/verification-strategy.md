@@ -20,8 +20,10 @@ assessor expects, so on 2026-11-07 the owner changed the scope:
 
 - **Sanitizer runs, fuzzing, branch coverage and a second compiler (Clang) are now
   allowed, and they block pull requests** as described below.
-- Integration, end-to-end, benchmark and static-analysis checks are still out of
-  scope unless the owner decides otherwise.
+- On 2026-11-08, for the cybersecurity work, the owner also allowed **static
+  analysis** (V9 below).
+- Integration, end-to-end and benchmark checks are still out of scope unless the owner
+  decides otherwise.
 - The checks are build and CI work, so AI agents may set them up (see `AGENTS.md`).
 
 ## 2. Verification methods
@@ -36,6 +38,7 @@ assessor expects, so on 2026-11-07 the owner changed the scope:
 | V6 | **Branch coverage**, measured with GCC, gcov and gcovr | Every branch in the parser library was taken both ways by the tests | Every PR | **Yes**, once full branch coverage is reached (target: end of M4) | Measured locally today with `tools/coverage.py`; CI job planned |
 | V7 | **MC/DC**, measured with GCC 14 and gcovr | Each condition in a decision was shown to change the outcome on its own | Every PR | No, reported as extra evidence | Planned |
 | V8 | **Second compiler:** build and run all unit and validation tests with Clang | Results do not depend on one compiler; guards against a single faulty or compromised compiler (see [tool confidence](tool-confidence.md)) | Every PR | **Yes** | Planned in #141 |
+| V9 | **Static analysis:** clang-tidy (including CERT C++ checks) and CodeQL with its security queries and the MISRA C++:2023 query pack | Code patterns that lead to defects or vulnerabilities, and coding-standard violations | Every PR | **Yes**, for new findings; existing findings are tracked as a backlog | Planned in #146 |
 
 Unit tests are the main method. V4 to V8 run the **same** tests or the same code in
 different ways, so a defect has several independent chances to show up.

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="891" height="496" viewBox="0 0 891 496" font-family="Helvetica, Arial, sans-serif" fill="#0f172a">
+<defs><marker id="arrow-code" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-ro" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-data" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-bss" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-heap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#b7791f"/></marker><marker id="arrow-free" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker><marker id="arrow-stack" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#be3f86"/></marker><marker id="arrow-guard" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c53030"/></marker><marker id="arrow-kernel" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#6b7280"/></marker><marker id="arrow-map" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#7e57c2"/></marker><marker id="arrow-vec" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#4f5bd5"/></marker><marker id="arrow-os" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c2620f"/></marker><marker id="arrow-buf" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#0f8a7e"/></marker></defs>
+<rect width="891" height="496" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" font-weight="bold">RISC-V: stack direction is a software convention</text>
+<text x="210.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">RAM (bare metal or RTOS)</text>
+<rect x="80" y="80" width="260" height="80" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="117.0" text-anchor="middle" font-size="13" font-weight="bold">Stack</text>
+<text x="210.0" y="133.0" text-anchor="middle" font-size="11" font-weight="normal">sp = x2, lowered with addi sp, sp, -N</text>
+<text x="352" y="124.0" font-size="11" fill="#334155">16-byte aligned (psABI)</text>
+<rect x="80" y="160" width="260" height="110" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="220.0" text-anchor="middle" font-size="13" font-weight="bold">free RAM</text>
+<text x="352" y="219.0" font-size="11" fill="#334155">nothing in the hardware stops growth</text>
+<rect x="80" y="270" width="260" height="34" fill="#fca5a5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="284.0" text-anchor="middle" font-size="13" font-weight="bold">PMP guard region</text>
+<text x="210.0" y="300.0" text-anchor="middle" font-size="11" font-weight="normal">configured by firmware / OS</text>
+<text x="352" y="291.0" font-size="11" fill="#334155">only protection if you set it up</text>
+<rect x="80" y="304" width="260" height="56" fill="#99f6e4" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="329.0" text-anchor="middle" font-size="13" font-weight="bold">Adaptive_JSON5 buffer</text>
+<text x="210.0" y="345.0" text-anchor="middle" font-size="11" font-weight="normal">caller-provided</text>
+<rect x="80" y="360" width="260" height="50" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="382.0" text-anchor="middle" font-size="13" font-weight="bold">.bss / .data</text>
+<text x="210.0" y="398.0" text-anchor="middle" font-size="11" font-weight="normal">globals</text>
+<line x1="92" y1="86" x2="92" y2="154" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="318" y1="158" x2="318" y2="184" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<text x="312" y="175.0" text-anchor="end" font-size="10" font-style="italic" fill="#be3f86">grows down</text>
+<text x="70" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="70" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="70" y="392" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="70" y="406" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="20" y="440" font-size="12" fill="#334155">RISC-V has no PUSH or POP instruction. The standard calling convention (psABI) lowers sp, so the stack grows down by convention only.</text>
+<text x="20" y="458" font-size="12" fill="#334155">No stack limit register exists in the base ISA: use PMP (physical memory protection) to place a guard region below the stack.</text>
+<text x="20" y="476" font-size="12" fill="#334155">Small arrows show the direction in which a region grows: down for stacks, up for heaps.</text>
+</svg>

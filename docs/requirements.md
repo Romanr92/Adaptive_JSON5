@@ -258,3 +258,31 @@ ASIL to each J5 row is a later task in #138.
 | SSR-06 — Value correctness | Parsed strings, member names and numbers shall match the input exactly. A conversion such as `as_int64()`, `as_uint64()` or `as_double()` shall either return the exact value, or the value under the documented rounding rule, or an explicit error. It shall never return a silently cut-off or wrongly rounded value. | B(D) | J5-029, J5-033, J5-034, J5-035, J5-037 | A-06 | Draft |
 | SSR-07 — Bounded stack | The library's stack use shall have a known upper limit that depends only on the configured limits, so that it can be checked against the stack size of a small controller. | B(D) | J5-048, J5-101 (see #136) | A-01 | Draft |
 | SSR-08 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator. | B(D) | J5-004, J5-040, J5-046 | A-03, A-05 | Draft |
+
+## L. Cybersecurity requirements (ISO/SAE 21434)
+
+These are the library's cybersecurity requirements (CSR) for its development as a
+component out of context towards **CAL 4**. They follow from the
+[cybersecurity assumptions](ISO21434-cybersecurity/cybersecurity-assumptions.md) and the
+[TARA](ISO21434-cybersecurity/tara.md), and are managed under the
+[cybersecurity plan](ISO21434-cybersecurity/cybersecurity-plan.md) (issue #139). They
+cover the parser library `AdaptiveJSON5::parser` only.
+
+Several CSRs are the same promise as a software safety requirement in section K. They
+are written out in full here, so this section can be read on its own, and each says which
+SSR it shares. A shared CSR is **implemented and verified through its SSR**: the same
+code and the same tests serve both, and any change to one is a change to the other.
+
+All rows are Draft. The related J5 rows show where the behaviour is already specified;
+they do not mean that a CSR is implemented or verified.
+
+| ID / title | Requirement | Threats | Shared with | Related J5 rows | Status |
+| --- | --- | --- | --- | --- | --- |
+| CSR-01 — Robust input handling | The library shall handle any byte sequence of any length, as input and through every access to a parsed document, without crashing, hanging or undefined behaviour, whatever an attacker sends. | T-01, T-03 | **Also a safety requirement: handled and verified through [SSR-01](#k-software-safety-requirements-iso-26262)** | J5-004, J5-026, J5-045, J5-097 | Draft |
+| CSR-02 — Limit enforcement | The library shall enforce every configured resource limit and never go past one. Limits are inclusive: using exactly a limit is allowed. An operation that would exceed a limit shall stop before exceeding it and return an explicit resource-limit error, so that crafted input cannot exhaust memory or time. | T-03 | **Also a safety requirement: handled and verified through [SSR-02](#k-software-safety-requirements-iso-26262)** | J5-047, J5-048, J5-049 | Draft |
+| CSR-03 — Explicit failures | The library shall report every failure as an explicit error value. A wrong or incomplete result shall never be reported as success, so that tampered or truncated input cannot pass as valid. | T-02 | **Also a safety requirement: handled and verified through [SSR-03](#k-software-safety-requirements-iso-26262)** | J5-003, J5-043, J5-045, J5-051 | Draft |
+| CSR-04 — Value correctness | Parsed strings, member names and numbers shall match the input exactly. A conversion such as `as_int64()`, `as_uint64()` or `as_double()` shall either return the exact value, or the value under the documented rounding rule, or an explicit error. It shall never return a silently cut-off or wrongly rounded value. | T-02 | **Also a safety requirement: handled and verified through [SSR-06](#k-software-safety-requirements-iso-26262)** | J5-029, J5-033, J5-034, J5-035, J5-037 | Draft |
+| CSR-05 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator, so that no input can corrupt memory or take control. | T-01 | **Also a safety requirement: handled and verified through [SSR-08](#k-software-safety-requirements-iso-26262)** | J5-004, J5-040, J5-046 | Draft |
+| CSR-06 — No interpretation of content | The library shall never execute, evaluate or otherwise interpret the content of string values or member names. It shall return them exactly, including any control characters and zero bytes, together with their exact length. | T-06 | Cybersecurity only | J5-029, J5-033 | Draft |
+| CSR-07 — Secure mode | The library shall offer an opt-in secure mode, off by default, that rejects duplicate member names, zero bytes in strings and member names, control characters in member names and unpaired surrogates, each with an explicit error and its position. Each of these rejections shall also be individually switchable. | T-02, T-06 | Cybersecurity only | J5-032 | Draft, planned in #145 |
+| CSR-08 — No memory contents in diagnostics | Errors and warnings shall carry only codes, positions and ranges in the input, never contents of memory outside the input. A copy of the input shall be kept only when the integrator enables it (`retain_copy`). | T-04 | Cybersecurity only | J5-043, J5-044 | Draft |

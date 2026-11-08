@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="480" viewBox="0 0 1140 480" font-family="Helvetica, Arial, sans-serif" fill="#0f172a">
+<defs><marker id="arrow-code" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-ro" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#3b6fb6"/></marker><marker id="arrow-data" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-bss" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#2f8f5b"/></marker><marker id="arrow-heap" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#b7791f"/></marker><marker id="arrow-free" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#64748b"/></marker><marker id="arrow-stack" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#be3f86"/></marker><marker id="arrow-guard" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c53030"/></marker><marker id="arrow-kernel" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#6b7280"/></marker><marker id="arrow-map" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#7e57c2"/></marker><marker id="arrow-vec" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#4f5bd5"/></marker><marker id="arrow-os" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#c2620f"/></marker><marker id="arrow-buf" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L7,3.5 L0,7 z" fill="#0f8a7e"/></marker></defs>
+<rect width="1140" height="480" fill="#ffffff"/>
+<text x="20" y="30" font-size="18" font-weight="bold">ARM: Cortex-M (bare metal / RTOS) and Cortex-A (rich OS)</text>
+<text x="210.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">Cortex-M, RAM</text>
+<rect x="80" y="80" width="260" height="70" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="112.0" text-anchor="middle" font-size="13" font-weight="bold">Main stack (MSP)</text>
+<text x="210.0" y="128.0" text-anchor="middle" font-size="11" font-weight="normal">initial value from vector table</text>
+<text x="352" y="119.0" font-size="11" fill="#334155">exceptions stack registers here</text>
+<rect x="80" y="150" width="260" height="100" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="210.0" y="205.0" text-anchor="middle" font-size="13" font-weight="bold">free RAM</text>
+<rect x="80" y="250" width="260" height="34" fill="#fca5a5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="264.0" text-anchor="middle" font-size="13" font-weight="bold">Stack limit / MPU guard</text>
+<text x="210.0" y="280.0" text-anchor="middle" font-size="11" font-weight="normal">MSPLIM/PSPLIM on ARMv8-M</text>
+<rect x="80" y="284" width="260" height="50" fill="#fed7aa" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="306.0" text-anchor="middle" font-size="13" font-weight="bold">Task stacks (PSP)</text>
+<text x="210.0" y="322.0" text-anchor="middle" font-size="11" font-weight="normal">one per task under an RTOS</text>
+<rect x="80" y="334" width="260" height="60" fill="#d1fae5" stroke="#334155" stroke-width="1.2"/>
+<text x="210.0" y="361.0" text-anchor="middle" font-size="13" font-weight="bold">.bss / .data</text>
+<text x="210.0" y="377.0" text-anchor="middle" font-size="11" font-weight="normal">globals, library buffer</text>
+<line x1="92" y1="86" x2="92" y2="144" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="318" y1="148" x2="318" y2="174" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<text x="312" y="165.0" text-anchor="end" font-size="10" font-style="italic" fill="#be3f86">grows down</text>
+<line x1="92" y1="290" x2="92" y2="328" stroke="#c2620f" stroke-width="1.5" marker-end="url(#arrow-os)"/>
+<text x="70" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="70" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="70" y="376" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="70" y="390" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="740.0" y="66" text-anchor="middle" font-weight="bold" font-size="15">Cortex-A under Linux</text>
+<rect x="610" y="80" width="260" height="40" fill="#e5e7eb" stroke="#334155" stroke-width="1.2"/>
+<text x="740.0" y="105.0" text-anchor="middle" font-size="13" font-weight="bold">Kernel space</text>
+<rect x="610" y="120" width="260" height="70" fill="#fbcfe8" stroke="#334155" stroke-width="1.2"/>
+<text x="740.0" y="152.0" text-anchor="middle" font-size="13" font-weight="bold">Stack</text>
+<text x="740.0" y="168.0" text-anchor="middle" font-size="11" font-weight="normal">sp, 16-byte aligned (AArch64)</text>
+<rect x="610" y="190" width="260" height="100" fill="#f8fafc" stroke="#334155" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="740.0" y="245.0" text-anchor="middle" font-size="13" font-weight="bold">free / mappings</text>
+<rect x="610" y="290" width="260" height="54" fill="#fde68a" stroke="#334155" stroke-width="1.2"/>
+<text x="740.0" y="314.0" text-anchor="middle" font-size="13" font-weight="bold">Heap</text>
+<text x="740.0" y="330.0" text-anchor="middle" font-size="11" font-weight="normal">malloc / new</text>
+<rect x="610" y="344" width="260" height="50" fill="#cfe2ff" stroke="#334155" stroke-width="1.2"/>
+<text x="740.0" y="374.0" text-anchor="middle" font-size="13" font-weight="bold">.bss / .data / .text</text>
+<line x1="622" y1="126" x2="622" y2="184" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<line x1="848" y1="188" x2="848" y2="214" stroke="#be3f86" stroke-width="1.5" marker-end="url(#arrow-stack)"/>
+<text x="842" y="205.0" text-anchor="end" font-size="10" font-style="italic" fill="#be3f86">grows down</text>
+<line x1="622" y1="338" x2="622" y2="296" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<line x1="848" y1="292" x2="848" y2="266" stroke="#b7791f" stroke-width="1.5" marker-end="url(#arrow-heap)"/>
+<text x="842" y="283.0" text-anchor="end" font-size="10" font-style="italic" fill="#b7791f">grows up</text>
+<text x="600" y="92" text-anchor="end" font-size="11" fill="#475569">high</text>
+<text x="600" y="106" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="600" y="376" text-anchor="end" font-size="11" fill="#475569">low</text>
+<text x="600" y="390" text-anchor="end" font-size="11" fill="#475569">address</text>
+<text x="20" y="424" font-size="12" fill="#334155">Cortex-M: the hardware itself pushes an exception frame onto the active stack, downwards (full-descending stack).</text>
+<text x="20" y="442" font-size="12" fill="#334155">ARMv8-M (for example Cortex-M33) has stack limit registers that fault in hardware; older cores (Cortex-M4) need an MPU guard region.</text>
+<text x="20" y="460" font-size="12" fill="#334155">Small arrows show the direction in which a region grows: down for stacks, up for heaps.</text>
+</svg>

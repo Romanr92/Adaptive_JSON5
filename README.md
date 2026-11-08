@@ -1,43 +1,43 @@
 # Adaptive_JSON5
 
+Adaptive_JSON5 is a C++17 JSON5 and JSON parser for automotive and embedded software.
+It parses into memory you provide, never touches the heap, and reports every failure
+as a value, so it runs the same on a bare-metal microcontroller and on a
+high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/SAE
+21434 CAL 4, with its safety and security work documented in the open.
+
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
+[![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml)
 [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
+[![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml)
 
-A portable C++17 JSON5 reader for compatible C++ projects, including
-hosted systems and embedded devices after compilation into a compatible project.
-The core is OS-agnostic; MICROSAR is one possible environment, not a required vendor port.
-The baseline covers full JSON5 1.0, selectable strict JSON, owned values, exact
-numbers, explicit recoverable errors and configurable resource limits. Draft-07
-validation, a CLI and VS Code support are independently optional components.
+**Status: in development, pre-1.0, not for production use. Not certified and not
+independently assessed: see [Disclaimers](#disclaimers).**
 
-**Status: the compiled C++17 core parses complete JSON5 1.0.0 and strict JSON
-documents through `parse_document()`, with exact numeric conversion and
-comparison, warnings, line/column lookup and optional source retention
-(P001–P040).** A simple API, `json5_document` with `json5_value`, parses into a
-caller buffer and is reachable through one umbrella header (see the quick start below).
-The P041 technical review is recorded; final claim status and
-required PR evidence are in the
-[JSON5 1.0.0 support statement](docs/conformance.md), together with versions,
-limits, implementation-defined behaviour, deviations and executed results. Requirement
-rows remain Draft.
-GoogleTest inventories are in [traceability](docs/traceability.md), and the
-per-production view is the [grammar evidence matrix](core/docs/design-grammar-evidence.md).
-Production code (C++ sources and public headers) is written by Romanr92. AI agents
-can change build setup, documentation and unit tests, not production code. See
-[AGENTS.md](AGENTS.md).
+**Contents:** [Highlights](#highlights) · [Quick start](#quick-start) ·
+[Usage](#usage) · [Documentation](#documentation) ·
+[Building and contributing](#building-and-contributing) · [License](#license) ·
+[Disclaimers](#disclaimers)
 
-The [delivery scope](core/docs/requirements-json5-implementation-order.md#delivery-scope-and-issue-tracking) retains full schema
-P043–P055, a minimal testing CLI P056–P059 and full advanced memory accounting.
-Existing anchors group consecutive steps with at most three issues per subsystem.
-Schema/CLI remain optional for consumers, while required in this delivery scope.
-No per-issue documentation report is required; essential public API, limits,
-ownership, provenance and usage contracts remain. Ten working days is a checkpoint,
-not a credible full-completion promise; the plan states estimate assumptions.
+## Highlights
 
-Native development requires no WSL. The parser
-requires neither AdaptivePi, an operating-system service, Node.js, VS Code nor
-network access. [Embedded requirements](docs/embedded.md) define the bare-metal
-boundary. AdaptivePi is inspiration and an optional consumer example.
+- **Embedded by design.** No heap in the parser library, no exceptions, no recursion,
+  and no operating-system dependency. Every failure is an explicit result value, in
+  every compiler exception mode.
+- **Complete and exact.** Full JSON5 1.0 and selectable strict JSON, exact number
+  handling with correct rounding, and configurable, inclusive limits on input size,
+  nesting, memory and work.
+- **Tested.** More than 3,400 GoogleTest cases with exceptions OFF and ON and RTTI OFF,
+  validation against the third-party JSONTestSuite and json5-tests fixtures, and CI on
+  Linux x86-64, Linux ARM64 and Windows (MinGW). Sanitizers, fuzzing, a second compiler
+  and static analysis are being added as blocking checks.
+- **Safety and security work in the open.** Developed towards ASIL B(D) and CAL 4 as an
+  out-of-context component, with assumptions, requirements, FMEA, TARA and manuals for
+  integrators: [functional safety](docs/ISO26262-safety/safety-plan.md) and
+  [cybersecurity](docs/ISO21434-cybersecurity/cybersecurity-plan.md).
+- **Coding standards.** MISRA C++:2023, SEI CERT C++ and BARR-C:2018 as the
+  [coding baseline](docs/ISO26262-safety/coding-guidelines.md).
+- **All production code is written by me; AI assists with documentation and tests.**
 
 ## Quick start
 
@@ -168,46 +168,22 @@ covers buffer sizing, warnings, limits and the advanced API. The
 [memory switch](#memory-switch-adaptive_json5_build_hosted) explains the heap option, and
 the [example programs](examples/README.md) show reading files, typed values and errors.
 
-## Start development
+## Usage
 
-Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host units.
-CMake downloads and builds the pinned host-only GoogleTest dependency on the first test configuration:
+The library has two levels of API, both in the umbrella header
+`adaptive_json5/adaptive_json5.hpp`:
 
-From PowerShell, run these commands in the repository directory:
+- **Simple API:** `json5_document::parse` parses into a buffer you provide, and
+  `json5_value` reads members, elements and numbers. The optional hosted add-on,
+  `hosted::parse`, does the same with heap memory for desktop and server tools.
+- **Advanced API:** `parse_document` with your own storage callbacks, for full control
+  over memory, accounting and limits.
 
-```powershell
-cmake --preset debug-unit-tests
-cmake --build --preset debug-unit-tests
-ctest --preset debug-unit-tests
-```
+Before parsing, read [memory, limits and failure behavior](docs/memory-and-limits.md).
+It covers buffer sizing, what each limit counts, warnings, what happens when a parse
+fails, and the advanced API.
 
-Run the same units with exceptions ON:
-
-```powershell
-cmake --preset debug-unit-tests-exceptions
-cmake --build --preset debug-unit-tests-exceptions
-ctest --preset debug-unit-tests-exceptions
-```
-
-If the selected preset is already configured and built, run only its `ctest`
-command. To run just the P002 result suite:
-
-```powershell
-ctest --preset debug-unit-tests -L "^result_units$" --output-on-failure
-```
-
-Add `--verbose` to a `ctest` command to see each GoogleTest case.
-CTest discovers each individual GoogleTest case, including parameterized cases,
-so its final total counts cases. Suite labels such as `result_units` select groups.
-
-Exceptions and RTTI default OFF; the second preset enables exceptions. Run
-Windows commands in a Visual Studio developer terminal when using its compiler.
-See [native development](core/docs/design-development.md) for offline GoogleTest, formatting
-and toolchain configuration. Automated checks are **GoogleTest unit tests, validation
-tests and clang-format 18**, plus a non-blocking CI job that builds the example programs
-and checks their output. GoogleTest is host-only and never a parser runtime dependency.
-
-## CMake consumption
+### CMake consumption
 
 The source/install package exports the compiled static `AdaptiveJSON5::parser`
 target and the supporting `AdaptiveJSON5::build_options` metadata target.
@@ -229,10 +205,6 @@ cmake --preset library
 cmake --build --preset library
 cmake --install build/library --config Release --prefix path/to/install
 ```
-
-Before parsing, read [memory, limits and failure behavior](docs/memory-and-limits.md).
-It covers the simple API, the storage you supply, what each limit counts, what
-happens when a parse fails and how to retry.
 
 ### Memory switch: `ADAPTIVE_JSON5_BUILD_HOSTED`
 
@@ -308,39 +280,116 @@ Use `find_package(AdaptiveJSON5 0.2 CONFIG REQUIRED)` with the installation pref
 in `CMAKE_PREFIX_PATH`. The current version identifies the development package,
 not a supported parser release.
 
-Release packaging builds GCC static libraries for Linux x86-64, Linux ARM64,
-Windows MinGW x86-64 and the pinned AdaptivePi ARM64 Yocto SDK. Each archive
-contains the `.a` beside its public `include/` folder, exported CMake targets,
-licenses and source/toolchain metadata. See [release packages](docs/release-packages.md)
-for pinned downloads, checksums, offline use and the consumer CMake import helper.
-macOS release binaries are outside this packaging scope.
+## Documentation
 
-## Documentation and work
+**Getting started**
 
-The implemented [source layout guide](core/docs/design-source-layout.md) and
-[layout decision](core/docs/adr-0002-public-private-source-layout.md) separate
-public `includes/` from private `core/includes/`, with files grouped by topic.
-Compiled implementation files live under `core/src/<topic>/`.
-Internal units live under `core/tests/`; public-header/API and whole-library
-behavior units stay under top-level `tests/`. This is the direction for new work;
-the former `include/` layout has been migrated. Internal declarations are not
-installed, and public headers compile without the private include root.
+- [Quick start](#quick-start): from nothing to a first parsed value.
+- [Example programs](examples/README.md): reading files, typed values and errors.
+- [Release packages](docs/release-packages.md): prebuilt static libraries, checksums and
+  offline use.
 
-The [examples folder](examples/README.md) contains small programs that
-[parse a file](examples/parse_file.cpp), [read a value](examples/read_value.cpp) and
-[handle an error](examples/handle_error.cpp). It also holds JSON/JSON5 inputs,
-intentional failures, an optional schema and a planned requirement demonstration
-manifest. Enable `ADAPTIVE_JSON5_BUILD_EXECUTABLE`, or use the `debug-example` preset,
-to build the programs. The command-line executable will be implemented later.
+**Using the library**
 
-- [Original proposal Markdown](core/docs/requirements-proposal-json5-parser-repository.md): preserved Draft input, superseded where later user decisions differ.
-- [Active requirements](docs/requirements.md): J5-001–101, including embedded portability.
-- [Implementation sequence and issue tracking](core/docs/requirements-json5-implementation-order.md) and [traceability](docs/traceability.md): ordered issues, prerequisites and unit evidence.
-- [Memory, limits and failure behavior](docs/memory-and-limits.md) for library users, and [storage and budget decisions](core/docs/adr-0003-storage-and-budget-decisions.md) (ADR 0003).
-- [Architecture](core/docs/design-architecture.md), [embedded boundary](docs/embedded.md) and [scope ADR](docs/adr/0001-project-scope.md).
-- [Simple API, umbrella header and memory switch](docs/adr/0004-simple-api-and-umbrella-header.md) (ADR 0004).
-- [Contributing](CONTRIBUTING.md), [agent constraints](AGENTS.md) and adapted repository skills in `.agents/skills/`.
-- [Dependencies/provenance](docs/dependencies.md) and [optional consumer example](docs/consumer-example.md).
+- [Memory, limits and failure behavior](docs/memory-and-limits.md): buffers, limits,
+  errors and the advanced API.
+- [Embedded boundary](docs/embedded.md): what the parser needs from a bare-metal target.
+- [Memory layout reference](docs/memory-layout.md): sections, heap and stack per
+  environment (bare metal and RTOS, Linux, Windows, FreeBSD).
+
+**Functional safety (ISO 26262)**
+
+- [Safety plan](docs/ISO26262-safety/safety-plan.md): roles, tailoring and work products.
+- [Safety Manual](docs/ISO26262-safety/safety-manual.md): the checklist for integrators.
+- [SEooC assumptions](docs/ISO26262-safety/seooc-assumptions.md),
+  [software safety analysis](docs/ISO26262-safety/software-safety-analysis.md),
+  [coding guidelines](docs/ISO26262-safety/coding-guidelines.md),
+  [verification strategy](docs/ISO26262-safety/verification-strategy.md),
+  [tool confidence](docs/ISO26262-safety/tool-confidence.md) and
+  [traceability](docs/ISO26262-safety/traceability.md).
+
+**Cybersecurity (ISO/SAE 21434)**
+
+- [Cybersecurity plan](docs/ISO21434-cybersecurity/cybersecurity-plan.md): roles,
+  tailoring and work products.
+- [Cybersecurity manual](docs/ISO21434-cybersecurity/cybersecurity-manual.md): the
+  checklist for integrators.
+- [Cybersecurity assumptions](docs/ISO21434-cybersecurity/cybersecurity-assumptions.md),
+  [TARA](docs/ISO21434-cybersecurity/tara.md),
+  [cybersecurity verification](docs/ISO21434-cybersecurity/cybersecurity-verification.md),
+  [cybersecurity case](docs/ISO21434-cybersecurity/cybersecurity-case.md) and
+  [interface agreement template](docs/ISO21434-cybersecurity/cybersecurity-interface-agreement.md).
+- [Security policy](SECURITY.md): how to report a vulnerability, and supported versions.
+
+**Design**
+
+- [Architecture](core/docs/design-architecture.md) and
+  [project scope](docs/adr/0001-project-scope.md) (ADR 0001).
+- [Source layout](core/docs/design-source-layout.md) and
+  [public/private layout decision](core/docs/adr-0002-public-private-source-layout.md) (ADR 0002).
+- [Storage and budget decisions](core/docs/adr-0003-storage-and-budget-decisions.md) (ADR 0003)
+  and [simple API, umbrella header and memory switch](docs/adr/0004-simple-api-and-umbrella-header.md) (ADR 0004).
+- [C++ coding style](core/docs/design-coding-style.md) and
+  [software unit ID registry](core/docs/software-unit-ids.md).
+
+**Requirements and evidence**
+
+- [Requirements](docs/requirements.md): J5 rows, software safety requirements (section K)
+  and cybersecurity requirements (section L).
+- [Traceability](docs/traceability.md): unit tests per requirement, and the safety
+  traceability chain.
+- [JSON5 1.0.0 support statement](docs/conformance.md): claim status, limits,
+  implementation-defined behaviour, deviations and executed results.
+- [Grammar evidence matrix](core/docs/design-grammar-evidence.md),
+  [dependencies and provenance](docs/dependencies.md) and [licensing](docs/licensing.md).
+
+**Contributing**
+
+- [Contributing](CONTRIBUTING.md): how changes are made, the implementation sequence and
+  the delivery scope.
+- [Agent constraints](AGENTS.md) and the adapted repository skills in `.agents/skills/`.
+
+## Building and contributing
+
+Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host units.
+CMake downloads and builds the pinned host-only GoogleTest dependency on the first test
+configuration. From the repository directory:
+
+```powershell
+cmake --preset debug-unit-tests
+cmake --build --preset debug-unit-tests
+ctest --preset debug-unit-tests
+```
+
+Run the same units with exceptions ON:
+
+```powershell
+cmake --preset debug-unit-tests-exceptions
+cmake --build --preset debug-unit-tests-exceptions
+ctest --preset debug-unit-tests-exceptions
+```
+
+If the selected preset is already configured and built, run only its `ctest` command.
+To run one suite, select its label, for example:
+
+```powershell
+ctest --preset debug-unit-tests -L "^result_units$" --output-on-failure
+```
+
+Add `--verbose` to see each GoogleTest case; CTest counts every individual case,
+including parameterized ones. Exceptions and RTTI default OFF. On Windows, run the
+commands in a Visual Studio developer terminal when using its compiler. See
+[native development](core/docs/design-development.md) for offline GoogleTest,
+formatting and toolchain configuration.
+
+Release packaging builds GCC static libraries for Linux x86-64, Linux ARM64, Windows
+MinGW x86-64 and a pinned ARM64 Yocto SDK. Each archive contains the `.a` beside its
+public `include/` folder, exported CMake targets, licenses and source and toolchain
+metadata; see [release packages](docs/release-packages.md). macOS binaries are outside
+this packaging scope.
+
+How to contribute, including the implementation sequence, the delivery scope and the
+checks every pull request must pass, is described in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
@@ -352,10 +401,63 @@ their own applicable notices and recorded versions.
 See [licensing and redistribution](docs/licensing.md) and [NOTICE](NOTICE) for
 attribution and distribution obligations.
 
-For core parser work, follow the [official-specification implementation sequence](core/docs/requirements-json5-implementation-order.md).
-P001–P066 are ordered so all prerequisites come earlier; existing J5 IDs remain
-unchanged for issue and requirement traceability. Optional schema/editor/CLI work
-does not block this core parser sequence.
+## Disclaimers
 
-The sequential baseline now includes optional schema P042–P055, CLI/example
-P056–P059 and VS Code P060–P066. Core parser P001–P041 remains independent.
+### Safety, security and liability
+
+> [!WARNING]
+> **Not certified and not independently assessed.** This library is developed by one
+> developer with AI assistance. ASIL B(D) and CAL 4 are design targets, not achieved
+> levels. An AI review is not an independent review, so no ISO 26262 or ISO/SAE 21434
+> claim is valid without your own independent assessment.
+
+I develop this library alone. I want it to follow ISO 26262 and ISO/SAE 21434 properly,
+but I have nobody to do the independent work with, so I simulated those steps with an
+AI. Even where everything else holds up, a review by an AI is not a valid review. A
+qualified human has to go through it. If you use this library in a safety or
+security-relevant product, **you do so at your own risk**.
+
+This library is provided as is, without any warranty. I accept no responsibility or
+liability for how you use it or for any damage that results, as stated in sections 7
+and 8 of the Apache License 2.0.
+
+This library is meant for developers who understand functional safety and
+cybersecurity. If you are not sure what that involves, please do not use it in a safety
+or security-relevant product, and do not expect support for doing so.
+
+### Standards and trademarks
+
+ISO 26262, ISO/SAE 21434 and MISRA C++ are licensed standards, and SEI CERT C++ and
+BARR-C belong to their publishers. This project's documents summarize them in my own
+words and do not reproduce them; for any real rating or compliance work, use the
+standards themselves.
+
+AUTOSAR is a trademark of the AUTOSAR development partnership, and MICROSAR is a product
+of Vector Informatik. Other names, such as Arm, RISC-V, LoongArch, Linux, Windows and
+FreeBSD, belong to their respective owners. They are mentioned only as examples or for
+technical reference. This project is not affiliated with or endorsed by any of them.
+
+### About the author
+
+I have eight years of experience in automotive software development, and this project
+follows the practices I have learned and applied in that time. The safety and
+cybersecurity documents reflect that experience. They still do not replace an
+independent human review or assessment.
+
+This is a passion project. I love cars, driving and automotive software, and I build
+this to see how far my skills, determination and a healthy dose of stubbornness can take
+a library like this towards the standards, done properly and in the open.
+
+It is a personal project, developed in my free time. It uses no code, documents, tools
+or confidential information from any employer, past or present. It is based on my
+general professional experience and public sources, with AI assistance, and it is not
+affiliated with or endorsed by any employer.
+
+All eight years of my experience are in embedded C. In my view, from watching the job
+market, embedded software work in Germany is shifting towards ADAS, AUTOSAR Adaptive and
+high-performance computers, where C++ dominates. That's why I'm learning modern C++
+through this project. Feedback on the C++ is very welcome.
+
+No review catches everything: not my own, not the AI reviews and not the automated
+tests. If you find a mistake, in the code or in how I've applied the standards, please
+open an issue. Corrections are always welcome.

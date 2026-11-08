@@ -3,6 +3,12 @@ description: Report an incorrect result or build problem.
 title: "[Bug] "
 labels: [bug]
 body:
+  - type: markdown
+    attributes:
+      value: >-
+        **Security problem?** Do not post the details here. Follow
+        [SECURITY.md](https://github.com/Romanr92/Adaptive_JSON5/blob/main/SECURITY.md):
+        open a short issue that only says "Possible security issue, please contact me".
   - type: textarea
     id: behavior
     attributes:
