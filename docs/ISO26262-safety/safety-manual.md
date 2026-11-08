@@ -7,6 +7,12 @@
 | Issue | [#138](https://github.com/Romanr92/Adaptive_JSON5/issues/138) |
 | Status | Draft, not reviewed and **not independently confirmed** (see C-4.3) |
 
+> **⚠️ Developed by one developer with AI support. No independent confirmation review or
+> assessment has been done.** ASIL B(D) is a design target, not an achieved level. An AI
+> review is not an independent review. Before relying on this library, have it reviewed
+> by a qualified human in your own project (see C-4.3 and the
+> [development setup and its limits](safety-plan.md#development-setup-and-its-limits)).
+
 This manual is for teams that want to use Adaptive_JSON5 in a safety-related
 function. It can be read on its own: every item below is one short line that you
 tick off for your project. Each line links to where the item is explained in detail.

@@ -6,6 +6,18 @@ Adaptive_JSON5 is still in development and is not yet recommended for production
 Private vulnerability reporting will be switched on before the library is recommended
 to others.
 
+## Supported versions
+
+Security fixes are released for these versions:
+
+| Version | Security fixes |
+| --- | --- |
+| Latest release before 1.0.0 | Yes. Fixes go into the next release; older pre-1.0 releases are not patched. |
+| Older releases before 1.0.0 | No. Update to the latest release. |
+
+When 1.0.0 is released, this table will say which release lines receive security fixes
+and for how long. The end of support for each line will be announced in advance.
+
 ## Reporting a security problem
 
 **Please do not post the details of a vulnerability in a public issue.** Anyone,
