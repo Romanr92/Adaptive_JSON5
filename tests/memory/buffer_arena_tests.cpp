@@ -41,7 +41,7 @@ namespace
   TEST_P(J5_046_BufferArenaAlignment, ChargesPaddingAndReturnsAlignedStorage)
   {
     /* Arrange */
-    alignas(64) unsigned char bytes[128]{};
+    alignas(64) std::byte bytes[128]{};
     buffer_arena arena{bytes + 1, 127};
     const auto input = GetParam();
     /* Act */
@@ -66,11 +66,11 @@ namespace
   TEST(J5_046_BufferArena, ExhaustionPreservesStateAndContents)
   {
     /* Arrange */
-    unsigned char bytes[8]{};
+    std::byte bytes[8]{};
     buffer_arena arena{bytes, sizeof(bytes)};
     const auto first = allocate_block(arena.callbacks(), 3, 1);
     ASSERT_TRUE(first.has_value());
-    bytes[0] = 42;
+    bytes[0] = std::byte{42};
     /* Act */
     const auto denied = allocate_block(arena.callbacks(), 6, 1);
     /* Expect */
@@ -78,7 +78,7 @@ namespace
     EXPECT_EQ(denied.error_if()->code, error_code::allocation_failure);
     EXPECT_EQ(arena.used(), 3u);
     EXPECT_EQ(arena.live_allocations(), 1u);
-    EXPECT_EQ(bytes[0], 42);
+    EXPECT_EQ(bytes[0], std::byte{42});
     const auto exact = allocate_block(arena.callbacks(), 5, 1);
     ASSERT_TRUE(exact.has_value());
     EXPECT_EQ(exact.value_if()->data(), bytes + 3);
@@ -95,7 +95,7 @@ namespace
   TEST(J5_046_BufferArena, EmptyBuffersAndZeroRequests)
   {
     /* Arrange */
-    unsigned char byte{};
+    std::byte byte{};
     buffer_arena null_arena{nullptr, 100};
     buffer_arena empty_arena{&byte, 0};
     /* Act */
@@ -123,7 +123,7 @@ namespace
   TEST(J5_046_BufferArena, RejectsUnrepresentableAndInvalidRequests)
   {
     /* Arrange */
-    unsigned char bytes[8]{};
+    std::byte bytes[8]{};
     buffer_arena arena{bytes, sizeof(bytes)};
     /* Act */
     const auto huge = allocate_block(arena.callbacks(), std::numeric_limits<std::size_t>::max(), 1);
@@ -151,7 +151,7 @@ namespace
   TEST(J5_051_BufferArena, ResetsOnlyAfterLastOwnerReleases)
   {
     /* Arrange */
-    unsigned char bytes[8]{};
+    std::byte bytes[8]{};
     buffer_arena arena{bytes, sizeof(bytes)};
     auto first = allocate_block(arena.callbacks(), 3, 1);
     auto second = allocate_block(arena.callbacks(), 5, 1);
@@ -187,7 +187,7 @@ namespace
   TEST(J5_047_BufferArena, AccountingLimitAndReset)
   {
     /* Arrange */
-    unsigned char bytes[8]{};
+    std::byte bytes[8]{};
     buffer_arena arena{bytes, sizeof(bytes)};
     accounted_storage storage{arena.callbacks(), 6};
     /* Act */

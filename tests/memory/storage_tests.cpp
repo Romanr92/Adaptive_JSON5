@@ -107,7 +107,7 @@ namespace
         m_last_alignment = alignment;
       }
 
-      alignas(std::max_align_t) std::array<std::array<unsigned char, c_slot_bytes>, c_slot_count> m_slots{};
+      alignas(std::max_align_t) std::array<std::array<std::byte, c_slot_bytes>, c_slot_count> m_slots{};
       std::size_t m_next_slot = 0;
       std::size_t m_remaining;
       std::size_t m_allocations = 0;

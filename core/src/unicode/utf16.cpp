@@ -3,6 +3,8 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -23,7 +25,7 @@ namespace adaptive_json5
     constexpr char32_t c_supplementary_offset = 0x10000;
     constexpr char32_t c_low_surrogate_min = 0xDC00;
     constexpr char32_t c_payload_mask = 0x3FF;
-    constexpr unsigned int c_surrogate_payload_bits = 10;
+    constexpr std::uint32_t c_surrogate_payload_bits = 10;
 
     // Surrogate code points are units, not valid Unicode scalers.
     if ((scalar > c_max_scalar) || ((scalar >= c_high_surrogate_min) && (scalar <= c_low_surrogate_max)))

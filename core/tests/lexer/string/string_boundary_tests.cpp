@@ -91,7 +91,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (unsigned int byte = 0; byte <= 255; ++byte)
+      for (std::uint32_t byte = 0; byte <= 255; ++byte)
       {
         if (byte == '\'' || byte == '"')
         {
@@ -200,7 +200,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (unsigned int byte = 0; byte <= 0x1F; ++byte)
+      for (std::uint32_t byte = 0; byte <= 0x1F; ++byte)
       {
         const std::array<char, 3> input{'"', static_cast<char>(byte), 'Z'};
         cursor source({input.data(), input.size()});

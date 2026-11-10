@@ -142,7 +142,7 @@ namespace
   }
   /* ================================== End Fixtures =================================== */
   /* =================================== Test_J5_035 =================================== */
-  static_assert(noexcept(to_integer<int>(std::declval<const owned_number&>())));
+  static_assert(noexcept(to_integer<std::int32_t>(std::declval<const owned_number&>())));
   static_assert(noexcept(to_unsigned_integer(std::declval<const owned_number&>())));
   static_assert(noexcept(to_signed_integer(std::declval<const owned_number&>())));
 
@@ -350,9 +350,9 @@ namespace
     /* Act */
     const auto as_unsigned = to_unsigned_integer(empty);
     const auto as_signed = to_signed_integer(empty);
-    const auto as_int = to_integer<int>(empty);
+    const auto as_int = to_integer<std::int32_t>(empty);
     const auto integral = is_integral_number(empty);
-    const auto moved_value = to_integer<int>(moved);
+    const auto moved_value = to_integer<std::int32_t>(moved);
     /* Expect */
     ASSERT_FALSE(as_unsigned.has_value());
     EXPECT_EQ(as_unsigned.error_if()->code, error_code::wrong_type_or_access);
@@ -384,15 +384,15 @@ namespace
     /* Act */
     const auto as_unsigned = to_unsigned_integer(*number.value_if(), options);
     const auto as_signed = to_signed_integer(*number.value_if(), options);
-    const auto as_short = to_integer<short>(*number.value_if(), options);
+    const auto as_int16 = to_integer<std::int16_t>(*number.value_if(), options);
     const auto integral = is_integral_number(*number.value_if(), options);
     /* Expect */
     ASSERT_FALSE(as_unsigned.has_value());
     EXPECT_EQ(as_unsigned.error_if()->code, error_code::resource_limit);
     ASSERT_FALSE(as_signed.has_value());
     EXPECT_EQ(as_signed.error_if()->code, error_code::resource_limit);
-    ASSERT_FALSE(as_short.has_value());
-    EXPECT_EQ(as_short.error_if()->code, error_code::resource_limit);
+    ASSERT_FALSE(as_int16.has_value());
+    EXPECT_EQ(as_int16.error_if()->code, error_code::resource_limit);
     ASSERT_FALSE(integral.has_value());
     EXPECT_EQ(integral.error_if()->code, error_code::resource_limit);
   }
@@ -411,8 +411,8 @@ namespace
     const auto number = make_number(provider, "1.0e2");
     ASSERT_TRUE(number.has_value());
     /* Act */
-    const auto first = to_integer<int>(*number.value_if());
-    const auto second = to_integer<int>(*number.value_if());
+    const auto first = to_integer<std::int32_t>(*number.value_if());
+    const auto second = to_integer<std::int32_t>(*number.value_if());
     /* Expect */
     ASSERT_TRUE(first.has_value());
     ASSERT_TRUE(second.has_value());
@@ -488,8 +488,8 @@ namespace
   {
       const char* name;
       std::size_t element;        // Input element position in the fixed array document.
-      bool converts;              // Whether to_integer<int> succeeds.
-      int value;                  // Expected integer on success.
+      bool converts;              // Whether to_integer<std::int32_t> succeeds.
+      std::int32_t value;         // Expected integer on success.
       error_code conversion_code; // Expected to_integer error code on failure.
       bool queries;               // Whether is_integral_number succeeds.
       bool integral;              // Expected integrality on success.
@@ -526,7 +526,7 @@ namespace
     const auto element = root.value_if()->element_at(param.element);
     ASSERT_TRUE(element.has_value());
     /* Act */
-    const auto converted = to_integer<int>(*element.value_if());
+    const auto converted = to_integer<std::int32_t>(*element.value_if());
     const auto integral = is_integral_number(*element.value_if());
     /* Expect */
     ASSERT_EQ(converted.has_value(), param.converts);
@@ -574,7 +574,7 @@ namespace
     /* Arrange */
     const value_view view{};
     /* Act */
-    const auto converted = to_integer<long>(view);
+    const auto converted = to_integer<std::int64_t>(view);
     const auto integral = is_integral_number(view);
     /* Expect */
     ASSERT_FALSE(converted.has_value());

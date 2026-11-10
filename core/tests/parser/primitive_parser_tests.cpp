@@ -395,7 +395,7 @@ namespace
     EXPECT_FALSE(doc.set_source_span(*index.value_if(), {1, std::numeric_limits<std::size_t>::max()}, 6).has_value());
     EXPECT_FALSE(doc.set_source_span(value_index{}, {0, 0}, 0).has_value());
     EXPECT_FALSE(doc.set_source_span(value_index{32}, {0, 0}, 0).has_value());
-    for (int i{}; i < 20; ++i)
+    for (std::int32_t i{}; i < 20; ++i)
     {
       ASSERT_TRUE(doc.make_null().has_value());
     }

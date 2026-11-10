@@ -58,14 +58,15 @@ namespace adaptive_json5
 
     --self.m_live;
 
-    // Individual blocks are not reused; the whole buffer is, once nothing is live.
+    // The whole buffer is reused once nothing is live.
     if (self.m_live == 0)
     {
       self.m_used = 0;
+      return;
     }
 
     // Top of stack release: the block ends exactly at the used mark, so give it back.
-    auto* const block = static_cast<unsigned char*>(address);
+    auto* const block = static_cast<std::byte*>(address);
     if ((block != nullptr) && (block >= self.m_begin) &&
         ((static_cast<std::size_t>(block - self.m_begin) + bytes) == self.m_used))
     {
@@ -80,7 +81,7 @@ namespace adaptive_json5
    * @par ID SWU-MEMORY-012
    */
   buffer_arena::buffer_arena(void* buffer, std::size_t size) noexcept
-      : m_begin(static_cast<unsigned char*>(buffer)), m_capacity((buffer != nullptr) ? size : 0)
+      : m_begin(static_cast<std::byte*>(buffer)), m_capacity((buffer != nullptr) ? size : 0)
   {
   }
 

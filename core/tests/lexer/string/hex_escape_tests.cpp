@@ -58,7 +58,7 @@ namespace
       /* Act */
       const auto actual = hex_digit_value(scalar);
       /* Expect */
-      EXPECT_FALSE(actual.has_value()) << static_cast<unsigned int>(scalar);
+      EXPECT_FALSE(actual.has_value()) << static_cast<std::uint32_t>(scalar);
     }
     for (char32_t scalar : {char32_t{0x0660}, char32_t{0xFF10}, char32_t{0xFF21}, char32_t{0xFF41}, char32_t{0xD800},
                             char32_t{0x1F3BC}, std::numeric_limits<char32_t>::max()})
@@ -249,7 +249,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (unsigned int byte = 0; byte <= 255; ++byte)
+      for (std::uint32_t byte = 0; byte <= 255; ++byte)
       {
         if (byte == 'x')
         {

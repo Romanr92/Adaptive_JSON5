@@ -52,6 +52,7 @@ namespace adaptive_json5
        * @return True when the first three bytes are EF BB BF.
        * @note Compares unsigned byte values, because char may be signed.
        * @par ID SWU-PARSER-009
+       * @note Compares std::byte values, because char may be signed.
        */
       [[nodiscard]] bool starts_with_byte_order_mark(input_view input) noexcept
       {
@@ -60,9 +61,9 @@ namespace adaptive_json5
           return false;
         }
 
-        const auto* bytes = reinterpret_cast<const unsigned char*>(input.data);
+        const auto* bytes = reinterpret_cast<const std::byte*>(input.data);
 
-        return (bytes[0] == 0xEFU) && (bytes[1] == 0xBBU) && (bytes[2] == 0xBFU);
+        return (bytes[0] == std::byte{0xEF}) && (bytes[1] == std::byte{0xBB}) && (bytes[2] == std::byte{0xBF});
       }
     } // namespace
 
@@ -643,9 +644,9 @@ namespace adaptive_json5
      * P033; J5-046; J5-048.
      * @par ID SWU-PARSER-017
      */
-    unsigned char* parser_engine::nesting_kinds() noexcept
+    std::byte* parser_engine::nesting_kinds() noexcept
     {
-      return (m_extra_kinds.data() != nullptr) ? static_cast<unsigned char*>(m_extra_kinds.data()) : m_inline_kinds;
+      return (m_extra_kinds.data() != nullptr) ? static_cast<std::byte*>(m_extra_kinds.data()) : m_inline_kinds;
     }
 
     /**
@@ -710,11 +711,10 @@ namespace adaptive_json5
         // enter_container() succeeded, so m_count_depth is below max_depth and the bit exists.
         const bool object = (*current == '{');
         const std::size_t byte = m_count_depth / c_bits_per_byte;
-        const auto mask = static_cast<unsigned char>(1U << (m_count_depth % c_bits_per_byte));
-        unsigned char* kinds = nesting_kinds();
+        const std::byte mask = std::byte{1} << (m_count_depth % c_bits_per_byte);
+        std::byte* kinds = nesting_kinds();
 
-        kinds[byte] = object ? static_cast<unsigned char>(kinds[byte] | mask)
-                             : static_cast<unsigned char>(kinds[byte] & static_cast<unsigned char>(~mask));
+        kinds[byte] = object ? (kinds[byte] | mask) : (kinds[byte] & ~mask);
 
         ++m_count_depth;
         m_count_top.state = object ? parser_state::object_first_name_or_end : parser_state::array_first_or_end;
@@ -964,7 +964,8 @@ namespace adaptive_json5
       {
         // The parent was expecting a value when this container opened, so only its kind is needed.
         const std::size_t parent = m_count_depth - 1;
-        const bool object = ((nesting_kinds()[parent / c_bits_per_byte] >> (parent % c_bits_per_byte)) & 1U) != 0U;
+        const bool object =
+          ((nesting_kinds()[parent / c_bits_per_byte] >> (parent % c_bits_per_byte)) & std::byte{1}) != std::byte{0};
 
         m_count_top.state = object ? parser_state::object_value : parser_state::array_first_or_end;
       }
@@ -1025,7 +1026,7 @@ namespace adaptive_json5
       if (m_options.limits.max_depth > c_inline_nesting_bits)
       {
         const std::size_t bytes = (m_options.limits.max_depth / c_bits_per_byte) + 1;
-        auto allocation = allocate_block(m_storage, bytes, alignof(unsigned char));
+        auto allocation = allocate_block(m_storage, bytes, alignof(std::byte));
 
         if (!allocation.has_value())
         {

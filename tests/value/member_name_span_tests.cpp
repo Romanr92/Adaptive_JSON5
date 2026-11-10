@@ -25,7 +25,7 @@ namespace
     const auto located = error::at_offset(error_code::syntax, 0);
     const auto unlocated = error::without_location(error_code::allocation_failure);
     /* Act */
-    const auto failed = result<int>::failure(duplicate);
+    const auto failed = result<std::int32_t>::failure(duplicate);
     /* Expect */
     // Inline metadata must remain useful when no diagnostic storage provider exists.
     ASSERT_NE(failed.error_if(), nullptr);

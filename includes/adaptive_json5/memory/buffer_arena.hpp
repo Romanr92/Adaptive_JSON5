@@ -24,7 +24,7 @@ namespace adaptive_json5
   class [[nodiscard]] buffer_arena
   {
     private:
-      unsigned char* m_begin;
+      std::byte* m_begin;
       std::size_t m_capacity;
       std::size_t m_used{};
       std::size_t m_live{};

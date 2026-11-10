@@ -23,7 +23,7 @@ namespace adaptive_json5_test
     private:
       struct alignas(std::max_align_t) slot
       {
-          std::array<unsigned char, 512> data{};
+          std::array<std::byte, 512> data{};
           std::size_t bytes{};
           std::size_t alignment{};
           bool active{};

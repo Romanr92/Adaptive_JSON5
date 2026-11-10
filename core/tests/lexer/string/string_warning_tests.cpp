@@ -1,3 +1,4 @@
+#include "../../../../tests/shared_infrastructure/byte_array.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "lexer/string/line_continuation.hpp"
 #include "lexer/string/string_warning.hpp"
@@ -59,7 +60,7 @@ namespace
       std::string escaped;      // Input Unicode escape suffix after backslash.
       char32_t scalar;          // Expected decoded scalar.
       string_warning_code code; // Expected JSON5 warning category.
-      unsigned char final_byte; // Expected final UTF-8 byte; first two are E2 80.
+      std::uint8_t final_byte;  // Expected final UTF-8 byte; first two are E2 80.
   };
   class J5_017_StringWarning : public ::testing::TestWithParam<separator_case>
   {
@@ -102,7 +103,7 @@ namespace
         const auto repeated = raw_separator_warning_for(*piece.value_if(), mode);
         ASSERT_TRUE(builder.append_scalar(piece.value_if()->scalar).has_value());
         auto text = builder.finish();
-        std::array<unsigned char, 4> output{0xA5, 0xA5, 0xA5, 0xA5};
+        auto output = adaptive_json5_test::make_bytes(0xA5, 0xA5, 0xA5, 0xA5);
         const auto exported = export_utf8(text, output.data(), output.size());
         /* Expect */
         ASSERT_EQ(warning.has_value(), mode == syntax_mode::json5);
@@ -124,7 +125,7 @@ namespace
         EXPECT_EQ(input, before);
         ASSERT_TRUE(exported.has_value());
         EXPECT_EQ(*exported.value_if(), 3u);
-        EXPECT_EQ(output, (std::array<unsigned char, 4>{0xE2, 0x80, param.final_byte, 0xA5}));
+        EXPECT_EQ(output, adaptive_json5_test::make_bytes(0xE2, 0x80, param.final_byte, 0xA5));
         const auto closing = consume_string_piece(source, **opening.value_if(), mode);
         ASSERT_TRUE(closing.has_value());
         EXPECT_EQ(closing.value_if()->kind, string_piece_kind::closing_quote);
@@ -207,7 +208,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (unsigned int byte = 0; byte < 128; ++byte)
+      for (std::uint32_t byte = 0; byte < 128; ++byte)
       {
         if (byte == 0x0A || byte == 0x0D || (mode == syntax_mode::strict_json && byte < 0x20))
         {

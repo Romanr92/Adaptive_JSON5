@@ -133,6 +133,35 @@ parameters or the public fields of the existing `error` aggregate. Revisit
 those conventions only when the user requests a change. GoogleTest suite/test
 names retain the requirement conventions in the unit-test skill.
 
+## Fundamental types
+
+Use the standard library's type names everywhere (production code, tests and
+examples), so a value's width doesn't depend on the compiler or target:
+
+| Instead of | Use |
+| --- | --- |
+| `int`, `short`, `long`, `long long` | `std::int16_t`, `std::int32_t`, `std::int64_t` |
+| `unsigned int`, `unsigned short`, `unsigned long` | `std::uint16_t`, `std::uint32_t`, `std::uint64_t` |
+| `size_t`, `ptrdiff_t`, `uint32_t` (unqualified) | `std::size_t`, `std::ptrdiff_t`, `std::uint32_t` |
+| `unsigned char` for raw memory or octets | `std::byte` |
+
+Raw memory (caller buffers, storage blocks, UTF-8 output) is `std::byte`, which
+may alias any object. `std::byte` supports comparison and bitwise operators but
+no arithmetic; where a byte's value is computed with, `static_cast` it to or from
+a `std::uint*_t` type. Convert a `char` through `std::uint8_t` first
+(`static_cast<std::byte>(static_cast<std::uint8_t>(c))`): casting a negative
+`char` straight to `std::byte` is undefined in C++17.
+
+Types with no `std::` name stay as they are: `bool`, `char` (text and string
+literals), `char16_t`, `char32_t`, `float` and `double`.
+
+Keep a fundamental type only where the C++ standard requires exactly that type,
+and say so in a comment at that place. Current cases: `int main()`
+([basic.start.main]), the `int` exponent of `std::ldexp`, the `int` precision of
+`printf`'s `%.*s`, and `__cplusplus`, which is a `long` literal. Print
+fixed-width integers with the `<cinttypes>` macros (`"%" PRId64`), not by
+casting to `long long`.
+
 ## Layout and formatting
 
 Use clang-format **18.1.8** with the tracked `.clang-format` as the authority for

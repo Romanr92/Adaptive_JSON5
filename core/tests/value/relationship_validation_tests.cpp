@@ -112,7 +112,7 @@ namespace
     else
     {
       ASSERT_TRUE(iterator.has_value());
-      for (int retry = 0; retry < 2; ++retry)
+      for (std::int32_t retry = 0; retry < 2; ++retry)
       {
         const auto next = iterator.value_if()->next();
         ASSERT_FALSE(next.has_value());
@@ -216,7 +216,7 @@ namespace
   TEST(J5_039_ValueViewValidation, RejectsUnresolvableAndForeignChildren)
   {
     /* Arrange */
-    for (int fault = 0; fault < 5; ++fault)
+    for (std::int32_t fault = 0; fault < 5; ++fault)
     {
       SCOPED_TRACE(fault);
       document_provider provider;

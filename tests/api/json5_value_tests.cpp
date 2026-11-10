@@ -36,7 +36,7 @@ namespace
    */
   struct parsed_fixture
   {
-      alignas(std::max_align_t) unsigned char buffer[16384]{};
+      alignas(std::max_align_t) std::byte buffer[16384]{};
       std::optional<json5_document> document{};
       std::optional<error> failure{};
 

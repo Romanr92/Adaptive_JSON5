@@ -107,7 +107,7 @@ namespace
       bool valid{};
       double fraction{};
       float single{};
-      int integer{};
+      std::int32_t integer{};
       bool integral{};
       number_order order{};
   };
@@ -138,7 +138,7 @@ namespace
 
     const auto as_double = to_double(*fraction.value_if(), scratch.callbacks());
     const auto as_float = to_float(*tenth.value_if(), scratch.callbacks());
-    const auto as_int = to_integer<int>(*scaled.value_if());
+    const auto as_int = to_integer<std::int32_t>(*scaled.value_if());
     const auto integral = is_integral_number(*scaled.value_if());
     const auto order = compare_numbers(*tenth.value_if(), *close.value_if(), scratch.callbacks());
     if (!as_double.has_value() || !as_float.has_value() || !as_int.has_value() || !integral.has_value() ||

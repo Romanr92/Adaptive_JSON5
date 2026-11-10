@@ -1,3 +1,4 @@
+#include "../shared_infrastructure/byte_array.hpp"
 #include "../shared_infrastructure/string_provider.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
@@ -24,8 +25,8 @@ namespace
     string_provider provider;
     const char16_t input[]{u'A', 0, u'B', 9, 1, u'Z'};
     const std::u16string expected{u'A', 0, u'B', 9, 1};
-    std::array<unsigned char, 6> output;
-    output.fill(0xA5);
+    std::array<std::byte, 6> output;
+    output.fill(std::byte{0xA5});
     /* Act */
     auto copied = decoded_string::copy_units(provider.callbacks(), input, 5);
     ASSERT_TRUE(copied.has_value());
@@ -34,7 +35,7 @@ namespace
     expect_units(*copied.value_if(), expected);
     ASSERT_TRUE(exported.has_value());
     EXPECT_EQ(*exported.value_if(), 5u);
-    EXPECT_EQ(output, (std::array<unsigned char, 6>{0x41, 0, 0x42, 9, 1, 0xA5}));
+    EXPECT_EQ(output, make_bytes(0x41, 0, 0x42, 9, 1, 0xA5));
     EXPECT_EQ(input[5], u'Z');
     expect_error(copied.value_if()->unit_at(5), error_code::wrong_type_or_access);
     expect_error(copied.value_if()->unit_at(std::numeric_limits<std::size_t>::max()), error_code::wrong_type_or_access);
@@ -53,8 +54,8 @@ namespace
     const std::u16string units{u'A', 0x80, 0x800, 0xD83C, 0xDFBC};
     auto copied = decoded_string::copy_units(provider.callbacks(), units.data(), units.size());
     ASSERT_TRUE(copied.has_value());
-    std::array<unsigned char, 12> output;
-    output.fill(0xA5);
+    std::array<std::byte, 12> output;
+    output.fill(std::byte{0xA5});
     const auto before = output;
     /* Act */
     for (std::size_t capacity = 0; capacity < 10; ++capacity)
@@ -81,15 +82,14 @@ namespace
     const std::u16string units{u'A', 0x80, 0x800, 0xD83C, 0xDFBC};
     auto copied = decoded_string::copy_units(provider.callbacks(), units.data(), units.size());
     ASSERT_TRUE(copied.has_value());
-    std::array<unsigned char, 12> output;
-    output.fill(0xA5);
+    std::array<std::byte, 12> output;
+    output.fill(std::byte{0xA5});
     /* Act */
     const auto actual = export_utf8(*copied.value_if(), output.data(), output.size());
     /* Expect */
     ASSERT_TRUE(actual.has_value());
     EXPECT_EQ(*actual.value_if(), 10u);
-    EXPECT_EQ(output,
-              (std::array<unsigned char, 12>{0x41, 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x9F, 0x8E, 0xBC, 0xA5, 0xA5}));
+    EXPECT_EQ(output, make_bytes(0x41, 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x9F, 0x8E, 0xBC, 0xA5, 0xA5));
     EXPECT_EQ(provider.m_attempts, 1u);
   }
   /* ================================= End Test_J5_029 ================================= */

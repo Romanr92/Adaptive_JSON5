@@ -42,7 +42,7 @@ namespace
    * @note Only maps characters to digit values; arithmetic remains in the unit under test.
    * The bound mirrors the production callers: decimal_digit_bits for decimal, four bits per hexadecimal digit.
    */
-  bool load_digits(big_unsigned& target, const char* digits, unsigned int radix, work_budget& work,
+  bool load_digits(big_unsigned& target, const char* digits, std::uint32_t radix, work_budget& work,
                    std::size_t extra_limbs = 0)
   {
     const std::size_t count = std::strlen(digits);
@@ -57,9 +57,9 @@ namespace
     for (const char* current = digits; *current != '\0'; ++current)
     {
       const char character = *current;
-      const unsigned int value = ((character >= '0') && (character <= '9'))
-                                   ? static_cast<unsigned int>(character - '0')
-                                   : static_cast<unsigned int>(character - 'A') + 10U;
+      const std::uint32_t value = ((character >= '0') && (character <= '9'))
+                                    ? static_cast<std::uint32_t>(character - '0')
+                                    : static_cast<std::uint32_t>(character - 'A') + 10U;
 
       if (!target.append_digit(value, radix, work).has_value())
       {
@@ -122,9 +122,9 @@ namespace
   struct bit_length_case
   {
       const char* name;
-      const char* digits; // Input digits without prefix.
-      unsigned int radix; // Input spelling base: 10 or 16.
-      std::size_t bits;   // Expected significant bit count.
+      const char* digits;  // Input digits without prefix.
+      std::uint32_t radix; // Input spelling base: 10 or 16.
+      std::size_t bits;    // Expected significant bit count.
   };
 
   std::ostream& operator<<(std::ostream& stream, const bit_length_case& value)
@@ -144,8 +144,8 @@ namespace
   struct invalid_digit_case
   {
       const char* name;
-      unsigned int digit; // Requested digit value.
-      unsigned int radix; // Requested spelling base.
+      std::uint32_t digit; // Requested digit value.
+      std::uint32_t radix; // Requested spelling base.
   };
 
   std::ostream& operator<<(std::ostream& stream, const invalid_digit_case& value)
@@ -583,7 +583,7 @@ namespace
     provider.m_fail_on = 0U;
     const auto retried = value.reserve(2U);
     bool loaded = retried.has_value();
-    for (const unsigned int digit : {6U, 5U, 5U, 3U, 6U})
+    for (const std::uint32_t digit : {6U, 5U, 5U, 3U, 6U})
     {
       loaded = loaded && value.append_digit(digit, 10U, work).has_value();
     }
@@ -641,7 +641,7 @@ namespace
     big_unsigned reference{provider.callbacks()};
     big_unsigned destination{provider.callbacks()};
     ASSERT_TRUE(value.reserve(1U).has_value());
-    for (const unsigned int digit : {6U, 5U, 5U, 3U, 5U})
+    for (const std::uint32_t digit : {6U, 5U, 5U, 3U, 5U})
     {
       ASSERT_TRUE(value.append_digit(digit, 10U, work).has_value());
     }
@@ -732,7 +732,7 @@ namespace
   /* =================================== Test_J5_038 =================================== */
   static_assert(detail::supports_floating_conversion<float>() == std::numeric_limits<float>::is_iec559);
   static_assert(detail::supports_floating_conversion<double>() == std::numeric_limits<double>::is_iec559);
-  static_assert(!detail::supports_floating_conversion<int>());
+  static_assert(!detail::supports_floating_conversion<std::int32_t>());
 
   /**
    * @brief Describe one special-value classification and its expected outcome.

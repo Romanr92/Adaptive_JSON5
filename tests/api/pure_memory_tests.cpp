@@ -155,7 +155,7 @@ namespace
     bool parsed_ok = false;
     // Control: prove the replacement operator is live before trusting a zero count.
     g_counting = true;
-    delete new int{1};
+    delete new std::int32_t{1};
     g_counting = false;
     ASSERT_EQ(g_default_heap_calls, 1U);
     /* Act */

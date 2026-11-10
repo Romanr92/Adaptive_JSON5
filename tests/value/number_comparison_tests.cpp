@@ -318,7 +318,7 @@ namespace
   TEST(J5_036_NumberComparison, EnforcesExponentLimit)
   {
     /* Arrange */
-    constexpr auto c_limit = static_cast<unsigned long long>(std::numeric_limits<std::ptrdiff_t>::max() / 4);
+    constexpr auto c_limit = static_cast<std::uint64_t>(std::numeric_limits<std::ptrdiff_t>::max() / 4);
     const std::string at_limit = "1e" + std::to_string(c_limit);
     const std::string below_limit = "1e" + std::to_string(c_limit - 1U);
     const std::string above_limit = "1e" + std::to_string(c_limit + 1U);

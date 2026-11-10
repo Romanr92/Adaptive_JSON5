@@ -69,9 +69,9 @@ namespace
       {
         for (std::size_t byte_index = 0; byte_index < 6; ++byte_index)
         {
-          SCOPED_TRACE(static_cast<int>(states[state_index]));
+          SCOPED_TRACE(static_cast<std::int32_t>(states[state_index]));
           SCOPED_TRACE(bytes[byte_index]);
-          SCOPED_TRACE(static_cast<int>(modes[mode_index]));
+          SCOPED_TRACE(static_cast<std::int32_t>(modes[mode_index]));
           parser_frame frame;
           frame.state = states[state_index];
           const auto selected = next_container_action(frame, bytes[byte_index], 17, modes[mode_index]);

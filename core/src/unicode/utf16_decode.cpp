@@ -5,6 +5,7 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -25,7 +26,7 @@ namespace adaptive_json5
     constexpr char32_t c_low_surrogate_min = 0xDC00;
     constexpr char32_t c_low_surrogate_max = 0xDFFF;
     constexpr char32_t c_supplementary_offset = 0x10000;
-    constexpr unsigned int c_surrogate_payload_bits = 10;
+    constexpr std::uint32_t c_surrogate_payload_bits = 10;
     constexpr std::size_t c_single_unit_count = 1;
     constexpr std::size_t c_surrogate_pair_unit_count = 2;
 

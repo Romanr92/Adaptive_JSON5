@@ -358,8 +358,8 @@ namespace adaptive_json5
       return string_result::failure(*text.error_if());
     }
 
-    // export_utf8 writes bytes as unsigned char; char and unsigned char may alias each other.
-    const auto written = export_utf8(**text.value_if(), reinterpret_cast<unsigned char*>(buffer), capacity);
+    // export_utf8 writes std::byte; std::byte may alias any object, including a char buffer.
+    const auto written = export_utf8(**text.value_if(), reinterpret_cast<std::byte*>(buffer), capacity);
 
     if (!written.has_value())
     {

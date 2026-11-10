@@ -184,7 +184,7 @@ namespace
       const std::string before = bytes;
       cursor source{input_view{bytes.data(), bytes.size()}};
       source.advance(prefix.size());
-      for (int attempt = 0; attempt < 2; ++attempt)
+      for (std::int32_t attempt = 0; attempt < 2; ++attempt)
       {
         SCOPED_TRACE(sample.name);
         SCOPED_TRACE(prefix.size());
@@ -217,7 +217,7 @@ namespace
     for (const input_view view : {input_view{}, input_view{&unread, 0}})
     {
       cursor source{view};
-      for (int attempt = 0; attempt < 2; ++attempt)
+      for (std::int32_t attempt = 0; attempt < 2; ++attempt)
       {
         /* Act */
         const auto actual = decode_utf8(source);
@@ -241,7 +241,7 @@ namespace
   TEST(J5_009_Utf8, DecodesEveryAsciiByte)
   {
     /* Arrange */
-    for (unsigned int byte = 0; byte <= 0x7F; ++byte)
+    for (std::uint32_t byte = 0; byte <= 0x7F; ++byte)
     {
       const char input = static_cast<char>(byte);
       cursor source{input_view{&input, 1}};
@@ -269,7 +269,7 @@ namespace
   TEST(J5_009_Utf8, RejectsEveryForbiddenLeadingByte)
   {
     /* Arrange */
-    for (unsigned int byte = 0x80; byte <= 0xFF; ++byte)
+    for (std::uint32_t byte = 0x80; byte <= 0xFF; ++byte)
     {
       if (byte >= 0xC2 && byte <= 0xF4)
       {
@@ -308,7 +308,7 @@ namespace
     {
       for (std::size_t position = 1; position < valid.size(); ++position)
       {
-        for (unsigned int byte = 0; byte <= 0xFF; ++byte)
+        for (std::uint32_t byte = 0; byte <= 0xFF; ++byte)
         {
           if (byte >= 0x80 && byte <= 0xBF)
           {
@@ -373,7 +373,7 @@ namespace
       EXPECT_EQ(actual.value_if()->value().byte_length, lengths[index]);
       EXPECT_EQ(source.offset(), offsets[index] + lengths[index]);
     }
-    for (int attempt = 0; attempt < 2; ++attempt)
+    for (std::int32_t attempt = 0; attempt < 2; ++attempt)
     {
       /* Act */
       const auto actual = decode_utf8(source);

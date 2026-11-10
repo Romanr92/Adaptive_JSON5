@@ -13,8 +13,8 @@ namespace
 {
   using adaptive_json5::error;
   using adaptive_json5::error_code;
-  using int_result = adaptive_json5::result<int>;
-  using owned_result = adaptive_json5::result<std::unique_ptr<int>>;
+  using int_result = adaptive_json5::result<std::int32_t>;
+  using owned_result = adaptive_json5::result<std::unique_ptr<std::int32_t>>;
 
   /* ==================================== Fixtures ===================================== */
 
@@ -25,9 +25,9 @@ namespace
    */
   struct lifetime_counts
   {
-      int constructed = 0;
-      int destroyed = 0;
-      int live = 0;
+      std::int32_t constructed = 0;
+      std::int32_t destroyed = 0;
+      std::int32_t live = 0;
   };
 
   /**
@@ -39,7 +39,7 @@ namespace
   class counted_value
   {
     public:
-      counted_value(lifetime_counts& counts, int value) noexcept : m_counts(&counts), m_value(value)
+      counted_value(lifetime_counts& counts, std::int32_t value) noexcept : m_counts(&counts), m_value(value)
       {
         ++m_counts->constructed;
         ++m_counts->live;
@@ -56,14 +56,14 @@ namespace
         --m_counts->live;
       }
 
-      int value() const noexcept
+      std::int32_t value() const noexcept
       {
         return m_value;
       }
 
     private:
       lifetime_counts* m_counts;
-      int m_value;
+      std::int32_t m_value;
   };
 
   /**
@@ -73,9 +73,9 @@ namespace
    */
   struct code_case
   {
-      error_code code;     // Input error category.
-      int expected_number; // Expected stable numeric code.
-      const char* name;    // Human-readable parameter name.
+      error_code code;              // Input error category.
+      std::int32_t expected_number; // Expected stable numeric code.
+      const char* name;             // Human-readable parameter name.
   };
 
   const code_case code_cases[] = {
@@ -120,8 +120,8 @@ namespace
   static_assert(!std::is_copy_assignable_v<int_result>);
   static_assert(!std::is_move_assignable_v<int_result>);
 
-  static_assert(std::is_same_v<decltype(std::declval<int_result&>().value_if()), int*>);
-  static_assert(std::is_same_v<decltype(std::declval<const int_result&>().value_if()), const int*>);
+  static_assert(std::is_same_v<decltype(std::declval<int_result&>().value_if()), std::int32_t*>);
+  static_assert(std::is_same_v<decltype(std::declval<const int_result&>().value_if()), const std::int32_t*>);
   static_assert(std::is_same_v<decltype(std::declval<const int_result&>().error_if()), const error*>);
 
   static_assert(std::is_nothrow_copy_constructible_v<int_result>);
@@ -172,7 +172,7 @@ namespace
   TEST(J5_003_Result, ValueSuccessHasNoError)
   {
     /* Arrange */
-    constexpr int expected = 42;
+    constexpr std::int32_t expected = 42;
     /* Act */
     const auto actual = int_result::success(expected);
     /* Expect */
@@ -271,7 +271,7 @@ namespace
   TEST(J5_003_Result, SupportsMoveOnlyValueOwnership)
   {
     /* Arrange */
-    auto owned = std::make_unique<int>(42);
+    auto owned = std::make_unique<std::int32_t>(42);
     const auto* expected_address = owned.get();
     /* Act */
     auto original = owned_result::success(std::move(owned));
@@ -298,7 +298,7 @@ namespace
   TEST(J5_003_Result, SameTypeAlternativesRemainDistinct)
   {
     /* Arrange */
-    using same_type_result = adaptive_json5::result<int, int>;
+    using same_type_result = adaptive_json5::result<std::int32_t, std::int32_t>;
     /* Act */
     const auto success = same_type_result::success(11);
     const auto failure = same_type_result::failure(12);
@@ -407,10 +407,10 @@ namespace
     lifetime_counts counts;
     /* Act */
     {
-      const auto succeeded = adaptive_json5::result<int, counted_value>::success(42);
+      const auto succeeded = adaptive_json5::result<std::int32_t, counted_value>::success(42);
       EXPECT_TRUE(succeeded.has_value());
       EXPECT_EQ(counts.constructed, 0);
-      auto first = adaptive_json5::result<int, counted_value>::failure(counted_value{counts, 7});
+      auto first = adaptive_json5::result<std::int32_t, counted_value>::failure(counted_value{counts, 7});
       const auto copied = first;
       const auto moved = std::move(first);
       EXPECT_EQ(counts.live, 3);
@@ -443,7 +443,7 @@ namespace
     const auto value = int_result::failure(reason);
     const auto status = adaptive_json5::status_result::failure(reason);
     /* Expect */
-    EXPECT_EQ(static_cast<int>(category.code), category.expected_number);
+    EXPECT_EQ(static_cast<std::int32_t>(category.code), category.expected_number);
     EXPECT_EQ(reason.code, category.code);
     EXPECT_EQ(reason.byte_offset, offset);
     EXPECT_TRUE(reason.has_byte_offset);

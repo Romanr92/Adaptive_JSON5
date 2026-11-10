@@ -455,7 +455,7 @@ namespace
   {
     /* Arrange */
     const std::string_view accepted = "{}[]:,";
-    for (unsigned int value = 0; value <= 255; ++value)
+    for (std::uint32_t value = 0; value <= 255; ++value)
     {
       SCOPED_TRACE(value);
       const char byte = static_cast<char>(value);

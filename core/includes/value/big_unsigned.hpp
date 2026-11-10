@@ -7,6 +7,7 @@
 #include "memory/work_budget.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5::detail
 {
@@ -167,7 +168,7 @@ namespace adaptive_json5::detail
        * Never allocates; a carry beyond the reservation fails before mutation.
        * @par ID SWU-VALUE-011
        */
-      [[nodiscard]] status_result append_digit(unsigned int digit, unsigned int radix, work_budget& work) noexcept;
+      [[nodiscard]] status_result append_digit(std::uint32_t digit, std::uint32_t radix, work_budget& work) noexcept;
 
       /**
        * @brief Compare this exact magnitude with another.

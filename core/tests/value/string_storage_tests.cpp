@@ -31,10 +31,10 @@ namespace
    */
   struct scalar_case
   {
-      const char* name;                 // Diagnostic case name.
-      char32_t scalar;                  // Input Unicode scalar.
-      std::u16string units;             // Expected UTF-16 units.
-      std::vector<unsigned char> bytes; // Expected UTF-8 octets.
+      const char* name;                // Diagnostic case name.
+      char32_t scalar;                 // Input Unicode scalar.
+      std::u16string units;            // Expected UTF-16 units.
+      std::vector<std::uint8_t> bytes; // Expected UTF-8 octets.
   };
   class J5_018_Scalar : public ::testing::TestWithParam<scalar_case>
   {
@@ -51,8 +51,8 @@ namespace
     const auto& param = GetParam();
     string_provider provider;
     decoded_string_builder builder(provider.callbacks(), 8);
-    std::array<unsigned char, 8> output;
-    output.fill(0xA5);
+    std::array<std::byte, 8> output;
+    output.fill(std::byte{0xA5});
     /* Act */
     const auto encoded = encode_utf16(param.scalar);
     const auto reserved = builder.reserve_exact(param.units.size());
@@ -78,14 +78,14 @@ namespace
     EXPECT_EQ(*measured.value_if(), param.bytes.size());
     ASSERT_TRUE(exported.has_value());
     EXPECT_EQ(*exported.value_if(), param.bytes.size());
-    EXPECT_EQ(output.front(), 0xA5);
+    EXPECT_EQ(output.front(), std::byte{0xA5});
     for (std::size_t i = 0; i < param.bytes.size(); ++i)
     {
-      EXPECT_EQ(output[i + 1], param.bytes[i]);
+      EXPECT_EQ(output[i + 1], static_cast<std::byte>(param.bytes[i]));
     }
     for (std::size_t i = param.bytes.size() + 1; i < output.size(); ++i)
     {
-      EXPECT_EQ(output[i], 0xA5);
+      EXPECT_EQ(output[i], std::byte{0xA5});
     }
   }
 
@@ -158,8 +158,8 @@ namespace
     const auto& units = GetParam();
     auto copied = decoded_string::copy_units(provider.callbacks(), units.data(), units.size());
     ASSERT_TRUE(copied.has_value());
-    std::array<unsigned char, 32> output;
-    output.fill(0xA5);
+    std::array<std::byte, 32> output;
+    output.fill(std::byte{0xA5});
     const auto before = output;
     /* Act */
     const auto decoded = decode_utf16(*copied.value_if(), 1);
@@ -321,7 +321,7 @@ namespace
       decoded_string_builder builder(provider.callbacks(), 20);
       /* Act */
       ASSERT_TRUE(builder.reserve_exact(9).has_value());
-      for (int i = 0; i < 9; ++i)
+      for (std::int32_t i = 0; i < 9; ++i)
       {
         ASSERT_TRUE(builder.append_unit(u'A').has_value());
       }

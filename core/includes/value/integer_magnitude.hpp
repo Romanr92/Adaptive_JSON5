@@ -37,8 +37,8 @@ namespace adaptive_json5::detail
    * The enclosing conversion must account for each digit-processing step.
    * @par ID SWU-VALUE-056
    */
-  [[nodiscard]] result<std::uintmax_t> append_integer_digit(std::uintmax_t current, unsigned int digit,
-                                                            unsigned int radix, std::uintmax_t maximum) noexcept;
+  [[nodiscard]] result<std::uintmax_t> append_integer_digit(std::uintmax_t current, std::uint32_t digit,
+                                                            std::uint32_t radix, std::uintmax_t maximum) noexcept;
 
   /**
    * @brief Read a finite integral number into a bounded unsigned magnitude.

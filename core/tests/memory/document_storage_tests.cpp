@@ -88,10 +88,10 @@ namespace
   TEST_P(J5_046_BufferDocumentAlignment, FitsWithinCallerSlice)
   {
     /* Arrange */
-    alignas(64) unsigned char bytes[384]{};
+    alignas(64) std::byte bytes[384]{};
     const auto offset = 32 + GetParam();
-    bytes[offset - 1] = 0x5a;
-    bytes[offset + 256] = 0xa5;
+    bytes[offset - 1] = std::byte{0x5a};
+    bytes[offset + 256] = std::byte{0xa5};
     const auto begin = reinterpret_cast<std::uintptr_t>(bytes + offset);
     /* Act */
     {
@@ -111,8 +111,8 @@ namespace
       EXPECT_EQ(address % 32, 0u);
       EXPECT_EQ(accounting->current_bytes(), 16u);
     }
-    EXPECT_EQ(bytes[offset - 1], 0x5a);
-    EXPECT_EQ(bytes[offset + 256], 0xa5);
+    EXPECT_EQ(bytes[offset - 1], std::byte{0x5a});
+    EXPECT_EQ(bytes[offset + 256], std::byte{0xa5});
   }
   INSTANTIATE_TEST_SUITE_P(P003, J5_046_BufferDocumentAlignment, testing::Values(0u, 1u, 7u, 31u));
   /* ----------------------------------------------------------------------------------- */
@@ -125,7 +125,7 @@ namespace
   TEST(J5_046_BufferDocumentStorage, RejectsNullEmptyAndUndersizedBuffers)
   {
     /* Arrange */
-    unsigned char byte = 0x5a;
+    std::byte byte{0x5a};
     /* Act */
     const auto null_storage = make_buffer_document_storage(nullptr, 1024, 64);
     const auto empty = make_buffer_document_storage(&byte, 0, 64);
@@ -136,7 +136,7 @@ namespace
       ASSERT_FALSE(attempt->has_value());
       EXPECT_EQ(attempt->error_if()->code, error_code::allocation_failure);
     }
-    EXPECT_EQ(byte, 0x5a);
+    EXPECT_EQ(byte, std::byte{0x5a});
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -148,7 +148,7 @@ namespace
   TEST(J5_046_BufferDocumentStorage, PhysicalExhaustionAllowsRetry)
   {
     /* Arrange */
-    alignas(64) unsigned char bytes[256]{};
+    alignas(64) std::byte bytes[256]{};
     auto storage = make_buffer_document_storage(bytes, sizeof(bytes), 1024);
     ASSERT_TRUE(storage.has_value());
     auto* accounting = storage.value_if()->accounting();
@@ -175,7 +175,7 @@ namespace
   TEST(J5_047_BufferDocumentStorage, ZeroLimitExcludesControlBlock)
   {
     /* Arrange */
-    alignas(64) unsigned char bytes[256]{};
+    alignas(64) std::byte bytes[256]{};
     auto storage = make_buffer_document_storage(bytes, sizeof(bytes), 0);
     ASSERT_TRUE(storage.has_value());
     auto* accounting = storage.value_if()->accounting();
@@ -203,7 +203,7 @@ namespace
   TEST(J5_051_BufferDocumentStorage, LiveAllocationSurvivesMoveAndBufferIsReusable)
   {
     /* Arrange */
-    alignas(64) unsigned char bytes[256]{};
+    alignas(64) std::byte bytes[256]{};
     void* original_address = nullptr;
     /* Act */
     {
@@ -213,12 +213,12 @@ namespace
       auto block = accounting->allocate(8, 1);
       ASSERT_TRUE(block.has_value());
       original_address = block.value_if()->data();
-      static_cast<unsigned char*>(original_address)[0] = 42;
+      static_cast<std::byte*>(original_address)[0] = std::byte{42};
       document_storage_owner moved{std::move(*storage.value_if())};
       /* Expect */
       EXPECT_EQ(storage.value_if()->accounting(), nullptr);
       EXPECT_EQ(moved.accounting(), accounting);
-      EXPECT_EQ(static_cast<unsigned char*>(block.value_if()->data())[0], 42);
+      EXPECT_EQ(static_cast<std::byte*>(block.value_if()->data())[0], std::byte{42});
       *block.value_if() = owned_block{};
       EXPECT_EQ(accounting->current_bytes(), 0u);
     }

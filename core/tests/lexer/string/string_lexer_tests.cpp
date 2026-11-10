@@ -393,7 +393,7 @@ namespace
     warning_log log;
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (unsigned int byte = 0; byte <= 255; ++byte)
+      for (std::uint32_t byte = 0; byte <= 255; ++byte)
       {
         if (byte == '"' || byte == '\'')
         {

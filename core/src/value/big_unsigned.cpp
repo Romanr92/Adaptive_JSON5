@@ -19,15 +19,15 @@ namespace adaptive_json5::detail
     using wide_type = std::uint_least32_t;
 
     constexpr wide_type c_limb_radix = 65536;
-    constexpr unsigned int c_decimal_radix = 10;
-    constexpr unsigned int c_hexadecimal_radix = 16;
+    constexpr std::uint32_t c_decimal_radix = 10;
+    constexpr std::uint32_t c_hexadecimal_radix = 16;
     constexpr std::size_t c_limb_passes = 2;
     constexpr std::size_t c_tail_work_units = 1;
-    constexpr unsigned int c_limb_bits = 16;
+    constexpr std::uint32_t c_limb_bits = 16;
     constexpr std::size_t c_shift_setup_work_units = 1;
-    constexpr unsigned int c_decimal_radix_2 = 100;
-    constexpr unsigned int c_decimal_radix_3 = 1000;
-    constexpr unsigned int c_decimal_radix_4 = 10000;
+    constexpr std::uint32_t c_decimal_radix_2 = 100;
+    constexpr std::uint32_t c_decimal_radix_3 = 1000;
+    constexpr std::uint32_t c_decimal_radix_4 = 10000;
     constexpr std::size_t c_additional_limb = 1;
 
     /**
@@ -44,7 +44,7 @@ namespace adaptive_json5::detail
     [[nodiscard]] limb_type read_limb(const owned_block& storage, std::size_t index) noexcept
     {
       limb_type value{};
-      const auto* bytes = static_cast<const unsigned char*>(storage.data());
+      const auto* bytes = static_cast<const std::byte*>(storage.data());
 
       std::memcpy(&value, bytes + (index * sizeof(limb_type)), sizeof(value));
 
@@ -63,7 +63,7 @@ namespace adaptive_json5::detail
      */
     void write_limb(owned_block& storage, std::size_t index, limb_type value) noexcept
     {
-      auto* bytes = static_cast<unsigned char*>(storage.data());
+      auto* bytes = static_cast<std::byte*>(storage.data());
 
       std::memcpy(bytes + (index * sizeof(limb_type)), &value, sizeof(value));
     }
@@ -230,7 +230,7 @@ namespace adaptive_json5::detail
    * @note Budget and capacity checks precede mutation; performs no allocation.
    * @par ID SWU-VALUE-011
    */
-  status_result big_unsigned::append_digit(unsigned int digit, unsigned int radix, work_budget& work) noexcept
+  status_result big_unsigned::append_digit(std::uint32_t digit, std::uint32_t radix, work_budget& work) noexcept
   {
     const bool supported_radix = (radix == c_decimal_radix) || (radix == c_decimal_radix_2) ||
                                  (radix == c_decimal_radix_3) || (radix == c_decimal_radix_4) ||
@@ -386,7 +386,7 @@ namespace adaptive_json5::detail
 
     const std::size_t whole_limbs = bit_count / c_limb_bits;
 
-    const auto partial_bits = static_cast<unsigned int>(bit_count % c_limb_bits);
+    const auto partial_bits = static_cast<std::uint32_t>(bit_count % c_limb_bits);
 
     const auto base_count = checked_add(m_size, whole_limbs);
 
@@ -448,7 +448,7 @@ namespace adaptive_json5::detail
     }
     else
     {
-      const unsigned int carry_bits = c_limb_bits - partial_bits;
+      const std::uint32_t carry_bits = c_limb_bits - partial_bits;
 
       // The bits pushed out of the top limb form a new most significant limb.
       const auto top = static_cast<limb_type>(read_limb(m_storage, m_size - c_additional_limb) >> carry_bits);

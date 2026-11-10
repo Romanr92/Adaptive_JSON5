@@ -12,6 +12,8 @@
 TEST(J5_001_BuildConfiguration, UsesCxx17OrNewer)
 {
   /* Arrange */
+  // Plain long on purpose: the C++ standard defines __cplusplus as a long literal (MSVC's _MSVC_LANG
+  // follows it), so long stays here; a fixed-width type could narrow the value on some targets.
 #if defined(_MSVC_LANG)
   constexpr long language = _MSVC_LANG;
 #else

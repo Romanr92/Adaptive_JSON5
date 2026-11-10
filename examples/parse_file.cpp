@@ -12,9 +12,10 @@ namespace
   constexpr std::size_t c_max_file_bytes = 16384;
 
   char file_text[c_max_file_bytes];
-  alignas(std::max_align_t) unsigned char memory[65536];
+  alignas(std::max_align_t) std::byte memory[65536];
 } // namespace
 
+// The C++ standard requires main to return int ([basic.start.main]), so int stays here.
 int main()
 {
   std::size_t size{};

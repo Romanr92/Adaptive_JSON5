@@ -77,7 +77,7 @@ namespace
     const char16_t units[] = {0xD800, 0xE000};
     const auto text = decoded_string::copy_units(provider.callbacks(), units, 2);
     ASSERT_TRUE(text.has_value());
-    unsigned char output[] = {0xA5, 0xA5, 0xA5, 0xA5};
+    std::byte output[] = {std::byte{0xA5}, std::byte{0xA5}, std::byte{0xA5}, std::byte{0xA5}};
     /* Act */
     // The second unit exists but cannot complete the pair; it must not be silently emitted separately.
     const auto size = utf8_size(*text.value_if());
@@ -88,7 +88,7 @@ namespace
     EXPECT_EQ(size.error_if()->code, error_code::encoding);
     EXPECT_EQ(exported.error_if()->code, error_code::encoding);
     for (const auto byte : output)
-      EXPECT_EQ(byte, 0xA5);
+      EXPECT_EQ(byte, std::byte{0xA5});
     EXPECT_EQ(*text.value_if()->unit_at(1).value_if(), 0xE000);
   }
   /* ================================= End Test_J5_018 ================================== */

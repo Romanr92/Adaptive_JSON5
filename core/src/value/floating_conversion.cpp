@@ -26,11 +26,11 @@ namespace adaptive_json5
 {
   namespace
   {
-    constexpr unsigned int c_decimal_radix = 10;
-    constexpr unsigned int c_hexadecimal_radix = 16;
-    constexpr unsigned int c_hexadecimal_letter_offset = 10;
+    constexpr std::uint32_t c_decimal_radix = 10;
+    constexpr std::uint32_t c_hexadecimal_radix = 16;
+    constexpr std::uint32_t c_hexadecimal_letter_offset = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
-    constexpr unsigned int c_decimal_chunk_radix = 10000;
+    constexpr std::uint32_t c_decimal_chunk_radix = 10000;
     constexpr std::size_t c_decimal_chunk_digits = 4;
 
     /**
@@ -42,19 +42,19 @@ namespace adaptive_json5
      * @note Uses explicit ranges rather than locale-dependent classification.
      * @par ID SWU-VALUE-049
      */
-    [[nodiscard]] unsigned int hexadecimal_digit_value(char digit) noexcept
+    [[nodiscard]] std::uint32_t hexadecimal_digit_value(char digit) noexcept
     {
       if ((digit >= '0') && (digit <= '9'))
       {
-        return static_cast<unsigned int>(digit - '0');
+        return static_cast<std::uint32_t>(digit - '0');
       }
 
       if ((digit >= 'a') && (digit <= 'f'))
       {
-        return static_cast<unsigned int>(digit - 'a') + c_hexadecimal_letter_offset;
+        return static_cast<std::uint32_t>(digit - 'a') + c_hexadecimal_letter_offset;
       }
 
-      return static_cast<unsigned int>(digit - 'A') + c_hexadecimal_letter_offset;
+      return static_cast<std::uint32_t>(digit - 'A') + c_hexadecimal_letter_offset;
     }
 
     /**
@@ -121,8 +121,8 @@ namespace adaptive_json5
         return status_result::success();
       }
 
-      unsigned int chunk{};
-      unsigned int chunk_radix{1};
+      std::uint32_t chunk{};
+      std::uint32_t chunk_radix{1};
 
       while (position < spelling.size)
       {
@@ -140,7 +140,7 @@ namespace adaptive_json5
           continue;
         }
 
-        const auto digit = static_cast<unsigned int>(current - '0');
+        const auto digit = static_cast<std::uint32_t>(current - '0');
 
         // At most four decimal digits are accumulated, including leading zeros.
         chunk = (chunk * c_decimal_radix) + digit;
@@ -212,7 +212,7 @@ namespace adaptive_json5
       static_cast<void>(spelling);
       static_cast<void>(parts);
       static_cast<void>(work);
-      return fast_result::success(std::nullopt); // x87-style excess precision would round twice.
+      return fast_result::success(std::nullopt);
 #else
       using limits = std::numeric_limits<T>;
 
@@ -266,7 +266,7 @@ namespace adaptive_json5
           // Analysis already accounts for the point in the decimal scale.
           if (current != '.')
           {
-            significand = (significand * c_decimal_radix) + static_cast<unsigned int>(current - '0');
+            significand = (significand * c_decimal_radix) + static_cast<std::uint32_t>(current - '0');
           }
         }
       }
@@ -499,7 +499,7 @@ namespace adaptive_json5
 
       if (remaining_scale != 0)
       {
-        unsigned int radix = 1;
+        std::uint32_t radix = 1;
 
         // At most three positions remain, so radix never exceeds 1000.
         for (std::size_t index{}; index < remaining_scale; ++index)
@@ -627,7 +627,7 @@ namespace adaptive_json5
         dropped_bits = quotient_bits + 1;
       }
 
-      const auto drop = static_cast<unsigned int>(dropped_bits);
+      const auto drop = static_cast<std::uint32_t>(dropped_bits);
       const std::uint_least64_t half = std::uint_least64_t{1} << (drop - 1U);
       const std::uint_least64_t remainder = quotient & ((std::uint_least64_t{1} << drop) - 1U);
       std::uint_least64_t significand = quotient >> drop;
@@ -655,6 +655,8 @@ namespace adaptive_json5
       }
 
       // The significand fits in T's precision and the exponent is in range, so scaling is exact.
+      // Plain int on purpose: the standard declares std::ldexp(T, int), so the exponent must be
+      // exactly int. std::int32_t would be long on 16-bit-int targets and narrow silently here.
       const T magnitude = std::ldexp(static_cast<T>(significand), static_cast<int>(scale_exponent));
 
       return float_result::success(negative ? -magnitude : magnitude);

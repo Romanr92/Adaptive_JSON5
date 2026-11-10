@@ -24,13 +24,13 @@ namespace adaptive_json5::detail
    * @note Checks precede arithmetic that could overflow. Performs no allocation.
    * @par ID SWU-VALUE-056
    */
-  result<std::uintmax_t> append_integer_digit(std::uintmax_t current, unsigned int digit, unsigned int radix,
+  result<std::uintmax_t> append_integer_digit(std::uintmax_t current, std::uint32_t digit, std::uint32_t radix,
                                               std::uintmax_t maximum) noexcept
   {
     using magnitude_result = result<std::uintmax_t>;
 
-    constexpr unsigned int c_decimal_radix = 10;
-    constexpr unsigned int c_hexadecimal_radix = 16;
+    constexpr std::uint32_t c_decimal_radix = 10;
+    constexpr std::uint32_t c_hexadecimal_radix = 16;
 
     if (((radix != c_decimal_radix) && (radix != c_hexadecimal_radix)) || (digit >= radix))
     {
@@ -68,8 +68,8 @@ namespace adaptive_json5::detail
   {
     using magnitude_result = result<integer_magnitude>;
 
-    constexpr unsigned int c_hexadecimal_radix = 16;
-    constexpr unsigned int c_first_hex_letter_value = 10;
+    constexpr std::uint32_t c_hexadecimal_radix = 16;
+    constexpr std::uint32_t c_first_hex_letter_value = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
 
     const auto analysed = analyse_number(number, work);
@@ -127,20 +127,20 @@ namespace adaptive_json5::detail
         const char current = spelling.data[position];
         ++position;
 
-        unsigned int digit{};
+        std::uint32_t digit{};
 
         if ((current >= '0') && (current <= '9'))
         {
-          digit = static_cast<unsigned int>(current - '0');
+          digit = static_cast<std::uint32_t>(current - '0');
         }
         else if ((current >= 'a') && (current <= 'f'))
         {
-          digit = static_cast<unsigned int>(current - 'a') + c_first_hex_letter_value;
+          digit = static_cast<std::uint32_t>(current - 'a') + c_first_hex_letter_value;
         }
         else
         {
           // Validation guarantees that the remaining alternative is A throug F.
-          digit = static_cast<unsigned int>(current - 'A') + c_first_hex_letter_value;
+          digit = static_cast<std::uint32_t>(current - 'A') + c_first_hex_letter_value;
         }
 
         const auto appended = append_integer_digit(converted.magnitude, digit, c_hexadecimal_radix, maximum);
@@ -156,7 +156,7 @@ namespace adaptive_json5::detail
       return magnitude_result::success(converted);
     }
 
-    constexpr unsigned int c_decimal_radix = 10;
+    constexpr std::uint32_t c_decimal_radix = 10;
 
     const std::size_t significand_start = position;
 
@@ -213,7 +213,7 @@ namespace adaptive_json5::detail
 
       while (position < spelling.size)
       {
-        const auto digit = static_cast<unsigned int>(spelling.data[position] - '0');
+        const auto digit = static_cast<std::uint32_t>(spelling.data[position] - '0');
         ++position;
 
         const auto appended = append_integer_digit(exponent_magnitude, digit, c_decimal_radix, c_maximum_exponent);
@@ -271,7 +271,7 @@ namespace adaptive_json5::detail
         continue;
       }
 
-      const auto digit = static_cast<unsigned int>(current - '0');
+      const auto digit = static_cast<std::uint32_t>(current - '0');
 
       const auto appended = append_integer_digit(converted.magnitude, digit, c_decimal_radix, maximum);
 
@@ -284,7 +284,7 @@ namespace adaptive_json5::detail
       ++retained_digits;
     }
 
-    constexpr unsigned int c_appended_zero_digits{};
+    constexpr std::uint32_t c_appended_zero_digits{};
     constexpr std::size_t c_zero_append_work_units = 1;
 
     while (zeros_to_append != 0)
