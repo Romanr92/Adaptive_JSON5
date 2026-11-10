@@ -14,6 +14,8 @@
 #include "value/big_unsigned.hpp"
 #include "value/floating_special.hpp"
 #include "value/number_analysis.hpp"
+#include "value/power_of_five_table.hpp"
+#include "value/wide_multiply.hpp"
 
 #include <cfloat>
 #include <cmath>
@@ -213,7 +215,7 @@ namespace adaptive_json5
       static_cast<void>(parts);
       static_cast<void>(work);
       return fast_result::success(std::nullopt);
-#else
+#else  // !defined(FLT_EVAL_METHOD) || (FLT_EVAL_METHOD != 0)
       using limits = std::numeric_limits<T>;
 
       // 2^digits is the largest integer range T holds exactly; 10^k is exact for k <= max_exact_power.
@@ -284,7 +286,7 @@ namespace adaptive_json5
       }
 
       return fast_result::success(parts.negative ? -value : value);
-#endif
+#endif // !defined(FLT_EVAL_METHOD) || (FLT_EVAL_METHOD != 0)
     }
 
     /**
@@ -661,6 +663,116 @@ namespace adaptive_json5
 
       return float_result::success(negative ? -magnitude : magnitude);
     }
+
+#if ADAPTIVE_JSON5_EISEL_LEMIRE
+    /**
+     * @brief Convert w * 10^power to T without scratch using the Eisel-Lemire algorithm.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @param significand Nonzero decimal significand of at most 19 digits.
+     * @param power Decimal exponent.
+     * @param negative Sign of the result.
+     * @return The correctly rounded normal value, or an empty optional when the exact path
+     * must decide: exponent outside the table, subnormal or zero result, overflow, or an
+     * undecidable approximation.
+     * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> try_eisel_lemiere(std::uint64_t significand, std::int32_t power,
+                                                     bool negative) noexcept
+    {
+      using limits = std::numeric_limits<T>;
+
+      constexpr std::int32_t c_explicit_bits = limits::digits - 1;              // 52 or 23
+      constexpr std::int32_t c_minimum_exponent = -(limits::max_exponent - 1);  // -1023 or -127
+      constexpr std::int32_t c_infinite_power = (2 * limits::max_exponent) - 1; // 2047 or 255
+      constexpr std::int32_t c_round_even_min = (limits::digits == 53) ? -4 : -17;
+      constexpr std::int32_t c_round_even_max = (limits::digits == 53) ? 23 : 10;
+      constexpr std::int32_t c_safe_power_min = -27;
+      constexpr std::int32_t c_safe_power_max = 55;
+      constexpr std::uint32_t c_shift = 64U - static_cast<std::uint32_t>(c_explicit_bits) - 3U;
+      constexpr std::uint64_t c_all_ones = ~std::uint64_t{0};
+      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_bits + 3);
+      // floor(power * log2(10)) is (power * 217706) / 2^16 for every table exponent.
+      constexpr std::int64_t c_log2_ten_scaled = 217706;
+      constexpr std::int64_t c_log2_ten_scale = 65536;
+
+      if ((significand == 0U) || (power < detail::c_smallest_power_of_five) ||
+          (power > detail::c_largest_power_of_five))
+      {
+        return std::nullopt;
+      }
+
+      // Normalize so the significand's top bit is set.
+      const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
+      const std::uint64_t normalized = significand << leading_zeros;
+      const detail::power_of_five_128& entry =
+        detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
+
+      detail::product_128 product = detail::multiply_64x64_to_1289(normalized, entry.high);
+
+      // Only when the bits below the rounding position are all ones can the low table word matter.
+      if ((product.high & c_precision_mask) == c_precision_mask)
+      {
+        const detail::product_128 second = detail::multiply_64x64_to_1289(normalized, entry.low);
+
+        product.low += second.high;
+        if (second.high > product.low)
+        {
+          ++product.high;
+        }
+
+        if ((product.low == c_all_ones) && ((power < c_safe_power_min) || (power > c_safe_power_max)))
+        {
+          return std::nullopt;
+        }
+      }
+
+      const auto upper_bit = static_cast<std::uint32_t>(product.high >> 63U);
+      std::uint64_t mantissa = product.high >> (upper_bit + c_shift);
+
+      // Floor division written out: right-shifting a negative value is implementation-defined in C++17.
+      const std::int64_t scaled = c_log2_ten_scaled * power;
+      const std::int64_t floor_log2 =
+        (scaled >= 0) ? (scaled / c_log2_ten_scale) : -((-scaled + c_log2_ten_scale - 1) / c_log2_ten_scale);
+      std::int32_t power2 = static_cast<std::int32_t>(floor_log2) + 63 + static_cast<std::int32_t>(upper_bit) -
+                            leading_zeros - c_minimum_exponent;
+
+      if (power2 <= 0)
+      {
+        return std::nullopt; // Subnormal or zero: the exact path applies the underflow policy.
+      }
+
+      // An exact halfway product rounds to even instead of up.
+      if ((product.low <= 1U) && (power >= c_round_even_min) && (power <= c_round_even_max) &&
+          ((mantissa & 3U) == 1U) && ((mantissa << (upper_bit + c_shift)) == product.high))
+      {
+        mantissa &= ~std::uint64_t{1};
+      }
+
+      mantissa += mantissa & 1U;
+      mantissa >>= 1U;
+
+      // Rounding carried into a new leading bit.
+      if (mantissa >= (std::uint64_t{2} << c_explicit_bits))
+      {
+        mantissa = std::uint64_t{1} << c_explicit_bits;
+        ++power2;
+      }
+
+      if (power2 >= c_infinite_power)
+      {
+        return std::nullopt; // Overflow: the exact path reports out_of_range.
+      }
+
+      // mantissa now includes the implicit leading bit and is below 2^digits, so ldexp is exact.
+      // Plain int on purpose: the standard declares std::ldexp(T, int).
+      const T magnitude =
+        std::ldexp(static_cast<T>(mantissa), static_cast<int>(power2 + c_minimum_exponent - c_explicit_bits));
+
+      return negative ? -magnitude : magnitude;
+    }
+#endif // ADAPTIVE_JSON5_EISEL_LEMIRE
   } // namespace
 
   /**
