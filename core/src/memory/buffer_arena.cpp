@@ -45,7 +45,7 @@ namespace adaptive_json5
    * P003; J5-040; J5-051.
    * @par ID SWU-MEMORY-011
    */
-  void buffer_arena::deallocate_callback(void* context, void* /* address */, std::size_t /* bytes */,
+  void buffer_arena::deallocate_callback(void* context, void* address, std::size_t bytes,
                                          std::size_t /* alignment */) noexcept
   {
     auto& self = *static_cast<buffer_arena*>(context);
@@ -62,6 +62,14 @@ namespace adaptive_json5
     if (self.m_live == 0)
     {
       self.m_used = 0;
+    }
+
+    // Top of stack release: the block ends exactly at the used mark, so give it back.
+    auto* const block = static_cast<unsigned char*>(address);
+    if ((block != nullptr) && (block >= self.m_begin) &&
+        ((static_cast<std::size_t>(block - self.m_begin) + bytes) == self.m_used))
+    {
+      self.m_used = static_cast<std::size_t>(block - self.m_begin);
     }
   }
 

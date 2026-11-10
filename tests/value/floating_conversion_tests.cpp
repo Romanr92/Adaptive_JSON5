@@ -375,7 +375,8 @@ namespace
   /* ================================= End Test_J5_037 ================================= */
   /* =================================== Test_J5_048 =================================== */
   /* Verify work and scratch ceilings return resource_limit and release scratch.
-   * Arrange: Own "0.1"; build options with zero work and with zero scratch bytes.
+   * Arrange: Own a 27-digit spelling, too long for any scratch-free fast path; build options
+   * with zero work and with zero scratch bytes.
    * Act: Convert to double under each option set.
    * Expect: resource_limit for both, with no outstanding scratch.
    */
@@ -384,7 +385,7 @@ namespace
     /* Arrange */
     guard_provider number_storage;
     guard_provider scratch;
-    const auto number = make_number(number_storage, "0.1");
+    const auto number = make_number(number_storage, "0.100000000000000000000000001");
     ASSERT_TRUE(number.has_value());
     floating_conversion_options no_work{};
     no_work.max_work_units = 0U;

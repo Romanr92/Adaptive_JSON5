@@ -79,9 +79,9 @@ namespace
    * @note Anything for files, streams, processes, threads, time, locale or networking
    * is absent on purpose. Adding a header here is a reviewed decision.
    */
-  const std::set<std::string> c_allowed_standard_headers{"algorithm",   "array",   "cmath",  "cstddef",  "cstdint",
-                                                         "cstring",     "limits",  "new",    "optional", "string_view",
-                                                         "type_traits", "utility", "variant"};
+  const std::set<std::string> c_allowed_standard_headers{"algorithm",   "array",       "cfloat",  "cmath",  "cstddef",
+                                                         "cstdint",     "cstring",     "limits",  "new",    "optional",
+                                                         "string_view", "type_traits", "utility", "variant"};
 
   /* Verify production code includes no header for files, processes, threads, time, locale or I/O.
    * Arrange: Every header and source under includes/, core/includes/ and core/src/.

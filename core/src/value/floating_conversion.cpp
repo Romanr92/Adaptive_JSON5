@@ -15,10 +15,12 @@
 #include "value/floating_special.hpp"
 #include "value/number_analysis.hpp"
 
+#include <cfloat>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <optional>
 
 namespace adaptive_json5
 {
@@ -191,6 +193,101 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Convert without scratch when the significand and power of ten are exact in T.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @return The correctly rounded value, an empty optional when the exact path is needed,
+     * or resource_limit when work is exhausted.
+     * @note One exact multiply or divide is correctly rounded under IEEE round-to-nearest
+     * (Clinger 1990). Disabled when intermediate precision is wider than T.
+     */
+    template <typename T>
+    [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,
+                                                         work_budget& work) noexcept
+    {
+      using fast_result = result<std::optional<T>>;
+
+#if !defined(FLT_EVAL_METHOD) || (FLT_EVAL_METHOD != 0)
+      // x87-style excess precision would round twice, so always use the exact path.
+      static_cast<void>(spelling);
+      static_cast<void>(parts);
+      static_cast<void>(work);
+      return fast_result::success(std::nullopt); // x87-style excess precision would round twice.
+#else
+      using limits = std::numeric_limits<T>;
+
+      // 2^digits is the largest integer range T holds exactly; 10^k is exact for k <= max_exact_power.
+      constexpr std::uint64_t c_max_exact_significand = std::uint64_t{1} << limits::digits;
+      constexpr std::size_t c_max_exact_power = (limits::digits == 53) ? 22 : 10;
+      constexpr T c_powers[] = {1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10, 1e11,
+                                1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
+
+      // At most 19 digits always fit in uint64_t; leading zeros only make this conservative.
+      const bool hexadecimal = (parts.kind == number_kind::hexadecimal);
+      if ((parts.digit_count > (hexadecimal ? 16U : 19U)) || (parts.scale_magnitude > c_max_exact_power))
+      {
+        return fast_result::success(std::nullopt);
+      }
+
+      const auto charged = work.charge(parts.digit_count);
+      if (!charged.has_value())
+      {
+        return fast_result::failure(*charged.error_if());
+      }
+
+      // Accumulate significand digits; skip sign, 0x prefix and '.', stop at the exponent.
+      std::uint64_t significand{};
+      std::size_t position{};
+
+      if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
+      {
+        ++position;
+      }
+
+      // Hexadecimal 'e' and 'E' are digits, so keep this path separate.
+      if (hexadecimal)
+      {
+        for (position += c_hexadecimal_prefix_bytes; position < spelling.size; ++position)
+        {
+          significand = (significand * c_hexadecimal_radix) + hexadecimal_digit_value(spelling.data[position]);
+        }
+      }
+      else
+      {
+        for (; position < spelling.size; ++position)
+        {
+          const char current = spelling.data[position];
+
+          if ((current == 'e') || (current == 'E'))
+          {
+            break;
+          }
+
+          // Analysis already accounts for the point in the decimal scale.
+          if (current != '.')
+          {
+            significand = (significand * c_decimal_radix) + static_cast<unsigned int>(current - '0');
+          }
+        }
+      }
+
+      if (significand > c_max_exact_significand)
+      {
+        return fast_result::success(std::nullopt);
+      }
+
+      T value = static_cast<T>(significand); // exact by the bound above
+      if (parts.scale_magnitude != 0)
+      {
+        value =
+          parts.scale_negative ? (value / c_powers[parts.scale_magnitude]) : (value * c_powers[parts.scale_magnitude]);
+      }
+
+      return fast_result::success(parts.negative ? -value : value);
+#endif
+    }
+
+    /**
      * @brief Convert an exact number to a correctly rounded float or double.
      * @par Requirements
      * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
@@ -255,6 +352,18 @@ namespace adaptive_json5
           ((parts.scale_magnitude - parts.digit_count) >= c_underflow_scale))
       {
         return finish_underflow<T>(negative, options);
+      }
+
+      const auto fast = try_fast_path<T>(number.spelling(), parts, work);
+
+      if (!fast.has_value())
+      {
+        return float_result::failure(*fast.error_if());
+      }
+
+      if (fast.value_if()->has_value())
+      {
+        return float_result::success(**fast.value_if());
       }
 
       // Declared before integers so it outlives every allocation it accounts for.
