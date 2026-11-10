@@ -287,16 +287,18 @@ reuse across calls is everything that costs something:
 2. **Extract** what your service needs into its own structures: paths, arguments,
    numbers and flags. Use the value API, the checked numeric conversions and
    `utf8_export` for strings. After this step, nothing refers to the document.
-3. **Release** the document by letting it go out of scope. If the provider is an
-   arena used only for this file, reset the arena **after** the document is
-   destroyed, never before.
+3. **Release** the document by letting it go out of scope. A `buffer_arena` needs
+   no reset: once the document is destroyed and every allocation from the arena is
+   released, the arena reuses its whole buffer for the next file.
 4. **Repeat** for the next file.
 
 ```cpp
+// One arena, created before the loop and reused for every file. It needs no reset:
+// when the previous document is destroyed and every allocation is released, the
+// arena starts again at the beginning of its buffer, so memory never grows beyond
+// the largest file.
 for (const config_file& file : files)
 {
-  // One arena per file: memory never grows beyond the largest file.
-  arena.reset();                                   // previous document already destroyed
   accounted_storage accounting{arena.callbacks(), options.limits.max_owned_bytes};
 
   const auto parsed = parse_document({file.data, file.size}, options, accounting);
@@ -311,7 +313,7 @@ for (const config_file& file : files)
   {
     configs.push_back(config);
   }
-}                                                  // document destroyed here, before the next reset
+}                                                  // document destroyed here; the arena is free again
 ```
 
 In this example, `arena`, `config_file`, `my_config`, `report`, `extract` and
@@ -357,5 +359,10 @@ a separate, additive decision, and nothing in the current design prevents it.
    the longest parse time you can allow. If you size it from the work your largest
    documents need, add some headroom: a scan that ends within 3 bytes of the limit
    fails with `resource_limit`.
+4. Decide on `ADAPTIVE_JSON5_EISEL_LEMIRE` (default `ON`). It costs about 10 KB of
+   read-only data for a power-of-five table. `OFF` saves that space; conversion
+   results don't change, only how often reading a number needs scratch. Status:
+   the table exists, the conversion step that uses it is planned (#124). See
+   [embedded integration](embedded.md).
 
 See also [embedded integration](embedded.md).

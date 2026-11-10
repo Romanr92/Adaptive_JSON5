@@ -11,6 +11,15 @@ target_include_directories(adaptive_json5_parser
     PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
 adaptive_json5_configure_target(adaptive_json5_parser)
 
+# Eisel-Lemire conversion step and its power-of-five table (ADR 0005, decision 3). OFF saves
+# the read-only table; conversion results are identical, only more numbers need scratch.
+if(ADAPTIVE_JSON5_EISEL_LEMIRE)
+    target_sources(adaptive_json5_parser PRIVATE src/value/power_of_five_table.cpp)
+    target_compile_definitions(adaptive_json5_parser PRIVATE ADAPTIVE_JSON5_EISEL_LEMIRE=1)
+else()
+    target_compile_definitions(adaptive_json5_parser PRIVATE ADAPTIVE_JSON5_EISEL_LEMIRE=0)
+endif()
+
 # Optional hosted convenience API. It uses the global heap, so it is a separate
 # target and never part of the embedded parser library (J5-101).
 if(ADAPTIVE_JSON5_BUILD_HOSTED OR ADAPTIVE_JSON5_BUILD_TESTS)

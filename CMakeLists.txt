@@ -18,6 +18,9 @@ option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project targets"
 option(ADAPTIVE_JSON5_ENABLE_RTTI "Enable RTTI in project unit targets" OFF)
 option(ADAPTIVE_JSON5_BUILD_HOSTED
     "Build the optional hosted one-call parse API (uses the global heap)" OFF)
+option(ADAPTIVE_JSON5_EISEL_LEMIRE
+    "Convert up to 19-digit decimals to floating point without scratch (about 10 KB read-only table)"
+    ON)
 if(ADAPTIVE_JSON5_BUILD_SCHEMA)
     message(FATAL_ERROR
         "The optional schema implementation is not available yet; build the "
