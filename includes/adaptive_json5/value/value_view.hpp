@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <string_view>
 
 namespace adaptive_json5
 {
@@ -182,6 +183,20 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-135
        */
       [[nodiscard]] result<std::optional<adaptive_json5::source_span>> member_name_source_span() const noexcept;
+
+      /**
+       * @brief Find the unique object member with the given UTF-8 name in one pass.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-033; J5-039; #124.
+       * @param name Member name in UTF-8, compared exactly with the decoded name.
+       * @return The member's value; wrong_type_or_access when this is not an object, when no
+       * member has the name or when more than one member has it; encoding when name is not
+       * valid UTF-8.
+       * @note Visits each member at most once (linear cost) and checks the same document
+       * relationships as member_at(). Preserved duplicates are never resolved silently.
+       * Allocates nothing.
+       */
+      [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;
   };
 } // namespace adaptive_json5
 
