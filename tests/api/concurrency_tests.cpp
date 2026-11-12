@@ -1,4 +1,5 @@
 #include "../shared_infrastructure/document_provider.hpp"
+#include "../shared_infrastructure/fast_path_config.hpp"
 #include "../shared_infrastructure/guard_provider.hpp"
 #include "adaptive_json5/json5_document.hpp"
 #include "adaptive_json5/json5_value.hpp"
@@ -149,9 +150,10 @@ namespace
    * @brief Read one shared document's numbers as the documented thread rule allows.
    * @par Requirements
    * J5-037; J5-050.
-   * @note Navigation and scratch-free as_double() use no storage; the long number goes
-   * through as_double(scratch) with this worker's own provider. Each worker writes only its
-   * own result.
+   * @note Navigation and scratch-free as_double() use no storage, so the ratio is read with
+   * the plain as_double() when a fast path makes it scratch-free on this build, and with this
+   * worker's provider otherwise. The long number always goes through as_double(scratch).
+   * Each worker writes only its own result.
    */
   void read_shared_document(const json5_document& document, storage_callbacks scratch, double long_expected,
                             std::atomic<std::size_t>& ready, const std::atomic<bool>& start, worker_result& observed)
@@ -164,7 +166,10 @@ namespace
     const json5_value root = document.root();
     for (std::size_t read{}; read < 2000U; ++read)
     {
-      const auto ratio = root.member("ratio").as_double();
+      // The plain read is concurrent-safe only while 1.5 needs no scratch; otherwise the
+      // workers would share the document's storage, so they use their own provider instead.
+      const auto ratio = adaptive_json5_test::c_short_decimal_scratch_free ? root.member("ratio").as_double()
+                                                                           : root.member("ratio").as_double(scratch);
       const auto port = root.member("port").as_uint64();
       const auto long_value = root.member("long").as_double(scratch);
       observed.correct = observed.correct && ratio.has_value() && (*ratio.value_if() == 1.5) && port.has_value() &&
@@ -175,8 +180,9 @@ namespace
   }
   /*
    * Verify the json5_value thread rule: several threads read one document concurrently.
-   * Arrange: One document in a caller buffer with a scratch-free ratio and a 300-digit number;
-   *          one guarded scratch provider per worker, owned by the main thread.
+   * Arrange: One document in a caller buffer with a short ratio (scratch-free when a fast path
+   *          is compiled in) and a 300-digit number; one guarded scratch provider per worker,
+   *          owned by the main thread.
    * Act: Four workers navigate and read both numbers 2000 times, the long one with their own
    *      scratch provider.
    * Expect: Every read is correct, every provider is fully released, and the document's

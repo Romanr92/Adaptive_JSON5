@@ -1,3 +1,4 @@
+#include "../shared_infrastructure/fast_path_config.hpp"
 #include "../shared_infrastructure/guard_provider.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/json5_document.hpp"
@@ -441,10 +442,21 @@ namespace
     EXPECT_EQ(scratch.m_live_bytes, 0U);
     EXPECT_EQ(fixture.document->current_bytes(), current_before);
     EXPECT_EQ(fixture.document->peak_bytes(), peak_before);
-    ASSERT_TRUE(ratio_without.has_value());
-    EXPECT_EQ(*ratio_without.value_if(), 1.5);
-    ASSERT_TRUE(ratio_float_without.has_value());
-    EXPECT_EQ(*ratio_float_without.value_if(), 1.5F);
+    // 1.5 is scratch-free only when Clinger or Eisel-Lemire is compiled in.
+    if (adaptive_json5_test::c_short_decimal_scratch_free)
+    {
+      ASSERT_TRUE(ratio_without.has_value());
+      EXPECT_EQ(*ratio_without.value_if(), 1.5);
+      ASSERT_TRUE(ratio_float_without.has_value());
+      EXPECT_EQ(*ratio_float_without.value_if(), 1.5F);
+    }
+    else
+    {
+      ASSERT_FALSE(ratio_without.has_value());
+      EXPECT_EQ(ratio_without.error_if()->code, error_code::allocation_failure);
+      ASSERT_FALSE(ratio_float_without.has_value());
+      EXPECT_EQ(ratio_float_without.error_if()->code, error_code::allocation_failure);
+    }
     ASSERT_FALSE(long_without.has_value());
     EXPECT_EQ(long_without.error_if()->code, error_code::allocation_failure);
     ASSERT_FALSE(long_float_without.has_value());

@@ -1,3 +1,4 @@
+#include "../shared_infrastructure/fast_path_config.hpp"
 #include "../shared_infrastructure/guard_provider.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
@@ -8,7 +9,6 @@
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
 
-#include <cfloat>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -380,24 +380,8 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
-  /**
-   * @brief Whether Clinger's exact fast path is compiled in for this host.
-   * @par Requirements
-   * J5-037.
-   * @note It needs floating arithmetic without extra precision (FLT_EVAL_METHOD == 0).
-   */
-#if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
-  constexpr bool c_clinger_enabled = true;
-#else
-  constexpr bool c_clinger_enabled = false;
-#endif
-
-  /**
-   * @brief Whether the library was built with the Eisel-Lemire step (ADAPTIVE_JSON5_EISEL_LEMIRE).
-   * @par Requirements
-   * J5-037.
-   */
-  constexpr bool c_eisel_lemire_enabled = (ADAPTIVE_JSON5_EXPECT_EISEL_LEMIRE != 0);
+  using adaptive_json5_test::c_clinger_enabled;
+  using adaptive_json5_test::c_eisel_lemire_enabled;
 
   /**
    * @brief Which scratch-free step, if any, can convert a spelling.
