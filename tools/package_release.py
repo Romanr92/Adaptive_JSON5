@@ -87,6 +87,7 @@ def main():
         "-DCMAKE_INSTALL_LIBDIR=lib", "-DCMAKE_INSTALL_INCLUDEDIR=include",
         "-DADAPTIVE_JSON5_INSTALL_ARCHIVEDIR=.",
         f"-DADAPTIVE_JSON5_PACKAGE_PROFILE={args.platform}",
+        f"-DADAPTIVE_JSON5_RELEASE_TAG={args.version}",
         f"-DADAPTIVE_JSON5_SDK_SHA256={args.sdk_sha256}",
     ]
     if args.compiler:
@@ -102,6 +103,11 @@ def main():
         parser.error("Unable to identify libstdc++ string ABI")
     if info["source_revision"] != revision:
         parser.error("CMake source revision differs from the packaged source")
+    # The exported AdaptiveJSON5_RELEASE_TAG must be the exact tag being published. Sources
+    # older than the tag export (recovery builds) record none; the packaged build-info.json
+    # below still carries release_tag, which the import helper falls back to.
+    if "release_tag" in info and info["release_tag"] != args.version:
+        parser.error("CMake release tag differs from --version")
     subprocess.run(["cmake", "--build", str(build), "--parallel", str(args.jobs)], check=True)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     name = f"AdaptiveJSON5-{args.version}-{args.platform}"

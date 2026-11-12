@@ -69,10 +69,24 @@ target_link_libraries(my_application PRIVATE AdaptiveJSON5::parser)
 
 The target supplies headers and the archive. Include headers as
 `<adaptive_json5/parser.hpp>`; `include/` is not part of their spelling.
-The exported `AdaptiveJSON5_VERSION`, `AdaptiveJSON5_SOURCE_REVISION`,
-`AdaptiveJSON5_PACKAGE_PROFILE`, `AdaptiveJSON5_COMPILER_VERSION`,
-`AdaptiveJSON5_TARGET_TRIPLE`, `AdaptiveJSON5_EXCEPTIONS` and
-`AdaptiveJSON5_RTTI` expose package information without a new C++ API.
+The exported `AdaptiveJSON5_VERSION`, `AdaptiveJSON5_RELEASE_TAG`,
+`AdaptiveJSON5_SOURCE_REVISION`, `AdaptiveJSON5_PACKAGE_PROFILE`,
+`AdaptiveJSON5_COMPILER_VERSION`, `AdaptiveJSON5_TARGET_TRIPLE`,
+`AdaptiveJSON5_EXCEPTIONS` and `AdaptiveJSON5_RTTI` expose package information
+without a new C++ API. `AdaptiveJSON5_RELEASE_TAG` is the exact tag a release
+package was built from (for example `0.2.0` or `0.2.0-rc.1`); it is empty for a
+source build.
+
+Components: `parser` and `build_options` are always present. `hosted` is found
+only when the optional hosted library is installed, which needs a source build with
+`ADAPTIVE_JSON5_BUILD_HOSTED=ON`; release packages never contain it, so
+`COMPONENTS hosted` fails for them with a message saying so:
+
+```cmake
+find_package(AdaptiveJSON5 0.2.0 EXACT CONFIG REQUIRED COMPONENTS parser hosted)
+target_link_libraries(my_tool PRIVATE AdaptiveJSON5::hosted)
+```
+
 Required `schema`/unknown components fail. `ADAPTIVE_JSON5_BUILD_SCHEMA=ON`
 also fails explicitly; schema and the real host CLI remain future work.
 
@@ -97,6 +111,16 @@ OS/compiler-target profile, downloads over verified TLS, verifies the checksum
 and imports the package. An unknown target fails with a source-build instruction.
 `PROFILE` selects an explicit supported profile; imported metadata still checks
 compatibility. Source consumers should pin a release or exact commit too.
+
+**The release tag must match exactly.** `VERSION` is compared, character for
+character, with the tag the package was built from: `v0.2.0` and `0.2.0` are
+different releases, as are `0.2.0-rc.1` and `0.2.0-rc.2`, and `0.2.0-rc.9` does not
+accept a final `0.2.0` package. The check runs for `ROOT`, `ARCHIVE`, downloaded and
+already cached packages alike. The helper reads `AdaptiveJSON5_RELEASE_TAG`, or, for
+packages built before it was exported, `release_tag` from the package's
+`build-info.json`. A package without a release tag, such as a source install passed as
+`ROOT`, is rejected: import source builds with `find_package` instead. The helper
+passes `AdaptiveJSON5_RELEASE_TAG` to the caller.
 
 For the current AdaptivePi profile, source the matching SDK environment before
 configuring and set its identity before importing:
@@ -151,6 +175,9 @@ packages to that existing release. The workflow checks out its immutable tagged
 library source separately and runs the corrected packaging tools from the selected
 workflow revision. Library source and packaging-tool revisions are both recorded;
 the corrected import helper ships with the package. The tag is not moved.
+A source older than the release-tag export (before #129) does not define
+`AdaptiveJSON5_RELEASE_TAG`; its package still records `release_tag` in
+`build-info.json`, which the import helper reads instead.
 
 All four builds must pass before this recovery publish job runs. Already attached
 assets are not overwritten. A failed dependency build also causes publish to be
@@ -160,5 +187,12 @@ publish job as the underlying failure.
 PR quality checks remain GoogleTest units and formatting. The unit workflow adds
 native ARM64 and MinGW executions in both exception modes with RTTI OFF. Consumer
 configure/build/install checks are development checks, not a new integration CI
-gate. Schema packaging and broader shared J5 obligations remain in their owning
+gate. The packaging tool and import helper have local regression tests (CMake 3.25+,
+a GNU `g++`, and Ninja or, on Windows without it, MinGW Makefiles):
+
+```sh
+python3 tools/tests/test_package_release.py
+python3 tools/tests/test_import_release.py
+```
+ Schema packaging and broader shared J5 obligations remain in their owning
 stages. Requirement statuses remain Draft.
