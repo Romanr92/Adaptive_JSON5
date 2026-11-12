@@ -73,5 +73,32 @@ namespace adaptive_json5
         }
       }
     }
+
+    /**
+     * @brief Check that a caller's member name is valid UTF-8.
+     * @par Requirements
+     * P030; J5-033; J5-039; #124.
+     * @par ID SWU-VALUE-150
+     */
+    result<void> validate_utf8_name(std::string_view utf8) noexcept
+    {
+      cursor source{input_view{utf8.data(), utf8.size()}};
+
+      while (true)
+      {
+        const auto decoded = decode_utf8(source);
+
+        if (!decoded.has_value())
+        {
+          return result<void>::failure(*decoded.error_if());
+        }
+
+        // End of the name: every sequence decoded.
+        if (!decoded.value_if()->has_value())
+        {
+          return result<void>::success();
+        }
+      }
+    }
   } // namespace detail
 } // namespace adaptive_json5

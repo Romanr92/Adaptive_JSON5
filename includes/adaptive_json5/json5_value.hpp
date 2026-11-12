@@ -234,6 +234,7 @@ namespace adaptive_json5
        * @note Never touches the document's storage, so threads that each pass their own
        * provider may read one document concurrently. An empty storage_callbacks{} reads
        * scratch-free numbers and reports allocation_failure for the rest.
+       * @par ID SWU-VALUE-154
        */
       [[nodiscard]] result<double> as_double(const storage_callbacks& scratch) const noexcept;
 
@@ -243,6 +244,7 @@ namespace adaptive_json5
        * J5-034; J5-037; J5-039.
        * @return As as_double(), for float.
        * @note Rounds once to float, never through double. Scratch rules as as_double().
+       * @par ID SWU-VALUE-155
        */
       [[nodiscard]] result<float> as_float() const noexcept;
 
@@ -252,6 +254,7 @@ namespace adaptive_json5
        * J5-034; J5-037; J5-039; J5-040.
        * @param scratch Caller-owned fallible temporary storage; see as_double(scratch).
        * @return As as_double(scratch), for float.
+       * @par ID SWU-VALUE-156
        */
       [[nodiscard]] result<float> as_float(const storage_callbacks& scratch) const noexcept;
 

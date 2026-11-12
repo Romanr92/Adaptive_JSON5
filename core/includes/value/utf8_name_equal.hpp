@@ -23,6 +23,17 @@ namespace adaptive_json5
      * @par ID SWU-VALUE-105
      */
     [[nodiscard]] result<bool> utf8_name_equal(const decoded_string& name, std::string_view utf8) noexcept;
+
+    /**
+     * @brief Check that a caller's member name is valid UTF-8.
+     * @par Requirements
+     * P030; J5-033; J5-039; #124.
+     * @param utf8 Name given by the caller.
+     * @return Success, or the encoding error of the first invalid sequence.
+     * @note Reads the whole name once. Uses no storage.
+     * @par ID SWU-VALUE-150
+     */
+    [[nodiscard]] result<void> validate_utf8_name(std::string_view utf8) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

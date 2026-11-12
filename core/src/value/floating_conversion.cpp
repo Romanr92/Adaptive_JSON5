@@ -206,6 +206,7 @@ namespace adaptive_json5
      * must decide: exponent outside the table, subnormal or zero result, overflow, or an
      * undecidable approximation.
      * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
+     * @par ID SWU-VALUE-152
      */
     template <typename T>
     [[nodiscard]] std::optional<T> try_eisel_lemire(std::uint64_t significand, std::int32_t power,
@@ -313,6 +314,7 @@ namespace adaptive_json5
      * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
      * round-to-nearest; disabled when intermediate precision is wider than T.
      * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
+     * @par ID SWU-VALUE-153
      */
     template <typename T>
     [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,

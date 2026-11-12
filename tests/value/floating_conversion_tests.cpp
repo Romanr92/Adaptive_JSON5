@@ -434,11 +434,28 @@ namespace
    * @brief Report whether a case should convert without requesting scratch on this build.
    * @par Requirements
    * J5-037.
+   * @param param The case; its step is the first scratch-free step that applies.
+   * @note A Clinger case is also an Eisel-Lemire case when it is decimal, because every
+   * Clinger case has at most 19 digits and a normal result. So without Clinger (for example
+   * FLT_EVAL_METHOD != 0), a decimal Clinger case is still scratch-free when Eisel-Lemire is
+   * built; a hexadecimal one is not, since Eisel-Lemire handles decimals only.
    */
-  bool expect_scratch_free(fast_step step)
+  bool expect_scratch_free(const fast_path_case& param)
   {
-    return ((step == fast_step::clinger) && c_clinger_enabled) ||
-           ((step == fast_step::eisel_lemire) && c_eisel_lemire_enabled);
+    const std::string_view spelling{param.spelling};
+    const bool decimal =
+      (spelling.find('x') == std::string_view::npos) && (spelling.find('X') == std::string_view::npos);
+
+    switch (param.step)
+    {
+    case fast_step::clinger:
+      return c_clinger_enabled || (decimal && c_eisel_lemire_enabled);
+    case fast_step::eisel_lemire:
+      return c_eisel_lemire_enabled;
+    case fast_step::none:
+      break;
+    }
+    return false;
   }
 
   class DoubleFastPathUnits : public ::testing::TestWithParam<fast_path_case>
@@ -460,7 +477,7 @@ namespace
   {
     /* Arrange */
     const fast_path_case& param = GetParam();
-    const bool scratch_free = expect_scratch_free(param.step);
+    const bool scratch_free = expect_scratch_free(param);
     guard_provider number_storage;
     guard_provider scratch;
     const auto number = make_number(number_storage, param.spelling);
@@ -524,7 +541,7 @@ namespace
   {
     /* Arrange */
     const fast_path_case& param = GetParam();
-    const bool scratch_free = expect_scratch_free(param.step);
+    const bool scratch_free = expect_scratch_free(param);
     guard_provider number_storage;
     guard_provider scratch;
     const auto number = make_number(number_storage, param.spelling);

@@ -254,6 +254,7 @@ namespace adaptive_json5
    * @brief Read a number as a double, rounded once.
    * @par Requirements
    * J5-034; J5-037; J5-039.
+   * @par ID SWU-VALUE-154
    */
   result<double> json5_value::as_double(const storage_callbacks& scratch) const noexcept
   {
@@ -277,6 +278,7 @@ namespace adaptive_json5
    * @brief Read a number as a float, rounded once, using the document's scratch storage.
    * @par Requirements
    * J5-034; J5-037; J5-039.
+   * @par ID SWU-VALUE-155
    */
   result<float> json5_value::as_float() const noexcept
   {
@@ -287,6 +289,7 @@ namespace adaptive_json5
    * @brief Read a number as a float, rounded once, using caller scratch storage.
    * @par Requirements
    * J5-034; J5-037; J5-039; J5-040.
+   * @par ID SWU-VALUE-156
    */
   result<float> json5_value::as_float(const storage_callbacks& scratch) const noexcept
   {

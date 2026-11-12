@@ -384,6 +384,7 @@ namespace adaptive_json5
    * P030; J5-030; J5-031; J5-033; J5-039; #124.
    * @note Walks next_sibling once with the integrity checks of child_at(), so the cost is
    * linear in the member count instead of quadratic.
+   * @par ID SWU-VALUE-157
    */
   result<value_view> value_view::find_member(std::string_view name) const noexcept
   {
@@ -399,6 +400,14 @@ namespace adaptive_json5
     if ((data == nullptr) || (data->members.count > m_storage->size()))
     {
       return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    // utf8_name_equal() stops at the first difference, so check the whole name once here.
+    const auto valid = detail::validate_utf8_name(name);
+
+    if (!valid.has_value())
+    {
+      return result<value_view>::failure(*valid.error_if());
     }
 
     std::optional<value_index> found{};

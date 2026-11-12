@@ -73,8 +73,14 @@ reverse order, so step 4 no longer consumes the caller's buffer.
 
 - Navigation and reads are safe from several threads on one `const` document.
 - The plain `as_double()` / `as_float()` are safe concurrently for numbers that need
-  no scratch: at most 19 significant digits when the option is ON, otherwise the
-  Clinger range.
+  no scratch. A number needs no scratch when its result is normal and finite and it
+  is either in the Clinger range, or, with the option ON, a decimal of at most 19
+  significand digits (leading zeros included) with a power of ten within +-342. The
+  digit count alone is not enough: a subnormal result such as `1e-310`, an overflow,
+  and the rare cases the Eisel-Lemire approximation cannot decide all fall back to
+  scratch from the document's storage.
+- When concurrent reads must be guaranteed whatever the numbers are, pass each thread
+  its own provider through the scratch overloads.
 - For any number, pass a per-thread scratch provider to the overload.
 
 The hosted library returns the same `json5_document` and `json5_value`, so it needs no

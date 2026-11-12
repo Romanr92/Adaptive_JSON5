@@ -623,6 +623,54 @@ namespace
     EXPECT_EQ(in_array.error_if()->code, error_code::wrong_type_or_access);
     EXPECT_EQ(in_invalid_view.error_if()->code, error_code::wrong_type_or_access);
   }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify a name that is not valid UTF-8 is reported wherever the bad bytes are.
+   * Arrange: An empty object, an object {ab: 1} and an array.
+   * Act: Look up names whose invalid bytes come after a differing or a matching prefix,
+   *      through find_member() and member(); look up an invalid name in the array.
+   * Expect: encoding for every invalid name, even when no member could match or the object
+   *         is empty; a valid name still resolves; the array still gives wrong_type_or_access.
+   */
+  TEST(J5_031_ValueView, FindMemberRejectsInvalidUtf8Anywhere)
+  {
+    /* Arrange */
+    parsed_fixture empty{R"({})"};
+    parsed_fixture object{R"({ab: 1})"};
+    parsed_fixture array{R"([1])"};
+    ASSERT_TRUE(empty.document.has_value());
+    ASSERT_TRUE(object.document.has_value());
+    ASSERT_TRUE(array.document.has_value());
+    const auto empty_root = empty.document->values().root();
+    const auto object_root = object.document->values().root();
+    ASSERT_TRUE(empty_root.has_value());
+    ASSERT_TRUE(object_root.has_value());
+    const json5_value members = object.document->root();
+    /* Act */
+    const auto in_empty = empty_root.value_if()->find_member("\xC3");
+    const auto after_difference = object_root.value_if()->find_member("b\xC3");
+    const auto after_match = object_root.value_if()->find_member("a\xC3");
+    const auto cut_four_byte = object_root.value_if()->find_member("ab\xF0\x9F");
+    const auto stray_continuation = object_root.value_if()->find_member("ab\x80");
+    const auto valid = object_root.value_if()->find_member("ab");
+    const json5_value through_member = members.member("b\xC3");
+    const json5_value empty_through_member = empty.document->root().member("\xC3");
+    const json5_value in_array = array.document->root().member("\xC3");
+    /* Expect */
+    EXPECT_EQ(in_empty.error_if()->code, error_code::encoding);
+    EXPECT_EQ(after_difference.error_if()->code, error_code::encoding);
+    EXPECT_EQ(after_match.error_if()->code, error_code::encoding);
+    EXPECT_EQ(cut_four_byte.error_if()->code, error_code::encoding);
+    EXPECT_EQ(stray_continuation.error_if()->code, error_code::encoding);
+    ASSERT_TRUE(valid.has_value());
+    // The same record yields the same borrowed payload address.
+    EXPECT_EQ(*valid.value_if()->as_number().value_if(),
+              *object_root.value_if()->member_at(0U).value_if()->as_number().value_if());
+    expect_error(through_member, error_code::encoding);
+    expect_error(empty_through_member, error_code::encoding);
+    expect_error(in_array, error_code::wrong_type_or_access);
+  }
   /* ================================= End Test_J5_031 ================================= */
   /* =================================== Test_J5_029 =================================== */
 

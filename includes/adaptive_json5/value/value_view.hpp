@@ -196,6 +196,7 @@ namespace adaptive_json5
        * @note Visits each member at most once (linear cost) and checks the same document
        * relationships as member_at(). Preserved duplicates are never resolved silently.
        * Allocates nothing.
+       * @par ID SWU-VALUE-157
        */
       [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;
   };

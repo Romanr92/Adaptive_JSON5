@@ -58,8 +58,9 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
 - **Numbers and scratch memory.** Most numbers are read without any memory: those
   within Clinger's range (up to 2^53 with a power of ten up to 22; for `float`, 2^24
   and 10), and, with `ADAPTIVE_JSON5_EISEL_LEMIRE` on, decimals of up to 19 digits
-  (leading zeros count) with a normal result. Longer spellings and subnormal results
-  borrow temporary scratch. The plain `as_double()` / `as_float()` take it from the
+  (leading zeros count) with a normal, finite result. Longer spellings, subnormal
+  results such as `1e-310`, out-of-range values and rare cases the fast approximation
+  cannot decide borrow temporary scratch. The plain `as_double()` / `as_float()` take it from the
   document's storage and give it back before returning, so repeated reads never use
   up a caller buffer; they can raise `peak_bytes()` once. `as_double(scratch)` and
   `as_float(scratch)` use your own provider instead and never touch the document;
@@ -67,9 +68,11 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
   that need scratch. See [ADR 0005](adr/0005-allocation-free-number-reads.md).
 - **Threads.** Several threads may navigate and read one document at the same time.
   The exception is the plain `as_double()` / `as_float()` on numbers that need
-  scratch, because they use the document's storage. For those, give each thread its
-  own provider through `as_double(scratch)` / `as_float(scratch)`. Moving or
-  destroying the document must not overlap with any read.
+  scratch, because they use the document's storage. The digit count alone does not
+  tell you which numbers those are, so when threads share a document whose numbers
+  you don't control, give each thread its own provider through `as_double(scratch)` /
+  `as_float(scratch)`. Moving or destroying the document must not overlap with any
+  read.
 - `member(name)` looks at each member once, so a lookup costs time proportional to
   the object's size.
 - A `json5_value` borrows its document: don't keep it after the document is
