@@ -1,6 +1,9 @@
 # Package metadata does not add public C++ APIs or change consumer flags.
 set(ADAPTIVE_JSON5_PACKAGE_PROFILE "source" CACHE STRING "Binary release profile, or source")
 set(ADAPTIVE_JSON5_SDK_SHA256 "" CACHE STRING "SHA-256 of the SDK used for a binary release")
+# Exact release tag (e.g. 0.2.0 or 0.2.0-rc.1); empty for source builds. The import helper
+# compares it with the requested VERSION character for character (issue #129).
+set(ADAPTIVE_JSON5_RELEASE_TAG "" CACHE STRING "Exact release tag of a binary package; empty for source builds")
 find_package(Git QUIET)
 set(ADAPTIVE_JSON5_SOURCE_REVISION "unknown")
 if(Git_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
@@ -71,7 +74,8 @@ function(adaptive_json5_json_string key value)
 endfunction()
 set(adaptive_json5_info "{}")
 foreach(pair IN ITEMS
-    "version|PROJECT_VERSION" "source_revision|ADAPTIVE_JSON5_SOURCE_REVISION"
+    "version|PROJECT_VERSION" "release_tag|ADAPTIVE_JSON5_RELEASE_TAG"
+    "source_revision|ADAPTIVE_JSON5_SOURCE_REVISION"
     "profile|ADAPTIVE_JSON5_PACKAGE_PROFILE" "system|CMAKE_SYSTEM_NAME"
     "processor|CMAKE_SYSTEM_PROCESSOR" "compiler_id|CMAKE_CXX_COMPILER_ID"
     "compiler_version|CMAKE_CXX_COMPILER_VERSION" "target_triple|ADAPTIVE_JSON5_TARGET_TRIPLE"

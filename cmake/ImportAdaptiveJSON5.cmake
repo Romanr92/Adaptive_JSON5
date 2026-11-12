@@ -93,13 +93,36 @@ function(adaptive_json5_import_release)
     endif()
     # An older cached AdaptiveJSON5_DIR must not redirect this pinned import.
     set(AdaptiveJSON5_DIR "${root}/lib/cmake/AdaptiveJSON5")
+    # Only the imported package may define the release tag checked below.
+    unset(AdaptiveJSON5_RELEASE_TAG)
     find_package(AdaptiveJSON5 ${package_cmake_version} EXACT REQUIRED CONFIG GLOBAL
         COMPONENTS parser PATHS "${root}/lib/cmake/AdaptiveJSON5"
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
     if(NOT AdaptiveJSON5_PACKAGE_PROFILE STREQUAL package_PROFILE)
         message(FATAL_ERROR "AdaptiveJSON5 package profile differs from ${package_PROFILE}")
     endif()
-    foreach(variable VERSION SOURCE_REVISION PACKAGE_PROFILE SYSTEM_NAME SYSTEM_PROCESSOR
+    # The numeric EXACT check above accepts any tag of the same MAJOR.MINOR.PATCH, so compare
+    # the exact release tag too. This covers ROOT, ARCHIVE, downloaded and cached packages.
+    if(NOT DEFINED AdaptiveJSON5_RELEASE_TAG)
+        # Packages built before the tag was exported record it only in build-info.json.
+        set(AdaptiveJSON5_RELEASE_TAG "")
+        if(EXISTS "${root}/build-info.json")
+            file(READ "${root}/build-info.json" build_info)
+            string(JSON AdaptiveJSON5_RELEASE_TAG ERROR_VARIABLE json_error GET "${build_info}" release_tag)
+            if(json_error)
+                set(AdaptiveJSON5_RELEASE_TAG "")
+            endif()
+        endif()
+    endif()
+    if(AdaptiveJSON5_RELEASE_TAG STREQUAL "")
+        message(FATAL_ERROR "AdaptiveJSON5 package at ${root} has no release tag; it is not a "
+            "release package. Import source builds with find_package instead")
+    endif()
+    if(NOT AdaptiveJSON5_RELEASE_TAG STREQUAL package_VERSION)
+        message(FATAL_ERROR "AdaptiveJSON5 package release tag ${AdaptiveJSON5_RELEASE_TAG} "
+            "differs from the requested VERSION ${package_VERSION}")
+    endif()
+    foreach(variable VERSION RELEASE_TAG SOURCE_REVISION PACKAGE_PROFILE SYSTEM_NAME SYSTEM_PROCESSOR
         COMPILER_ID COMPILER_VERSION TARGET_TRIPLE SDK_SHA256 EXCEPTIONS RTTI)
         set(AdaptiveJSON5_${variable} "${AdaptiveJSON5_${variable}}" PARENT_SCOPE)
     endforeach()
