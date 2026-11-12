@@ -222,6 +222,8 @@ namespace adaptive_json5
    * Thread safety: const operations change no state, so several threads may read one
    * document concurrently. Any modification, move or destruction must not overlap
    * with other access to the same document. Each value_iterator is single-threaded.
+   * Numeric conversions that take scratch storage modify that storage; concurrent
+   * conversions need one provider per thread.
    */
   class [[nodiscard]] document
   {

@@ -313,12 +313,22 @@ namespace adaptive_json5
   }
 
   /**
-   * @brief Read a number as a double, rounded once.
+   * @brief Read a number as a double, rounded once, using the document's scratch storage.
    * @par Requirements
    * J5-034; J5-037; J5-039.
    * @par ID SWU-VALUE-075
    */
   result<double> json5_value::as_double() const noexcept
+  {
+    return as_double(m_scratch);
+  }
+
+  /**
+   * @brief Read a number as a double, rounded once.
+   * @par Requirements
+   * J5-034; J5-037; J5-039.
+   */
+  result<double> json5_value::as_double(const storage_callbacks& scratch) const noexcept
   {
     if (!m_value.has_value())
     {
@@ -334,6 +344,39 @@ namespace adaptive_json5
 
     // Exact rounding may need big-integer scratch; it comes from the document's own storage.
     return to_double(**number.value_if(), m_scratch);
+  }
+
+  /**
+   * @brief Read a number as a float, rounded once, using the document's scratch storage.
+   * @par Requirements
+   * J5-034; J5-037; J5-039.
+   */
+  result<float> json5_value::as_float() const noexcept
+  {
+    
+    return as_float(m_scratch);
+  }
+
+  /**
+   * @brief Read a number as a float, rounded once, using caller scratch storage.
+   * @par Requirements
+   * J5-034; J5-037; J5-039; J5-040.
+   */
+  result<float> json5_value::as_float(const storage_callbacks& scratch) const noexcept
+  {
+    if (!m_value.has_value())
+    {
+      return result<float>::failure(*m_value.error_if());
+    }
+
+    const auto number = m_value.value_if()->as_number();
+
+    if (!number.has_value())
+    {
+      return result<float>::failure(*number.error_if());
+    }
+
+    return to_float(**number.value_if(), scratch);
   }
 
   /**
