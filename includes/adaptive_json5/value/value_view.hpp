@@ -191,11 +191,13 @@ namespace adaptive_json5
        * P030; J5-030; J5-031; J5-033; J5-039; #124.
        * @param name Member name in UTF-8, compared exactly with the decoded name.
        * @return The member's value; wrong_type_or_access when this is not an object, when no
-       * member has the name or when more than one member has it; encoding when name is not
-       * valid UTF-8.
-       * @note Visits each member at most once (linear cost) and checks the same document
-       * relationships as member_at(). Preserved duplicates are never resolved silently.
-       * Allocates nothing.
+       * member has the name, when more than one member has it or when the member list is
+       * damaged; encoding when name is not valid UTF-8.
+       * @note Visits each member at most once (linear cost). Checks every member's parent and
+       * name as member_at() does, and the list ends as value_iterator does: the first and last
+       * links must match the count, only the last member may end the chain, and it must be
+       * the member the object records as last. Preserved duplicates are never resolved
+       * silently. Allocates nothing.
        * @par ID SWU-VALUE-157
        */
       [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;

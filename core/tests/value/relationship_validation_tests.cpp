@@ -1,9 +1,11 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
+#include "adaptive_json5/value/value_view.hpp"
 #include "value/document_links.hpp"
 #include "value/member_lookup.hpp"
 #include "value/value_record.hpp"
 
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
 
@@ -191,6 +193,78 @@ namespace
     ASSERT_FALSE(found.has_value());
     EXPECT_EQ(found.error_if()->code, error_code::wrong_type_or_access);
   }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: The same internal faults in a one-member object chain whose member has the
+   *          empty name.
+   * Act: Find the empty name with value_view::find_member().
+   * Expect: wrong_type_or_access; a damaged chain never yields the member as a unique match.
+   */
+  TEST_P(J5_039_RelationshipValidation, FindMemberRejectsMalformedObjectChains)
+  {
+    /* Arrange */
+    document_provider provider;
+    value_storage values{provider.callbacks(), 8};
+    value_record object;
+    object.payload.emplace<object_data>();
+    ASSERT_TRUE(values.append(std::move(object)).has_value());
+    value_record child;
+    child.parent = value_index{0};
+    child.member_name.emplace();
+    ASSERT_TRUE(values.append(std::move(child)).has_value());
+    const auto parent_record = values.at(value_index{0});
+    const auto child_record = values.at(value_index{1});
+    ASSERT_TRUE(parent_record.has_value());
+    ASSERT_TRUE(child_record.has_value());
+    auto& links = std::get<object_data>((*parent_record.value_if())->payload).members;
+    links = {value_index{1}, value_index{1}, 1};
+    auto& item = **child_record.value_if();
+    // Before the fix, ExtraSibling (a self-loop) and MissingLast returned the member as found.
+    switch (GetParam())
+    {
+    case relationship_fault::count_too_large:
+      links.count = 3;
+      break;
+    case relationship_fault::empty_first:
+      links.count = 0;
+      links.last = {};
+      break;
+    case relationship_fault::empty_last:
+      links.count = 0;
+      links.first = {};
+      break;
+    case relationship_fault::missing_first:
+      links.first = {};
+      break;
+    case relationship_fault::missing_last:
+      links.last = {};
+      break;
+    case relationship_fault::invalid_first:
+      links.first = value_index{99};
+      break;
+    case relationship_fault::no_parent:
+      item.parent = {};
+      break;
+    case relationship_fault::wrong_parent:
+      item.parent = value_index{1};
+      break;
+    case relationship_fault::unexpected_name:
+      item.member_name.reset();
+      break;
+    case relationship_fault::extra_sibling:
+      item.next_sibling = value_index{1};
+      break;
+    case relationship_fault::missing_sibling:
+      links.count = 2;
+      break;
+    }
+    const value_view view{values, value_index{0}};
+    /* Act */
+    const auto found = view.find_member("");
+    /* Expect */
+    ASSERT_FALSE(found.has_value());
+    EXPECT_EQ(found.error_if()->code, error_code::wrong_type_or_access);
+  }
   INSTANTIATE_TEST_SUITE_P(InternalFaults, J5_039_RelationshipValidation,
                            testing::Values(relationship_fault::count_too_large, relationship_fault::empty_first,
                                            relationship_fault::empty_last, relationship_fault::missing_first,
@@ -246,6 +320,41 @@ namespace
       /* Expect */
       ASSERT_FALSE(element.has_value());
       EXPECT_EQ(element.error_if()->code, error_code::wrong_type_or_access);
+    }
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: A one-member object chain, intact or with the object's last link set but
+   *          pointing at another record (the object itself).
+   * Act: Find the member's empty name with value_view::find_member().
+   * Expect: The intact chain finds the member; the damaged one gives wrong_type_or_access,
+   *         because the chain ends at a member the object does not record as last.
+   */
+  TEST(J5_039_ValueViewValidation, FindMemberRejectsWrongLastLink)
+  {
+    for (std::int32_t damaged = 0; damaged < 2; ++damaged)
+    {
+      SCOPED_TRACE(damaged);
+      /* Arrange */
+      document_provider provider;
+      value_storage values{provider.callbacks(), 8};
+      const value_index last = (damaged == 1) ? value_index{0} : value_index{1};
+      value_record object;
+      object.payload.emplace<object_data>(object_data{{value_index{1}, last, 1}});
+      ASSERT_TRUE(values.append(std::move(object)).has_value());
+      value_record member;
+      member.parent = value_index{0};
+      member.member_name.emplace();
+      ASSERT_TRUE(values.append(std::move(member)).has_value());
+      const value_view view{values, value_index{0}};
+      /* Act */
+      const auto found = view.find_member("");
+      /* Expect */
+      ASSERT_EQ(found.has_value(), damaged == 0);
+      if (damaged == 1)
+      {
+        EXPECT_EQ(found.error_if()->code, error_code::wrong_type_or_access);
+      }
     }
   }
   /* ================================= End Test_J5_039 ================================== */

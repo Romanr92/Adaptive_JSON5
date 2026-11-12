@@ -382,8 +382,9 @@ namespace adaptive_json5
    * @brief Find the unique object member with the given UTF-8 name in one pass.
    * @par Requirements
    * P030; J5-030; J5-031; J5-033; J5-039; #124.
-   * @note Walks next_sibling once with the integrity checks of child_at(), so the cost is
-   * linear in the member count instead of quadratic.
+   * @note Walks next_sibling once with the parent and name checks of child_at() and the
+   * end-of-chain checks of value_iterator, so the cost is linear in the member count instead
+   * of quadratic.
    * @par ID SWU-VALUE-157
    */
   result<value_view> value_view::find_member(std::string_view name) const noexcept
@@ -398,6 +399,17 @@ namespace adaptive_json5
     const auto* data = std::get_if<object_data>(&((*resolved.value_if())->payload));
 
     if ((data == nullptr) || (data->members.count > m_storage->size()))
+    {
+      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    const container_links& links = data->members;
+
+    // The start and end of the member list must match the count, as value_iterator::create() checks.
+    const bool endpoints_valid = (links.count == 0U) ? (!links.first.is_set() && !links.last.is_set())
+                                                     : (links.first.is_set() && links.last.is_set());
+
+    if (!endpoints_valid)
     {
       return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
     }
@@ -427,6 +439,16 @@ namespace adaptive_json5
 
       if ((!member.parent.is_set()) || (member.parent.position() != m_index.position()) ||
           (!member.member_name.has_value()))
+      {
+        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      // The count and the end of the chain must agree, as value_iterator::next() checks;
+      // the last member must also be the one the object records as last.
+      const bool last_member = (ordinal + 1U == links.count);
+
+      if ((last_member == member.next_sibling.is_set()) ||
+          (last_member && (current.position() != links.last.position())))
       {
         return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
       }
