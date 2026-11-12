@@ -1,8 +1,13 @@
 # ADR 0005: Allocation-free number reads and linear member lookup
 
 Status: Accepted by the user, 2026-11-10, for issue #124 (review proposal I-01).
-Not yet implemented; implementation and unit evidence are recorded on the #124 pull
-request when they exist.
+Implemented on the #124 branch (production code by Romanr92). Unit evidence is listed
+under J5-031, J5-037, J5-050 and J5-051 in [traceability](../traceability.md); executed
+results are recorded on the #124 pull request. Requirement status stays Draft.
+
+Open point: the #138 safety analysis (SEooC assumption A-02) asks for one thread per
+document and reads without side effects, which is stricter than decision 5. That is
+resolved in #138; #124 keeps decision 5.
 
 ## Context
 

@@ -175,6 +175,124 @@ namespace
     ASSERT_TRUE(retry.has_value());
     EXPECT_EQ(retry.value_if()->data(), bytes);
   }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Releasing the most recent block returns its bytes at once (last in, first out).
+   * Arrange: Allocate three blocks of 3, 4 and 5 bytes in a sixteen-byte arena.
+   * Act: Release the top block, then the middle one, and allocate again after each release.
+   * Expect: The used mark falls to the start of each released block, and the next allocation
+   *         reuses the same address while the first block stays live.
+   */
+  TEST(J5_051_BufferArena, ReclaimsMostRecentBlockOnRelease)
+  {
+    /* Arrange */
+    alignas(std::max_align_t) std::byte bytes[16]{};
+    buffer_arena arena{bytes, sizeof(bytes)};
+    auto first = allocate_block(arena.callbacks(), 3, 1);
+    auto second = allocate_block(arena.callbacks(), 4, 1);
+    auto third = allocate_block(arena.callbacks(), 5, 1);
+    ASSERT_TRUE(first.has_value());
+    ASSERT_TRUE(second.has_value());
+    ASSERT_TRUE(third.has_value());
+    ASSERT_EQ(arena.used(), 12u);
+    /* Act */
+    *third.value_if() = owned_block{};
+    const std::size_t after_third = arena.used();
+    *second.value_if() = owned_block{};
+    const std::size_t after_second = arena.used();
+    const auto reused = allocate_block(arena.callbacks(), 13, 1);
+    /* Expect */
+    EXPECT_EQ(after_third, 7u);
+    EXPECT_EQ(after_second, 3u);
+    ASSERT_TRUE(reused.has_value());
+    EXPECT_EQ(reused.value_if()->data(), bytes + 3);
+    EXPECT_EQ(arena.used(), 16u);
+    EXPECT_EQ(arena.live_allocations(), 2u);
+    EXPECT_EQ(first.value_if()->data(), bytes);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * A release below the top block keeps its bytes until the arena resets.
+   * Arrange: Allocate two blocks of 3 and 5 bytes in an eight-byte arena.
+   * Act: Release the lower block, then the upper one.
+   * Expect: The used mark stays at 8 after the lower release; the upper release, which leaves
+   *         nothing live, resets the arena to 0.
+   */
+  TEST(J5_051_BufferArena, KeepsLowerBlockUntilReset)
+  {
+    /* Arrange */
+    std::byte bytes[8]{};
+    buffer_arena arena{bytes, sizeof(bytes)};
+    auto lower = allocate_block(arena.callbacks(), 3, 1);
+    auto upper = allocate_block(arena.callbacks(), 5, 1);
+    ASSERT_TRUE(lower.has_value());
+    ASSERT_TRUE(upper.has_value());
+    /* Act */
+    *lower.value_if() = owned_block{};
+    const std::size_t after_lower = arena.used();
+    *upper.value_if() = owned_block{};
+    /* Expect */
+    EXPECT_EQ(after_lower, 8u);
+    EXPECT_EQ(arena.used(), 0u);
+    EXPECT_EQ(arena.live_allocations(), 0u);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Alignment padding before a returned block stays used until the arena resets.
+   * Arrange: From an aligned buffer, allocate 1 byte, then 8 bytes aligned to 8.
+   * Act: Release the 8-byte block and allocate it again.
+   * Expect: The mark falls to 8, not 1, and the new block reuses the same aligned address.
+   */
+  TEST(J5_051_BufferArena, KeepsPaddingBeforeReturnedBlock)
+  {
+    /* Arrange */
+    alignas(8) std::byte bytes[32]{};
+    buffer_arena arena{bytes, sizeof(bytes)};
+    auto small = allocate_block(arena.callbacks(), 1, 1);
+    auto aligned = allocate_block(arena.callbacks(), 8, 8);
+    ASSERT_TRUE(small.has_value());
+    ASSERT_TRUE(aligned.has_value());
+    ASSERT_EQ(aligned.value_if()->data(), bytes + 8);
+    /* Act */
+    *aligned.value_if() = owned_block{};
+    const std::size_t after_release = arena.used();
+    const auto again = allocate_block(arena.callbacks(), 8, 8);
+    /* Expect */
+    EXPECT_EQ(after_release, 8u);
+    ASSERT_TRUE(again.has_value());
+    EXPECT_EQ(again.value_if()->data(), bytes + 8);
+    EXPECT_EQ(arena.used(), 16u);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Repeated scoped allocations through accounting never use up the buffer.
+   * Arrange: Keep one long-lived block in a 64-byte arena behind accounted_storage.
+   * Act: Allocate and release a 32-byte block 1000 times, as numeric scratch does.
+   * Expect: Every allocation succeeds at the same address and the used mark returns each time.
+   */
+  TEST(J5_051_BufferArena, ScopedAllocationsThroughAccountingDoNotAccumulate)
+  {
+    /* Arrange */
+    alignas(std::max_align_t) std::byte bytes[64]{};
+    buffer_arena arena{bytes, sizeof(bytes)};
+    accounted_storage storage{arena.callbacks(), sizeof(bytes)};
+    const auto kept = storage.allocate(16, 1);
+    ASSERT_TRUE(kept.has_value());
+    const std::size_t used_before = arena.used();
+    bool all_reused = true;
+    /* Act */
+    for (std::size_t round{}; round < 1000U; ++round)
+    {
+      const auto scratch = storage.allocate(32, 1);
+      all_reused = all_reused && scratch.has_value() && (scratch.value_if()->data() == bytes + used_before);
+    }
+    /* Expect */
+    EXPECT_TRUE(all_reused);
+    EXPECT_EQ(arena.used(), used_before);
+    EXPECT_EQ(arena.live_allocations(), 1u);
+    EXPECT_EQ(storage.current_bytes(), 16u);
+    EXPECT_EQ(storage.peak_bytes(), 48u);
+  }
   /* ================================= End Test_J5_051 ================================= */
 
   /* =================================== Test_J5_047 =================================== */

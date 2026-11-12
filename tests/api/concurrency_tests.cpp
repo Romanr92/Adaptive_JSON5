@@ -1,9 +1,15 @@
 #include "../shared_infrastructure/document_provider.hpp"
+#include "../shared_infrastructure/guard_provider.hpp"
+#include "adaptive_json5/json5_document.hpp"
+#include "adaptive_json5/json5_value.hpp"
+#include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/parser.hpp"
 
 #include <array>
 #include <atomic>
+#include <cstddef>
 #include <gtest/gtest.h>
+#include <string>
 #include <string_view>
 #include <thread>
 
@@ -138,5 +144,92 @@ namespace
   }
   INSTANTIATE_TEST_SUITE_P(P041, J5_050_ConcurrentParsing,
                            testing::Values(syntax_mode::strict_json, syntax_mode::json5));
+  /* ----------------------------------------------------------------------------------- */
+  /**
+   * @brief Read one shared document's numbers as the documented thread rule allows.
+   * @par Requirements
+   * J5-037; J5-050.
+   * @note Navigation and scratch-free as_double() use no storage; the long number goes
+   * through as_double(scratch) with this worker's own provider. Each worker writes only its
+   * own result.
+   */
+  void read_shared_document(const json5_document& document, storage_callbacks scratch, double long_expected,
+                            std::atomic<std::size_t>& ready, const std::atomic<bool>& start, worker_result& observed)
+  {
+    ready.fetch_add(1, std::memory_order_release);
+    while (!start.load(std::memory_order_acquire))
+    {
+      std::this_thread::yield();
+    }
+    const json5_value root = document.root();
+    for (std::size_t read{}; read < 2000U; ++read)
+    {
+      const auto ratio = root.member("ratio").as_double();
+      const auto port = root.member("port").as_uint64();
+      const auto long_value = root.member("long").as_double(scratch);
+      observed.correct = observed.correct && ratio.has_value() && (*ratio.value_if() == 1.5) && port.has_value() &&
+                         (*port.value_if() == 8080U) && long_value.has_value() &&
+                         (*long_value.value_if() == long_expected);
+      ++observed.iterations;
+    }
+  }
+  /*
+   * Verify the json5_value thread rule: several threads read one document concurrently.
+   * Arrange: One document in a caller buffer with a scratch-free ratio and a 300-digit number;
+   *          one guarded scratch provider per worker, owned by the main thread.
+   * Act: Four workers navigate and read both numbers 2000 times, the long one with their own
+   *      scratch provider.
+   * Expect: Every read is correct, every provider is fully released, and the document's
+   *         bytes and peak are unchanged. Without a race detector this shows behaviour, not
+   *         the absence of a data race; the rule rests on these reads not touching shared state.
+   */
+  TEST(J5_050_ConcurrentReads, ThreadsWithOwnScratchReadOneDocument)
+  {
+    /* Arrange */
+    const std::string text = "{ port: 8080, ratio: 1.5, long: 0." + std::string(300U, '1') + " }";
+    alignas(std::max_align_t) static std::byte buffer[16384];
+    const auto parsed = json5_document::parse({text.data(), text.size()}, buffer, sizeof(buffer));
+    ASSERT_TRUE(parsed.has_value());
+    const json5_document& document = *parsed.value_if();
+    const auto long_expected = document.root().member("long").as_double();
+    ASSERT_TRUE(long_expected.has_value());
+    const std::size_t current_before = document.current_bytes();
+    const std::size_t peak_before = document.peak_bytes();
+    std::array<adaptive_json5_test::guard_provider, 4> providers;
+    std::atomic<std::size_t> ready{};
+    std::atomic<bool> start{};
+    std::array<worker_result, 4> results{};
+    std::array<std::thread, 4> workers;
+    /* Act */
+    for (std::size_t index{}; index < workers.size(); ++index)
+    {
+      workers[index] = std::thread(
+        [&, index]
+        {
+          read_shared_document(document, providers[index].callbacks(), *long_expected.value_if(), ready, start,
+                               results[index]);
+        });
+    }
+    while (ready.load(std::memory_order_acquire) != workers.size())
+    {
+      std::this_thread::yield();
+    }
+    start.store(true, std::memory_order_release);
+    for (auto& worker : workers)
+    {
+      worker.join();
+    }
+    /* Expect */
+    for (std::size_t index{}; index < results.size(); ++index)
+    {
+      SCOPED_TRACE(index);
+      EXPECT_TRUE(results[index].correct);
+      EXPECT_EQ(results[index].iterations, 2000u);
+      EXPECT_GT(providers[index].m_attempts, 0u);
+      EXPECT_EQ(providers[index].m_live_bytes, 0u);
+    }
+    EXPECT_EQ(document.current_bytes(), current_before);
+    EXPECT_EQ(document.peak_bytes(), peak_before);
+  }
   /* ================================= End Test_J5_050 ================================== */
 } // namespace

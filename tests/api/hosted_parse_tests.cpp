@@ -2,6 +2,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/hosted/parse.hpp"
 #include "adaptive_json5/json5_document.hpp"
+#include "adaptive_json5/json5_value.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/parser.hpp"
@@ -159,6 +160,50 @@ namespace
                              return info.param.name;
                            });
   /* ================================= End Test_J5_026 ================================= */
+  /* =================================== Test_J5_037 =================================== */
+  /* Verify 10000 reads of every number succeed on a hosted document (issue #124).
+   * Arrange: Short, 300-digit and subnormal numbers parsed with hosted::parse; the first
+   *          value of each read.
+   * Act: Read every number 10000 times with as_double().
+   * Expect: Every read succeeds with the first value; current_bytes() is unchanged and
+   *         peak_bytes() does not grow after the first round.
+   */
+  TEST(J5_037_HostedParse, RepeatsNumberReadsWithoutGrowth)
+  {
+    /* Arrange */
+    const std::string text = "{ port: 8080, ratio: 1.5, long: 0." + std::string(300U, '1') + ", big: 1" +
+                             std::string(299U, '7') + ", tiny: 4.9406564584124654e-324 }";
+    const auto parsed = hosted::parse({text.data(), text.size()});
+    ASSERT_TRUE(parsed.has_value());
+    const json5_document& document = *parsed.value_if();
+    const json5_value root = document.root();
+    const char* const keys[] = {"port", "ratio", "long", "big", "tiny"};
+    double first[5]{};
+    for (std::size_t key{}; key < 5U; ++key)
+    {
+      const auto value = root.member(keys[key]).as_double();
+      ASSERT_TRUE(value.has_value()) << keys[key];
+      first[key] = *value.value_if();
+    }
+    const std::size_t current_before = document.current_bytes();
+    const std::size_t peak_before = document.peak_bytes();
+    std::size_t failures{};
+    /* Act */
+    for (std::size_t read{}; read < 10000U; ++read)
+    {
+      for (std::size_t key{}; key < 5U; ++key)
+      {
+        const auto value = root.member(keys[key]).as_double();
+        failures += (value.has_value() && (*value.value_if() == first[key])) ? 0U : 1U;
+      }
+    }
+    /* Expect */
+    EXPECT_EQ(failures, 0U);
+    EXPECT_EQ(first[1], 1.5);
+    EXPECT_EQ(document.current_bytes(), current_before);
+    EXPECT_EQ(document.peak_bytes(), peak_before);
+  }
+  /* ================================= End Test_J5_037 ================================= */
   /* =================================== Test_J5_040 =================================== */
 
   /* Verify moving keeps the document usable and empties the source.
