@@ -63,7 +63,7 @@ namespace adaptive_json5
        * P003; J5-046; J5-101.
        * @param buffer Start of the caller's buffer; it must outlive every allocation.
        * @param size Usable bytes in buffer.
-       * 
+       *
        * @note A null buffer gives an arena with no capacity. Performs no allocation.
        * @par ID SWU-MEMORY-012
        */
