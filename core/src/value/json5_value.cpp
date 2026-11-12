@@ -8,30 +8,14 @@
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
-#include "value/utf8_name_equal.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <string_view>
 #include <utility>
 
 namespace adaptive_json5
 {
-  namespace
-  {
-    /**
-     * @brief Build the error every navigation step reports for the wrong kind or a missing value.
-     * @par Requirements
-     * J5-039.
-     * @par ID SWU-VALUE-058
-     */
-    [[nodiscard]] error wrong_access() noexcept
-    {
-      return error::without_location(error_code::wrong_type_or_access);
-    }
-  } // namespace
-
   /**
    * @brief Wrap a value or an error together with the document's scratch storage.
    * @par Requirements
@@ -161,8 +145,6 @@ namespace adaptive_json5
    */
   json5_value json5_value::member(std::string_view name) const noexcept
   {
-    using view_result = result<value_view>;
-
     // A held error passes on unchanged, so chained calls report the first failure.
     if (!m_value.has_value())
     {
@@ -287,7 +269,7 @@ namespace adaptive_json5
       return result<double>::failure(*number.error_if());
     }
 
-    // Exact rounding may need big-integer scratch; it comes from the document's own storage.
+    // Exact rounding may need big-integer scratch; it comes from the caller's provider.
     return to_double(**number.value_if(), scratch);
   }
 
