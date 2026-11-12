@@ -24,7 +24,7 @@ namespace adaptive_json5::detail
    * @note Portable C++17: four 32x32->64 partial products. No intermediate sum can overflow,
    * because the largest one is (2^32-1)^2 + 2(2^32-1) = 2^64-1.
    */
-  [[nodiscard]] constexpr product_128 multiply_64x64_to_1289(std::uint64_t left, std::uint64_t right) noexcept
+  [[nodiscard]] constexpr product_128 multiply_64x64_to_128(std::uint64_t left, std::uint64_t right) noexcept
   {
     constexpr std::uint64_t c_low_32_mask = 0xFFFFFFFFU;
     constexpr std::uint32_t c_half_bits = 32U;
