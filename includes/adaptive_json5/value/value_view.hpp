@@ -158,6 +158,7 @@ namespace adaptive_json5
        * Rejects nonobjects and out-of-range positions.
        * Linear traversal; repeated indexed enumeration has quadratic total cost.
        * @par ID SWU-VALUE-133
+       * Use find_member() to look a member up by name in one pass.
        */
       [[nodiscard]] result<value_view> member_at(std::size_t position) const noexcept;
 

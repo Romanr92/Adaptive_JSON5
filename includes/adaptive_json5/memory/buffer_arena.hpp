@@ -13,8 +13,11 @@ namespace adaptive_json5
    * @par Requirements
    * P003; J5-046; J5-051; J5-101.
    * @note Allocates by advancing through the buffer and uses no heap or global state.
-   * Released memory is reused only once every allocation has been released, which
-   * resets the arena to the start of the buffer.
+   * Releasing the most recent allocation returns its bytes at once (last in, first out),
+   * so scoped temporary storage such as numeric scratch does not use up the buffer.
+   * Other released blocks are reused only once every allocation has been released, which
+   * resets the arena to the start of the buffer. Alignment padding before a returned
+   * block stays used until that reset.
    * A request that does not fit reports allocation_failure and changes nothing.
    * The buffer and this object must outlive every allocation. This object's address is
    * the callbacks' context, so it must not move while allocations exist.
@@ -42,14 +45,15 @@ namespace adaptive_json5
                                                            std::size_t alignment) noexcept;
 
       /**
-       * @brief Count one release and reset the arena when none remain.
+       * @brief Count one release, return the most recent block and reset the arena when none remain.
        * @par Requirements
        * P003; J5-040; J5-051.
-       * @note The memory itself is reused only after the last live allocation is released.
+       * @note A block that ends at the used mark is returned immediately; other blocks are
+       * reused only after the last live allocation is released.
        * A release without a live allocation is ignored.
        * @par ID SWU-MEMORY-011
        */
-      static void deallocate_callback(void* context, void* /* address */, std::size_t /* bytes */,
+      static void deallocate_callback(void* context, void* address, std::size_t bytes,
                                       std::size_t /* alignment */) noexcept;
 
     public:
@@ -59,6 +63,7 @@ namespace adaptive_json5
        * P003; J5-046; J5-101.
        * @param buffer Start of the caller's buffer; it must outlive every allocation.
        * @param size Usable bytes in buffer.
+       * 
        * @note A null buffer gives an arena with no capacity. Performs no allocation.
        * @par ID SWU-MEMORY-012
        */

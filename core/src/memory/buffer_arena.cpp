@@ -40,7 +40,7 @@ namespace adaptive_json5
   }
 
   /**
-   * @brief Count one release and reset the arena when none remain.
+   * @brief Count one release, return the most recent block and reset the arena when none remain.
    * @par Requirements
    * P003; J5-040; J5-051.
    * @par ID SWU-MEMORY-011
