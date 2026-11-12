@@ -38,7 +38,7 @@ namespace
    */
   struct alignas(std::max_align_t) caller_buffer
   {
-      unsigned char bytes[c_buffer_size];
+      std::byte bytes[c_buffer_size];
   };
 
   /**

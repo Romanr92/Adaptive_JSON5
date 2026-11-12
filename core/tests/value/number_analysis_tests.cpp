@@ -248,8 +248,8 @@ namespace
   {
       const char* name;
       std::uintmax_t current;  // Input magnitude before the append.
-      unsigned int digit;      // Input digit value.
-      unsigned int radix;      // Input spelling base.
+      std::uint32_t digit;     // Input digit value.
+      std::uint32_t radix;     // Input spelling base.
       std::uintmax_t maximum;  // Input inclusive magnitude bound.
       bool succeeds;           // Whether the append succeeds.
       std::uintmax_t expected; // Expected magnitude on success.
@@ -327,9 +327,9 @@ namespace
       digit_case{"Decimal", 12U, 3U, 10U, c_uintmax_max, true, 123U, error_code::numeric_conversion},
       digit_case{"Hexadecimal", 15U, 15U, 16U, c_uintmax_max, true, 255U, error_code::numeric_conversion},
       digit_case{"ZeroWithinZeroBound", 0U, 0U, 10U, 0U, true, 0U, error_code::numeric_conversion},
-      digit_case{"ReachesMaximum", c_uintmax_max / 10U, static_cast<unsigned int>(c_uintmax_max % 10U), 10U,
+      digit_case{"ReachesMaximum", c_uintmax_max / 10U, static_cast<std::uint32_t>(c_uintmax_max % 10U), 10U,
                  c_uintmax_max, true, c_uintmax_max, error_code::numeric_conversion},
-      digit_case{"ExceedsMaximumByOne", c_uintmax_max / 10U, static_cast<unsigned int>(c_uintmax_max % 10U) + 1U, 10U,
+      digit_case{"ExceedsMaximumByOne", c_uintmax_max / 10U, static_cast<std::uint32_t>(c_uintmax_max % 10U) + 1U, 10U,
                  c_uintmax_max, false, 0U, error_code::numeric_conversion},
       digit_case{"ExceedsSmallBound", 25U, 6U, 10U, 255U, false, 0U, error_code::numeric_conversion},
       digit_case{"DigitAboveBound", 0U, 5U, 10U, 4U, false, 0U, error_code::numeric_conversion},

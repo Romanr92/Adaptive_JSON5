@@ -1,6 +1,7 @@
 #ifndef ADAPTIVE_JSON5_DETAIL_FLOATING_FORMAT_HPP_
 #define ADAPTIVE_JSON5_DETAIL_FLOATING_FORMAT_HPP_
 
+#include <cstdint>
 #include <limits>
 #include <type_traits>
 
@@ -20,15 +21,15 @@ namespace adaptive_json5::detail
   template <typename T>
   [[nodiscard]] constexpr bool supports_floating_conversion() noexcept
   {
-    constexpr int c_binary_radix = 2;
+    constexpr std::int32_t c_binary_radix = 2;
 
-    constexpr int c_float_precision = 24;
-    constexpr int c_float_min_exponent = -125;
-    constexpr int c_float_max_exponent = 128;
+    constexpr std::int32_t c_float_precision = 24;
+    constexpr std::int32_t c_float_min_exponent = -125;
+    constexpr std::int32_t c_float_max_exponent = 128;
 
-    constexpr int c_double_precision = 53;
-    constexpr int c_double_min_exponent = -1021;
-    constexpr int c_double_max_exponent = 1024;
+    constexpr std::int32_t c_double_precision = 53;
+    constexpr std::int32_t c_double_min_exponent = -1021;
+    constexpr std::int32_t c_double_max_exponent = 1024;
 
     if constexpr (std::is_same_v<T, float>)
     {

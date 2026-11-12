@@ -1,3 +1,4 @@
+#include "../../../../tests/shared_infrastructure/byte_array.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "lexer/string/line_continuation.hpp"
 #include "lexer/string/string_boundary.hpp"
@@ -147,7 +148,7 @@ namespace
     ASSERT_TRUE(builder.append_scalar(last.value_if()->scalar).has_value());
     const auto closing = consume_string_piece(source, **opening.value_if(), syntax_mode::json5);
     auto text = builder.finish();
-    std::array<unsigned char, 4> output{0xA5, 0xA5, 0xA5, 0xA5};
+    auto output = adaptive_json5_test::make_bytes(0xA5, 0xA5, 0xA5, 0xA5);
     const auto exported = export_utf8(text, output.data(), output.size());
     /* Expect */
     EXPECT_EQ((**continuation.value_if()).byte_offset, 3u);
@@ -158,7 +159,7 @@ namespace
     EXPECT_EQ(text.size(), 3u);
     ASSERT_TRUE(exported.has_value());
     EXPECT_EQ(*exported.value_if(), 3u);
-    EXPECT_EQ(output, (std::array<unsigned char, 4>{0x41, 0x20, 0x42, 0xA5}));
+    EXPECT_EQ(output, adaptive_json5_test::make_bytes(0x41, 0x20, 0x42, 0xA5));
   }
   INSTANTIATE_TEST_SUITE_P(Sequences, J5_017_Continuation,
                            ::testing::Values(continuation_case{"Lf", "\n", 1}, continuation_case{"Cr", "\r", 1},
@@ -236,7 +237,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (unsigned int byte = 0; byte < 128; ++byte)
+      for (std::uint32_t byte = 0; byte < 128; ++byte)
       {
         if (byte == 0x0A || byte == 0x0D)
         {

@@ -92,7 +92,7 @@ namespace
     limits.max_exponent_digits = input.limit;
     const resource_budget budget{limits};
     /* Act */
-    for (int repeat{}; repeat < 2; ++repeat)
+    for (std::int32_t repeat{}; repeat < 2; ++repeat)
     {
       const auto bytes = budget.check_input(input.length);
       const auto spelling = budget.check_number(input.length, 0);

@@ -2,6 +2,7 @@
 #include "adaptive_json5/adaptive_json5.hpp"
 #include "read_file.hpp"
 
+#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 
@@ -11,9 +12,10 @@ namespace
   constexpr const char* c_path = "examples/data/read_value.json5";
 
   char file_text[4096];
-  alignas(std::max_align_t) unsigned char memory[16384];
+  alignas(std::max_align_t) std::byte memory[16384];
 } // namespace
 
+// The C++ standard requires main to return int ([basic.start.main]), so int stays here.
 int main()
 {
   std::size_t size{};
@@ -48,11 +50,13 @@ int main()
     return 1;
   }
 
+  // The C++ standard (through C's printf) requires the %.*s precision argument to be exactly int,
+  // so int stays here.
   std::printf("name: %.*s\n", static_cast<int>(text.value_if()->size()), text.value_if()->data());
-  std::printf("port: %lld\n", static_cast<long long>(*port.value_if()));
+  std::printf("port: %" PRId64 "\n", *port.value_if());
   std::printf("ratio: %g\n", *ratio.value_if());
   std::printf("enabled: %s\n", *enabled.value_if() ? "yes" : "no");
-  std::printf("ranges[1]: %lld\n", static_cast<long long>(*second_range.value_if()));
+  std::printf("ranges[1]: %" PRId64 "\n", *second_range.value_if());
   std::printf("absent member reported: %s\n", absent.has_value() ? "no" : "yes");
 
   return 0;

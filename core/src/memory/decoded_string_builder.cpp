@@ -36,7 +36,7 @@ namespace adaptive_json5
       return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    auto* bytes = static_cast<unsigned char*>(m_storage.data());
+    auto* bytes = static_cast<std::byte*>(m_storage.data());
 
     // The capacity check proved that the old offset and complete range fit.
     std::memcpy(bytes + (m_size * sizeof(char16_t)), units, (count * sizeof(char16_t)));

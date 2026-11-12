@@ -12,23 +12,28 @@
 #include "common/checked_size.hpp"
 #include "memory/work_budget.hpp"
 #include "value/big_unsigned.hpp"
+#include "value/floating_format.hpp"
 #include "value/floating_special.hpp"
 #include "value/number_analysis.hpp"
+#include "value/power_of_five_table.hpp"
+#include "value/wide_multiply.hpp"
 
+#include <cfloat>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <optional>
 
 namespace adaptive_json5
 {
   namespace
   {
-    constexpr unsigned int c_decimal_radix = 10;
-    constexpr unsigned int c_hexadecimal_radix = 16;
-    constexpr unsigned int c_hexadecimal_letter_offset = 10;
+    constexpr std::uint32_t c_decimal_radix = 10;
+    constexpr std::uint32_t c_hexadecimal_radix = 16;
+    constexpr std::uint32_t c_hexadecimal_letter_offset = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
-    constexpr unsigned int c_decimal_chunk_radix = 10000;
+    constexpr std::uint32_t c_decimal_chunk_radix = 10000;
     constexpr std::size_t c_decimal_chunk_digits = 4;
 
     /**
@@ -40,19 +45,19 @@ namespace adaptive_json5
      * @note Uses explicit ranges rather than locale-dependent classification.
      * @par ID SWU-VALUE-049
      */
-    [[nodiscard]] unsigned int hexadecimal_digit_value(char digit) noexcept
+    [[nodiscard]] std::uint32_t hexadecimal_digit_value(char digit) noexcept
     {
       if ((digit >= '0') && (digit <= '9'))
       {
-        return static_cast<unsigned int>(digit - '0');
+        return static_cast<std::uint32_t>(digit - '0');
       }
 
       if ((digit >= 'a') && (digit <= 'f'))
       {
-        return static_cast<unsigned int>(digit - 'a') + c_hexadecimal_letter_offset;
+        return static_cast<std::uint32_t>(digit - 'a') + c_hexadecimal_letter_offset;
       }
 
-      return static_cast<unsigned int>(digit - 'A') + c_hexadecimal_letter_offset;
+      return static_cast<std::uint32_t>(digit - 'A') + c_hexadecimal_letter_offset;
     }
 
     /**
@@ -119,8 +124,8 @@ namespace adaptive_json5
         return status_result::success();
       }
 
-      unsigned int chunk{};
-      unsigned int chunk_radix{1};
+      std::uint32_t chunk{};
+      std::uint32_t chunk_radix{1};
 
       while (position < spelling.size)
       {
@@ -138,7 +143,7 @@ namespace adaptive_json5
           continue;
         }
 
-        const auto digit = static_cast<unsigned int>(current - '0');
+        const auto digit = static_cast<std::uint32_t>(current - '0');
 
         // At most four decimal digits are accumulated, including leading zeros.
         chunk = (chunk * c_decimal_radix) + digit;
@@ -188,6 +193,224 @@ namespace adaptive_json5
       constexpr T c_zero{};
 
       return result<T>::success(negative ? -c_zero : c_zero);
+    }
+
+#if ADAPTIVE_JSON5_EISEL_LEMIRE
+    /**
+     * @brief Convert w * 10^power to T without scratch using the Eisel-Lemire algorithm.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @param significand Nonzero decimal significand of at most 19 digits.
+     * @param power Decimal exponent.
+     * @param negative Sign of the result.
+     * @return The correctly rounded normal value, or an empty optional when the exact path
+     * must decide: exponent outside the table, subnormal or zero result, overflow, or an
+     * undecidable approximation.
+     * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
+     * @par ID SWU-VALUE-152
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> try_eisel_lemire(std::uint64_t significand, std::int32_t power,
+                                                    bool negative) noexcept
+    {
+      using limits = std::numeric_limits<T>;
+
+      constexpr std::int32_t c_explicit_bits = limits::digits - 1;              // 52 or 23
+      constexpr std::int32_t c_minimum_exponent = -(limits::max_exponent - 1);  // -1023 or -127
+      constexpr std::int32_t c_infinite_power = (2 * limits::max_exponent) - 1; // 2047 or 255
+      constexpr std::int32_t c_round_even_min = (limits::digits == 53) ? -4 : -17;
+      constexpr std::int32_t c_round_even_max = (limits::digits == 53) ? 23 : 10;
+      constexpr std::int32_t c_safe_power_min = -27;
+      constexpr std::int32_t c_safe_power_max = 55;
+      constexpr std::uint32_t c_shift = 64U - static_cast<std::uint32_t>(c_explicit_bits) - 3U;
+      constexpr std::uint64_t c_all_ones = ~std::uint64_t{0};
+      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_bits + 3);
+      // floor(power * log2(10)) is (power * 217706) / 2^16 for every table exponent.
+      constexpr std::int64_t c_log2_ten_scaled = 217706;
+      constexpr std::int64_t c_log2_ten_scale = 65536;
+
+      if ((significand == 0U) || (power < detail::c_smallest_power_of_five) ||
+          (power > detail::c_largest_power_of_five))
+      {
+        return std::nullopt;
+      }
+
+      // Normalize so the significand's top bit is set.
+      const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
+      const std::uint64_t normalized = significand << leading_zeros;
+      const detail::power_of_five_128& entry =
+        detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
+
+      detail::product_128 product = detail::multiply_64x64_to_128(normalized, entry.high);
+
+      // Only when the bits below the rounding position are all ones can the low table word matter.
+      if ((product.high & c_precision_mask) == c_precision_mask)
+      {
+        const detail::product_128 second = detail::multiply_64x64_to_128(normalized, entry.low);
+
+        product.low += second.high;
+        if (second.high > product.low)
+        {
+          ++product.high;
+        }
+
+        if ((product.low == c_all_ones) && ((power < c_safe_power_min) || (power > c_safe_power_max)))
+        {
+          return std::nullopt;
+        }
+      }
+
+      const auto upper_bit = static_cast<std::uint32_t>(product.high >> 63U);
+      std::uint64_t mantissa = product.high >> (upper_bit + c_shift);
+
+      // Floor division written out: right-shifting a negative value is implementation-defined in C++17.
+      const std::int64_t scaled = c_log2_ten_scaled * power;
+      const std::int64_t floor_log2 =
+        (scaled >= 0) ? (scaled / c_log2_ten_scale) : -((-scaled + c_log2_ten_scale - 1) / c_log2_ten_scale);
+      std::int32_t power2 = static_cast<std::int32_t>(floor_log2) + 63 + static_cast<std::int32_t>(upper_bit) -
+                            leading_zeros - c_minimum_exponent;
+
+      if (power2 <= 0)
+      {
+        return std::nullopt; // Subnormal or zero: the exact path applies the underflow policy.
+      }
+
+      // An exact halfway product rounds to even instead of up.
+      if ((product.low <= 1U) && (power >= c_round_even_min) && (power <= c_round_even_max) &&
+          ((mantissa & 3U) == 1U) && ((mantissa << (upper_bit + c_shift)) == product.high))
+      {
+        mantissa &= ~std::uint64_t{1};
+      }
+
+      mantissa += mantissa & 1U;
+      mantissa >>= 1U;
+
+      // Rounding carried into a new leading bit.
+      if (mantissa >= (std::uint64_t{2} << c_explicit_bits))
+      {
+        mantissa = std::uint64_t{1} << c_explicit_bits;
+        ++power2;
+      }
+
+      if (power2 >= c_infinite_power)
+      {
+        return std::nullopt; // Overflow: the exact path reports out_of_range.
+      }
+
+      // mantissa now includes the implicit leading bit and is below 2^digits, so ldexp is exact.
+      // Plain int on purpose: the standard declares std::ldexp(T, int).
+      const T magnitude =
+        std::ldexp(static_cast<T>(mantissa), static_cast<int>(power2 + c_minimum_exponent - c_explicit_bits));
+
+      return negative ? -magnitude : magnitude;
+    }
+#endif // ADAPTIVE_JSON5_EISEL_LEMIRE
+
+    /**
+     * @brief Convert without scratch: Clinger for exact cases, then Eisel-Lemire.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @return The correctly rounded value, an empty optional when the exact path is needed,
+     * or resource_limit when work is exhausted.
+     * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
+     * round-to-nearest; disabled when intermediate precision is wider than T.
+     * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
+     * @par ID SWU-VALUE-153
+     */
+    template <typename T>
+    [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,
+                                                         work_budget& work) noexcept
+    {
+      using fast_result = result<std::optional<T>>;
+
+      // A uint64_t holds 19 decimal or 16 hexadecimal digits; leading zeros only make this conservative.
+      const bool hexadecimal = (parts.kind == number_kind::hexadecimal);
+      if (parts.digit_count > (hexadecimal ? 16U : 19U))
+      {
+        return fast_result::success(std::nullopt);
+      }
+
+      const auto charged = work.charge(parts.digit_count);
+      if (!charged.has_value())
+      {
+        return fast_result::failure(*charged.error_if());
+      }
+
+      // Accumulate significand digits; skip sign, 0x prefix and '.', stop at the exponent.
+      std::uint64_t significand{};
+      std::size_t position{};
+
+      if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
+      {
+        ++position;
+      }
+
+      // Hexadecimal 'e' and 'E' are digits, so keep this path separate.
+      if (hexadecimal)
+      {
+        for (position += c_hexadecimal_prefix_bytes; position < spelling.size; ++position)
+        {
+          significand = (significand * c_hexadecimal_radix) + hexadecimal_digit_value(spelling.data[position]);
+        }
+      }
+      else
+      {
+        for (; position < spelling.size; ++position)
+        {
+          const char current = spelling.data[position];
+
+          if ((current == 'e') || (current == 'E'))
+          {
+            break;
+          }
+
+          // Analysis already accounts for the point in the decimal scale.
+          if (current != '.')
+          {
+            significand = (significand * c_decimal_radix) + static_cast<std::uint32_t>(current - '0');
+          }
+        }
+      }
+
+#if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
+      {
+        using limits = std::numeric_limits<T>;
+
+        // 2^digits is the largest integer range T holds exactly; 10^k is exact for k <= max_exact_power.
+        constexpr std::uint64_t c_max_exact_significand = std::uint64_t{1} << limits::digits;
+        constexpr std::size_t c_max_exact_power = (limits::digits == 53) ? 22 : 10;
+        constexpr T c_powers[] = {1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10, 1e11,
+                                  1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
+
+        if ((significand <= c_max_exact_significand) && (parts.scale_magnitude <= c_max_exact_power))
+        {
+          T value = static_cast<T>(significand); // exact by the bound above
+          if (parts.scale_magnitude != 0)
+          {
+            value = parts.scale_negative ? (value / c_powers[parts.scale_magnitude])
+                                         : (value * c_powers[parts.scale_magnitude]);
+          }
+          return fast_result::success(parts.negative ? -value : value);
+        }
+      }
+#endif // FLT_EVAL_METHOD == 0: x87-style excess precision would round Clinger's operation twice.
+
+#if ADAPTIVE_JSON5_EISEL_LEMIRE
+      // Integer-only, so it also runs where Clinger is disabled. Hexadecimal has no decimal exponent.
+      constexpr auto c_largest_table_scale = static_cast<std::size_t>(-detail::c_smallest_power_of_five);
+      if (!hexadecimal && (parts.scale_magnitude <= c_largest_table_scale))
+      {
+        const auto scale = static_cast<std::int32_t>(parts.scale_magnitude);
+        const auto converted = try_eisel_lemire<T>(significand, parts.scale_negative ? -scale : scale, parts.negative);
+
+        if (converted.has_value())
+        {
+          return fast_result::success(*converted);
+        }
+      }
+#endif // ADAPTIVE_JSON5_EISEL_LEMIRE
+
+      return fast_result::success(std::nullopt);
     }
 
     /**
@@ -255,6 +478,24 @@ namespace adaptive_json5
           ((parts.scale_magnitude - parts.digit_count) >= c_underflow_scale))
       {
         return finish_underflow<T>(negative, options);
+      }
+
+      // The fast steps assume IEEE binary32 or binary64, and their constants do not compile for
+      // other formats. convert_special_floating() rejects those at run time, so drop the
+      // call at compile time too.
+      if constexpr (detail::supports_floating_conversion<T>())
+      {
+        const auto fast = try_fast_path<T>(number.spelling(), parts, work);
+
+        if (!fast.has_value())
+        {
+          return float_result::failure(*fast.error_if());
+        }
+
+        if (fast.value_if()->has_value())
+        {
+          return float_result::success(**fast.value_if());
+        }
       }
 
       // Declared before integers so it outlives every allocation it accounts for.
@@ -390,7 +631,7 @@ namespace adaptive_json5
 
       if (remaining_scale != 0)
       {
-        unsigned int radix = 1;
+        std::uint32_t radix = 1;
 
         // At most three positions remain, so radix never exceeds 1000.
         for (std::size_t index{}; index < remaining_scale; ++index)
@@ -518,7 +759,7 @@ namespace adaptive_json5
         dropped_bits = quotient_bits + 1;
       }
 
-      const auto drop = static_cast<unsigned int>(dropped_bits);
+      const auto drop = static_cast<std::uint32_t>(dropped_bits);
       const std::uint_least64_t half = std::uint_least64_t{1} << (drop - 1U);
       const std::uint_least64_t remainder = quotient & ((std::uint_least64_t{1} << drop) - 1U);
       std::uint_least64_t significand = quotient >> drop;
@@ -546,6 +787,8 @@ namespace adaptive_json5
       }
 
       // The significand fits in T's precision and the exponent is in range, so scaling is exact.
+      // Plain int on purpose: the standard declares std::ldexp(T, int), so the exponent must be
+      // exactly int. std::int32_t would be long on 16-bit-int targets and narrow silently here.
       const T magnitude = std::ldexp(static_cast<T>(significand), static_cast<int>(scale_exponent));
 
       return float_result::success(negative ? -magnitude : magnitude);

@@ -82,7 +82,7 @@ namespace adaptive_json5
       }
 
       // std::align removes leading padding from space, but not the object's size.
-      auto* allocation_begin = static_cast<unsigned char*>(aligned) + sizeof(buffer_document_storage);
+      auto* allocation_begin = static_cast<std::byte*>(aligned) + sizeof(buffer_document_storage);
       const std::size_t allocation_size = space - sizeof(buffer_document_storage);
 
       // Placement construction uses caller storage; it does not allocate from the heap.

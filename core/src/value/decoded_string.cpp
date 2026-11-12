@@ -97,7 +97,7 @@ namespace adaptive_json5
       return result<char16_t>::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    const auto* bytes = static_cast<const unsigned char*>(m_storage.data());
+    const auto* bytes = static_cast<const std::byte*>(m_storage.data());
     char16_t unit{};
 
     // Successful allocation alteady proved every in-range unit offset fits,

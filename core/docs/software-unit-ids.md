@@ -37,7 +37,7 @@ library was checked to be byte-identical before and after.
 | MEMORY | SWU-MEMORY-075 | SWU-MEMORY-076 |
 | PARSER | SWU-PARSER-046 | SWU-PARSER-047 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
-| VALUE | SWU-VALUE-149 | SWU-VALUE-150 |
+| VALUE | SWU-VALUE-157 | SWU-VALUE-158 |
 
 ## API
 
@@ -380,7 +380,7 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-055 | used | `to_double(const owned_number &, const storage_callbacks &, const floating_conversion_options &)` | `core/src/value/floating_conversion.cpp` | `includes/adaptive_json5/value/floating_conversion.hpp` |
 | SWU-VALUE-056 | used | `detail::append_integer_digit(std::uintmax_t, unsigned int, unsigned int, std::uintmax_t)` | `core/src/value/integer_magnitude.cpp` | `core/includes/value/integer_magnitude.hpp` |
 | SWU-VALUE-057 | used | `detail::read_integer_magnitude(const owned_number &, std::uintmax_t, work_budget &)` | `core/src/value/integer_magnitude.cpp` | `core/includes/value/integer_magnitude.hpp` |
-| SWU-VALUE-058 | used | `(anonymous)::wrong_access()` | `core/src/value/json5_value.cpp` | — |
+| SWU-VALUE-058 | deleted | `(anonymous)::wrong_access()` | `core/src/value/json5_value.cpp` | — |
 | SWU-VALUE-059 | used | `json5_value::json5_value(result<value_view>, const storage_callbacks &)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-060 | used | `json5_value::ok()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-061 | used | `json5_value::error_if()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
@@ -472,3 +472,11 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-147 | used | `value_index::value_index(std::size_t)` | `includes/adaptive_json5/value/value_index.hpp` | — |
 | SWU-VALUE-148 | used | `value_index::is_set()` | `includes/adaptive_json5/value/value_index.hpp` | — |
 | SWU-VALUE-149 | used | `value_index::position()` | `includes/adaptive_json5/value/value_index.hpp` | — |
+| SWU-VALUE-150 | used | `detail::validate_utf8_name(std::string_view)` | `core/src/value/utf8_name_equal.cpp` | `core/includes/value/utf8_name_equal.hpp` |
+| SWU-VALUE-151 | used | `detail::multiply_64x64_to_128(std::uint64_t, std::uint64_t)` | `core/includes/value/wide_multiply.hpp` | — |
+| SWU-VALUE-152 | used | `(anonymous)::try_eisel_lemire(std::uint64_t, std::int32_t, bool)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-153 | used | `(anonymous)::try_fast_path(input_view, const detail::number_analysis &, work_budget &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-154 | used | `json5_value::as_double(const storage_callbacks &)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
+| SWU-VALUE-155 | used | `json5_value::as_float()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
+| SWU-VALUE-156 | used | `json5_value::as_float(const storage_callbacks &)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
+| SWU-VALUE-157 | used | `value_view::find_member(std::string_view)` | `core/src/value/value_view.cpp` | `includes/adaptive_json5/value/value_view.hpp` |

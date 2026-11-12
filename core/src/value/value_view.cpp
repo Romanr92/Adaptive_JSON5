@@ -9,6 +9,7 @@
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "value/container_links.hpp"
+#include "value/utf8_name_equal.hpp"
 #include "value/value_record.hpp"
 
 #include <cstddef>
@@ -375,5 +376,109 @@ namespace adaptive_json5
     }
 
     return span_result::success(member.member_name_source_span);
+  }
+
+  /**
+   * @brief Find the unique object member with the given UTF-8 name in one pass.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-033; J5-039; #124.
+   * @note Walks next_sibling once with the parent and name checks of child_at() and the
+   * end-of-chain checks of value_iterator, so the cost is linear in the member count instead
+   * of quadratic.
+   * @par ID SWU-VALUE-157
+   */
+  result<value_view> value_view::find_member(std::string_view name) const noexcept
+  {
+    const auto resolved = record();
+
+    if (!resolved.has_value())
+    {
+      return result<value_view>::failure(*resolved.error_if());
+    }
+
+    const auto* data = std::get_if<object_data>(&((*resolved.value_if())->payload));
+
+    if ((data == nullptr) || (data->members.count > m_storage->size()))
+    {
+      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    const container_links& links = data->members;
+
+    // The start and end of the member list must match the count, as value_iterator::create() checks.
+    const bool endpoints_valid = (links.count == 0U) ? (!links.first.is_set() && !links.last.is_set())
+                                                     : (links.first.is_set() && links.last.is_set());
+
+    if (!endpoints_valid)
+    {
+      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    // utf8_name_equal() stops at the first difference, so check the whole name once here.
+    const auto valid = detail::validate_utf8_name(name);
+
+    if (!valid.has_value())
+    {
+      return result<value_view>::failure(*valid.error_if());
+    }
+
+    std::optional<value_index> found{};
+    value_index current = data->members.first;
+
+    // Every member is checked, so a name that occurs twice is detected instead of resolved.
+    for (std::size_t ordinal{}; ordinal < data->members.count; ++ordinal)
+    {
+      const auto child = m_storage->at(current);
+
+      if (!child.has_value())
+      {
+        return result<value_view>::failure(*child.error_if());
+      }
+
+      const auto& member = **child.value_if();
+
+      if ((!member.parent.is_set()) || (member.parent.position() != m_index.position()) ||
+          (!member.member_name.has_value()))
+      {
+        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      // The count and the end of the chain must agree, as value_iterator::next() checks;
+      // the last member must also be the one the object records as last.
+      const bool last_member = (ordinal + 1U == links.count);
+
+      if ((last_member == member.next_sibling.is_set()) ||
+          (last_member && (current.position() != links.last.position())))
+      {
+        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      }
+
+      const auto equal = detail::utf8_name_equal(*member.member_name, name);
+
+      if (!equal.has_value())
+      {
+        return result<value_view>::failure(*equal.error_if());
+      }
+
+      if (*equal.value_if())
+      {
+        // Preserved duplicates are never resolved silently (J5-031).
+        if (found.has_value())
+        {
+          return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        }
+
+        found = current;
+      }
+
+      current = member.next_sibling;
+    }
+
+    if (!found.has_value())
+    {
+      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    }
+
+    return result<value_view>::success(value_view{*m_storage, *found});
   }
 } // namespace adaptive_json5

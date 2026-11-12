@@ -40,12 +40,12 @@ namespace adaptive_json5
   }
 
   /**
-   * @brief Count one release and reset the arena when none remain.
+   * @brief Count one release, return the most recent block and reset the arena when none remain.
    * @par Requirements
    * P003; J5-040; J5-051.
    * @par ID SWU-MEMORY-011
    */
-  void buffer_arena::deallocate_callback(void* context, void* /* address */, std::size_t /* bytes */,
+  void buffer_arena::deallocate_callback(void* context, void* address, std::size_t bytes,
                                          std::size_t /* alignment */) noexcept
   {
     auto& self = *static_cast<buffer_arena*>(context);
@@ -58,10 +58,19 @@ namespace adaptive_json5
 
     --self.m_live;
 
-    // Individual blocks are not reused; the whole buffer is, once nothing is live.
+    // The whole buffer is reused once nothing is live.
     if (self.m_live == 0)
     {
       self.m_used = 0;
+      return;
+    }
+
+    // Top of stack release: the block ends exactly at the used mark, so give it back.
+    auto* const block = static_cast<std::byte*>(address);
+    if ((block != nullptr) && (block >= self.m_begin) &&
+        ((static_cast<std::size_t>(block - self.m_begin) + bytes) == self.m_used))
+    {
+      self.m_used = static_cast<std::size_t>(block - self.m_begin);
     }
   }
 
@@ -72,7 +81,7 @@ namespace adaptive_json5
    * @par ID SWU-MEMORY-012
    */
   buffer_arena::buffer_arena(void* buffer, std::size_t size) noexcept
-      : m_begin(static_cast<unsigned char*>(buffer)), m_capacity((buffer != nullptr) ? size : 0)
+      : m_begin(static_cast<std::byte*>(buffer)), m_capacity((buffer != nullptr) ? size : 0)
   {
   }
 

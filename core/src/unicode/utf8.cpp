@@ -5,6 +5,7 @@
 #include "input/cursor.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -30,32 +31,32 @@ namespace adaptive_json5
      * @par Requirements
      * P005; J5-009.
      */
-    constexpr unsigned char c_ascii_max = 0x7F;
+    constexpr std::byte c_ascii_max{0x7F};
 
-    constexpr unsigned char c_two_byte_lead_min = 0xC2;
-    constexpr unsigned char c_two_byte_lead_max = 0xDF;
-    constexpr unsigned char c_three_byte_lead_min = 0xE0;
-    constexpr unsigned char c_three_byte_lead_max = 0xEF;
-    constexpr unsigned char c_four_byte_lead_min = 0xF0;
-    constexpr unsigned char c_four_byte_lead_max = 0xF4;
+    constexpr std::byte c_two_byte_lead_min{0xC2};
+    constexpr std::byte c_two_byte_lead_max{0xDF};
+    constexpr std::byte c_three_byte_lead_min{0xE0};
+    constexpr std::byte c_three_byte_lead_max{0xEF};
+    constexpr std::byte c_four_byte_lead_min{0xF0};
+    constexpr std::byte c_four_byte_lead_max{0xF4};
 
-    constexpr unsigned char c_continuation_min = 0x80;
-    constexpr unsigned char c_continuation_max = 0xBF;
+    constexpr std::byte c_continuation_min{0x80};
+    constexpr std::byte c_continuation_max{0xBF};
 
-    constexpr unsigned char c_two_byte_payload_mask = 0x1F;
-    constexpr unsigned char c_three_byte_payload_mask = 0x0F;
-    constexpr unsigned char c_four_byte_payload_mask = 0x07;
-    constexpr unsigned char c_continuation_payload_mask = 0x3F;
+    constexpr std::byte c_two_byte_payload_mask{0x1F};
+    constexpr std::byte c_three_byte_payload_mask{0x0F};
+    constexpr std::byte c_four_byte_payload_mask{0x07};
+    constexpr std::byte c_continuation_payload_mask{0x3F};
 
     // These second-byte restrictions prevent overlong encodings,
     // encoded surrogates and values above U+10FFFF.
-    constexpr unsigned char c_surrogate_sensitive_lead = 0xED;
-    constexpr unsigned char c_e0_second_min = 0xA0;
-    constexpr unsigned char c_ed_second_max = 0x9F;
-    constexpr unsigned char c_f0_second_min = 0x90;
-    constexpr unsigned char c_f4_second_max = 0x8F;
+    constexpr std::byte c_surrogate_sensitive_lead{0xED};
+    constexpr std::byte c_e0_second_min{0xA0};
+    constexpr std::byte c_ed_second_max{0x9F};
+    constexpr std::byte c_f0_second_min{0x90};
+    constexpr std::byte c_f4_second_max{0x8F};
 
-    constexpr unsigned int c_continuation_payload_bits = 6;
+    constexpr std::uint32_t c_continuation_payload_bits = 6;
 
     constexpr std::size_t c_ascii_byte_count = 1;
     constexpr std::size_t c_two_byte_count = 2;
@@ -71,8 +72,9 @@ namespace adaptive_json5
       return decode_result::success(std::nullopt);
     }
 
-    // Plain char may be signed; UTF-8 classification uses unsigned octets.
-    const auto lead = static_cast<unsigned char>(*first);
+    // Plain char may be signed, and casting a negative value straight to std::byte is undefined in
+    // C++17; std::uint8_t wraps it modulo 256 to the octet first.
+    const auto lead = static_cast<std::byte>(static_cast<std::uint8_t>(*first));
 
     if (lead <= c_ascii_max)
     {
@@ -120,8 +122,8 @@ namespace adaptive_json5
         return decode_result::failure(error::at_offset(error_code::encoding, start));
       }
 
-      // Interpret the byte as an unsigned octet, even when plain char is signed.
-      const auto byte = static_cast<unsigned char>(*next);
+      // Interpret the byte as an octet, even when plain char is signed (see lead above).
+      const auto byte = static_cast<std::byte>(static_cast<std::uint8_t>(*next));
 
       if ((byte < c_continuation_min) || (byte > c_continuation_max))
       {

@@ -8,30 +8,14 @@
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
-#include "value/utf8_name_equal.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <optional>
 #include <string_view>
 #include <utility>
 
 namespace adaptive_json5
 {
-  namespace
-  {
-    /**
-     * @brief Build the error every navigation step reports for the wrong kind or a missing value.
-     * @par Requirements
-     * J5-039.
-     * @par ID SWU-VALUE-058
-     */
-    [[nodiscard]] error wrong_access() noexcept
-    {
-      return error::without_location(error_code::wrong_type_or_access);
-    }
-  } // namespace
-
   /**
    * @brief Wrap a value or an error together with the document's scratch storage.
    * @par Requirements
@@ -161,71 +145,14 @@ namespace adaptive_json5
    */
   json5_value json5_value::member(std::string_view name) const noexcept
   {
-    using view_result = result<value_view>;
-
     // A held error passes on unchanged, so chained calls report the first failure.
     if (!m_value.has_value())
     {
       return *this;
     }
 
-    if (!is_object())
-    {
-      return json5_value{view_result::failure(wrong_access()), m_scratch};
-    }
-
-    const value_view& object = *m_value.value_if();
-    const auto count = object.container_size();
-
-    if (!count.has_value())
-    {
-      return json5_value{view_result::failure(*count.error_if()), m_scratch};
-    }
-
-    std::optional<value_view> found{};
-
-    // Every member is checked, so a name that occurs twice is detected instead of resolved.
-    for (std::size_t position{}; position < *count.value_if(); ++position)
-    {
-      const auto candidate = object.member_at(position);
-
-      if (!candidate.has_value())
-      {
-        return json5_value{view_result::failure(*candidate.error_if()), m_scratch};
-      }
-
-      const auto candidate_name = candidate.value_if()->member_name();
-
-      if (!candidate_name.has_value())
-      {
-        return json5_value{view_result::failure(*candidate_name.error_if()), m_scratch};
-      }
-
-      const auto equal = detail::utf8_name_equal(**candidate_name.value_if(), name);
-
-      if (!equal.has_value())
-      {
-        return json5_value{view_result::failure(*equal.error_if()), m_scratch};
-      }
-
-      if (*equal.value_if())
-      {
-        // Preserved duplicates are never resolved silently (J5-031).
-        if (found.has_value())
-        {
-          return json5_value{view_result::failure(wrong_access()), m_scratch};
-        }
-
-        found = *candidate.value_if();
-      }
-    }
-
-    if (!found.has_value())
-    {
-      return json5_value{view_result::failure(wrong_access()), m_scratch};
-    }
-
-    return json5_value{view_result::success(*found), m_scratch};
+    // find_member() rejects non-objects, missing names and duplicates in one pass.
+    return json5_value{m_value.value_if()->find_member(name), m_scratch};
   }
 
   /**
@@ -313,12 +240,23 @@ namespace adaptive_json5
   }
 
   /**
-   * @brief Read a number as a double, rounded once.
+   * @brief Read a number as a double, rounded once, using the document's scratch storage.
    * @par Requirements
    * J5-034; J5-037; J5-039.
    * @par ID SWU-VALUE-075
    */
   result<double> json5_value::as_double() const noexcept
+  {
+    return as_double(m_scratch);
+  }
+
+  /**
+   * @brief Read a number as a double, rounded once.
+   * @par Requirements
+   * J5-034; J5-037; J5-039.
+   * @par ID SWU-VALUE-154
+   */
+  result<double> json5_value::as_double(const storage_callbacks& scratch) const noexcept
   {
     if (!m_value.has_value())
     {
@@ -332,8 +270,42 @@ namespace adaptive_json5
       return result<double>::failure(*number.error_if());
     }
 
-    // Exact rounding may need big-integer scratch; it comes from the document's own storage.
-    return to_double(**number.value_if(), m_scratch);
+    // Exact rounding may need big-integer scratch; it comes from the caller's provider.
+    return to_double(**number.value_if(), scratch);
+  }
+
+  /**
+   * @brief Read a number as a float, rounded once, using the document's scratch storage.
+   * @par Requirements
+   * J5-034; J5-037; J5-039.
+   * @par ID SWU-VALUE-155
+   */
+  result<float> json5_value::as_float() const noexcept
+  {
+    return as_float(m_scratch);
+  }
+
+  /**
+   * @brief Read a number as a float, rounded once, using caller scratch storage.
+   * @par Requirements
+   * J5-034; J5-037; J5-039; J5-040.
+   * @par ID SWU-VALUE-156
+   */
+  result<float> json5_value::as_float(const storage_callbacks& scratch) const noexcept
+  {
+    if (!m_value.has_value())
+    {
+      return result<float>::failure(*m_value.error_if());
+    }
+
+    const auto number = m_value.value_if()->as_number();
+
+    if (!number.has_value())
+    {
+      return result<float>::failure(*number.error_if());
+    }
+
+    return to_float(**number.value_if(), scratch);
   }
 
   /**
@@ -358,8 +330,8 @@ namespace adaptive_json5
       return string_result::failure(*text.error_if());
     }
 
-    // export_utf8 writes bytes as unsigned char; char and unsigned char may alias each other.
-    const auto written = export_utf8(**text.value_if(), reinterpret_cast<unsigned char*>(buffer), capacity);
+    // export_utf8 writes std::byte; std::byte may alias any object, including a char buffer.
+    const auto written = export_utf8(**text.value_if(), reinterpret_cast<std::byte*>(buffer), capacity);
 
     if (!written.has_value())
     {

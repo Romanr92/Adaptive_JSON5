@@ -7,6 +7,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -68,7 +69,7 @@ namespace adaptive_json5
     constexpr char c_hex_introducer = 'x';
     constexpr std::size_t c_introducer_byte_count = 1;
     constexpr std::size_t c_hex_digit_count = 2;
-    constexpr unsigned int c_bits_per_hex_digit = 4;
+    constexpr std::uint32_t c_bits_per_hex_digit = 4;
 
     const auto current = source.peek();
     if (!current.has_value())

@@ -1,3 +1,4 @@
+#include "../shared_infrastructure/byte_array.hpp"
 #include "../shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -43,12 +44,12 @@ namespace
       ASSERT_TRUE(member.has_value());
       const auto string = member.value_if()->as_string();
       ASSERT_TRUE(string.has_value());
-      std::array<unsigned char, 5> output{};
+      std::array<std::byte, 5> output{};
       const auto exported = export_utf8(**string.value_if(), output.data(), output.size());
       /* Expect */
       ASSERT_TRUE(exported.has_value());
       EXPECT_EQ(*exported.value_if(), output.size());
-      EXPECT_EQ(output, (std::array<unsigned char, 5>{'v', 'a', 'l', 'u', 'e'}));
+      EXPECT_EQ(output, adaptive_json5_test::make_bytes('v', 'a', 'l', 'u', 'e'));
     }
     EXPECT_EQ(accounting.current_bytes(), 0u);
   }

@@ -25,7 +25,7 @@ namespace adaptive_json5
      */
     void* parser_stack::slot_address(const owned_block& storage, std::size_t index) noexcept
     {
-      auto* bytes = static_cast<unsigned char*>(storage.data());
+      auto* bytes = static_cast<std::byte*>(storage.data());
       return bytes + (index * sizeof(parser_frame));
     }
 

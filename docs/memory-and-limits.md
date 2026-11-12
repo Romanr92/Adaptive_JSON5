@@ -52,8 +52,29 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
   document keeps every member. `member(name)` then reports `wrong_type_or_access`
   instead of choosing one. Iterate through `values()` to see all of them.
 - `as_bool`, `as_int64` and `as_uint64` read exactly; `1.0` is an integer, `1.5`
-  is not. `as_double` rounds once. `as_string(buffer, capacity)` writes UTF-8 without
-  a terminating NUL and reports `resource_limit` when the buffer is too small.
+  is not. `as_double` and `as_float` round once, directly to the target type.
+  `as_string(buffer, capacity)` writes UTF-8 without a terminating NUL and reports
+  `resource_limit` when the buffer is too small.
+- **Numbers and scratch memory.** Most numbers are read without any memory: those
+  within Clinger's range (up to 2^53 with a power of ten up to 22; for `float`, 2^24
+  and 10), and, with `ADAPTIVE_JSON5_EISEL_LEMIRE` on, decimals of up to 19 digits
+  (leading zeros count) with a normal, finite result. Longer spellings, subnormal
+  results such as `1e-310`, out-of-range values and rare cases the fast approximation
+  cannot decide borrow temporary scratch. The plain `as_double()` / `as_float()` take it from the
+  document's storage and give it back before returning, so repeated reads never use
+  up a caller buffer; they can raise `peak_bytes()` once. `as_double(scratch)` and
+  `as_float(scratch)` use your own provider instead and never touch the document;
+  with an empty `storage_callbacks{}` they report `allocation_failure` for numbers
+  that need scratch. See [ADR 0005](adr/0005-allocation-free-number-reads.md).
+- **Threads.** Several threads may navigate and read one document at the same time.
+  The exception is the plain `as_double()` / `as_float()` on numbers that need
+  scratch, because they use the document's storage. The digit count alone does not
+  tell you which numbers those are, so when threads share a document whose numbers
+  you don't control, give each thread its own provider through `as_double(scratch)` /
+  `as_float(scratch)`. Moving or destroying the document must not overlap with any
+  read.
+- `member(name)` looks at each member once, so a lookup costs time proportional to
+  the object's size.
 - A `json5_value` borrows its document: don't keep it after the document is
   destroyed or moved.
 
@@ -287,16 +308,18 @@ reuse across calls is everything that costs something:
 2. **Extract** what your service needs into its own structures: paths, arguments,
    numbers and flags. Use the value API, the checked numeric conversions and
    `utf8_export` for strings. After this step, nothing refers to the document.
-3. **Release** the document by letting it go out of scope. If the provider is an
-   arena used only for this file, reset the arena **after** the document is
-   destroyed, never before.
+3. **Release** the document by letting it go out of scope. A `buffer_arena` needs
+   no reset: once the document is destroyed and every allocation from the arena is
+   released, the arena reuses its whole buffer for the next file.
 4. **Repeat** for the next file.
 
 ```cpp
+// One arena, created before the loop and reused for every file. It needs no reset:
+// when the previous document is destroyed and every allocation is released, the
+// arena starts again at the beginning of its buffer, so memory never grows beyond
+// the largest file.
 for (const config_file& file : files)
 {
-  // One arena per file: memory never grows beyond the largest file.
-  arena.reset();                                   // previous document already destroyed
   accounted_storage accounting{arena.callbacks(), options.limits.max_owned_bytes};
 
   const auto parsed = parse_document({file.data, file.size}, options, accounting);
@@ -311,7 +334,7 @@ for (const config_file& file : files)
   {
     configs.push_back(config);
   }
-}                                                  // document destroyed here, before the next reset
+}                                                  // document destroyed here; the arena is free again
 ```
 
 In this example, `arena`, `config_file`, `my_config`, `report`, `extract` and
@@ -350,12 +373,18 @@ a separate, additive decision, and nothing in the current design prevents it.
 ## Sizing for embedded targets
 
 1. Set the limits to the largest documents you accept, not to the defaults.
-2. Parse your largest real documents on the host and read `peak_bytes()`. Size
-   your pool from that value plus margin, and set `max_owned_bytes` to the pool
-   size.
+2. Parse your largest real documents on the host, read the values you need, and
+   then read `peak_bytes()`. Reading a number that needs scratch with the plain
+   `as_double()` / `as_float()` can raise the peak above the parse alone (by
+   about 200 bytes for a 300-digit number). Size your pool from that value plus
+   margin, and set `max_owned_bytes` to the pool size.
 3. Measure the time per work unit on your target once. Set `max_work_units` from
    the longest parse time you can allow. If you size it from the work your largest
    documents need, add some headroom: a scan that ends within 3 bytes of the limit
    fails with `resource_limit`.
+4. Decide on `ADAPTIVE_JSON5_EISEL_LEMIRE` (default `ON`). It costs about 10 KB of
+   read-only data for a power-of-five table. `OFF` saves that space; conversion
+   results don't change, only how often reading a number needs scratch. See
+   [embedded integration](embedded.md).
 
 See also [embedded integration](embedded.md).

@@ -11,9 +11,10 @@ namespace
   constexpr const char* c_path = "examples/data/handle_error.json5";
 
   char file_text[4096];
-  alignas(std::max_align_t) unsigned char memory[16384];
+  alignas(std::max_align_t) std::byte memory[16384];
 } // namespace
 
+// The C++ standard requires main to return int ([basic.start.main]), so int stays here.
 int main()
 {
   std::size_t size{};

@@ -208,7 +208,7 @@ namespace
       ASSERT_TRUE(indexed.has_value());
       EXPECT_EQ(*indexed.value_if()->kind().value_if(), expected[i]);
     }
-    for (int i{}; i < 2; ++i)
+    for (std::int32_t i{}; i < 2; ++i)
     {
       const auto end = iterator.value_if()->next();
       ASSERT_TRUE(end.has_value());

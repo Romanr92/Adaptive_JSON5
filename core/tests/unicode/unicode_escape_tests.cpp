@@ -1,3 +1,4 @@
+#include "../../../tests/shared_infrastructure/byte_array.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "lexer/string/string_boundary.hpp"
 #include "lexer/string/unicode_escape.hpp"
@@ -248,7 +249,7 @@ namespace
   TEST(J5_015_UnicodeBoundary, PreservesOtherIntroducersAndTrailingBytes)
   {
     /* Arrange */
-    for (unsigned int byte = 0; byte <= 255; ++byte)
+    for (std::uint32_t byte = 0; byte <= 255; ++byte)
     {
       if (byte == 'u')
       {
@@ -287,14 +288,14 @@ namespace
    */
   struct pair_case
   {
-      const char* name;                   // Diagnostic parameter name.
-      std::string first;                  // Input first Unicode escape suffix.
-      std::string second;                 // Input second Unicode escape suffix.
-      char16_t first_unit;                // Expected first stored unit.
-      char16_t second_unit;               // Expected second stored unit.
-      bool valid_pair;                    // Whether checked scalar/UTF-8 conversion should succeed.
-      char32_t scalar;                    // Expected scalar for valid pairs; otherwise unused.
-      std::array<unsigned char, 4> bytes; // Expected four UTF-8 bytes for valid pairs.
+      const char* name;                  // Diagnostic parameter name.
+      std::string first;                 // Input first Unicode escape suffix.
+      std::string second;                // Input second Unicode escape suffix.
+      char16_t first_unit;               // Expected first stored unit.
+      char16_t second_unit;              // Expected second stored unit.
+      bool valid_pair;                   // Whether checked scalar/UTF-8 conversion should succeed.
+      char32_t scalar;                   // Expected scalar for valid pairs; otherwise unused.
+      std::array<std::uint8_t, 4> bytes; // Expected four UTF-8 bytes for valid pairs.
   };
   class J5_018_UnicodePair : public ::testing::TestWithParam<pair_case>
   {
@@ -315,8 +316,8 @@ namespace
     decoded_string_builder builder(c_test_storage, 2);
     // Two escaped units; the builder needs its exact reservation first.
     ASSERT_TRUE(builder.reserve_exact(2).has_value());
-    std::array<unsigned char, 4> output;
-    output.fill(0xA5);
+    std::array<std::byte, 4> output;
+    output.fill(std::byte{0xA5});
     const auto before = output;
     /* Act */
     const auto first = consume_unicode_escape(first_source);
@@ -345,7 +346,7 @@ namespace
       EXPECT_EQ(decoded.value_if()->value, param.scalar);
       EXPECT_EQ(decoded.value_if()->unit_count, 2u);
       EXPECT_EQ(*exported.value_if(), 4u);
-      EXPECT_EQ(output, param.bytes);
+      EXPECT_EQ(output, adaptive_json5_test::to_bytes(param.bytes));
     }
     else
     {
@@ -387,8 +388,8 @@ namespace
     for (const auto& item : cases)
     {
       cursor source({item.spelling.data(), item.spelling.size()});
-      std::array<unsigned char, 4> output;
-      output.fill(0xA5);
+      std::array<std::byte, 4> output;
+      output.fill(std::byte{0xA5});
       const auto before = output;
       /* Act */
       const auto decoded = consume_unicode_escape(source);

@@ -7,6 +7,7 @@
 #include "unicode/utf16_decode.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -86,8 +87,7 @@ namespace adaptive_json5
    * The source must remain unchanged throughout this call.
    * @par ID SWU-VALUE-104
    */
-  result<std::size_t> export_utf8(const decoded_string& source, unsigned char* destination,
-                                  std::size_t capacity) noexcept
+  result<std::size_t> export_utf8(const decoded_string& source, std::byte* destination, std::size_t capacity) noexcept
   {
     constexpr char32_t c_ascii_max = 0x7F;
     constexpr char32_t c_two_byte_max = 0x7FF;
@@ -97,9 +97,9 @@ namespace adaptive_json5
     constexpr char32_t c_four_byte_prefix = 0xF0;
     constexpr char32_t c_continuation_prefix = 0x80;
     constexpr char32_t c_continuation_mask = 0x3F;
-    constexpr unsigned int c_one_payload_shift = 6;
-    constexpr unsigned int c_two_payload_shift = 12;
-    constexpr unsigned int c_three_payload_shift = 18;
+    constexpr std::uint32_t c_one_payload_shift = 6;
+    constexpr std::uint32_t c_two_payload_shift = 12;
+    constexpr std::uint32_t c_three_payload_shift = 18;
 
     // Validate all units before exposing any partially written output.
     const auto required = utf8_size(source);
@@ -124,7 +124,7 @@ namespace adaptive_json5
     }
 
     std::size_t index{};
-    unsigned char* next = destination;
+    std::byte* next = destination;
 
     while (index < source.size())
     {
@@ -138,32 +138,32 @@ namespace adaptive_json5
 
       if (scalar <= c_ascii_max)
       {
-        *next++ = static_cast<unsigned char>(scalar);
+        *next++ = static_cast<std::byte>(scalar);
       }
       else
       {
         if (scalar <= c_two_byte_max)
         {
-          *next++ = static_cast<unsigned char>(c_two_byte_prefix | (scalar >> c_one_payload_shift));
+          *next++ = static_cast<std::byte>(c_two_byte_prefix | (scalar >> c_one_payload_shift));
         }
         else
         {
           if (scalar <= c_three_byte_max)
           {
-            *next++ = static_cast<unsigned char>(c_three_byte_prefix | (scalar >> c_two_payload_shift));
+            *next++ = static_cast<std::byte>(c_three_byte_prefix | (scalar >> c_two_payload_shift));
           }
           else
           {
-            *next++ = static_cast<unsigned char>(c_four_byte_prefix | (scalar >> c_three_payload_shift));
-            *next++ = static_cast<unsigned char>(c_continuation_prefix |
-                                                 ((scalar >> c_two_payload_shift) & c_continuation_mask));
+            *next++ = static_cast<std::byte>(c_four_byte_prefix | (scalar >> c_three_payload_shift));
+            *next++ =
+              static_cast<std::byte>(c_continuation_prefix | ((scalar >> c_two_payload_shift) & c_continuation_mask));
           }
 
           *next++ =
-            static_cast<unsigned char>(c_continuation_prefix | ((scalar >> c_one_payload_shift) & c_continuation_mask));
+            static_cast<std::byte>(c_continuation_prefix | ((scalar >> c_one_payload_shift) & c_continuation_mask));
         }
 
-        *next++ = static_cast<unsigned char>(c_continuation_prefix | (scalar & c_continuation_mask));
+        *next++ = static_cast<std::byte>(c_continuation_prefix | (scalar & c_continuation_mask));
       }
 
       index += decoded.value_if()->unit_count;

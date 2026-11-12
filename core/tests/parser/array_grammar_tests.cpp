@@ -169,7 +169,7 @@ namespace
       expected_offset += std::string(spellings[ordinal]).size() + 1;
     }
     EXPECT_FALSE(root.value_if()->element_at(8).has_value());
-    for (int repeat = 0; repeat < 2; ++repeat)
+    for (std::int32_t repeat = 0; repeat < 2; ++repeat)
     {
       const auto end = iterator.value_if()->next();
       ASSERT_TRUE(end.has_value());

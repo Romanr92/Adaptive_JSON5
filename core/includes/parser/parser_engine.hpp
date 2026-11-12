@@ -78,7 +78,7 @@ namespace adaptive_json5
         parser_frame m_count_top{};
         std::size_t m_count_depth{};
         bool m_count_root_done{};
-        unsigned char m_inline_kinds[c_inline_nesting_bits / c_bits_per_byte]{};
+        std::byte m_inline_kinds[c_inline_nesting_bits / c_bits_per_byte]{};
         owned_block m_extra_kinds{};
 
         /**
@@ -88,7 +88,7 @@ namespace adaptive_json5
          * @note The inline array unless max_depth exceeded it and extra bits were allocated.
          * @par ID SWU-PARSER-017
          */
-        [[nodiscard]] unsigned char* nesting_kinds() noexcept;
+        [[nodiscard]] std::byte* nesting_kinds() noexcept;
 
         /**
          * @brief Count one value without building it: reserve its resources and validate it.

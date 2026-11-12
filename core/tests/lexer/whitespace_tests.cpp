@@ -248,7 +248,7 @@ namespace
         const auto before = bytes;
         cursor source{input_view{bytes.data(), bytes.size()}};
         source.advance(4);
-        for (int attempt = 0; attempt < 2; ++attempt)
+        for (std::int32_t attempt = 0; attempt < 2; ++attempt)
         {
           /* Act */
           const auto actual = skip_json5_whitespace(source);

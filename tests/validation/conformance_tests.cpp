@@ -180,7 +180,7 @@ namespace
     std::string name = prefix;
     for (const char c : relative)
     {
-      name += (std::isalnum(static_cast<unsigned char>(c)) != 0) ? c : '_';
+      name += (std::isalnum(static_cast<std::uint8_t>(c)) != 0) ? c : '_';
     }
     std::string unique = name;
     for (std::size_t suffix = 2U; !used.insert(unique).second; ++suffix)
@@ -332,7 +332,7 @@ namespace
       if (param.expected == expectation::accept)
       {
         EXPECT_TRUE(parsed.has_value()) << param.path << " error code "
-                                        << (parsed.has_value() ? 0 : static_cast<int>(parsed.error_if()->code))
+                                        << (parsed.has_value() ? 0 : static_cast<std::int32_t>(parsed.error_if()->code))
                                         << " at byte " << (parsed.has_value() ? 0U : parsed.error_if()->byte_offset);
       }
       else if (param.expected == expectation::reject)

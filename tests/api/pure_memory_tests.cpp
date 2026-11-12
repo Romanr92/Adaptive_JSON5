@@ -79,9 +79,9 @@ namespace
    * @note Anything for files, streams, processes, threads, time, locale or networking
    * is absent on purpose. Adding a header here is a reviewed decision.
    */
-  const std::set<std::string> c_allowed_standard_headers{"algorithm",   "array",   "cmath",  "cstddef",  "cstdint",
-                                                         "cstring",     "limits",  "new",    "optional", "string_view",
-                                                         "type_traits", "utility", "variant"};
+  const std::set<std::string> c_allowed_standard_headers{"algorithm",   "array",       "cfloat",  "cmath",  "cstddef",
+                                                         "cstdint",     "cstring",     "limits",  "new",    "optional",
+                                                         "string_view", "type_traits", "utility", "variant"};
 
   /* Verify production code includes no header for files, processes, threads, time, locale or I/O.
    * Arrange: Every header and source under includes/, core/includes/ and core/src/.
@@ -155,7 +155,7 @@ namespace
     bool parsed_ok = false;
     // Control: prove the replacement operator is live before trusting a zero count.
     g_counting = true;
-    delete new int{1};
+    delete new std::int32_t{1};
     g_counting = false;
     ASSERT_EQ(g_default_heap_calls, 1U);
     /* Act */

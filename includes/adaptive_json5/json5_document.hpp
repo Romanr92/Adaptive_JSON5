@@ -29,6 +29,10 @@ namespace adaptive_json5
    * The caller buffer must remain alive and exclusively reserved until this
    * document is destroyed. Moving transfers ownership without moving the buffer.
    * Borrowed views follow document's existing move and lifetime rules.
+   * Thread safety: several threads may read one const document concurrently through
+   * root() and json5_value, except as_double() / as_float() without a scratch argument
+   * for numbers that need scratch (see json5_value). Moving or destroying the document
+   * must not overlap with any other access.
    */
   class [[nodiscard]] json5_document
   {

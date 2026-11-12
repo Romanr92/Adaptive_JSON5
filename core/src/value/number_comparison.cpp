@@ -13,20 +13,21 @@
 #include "value/number_analysis.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 
 namespace adaptive_json5
 {
   namespace
   {
-    constexpr unsigned int c_decimal_radix = 10;
+    constexpr std::uint32_t c_decimal_radix = 10;
     // Largest decimal chunk per big_unsigned step: 16-bit limbs keep limb x 10^4 + carry below 2^32 (decision 1b).
     constexpr std::size_t c_chunk_digits = 4;
-    constexpr unsigned int c_chunk_radix = 10000;
+    constexpr std::uint32_t c_chunk_radix = 10000;
     // 10^4 < 2^14, so a power more than 14 bits below a value stays at or below it after one chunk step.
     constexpr std::size_t c_chunk_bits = 14;
-    constexpr unsigned int c_hexadecimal_radix = 16;
-    constexpr unsigned int c_hexadecimal_letter_offset = 10;
+    constexpr std::uint32_t c_hexadecimal_radix = 16;
+    constexpr std::uint32_t c_hexadecimal_letter_offset = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
 
     // The size bound is charged as one constant unit (ADR 0003, decision 1c).
@@ -59,19 +60,19 @@ namespace adaptive_json5
      * @note Uses explicit ranges rather than locale-dependent classification.
      * @par ID SWU-VALUE-081
      */
-    [[nodiscard]] unsigned int hexadecimal_digit_value(char digit) noexcept
+    [[nodiscard]] std::uint32_t hexadecimal_digit_value(char digit) noexcept
     {
       if ((digit >= '0') && (digit <= '9'))
       {
-        return static_cast<unsigned int>(digit - '0');
+        return static_cast<std::uint32_t>(digit - '0');
       }
 
       if ((digit >= 'a') && (digit <= 'f'))
       {
-        return static_cast<unsigned int>(digit - 'a') + c_hexadecimal_letter_offset;
+        return static_cast<std::uint32_t>(digit - 'a') + c_hexadecimal_letter_offset;
       }
 
-      return static_cast<unsigned int>(digit - 'A') + c_hexadecimal_letter_offset;
+      return static_cast<std::uint32_t>(digit - 'A') + c_hexadecimal_letter_offset;
     }
 
     /**
@@ -123,9 +124,9 @@ namespace adaptive_json5
      * @param digits Chunk length from 1 to c_chunk_digits.
      * @par ID SWU-VALUE-083
      */
-    [[nodiscard]] unsigned int chunk_power(std::size_t digits) noexcept
+    [[nodiscard]] std::uint32_t chunk_power(std::size_t digits) noexcept
     {
-      unsigned int power = 1;
+      std::uint32_t power = 1;
 
       for (std::size_t index{}; index < digits; ++index)
       {
@@ -339,7 +340,7 @@ namespace adaptive_json5
       std::size_t significant_digits{};
 
       // Up to four digits are collected and appended in one step (ADR 0003, decision 1b).
-      unsigned int chunk{};
+      std::uint32_t chunk{};
       std::size_t chunk_digits{};
 
       while (position < spelling.size)
@@ -358,7 +359,7 @@ namespace adaptive_json5
           continue;
         }
 
-        const auto digit = static_cast<unsigned int>(current - '0');
+        const auto digit = static_cast<std::uint32_t>(current - '0');
         chunk = (chunk * c_decimal_radix) + digit;
         ++chunk_digits;
 
@@ -579,7 +580,7 @@ namespace adaptive_json5
      * @return -1, 0 or 1; zero ignores its spelled sign.
      * @par ID SWU-VALUE-089
      */
-    [[nodiscard]] int sign_of(const detail::number_analysis& analysis) noexcept
+    [[nodiscard]] std::int32_t sign_of(const detail::number_analysis& analysis) noexcept
     {
       if (analysis.is_zero)
       {
@@ -649,8 +650,8 @@ namespace adaptive_json5
       return order_result::success(number_order::unordered);
     }
 
-    const int left_sign = sign_of(left_info);
-    const int right_sign = sign_of(right_info);
+    const std::int32_t left_sign = sign_of(left_info);
+    const std::int32_t right_sign = sign_of(right_info);
 
     if (left_sign != right_sign)
     {

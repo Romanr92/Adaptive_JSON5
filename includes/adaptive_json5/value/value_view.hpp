@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <string_view>
 
 namespace adaptive_json5
 {
@@ -157,6 +158,7 @@ namespace adaptive_json5
        * Rejects nonobjects and out-of-range positions.
        * Linear traversal; repeated indexed enumeration has quadratic total cost.
        * @par ID SWU-VALUE-133
+       * Use find_member() to look a member up by name in one pass.
        */
       [[nodiscard]] result<value_view> member_at(std::size_t position) const noexcept;
 
@@ -182,6 +184,23 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-135
        */
       [[nodiscard]] result<std::optional<adaptive_json5::source_span>> member_name_source_span() const noexcept;
+
+      /**
+       * @brief Find the unique object member with the given UTF-8 name in one pass.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-033; J5-039; #124.
+       * @param name Member name in UTF-8, compared exactly with the decoded name.
+       * @return The member's value; wrong_type_or_access when this is not an object, when no
+       * member has the name, when more than one member has it or when the member list is
+       * damaged; encoding when name is not valid UTF-8.
+       * @note Visits each member at most once (linear cost). Checks every member's parent and
+       * name as member_at() does, and the list ends as value_iterator does: the first and last
+       * links must match the count, only the last member may end the chain, and it must be
+       * the member the object records as last. Preserved duplicates are never resolved
+       * silently. Allocates nothing.
+       * @par ID SWU-VALUE-157
+       */
+      [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;
   };
 } // namespace adaptive_json5
 

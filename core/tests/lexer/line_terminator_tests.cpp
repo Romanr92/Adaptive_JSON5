@@ -107,7 +107,7 @@ namespace
     {
       cursor source{view};
       source.advance(view.size);
-      for (int attempt = 0; attempt < 2; ++attempt)
+      for (std::int32_t attempt = 0; attempt < 2; ++attempt)
       {
         /* Act */
         const auto actual = consume_line_terminator(source);
@@ -210,7 +210,7 @@ namespace
       const auto before = bytes;
       cursor source{input_view{bytes.data(), bytes.size()}};
       source.advance(prefix.size());
-      for (int attempt = 0; attempt < 2; ++attempt)
+      for (std::int32_t attempt = 0; attempt < 2; ++attempt)
       {
         /* Act */
         const auto actual = consume_line_terminator(source);
