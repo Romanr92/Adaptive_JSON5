@@ -12,6 +12,7 @@
 #include "common/checked_size.hpp"
 #include "memory/work_budget.hpp"
 #include "value/big_unsigned.hpp"
+#include "value/floating_format.hpp"
 #include "value/floating_special.hpp"
 #include "value/number_analysis.hpp"
 #include "value/power_of_five_table.hpp"
@@ -479,16 +480,22 @@ namespace adaptive_json5
         return finish_underflow<T>(negative, options);
       }
 
-      const auto fast = try_fast_path<T>(number.spelling(), parts, work);
-
-      if (!fast.has_value())
+      // The fast steps assume IEEE binary32 or binary64, and their constants do not compile for
+      // other formats. convert_special_floating() rejects those at run time, so drop the
+      // call at compile time too.
+      if constexpr (detail::supports_floating_conversion<T>())
       {
-        return float_result::failure(*fast.error_if());
-      }
+        const auto fast = try_fast_path<T>(number.spelling(), parts, work);
 
-      if (fast.value_if()->has_value())
-      {
-        return float_result::success(**fast.value_if());
+        if (!fast.has_value())
+        {
+          return float_result::failure(*fast.error_if());
+        }
+
+        if (fast.value_if()->has_value())
+        {
+          return float_result::success(**fast.value_if());
+        }
       }
 
       // Declared before integers so it outlives every allocation it accounts for.
