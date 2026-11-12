@@ -6,7 +6,9 @@ import helper accepts GNU only). They are local packaging checks, not a PR quali
 
 import hashlib
 import json
+import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tarfile
@@ -19,13 +21,26 @@ HELPER = REPOSITORY / "cmake" / "ImportAdaptiveJSON5.cmake"
 PROFILE = "linux-x86_64-gcc"
 CMAKE = shutil.which("cmake")
 GXX = shutil.which("g++")
-NINJA = shutil.which("ninja")
-HAVE_TOOLS = bool(CMAKE and GXX)
+# Real installs build the current source, so look them up with its own version.
+PROJECT_VERSION = re.search(r"project\(AdaptiveJSON5 VERSION ([0-9.]+)",
+                            (REPOSITORY / "CMakeLists.txt").read_text(encoding="utf-8"))[1]
 
 
 def generator_arguments():
-    """Use Ninja when available so the tests do not depend on a platform default."""
-    return ["-G", "Ninja"] if NINJA else []
+    """Pick a generator that works with GNU g++; None when no suitable build tool exists.
+
+    Ninja is preferred. Without it, Windows needs MinGW Makefiles (the default NMake does
+    not drive g++); elsewhere the platform default (Unix Makefiles) works.
+    """
+    if shutil.which("ninja"):
+        return ["-G", "Ninja"]
+    if os.name == "nt":
+        return ["-G", "MinGW Makefiles"] if shutil.which("mingw32-make") else None
+    return []
+
+
+GENERATOR = generator_arguments()
+HAVE_TOOLS = bool(CMAKE and GXX and GENERATOR is not None)
 
 
 def configure(source, build, *definitions):
@@ -34,7 +49,7 @@ def configure(source, build, *definitions):
     CMake wraps long messages across lines, so whitespace runs are collapsed to one space
     to let tests match whole phrases.
     """
-    command = [CMAKE, "-S", str(source), "-B", str(build), *generator_arguments(),
+    command = [CMAKE, "-S", str(source), "-B", str(build), *GENERATOR,
                f"-DCMAKE_CXX_COMPILER={GXX}", *definitions]
     completed = subprocess.run(command, capture_output=True, text=True)
     return completed.returncode == 0, " ".join((completed.stdout + completed.stderr).split())
@@ -78,11 +93,19 @@ def write_consumer(directory):
         "cmake_minimum_required(VERSION 3.25)\n"
         "project(consumer LANGUAGES CXX)\n"
         f'include("{HELPER.as_posix()}")\n'
+        # For the redirect test: CMake consults a package redirect before PATHS.
+        "if(DEFINED TEST_REDIRECT)\n"
+        '    set(target "${TEST_REDIRECT}/lib/cmake/AdaptiveJSON5")\n'
+        '    file(WRITE "${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/adaptivejson5-config.cmake"\n'
+        '        "include([[${target}/AdaptiveJSON5Config.cmake]])")\n'
+        '    file(WRITE "${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/adaptivejson5-config-version.cmake"\n'
+        '        "include([[${target}/AdaptiveJSON5ConfigVersion.cmake]])")\n'
+        "endif()\n"
         "adaptive_json5_import_release(VERSION \"${TEST_VERSION}\" PROFILE " + PROFILE + " ${TEST_SOURCE})\n"
         'message(STATUS "RELEASE_TAG=[${AdaptiveJSON5_RELEASE_TAG}]")\n', encoding="utf-8")
 
 
-@unittest.skipUnless(HAVE_TOOLS, "needs cmake and a GNU g++ on PATH")
+@unittest.skipUnless(HAVE_TOOLS, "needs cmake, a GNU g++ and Ninja (or MinGW Makefiles on Windows) on PATH")
 class ImportReleaseTagTests(unittest.TestCase):
     """adaptive_json5_import_release compares the exact release tag (REPO-15)."""
 
@@ -96,11 +119,12 @@ class ImportReleaseTagTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
-    def import_root(self, version, root):
+    def import_root(self, version, root, *definitions):
         """Import a package root with the given VERSION; return (succeeded, output)."""
         self.runs += 1
         return configure(self.consumer, self.work / f"build{self.runs}",
-                         f"-DTEST_VERSION={version}", f"-DTEST_SOURCE=ROOT;{root.as_posix()}")
+                         f"-DTEST_VERSION={version}", f"-DTEST_SOURCE=ROOT;{root.as_posix()}",
+                         *definitions)
 
     def import_archive(self, version, archive, sha256, cache):
         """Import an archive through a shared cache; return (succeeded, output)."""
@@ -145,6 +169,26 @@ class ImportReleaseTagTests(unittest.TestCase):
         self.assertFalse(succeeded, output)
         self.assertIn("release tag 0.2.0 ", output)
 
+    def test_stale_cached_tag_does_not_hide_the_fallback(self):
+        # A cache entry left by an earlier configure must not stand in for the package's tag.
+        root = self.fake_root("pkg-cache", exported_tag=None, build_info_tag="0.2.0")
+        stale = "-DAdaptiveJSON5_RELEASE_TAG=0.2.0-rc.9"
+        succeeded, output = self.import_root("0.2.0", root, stale)
+        self.assertTrue(succeeded, output)
+        self.assertIn("RELEASE_TAG=[0.2.0]", output)
+        succeeded, output = self.import_root("0.2.0-rc.9", root, stale)
+        self.assertFalse(succeeded, output)
+        self.assertIn("release tag 0.2.0 ", output)
+
+    def test_redirected_config_is_rejected(self):
+        # The redirect loads another package with the same version and profile; the pinned
+        # root's build-info.json must not vouch for it.
+        root = self.fake_root("pkg-pinned", exported_tag=None, build_info_tag="0.2.0")
+        other = self.fake_root("pkg-other", exported_tag=None)
+        succeeded, output = self.import_root("0.2.0", root, f"-DTEST_REDIRECT={other.as_posix()}")
+        self.assertFalse(succeeded, output)
+        self.assertIn("not from the pinned package", output)
+
     def test_package_without_any_tag_is_rejected(self):
         for name, package in (("no-file", {"exported_tag": None}),
                               ("empty-export", {"exported_tag": "", "build_info_tag": "0.2.0"}),
@@ -184,7 +228,7 @@ class ImportReleaseTagTests(unittest.TestCase):
                 self.assertIn(f"requested VERSION {requested}", output)
 
 
-@unittest.skipUnless(HAVE_TOOLS, "needs cmake and a GNU g++ on PATH")
+@unittest.skipUnless(HAVE_TOOLS, "needs cmake, a GNU g++ and Ninja (or MinGW Makefiles on Windows) on PATH")
 class InstalledPackageTests(unittest.TestCase):
     """Real installs of this repository: the exported tag and the hosted component (ARC-06)."""
 
@@ -210,7 +254,9 @@ class InstalledPackageTests(unittest.TestCase):
                                       "-DADAPTIVE_JSON5_BUILD_TESTS=OFF",
                                       "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF",
                                       "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
-                                      "-DADAPTIVE_JSON5_BUILD_LIBRARY=ON", *definitions)
+                                      "-DADAPTIVE_JSON5_BUILD_LIBRARY=ON",
+                                      # The import helper expects <root>/lib/cmake/AdaptiveJSON5.
+                                      "-DCMAKE_INSTALL_LIBDIR=lib", *definitions)
         if not succeeded:
             raise RuntimeError(output)
         subprocess.run([CMAKE, "--build", str(build)], check=True, capture_output=True)
@@ -225,7 +271,7 @@ class InstalledPackageTests(unittest.TestCase):
         (consumer / "CMakeLists.txt").write_text(
             "cmake_minimum_required(VERSION 3.25)\n"
             "project(consumer LANGUAGES CXX)\n"
-            f"find_package(AdaptiveJSON5 0.2.0 EXACT CONFIG {find_arguments})\n"
+            f"find_package(AdaptiveJSON5 {PROJECT_VERSION} EXACT CONFIG {find_arguments})\n"
             'message(STATUS "FOUND=[${AdaptiveJSON5_FOUND}] HOSTED=[${AdaptiveJSON5_hosted_FOUND}] '
             'RELEASE_TAG=[${AdaptiveJSON5_RELEASE_TAG}]")\n'
             "if(AdaptiveJSON5_hosted_FOUND AND NOT TARGET AdaptiveJSON5::hosted)\n"
@@ -253,12 +299,44 @@ class InstalledPackageTests(unittest.TestCase):
         self.assertFalse(succeeded, output)
         self.assertIn("ADAPTIVE_JSON5_BUILD_HOSTED=ON", output)
 
+    def test_hosted_is_reported_per_installation(self):
+        # An earlier lookup of a hosted install imports AdaptiveJSON5::hosted; a later lookup
+        # of a parser-only install in the same directory must still report hosted as missing.
+        consumer = self.work / "consumer-two-installs"
+        consumer.mkdir()
+        (consumer / "CMakeLists.txt").write_text(
+            "cmake_minimum_required(VERSION 3.25)\n"
+            "project(consumer LANGUAGES CXX)\n"
+            f'find_package(AdaptiveJSON5 CONFIG REQUIRED COMPONENTS parser hosted PATHS "{self.with_hosted.as_posix()}" NO_DEFAULT_PATH)\n'
+            'message(STATUS "FIRST=[${AdaptiveJSON5_hosted_FOUND}]")\n'
+            "unset(AdaptiveJSON5_DIR CACHE)\n"
+            f'find_package(AdaptiveJSON5 CONFIG REQUIRED COMPONENTS parser OPTIONAL_COMPONENTS hosted PATHS "{self.without_hosted.as_posix()}" NO_DEFAULT_PATH)\n'
+            'message(STATUS "SECOND=[${AdaptiveJSON5_hosted_FOUND}] FROM=[${AdaptiveJSON5_CONFIG}]")\n',
+            encoding="utf-8")
+        succeeded, output = configure(consumer, self.work / "build-two-installs")
+        self.assertTrue(succeeded, output)
+        self.assertIn("FIRST=[TRUE]", output)
+        self.assertIn("SECOND=[FALSE]", output)
+        self.assertIn(self.without_hosted.name, output.split("FROM=[", 1)[1])
+
+    def test_import_helper_rejects_a_source_install(self):
+        # A source install has profile "source" and no tag; the helper must point to find_package
+        # instead of reporting a profile mismatch.
+        consumer = self.work / "consumer-helper-source"
+        write_consumer(consumer)
+        succeeded, output = configure(consumer, self.work / "build-helper-source",
+                                      f"-DTEST_VERSION={PROJECT_VERSION}",
+                                      f"-DTEST_SOURCE=ROOT;{self.without_hosted.as_posix()}")
+        self.assertFalse(succeeded, output)
+        self.assertIn("is a source build, not a release package", output)
+        self.assertNotIn("package profile differs", output)
+
     def test_missing_hosted_is_reported_when_optional(self):
         succeeded, output = self.find(self.without_hosted, "optional",
                                       "REQUIRED COMPONENTS parser OPTIONAL_COMPONENTS hosted")
         self.assertTrue(succeeded, output)
         self.assertIn("FOUND=[1]", output)
-        self.assertNotIn("HOSTED=[TRUE]", output)
+        self.assertIn("HOSTED=[FALSE]", output)
 
 
 if __name__ == "__main__":

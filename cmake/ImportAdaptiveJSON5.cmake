@@ -93,17 +93,37 @@ function(adaptive_json5_import_release)
     endif()
     # An older cached AdaptiveJSON5_DIR must not redirect this pinned import.
     set(AdaptiveJSON5_DIR "${root}/lib/cmake/AdaptiveJSON5")
-    # Only the imported package may define the release tag checked below.
-    unset(AdaptiveJSON5_RELEASE_TAG)
+    # Only the imported package may define the release tag checked below. A normal variable
+    # hides any cache entry of the same name, so this sentinel survives exactly when the
+    # package does not export the tag (unset() would let a stale cache value show through).
+    set(tag_not_exported "adaptive-json5-release-tag-not-exported")
+    set(AdaptiveJSON5_RELEASE_TAG "${tag_not_exported}")
     find_package(AdaptiveJSON5 ${package_cmake_version} EXACT REQUIRED CONFIG GLOBAL
         COMPONENTS parser PATHS "${root}/lib/cmake/AdaptiveJSON5"
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
+    # A package redirect is consulted before PATHS, so make sure the loaded config belongs to
+    # the pinned package; otherwise its metadata and the root's build-info.json could differ.
+    file(REAL_PATH "${root}/lib/cmake/AdaptiveJSON5/AdaptiveJSON5Config.cmake" expected_config)
+    if(NOT EXISTS "${AdaptiveJSON5_CONFIG}")
+        set(loaded_config "${AdaptiveJSON5_CONFIG}")
+    else()
+        file(REAL_PATH "${AdaptiveJSON5_CONFIG}" loaded_config)
+    endif()
+    if(NOT loaded_config STREQUAL expected_config)
+        message(FATAL_ERROR "AdaptiveJSON5 was loaded from ${AdaptiveJSON5_CONFIG}, not from the "
+            "pinned package ${root}; remove the package redirect or the other installation")
+    endif()
+    # A source install has no release tag; point to the right import before the profile check.
+    if(AdaptiveJSON5_PACKAGE_PROFILE STREQUAL "source")
+        message(FATAL_ERROR "AdaptiveJSON5 package at ${root} is a source build, not a release "
+            "package. Import source builds with find_package instead")
+    endif()
     if(NOT AdaptiveJSON5_PACKAGE_PROFILE STREQUAL package_PROFILE)
         message(FATAL_ERROR "AdaptiveJSON5 package profile differs from ${package_PROFILE}")
     endif()
     # The numeric EXACT check above accepts any tag of the same MAJOR.MINOR.PATCH, so compare
     # the exact release tag too. This covers ROOT, ARCHIVE, downloaded and cached packages.
-    if(NOT DEFINED AdaptiveJSON5_RELEASE_TAG)
+    if(AdaptiveJSON5_RELEASE_TAG STREQUAL tag_not_exported)
         # Packages built before the tag was exported record it only in build-info.json.
         set(AdaptiveJSON5_RELEASE_TAG "")
         if(EXISTS "${root}/build-info.json")

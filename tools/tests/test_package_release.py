@@ -47,6 +47,10 @@ class ReleaseTagExportTests(unittest.TestCase):
         commands = []
         temporary = tempfile.TemporaryDirectory(prefix="aj5-package-")
         self.addCleanup(temporary.cleanup)
+        # A fixed-version source fixture keeps these tags valid after the project version moves.
+        source = Path(temporary.name) / "source"
+        source.mkdir()
+        (source / "CMakeLists.txt").write_text("project(AdaptiveJSON5 VERSION 0.2.0 LANGUAGES CXX)\n")
         build = Path(temporary.name) / "build"
         build.mkdir()
         info = {"compiler_id": "GNU", "system": "Linux", "target_triple": "x86_64-pc-linux-gnu",
@@ -65,7 +69,7 @@ class ReleaseTagExportTests(unittest.TestCase):
                 raise self.StopAfterConfigure()
 
         argv = ["package_release.py", "--platform", "linux-x86_64-gcc", "--version", tag,
-                "--build-dir", str(build)]
+                "--source-dir", str(source), "--build-dir", str(build)]
         with mock.patch.object(package_release, "run", fake_run), \
                 mock.patch.object(package_release.subprocess, "run", fake_subprocess_run), \
                 mock.patch.object(sys, "argv", argv), \

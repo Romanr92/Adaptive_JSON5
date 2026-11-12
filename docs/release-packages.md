@@ -188,7 +188,7 @@ PR quality checks remain GoogleTest units and formatting. The unit workflow adds
 native ARM64 and MinGW executions in both exception modes with RTTI OFF. Consumer
 configure/build/install checks are development checks, not a new integration CI
 gate. The packaging tool and import helper have local regression tests (CMake 3.25+,
-a GNU `g++` on `PATH`, Ninja optional):
+a GNU `g++`, and Ninja or, on Windows without it, MinGW Makefiles):
 
 ```sh
 python3 tools/tests/test_package_release.py

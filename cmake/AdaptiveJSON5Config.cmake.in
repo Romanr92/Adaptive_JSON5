@@ -72,15 +72,21 @@ endif()
 include("${CMAKE_CURRENT_LIST_DIR}/AdaptiveJSON5Targets.cmake")
 set(AdaptiveJSON5_parser_FOUND TRUE)
 set(AdaptiveJSON5_build_options_FOUND TRUE)
-# The optional hosted library is exported only when it was built and installed.
-if(TARGET AdaptiveJSON5::hosted)
+# The optional hosted library is exported only when it was built and installed. Use what
+# this installation recorded, not TARGET: an earlier lookup of another installation may
+# already have imported AdaptiveJSON5::hosted.
+set(_adaptive_json5_hosted_installed "@ADAPTIVE_JSON5_BUILD_HOSTED@")
+if(_adaptive_json5_hosted_installed)
     set(AdaptiveJSON5_hosted_FOUND TRUE)
-elseif(AdaptiveJSON5_FIND_REQUIRED_hosted)
+else()
+    # Set FALSE explicitly so a TRUE left by an earlier lookup in this scope cannot survive.
     set(AdaptiveJSON5_hosted_FOUND FALSE)
-    set(AdaptiveJSON5_NOT_FOUND_MESSAGE
-        "AdaptiveJSON5 component hosted is not installed: release packages never contain it; build from source with ADAPTIVE_JSON5_BUILD_HOSTED=ON")
-    set(AdaptiveJSON5_FOUND FALSE)
-    return()
+    if(AdaptiveJSON5_FIND_REQUIRED_hosted)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE
+            "AdaptiveJSON5 component hosted is not installed: release packages never contain it; build from source with ADAPTIVE_JSON5_BUILD_HOSTED=ON")
+        set(AdaptiveJSON5_FOUND FALSE)
+        return()
+    endif()
 endif()
 # Unknown/unimplemented required components (including schema) must fail clearly.
 check_required_components(AdaptiveJSON5)
