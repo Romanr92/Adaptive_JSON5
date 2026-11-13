@@ -116,12 +116,12 @@ namespace adaptive_json5
           break;
         }
 
-        // An invalid scaler keeps the builder's former error, located at it's character.
+        // An invalid scalar keeps the encoder's code and reason, relocated to its character.
         const auto encoded = encode_utf16(scalar);
 
         if (!encoded.has_value())
         {
-          return walk_result::failure(error::at_offset(encoded.error_if()->code, character_offset));
+          return walk_result::failure(encoded.error_if()->relocated(character_offset));
         }
 
         const auto total = checked_add(walk.units, encoded.value_if()->size);
@@ -137,7 +137,8 @@ namespace adaptive_json5
             const auto appended = output->append_unit(encoded.value_if()->units[index]);
             if (!appended.has_value())
             {
-              return walk_result::failure(error::at_offset(appended.error_if()->code, character_offset));
+              // Keep the builder's code and reason, located at the character being appended.
+              return walk_result::failure(appended.error_if()->relocated(character_offset));
             }
           }
         }
@@ -237,7 +238,8 @@ namespace adaptive_json5
     const auto reserved = builder.reserve_exact(totals.units);
     if (!reserved.has_value())
     {
-      return identifier_result::failure(error::at_offset(reserved.error_if()->code, totals.byte_offset));
+      // Keep the builder's code and reason, e.g. a string limit, located at the token start.
+      return identifier_result::failure(reserved.error_if()->relocated(totals.byte_offset));
     }
 
     // Second pass: an identifier has no opening delimiter, so decoding starts at source itself.

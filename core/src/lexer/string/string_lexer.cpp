@@ -99,7 +99,8 @@ namespace adaptive_json5
             const auto appended = output->append_unit(units.units[index]);
             if (!appended.has_value())
             {
-              return status_result::failure(error::at_offset(appended.error_if()->code, offset));
+              // Keep the builder's code and reason, located at the character being appended.
+              return status_result::failure(appended.error_if()->relocated(offset));
             }
           }
         }
@@ -151,11 +152,11 @@ namespace adaptive_json5
         }
         else
         {
-          // An invalid scalar keeps the builder's former error, located at its character.
+          // An invalid scalar keeps the encoder's code and reason, relocated to its character.
           const auto encoded = encode_utf16(piece.value_if()->scalar);
           if (!encoded.has_value())
           {
-            return walk_result::failure(error::at_offset(encoded.error_if()->code, piece_offset));
+            return walk_result::failure(encoded.error_if()->relocated(piece_offset));
           }
 
           const auto emitted = emit(*encoded.value_if(), piece_offset);
@@ -348,7 +349,8 @@ namespace adaptive_json5
     const auto reserved = builder.reserve_exact(totals.units);
     if (!reserved.has_value())
     {
-      return string_result::failure(error::at_offset(reserved.error_if()->code, start));
+      // Keep the builder's code and reason, e.g. a string limit, located at the token start.
+      return string_result::failure(reserved.error_if()->relocated(start));
     }
 
     // The parser reserves units, diagnostics and warning slots after the string's own allocation, as before.

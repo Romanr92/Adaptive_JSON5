@@ -105,7 +105,8 @@ namespace adaptive_json5
     const auto encoded = encode_utf16((**character.value_if()).value);
     if (!encoded.has_value())
     {
-      return result<encoded_utf16>::failure(error::at_offset(encoded.error_if()->code, source.offset()));
+      // Keep the encoder's code and reason, located at the source character.
+      return result<encoded_utf16>::failure(encoded.error_if()->relocated(source.offset()));
     }
 
     source = candidate;

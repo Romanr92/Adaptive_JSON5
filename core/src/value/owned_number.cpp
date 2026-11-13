@@ -81,8 +81,9 @@ namespace adaptive_json5
     auto allocation = allocate_block(storage, text.size, alignof(char));
     if (!allocation.has_value())
     {
-      // Allocation errors have no location relative to the numeric spelling.
-      return number_result::failure(error::without_location(allocation.error_if()->code));
+      // Allocation errors have no location relative to the numeric spelling; unlocated()
+      // keeps their code and reason, e.g. the owned_bytes limit.
+      return number_result::failure(allocation.error_if()->unlocated());
     }
 
     std::memcpy(allocation.value_if()->data(), text.data, text.size);

@@ -57,6 +57,7 @@ adaptive_json5_add_unit(adaptive_json5_diagnostic_format_unit_tests
 
 # Compile every public header in its own test translation unit, without private paths.
 set(adaptive_json5_public_headers
+    access_error_reason.hpp
     adaptive_json5.hpp
     diagnostic_format.hpp
     error.hpp
@@ -65,6 +66,7 @@ set(adaptive_json5_public_headers
     json5_value.hpp
     options.hpp
     parser.hpp
+    resource_limit_reason.hpp
     result.hpp
     syntax_error_reason.hpp
     text_position.hpp

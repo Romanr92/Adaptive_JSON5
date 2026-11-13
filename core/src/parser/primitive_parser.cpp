@@ -77,16 +77,17 @@ namespace adaptive_json5
         {
           auto reason = *owned.error_if();
 
-          if (reason.has_byte_offset)
+          if (reason.has_byte_offset())
           {
             // Reject locations outside the substring before rebasing them.
-            if (reason.byte_offset > spelling.size)
+            if (reason.byte_offset() > spelling.size)
             {
               return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
             }
 
-            // Translate the substring-relative offset to the original input.
-            reason.byte_offset += number->byte_offset;
+            // Translate the substring-relative offset to the original input; relocated() keeps the
+            // code and reason, e.g. the number_bytes limit.
+            reason = reason.relocated(reason.byte_offset() + number->byte_offset);
           }
 
           return result<value_index>::failure(reason);

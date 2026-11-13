@@ -91,13 +91,13 @@ namespace adaptive_json5
       }
 
       // A token that ran up to the cut may be reported at its start, so check its range end as well.
+      const auto range = failure.source_range();
       const bool range_near_cut =
-        failure.source_range.has_value() &&
-        ((failure.source_range->byte_offset + failure.source_range->byte_length + c_cut_margin_bytes) >= scan.view_end);
+        range.has_value() && ((range->byte_offset + range->byte_length + c_cut_margin_bytes) >= scan.view_end);
 
       // Adding the offset instead of subtracting from view_end cannot underflow.
-      const bool near_cut =
-        (!failure.has_byte_offset) || ((failure.byte_offset + c_cut_margin_bytes) >= scan.view_end) || range_near_cut;
+      const bool near_cut = (!failure.has_byte_offset()) ||
+                            ((failure.byte_offset() + c_cut_margin_bytes) >= scan.view_end) || range_near_cut;
 
       return near_cut ? error::at_offset(error_code::resource_limit, scan.view_end) : failure;
     }
