@@ -17,13 +17,14 @@ J5-059, J5-061, J5-063–J5-068.
 | 3 | Outcome model | Decided: compile → `result<compiled_schema, schema_error>`, validate → `result<validation_report, schema_error>`; assertion failure is a report, not an error |
 | 4 | Storage ownership | Decided: compiled schema owns a copied, immutable, move-only graph in caller storage; separate work storage per validation |
 | 5 | Budget struct and defaults | Decided: per-category caps plus overall `max_work_steps`; defaults in `docs/memory-and-limits.md` |
-| 6 | Instance domain | Open |
-| 7 | Cancellation | Open |
-| 8 | URI handling | Open |
-| 9 | Registry API | Open |
-| 10 | Compiled graph shape | Open |
-| 11 | Exact equality | Open |
-| 12 | Evaluation engine | Open |
+| 6 | Instance domain | Decided: one pre-pass returns `unsupported_instance` for duplicate names, NaN/Infinity and unpaired surrogates |
+| 7 | Cancellation | Decided: optional callback polled once per evaluation step; returns `cancelled` |
+| 8 | URI handling | Decided: internal RFC 3986 §5 resolver; lowercase scheme/host, dot segments removed, empty fragment = none, no percent-decoding |
+| 9 | Registry API | Decided: caller registers (base URI, parsed schema document) pairs; duplicate URI is an error; no I/O |
+| 10 | Compiled graph shape | Decided: flat indexed node array, `$ref` resolved to indices at compile time; standard annotations kept, unknown keywords counted |
+| 11 | Exact equality | Decided: type-aware, exact numbers, order-free objects, ordered arrays, explicit stack |
+| 12 | Evaluation engine | Decided: explicit stack, `$ref` siblings ignored, loop detection on the active `$ref` chain, fail-fast default and bounded collect-all |
+| 13 | Diagnostic contents | Decided: fixed-size records; JSON Pointers formatted on request into a caller buffer |
 
 ## Decision 1: layout and build target
 
@@ -193,6 +194,193 @@ reasoning.
 - Unlimited defaults: contrary to the bounded-work intent of SSR-02 and J5-049, and
   pathological schemas would hang tools.
 
+## Decision 6: instance domain
+
+### Decision
+
+Before any assertion runs, one pass over the instance checks that it is a
+JSON-compatible value (J5-059, J5-061). It returns `unsupported_instance` for:
+
+- duplicate member names in an object;
+- NaN or Infinity numbers;
+- strings or member names containing unpaired surrogates.
+
+The pass runs once per validation and is charged to the validation budget
+(decision 5).
+
+Duplicate names: the parser's `duplicate_name_policy` has two modes, and neither
+drops a member, so validation never sees a silently cleaned instance.
+
+- `reject_duplicates` (recommended for manifests): duplicates fail at parse time with
+  both locations, before validation is reached.
+- `preserve_all` (the parser default): every member is kept, so the pre-pass finds
+  the duplicates and returns `unsupported_instance`.
+
+A parsed document does not record which policy was used, so the pre-pass always
+checks; with `reject_duplicates` it simply finds none.
+
+### Rejected alternatives
+
+- Checking these cases lazily during evaluation: an assertion could pass or fail
+  before the unsupported value is reached, contrary to J5-059's "rejected before
+  assertions".
+- Treating them as assertion failures: they are not schema verdicts, so they must not
+  appear as an invalid instance.
+
+## Decision 7: cancellation
+
+### Decision
+
+- The caller may pass an optional cancellation callback (function pointer plus
+  context pointer) with the validation's work context (J5-049).
+- The callback is polled once per evaluation step. When it asks to stop, validation
+  returns `cancelled` and releases its work storage before returning (J5-065,
+  J5-051).
+- No callback means no cancellation polling; budgets still bound the work.
+- The callback must not touch the compiled schema or the work context; this is
+  documented as an integrator obligation.
+
+### Rejected alternatives
+
+- A caller-polled flag: needs atomics for cross-thread use and cannot express other
+  stop conditions such as deadlines.
+
+## Decision 8: URI handling
+
+### Decision
+
+A small internal RFC 3986 §5 reference resolver with no external dependency
+(J5-055). Normalization:
+
+- Scheme and host are lowercased, as RFC 3986 defines them as case-insensitive.
+- `.` and `..` path segments are removed during resolution.
+- An empty fragment is treated as no fragment, so a base URI with and without a
+  trailing `#` names the same resource.
+- Percent-encoding is not decoded or normalized; registry lookups compare the
+  normalized URI exactly.
+
+### Rationale
+
+The first three follow RFC 3986's resolution algorithm and common Draft-07
+identifiers. Percent-decoding is skipped because it is a frequent source of subtle
+bugs and spoofed matches; exact matching means what is registered is exactly what is
+found.
+
+### Rejected alternatives
+
+- Full RFC 3986 §6 normalization including percent-decoding: more code and more
+  ambiguity for no need in handwritten manifests.
+- An external URI library: adds a dependency to J5-068's list.
+
+## Decision 9: registry API
+
+### Decision
+
+- The caller registers pairs of base URI and an already-parsed strict-JSON schema
+  document (J5-055).
+- Compilation copies what it needs into the compiled schema, so the input documents
+  and the registry can be destroyed afterwards (J5-066).
+- Registering the same normalized URI twice is an error, so a lookup can never
+  silently pick one of two schemas.
+- The schema code never touches the network or filesystem; all external schemas
+  arrive through the registry (J5-067).
+
+### Rejected alternatives
+
+- A resolver callback that loads schemas on demand: moves I/O into compilation and
+  makes results depend on the environment.
+- Last registration wins on a duplicate URI: hides mistakes in which schema is
+  actually used.
+
+## Decision 10: compiled graph shape
+
+### Decision
+
+- Nodes are stored in one flat indexed array; children and `$ref` targets are node
+  indices, not pointers.
+- Every `$ref` is resolved to a node index at compile time. A reference that cannot
+  be resolved fails compilation with `unresolved_reference` (J5-055).
+- Each node keeps its schema location for diagnostics (J5-064).
+- Standard annotations are kept: `title`, `description`, `default`, `examples`,
+  `$comment`, `readOnly`, `writeOnly`, and `format`, `contentEncoding`,
+  `contentMediaType` as annotations (J5-058, J5-069; needed later by P053).
+- Unknown keywords are not stored; their count is kept per node so tooling can warn
+  about likely misspellings without inventing an assertion (J5-062).
+
+### Rejected alternatives
+
+- A pointer-linked tree: harder to copy, move and bound, and cycles complicate
+  ownership.
+- Storing unknown keywords in full: costs storage with no validation meaning; can be
+  added later if tooling needs their names.
+
+## Decision 11: exact equality
+
+### Decision
+
+Type-aware deep equality for `const`, `enum` and `uniqueItems` (J5-061):
+
+- Numbers use the existing exact `number_comparison`, so `1`, `1.0` and `1e0` are
+  equal (J5-059).
+- Objects compare member counts first, then look up each member by decoded name;
+  member order does not matter.
+- Arrays compare element by element in order.
+- Values of different kinds are never equal; booleans are not numbers.
+- Traversal uses an explicit stack, not recursion. Every visited node is charged to
+  `max_equality_steps` and `max_work_steps` (decision 5).
+
+### Rejected alternatives
+
+- Recursive comparison: unbounded stack use, contrary to the bounded-stack safety
+  work.
+- Comparing numbers by spelling or as `double`: wrong for equivalent spellings and
+  large values.
+
+## Decision 12: evaluation engine
+
+### Decision
+
+- Evaluation uses an explicit stack, not recursion, charged to `max_depth` and
+  `max_work_steps` (J5-048).
+- When a schema node has `$ref`, its sibling assertions are ignored, as Draft-07
+  specifies (J5-056).
+- A non-progressing loop is the same (schema node, instance node) pair appearing
+  again on the active `$ref` chain. It returns `nonprogressing_reference`, never an
+  invalid-instance result (J5-056).
+- Two modes (J5-063): fail-fast, the default, stops at the first assertion failure;
+  collect-all gathers diagnostics up to `max_errors`, then stops and reports that the
+  limit was reached.
+
+### Rejected alternatives
+
+- Collect-all as the default: more work and storage per validation by default;
+  callers who want every error opt in.
+- Detecting loops by a step count alone: cannot tell a genuine cycle from a large
+  valid recursive instance, and would misreport it as a budget failure.
+
+## Decision 13: diagnostic contents
+
+### Decision
+
+Each assertion diagnostic in `validation_report` is a small fixed-size record
+(J5-064):
+
+- the failed keyword, as an enum;
+- the instance node index and its source byte range in the parsed document (J5-044);
+- the schema node index, its source range and the registered resource it came from.
+
+JSON Pointer strings (instance pointer and schema location, escaped per RFC 6901) are
+not stored. A formatter writes them into a caller-provided buffer on request, like the
+parser's `describe()`. The report therefore needs no allocation per diagnostic;
+collect-all mode stores at most `max_errors` records (decision 5).
+
+### Rejected alternatives
+
+- Storing pointer strings in each diagnostic: allocation per error and unbounded size
+  for deep instances.
+- Diagnostics with keyword only: not enough to locate the failure, contrary to
+  J5-064.
+
 ## Review against requirements (2026-11-13)
 
 Decisions 1–3 were checked against `docs/requirements.md` on the issue branch. No
@@ -212,3 +400,17 @@ and are folded into the decisions above:
 | T5 | — | Decision 2 rationale for subschema `$schema` corrected |
 | T6 | J5-056 | `nonprogressing_reference` also at compile time for pure `$ref` cycles (decision 3) |
 | T7 | — | `CMakeLists.txt` and `docs/release-packages.md` updated once the schema target exists (decision 1) |
+
+## Review of decisions 4–13 against requirements (open)
+
+Decisions 4–13 were checked against `docs/requirements.md` on the issue branch. No
+requirement is contradicted, but these points are still to be settled by the user.
+The suggested resolution is a proposal, not a decision.
+
+| ID | Decisions | Requirement | Finding | Suggested resolution |
+| --- | --- | --- | --- | --- |
+| R1 | 5, 12 | J5-063, J5-065 | Decision 5 says exceeding any budget returns `resource_limit`, but decision 12 says collect-all stops at `max_errors` and reports that the limit was reached. Read literally, an invalid instance with many errors would become an error result and lose its verdict. | Reaching `max_errors` is not an error: the report says invalid and carries a "truncated" flag. `max_errors` is excluded from the `resource_limit` rule. |
+| R2 | 3, 12 | J5-063, J5-051 | J5-063 tests an assertion failure followed by an allocation or cancellation failure. No decision says which outcome wins. | An operational failure always wins: the result is the `schema_error`, and no partial report is published. |
+| R3 | 5, 7 | J5-049, J5-065 | All budgets and cancellation are per validation. Compilation also does unbounded work (node count, `$ref` resolution, pure-cycle detection) and the outcome table already lists `resource_limit` at compile time, but no compile limits are defined. | Add compile limits, for example `max_schema_nodes` and `max_compile_steps`, with defaults in `docs/memory-and-limits.md`. Compile cancellation is not needed for build-time use. |
+| R4 | 9 | J5-054, J5-061 | Decision 9 requires strict-JSON schema documents, but a parsed `json5_document` does not record its syntax mode or duplicate policy, so compile cannot check that a JSON5-only schema or a schema with duplicate keywords was rejected. | Either compile runs the decision 6 pre-pass on every schema document (returning `invalid_schema`) and documents strict-JSON parsing as a caller obligation, or the registry takes source text and parses it itself in strict mode with `reject_duplicates`. |
+| R5 | 10, 13 | J5-064 | Diagnostics must yield a schema location after the schema documents are destroyed (decision 4). Decision 10 says each node keeps "its schema location" without saying what that is. | Each node stores its parent index and the member name or array index that leads to it, copied into the compiled schema, so the formatter can build the RFC 6901 pointer without the source documents. |
