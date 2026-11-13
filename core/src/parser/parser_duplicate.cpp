@@ -6,6 +6,7 @@
 #include "adaptive_json5/value/decoded_name_equal.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "common/checked_size.hpp"
+#include "common/internal_link.hpp"
 
 namespace adaptive_json5
 {
@@ -28,6 +29,7 @@ namespace adaptive_json5
      * Changes no document, name or cursor state and performs no allocation.
      * Successfully charged work is not refunded on later failure.
      * The caller decides whether the selected policy requires this check.
+     * @note An object or member chain the document cannot resolve reports internal_error (issue #125).
      * @par ID SWU-PARSER-008
      */
     status_result reject_duplicate_name(const document& values, value_index object, const decoded_string& name,
@@ -44,7 +46,7 @@ namespace adaptive_json5
 
       if (!parent.has_value())
       {
-        return status_result::failure(*parent.error_if());
+        return status_result::failure(as_internal_fault(*parent.error_if()));
       }
 
       const auto kind = parent.value_if()->kind();
@@ -64,7 +66,7 @@ namespace adaptive_json5
 
       if (!iterator.has_value())
       {
-        return status_result::failure(*iterator.error_if());
+        return status_result::failure(as_internal_fault(*iterator.error_if()));
       }
 
       while (true)
@@ -81,7 +83,7 @@ namespace adaptive_json5
 
         if (!next.has_value())
         {
-          return status_result::failure(*next.error_if());
+          return status_result::failure(as_internal_fault(*next.error_if()));
         }
 
         const auto& member = *next.value_if();

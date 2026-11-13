@@ -49,6 +49,7 @@ namespace adaptive_json5
      * The caller releases depth after success; value/member reservations remain.
      * Performs no allocation and charges one work unit after validation.
      * Successful work charges are not refunded after later failure.
+     * @note A frame container the document cannot resolve reports internal_error (issue #125).
      * @par ID SWU-PARSER-004
      */
     [[nodiscard]] result<value_index> close_container(document& destination, parser_stack& frames,

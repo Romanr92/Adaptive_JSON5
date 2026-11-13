@@ -16,6 +16,7 @@
  */
 
 // IWYU pragma: begin_exports
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/diagnostic_format.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
@@ -29,6 +30,7 @@
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/text_position.hpp"

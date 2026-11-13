@@ -6,6 +6,7 @@
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
+#include "common/internal_link.hpp"
 #include "lexer/punctuation.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_frame.hpp"
@@ -98,6 +99,7 @@ namespace adaptive_json5
      * The caller releases depth after success; value/member reservations remain.
      * Performs no allocation and charges one work unit after validation.
      * Successful work charges are not refunded after later failure.
+     * @note A frame container the document cannot resolve reports internal_error (issue #125).
      * @par ID SWU-PARSER-004
      */
     result<value_index> close_container(document& destination, parser_stack& frames, const punctuation_token& closing,
@@ -151,7 +153,7 @@ namespace adaptive_json5
 
       if (!recorded.has_value())
       {
-        return result<value_index>::failure(*recorded.error_if());
+        return result<value_index>::failure(as_internal_fault(*recorded.error_if()));
       }
 
       // No fallible operation remains after publishing the completed span.

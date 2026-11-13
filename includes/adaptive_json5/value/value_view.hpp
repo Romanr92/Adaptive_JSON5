@@ -63,6 +63,7 @@ namespace adaptive_json5
        * @note Requires document relationships maintained by validated operations.
        * Traversal is iterative and visits at most position plus one records.
        * P031 adds configurable work accounting.
+       * @note A dangling child link reports internal_error (issue #125).
        * @par ID SWU-VALUE-124
        */
       [[nodiscard]] result<value_view> child_at(std::size_t position, bool object) const noexcept;
@@ -199,6 +200,7 @@ namespace adaptive_json5
        * links must match the count, only the last member may end the chain, and it must be
        * the member the object records as last. Preserved duplicates are never resolved
        * silently. Allocates nothing.
+       * @note A dangling member link reports internal_error (issue #125).
        * @par ID SWU-VALUE-157
        */
       [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;

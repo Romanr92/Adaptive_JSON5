@@ -102,38 +102,31 @@ namespace
    * @par Requirements
    * P030; J5-039; J5-043; J5-047.
    * @param fault Injected inconsistency.
-   * @param detached_entry True for attach_to_detached_parent, which skips the ancestor walk.
+   * @param detached_entry True for attach_to_detached_parent, whose only caller is the parser.
    * @return Expected error code and, for wrong_type_or_access, its access reason.
-   * @note Checks that a public attach call can also reach keep their access reason: a link to an
-   * index outside the storage is index_out_of_range, a cycle or an already linked child is
-   * invalid_argument. The other relationship faults can only come from damaged records and are
-   * internal_error.
+   * @note Through the public attach_child, a cycle or an already linked child is a caller
+   * error: wrong_type_or_access with invalid_argument. Every other fault, and every fault
+   * through the parser-only entry, can only come from damaged records: internal_error.
+   * A count overflow stays resource_limit.
    */
   std::pair<error_code, std::optional<access_error_reason>> expected_failure(attachment_fault fault,
                                                                              bool detached_entry)
   {
-    switch (fault)
+    const bool caller_error = (fault == attachment_fault::ancestor_cycle) ||
+                              (fault == attachment_fault::child_with_sibling) ||
+                              (fault == attachment_fault::child_with_name);
+
+    if (fault == attachment_fault::count_overflow)
     {
-    case attachment_fault::count_overflow:
       return {error_code::resource_limit, std::nullopt};
-    case attachment_fault::invalid_last:
-      return {error_code::wrong_type_or_access, access_error_reason::index_out_of_range};
-    case attachment_fault::child_with_sibling:
-    case attachment_fault::child_with_name:
-      return {error_code::wrong_type_or_access, access_error_reason::invalid_argument};
-    case attachment_fault::ancestor_outside_storage:
-      return detached_entry
-               ? std::pair<error_code, std::optional<access_error_reason>>{error_code::internal_error, std::nullopt}
-               : std::pair<error_code, std::optional<access_error_reason>>{error_code::wrong_type_or_access,
-                                                                           access_error_reason::index_out_of_range};
-    case attachment_fault::ancestor_cycle:
-      return detached_entry
-               ? std::pair<error_code, std::optional<access_error_reason>>{error_code::internal_error, std::nullopt}
-               : std::pair<error_code, std::optional<access_error_reason>>{error_code::wrong_type_or_access,
-                                                                           access_error_reason::invalid_argument};
-    default:
-      return {error_code::internal_error, std::nullopt};
     }
+
+    if (caller_error && !detached_entry)
+    {
+      return {error_code::wrong_type_or_access, access_error_reason::invalid_argument};
+    }
+
+    return {error_code::internal_error, std::nullopt};
   }
   /* =================================== Test_J5_039 ==================================== */
   /*

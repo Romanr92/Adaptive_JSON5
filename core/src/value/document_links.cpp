@@ -9,6 +9,7 @@
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "common/checked_size.hpp"
+#include "common/internal_link.hpp"
 #include "value/container_links.hpp"
 #include "value/value_record.hpp"
 
@@ -28,6 +29,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-039; J5-040.
        * @note Bounded by the stored record count; used only by the public builder path.
+       * @note A dangling ancestor link reports internal_error (issue #125).
        * @par ID SWU-VALUE-045
        */
       [[nodiscard]] status_result reject_ancestor_cycle(const value_storage& values, value_index parent,
@@ -48,7 +50,7 @@ namespace adaptive_json5
 
           if (!resolved.has_value())
           {
-            return status_result::failure(*resolved.error_if());
+            return status_result::failure(as_internal_fault(*resolved.error_if()));
           }
 
           ancestor = (*resolved.value_if())->parent;
@@ -63,6 +65,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
        * @note O(1): every check inspects at most the parent, child and previous last sibling.
+       * @note A dangling last link reports internal_error (issue #125).
        * @par ID SWU-VALUE-046
        */
       [[nodiscard]] status_result link_child(value_storage& values, value_index root, value_index parent,
@@ -164,7 +167,7 @@ namespace adaptive_json5
 
           if (!last_result.has_value())
           {
-            return status_result::failure(*last_result.error_if());
+            return status_result::failure(as_internal_fault(*last_result.error_if()));
           }
 
           previous_last = *last_result.value_if();
@@ -255,6 +258,8 @@ namespace adaptive_json5
      * @note Rejects an attached parent: a parent without ancestors makes cycles impossible.
      * O(1) and loop-free; otherwise identical to attach_child, including atomic failure.
      * Used by the parser, whose open containers stay detached until they close.
+     * @note The parser is the only caller, so every access failure, including an unresolvable index, a
+     * rejected child or an out-of-input span, reports internal_error (issue #125).
      * @par ID SWU-VALUE-048
      */
     status_result attach_to_detached_parent(value_storage& values, value_index root, value_index parent,
@@ -265,7 +270,7 @@ namespace adaptive_json5
 
       if (!parent_result.has_value())
       {
-        return status_result::failure(*parent_result.error_if());
+        return status_result::failure(as_internal_fault(*parent_result.error_if()));
       }
 
       // A parent without a parent has no ancestors, so no cycle is possible and no walk is needed.
@@ -274,7 +279,15 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
-      return link_child(values, root, parent, child, member_name, name_span, input_size);
+      const auto linked = link_child(values, root, parent, child, member_name, name_span, input_size);
+
+      if (!linked.has_value())
+      {
+        // The parser is the only caller, so a rejected child or span means the parser is wrong.
+        return status_result::failure(as_internal_fault(*linked.error_if()));
+      }
+
+      return linked;
     }
 
   } // namespace detail

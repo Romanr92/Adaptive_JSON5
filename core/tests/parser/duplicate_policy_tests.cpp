@@ -340,9 +340,7 @@ namespace
       /* Expect */
       // A successful duplicate diagnostic must never substitute byte zero for missing provenance.
       ASSERT_FALSE(checked.has_value());
-      // An unset or dangling index is rejected by value_storage::at() like a caller's index.
-      const bool dangling = !index.is_set() || (index.position() == 99U);
-      EXPECT_EQ(checked.error_if()->code(), dangling ? error_code::wrong_type_or_access : error_code::internal_error);
+      EXPECT_EQ(checked.error_if()->code(), error_code::internal_error);
       EXPECT_FALSE(checked.error_if()->duplicate_names().has_value());
     }
     EXPECT_EQ(provider.m_attempts, attempts);
@@ -377,8 +375,9 @@ namespace
     const auto rejected = attach_parsed_value(values, frame, *child.value_if(), work, 10);
     /* Expect */
     // Failed span validation must not consume the pending name or publish comma-or-end state.
+    // Only the parser supplies this span, so an out-of-input span is an internal fault.
     ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(rejected.error_if()->code(), error_code::internal_error);
     ASSERT_TRUE(frame.pending_name.has_value());
     EXPECT_EQ(frame.pending_name->size(), 1u);
     EXPECT_EQ(frame.state, parser_state::object_value);

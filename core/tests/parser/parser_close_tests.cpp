@@ -104,12 +104,9 @@ namespace
     ASSERT_FALSE(closed.has_value());
     const bool syntax = fault == close_fault::awaiting_colon || fault == close_fault::awaiting_value ||
                         fault == close_fault::strict_array_comma || fault == close_fault::strict_object_comma;
-    // A frame whose container lies outside the storage is caught by value_storage::at() as
-    // index_out_of_range; the other preconditions can only fail through a parser bug.
-    const error_code expected = syntax                                    ? error_code::syntax
-                                : fault == close_fault::exhausted_work    ? error_code::resource_limit
-                                : fault == close_fault::invalid_container ? error_code::wrong_type_or_access
-                                                                          : error_code::internal_error;
+    const error_code expected = syntax                                 ? error_code::syntax
+                                : fault == close_fault::exhausted_work ? error_code::resource_limit
+                                                                       : error_code::internal_error;
     EXPECT_EQ(closed.error_if()->code(), expected);
     EXPECT_EQ(frames.size(), original_size);
     const auto view = values.view(*container.value_if());

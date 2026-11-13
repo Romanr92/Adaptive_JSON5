@@ -9,6 +9,7 @@
 #include "adaptive_json5/value/owned_number.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
+#include "common/internal_link.hpp"
 #include "value/container_links.hpp"
 #include "value/utf8_name_equal.hpp"
 #include "value/value_record.hpp"
@@ -71,6 +72,7 @@ namespace adaptive_json5
    * @note Requires document relationships maintained by validated operations.
    * Traversal is iterative and visits at most position plus one records.
    * P031 adds configurable work accounting.
+   * @note A dangling child link reports internal_error (issue #125).
    * @par ID SWU-VALUE-124
    */
   result<value_view> value_view::child_at(std::size_t position, bool object) const noexcept
@@ -124,7 +126,7 @@ namespace adaptive_json5
 
       if (!child.has_value())
       {
-        return result<value_view>::failure(*child.error_if());
+        return result<value_view>::failure(detail::as_internal_fault(*child.error_if()));
       }
 
       const auto& child_record = **child.value_if();
@@ -392,6 +394,7 @@ namespace adaptive_json5
    * @note Walks next_sibling once with the parent and name checks of child_at() and the
    * end-of-chain checks of value_iterator, so the cost is linear in the member count instead
    * of quadratic.
+   * @note A dangling member link reports internal_error (issue #125).
    * @par ID SWU-VALUE-157
    */
   result<value_view> value_view::find_member(std::string_view name) const noexcept
@@ -445,7 +448,7 @@ namespace adaptive_json5
 
       if (!child.has_value())
       {
-        return result<value_view>::failure(*child.error_if());
+        return result<value_view>::failure(detail::as_internal_fault(*child.error_if()));
       }
 
       const auto& member = **child.value_if();

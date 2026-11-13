@@ -329,7 +329,8 @@ namespace
     const auto attached = attach_parsed_value(values, frame, value_index{99}, work, 0);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
-    EXPECT_EQ(attached.error_if()->code(), error_code::wrong_type_or_access);
+    // Only the parser supplies the child index, so a dangling one is an internal fault.
+    EXPECT_EQ(attached.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(frame.state, parser_state::array_first_or_end);
     EXPECT_EQ(work.consumed(), c_attachment_work);
   }

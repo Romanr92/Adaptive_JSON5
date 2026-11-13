@@ -6,6 +6,7 @@
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_view.hpp"
+#include "common/internal_link.hpp"
 #include "value/container_links.hpp"
 #include "value/value_record.hpp"
 
@@ -88,6 +89,7 @@ namespace adaptive_json5
    * @note Failure leaves traversal state unchanged.
    * Repeated calls after completion return successful empty optionals.
    * Each call performs constant work; P031 adds work accounting.
+   * @note A dangling sibling link reports internal_error (issue #125).
    * @par ID SWU-VALUE-108
    */
   result<std::optional<value_view>> value_iterator::next() noexcept
@@ -106,7 +108,7 @@ namespace adaptive_json5
 
     if (!resolved.has_value())
     {
-      return result<std::optional<value_view>>::failure(*resolved.error_if());
+      return result<std::optional<value_view>>::failure(detail::as_internal_fault(*resolved.error_if()));
     }
 
     const auto& child = **resolved.value_if();
