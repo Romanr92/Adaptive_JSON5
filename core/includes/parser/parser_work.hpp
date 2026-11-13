@@ -66,7 +66,7 @@ namespace adaptive_json5
      * @param input Complete borrowed input.
      * @param start_offset Original offset where the scan begins.
      * @param work Shared work budget; not charged here.
-     * @return The limited scan, or wrong_type_or_access for an invalid input or offset.
+     * @return The limited scan, or internal_error for an invalid input or offset (callers validated both).
      * @note Performs no allocation and reads no input bytes.
      * @par ID SWU-PARSER-040
      */
@@ -81,7 +81,7 @@ namespace adaptive_json5
      * @param end_offset Original offset where the scan stopped; start_offset for no-match.
      * @param work Shared work budget for the parse operation.
      * @return Success after charging end_offset - start_offset, resource_limit (work) at
-     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or wrong_type_or_access for a reversed range.
+     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or internal_error for a reversed range.
      * @note Call before the scan's result changes the document or cursor.
      * @par ID SWU-PARSER-041
      */

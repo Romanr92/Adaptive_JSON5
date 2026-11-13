@@ -149,14 +149,14 @@ namespace adaptive_json5
         {
           if (links->first.is_set() || links->last.is_set())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
         }
         else
         {
           if (!links->first.is_set() || !links->last.is_set())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
 
           const auto last_result = values.at(links->last);
@@ -171,7 +171,7 @@ namespace adaptive_json5
           if (!previous_last->parent.is_set() || (previous_last->parent.position() != parent.position()) ||
               previous_last->next_sibling.is_set())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
         }
 
@@ -270,7 +270,7 @@ namespace adaptive_json5
       // A parent without a parent has no ancestors, so no cycle is possible and no walk is needed.
       if ((*parent_result.value_if())->parent.is_set())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       return link_child(values, root, parent, child, member_name, name_span, input_size);

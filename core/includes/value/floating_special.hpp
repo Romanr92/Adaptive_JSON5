@@ -94,7 +94,7 @@ namespace adaptive_json5::detail
         }
       }
 
-      return special_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return special_result::failure(error::internal_fault());
     }
   }
 } // namespace adaptive_json5::detail

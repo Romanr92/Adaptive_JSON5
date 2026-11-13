@@ -62,19 +62,19 @@ namespace adaptive_json5
     // Reject impossible counts before starting traversal.
     if (links->count > storage.size())
     {
-      return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_iterator>::failure(error::internal_fault());
     }
 
     if (links->count == 0)
     {
       if (links->first.is_set() || links->last.is_set())
       {
-        return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_iterator>::failure(error::internal_fault());
       }
     }
     else if (!links->first.is_set() || !links->last.is_set())
     {
-      return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_iterator>::failure(error::internal_fault());
     }
 
     return result<value_iterator>::success(value_iterator{storage, parent, *links, object});
@@ -114,13 +114,13 @@ namespace adaptive_json5
     if (!child.parent.is_set() || (child.parent.position() != m_parent.position()) ||
         (child.member_name.has_value() != m_object))
     {
-      return result<std::optional<value_view>>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::optional<value_view>>::failure(error::internal_fault());
     }
 
     // The recorded count and the end of the chain must agree.
     if ((m_remaining == 1 && child.next_sibling.is_set()) || (m_remaining > 1 && !child.next_sibling.is_set()))
     {
-      return result<std::optional<value_view>>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::optional<value_view>>::failure(error::internal_fault());
     }
 
     const value_view current{*m_storage, m_next};

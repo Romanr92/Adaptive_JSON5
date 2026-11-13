@@ -59,7 +59,7 @@ namespace adaptive_json5
      * @par Requirements
      * P033; J5-046; J5-048.
      * @param frames Exact number of frames, the pre-pass peak depth.
-     * @return Success, resource_limit (depth), a provider failure, or wrong_type_or_access.
+     * @return Success, resource_limit (depth), a provider failure, or internal_error when already reserved.
      * @note Failure leaves the stack unchanged.
      * @par ID SWU-PARSER-031
      */
@@ -68,7 +68,7 @@ namespace adaptive_json5
       // One reservation, made while empty, so nothing ever needs relocating.
       if ((m_capacity != 0) || (m_size != 0))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       if (frames > m_max_frames)
@@ -145,7 +145,7 @@ namespace adaptive_json5
       // Frames are reserved once from the pre-pass peak depth, so needing more means the passes disagree.
       if (m_size >= m_capacity)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       ::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));

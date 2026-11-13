@@ -57,7 +57,7 @@ namespace adaptive_json5
       // generic iteration also accepts arrays; duplicate-name checks required objects.
       if (*kind.value_if() != value_kind::object)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       auto iterator = values.iterate(object);
@@ -142,7 +142,7 @@ namespace adaptive_json5
         // Missing provenance must not produce a fabricated first occurrence.
         if (!first_span.value_if()->has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
 
         return status_result::failure(error::duplicate_member(**first_span.value_if(), repeated_span));

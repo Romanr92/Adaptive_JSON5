@@ -155,7 +155,7 @@ namespace adaptive_json5
          * P030; J5-040; J5-046.
          * @param records Exact number of records this storage will hold.
          * @return Success, resource_limit above max_records, a provider failure, or
-         * wrong_type_or_access when storage was already allocated or reserved.
+         * internal_error when storage was already allocated or reserved.
          * @note Call on empty storage only. Zero records allocate nothing.
          * Afterwards, an append beyond records fails with wrong_type_or_access and never
          * allocates (ADR 0003, decision 7). Failure leaves the storage growable and unchanged.

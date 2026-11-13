@@ -53,7 +53,7 @@ namespace adaptive_json5
         // An array element must not accidentally discard a pending member name.
         if (frame.pending_name.has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
         break;
 
@@ -61,14 +61,14 @@ namespace adaptive_json5
         // An empty decoded name is valid; an absent name is an internal state error.
         if (!frame.pending_name.has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
 
         object_member = true;
         break;
 
       default:
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The open parent is detached, so the ancestor walk inspects only that record.

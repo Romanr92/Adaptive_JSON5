@@ -257,7 +257,7 @@ namespace adaptive_json5
     // Both passes read the same bytes with the same code, so any difference is an internal error.
     if ((decoding.offset() != counting.offset()) || (decoded.value_if()->units != totals.units))
     {
-      return identifier_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return identifier_result::failure(error::internal_fault());
     }
 
     identifier_token token{builder.finish(), totals.byte_offset, totals.byte_length, totals.contains_escape};

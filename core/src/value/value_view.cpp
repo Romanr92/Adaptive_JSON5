@@ -125,7 +125,7 @@ namespace adaptive_json5
       if (!child_record.parent.is_set() || (child_record.parent.position() != m_index.position()) ||
           (child_record.member_name.has_value() != object))
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::internal_fault());
       }
 
       if (ordinal == position)
@@ -136,7 +136,7 @@ namespace adaptive_json5
       current = child_record.next_sibling;
     }
 
-    return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    return result<value_view>::failure(error::internal_fault());
   }
 
   /**
@@ -193,7 +193,7 @@ namespace adaptive_json5
       return result<value_kind>::success(value_kind::object);
     }
 
-    return result<value_kind>::failure(error::without_location(error_code::wrong_type_or_access));
+    return result<value_kind>::failure(error::internal_fault());
   }
 
   /**
@@ -411,7 +411,7 @@ namespace adaptive_json5
 
     if (!endpoints_valid)
     {
-      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_view>::failure(error::internal_fault());
     }
 
     // utf8_name_equal() stops at the first difference, so check the whole name once here.
@@ -440,7 +440,7 @@ namespace adaptive_json5
       if ((!member.parent.is_set()) || (member.parent.position() != m_index.position()) ||
           (!member.member_name.has_value()))
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::internal_fault());
       }
 
       // The count and the end of the chain must agree, as value_iterator::next() checks;
@@ -450,7 +450,7 @@ namespace adaptive_json5
       if ((last_member == member.next_sibling.is_set()) ||
           (last_member && (current.position() != links.last.position())))
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::internal_fault());
       }
 
       const auto equal = detail::utf8_name_equal(*member.member_name, name);

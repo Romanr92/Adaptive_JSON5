@@ -97,6 +97,7 @@ namespace adaptive_json5
        * @par Requirements
        * P031; J5-047.
        * @param member Must match the original reservation.
+       * @return Success, or internal_error when no matching value reservation is held.
        * @note Callers must associate releases with their own reservations.
        * Invalid counter underflow is reported without changing either counter.
        * @par ID SWU-MEMORY-061
@@ -116,6 +117,7 @@ namespace adaptive_json5
        * @brief Release one open-container reservation.
        * @par Requirements
        * P031; J5-047; J5-048.
+       * @return Success, or internal_error when no container reservation is held.
        * @note Closing or rolling back a container releases its depth.
        * @par ID SWU-MEMORY-063
        */
@@ -140,6 +142,8 @@ namespace adaptive_json5
        * P031; J5-047.
        * @note units must belong to reservations owned by the caller.
        * Does not release any allocation; storage ownership is separate.
+       * @return Success, or internal_error when units exceed the reserved units; the
+       * counter is left unchanged.
        * @par ID SWU-MEMORY-065
        */
       [[nodiscard]] status_result release_string_units(std::size_t units) noexcept;
@@ -181,6 +185,7 @@ namespace adaptive_json5
        * @brief Release one retained or rolled-back diagnostic reservation.
        * @par Requirements
        * P031; J5-047.
+       * @return Success, or internal_error when no diagnostic reservation is held.
        * @par ID SWU-MEMORY-068
        */
       [[nodiscard]] status_result release_diagnostic() noexcept;

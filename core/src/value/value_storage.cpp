@@ -170,7 +170,7 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040; J5-046.
      * @param records Exact number of records this storage will hold.
-     * @return Success, resource_limit (nodes), a provider failure, or wrong_type_or_access.
+     * @return Success, resource_limit (nodes), a provider failure, or internal_error when already reserved.
      * @note Failure leaves the storage growable and unchanged.
      * @par ID SWU-VALUE-116
      */
@@ -179,7 +179,7 @@ namespace adaptive_json5
       // One reservation, made while empty, so nothing ever needs relocating.
       if (m_fixed || (m_capacity != 0) || (m_size != 0))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       if (records > m_max_records)

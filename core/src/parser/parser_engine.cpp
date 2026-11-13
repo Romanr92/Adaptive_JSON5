@@ -85,7 +85,7 @@ namespace adaptive_json5
     {
       if (m_root.is_set())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       bool member = false;
@@ -99,21 +99,21 @@ namespace adaptive_json5
         case parser_state::array_value_after_comma:
           if (parent->pending_name.has_value())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
           break;
 
         case parser_state::object_value:
           if (!parent->pending_name.has_value())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
 
           member = true;
           break;
 
         default:
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
       }
 
@@ -238,13 +238,13 @@ namespace adaptive_json5
       // Every string reached the sink's reserve hook; anything else here means the lexer skipped it.
       if ((string_length != 0) != m_string_reserved)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
       if (m_warning_record_failed)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The lexer walked the string twice, counting then decoding, so its bytes are charged again.
@@ -323,12 +323,12 @@ namespace adaptive_json5
       if ((frame == nullptr) || ((frame->state != parser_state::object_first_name_or_end) &&
                                  (frame->state != parser_state::object_name_after_comma)))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       if (frame->pending_name.has_value())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The lexer must stop growth before either string limit is exceeded.
@@ -374,7 +374,7 @@ namespace adaptive_json5
       // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
       if (m_warning_record_failed)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Quoted and identifier names are both walked twice, counting then decoding.
@@ -438,7 +438,7 @@ namespace adaptive_json5
 
       if (frame == nullptr)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       parser_state next_state = frame->state;
@@ -448,7 +448,7 @@ namespace adaptive_json5
       {
         if ((frame->state != parser_state::object_colon) || (!frame->pending_name.has_value()))
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
 
         expected = punctuation_kind::colon;
@@ -459,7 +459,7 @@ namespace adaptive_json5
         // P034/P035: a completed element or member must precede every comma.
         if (frame->pending_name.has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
 
         switch (frame->state)
@@ -473,12 +473,12 @@ namespace adaptive_json5
           break;
 
         default:
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
       }
       else
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Validate the actual byte before publishing the grammar transition.
@@ -558,7 +558,7 @@ namespace adaptive_json5
     {
       if (!completed.is_set() || m_root.is_set())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Reacquire the parent after any stack growth or completed-container pop.
@@ -680,7 +680,7 @@ namespace adaptive_json5
     {
       if (m_count_root_done)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       bool member = false;
@@ -698,7 +698,7 @@ namespace adaptive_json5
           break;
 
         default:
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
       }
 
@@ -841,7 +841,7 @@ namespace adaptive_json5
       if ((m_count_depth == 0) || ((m_count_top.state != parser_state::object_first_name_or_end) &&
                                    (m_count_top.state != parser_state::object_name_after_comma)))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       const std::size_t max_units = m_resources.string_unit_allowance();
@@ -920,7 +920,7 @@ namespace adaptive_json5
     {
       if (m_count_depth == 0)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       parser_state next_state = m_count_top.state;
@@ -941,7 +941,7 @@ namespace adaptive_json5
       }
       else
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       cursor candidate = m_source;
@@ -977,7 +977,7 @@ namespace adaptive_json5
 
       if (m_count_depth == 0)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       const auto closable = check_container_close(m_count_top.state, *closing, m_options.syntax);
@@ -1044,7 +1044,7 @@ namespace adaptive_json5
         return status_result::success();
 
       default:
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
     }
 
@@ -1125,7 +1125,7 @@ namespace adaptive_json5
           break;
 
         default:
-          counted = status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          counted = status_result::failure(error::internal_fault());
           break;
         }
       }
@@ -1315,7 +1315,7 @@ namespace adaptive_json5
         }
 
         default:
-          return tree_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return tree_result::failure(error::internal_fault());
         }
       }
 

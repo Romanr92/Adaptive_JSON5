@@ -107,19 +107,19 @@ namespace adaptive_json5
 
       if (frame == nullptr)
       {
-        return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_index>::failure(error::internal_fault());
       }
 
       if ((closing.byte_length != 1) ||
           ((closing.kind != punctuation_kind::right_bracket) && (closing.kind != punctuation_kind::right_brace)))
       {
-        return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_index>::failure(error::internal_fault());
       }
 
       // Validate offsets before adding the closing byte or subtracting the opening.
       if ((closing.byte_offset >= input_size) || (frame->opening_offset >= closing.byte_offset))
       {
-        return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_index>::failure(error::internal_fault());
       }
 
       // The pre-pass uses the same check, so both passes report the same close errors.
@@ -133,7 +133,7 @@ namespace adaptive_json5
       // Every closable object has already transferred its pending name.
       if (frame->pending_name.has_value())
       {
-        return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_index>::failure(error::internal_fault());
       }
 
       const auto charged = work.charge(1);

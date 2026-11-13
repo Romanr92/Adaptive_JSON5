@@ -46,7 +46,7 @@ namespace adaptive_json5
       // Only a recognized opening token may begin a container.
       if (opening.byte_length != 1)
       {
-        return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_index>::failure(error::internal_fault());
       }
 
       switch (opening.kind)
@@ -61,7 +61,7 @@ namespace adaptive_json5
         break;
 
       default:
-        return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_index>::failure(error::internal_fault());
       }
 
       frame.opening_offset = opening.byte_offset;

@@ -34,7 +34,7 @@ namespace adaptive_json5
     // Growing here would mean the lexer's counting pass and decoding pass disagree.
     if (*new_size.value_if() > m_capacity)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     auto* bytes = static_cast<std::byte*>(m_storage.data());
@@ -66,7 +66,7 @@ namespace adaptive_json5
    * @param units Exact decoded size counted by the caller's first pass.
    * @return Success, internal_error above the unit limit (the caller's counting pass
    * already enforced it), allocation_failure, or
-   * wrong_type_or_access when content or a reservation already exists.
+   * internal_error when content or a reservation already exists.
    * @note Makes at most one allocation; zero units allocate nothing.
    * @par ID SWU-MEMORY-022
    */
@@ -75,7 +75,7 @@ namespace adaptive_json5
     // One reservation per string: a second one would mean the lexer's passes are out of step.
     if ((m_size != std::size_t{}) || (m_capacity != std::size_t{}))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     // The counting pass already rejected strings above the limit, so exceeding it here means

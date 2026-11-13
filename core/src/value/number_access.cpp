@@ -82,7 +82,7 @@ namespace adaptive_json5
       // An empty spelling cannot be a number the lexer recognized.
       if ((text.data == nullptr) || (text.size == 0))
       {
-        return number_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return number_result::failure(error::internal_fault());
       }
 
       // Same limit check and location as copy_spelling, so the parser reports the same error.
@@ -94,7 +94,7 @@ namespace adaptive_json5
       // A cheap consistency check keeps rejecting mismatched token metadata, as the old re-lex did.
       if (leading_kind(text) != kind)
       {
-        return number_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return number_result::failure(error::internal_fault());
       }
 
       auto allocation = allocate_block(storage, text.size, alignof(char));

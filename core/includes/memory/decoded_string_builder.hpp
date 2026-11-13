@@ -16,7 +16,7 @@ namespace adaptive_json5
    * P013; J5-018; J5-029; J5-040.
    * @note The provider state must outlive the builder and its allocations.
    * Storage is reserved once with reserve_exact; appends never allocate (ADR 0003, decision 2).
-   * Appending past the reservation fails with wrong_type_or_access and preserves content.
+   * Appending past the reservation fails with internal_error and preserves content.
    * max_units bounds the reservation in units; total-memory accounting is separate.
    */
   class [[nodiscard]] decoded_string_builder
@@ -96,7 +96,7 @@ namespace adaptive_json5
        * @param units Exact decoded size counted by the caller's first pass.
        * @return Success, internal_error above the unit limit (the caller's counting pass
        * already enforced it), allocation_failure, or
-       * wrong_type_or_access when content or a reservation already exists.
+       * internal_error when content or a reservation already exists.
        * @note Makes at most one allocation; zero units allocate nothing.
        * Appends up to units then never allocate (ADR 0003, decision 2).
        * @par ID SWU-MEMORY-022

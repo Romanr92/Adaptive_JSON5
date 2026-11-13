@@ -256,7 +256,7 @@ namespace adaptive_json5
          * @param context The engine.
          * @param warning Warning found by the decode walk, in source order.
          * @note A failed append means the reservation and the walk disagree; it is reported after
-         * lexing as wrong_type_or_access.
+         * lexing as internal_error.
          * @par ID SWU-PARSER-016
          */
         static void record_warning(void* context, const string_warning& warning) noexcept;

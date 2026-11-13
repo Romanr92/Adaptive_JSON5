@@ -137,7 +137,7 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P038; J5-037; J5-046.
    * @param limbs Upper bound on the limbs this integer will hold.
-   * @return Success, a provider failure, or wrong_type_or_access when nonzero or already reserved.
+   * @return Success, a provider failure, or internal_error when nonzero or already reserved.
    * @par ID SWU-VALUE-008
    */
   status_result big_unsigned::reserve(std::size_t limbs) noexcept
@@ -145,7 +145,7 @@ namespace adaptive_json5::detail
     // One reservation per integer, made while it is still zero, so nothing needs copying.
     if ((m_size != 0) || (m_capacity != 0))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     if (limbs == 0)
@@ -241,7 +241,7 @@ namespace adaptive_json5::detail
 
     if (!supported_radix || (digit >= radix))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     const auto passes = checked_multiply(m_size, c_limb_passes, resource_limit_reason::work);
@@ -280,7 +280,7 @@ namespace adaptive_json5::detail
     // The reservation is an upper bound, so needing more means the bound was wrong.
     if (grows && (m_size >= m_capacity))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     // No fallible operations remain, so the integer is updated in place.
@@ -435,7 +435,7 @@ namespace adaptive_json5::detail
 
     if (destination_count > m_capacity)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     std::size_t significant_count = *base_count.value_if();
@@ -511,7 +511,7 @@ namespace adaptive_json5::detail
 
     if (*ordering.value_if() == magnitude_order::less)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     if (other.m_size == 0)
@@ -625,7 +625,7 @@ namespace adaptive_json5::detail
     // The reservation is an upper bound, so a larger source means the bound was wrong.
     if (other.m_size > m_capacity)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     for (std::size_t index{}; index < other.m_size; ++index)

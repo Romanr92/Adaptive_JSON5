@@ -147,7 +147,7 @@ namespace adaptive_json5
           error::syntax_at(byte_offset, separator_reason(byte, syntax_error_reason::missing_comma)));
 
       default:
-        return action_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return action_result::failure(error::internal_fault());
       }
 
       // P034/P035: separators cannot create array holes or replace member values.

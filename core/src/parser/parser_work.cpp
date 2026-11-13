@@ -22,7 +22,7 @@ namespace adaptive_json5
      * @param input Complete borrowed input.
      * @param start_offset Original offset where the scan begins.
      * @param work Shared work budget; not charged here.
-     * @return The limited scan, or wrong_type_or_access for an invalid input or offset.
+     * @return The limited scan, or internal_error for an invalid input or offset (callers validated both).
      * @note Performs no allocation and reads no input bytes.
      * @par ID SWU-PARSER-040
      */
@@ -31,7 +31,7 @@ namespace adaptive_json5
     {
       if (((input.data == nullptr) && (input.size != 0)) || (start_offset > input.size))
       {
-        return result<limited_scan>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<limited_scan>::failure(error::internal_fault());
       }
 
       const std::size_t input_left = input.size - start_offset;
@@ -53,7 +53,7 @@ namespace adaptive_json5
      * @param end_offset Original offset where the scan stopped; start_offset for no-match.
      * @param work Shared work budget for the parse operation.
      * @return Success after charging end_offset - start_offset, resource_limit (work) at
-     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or wrong_type_or_access for a reversed range.
+     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or internal_error for a reversed range.
      * @par ID SWU-PARSER-041
      */
     status_result finish_limited_scan(const limited_scan& scan, std::size_t end_offset, work_budget& work) noexcept
@@ -61,7 +61,7 @@ namespace adaptive_json5
       // A cursor never moves backwards, so a reversed range is an internal error.
       if ((end_offset < scan.start_offset) || (end_offset > scan.view_end))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The lexer saw the cut as end of input, so its result may be a shortened token.
