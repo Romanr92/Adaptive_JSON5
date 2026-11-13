@@ -1,7 +1,6 @@
 #include "lexer/identifier/identifier_lexer.hpp"
 
 #include "adaptive_json5/error.hpp"
-#include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
@@ -241,8 +240,16 @@ namespace adaptive_json5
     const auto reserved = builder.reserve_exact(totals.units);
     if (!reserved.has_value())
     {
-      // Keep the builder's code and reason, e.g. a string limit, located at the token start.
-      return identifier_result::failure(reserved.error_if()->relocated(totals.byte_offset));
+      const error& failure = *reserved.error_if();
+
+      // Owned-byte limits concern storage accounting, not an input position.
+      if (failure.limit_reason() == resource_limit_reason::owned_bytes)
+      {
+        return identifier_result::failure(failure.unlocated());
+      }
+
+      // Other reservation failures retain the identifier's start location.
+      return identifier_result::failure(failure.relocated(totals.byte_offset));
     }
 
     // Second pass: an identifier has no opening delimiter, so decoding starts at source itself.
