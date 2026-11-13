@@ -107,7 +107,7 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-046.
        * @param additional Number of further entries the caller will append.
-       * @return Success, resource_limit when size() + additional exceeds the maximum, or an
+       * @return Success, resource_limit (diagnostics) when size() + additional exceeds the maximum, or an
        * allocation failure; the list is unchanged on failure.
        * @note fixed: the first allocation holds the maximum and never grows. adaptive: the
        * first allocation holds min(maximum, 64) entries, later growth doubles, capped at the maximum.

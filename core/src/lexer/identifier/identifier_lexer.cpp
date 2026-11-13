@@ -43,7 +43,8 @@ namespace adaptive_json5
      * @param output Null to count only; otherwise a builder reserved for this identifier.
      * @return Unit totals, zero units for no-match, or a located error.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
-     * resource_limit is reported at the character that first exceeds max_units.
+     * resource_limit (string) is reported at the character that first exceeds max_units; the
+     * engine names total_string instead when that limit was the smaller one.
      * @par ID SWU-LEXER-007
      */
     result<identifier_walk> walk_identifier(cursor& source, std::size_t max_units,
@@ -129,7 +130,7 @@ namespace adaptive_json5
         const auto total = checked_add(walk.units, encoded.value_if()->size, resource_limit_reason::string);
         if ((!total.has_value()) || (*total.value_if() > max_units))
         {
-          return walk_result::failure(error::at_offset(error_code::resource_limit, character_offset));
+          return walk_result::failure(error::limit_at(character_offset, resource_limit_reason::string));
         }
 
         if (output != nullptr)

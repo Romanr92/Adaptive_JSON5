@@ -121,7 +121,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-046; J5-048.
          * @param frames Exact number of frames, the pre-pass peak depth.
-         * @return Success, resource_limit above the frame limit, a provider failure, or
+         * @return Success, resource_limit (depth) above the frame limit, a provider failure, or
          * wrong_type_or_access when storage was already allocated.
          * @note Zero frames allocate nothing. Charges no work: nothing is relocated
          * (ADR 0003, decision 7). Failure leaves the stack unchanged.

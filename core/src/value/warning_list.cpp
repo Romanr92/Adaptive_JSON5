@@ -142,7 +142,7 @@ namespace adaptive_json5
     // Capacity belongs to the list, so no caller can grow it past its maximum.
     if (*required.value_if() > m_max_entries)
     {
-      return status_result::failure(error::without_location(error_code::resource_limit));
+      return status_result::failure(error::limit_without_location(resource_limit_reason::diagnostics));
     }
 
     if (*required.value_if() <= m_capacity)

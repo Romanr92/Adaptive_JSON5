@@ -82,7 +82,7 @@ namespace adaptive_json5
      * P038; J5-036; J5-046.
      * @param own Analysis of the operand.
      * @param other Analysis of the other operand.
-     * @return Limb count or resource_limit on overflow.
+     * @return Limb count or resource_limit (conversion_size) on overflow.
      * @note Scaling happens only for equal leading exponents; the power of ten then has
      * at most as many digits as the other operand's significand (ADR 0003, decision 1).
      * @par ID SWU-VALUE-082
@@ -288,7 +288,7 @@ namespace adaptive_json5
      * @param provider Scratch storage for hexadecimal digit counting.
      * @param work Shared comparison work budget.
      * @return Exact scale and leading exponent, or an explicit failure.
-     * @note Exponents above c_max_exponent return resource_limit instead of saturating,
+     * @note Exponents above c_max_exponent return resource_limit (conversion_size) instead of saturating,
      * because saturation would make different values compare equal.
      * @par ID SWU-VALUE-086
      */
@@ -301,7 +301,7 @@ namespace adaptive_json5
       // Digit counts below are bounded by the spelling, so bound it like the exponent.
       if (spelling.size > c_max_exponent)
       {
-        return form_result::failure(error::without_location(error_code::resource_limit));
+        return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
       }
 
       decimal_form form{};
@@ -427,7 +427,7 @@ namespace adaptive_json5
           // Comparison must stay exact, so an oversized exponent is a limit failure, not a saturation.
           if (exponent > ((c_max_exponent - digit) / c_decimal_radix))
           {
-            return form_result::failure(error::without_location(error_code::resource_limit));
+            return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
           }
 
           exponent = (exponent * c_decimal_radix) + digit;

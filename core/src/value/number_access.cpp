@@ -4,6 +4,7 @@
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -87,7 +88,7 @@ namespace adaptive_json5
       // Same limit check and location as copy_spelling, so the parser reports the same error.
       if (text.size > max_bytes)
       {
-        return number_result::failure(error::at_offset(error_code::resource_limit, c_spelling_start_offset));
+        return number_result::failure(error::limit_at(c_spelling_start_offset, resource_limit_reason::number_bytes));
       }
 
       // A cheap consistency check keeps rejecting mismatched token metadata, as the old re-lex did.

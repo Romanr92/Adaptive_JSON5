@@ -1,6 +1,7 @@
 #ifndef PARSER_ENGINE_HPP_
 #define PARSER_ENGINE_HPP_
 
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
@@ -258,6 +259,18 @@ namespace adaptive_json5
          */
         static void record_warning(void* context, const string_warning& warning) noexcept;
 
+        /**
+         * @brief Complete a parse failure with the location the engine knows.
+         * @par Requirements
+         * J5-043; J5-044; J5-047; issue #125.
+         * @param failure Failure returned by parse().
+         * @return The failure from locate_limit() at the current cursor offset.
+         * @note A failed step neither advances the cursor nor changes the budget, so the cursor
+         * is at the start of the failing token and the string allowance is the one the lexer saw.
+         * @par ID SWU-PARSER-048
+         */
+        [[nodiscard]] error located_failure(const error& failure) const noexcept;
+
       public:
         /**
          * @brief Prepare private state without allocating parser storage.
@@ -279,6 +292,7 @@ namespace adaptive_json5
          * then builds; syntax and limit failures occur before any allocation (ADR 0003, decision 7).
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
+         * Limit failures without a location are reported at the failing token (located_failure()).
          * @par ID SWU-PARSER-026
          */
         [[nodiscard]] result<parsed_value_tree> run() noexcept;
@@ -293,6 +307,7 @@ namespace adaptive_json5
          * The pre-pass also checks trailing content, so it fails before any allocation.
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
+         * Limit failures without a location are reported at the failing token (located_failure()).
          * @par ID SWU-PARSER-027
          */
         [[nodiscard]] result<parsed_value_tree> run_complete() noexcept;

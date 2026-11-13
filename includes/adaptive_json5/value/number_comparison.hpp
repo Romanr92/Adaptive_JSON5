@@ -55,8 +55,10 @@ namespace adaptive_json5
    * @return Exact ordering or an explicit error.
    * @note Never converts through floating point; spelling and radix do not affect the result.
    * Empty spelling returns wrong_type_or_access.
-   * Exponent magnitudes above PTRDIFF_MAX / 4 return resource_limit (documented project limit).
-   * Work or scratch-limit exhaustion returns resource_limit; provider exhaustion returns allocation_failure.
+   * Exponent magnitudes above PTRDIFF_MAX / 4 return resource_limit (conversion_size, documented
+   * project limit).
+   * Work or scratch-limit exhaustion returns resource_limit (work or owned_bytes); provider exhaustion
+   * returns allocation_failure.
    * All temporary allocations are released before returning.
    * @par ID SWU-VALUE-091
    */

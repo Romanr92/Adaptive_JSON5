@@ -5,6 +5,7 @@
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/number/number_lexer.hpp"
@@ -57,7 +58,7 @@ namespace adaptive_json5
 
     if (text.size > max_bytes)
     {
-      return number_result::failure(error::at_offset(error_code::resource_limit, c_spelling_start_offset));
+      return number_result::failure(error::limit_at(c_spelling_start_offset, resource_limit_reason::number_bytes));
     }
 
     cursor source{text};

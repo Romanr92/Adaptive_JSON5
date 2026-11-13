@@ -312,7 +312,7 @@ namespace adaptive_json5
      * @par Requirements
      * J5-037; J5-039.
      * @return The correctly rounded value, an empty optional when the exact path is needed,
-     * or resource_limit when work is exhausted.
+     * or resource_limit (work) when work is exhausted.
      * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
      * round-to-nearest; disabled when intermediate precision is wider than T.
      * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
@@ -673,7 +673,7 @@ namespace adaptive_json5
       // Keeps the signed exponent arithmetic below far from overflow.
       if ((numerator_bits > c_max_bits) || (denominator_bits > c_max_bits))
       {
-        return float_result::failure(error::without_location(error_code::resource_limit));
+        return float_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
       }
 
       // After shifting, the quotient lies in [2^(P+1), 2^(P+3)): enough bits to round once.

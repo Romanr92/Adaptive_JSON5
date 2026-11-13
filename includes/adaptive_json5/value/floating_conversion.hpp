@@ -51,7 +51,7 @@ namespace adaptive_json5
    * Finite overflow returns out_of_range.
    * Nonzero-to-zero rounding follows the underflow policy.
    * Empty spelling returns wrong_type_or_access.
-   * Work or scratch-limit exhaustion returns resource_limit.
+   * Work, scratch or size exhaustion returns resource_limit (work, owned_bytes or conversion_size).
    * Provider exhaustion returns allocation_failure.
    * All temporary allocations are released before returning.
    * Provider state must remain alive throughout the call.
@@ -76,7 +76,7 @@ namespace adaptive_json5
    * Finite overflow returns out_of_range.
    * Nonzero-to-zero rounding follows the underflow policy.
    * Empty spelling returns wrong_type_or_access.
-   * Work or scratch-limit exhaustion returns resource_limit.
+   * Work, scratch or size exhaustion returns resource_limit (work, owned_bytes or conversion_size).
    * Provider exhaustion returns allocation_failure.
    * All temporary allocations are released before returning.
    * Provider state must remain alive throughout the call.

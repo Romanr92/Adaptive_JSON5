@@ -47,7 +47,8 @@ namespace adaptive_json5
      * @param sink Optional parser sink that records each warning; used only while decoding.
      * @return Unit and warning totals, or a located error.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
-     * resource_limit is reported at the piece that first exceeds max_units.
+     * resource_limit (string) is reported at the piece that first exceeds max_units; the
+     * engine names total_string instead when that limit was the smaller one.
      * @par ID SWU-LEXER-038
      */
     result<string_walk> walk_string_body(cursor& source, std::size_t start, string_quote quote, syntax_mode mode,
@@ -90,7 +91,7 @@ namespace adaptive_json5
         const auto total = checked_add(walk.units, units.size, resource_limit_reason::string);
         if ((!total.has_value()) || (*total.value_if() > max_units))
         {
-          return status_result::failure(error::at_offset(error_code::resource_limit, offset));
+          return status_result::failure(error::limit_at(offset, resource_limit_reason::string));
         }
 
         if (output != nullptr)

@@ -85,7 +85,7 @@ namespace adaptive_json5
     {
       if (required > m_max_records)
       {
-        return status_result::failure(error::without_location(error_code::resource_limit));
+        return status_result::failure(error::limit_without_location(resource_limit_reason::nodes));
       }
 
       if (required <= m_capacity)
@@ -170,7 +170,7 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040; J5-046.
      * @param records Exact number of records this storage will hold.
-     * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
+     * @return Success, resource_limit (nodes), a provider failure, or wrong_type_or_access.
      * @note Failure leaves the storage growable and unchanged.
      * @par ID SWU-VALUE-116
      */
@@ -184,7 +184,7 @@ namespace adaptive_json5
 
       if (records > m_max_records)
       {
-        return status_result::failure(error::without_location(error_code::resource_limit));
+        return status_result::failure(error::limit_without_location(resource_limit_reason::nodes));
       }
 
       if (records != 0)
@@ -231,7 +231,7 @@ namespace adaptive_json5
     {
       if (m_size >= m_max_records)
       {
-        return result<value_index>::failure(error::without_location(error_code::resource_limit));
+        return result<value_index>::failure(error::limit_without_location(resource_limit_reason::nodes));
       }
 
       // The limit check proves adding one cannot overflow size_t.

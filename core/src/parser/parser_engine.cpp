@@ -641,6 +641,23 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Complete a parse failure with the location the engine knows.
+     * @par Requirements
+     * J5-043; J5-044; J5-047; issue #125.
+     * @param failure Failure returned by parse().
+     * @return The failure from locate_limit() at the current cursor offset.
+     * @note A failed step neither advances the cursor nor changes the budget, so the cursor
+     * is at the start of the failing token and the string allowance is the one the lexer saw.
+     * @par ID SWU-PARSER-048
+     */
+    error parser_engine::located_failure(const error& failure) const noexcept
+    {
+      // A failed step does not change the budget, so this is the allowance the lexer saw.
+      const bool total_binding = m_resources.string_unit_allowance() < m_options.limits.max_string_units;
+      return detail::locate_limit(failure, m_source.offset(), total_binding);
+    }
+
+    /**
      * @brief Address the nesting-kind bits for the current pre-pass.
      * @par Requirements
      * P033; J5-046; J5-048.
@@ -786,7 +803,7 @@ namespace adaptive_json5
         // Same check and location as owned_number::copy_spelling in the build pass.
         if (number->byte_length > limits.max_number_bytes)
         {
-          return status_result::failure(error::at_offset(error_code::resource_limit, number->byte_offset));
+          return status_result::failure(error::limit_at(number->byte_offset, resource_limit_reason::number_bytes));
         }
       }
 
@@ -1319,11 +1336,19 @@ namespace adaptive_json5
      * @note Invoke once on a fresh engine.
      * This internal operation does not validate trailing input.
      * Every failure requires abandoning this engine instance.
+     * Limit failures without a location are reported at the failing token (located_failure()).
      * @par ID SWU-PARSER-026
      */
     result<parsed_value_tree> parser_engine::run() noexcept
     {
-      return parse(false);
+      auto parsed = parse(false);
+
+      if (!parsed.has_value())
+      {
+        return result<parsed_value_tree>::failure(located_failure(*parsed.error_if()));
+      }
+
+      return parsed;
     }
 
     /**
@@ -1334,11 +1359,19 @@ namespace adaptive_json5
      * Admits trailing trivia according to the selected syntax mode.
      * Success sets consumed_bytes to the complete input size.
      * Failure returns no tree; discard this engine instance.
+     * Limit failures without a location are reported at the failing token (located_failure()).
      * @par ID SWU-PARSER-027
      */
     result<parsed_value_tree> parser_engine::run_complete() noexcept
     {
-      return parse(true);
+      auto parsed = parse(true);
+
+      if (!parsed.has_value())
+      {
+        return result<parsed_value_tree>::failure(located_failure(*parsed.error_if()));
+      }
+
+      return parsed;
     }
   } // namespace detail
 } // namespace adaptive_json5

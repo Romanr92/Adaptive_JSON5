@@ -217,7 +217,7 @@ namespace adaptive_json5
       if ((string->first_warning.has_value()) && (c_retained_warning_entries > options.limits.max_diagnostics))
       {
         return primitive_result::failure(
-          error::at_offset(error_code::resource_limit, string->first_warning->byte_offset));
+          error::limit_at(string->first_warning->byte_offset, resource_limit_reason::diagnostics));
       }
 
       value.warning_count = string->warning_count;
@@ -319,18 +319,21 @@ namespace adaptive_json5
     document candidate{storage, options.limits.max_nodes};
     cursor source{input};
 
+    // A primitive root holds at most one string, so the total limit binds only when it is the smaller one.
+    const bool total_string_binding = options.limits.max_total_string_units < options.limits.max_string_units;
+
     const auto leading = detail::skip_trivia_within_budget(source, input, options.syntax, work);
 
     if (!leading.has_value())
     {
-      return document_result::failure(*leading.error_if());
+      return document_result::failure(detail::locate_limit(*leading.error_if(), source.offset(), total_string_binding));
     }
 
     const auto parsed = consume_primitive(candidate, source, input, options, storage, work);
 
     if (!parsed.has_value())
     {
-      return document_result::failure(*parsed.error_if());
+      return document_result::failure(detail::locate_limit(*parsed.error_if(), source.offset(), total_string_binding));
     }
 
     if (!parsed.value_if()->has_value())
@@ -344,7 +347,8 @@ namespace adaptive_json5
 
     if (!trailing.has_value())
     {
-      return document_result::failure(*trailing.error_if());
+      return document_result::failure(
+        detail::locate_limit(*trailing.error_if(), source.offset(), total_string_binding));
     }
 
     if (!source.is_at_end())
