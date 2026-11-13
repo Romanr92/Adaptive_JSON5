@@ -76,17 +76,23 @@ namespace adaptive_json5
     /**
      * @brief Map a lexer failure that may have been caused by the cut.
      * @par Requirements
-     * P040; J5-049.
+     * P040; J5-049; issue #125.
      * @param scan Scan started by begin_limited_scan.
      * @param failure Error reported by the lexer.
-     * @return resource_limit (work) at view_end when the failure lies within
-     * c_cut_margin_bytes of a cut, has a source range ending there, or has no location;
-     * otherwise failure unchanged.
+     * @return For a syntax or encoding failure in a cut scan: resource_limit (work) at view_end
+     * when the failure lies within c_cut_margin_bytes of the cut, has a source range ending
+     * there, or has no location. Every other failure is returned unchanged.
+     * @note Only grammar and UTF-8 errors can come from the cut hiding the rest of a token;
+     * allocation, internal and other limit failures are real and keep their category.
      * @par ID SWU-PARSER-042
      */
     error limited_scan_error(const limited_scan& scan, const error& failure) noexcept
     {
-      if (!scan.cut)
+      // Only grammar and UTF-8 errors can come from the cut hiding the rest of a token; every
+      // other failure, e.g. allocation_failure or another limit, is real and is kept.
+      const bool cut_artifact = (failure.code() == error_code::syntax) || (failure.code() == error_code::encoding);
+
+      if (!scan.cut || !cut_artifact)
       {
         return failure;
       }
