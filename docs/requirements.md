@@ -1,6 +1,7 @@
 # Public API requirements
 
-Status: **Draft requirements**. The compiled parser, owned value model, numeric
+Status: **Draft requirements**, except the rows marked Implemented in
+[traceability](traceability.md). The compiled parser, owned value model, numeric
 operations and diagnostics through P040 are implemented and have host unit
 evidence. P041 claim status is recorded in [conformance](conformance.md).
 The schema engine, validation CLI and editor remain later delivery steps.
@@ -21,8 +22,10 @@ may be integrated with recorded provenance. A serializer, comment-preserving
 formatter, streaming API, C ABI and other schema dialects are outside this baseline.
 Source formatting is a development check; it is not a JSON5 formatting product.
 
-The original [proposal Markdown](../core/docs/requirements-proposal-json5-parser-repository.md) is preserved as historical Draft input. These adapted requirements and later user instructions define current scope. Stable J5 IDs preserve proposal traceability; J5-101 records the later embedded requirement. All rows are Draft; issue ownership
-and executed unit tests are recorded in [traceability](traceability.md). Planned
+The original [proposal Markdown](../core/docs/requirements-proposal-json5-parser-repository.md) is preserved as historical Draft input. These adapted requirements and later user instructions define current scope. Stable J5 IDs preserve proposal traceability; J5-101 records the later embedded requirement. All rows are Draft unless
+[traceability](traceability.md) marks them Implemented (owner-agreed wording, whole
+contract implemented, named units passing; not Verified); issue ownership
+and executed unit tests are recorded there. Planned
 checks below are acceptance intentions, not passing evidence. Review a contract
 before declaring it implemented; verification requires executed, named unit tests.
 The proposal's broader integration/fuzz/sanitizer/benchmark/target/editor-host
