@@ -87,7 +87,7 @@ Owner of all work products: Romanr92.
 
 | # | Work product | Location | Status |
 | --- | --- | --- | --- |
-| 1 | SEooC assumptions and decomposition rationale | [`seooc-assumptions.md`](seooc-assumptions.md) | Draft, A-01 to A-08 |
+| 1 | SEooC assumptions and decomposition rationale | [`seooc-assumptions.md`](seooc-assumptions.md) | Draft, A-01 to A-09 |
 | 2 | Safety plan | This document | Draft |
 | 3 | Software safety requirements | [Section K of `docs/requirements.md`](../requirements.md#k-software-safety-requirements-iso-26262) | Draft, SSR-01 to SSR-08 |
 | 4 | Software architecture and safety analysis (FMEA, dependent failure analysis) | [`software-safety-analysis.md`](software-safety-analysis.md); architecture in [`core/docs/design-architecture.md`](../../core/docs/design-architecture.md) | Draft: FMEA rows and dependent failure analysis reviewed with the owner. A separate interface view of the architecture is still to do. |

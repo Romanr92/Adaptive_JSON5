@@ -94,18 +94,18 @@ Data flow through the parts: integrator input, options and buffer → **Input** 
 | LX-03 | FM-2 | A valid token is rejected | Correct data is lost and the integrator stays in its fallback | J5-027 (QM) | Grammar implemented per specification | json5-tests validation, `grammar_evidence_tests` | Rejecting valid input is not unsafe by itself, because the integrator falls back (A-06), so correct acceptance stays a QM requirement backed by the conformance tests. Integrator: if staying in fallback too long is dangerous for their function, they must handle it, for example with a timeout into a safe state |
 | LX-04 | FM-1, FM-2 | A generated Unicode table is wrong (tool fault) | Whitespace or identifiers are misclassified | SSR-06 | Tables are checked against the Unicode data | `core/tests/unicode/unicode_tables_tests.cpp` | Tool confidence, work product 7 |
 | LX-05 | FM-3 | A very long string, number or exponent | Long run time or memory use | SSR-02 | `max_string_units`, `max_total_string_units`, `max_number_bytes`, `max_exponent_digits` | lexer string and number tests | — |
-| LX-06 | FM-5 | Words starting with `N` or `I` go to the non-finite lexer | Odd error position, no range | SSR-03 | — | — | Improvement, not a safety gap: #125 (LOG-04) |
+| LX-06 | FM-5 | Words starting with `N` or `I` go to the non-finite lexer | Odd error position, no range | SSR-03 | An unsigned word that is not exactly `Infinity` or `NaN` is rejected like any unknown word: `unknown_literal` with a whole-word `source_range`, in both modes | `tests/api/error_reason_tests.cpp` (`J5_043_UnknownWord`), `core/tests/lexer/number/non_finite_tests.cpp` | Done in #125 (LOG-04). Owner decides whether the row is closed. |
 
 #### Parser
 
 | ID | FM | Cause | Effect | SSR | Safety measure | Tests | Gap and action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | PA-01 | FM-1 | A grammar error or trailing content is accepted | Invalid document reported as valid | SSR-03 | Complete-input check: one root, permitted trivia, end of input | `complete_document_tests`, `grammar_evidence_tests`, validation fixtures | — |
-| PA-02 | FM-1 | The count pass and the build pass disagree | The document is built differently from what was counted | SSR-03 | Run-time agreement check returns an error | `core/tests/parser/two_pass_tests.cpp` | The document is still rejected. Improvement: report it as an internal error, not as a caller error, #125 (LOG-06) |
+| PA-02 | FM-1 | The count pass and the build pass disagree | The document is built differently from what was counted | SSR-03 | Run-time agreement checks return `internal_error`, distinct from every caller error; the document is rejected | `core/tests/parser/two_pass_tests.cpp`, `core/tests/parser/parser_engine_tests.cpp`, `core/tests/value/string_storage_tests.cpp` | Done in #125 (LOG-06). Owner decides whether the row is closed. |
 | PA-03 | FM-1 | A failure in the middle of the parse | A partial document is used as if complete | SSR-03 | Atomic result: no document is published on failure (J5-051) | `complete_document_tests`, allocation audit tests | — |
 | PA-04 | FM-3 | Deep nesting or a huge document | Long run time, large memory or stack use | SSR-02, SSR-07 | `max_depth`, `max_nodes`, `max_members`, `max_work_units`; explicit container stack instead of recursion | `resource_guards_tests`, `work_baseline_tests` | Stack use is not measured yet: #136 |
 | PA-05 | FM-4 | The frame stack grows and old frame pointers go stale | Use of moved or freed memory | SSR-08 | Frames are moved on growth | `parser_engine_tests`, `parser_transition_tests` | Evidence to be confirmed by a unit test |
-| PA-06 | FM-5 | A limit error has no position and does not name the limit | The integrator cannot tell which limit to raise | SSR-03 | — | — | The document is still rejected. Improvement: #125 (LOG-03) |
+| PA-06 | FM-5 | A limit error has no position and does not name the limit | The integrator cannot tell which limit to raise | SSR-03 | `limit_reason()` names the limit; token-bound limits are located at the offending token, whole-input and memory limits have no location by design | `tests/api/error_reason_tests.cpp` (`J5_047_LimitReason`, `J5_017_ExcessWarning`), `core/tests/parser/error_location_tests.cpp` | Done in #125 (LOG-03). Owner decides whether the row is closed. |
 
 #### Value model and conversions
 
@@ -118,7 +118,7 @@ Data flow through the parts: integrator input, options and buffer → **Input** 
 | VM-05 | FM-3 | `member()` walks the member list from the start for every step | Lookup time grows quadratically with object size | SSR-02 | `max_members` bounds the object size | — | **Gap (LOG-11):** owner decision: make the lookup faster, in #124 |
 | VM-06 | FM-1 | The integrator modifies a parsed document through exposed mutators | The document no longer matches the input | SSR-03 | — | — | **Gap (ARC-03):** owner decision: both. The mutators move into a `detail` namespace (#128), and the Safety Manual forbids them. Integrator: never modify a parsed document |
 | VM-07 | FM-1 | The document in caller memory is corrupted by other software | Wrong values are read | — | None in the library | — | Covered by A-07 (freedom from interference) |
-| VM-08 | FM-5 | A missing member, a duplicated member and a non-object all give the same error | The integrator cannot react differently | SSR-03 | The advanced `lookup_member` distinguishes them | — | Improvement: #125 (LOG-05) |
+| VM-08 | FM-5 | A missing member, a duplicated member and a non-object all give the same error | The integrator cannot react differently | SSR-03 | `access_reason()` gives `absent_member`, `duplicate_member` or `wrong_type`; a damaged internal link gives `internal_error` | `tests/api/error_reason_tests.cpp` (`J5_039_AccessReason`), `core/tests/value/relationship_validation_tests.cpp` | Done in #125 (LOG-05). Owner decides whether the row is closed. |
 
 #### Memory
 
@@ -126,16 +126,16 @@ Data flow through the parts: integrator input, options and buffer → **Input** 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | ME-01 | FM-4 | A block is placed outside the buffer or misaligned | Memory corruption | SSR-08 | Alignment and capacity checks; checked size arithmetic | `buffer_arena_tests`, `storage_tests`, `checked_size_tests` | — |
 | ME-02 | FM-3, FM-4 | A limit is not enforced because of a miscount | Memory use beyond the planned budget | SSR-02 | Every allocation is charged against the limits | `accounted_storage_tests`, `allocation_audit_tests` | — |
-| ME-03 | FM-4 | A block is released twice or with the wrong size | The byte counter wraps and every later allocation fails | SSR-02, SSR-08 | — | — | **Gap (LOG-07):** add an underflow check that reports an internal fault, in #125 |
+| ME-03 | FM-4 | A block is released twice, with the wrong size or with a wrong address | Without a check: the byte counter wraps and every later allocation fails; a release that does not wrap leaves the counter too low, so later allocations can pass `max_owned_bytes` (SSR-02); a double release reaches the provider as a double free (SSR-08) | SSR-02, SSR-08 | `accounted_storage` counts outstanding blocks and refuses, before the provider sees it, a null address, zero bytes, a release with no block outstanding, more bytes than the outstanding blocks can hold and a last block of a different size. A refused release leaves the counters unchanged and latches `faulted()`; every later allocation fails with `internal_error`. Inside the library only `owned_block` releases, exactly once | `tests/memory/accounted_storage_tests.cpp` (`J5_046_MismatchedRelease`), also under the sanitizer job | Done in #125 (LOG-07). A wrong size among several outstanding blocks is detected only when it exceeds what the other blocks can hold; per-block headers were not chosen. Integrator: A-09. Owner decides whether the row is closed. |
 | ME-04 | FM-1 | An allocation fails in the middle of a parse | A partial document | SSR-03 | All allocations of the call are released; no document is published | `allocation_audit_tests` (fault injection) | — |
 | ME-05 | FM-4 | The integrator's memory functions return bad memory | Corruption the library cannot see | — | None possible | — | Integrator (A-05) |
-| ME-06 | FM-5 | A bad alignment request is reported as `resource_limit` | Wrong reaction to a caller error | SSR-03 | — | — | Improvement: report it as an invalid argument, #125 (LOG-08) |
+| ME-06 | FM-5 | A bad alignment request is reported as `resource_limit` | Wrong reaction to a caller error | SSR-03 | An alignment that is not a power of two is `wrong_type_or_access` with `invalid_argument`, before any provider call | `tests/memory/storage_tests.cpp`, `tests/memory/accounted_storage_tests.cpp`, `tests/memory/buffer_arena_tests.cpp` | Done in #125 (LOG-08). Owner decides whether the row is closed. |
 
 #### Diagnostics
 
 | ID | FM | Cause | Effect | SSR | Safety measure | Tests | Gap and action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| DG-01 | FM-5 | The wrong error category | The integrator chooses the wrong reaction, but still rejects the document (A-06) | SSR-03 | Fixed error-code table | `result_tests`, `syntax_reason_tests`, `error_range_tests` | Category fixes in #125 |
+| DG-01 | FM-5 | The wrong error category | The integrator chooses the wrong reaction, but still rejects the document (A-06) | SSR-03 | Fixed error-code table; `internal_error` for library faults; one reason per code, readable only under that code | `result_tests`, `syntax_reason_tests`, `error_range_tests`, `error_reason_tests`, `diagnostic_format_tests` | Category fixes done in #125. Owner decides whether the row is closed. |
 | DG-02 | FM-4 | The formatted message is written past the caller buffer | Memory corruption | SSR-08 | Capacity check; always NUL-terminated; truncates | `tests/api/diagnostic_format_tests.cpp` | — |
 | DG-03 | FM-2 | Too many warnings | Valid input is rejected | SSR-02 | `max_diagnostics`, on purpose, to keep memory bounded | `parser_warning_tests` | Integrator sizes `max_diagnostics` (A-04) |
 | DG-04 | FM-5 | An error is stored without its location when memory is short | Less information only | SSR-03 | Minimal error reporting needs no allocation | allocation failure tests | — |
@@ -161,6 +161,9 @@ These are collected here and will go into the Safety Manual:
 4. A moved-from document is never used (AP-02).
 5. A document's buffer stays alive and reserved until the document is destroyed (AP-03).
 6. Every document has its own buffer (DFA-01).
+7. Accounted memory is released only through `owned_block`, and `faulted()` is checked
+   after releasing a document (ME-03, A-09).
+8. `internal_error` is treated as a library fault, never as bad input (PA-02, DG-01).
 
 ## 2. Dependent failure analysis
 

@@ -257,7 +257,7 @@ ASIL to each J5 row is a later task in #138.
 | SSR-05 — No heap and no shared mutable state | The parser library shall not use the heap, and shall have no mutable global, static or thread-local state, so that independent documents cannot affect each other. | B(D) | J5-042, J5-046, J5-050, J5-101 | A-02, A-05 | Draft |
 | SSR-06 — Value correctness | Parsed strings, member names and numbers shall match the input exactly. A conversion such as `as_int64()`, `as_uint64()` or `as_double()` shall either return the exact value, or the value under the documented rounding rule, or an explicit error. It shall never return a silently cut-off or wrongly rounded value. | B(D) | J5-029, J5-033, J5-034, J5-035, J5-037 | A-06 | Draft |
 | SSR-07 — Bounded stack | The library's stack use shall have a known upper limit that depends only on the configured limits, so that it can be checked against the stack size of a small controller. | B(D) | J5-048, J5-101 (see #136) | A-01 | Draft |
-| SSR-08 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator. | B(D) | J5-004, J5-040, J5-046 | A-03, A-05 | Draft |
+| SSR-08 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator. | B(D) | J5-004, J5-040, J5-046 | A-03, A-05, A-09 | Draft |
 
 ## L. Cybersecurity requirements (ISO/SAE 21434)
 

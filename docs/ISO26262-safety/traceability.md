@@ -23,7 +23,7 @@ traceability, so that it cannot drift apart from it:
 
 | Link | Where it is defined |
 | --- | --- |
-| SEooC assumptions A-01 to A-08 | [`seooc-assumptions.md`](seooc-assumptions.md) |
+| SEooC assumptions A-01 to A-09 | [`seooc-assumptions.md`](seooc-assumptions.md) |
 | Software safety requirements SSR-01 to SSR-08 | [`docs/requirements.md`, section K](../requirements.md#k-software-safety-requirements-iso-26262) |
 | J5 requirement rows | [`docs/requirements.md`](../requirements.md) |
 | Software units (`SWU-…`) | `@par ID` in the Doxygen of each function; [registry](../../core/docs/software-unit-ids.md) |
