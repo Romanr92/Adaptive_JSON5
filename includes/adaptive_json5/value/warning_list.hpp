@@ -121,7 +121,7 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-017.
        * @param warning Entry to store, in source order.
-       * @return Success, or wrong_type_or_access when no reserved capacity remains.
+       * @return Success, or wrong_type_or_access (invalid_argument) when no reserved capacity remains.
        * @note Never allocates, so it is safe inside a warning observer.
        * @par ID SWU-VALUE-142
        */
@@ -140,7 +140,7 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-017; J5-044.
        * @param index Zero-based position in source order.
-       * @return A copy of the entry, or wrong_type_or_access when index is out of range.
+       * @return A copy of the entry, or wrong_type_or_access (index_out_of_range) when index is out of range.
        * @par ID SWU-VALUE-144
        */
       [[nodiscard]] result<string_warning> at(std::size_t index) const noexcept;

@@ -1,3 +1,4 @@
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -96,7 +97,7 @@ namespace adaptive_json5
       // An exact reservation is an upper bound, so needing more means the counting pass was wrong.
       if (m_fixed)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       std::size_t capacity = required;
@@ -262,7 +263,7 @@ namespace adaptive_json5
     {
       if (!index.is_set() || (index.position() >= m_size))
       {
-        return result<value_record*>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
       }
 
       return result<value_record*>::success(live_record(index.position()));
@@ -279,7 +280,7 @@ namespace adaptive_json5
     {
       if (!index.is_set() || (index.position() >= m_size))
       {
-        return result<const value_record*>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<const value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
       }
 
       return result<const value_record*>::success(live_record(index.position()));

@@ -170,7 +170,7 @@ namespace adaptive_json5
       return *this;
     }
 
-    // element_at() rejects non-arrays and out-of-range positions with wrong_type_or_access.
+    // element_at() rejects non-arrays (wrong_type) and out-of-range positions (index_out_of_range).
     return json5_value{m_value.value_if()->element_at(index), m_scratch};
   }
 

@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/retained_source.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
@@ -23,7 +24,7 @@ namespace adaptive_json5
 
     if ((input.data == nullptr) && (input.size != 0))
     {
-      return source_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return source_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     retained_source retained{};

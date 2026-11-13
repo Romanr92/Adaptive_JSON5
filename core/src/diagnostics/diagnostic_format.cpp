@@ -51,7 +51,7 @@ namespace adaptive_json5
          * J5-045; issue #96.
          * @param buffer Caller storage, or nullptr when capacity is 0.
          * @param capacity Size of buffer in bytes, including the NUL.
-         * @return The writer, or wrong_type_or_access for a null buffer with nonzero capacity.
+         * @return The writer, or wrong_type_or_access (invalid_argument) for a null buffer with nonzero capacity.
          * @note A null buffer with zero capacity is a valid size query.
          * @par ID SWU-DIAGNOSTICS-002
          */
@@ -59,7 +59,7 @@ namespace adaptive_json5
         {
           if ((buffer == nullptr) && (capacity != 0U))
           {
-            return result<message_writer>::failure(error::without_location(error_code::wrong_type_or_access));
+            return result<message_writer>::failure(error::access_failure(access_error_reason::invalid_argument));
           }
 
           return result<message_writer>::success(message_writer{buffer, capacity});

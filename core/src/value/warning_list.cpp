@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/warning_list.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -183,7 +184,7 @@ namespace adaptive_json5
   {
     if (m_size >= m_capacity)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     write_entry(m_storage, m_size, warning);
@@ -213,7 +214,7 @@ namespace adaptive_json5
   {
     if (index >= m_size)
     {
-      return result<string_warning>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<string_warning>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
     return result<string_warning>::success(read_entry(m_storage, index));

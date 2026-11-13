@@ -116,7 +116,7 @@ namespace adaptive_json5
        * @brief Read one decoded unit without changing the string.
        * @par Requirements
        * P013; J5-018; J5-029.
-       * @return Exact unit, or wrong_type_or_access for an invalid index.
+       * @return Exact unit, or wrong_type_or_access (index_out_of_range) for an invalid index.
        * @note Surrogate units are returned unchanged.
        * @par ID SWU-VALUE-021
        */

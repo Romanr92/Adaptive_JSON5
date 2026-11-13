@@ -27,7 +27,8 @@ namespace adaptive_json5
    * P039; J5-003; J5-044; J5-052.
    * @param input Original bytes the offset refers to.
    * @param byte_offset Zero-based offset; input.size denotes the end of input.
-   * @return Position of the character at byte_offset, or wrong_type_or_access when it exceeds input.size.
+   * @return Position of the character at byte_offset, or wrong_type_or_access (invalid_argument) when it
+   * exceeds input.size.
    * @note LF, CR, CRLF, U+2028 and U+2029 end a line; CRLF counts once.
    * An offset inside a multibyte character or inside CRLF reports where that sequence starts.
    * Scans the input once up to byte_offset; performs no allocation or locale-dependent operation.

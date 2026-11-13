@@ -1,5 +1,6 @@
 #include "value/number_analysis.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
@@ -37,7 +38,7 @@ namespace adaptive_json5
       // A moved-from number retains metadata but has no numeric value.
       if (spelling.size == 0)
       {
-        return analysis_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return analysis_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       const auto charged = work.charge(spelling.size);

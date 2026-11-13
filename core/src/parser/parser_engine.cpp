@@ -1,5 +1,6 @@
 #include "parser/parser_engine.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
@@ -1178,13 +1179,13 @@ namespace adaptive_json5
 
       if ((m_input.data == nullptr) && (m_input.size != 0))
       {
-        return tree_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return tree_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       // All parser allocations must use the configured byte ceiling.
       if (m_owned_byte_limit != m_options.limits.max_owned_bytes)
       {
-        return tree_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return tree_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       const auto input_checked = m_resources.check_input(m_input.size);

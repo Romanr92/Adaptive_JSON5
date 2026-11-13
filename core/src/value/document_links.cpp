@@ -1,5 +1,6 @@
 #include "value/document_links.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
@@ -40,7 +41,7 @@ namespace adaptive_json5
         {
           if ((remaining == 0) || (ancestor.position() == child.position()))
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
           }
 
           const auto resolved = values.at(ancestor);
@@ -73,7 +74,7 @@ namespace adaptive_json5
         {
           if (member_name == nullptr)
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
           }
 
           const auto span = *name_span;
@@ -81,7 +82,7 @@ namespace adaptive_json5
           // Subtraction avoids overflowing the end of the supplied source range.
           if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
           }
         }
 
@@ -104,13 +105,13 @@ namespace adaptive_json5
 
         if ((parent.position() == child.position()) || ((root.is_set()) && (root.position() == child.position())))
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
         }
 
         if (child_record.parent.is_set() || child_record.next_sibling.is_set() ||
             child_record.member_name.has_value() || child_record.member_name_source_span.has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
         }
 
         container_links* links = nullptr;
@@ -120,7 +121,7 @@ namespace adaptive_json5
           auto* array = std::get_if<array_data>(&parent_record.payload);
           if (array == nullptr)
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::wrong_type));
           }
 
           links = &array->elements;
@@ -130,7 +131,7 @@ namespace adaptive_json5
           auto* object = std::get_if<object_data>(&parent_record.payload);
           if (object == nullptr)
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::wrong_type));
           }
 
           links = &object->members;

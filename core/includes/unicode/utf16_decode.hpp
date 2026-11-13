@@ -24,7 +24,7 @@ namespace adaptive_json5
    * @brief Decode one scalar at a UTF-16 unit index.
    * @par Requirements
    * P013; J5-018; J5-029.
-   * @return A scalar and consumed unit count, wrong_type_or_access for an
+   * @return A scalar and consumed unit count, wrong_type_or_access (index_out_of_range) for an
    * invalid index, or encoding error for an unpaired surrogate.
    * @note Does not allocate, modify the string, or advance caller state.
    * Errors have no original input byte offset: index counts decoded units.

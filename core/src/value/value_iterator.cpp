@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/value_iterator.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -56,7 +57,7 @@ namespace adaptive_json5
     }
     else
     {
-      return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_iterator>::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
     // Reject impossible counts before starting traversal.
@@ -93,7 +94,7 @@ namespace adaptive_json5
   {
     if (m_storage == nullptr)
     {
-      return result<std::optional<value_view>>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::optional<value_view>>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     if (m_remaining == 0)

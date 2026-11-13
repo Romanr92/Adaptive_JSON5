@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -56,7 +57,7 @@ namespace adaptive_json5
 
     if (units == nullptr)
     {
-      return result<decoded_string>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<decoded_string>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     auto allocation = allocate_array(storage, count, sizeof(char16_t), alignof(char16_t));
@@ -86,7 +87,7 @@ namespace adaptive_json5
    * @brief Read one decoded unit without changing the string.
    * @par Requirements
    * P013; J5-018; J5-029.
-   * @return Exact unit, or wrong_type_or_access for an invalid index.
+   * @return Exact unit, or wrong_type_or_access (index_out_of_range) for an invalid index.
    * @note Surrogate units are returned unchanged.
    * @par ID SWU-VALUE-021
    */
@@ -94,7 +95,7 @@ namespace adaptive_json5
   {
     if (index >= m_size)
     {
-      return result<char16_t>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<char16_t>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
     const auto* bytes = static_cast<const std::byte*>(m_storage.data());

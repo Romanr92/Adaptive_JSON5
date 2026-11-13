@@ -140,7 +140,7 @@ namespace adaptive_json5
        * @par Requirements
        * J5-017; J5-041.
        * @param index Zero-based position, below warning_count().
-       * @return The warning, or wrong_type_or_access when index is out of range.
+       * @return The warning, or wrong_type_or_access (index_out_of_range) when index is out of range.
        * @par ID SWU-MEMORY-037
        */
       [[nodiscard]] result<string_warning> warning(std::size_t index) const noexcept;
@@ -190,7 +190,8 @@ namespace adaptive_json5
    * @param buffer Destination; receives NUL-terminated text when capacity is nonzero.
    * @param capacity Bytes in buffer, including room for the NUL.
    * @return A view of the text written (without the NUL), truncated when the buffer is too
-   * small; wrong_type_or_access for a null buffer with nonzero capacity or an offset beyond input.
+   * small; wrong_type_or_access (invalid_argument) for a null buffer with nonzero capacity or an offset
+   * beyond input.
    * @note Allocates nothing. Unlocated errors give only the message. Use format_error() for
    * the untruncated length.
    * @par ID SWU-MEMORY-044

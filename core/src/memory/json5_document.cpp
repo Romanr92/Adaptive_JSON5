@@ -1,5 +1,6 @@
 #include "adaptive_json5/json5_document.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/diagnostic_format.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
@@ -91,7 +92,7 @@ namespace adaptive_json5
    * @param buffer Caller storage reserved for this document.
    * @param buffer_size Bytes in buffer.
    * @param options Syntax, policies and limits, passed unchanged to parse_document.
-   * @return The document; wrong_type_or_access when input and buffer overlap;
+   * @return The document; wrong_type_or_access (invalid_argument) when input and buffer overlap;
    * allocation_failure when the buffer cannot hold the control block or the document;
    * or the error of parse_document, unchanged.
    * @note The arena and the accounting are placed at the start of the buffer; parsing and
@@ -105,7 +106,7 @@ namespace adaptive_json5
 
     if (overlaps(input, buffer, buffer_size))
     {
-      return document_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return document_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     auto storage = detail::make_buffer_document_storage(buffer, buffer_size, options.limits.max_owned_bytes);

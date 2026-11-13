@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/document.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -109,7 +110,7 @@ namespace adaptive_json5
   {
     if (value.spelling().size == 0)
     {
-      return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_index>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     return add_payload(m_values, detail::value_payload{std::in_place_type<owned_number>, std::move(value)});
@@ -227,7 +228,7 @@ namespace adaptive_json5
     // Subtraction validates the range without overflowing its end position.
     if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     // Replace metadata only after all validation succeeds.
@@ -266,13 +267,13 @@ namespace adaptive_json5
     // Empty decoded names are valid; absence means this is not a named member.
     if (!record.member_name.has_value())
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
     // Subtraction checks the end without overflowing offset plus length.
     if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     record.member_name_source_span.emplace(span);
@@ -292,7 +293,7 @@ namespace adaptive_json5
   {
     if (m_root.is_set())
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     const auto resolved = m_values.at(index);
@@ -305,7 +306,7 @@ namespace adaptive_json5
     const auto& record = **resolved.value_if();
     if (record.parent.is_set() || record.next_sibling.is_set() || record.member_name.has_value())
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     m_root = index;

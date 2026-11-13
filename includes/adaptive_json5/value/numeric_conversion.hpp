@@ -35,7 +35,7 @@ namespace adaptive_json5
    * Negative nonzero values return numeric_conversion with out_of_range.
    * Negative zero succeeds as unsigned zero.
    * Fractional values return non_integral; explicit infinity/NaN return non_finite.
-   * Empty spelling returns wrong_type_or_access.
+   * Empty spelling returns wrong_type_or_access (invalid_argument).
    * Budget exhaustion returns resource_limit.
    * Each call starts a fresh work budget; parsing budgets are not reused.
    * Performs no allocation, rounding, wrapping or locale-dependent operations.
@@ -55,7 +55,7 @@ namespace adaptive_json5
    * Values outside the destination range return out_of_range.
    * Fractional values return non_integral; explicit infinity/NaN return non_finite.
    * Negative zero succeeds as signed zero.
-   * Empty spelling returns wrong_type_or_access.
+   * Empty spelling returns wrong_type_or_access (invalid_argument).
    * Budget exhaustion returns resource_limit.
    * Each call starts a fresh work budget.
    * Performs no allocation, rounding, wrapping or locale-dependent operations.
@@ -73,7 +73,7 @@ namespace adaptive_json5
    * @return True for finite mathematically integral values; false otherwise.
    * @note Integrality is independent of spelling and machine-integer range.
    * Infinity and NaN return successful false.
-   * Empty spelling returns wrong_type_or_access.
+   * Empty spelling returns wrong_type_or_access (invalid_argument).
    * Budget exhaustion returns resource_limit.
    * Each call starts a fresh work budget.
    * Performs no allocation, numeric conversion or locale-dependent operations.
@@ -89,7 +89,8 @@ namespace adaptive_json5
    * @param value Borrowed document value to inspect.
    * @param options Work ceiling passed to numeric analysis.
    * @return Exact integrality or an explicit error.
-   * @note Invalid views and non-number values return wrong_type_or_access.
+   * @note Invalid views return wrong_type_or_access (invalid_argument), non-number values
+   * wrong_type_or_access (wrong_type).
    * Fractional numbers, infinity and NaN return successful false.
    * Booleans and numeric-looking strings are never coerced.
    * The owning document must remain alive and unmodified during this call.

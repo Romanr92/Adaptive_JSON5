@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/utf8_export.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
@@ -81,7 +82,7 @@ namespace adaptive_json5
    * May be nullptr when the required output size is zero.
    * @return Bytes written, encoding error for unpaired surrogates,
    * resource_limit (output_capacity) for insufficient capacity or size overflow,
-   * or wrong_type_or_access for a null nonempty destination.
+   * or wrong_type_or_access (invalid_argument) for a null nonempty destination.
    * @note No allocation or terminating NUL. Embedded NUL is preserved.
    * Validation and capacity failures leave the destination unchanged.
    * Source and destination storage must not overlap.
@@ -121,7 +122,7 @@ namespace adaptive_json5
 
     if (destination == nullptr)
     {
-      return result<std::size_t>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::size_t>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     std::size_t index{};

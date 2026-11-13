@@ -27,7 +27,7 @@ namespace adaptive_json5
    * May be nullptr when the required output size is zero.
    * @return Bytes written, encoding error for unpaired surrogates,
    * resource_limit (output_capacity) for insufficient capacity or size overflow,
-   * or wrong_type_or_access for a null nonempty destination.
+   * or wrong_type_or_access (invalid_argument) for a null nonempty destination.
    * @note No allocation or terminating NUL. Embedded NUL is preserved.
    * Validation and capacity failures leave the destination unchanged.
    * Source and destination storage must not overlap.

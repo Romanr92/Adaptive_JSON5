@@ -76,7 +76,7 @@ namespace adaptive_json5
        * P039; J5-003; J5-041; J5-046.
        * @param input Borrowed bytes to copy; need not remain alive afterwards.
        * @param storage Fallible provider charged for exactly input.size bytes.
-       * @return Owning copy, or wrong_type_or_access for null data with a nonzero size,
+       * @return Owning copy, or wrong_type_or_access (invalid_argument) for null data with a nonzero size,
        * or the provider's resource/allocation failure.
        * @note Empty input retains nothing and performs no provider call.
        * @par ID SWU-VALUE-100

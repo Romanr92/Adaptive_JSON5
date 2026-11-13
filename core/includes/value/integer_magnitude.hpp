@@ -48,7 +48,7 @@ namespace adaptive_json5::detail
    * @param maximum Inclusive permitted magnitude, independent of sign.
    * @param work Shared work budget for analysis and magnitude construction.
    * @return Exact magnitude and original sign, or an explicit error.
-   * @note Empty spelling returns wrong_type_or_access.
+   * @note Empty spelling returns wrong_type_or_access (invalid_argument).
    * Explicit infinity or NaN returns numeric_conversion with non_finite.
    * Finite nonintegral values return numeric_conversion with non_integral.
    * Integral values exceeding maximum return numeric_conversion with out_of_range.

@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/owned_number.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
@@ -53,7 +54,7 @@ namespace adaptive_json5
 
     if ((text.data == nullptr) && (text.size != 0))
     {
-      return number_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return number_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     if (text.size > max_bytes)
