@@ -50,6 +50,11 @@ adaptive_json5_add_unit(adaptive_json5_syntax_reason_unit_tests
     syntax_reason_units
     syntax_reason_tests.cpp)
 
+# Issue #125: limit and access reasons, locations, unknown words and the error layout.
+adaptive_json5_add_unit(adaptive_json5_error_reason_unit_tests
+    error_reason_units
+    error_reason_tests.cpp)
+
 # Replaces the global allocator to prove formatting allocates nothing, so it stays in its own executable.
 adaptive_json5_add_unit(adaptive_json5_diagnostic_format_unit_tests
     diagnostic_format_units

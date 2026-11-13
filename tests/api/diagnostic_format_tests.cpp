@@ -1,8 +1,10 @@
 #include "../shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/diagnostic_format.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/text_position.hpp"
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
@@ -172,7 +174,55 @@ namespace
       message_case{"ResourceLimit", error::at_offset(error_code::resource_limit, c_at),
                    "line: 2, column: 5: resource limit exceeded"},
       message_case{"AllocationFailure", error::without_location(error_code::allocation_failure), "allocation failure"},
+      message_case{"InternalError", error::internal_fault(), "internal error"},
       message_case{"UnknownCode", error::without_location(static_cast<error_code>(99)), "unknown error"}),
+    case_name<message_case>);
+  // Issue #125: each limit reason names its option; located and unlocated forms share the text.
+  INSTANTIATE_TEST_SUITE_P(
+    LimitReasons, D96_FormatMessage,
+    testing::Values(
+      message_case{"Input", error::limit_without_location(resource_limit_reason::input),
+                   "input exceeds max_input_bytes"},
+      message_case{"Depth", error::limit_at(c_at, resource_limit_reason::depth),
+                   "line: 2, column: 5: nesting exceeds max_depth"},
+      message_case{"Nodes", error::limit_at(c_at, resource_limit_reason::nodes),
+                   "line: 2, column: 5: values exceed max_nodes"},
+      message_case{"Members", error::limit_at(c_at, resource_limit_reason::members),
+                   "line: 2, column: 5: members exceed max_members"},
+      message_case{"String", error::limit_at(c_at, resource_limit_reason::string),
+                   "line: 2, column: 5: string exceeds max_string_units"},
+      message_case{"TotalString", error::limit_at(c_at, resource_limit_reason::total_string),
+                   "line: 2, column: 5: strings exceed max_total_string_units"},
+      message_case{"NumberBytes", error::limit_at(c_at, resource_limit_reason::number_bytes),
+                   "line: 2, column: 5: number exceeds max_number_bytes"},
+      message_case{"ExponentDigits", error::limit_at(c_at, resource_limit_reason::exponent_digits),
+                   "line: 2, column: 5: exponent exceeds max_exponent_digits"},
+      message_case{"OwnedBytes", error::limit_without_location(resource_limit_reason::owned_bytes),
+                   "memory exceeds max_owned_bytes"},
+      message_case{"Diagnostics", error::limit_at(c_at, resource_limit_reason::diagnostics),
+                   "line: 2, column: 5: warnings exceed max_diagnostics"},
+      message_case{"Work", error::limit_at(c_at, resource_limit_reason::work),
+                   "line: 2, column: 5: work exceeds max_work_units"},
+      message_case{"OutputCapacity", error::limit_without_location(resource_limit_reason::output_capacity),
+                   "output buffer too small"},
+      message_case{"ConversionSize", error::limit_without_location(resource_limit_reason::conversion_size),
+                   "number too long to convert"},
+      message_case{"UnknownLimitReason", error::limit_without_location(static_cast<resource_limit_reason>(99)),
+                   "resource limit exceeded"}),
+    case_name<message_case>);
+  // Issue #125: each access reason has its own text.
+  INSTANTIATE_TEST_SUITE_P(
+    AccessReasons, D96_FormatMessage,
+    testing::Values(
+      message_case{"WrongType", error::access_failure(access_error_reason::wrong_type), "wrong value type"},
+      message_case{"AbsentMember", error::access_failure(access_error_reason::absent_member), "member not found"},
+      message_case{"DuplicateMember", error::access_failure(access_error_reason::duplicate_member),
+                   "member name is duplicated"},
+      message_case{"IndexOutOfRange", error::access_failure(access_error_reason::index_out_of_range),
+                   "index out of range"},
+      message_case{"InvalidArgument", error::access_failure(access_error_reason::invalid_argument), "invalid argument"},
+      message_case{"UnknownAccessReason", error::access_failure(static_cast<access_error_reason>(99)),
+                   "wrong type or invalid access"}),
     case_name<message_case>);
   INSTANTIATE_TEST_SUITE_P(
     NumericReasons, D96_FormatMessage,
