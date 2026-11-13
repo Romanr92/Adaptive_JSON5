@@ -2,6 +2,7 @@
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "common/checked_size.hpp"
@@ -41,7 +42,8 @@ namespace adaptive_json5
      * @param output Null to count only; otherwise a builder reserved for this identifier.
      * @return Unit totals, zero units for no-match, or a located error.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
-     * resource_limit is reported at the character that first exceeds max_units.
+     * resource_limit (string) is reported at the character that first exceeds max_units; the
+     * engine names total_string instead when that limit was the smaller one.
      * @par ID SWU-LEXER-007
      */
     result<identifier_walk> walk_identifier(cursor& source, std::size_t max_units,
@@ -116,18 +118,18 @@ namespace adaptive_json5
           break;
         }
 
-        // An invalid scaler keeps the builder's former error, located at it's character.
+        // An invalid scalar keeps the encoder's code and reason, relocated to its character.
         const auto encoded = encode_utf16(scalar);
 
         if (!encoded.has_value())
         {
-          return walk_result::failure(error::at_offset(encoded.error_if()->code, character_offset));
+          return walk_result::failure(encoded.error_if()->relocated(character_offset));
         }
 
-        const auto total = checked_add(walk.units, encoded.value_if()->size);
+        const auto total = checked_add(walk.units, encoded.value_if()->size, resource_limit_reason::string);
         if ((!total.has_value()) || (*total.value_if() > max_units))
         {
-          return walk_result::failure(error::at_offset(error_code::resource_limit, character_offset));
+          return walk_result::failure(error::limit_at(character_offset, resource_limit_reason::string));
         }
 
         if (output != nullptr)
@@ -137,7 +139,8 @@ namespace adaptive_json5
             const auto appended = output->append_unit(encoded.value_if()->units[index]);
             if (!appended.has_value())
             {
-              return walk_result::failure(error::at_offset(appended.error_if()->code, character_offset));
+              // Keep the builder's code and reason, located at the character being appended.
+              return walk_result::failure(appended.error_if()->relocated(character_offset));
             }
           }
         }
@@ -237,7 +240,16 @@ namespace adaptive_json5
     const auto reserved = builder.reserve_exact(totals.units);
     if (!reserved.has_value())
     {
-      return identifier_result::failure(error::at_offset(reserved.error_if()->code, totals.byte_offset));
+      const error& failure = *reserved.error_if();
+
+      // Owned-byte limits concern storage accounting, not an input position.
+      if (failure.limit_reason() == resource_limit_reason::owned_bytes)
+      {
+        return identifier_result::failure(failure.unlocated());
+      }
+
+      // Other reservation failures retain the identifier's start location.
+      return identifier_result::failure(failure.relocated(totals.byte_offset));
     }
 
     // Second pass: an identifier has no opening delimiter, so decoding starts at source itself.
@@ -252,7 +264,7 @@ namespace adaptive_json5
     // Both passes read the same bytes with the same code, so any difference is an internal error.
     if ((decoding.offset() != counting.offset()) || (decoded.value_if()->units != totals.units))
     {
-      return identifier_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return identifier_result::failure(error::internal_fault());
     }
 
     identifier_token token{builder.finish(), totals.byte_offset, totals.byte_length, totals.contains_escape};

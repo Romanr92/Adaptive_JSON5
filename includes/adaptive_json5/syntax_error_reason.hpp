@@ -1,6 +1,8 @@
 #ifndef ADAPTIVE_JSON5_SYNTAX_ERROR_REASON_HPP_
 #define ADAPTIVE_JSON5_SYNTAX_ERROR_REASON_HPP_
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -31,7 +33,7 @@ namespace adaptive_json5
    * @note The reason refines error_code::syntax; it never replaces the error code.
    * Callers may switch on it; they never need to parse formatted message text.
    */
-  enum class syntax_error_reason
+  enum class syntax_error_reason : std::uint8_t
   {
     unexpected_end,
     unexpected_character,

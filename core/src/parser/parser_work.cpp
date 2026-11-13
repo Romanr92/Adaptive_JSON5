@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/trivia.hpp"
@@ -21,7 +22,7 @@ namespace adaptive_json5
      * @param input Complete borrowed input.
      * @param start_offset Original offset where the scan begins.
      * @param work Shared work budget; not charged here.
-     * @return The limited scan, or wrong_type_or_access for an invalid input or offset.
+     * @return The limited scan, or internal_error for an invalid input or offset (callers validated both).
      * @note Performs no allocation and reads no input bytes.
      * @par ID SWU-PARSER-040
      */
@@ -30,7 +31,7 @@ namespace adaptive_json5
     {
       if (((input.data == nullptr) && (input.size != 0)) || (start_offset > input.size))
       {
-        return result<limited_scan>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<limited_scan>::failure(error::internal_fault());
       }
 
       const std::size_t input_left = input.size - start_offset;
@@ -51,8 +52,8 @@ namespace adaptive_json5
      * @param scan Scan started by begin_limited_scan.
      * @param end_offset Original offset where the scan stopped; start_offset for no-match.
      * @param work Shared work budget for the parse operation.
-     * @return Success after charging end_offset - start_offset, resource_limit at
-     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or wrong_type_or_access for a reversed range.
+     * @return Success after charging end_offset - start_offset, resource_limit (work) at
+     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or internal_error for a reversed range.
      * @par ID SWU-PARSER-041
      */
     status_result finish_limited_scan(const limited_scan& scan, std::size_t end_offset, work_budget& work) noexcept
@@ -60,13 +61,13 @@ namespace adaptive_json5
       // A cursor never moves backwards, so a reversed range is an internal error.
       if ((end_offset < scan.start_offset) || (end_offset > scan.view_end))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The lexer saw the cut as end of input, so its result may be a shortened token.
       if (scan.cut && ((end_offset + c_cut_margin_bytes) >= scan.view_end))
       {
-        return status_result::failure(error::at_offset(error_code::resource_limit, scan.view_end));
+        return status_result::failure(error::limit_at(scan.view_end, resource_limit_reason::work));
       }
 
       return work.charge(end_offset - scan.start_offset);
@@ -75,31 +76,37 @@ namespace adaptive_json5
     /**
      * @brief Map a lexer failure that may have been caused by the cut.
      * @par Requirements
-     * P040; J5-049.
+     * P040; J5-049; issue #125.
      * @param scan Scan started by begin_limited_scan.
      * @param failure Error reported by the lexer.
-     * @return resource_limit at view_end when the failure lies within
-     * c_cut_margin_bytes of a cut, has a source range ending there, or has no location;
-     * otherwise failure unchanged.
+     * @return For a syntax or encoding failure in a cut scan: resource_limit (work) at view_end
+     * when the failure lies within c_cut_margin_bytes of the cut, has a source range ending
+     * there, or has no location. Every other failure is returned unchanged.
+     * @note Only grammar and UTF-8 errors can come from the cut hiding the rest of a token;
+     * allocation, internal and other limit failures are real and keep their category.
      * @par ID SWU-PARSER-042
      */
     error limited_scan_error(const limited_scan& scan, const error& failure) noexcept
     {
-      if (!scan.cut)
+      // Only grammar and UTF-8 errors can come from the cut hiding the rest of a token; every
+      // other failure, e.g. allocation_failure or another limit, is real and is kept.
+      const bool cut_artifact = (failure.code() == error_code::syntax) || (failure.code() == error_code::encoding);
+
+      if (!scan.cut || !cut_artifact)
       {
         return failure;
       }
 
       // A token that ran up to the cut may be reported at its start, so check its range end as well.
+      const auto range = failure.source_range();
       const bool range_near_cut =
-        failure.source_range.has_value() &&
-        ((failure.source_range->byte_offset + failure.source_range->byte_length + c_cut_margin_bytes) >= scan.view_end);
+        range.has_value() && ((range->byte_offset + range->byte_length + c_cut_margin_bytes) >= scan.view_end);
 
       // Adding the offset instead of subtracting from view_end cannot underflow.
-      const bool near_cut =
-        (!failure.has_byte_offset) || ((failure.byte_offset + c_cut_margin_bytes) >= scan.view_end) || range_near_cut;
+      const bool near_cut = (!failure.has_byte_offset()) ||
+                            ((failure.byte_offset() + c_cut_margin_bytes) >= scan.view_end) || range_near_cut;
 
-      return near_cut ? error::at_offset(error_code::resource_limit, scan.view_end) : failure;
+      return near_cut ? error::limit_at(scan.view_end, resource_limit_reason::work) : failure;
     }
 
     /**
@@ -110,7 +117,7 @@ namespace adaptive_json5
      * @param input Complete borrowed input underlying source.
      * @param mode Selected syntax.
      * @param work Shared work budget for the parse operation.
-     * @return Success, a trivia error, or resource_limit when the budget ends inside the trivia.
+     * @return Success, a trivia error, or resource_limit (work) when the budget ends inside the trivia.
      * @par ID SWU-PARSER-043
      */
     status_result skip_trivia_within_budget(cursor& source, input_view input, syntax_mode mode,
@@ -143,6 +150,69 @@ namespace adaptive_json5
       source.advance(scan.source.offset() - source.offset());
 
       return status_result::success();
+    }
+
+    /**
+     * @brief Name the binding string limit and locate a token-bound limit failure.
+     * @par Requirements
+     * J5-043; J5-044; J5-047; J5-048; J5-049; issue #125.
+     * @param failure Failure returned by a parse step.
+     * @param token_offset Start of the token the failing step was processing.
+     * @param total_string_binding True when the remaining total string budget was smaller than
+     * max_string_units, so a lexer's string failure really hit max_total_string_units.
+     * @return failure unchanged unless it is resource_limit; otherwise the same failure, with
+     * total_string instead of string when total_string_binding is set, and at token_offset
+     * when it had no location and its limit belongs to one token.
+     * @note input, owned_bytes, output_capacity and conversion_size stay unlocated: they
+     * concern the whole input, memory, or a read after parsing. Existing locations are kept.
+     * @par ID SWU-PARSER-047
+     */
+    [[nodiscard]] error locate_limit(const error& failure, std::size_t token_offset, bool total_string_binding) noexcept
+    {
+      const auto reason = failure.limit_reason();
+
+      if (!reason.has_value())
+      {
+        return failure;
+      }
+
+      resource_limit_reason named = *reason;
+      error named_failure = failure;
+
+      // The lexers only see the smaller of both string limits and report it as string.
+      if ((named == resource_limit_reason::string) && total_string_binding)
+      {
+        named = resource_limit_reason::total_string;
+        named_failure = failure.has_byte_offset() ? error::limit_at(failure.byte_offset(), named)
+                                                  : error::limit_without_location(named);
+      }
+
+      if (named_failure.has_byte_offset())
+      {
+        return named_failure;
+      }
+
+      switch (named)
+      {
+      case adaptive_json5::resource_limit_reason::input:
+      case resource_limit_reason::owned_bytes:
+      case resource_limit_reason::output_capacity:
+      case resource_limit_reason::conversion_size:
+        // Not tied to one token: the whole input, memory, or a read after parsing.
+        return named_failure;
+      case resource_limit_reason::depth:
+      case resource_limit_reason::nodes:
+      case resource_limit_reason::members:
+      case resource_limit_reason::string:
+      case resource_limit_reason::total_string:
+      case resource_limit_reason::number_bytes:
+      case resource_limit_reason::exponent_digits:
+      case resource_limit_reason::diagnostics:
+      case resource_limit_reason::work:
+        return named_failure.relocated(token_offset);
+      }
+
+      return named_failure;
     }
   } // namespace detail
 } // namespace adaptive_json5

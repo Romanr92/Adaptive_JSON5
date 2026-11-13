@@ -1,10 +1,12 @@
 #include "adaptive_json5/value/owned_number.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/number/number_lexer.hpp"
@@ -52,12 +54,12 @@ namespace adaptive_json5
 
     if ((text.data == nullptr) && (text.size != 0))
     {
-      return number_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return number_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     if (text.size > max_bytes)
     {
-      return number_result::failure(error::at_offset(error_code::resource_limit, c_spelling_start_offset));
+      return number_result::failure(error::limit_at(c_spelling_start_offset, resource_limit_reason::number_bytes));
     }
 
     cursor source{text};
@@ -81,8 +83,9 @@ namespace adaptive_json5
     auto allocation = allocate_block(storage, text.size, alignof(char));
     if (!allocation.has_value())
     {
-      // Allocation errors have no location relative to the numeric spelling.
-      return number_result::failure(error::without_location(allocation.error_if()->code));
+      // Allocation errors have no location relative to the numeric spelling; unlocated()
+      // keeps their code and reason, e.g. the owned_bytes limit.
+      return number_result::failure(allocation.error_if()->unlocated());
     }
 
     std::memcpy(allocation.value_if()->data(), text.data, text.size);

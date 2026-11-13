@@ -320,13 +320,16 @@ namespace adaptive_json5
    * @param max_string_units Maximum decoded units in a string token.
    * @param max_identifier_units Maximum decoded identifier units while rejecting unknown words.
    * @param max_exponent_digits Maximum decimal exponent digits.
+   * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never
+   * limits. Passed to measure_string, so a string measurement carries the first excess warning.
    * @return A measurement, nullopt at EOF or structural punctuation, or a located error.
    * @note Keeps consume_scalar's order so both report the same errors (ADR 0003, decision 7).
    * @par ID SWU-LEXER-028
    */
   result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode, std::size_t max_string_units,
                                                        std::size_t max_identifier_units,
-                                                       std::size_t max_exponent_digits) noexcept
+                                                       std::size_t max_exponent_digits,
+                                                       std::size_t warning_allowance) noexcept
   {
     using measure_result = result<std::optional<scalar_measure>>;
 
@@ -345,7 +348,7 @@ namespace adaptive_json5
 
     cursor candidate = source;
 
-    const auto string = measure_string(candidate, mode, max_string_units);
+    const auto string = measure_string(candidate, mode, max_string_units, warning_allowance);
 
     if (!string.has_value())
     {

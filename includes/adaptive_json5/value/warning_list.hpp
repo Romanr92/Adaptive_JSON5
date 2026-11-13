@@ -107,7 +107,7 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-046.
        * @param additional Number of further entries the caller will append.
-       * @return Success, resource_limit when size() + additional exceeds the maximum, or an
+       * @return Success, resource_limit (diagnostics) when size() + additional exceeds the maximum, or an
        * allocation failure; the list is unchanged on failure.
        * @note fixed: the first allocation holds the maximum and never grows. adaptive: the
        * first allocation holds min(maximum, 64) entries, later growth doubles, capped at the maximum.
@@ -121,7 +121,7 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-017.
        * @param warning Entry to store, in source order.
-       * @return Success, or wrong_type_or_access when no reserved capacity remains.
+       * @return Success, or wrong_type_or_access (invalid_argument) when no reserved capacity remains.
        * @note Never allocates, so it is safe inside a warning observer.
        * @par ID SWU-VALUE-142
        */
@@ -140,7 +140,7 @@ namespace adaptive_json5
        * @par Requirements
        * P039; J5-003; J5-017; J5-044.
        * @param index Zero-based position in source order.
-       * @return A copy of the entry, or wrong_type_or_access when index is out of range.
+       * @return A copy of the entry, or wrong_type_or_access (index_out_of_range) when index is out of range.
        * @par ID SWU-VALUE-144
        */
       [[nodiscard]] result<string_warning> at(std::size_t index) const noexcept;

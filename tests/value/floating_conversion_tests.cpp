@@ -185,9 +185,9 @@ namespace
         << *converted.value_if() << " versus " << param.expected;
       return;
     }
-    EXPECT_EQ(converted.error_if()->code, error_code::numeric_conversion);
-    ASSERT_TRUE(converted.error_if()->numeric_reason.has_value());
-    EXPECT_EQ(*converted.error_if()->numeric_reason, param.reason);
+    EXPECT_EQ(converted.error_if()->code(), error_code::numeric_conversion);
+    ASSERT_TRUE(converted.error_if()->numeric_reason().has_value());
+    EXPECT_EQ(*converted.error_if()->numeric_reason(), param.reason);
   }
 
   INSTANTIATE_TEST_SUITE_P(
@@ -253,9 +253,9 @@ namespace
         << *converted.value_if() << " versus " << param.expected;
       return;
     }
-    EXPECT_EQ(converted.error_if()->code, error_code::numeric_conversion);
-    ASSERT_TRUE(converted.error_if()->numeric_reason.has_value());
-    EXPECT_EQ(*converted.error_if()->numeric_reason, param.reason);
+    EXPECT_EQ(converted.error_if()->code(), error_code::numeric_conversion);
+    ASSERT_TRUE(converted.error_if()->numeric_reason().has_value());
+    EXPECT_EQ(*converted.error_if()->numeric_reason(), param.reason);
   }
 
   INSTANTIATE_TEST_SUITE_P(
@@ -316,11 +316,11 @@ namespace
     ASSERT_TRUE(converted.has_value());
     EXPECT_EQ(*converted.value_if(), 0.1);
     ASSERT_FALSE(special.has_value());
-    ASSERT_TRUE(special.error_if()->numeric_reason.has_value());
-    EXPECT_EQ(*special.error_if()->numeric_reason, c_non_finite);
+    ASSERT_TRUE(special.error_if()->numeric_reason().has_value());
+    EXPECT_EQ(*special.error_if()->numeric_reason(), c_non_finite);
     ASSERT_FALSE(underflow.has_value());
-    ASSERT_TRUE(underflow.error_if()->numeric_reason.has_value());
-    EXPECT_EQ(*underflow.error_if()->numeric_reason, c_underflow);
+    ASSERT_TRUE(underflow.error_if()->numeric_reason().has_value());
+    EXPECT_EQ(*underflow.error_if()->numeric_reason(), c_underflow);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -372,9 +372,9 @@ namespace
     const auto as_float = to_float(*number.value_if(), scratch.callbacks());
     /* Expect */
     ASSERT_FALSE(as_double.has_value());
-    EXPECT_EQ(as_double.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(as_double.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(as_float.has_value());
-    EXPECT_EQ(as_float.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(as_float.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_EQ(scratch.m_attempts, 0U);
   }
 
@@ -481,7 +481,7 @@ namespace
       EXPECT_TRUE(same_value(*without_scratch.value_if(), param.expected));
       return;
     }
-    EXPECT_EQ(without_scratch.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(without_scratch.error_if()->code(), error_code::allocation_failure);
   }
 
   INSTANTIATE_TEST_SUITE_P(
@@ -545,7 +545,7 @@ namespace
       EXPECT_TRUE(same_value(*without_scratch.value_if(), static_cast<float>(param.expected)));
       return;
     }
-    EXPECT_EQ(without_scratch.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(without_scratch.error_if()->code(), error_code::allocation_failure);
   }
 
   INSTANTIATE_TEST_SUITE_P(
@@ -637,8 +637,8 @@ namespace
     }
     if (!fast.has_value())
     {
-      const bool same_error = (fast.error_if()->code == exact.error_if()->code) &&
-                              (fast.error_if()->numeric_reason == exact.error_if()->numeric_reason);
+      const bool same_error = (fast.error_if()->code() == exact.error_if()->code()) &&
+                              (fast.error_if()->numeric_reason() == exact.error_if()->numeric_reason());
       return same_error ? std::string{} : short_text + ": error differs from the exact path";
     }
     return same_value(*fast.value_if(), *exact.value_if()) ? std::string{} : short_text + ": value differs";
@@ -736,9 +736,9 @@ namespace
     const auto scratch_limited = to_double(*number.value_if(), scratch.callbacks(), no_scratch);
     /* Expect */
     ASSERT_FALSE(work_limited.has_value());
-    EXPECT_EQ(work_limited.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(work_limited.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(scratch_limited.has_value());
-    EXPECT_EQ(scratch_limited.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(scratch_limited.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(scratch.m_live_bytes, 0U);
   }
 
@@ -773,7 +773,7 @@ namespace
         EXPECT_TRUE(same_value(*converted.value_if(), 0x1p-1074));
         continue;
       }
-      EXPECT_EQ(converted.error_if()->code, error_code::allocation_failure) << "fail_on " << fail_on;
+      EXPECT_EQ(converted.error_if()->code(), error_code::allocation_failure) << "fail_on " << fail_on;
       ++failures;
     }
     /* Expect */

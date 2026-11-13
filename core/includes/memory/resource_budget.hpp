@@ -2,6 +2,7 @@
 #define RESOURCE_BUDGET_HPP_
 
 #include "adaptive_json5/memory/resource_limits.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
@@ -36,12 +37,18 @@ namespace adaptive_json5
       /**
        * @brief Check whether an additional amount fits without overflowing.
        * @par Requirements
-       * P031; J5-047; J5-048.
+       * P031; J5-047; J5-048; issue #125.
+       * @param current Amount already reserved.
+       * @param additional Amount to add.
+       * @param limit Inclusive maximum for current + additional.
+       * @param reason Limit being checked; every caller names its own resource_limits field.
+       * @return Success, or resource_limit carrying reason without a location; the engine
+       * adds the location of the offending token.
        * @note Subtraction is evaluated only after validating current.
        * @par ID SWU-MEMORY-056
        */
-      [[nodiscard]] static status_result check_addition(std::size_t current, std::size_t additional,
-                                                        std::size_t limit) noexcept;
+      [[nodiscard]] static status_result check_addition(std::size_t current, std::size_t additional, std::size_t limit,
+                                                        resource_limit_reason reason) noexcept;
 
     public:
       /**
@@ -90,6 +97,7 @@ namespace adaptive_json5
        * @par Requirements
        * P031; J5-047.
        * @param member Must match the original reservation.
+       * @return Success, or internal_error when no matching value reservation is held.
        * @note Callers must associate releases with their own reservations.
        * Invalid counter underflow is reported without changing either counter.
        * @par ID SWU-MEMORY-061
@@ -109,6 +117,7 @@ namespace adaptive_json5
        * @brief Release one open-container reservation.
        * @par Requirements
        * P031; J5-047; J5-048.
+       * @return Success, or internal_error when no container reservation is held.
        * @note Closing or rolling back a container releases its depth.
        * @par ID SWU-MEMORY-063
        */
@@ -133,6 +142,8 @@ namespace adaptive_json5
        * P031; J5-047.
        * @note units must belong to reservations owned by the caller.
        * Does not release any allocation; storage ownership is separate.
+       * @return Success, or internal_error when units exceed the reserved units; the
+       * counter is left unchanged.
        * @par ID SWU-MEMORY-065
        */
       [[nodiscard]] status_result release_string_units(std::size_t units) noexcept;
@@ -149,6 +160,18 @@ namespace adaptive_json5
       [[nodiscard]] std::size_t string_unit_allowance() const noexcept;
 
       /**
+       * @brief Report how many more diagnostic entries fit.
+       * @par Requirements
+       * P031; J5-017; J5-047; issue #125.
+       * @return max_diagnostics - reserved diagnostic entries.
+       * @note Reserves nothing and changes no state. The counting pass passes it to the
+       * lexers, which mark the first warning that does not fit.
+       * Returns zero if the reserved count ever exceeded the limit.
+       * @par ID SWU-MEMORY-077
+       */
+      [[nodiscard]] std::size_t diagnostic_allowance() const noexcept;
+
+      /**
        * @brief Reserve one retained diagnostic entry.
        * @par Requirements
        * P031; J5-047.
@@ -162,6 +185,7 @@ namespace adaptive_json5
        * @brief Release one retained or rolled-back diagnostic reservation.
        * @par Requirements
        * P031; J5-047.
+       * @return Success, or internal_error when no diagnostic reservation is held.
        * @par ID SWU-MEMORY-068
        */
       [[nodiscard]] status_result release_diagnostic() noexcept;

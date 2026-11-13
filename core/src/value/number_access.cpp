@@ -4,6 +4,7 @@
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -81,27 +82,28 @@ namespace adaptive_json5
       // An empty spelling cannot be a number the lexer recognized.
       if ((text.data == nullptr) || (text.size == 0))
       {
-        return number_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return number_result::failure(error::internal_fault());
       }
 
       // Same limit check and location as copy_spelling, so the parser reports the same error.
       if (text.size > max_bytes)
       {
-        return number_result::failure(error::at_offset(error_code::resource_limit, c_spelling_start_offset));
+        return number_result::failure(error::limit_at(c_spelling_start_offset, resource_limit_reason::number_bytes));
       }
 
       // A cheap consistency check keeps rejecting mismatched token metadata, as the old re-lex did.
       if (leading_kind(text) != kind)
       {
-        return number_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return number_result::failure(error::internal_fault());
       }
 
       auto allocation = allocate_block(storage, text.size, alignof(char));
 
       if (!allocation.has_value())
       {
-        // Allocation errors have no location relative to the numeric spelling.
-        return number_result::failure(error::without_location(allocation.error_if()->code));
+        // Allocation errors have no location relative to the numeric spelling; unlocated()
+        // keeps their code and reason, e.g. the owned_bytes limit.
+        return number_result::failure(allocation.error_if()->unlocated());
       }
 
       std::memcpy(allocation.value_if()->data(), text.data, text.size);

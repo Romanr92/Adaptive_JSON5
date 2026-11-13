@@ -374,7 +374,7 @@ namespace
     /* Expect */
     EXPECT_FALSE(missing.has_value());
     EXPECT_FALSE(outside.has_value());
-    EXPECT_EQ(missing.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(missing.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_FALSE(doc.root().has_value());
     EXPECT_FALSE(invalid.kind().has_value());
     EXPECT_FALSE(invalid.as_boolean().has_value());
@@ -560,15 +560,15 @@ namespace
     const auto excess = doc.make_array();
     /* Expect */
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(excess.has_value());
-    EXPECT_EQ(excess.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(excess.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(doc.size(), 2u);
     EXPECT_EQ(provider.m_attempts, attempts);
     document missing{{}, 1};
     const auto no_provider = missing.make_null();
     ASSERT_FALSE(no_provider.has_value());
-    EXPECT_EQ(no_provider.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(no_provider.error_if()->code(), error_code::allocation_failure);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -594,7 +594,7 @@ namespace
         if (!added.has_value())
         {
           observed = true;
-          EXPECT_EQ(added.error_if()->code, error_code::allocation_failure);
+          EXPECT_EQ(added.error_if()->code(), error_code::allocation_failure);
           EXPECT_EQ(doc.size(), i);
           for (std::size_t j{}; j < i; ++j)
           {

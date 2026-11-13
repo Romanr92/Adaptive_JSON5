@@ -109,7 +109,7 @@ namespace
     if (rejected_at_creation)
     {
       ASSERT_FALSE(iterator.has_value());
-      EXPECT_EQ(iterator.error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(iterator.error_if()->code(), error_code::internal_error);
     }
     else
     {
@@ -118,7 +118,7 @@ namespace
       {
         const auto next = iterator.value_if()->next();
         ASSERT_FALSE(next.has_value());
-        EXPECT_EQ(next.error_if()->code, error_code::wrong_type_or_access);
+        EXPECT_EQ(next.error_if()->code(), error_code::internal_error);
       }
     }
   }
@@ -191,7 +191,7 @@ namespace
     const auto found = lookup_member(values, value_index{0}, name);
     /* Expect */
     ASSERT_FALSE(found.has_value());
-    EXPECT_EQ(found.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(found.error_if()->code(), error_code::internal_error);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -263,7 +263,7 @@ namespace
     const auto found = view.find_member("");
     /* Expect */
     ASSERT_FALSE(found.has_value());
-    EXPECT_EQ(found.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(found.error_if()->code(), error_code::internal_error);
   }
   INSTANTIATE_TEST_SUITE_P(InternalFaults, J5_039_RelationshipValidation,
                            testing::Values(relationship_fault::count_too_large, relationship_fault::empty_first,
@@ -319,7 +319,7 @@ namespace
       const auto element = view.element_at(0);
       /* Expect */
       ASSERT_FALSE(element.has_value());
-      EXPECT_EQ(element.error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(element.error_if()->code(), error_code::internal_error);
     }
   }
   /* ----------------------------------------------------------------------------------- */
@@ -353,7 +353,7 @@ namespace
       ASSERT_EQ(found.has_value(), damaged == 0);
       if (damaged == 1)
       {
-        EXPECT_EQ(found.error_if()->code, error_code::wrong_type_or_access);
+        EXPECT_EQ(found.error_if()->code(), error_code::internal_error);
       }
     }
   }

@@ -130,18 +130,20 @@ namespace adaptive_json5
      * @param source Cursor positioned after caller-managed trivia.
      * @param mode Selected input syntax.
      * @param max_units Inclusive decoded-name limit for this recognition.
+     * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
+     * Only quoted names can warn; identifier names leave excess_warning empty.
      * @return A measurement, nullopt on no-match, or a located failure.
      * @note Keeps consume_member_name's order so both report the same errors (ADR 0003, decision 7).
      * @par ID SWU-LEXER-013
      */
-    result<std::optional<member_name_measure>> measure_member_name(cursor& source, syntax_mode mode,
-                                                                   std::size_t max_units) noexcept
+    result<std::optional<member_name_measure>>
+    measure_member_name(cursor& source, syntax_mode mode, std::size_t max_units, std::size_t warning_allowance) noexcept
     {
       using measure_result = result<std::optional<member_name_measure>>;
 
       cursor candidate = source;
 
-      const auto quoted = measure_string(candidate, mode, max_units);
+      const auto quoted = measure_string(candidate, mode, max_units, warning_allowance);
 
       if (!quoted.has_value())
       {
@@ -152,7 +154,8 @@ namespace adaptive_json5
       if (quoted.value_if()->has_value())
       {
         const string_measure& name = **quoted.value_if();
-        const member_name_measure measured{name.units, name.byte_offset, name.byte_length, name.warning_count};
+        const member_name_measure measured{name.units, name.byte_offset, name.byte_length, name.warning_count,
+                                           name.excess_warning};
 
         source = candidate;
         return measure_result::success(measured);

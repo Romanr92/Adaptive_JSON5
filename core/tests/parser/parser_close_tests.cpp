@@ -104,9 +104,10 @@ namespace
     ASSERT_FALSE(closed.has_value());
     const bool syntax = fault == close_fault::awaiting_colon || fault == close_fault::awaiting_value ||
                         fault == close_fault::strict_array_comma || fault == close_fault::strict_object_comma;
-    EXPECT_EQ(closed.error_if()->code, syntax                                 ? error_code::syntax
-                                       : fault == close_fault::exhausted_work ? error_code::resource_limit
-                                                                              : error_code::wrong_type_or_access);
+    const error_code expected = syntax                                 ? error_code::syntax
+                                : fault == close_fault::exhausted_work ? error_code::resource_limit
+                                                                       : error_code::internal_error;
+    EXPECT_EQ(closed.error_if()->code(), expected);
     EXPECT_EQ(frames.size(), original_size);
     const auto view = values.view(*container.value_if());
     ASSERT_TRUE(view.has_value());

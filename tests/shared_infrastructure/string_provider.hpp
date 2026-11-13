@@ -141,9 +141,9 @@ namespace adaptive_json5_test
   {
     ASSERT_FALSE(actual.has_value());
     ASSERT_NE(actual.error_if(), nullptr);
-    EXPECT_EQ(actual.error_if()->code, code);
-    EXPECT_FALSE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, 0u);
+    EXPECT_EQ(actual.error_if()->code(), code);
+    EXPECT_FALSE(actual.error_if()->has_byte_offset());
+    EXPECT_EQ(actual.error_if()->byte_offset(), 0u);
   }
 
 } // namespace adaptive_json5_test

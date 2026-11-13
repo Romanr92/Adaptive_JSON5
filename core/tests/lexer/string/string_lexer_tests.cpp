@@ -337,9 +337,9 @@ namespace
     auto actual = consume_string(source, param.mode, provider.callbacks(), 64, log.observer());
     /* Expect */
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, param.code);
-    EXPECT_TRUE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, 2u + param.offset);
+    EXPECT_EQ(actual.error_if()->code(), param.code);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset());
+    EXPECT_EQ(actual.error_if()->byte_offset(), 2u + param.offset);
     EXPECT_EQ(source.offset(), 2u);
     EXPECT_EQ(log.m_count, 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -444,10 +444,10 @@ namespace
       auto actual = consume_string(source, syntax_mode::json5, provider.callbacks(), 64, log.observer());
       /* Expect */
       ASSERT_FALSE(actual.has_value()) << length;
-      EXPECT_TRUE(actual.error_if()->code == error_code::syntax || actual.error_if()->code == error_code::encoding);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_GE(actual.error_if()->byte_offset, 2u);
-      EXPECT_LE(actual.error_if()->byte_offset, 2u + length);
+      EXPECT_TRUE(actual.error_if()->code() == error_code::syntax || actual.error_if()->code() == error_code::encoding);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_GE(actual.error_if()->byte_offset(), 2u);
+      EXPECT_LE(actual.error_if()->byte_offset(), 2u + length);
       EXPECT_EQ(source.offset(), 2u);
       EXPECT_EQ(log.m_count, 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -662,9 +662,9 @@ namespace
       auto actual = consume_string(source, syntax_mode::json5, provider.callbacks(), 9, log.observer());
       /* Expect */
       ASSERT_FALSE(actual.has_value()) << failure;
-      EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 0u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::allocation_failure);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 0u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(log.m_count, 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -713,10 +713,10 @@ namespace
         }
         else
         {
-          EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
+          EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
           const std::size_t expected = limit == 0 ? 1 : (index == 2 ? 7 : (index == 3 ? 4 : 1));
-          EXPECT_EQ(actual.error_if()->byte_offset, expected);
+          EXPECT_EQ(actual.error_if()->byte_offset(), expected);
           EXPECT_EQ(source.offset(), 0u);
           EXPECT_EQ(log.m_count, 0u);
           EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -750,10 +750,10 @@ namespace
     cursor source({input.data(), input.size()});
     auto actual = consume_string(source, syntax_mode::json5, {}, 1);
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
-    EXPECT_TRUE(actual.error_if()->has_byte_offset);
+    EXPECT_EQ(actual.error_if()->code(), error_code::allocation_failure);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset());
     // The single reservation is made for the whole string, so it is located at the opening quote.
-    EXPECT_EQ(actual.error_if()->byte_offset, 0u);
+    EXPECT_EQ(actual.error_if()->byte_offset(), 0u);
     EXPECT_EQ(source.offset(), 0u);
   }
 
@@ -784,7 +784,7 @@ namespace
         const auto parsed = consume_string(source, mode, provider.callbacks(), 64, log.observer());
         /* Expect */
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(log.m_count, 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -807,7 +807,7 @@ namespace
         cursor source({input.data(), input.size()});
         const auto parsed = consume_string(source, mode, provider.callbacks(), 64, log.observer());
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::allocation_failure);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::allocation_failure);
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(log.m_count, 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);

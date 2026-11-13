@@ -83,6 +83,11 @@ adaptive_json5_add_unit(adaptive_json5_lexer_trivia_unit_tests lexer_trivia_unit
     lexer/lexer_trivia_tests.cpp)
 target_include_directories(adaptive_json5_lexer_trivia_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
 
+# Issue #125: cut-scan mapping, limit locations, excess warnings and internal links.
+adaptive_json5_add_unit(adaptive_json5_error_location_unit_tests error_location_units
+    parser/error_location_tests.cpp)
+target_include_directories(adaptive_json5_error_location_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
+
 adaptive_json5_add_unit(adaptive_json5_checked_size_unit_tests storage_units
     common/checked_size_tests.cpp)
 target_include_directories(adaptive_json5_checked_size_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")

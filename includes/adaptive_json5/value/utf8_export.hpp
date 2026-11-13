@@ -13,7 +13,7 @@ namespace adaptive_json5
    * @par Requirements
    * P013; J5-018; J5-029.
    * @return Required bytes, encoding error for unpaired surrogates,
-   * or resource_limit if the byte count cannot be represented.
+   * or resource_limit (output_capacity) if the byte count cannot be represented.
    * @note No terminating NUL is included. Performs no allocation.
    * @par ID SWU-VALUE-103
    */
@@ -26,8 +26,8 @@ namespace adaptive_json5
    * @param destination Writable byte array of capacity bytes.
    * May be nullptr when the required output size is zero.
    * @return Bytes written, encoding error for unpaired surrogates,
-   * resource_limit for insufficient capacity or size overflow,
-   * or wrong_type_or_access for a null nonempty destination.
+   * resource_limit (output_capacity) for insufficient capacity or size overflow,
+   * or wrong_type_or_access (invalid_argument) for a null nonempty destination.
    * @note No allocation or terminating NUL. Embedded NUL is preserved.
    * Validation and capacity failures leave the destination unchanged.
    * Source and destination storage must not overlap.

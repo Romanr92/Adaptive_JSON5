@@ -29,13 +29,13 @@ namespace
     /* Expect */
     // Callers need readable error results from every typed accessor, including pointer-valued results.
     ASSERT_NE(boolean.error_if(), nullptr);
-    EXPECT_EQ(boolean.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(boolean.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_NE(string.error_if(), nullptr);
-    EXPECT_EQ(string.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(string.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_NE(number.error_if(), nullptr);
-    EXPECT_EQ(number.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(number.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_NE(member.error_if(), nullptr);
-    EXPECT_EQ(member.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(member.error_if()->code(), error_code::wrong_type_or_access);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -56,7 +56,7 @@ namespace
     const auto rejected = values.make_number(std::move(*number.value_if()));
     /* Expect */
     ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(rejected.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_EQ(values.size(), 0u);
     const auto accepted = values.make_number(std::move(owner));
     ASSERT_TRUE(accepted.has_value());
@@ -85,8 +85,8 @@ namespace
     /* Expect */
     ASSERT_FALSE(size.has_value());
     ASSERT_FALSE(exported.has_value());
-    EXPECT_EQ(size.error_if()->code, error_code::encoding);
-    EXPECT_EQ(exported.error_if()->code, error_code::encoding);
+    EXPECT_EQ(size.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(exported.error_if()->code(), error_code::encoding);
     for (const auto byte : output)
       EXPECT_EQ(byte, std::byte{0xA5});
     EXPECT_EQ(*text.value_if()->unit_at(1).value_if(), 0xE000);

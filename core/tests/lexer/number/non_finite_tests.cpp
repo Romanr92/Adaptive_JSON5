@@ -1,3 +1,4 @@
+#include "adaptive_json5/syntax_error_reason.hpp"
 #include "lexer/number/non_finite_lexer.hpp"
 
 #include <cstddef>
@@ -11,25 +12,40 @@ namespace
   /* ==================================== Test_J5_022 ==================================== */
   static_assert(noexcept(consume_non_finite(std::declval<cursor&>(), syntax_mode::json5)));
   /**
+   * @brief Expected JSON5 outcome of one non-finite recognition attempt.
+   * @par Requirements
+   * P027; J5-022; J5-043; issue #125.
+   */
+  enum class non_finite_outcome
+  {
+    accepted, // Exact Infinity or NaN; strict JSON rejects it at the token start.
+    no_match, // Unsigned unknown word, left to the scalar lexer's whole-word rejection.
+    failure   // Signed mismatch or decimal-point suffix, located in both modes.
+  };
+
+  /**
    * @brief Independent non-finite spelling and diagnostic expectations.
    * @par Requirements
-   * P027; J5-021; J5-022.
+   * P027; J5-021; J5-022; J5-043; issue #125.
    */
   struct non_finite_case
   {
-      const char* name;   // Input case label.
-      std::string text;   // Input source bytes.
-      bool accepted;      // Expected JSON5 recognition success.
-      number_kind kind;   // Expected numeric kind on success.
-      std::size_t offset; // Expected JSON5 syntax error offset relative to token start.
+      const char* name;           // Input case label.
+      std::string text;           // Input source bytes.
+      non_finite_outcome outcome; // Expected JSON5 outcome.
+      number_kind kind;           // Expected numeric kind on success.
+      std::size_t offset;         // Expected syntax error offset relative to token start for failure.
   };
   class J5_022_NonFinite : public testing::TestWithParam<std::tuple<non_finite_case, syntax_mode>>
   {
   };
-  /* Recognize exact signed non-finite spellings and reject malformed attempts.
+  /* Recognize exact signed non-finite spellings, leave unsigned unknown words to the scalar
+   * lexer and reject other malformed attempts.
    * Arrange: Supply literal source expectations after a multibyte prefix.
    * Act: Recognize in the selected syntax mode.
-   * Expect: Exact kind/span or located syntax failure with complete cursor rollback.
+   * Expect: Exact kind/span; no-match for an unsigned unknown word; or a located syntax
+   * failure. Strict JSON rejects only an exact spelling, at its start. Every non-success
+   * leaves the cursor unchanged.
    */
   TEST_P(J5_022_NonFinite, RecognizesOrReportsLocatedFailure)
   {
@@ -43,7 +59,14 @@ namespace
     /* Act */
     auto actual = consume_non_finite(source, mode);
     /* Expect */
-    if (mode == syntax_mode::json5 && item.accepted)
+    const bool strict_exact = (mode == syntax_mode::strict_json) && (item.outcome == non_finite_outcome::accepted);
+    if (item.outcome == non_finite_outcome::no_match)
+    {
+      ASSERT_TRUE(actual.has_value());
+      EXPECT_FALSE(actual.value_if()->has_value());
+      EXPECT_EQ(source.offset(), 3u);
+    }
+    else if ((item.outcome == non_finite_outcome::accepted) && !strict_exact)
     {
       ASSERT_TRUE(actual.has_value());
       ASSERT_TRUE(actual.value_if()->has_value());
@@ -58,9 +81,11 @@ namespace
     else
     {
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, mode == syntax_mode::strict_json ? 3u : 3 + item.offset);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_EQ(actual.error_if()->syntax_reason(),
+                strict_exact ? syntax_error_reason::not_allowed_in_strict_json : syntax_error_reason::unknown_literal);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), strict_exact ? 3u : 3 + item.offset);
       EXPECT_EQ(source.offset(), 3u);
     }
     EXPECT_EQ(input, original);
@@ -68,33 +93,34 @@ namespace
   INSTANTIATE_TEST_SUITE_P(
     P027, J5_022_NonFinite,
     testing::Combine(
-      testing::Values(non_finite_case{"Infinity", "Infinity", true, number_kind::infinity, 0},
-                      non_finite_case{"PlusInfinity", "+Infinity", true, number_kind::infinity, 0},
-                      non_finite_case{"MinusInfinity", "-Infinity", true, number_kind::infinity, 0},
-                      non_finite_case{"NaN", "NaN", true, number_kind::nan, 0},
-                      non_finite_case{"PlusNaN", "+NaN", true, number_kind::nan, 0},
-                      non_finite_case{"MinusNaN", "-NaN", true, number_kind::nan, 0},
-                      non_finite_case{"UpperInfinity", "INFINITY", false, number_kind::infinity, 1},
-                      non_finite_case{"UpperNan", "NAN", false, number_kind::nan, 1},
-                      non_finite_case{"LowerLastNan", "Nan", false, number_kind::nan, 2},
-                      non_finite_case{"WrongInfinityLast", "InfinitY", false, number_kind::infinity, 7},
-                      non_finite_case{"SignedMismatch", "-InFinity", false, number_kind::infinity, 3},
-                      non_finite_case{"InfinitySuffix", "Infinityx", false, number_kind::infinity, 8},
-                      non_finite_case{"NanDigit", "NaN0", false, number_kind::nan, 3},
-                      non_finite_case{"InfinityUnderscore", "Infinity_", false, number_kind::infinity, 8},
-                      non_finite_case{"NanDollar", "NaN$", false, number_kind::nan, 3},
-                      non_finite_case{"InfinityFraction", "Infinity.0", false, number_kind::infinity, 8},
-                      non_finite_case{"NanPoint", "-NaN.", false, number_kind::nan, 4},
-                      non_finite_case{"EscapedSpelling", R"(Inf\u0069nity)", false, number_kind::infinity, 3},
-                      non_finite_case{"EscapedSuffix", R"(NaN\u0061)", false, number_kind::nan, 3},
-                      non_finite_case{"SpaceWithin", "In finity", false, number_kind::infinity, 2},
-                      non_finite_case{"CommentWithin", "Na/*x*/N", false, number_kind::nan, 2},
-                      non_finite_case{"UnicodeSuffix", u8"Infinity\u03B1", false, number_kind::infinity, 8},
-                      non_finite_case{"CombiningSuffix", u8"NaN\u0301", false, number_kind::nan, 3},
-                      non_finite_case{"JoinerSuffix", u8"NaN\u200D", false, number_kind::nan, 3},
-                      non_finite_case{"NonJoinerSuffix", u8"Infinity\u200C", false, number_kind::infinity, 8},
-                      non_finite_case{"UnicodeLookalike", u8"N\u0430N", false, number_kind::nan, 1},
-                      non_finite_case{"NulWithin", std::string("Na\0N", 4), false, number_kind::nan, 2}),
+      testing::Values(
+        non_finite_case{"Infinity", "Infinity", non_finite_outcome::accepted, number_kind::infinity, 0},
+        non_finite_case{"PlusInfinity", "+Infinity", non_finite_outcome::accepted, number_kind::infinity, 0},
+        non_finite_case{"MinusInfinity", "-Infinity", non_finite_outcome::accepted, number_kind::infinity, 0},
+        non_finite_case{"NaN", "NaN", non_finite_outcome::accepted, number_kind::nan, 0},
+        non_finite_case{"PlusNaN", "+NaN", non_finite_outcome::accepted, number_kind::nan, 0},
+        non_finite_case{"MinusNaN", "-NaN", non_finite_outcome::accepted, number_kind::nan, 0},
+        non_finite_case{"UpperInfinity", "INFINITY", non_finite_outcome::no_match, number_kind::infinity, 1},
+        non_finite_case{"UpperNan", "NAN", non_finite_outcome::no_match, number_kind::nan, 1},
+        non_finite_case{"LowerLastNan", "Nan", non_finite_outcome::no_match, number_kind::nan, 2},
+        non_finite_case{"WrongInfinityLast", "InfinitY", non_finite_outcome::no_match, number_kind::infinity, 7},
+        non_finite_case{"SignedMismatch", "-InFinity", non_finite_outcome::failure, number_kind::infinity, 3},
+        non_finite_case{"InfinitySuffix", "Infinityx", non_finite_outcome::no_match, number_kind::infinity, 8},
+        non_finite_case{"NanDigit", "NaN0", non_finite_outcome::no_match, number_kind::nan, 3},
+        non_finite_case{"InfinityUnderscore", "Infinity_", non_finite_outcome::no_match, number_kind::infinity, 8},
+        non_finite_case{"NanDollar", "NaN$", non_finite_outcome::no_match, number_kind::nan, 3},
+        non_finite_case{"InfinityFraction", "Infinity.0", non_finite_outcome::failure, number_kind::infinity, 8},
+        non_finite_case{"NanPoint", "-NaN.", non_finite_outcome::failure, number_kind::nan, 4},
+        non_finite_case{"EscapedSpelling", R"(Inf\u0069nity)", non_finite_outcome::no_match, number_kind::infinity, 3},
+        non_finite_case{"EscapedSuffix", R"(NaN\u0061)", non_finite_outcome::no_match, number_kind::nan, 3},
+        non_finite_case{"SpaceWithin", "In finity", non_finite_outcome::no_match, number_kind::infinity, 2},
+        non_finite_case{"CommentWithin", "Na/*x*/N", non_finite_outcome::no_match, number_kind::nan, 2},
+        non_finite_case{"UnicodeSuffix", u8"Infinity\u03B1", non_finite_outcome::no_match, number_kind::infinity, 8},
+        non_finite_case{"CombiningSuffix", u8"NaN\u0301", non_finite_outcome::no_match, number_kind::nan, 3},
+        non_finite_case{"JoinerSuffix", u8"NaN\u200D", non_finite_outcome::no_match, number_kind::nan, 3},
+        non_finite_case{"NonJoinerSuffix", u8"Infinity\u200C", non_finite_outcome::no_match, number_kind::infinity, 8},
+        non_finite_case{"UnicodeLookalike", u8"N\u0430N", non_finite_outcome::no_match, number_kind::nan, 1},
+        non_finite_case{"NulWithin", std::string("Na\0N", 4), non_finite_outcome::no_match, number_kind::nan, 2}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
     [](const testing::TestParamInfo<std::tuple<non_finite_case, syntax_mode>>& info)
     {
@@ -105,7 +131,8 @@ namespace
   /* Respect every exact-length prefix of all six permitted spellings.
    * Arrange: Expose each prefix of a complete backing buffer at a nonzero offset.
    * Act: Recognize in both modes without access to later backing bytes.
-   * Expect: No-match before I/N, EOF error for incomplete words or exact final token.
+   * Expect: No-match before I/N or for an unsigned incomplete word, an EOF error for a signed
+   * incomplete word, and the exact token (strict JSON: rejected at its start) when complete.
    */
   TEST(J5_022_NonFiniteBoundary, ChecksEveryBoundedPrefix)
   {
@@ -132,12 +159,28 @@ namespace
             EXPECT_FALSE(actual.value_if()->has_value());
             EXPECT_EQ(source.offset(), 2u);
           }
-          else if (mode == syntax_mode::strict_json || length < spelling.size())
+          else if ((length < spelling.size()) && (sign_bytes == 0u))
+          {
+            ASSERT_TRUE(actual.has_value());
+            EXPECT_FALSE(actual.value_if()->has_value());
+            EXPECT_EQ(source.offset(), 2u);
+          }
+          else if (length < spelling.size())
           {
             ASSERT_FALSE(actual.has_value());
-            EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-            EXPECT_TRUE(actual.error_if()->has_byte_offset);
-            EXPECT_EQ(actual.error_if()->byte_offset, mode == syntax_mode::strict_json ? 2u : 2 + length);
+            EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+            EXPECT_EQ(actual.error_if()->syntax_reason(), syntax_error_reason::unexpected_end);
+            EXPECT_TRUE(actual.error_if()->has_byte_offset());
+            EXPECT_EQ(actual.error_if()->byte_offset(), 2 + length);
+            EXPECT_EQ(source.offset(), 2u);
+          }
+          else if (mode == syntax_mode::strict_json)
+          {
+            ASSERT_FALSE(actual.has_value());
+            EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+            EXPECT_EQ(actual.error_if()->syntax_reason(), syntax_error_reason::not_allowed_in_strict_json);
+            EXPECT_TRUE(actual.error_if()->has_byte_offset());
+            EXPECT_EQ(actual.error_if()->byte_offset(), 2u);
             EXPECT_EQ(source.offset(), 2u);
           }
           else
@@ -255,9 +298,9 @@ namespace
         auto actual = consume_non_finite(source, syntax_mode::json5);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, 2 + prefix.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), 2 + prefix.size());
         EXPECT_EQ(source.offset(), 2u);
       }
     }

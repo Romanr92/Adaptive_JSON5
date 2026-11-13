@@ -2,6 +2,7 @@
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/resource_limits.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
@@ -11,16 +12,23 @@ namespace adaptive_json5
   /**
    * @brief Check whether an additional amount fits without overflowing.
    * @par Requirements
-   * P031; J5-047; J5-048.
+   * P031; J5-047; J5-048; issue #125.
+   * @param current Amount already reserved.
+   * @param additional Amount to add.
+   * @param limit Inclusive maximum for current + additional.
+   * @param reason Limit being checked; every caller names its own resource_limits field.
+   * @return Success, or resource_limit carrying reason without a location; the engine
+   * adds the location of the offending token.
    * @note Subtraction is evaluated only after validating current.
    * @par ID SWU-MEMORY-056
    */
-  status_result resource_budget::check_addition(std::size_t current, std::size_t additional, std::size_t limit) noexcept
+  status_result resource_budget::check_addition(std::size_t current, std::size_t additional, std::size_t limit,
+                                                resource_limit_reason reason) noexcept
   {
     // Subtraction avoids overflowing a speculative current + additional.
     if ((current > limit) || (additional > (limit - current)))
     {
-      return status_result::failure(error::without_location(error_code::resource_limit));
+      return status_result::failure(error::limit_without_location(reason));
     }
 
     return status_result::success();
@@ -45,7 +53,7 @@ namespace adaptive_json5
    */
   status_result resource_budget::check_input(std::size_t bytes) const noexcept
   {
-    return check_addition(c_no_resources, bytes, m_limits.max_input_bytes);
+    return check_addition(c_no_resources, bytes, m_limits.max_input_bytes, resource_limit_reason::input);
   }
 
   /**
@@ -59,13 +67,16 @@ namespace adaptive_json5
    */
   status_result resource_budget::check_number(std::size_t bytes, std::size_t exponent_digits) const noexcept
   {
-    const auto spelling = check_addition(c_no_resources, bytes, m_limits.max_number_bytes);
+    const auto spelling =
+      check_addition(c_no_resources, bytes, m_limits.max_number_bytes, resource_limit_reason::number_bytes);
+
     if (!spelling.has_value())
     {
       return status_result::failure(*spelling.error_if());
     }
 
-    return check_addition(c_no_resources, exponent_digits, m_limits.max_exponent_digits);
+    return check_addition(c_no_resources, exponent_digits, m_limits.max_exponent_digits,
+                          resource_limit_reason::exponent_digits);
   }
 
   /**
@@ -79,7 +90,8 @@ namespace adaptive_json5
    */
   status_result resource_budget::reserve_value(bool member) noexcept
   {
-    const auto node = check_addition(m_nodes, c_single_resource, m_limits.max_nodes);
+    const auto node = check_addition(m_nodes, c_single_resource, m_limits.max_nodes, resource_limit_reason::nodes);
+
     if (!node.has_value())
     {
       return status_result::failure(*node.error_if());
@@ -87,7 +99,9 @@ namespace adaptive_json5
 
     if (member)
     {
-      const auto entry = check_addition(m_members, c_single_resource, m_limits.max_members);
+      const auto entry =
+        check_addition(m_members, c_single_resource, m_limits.max_members, resource_limit_reason::members);
+
       if (!entry.has_value())
       {
         return status_result::failure(*entry.error_if());
@@ -109,6 +123,7 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-047.
    * @param member Must match the original reservation.
+   * @return Success, or internal_error when no matching value reservation is held.
    * @note Callers must associate releases with their own reservations.
    * Invalid counter underflow is reported without changing either counter.
    * @par ID SWU-MEMORY-061
@@ -117,7 +132,7 @@ namespace adaptive_json5
   {
     if ((m_nodes == c_no_resources) || (member && (m_members == c_no_resources)) || (!member && (m_nodes == m_members)))
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     --m_nodes;
@@ -139,7 +154,8 @@ namespace adaptive_json5
    */
   status_result resource_budget::enter_container() noexcept
   {
-    const auto entered = check_addition(m_depth, c_single_resource, m_limits.max_depth);
+    const auto entered = check_addition(m_depth, c_single_resource, m_limits.max_depth, resource_limit_reason::depth);
+
     if (!entered.has_value())
     {
       return status_result::failure(*entered.error_if());
@@ -160,6 +176,7 @@ namespace adaptive_json5
    * @brief Release one open-container reservation.
    * @par Requirements
    * P031; J5-047; J5-048.
+   * @return Success, or internal_error when no container reservation is held.
    * @note Closing or rolling back a container releases its depth.
    * @par ID SWU-MEMORY-063
    */
@@ -167,7 +184,7 @@ namespace adaptive_json5
   {
     if (m_depth == c_no_resources)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     --m_depth;
@@ -186,13 +203,17 @@ namespace adaptive_json5
    */
   status_result resource_budget::reserve_string_units(std::size_t current_units, std::size_t additional_units) noexcept
   {
-    const auto individual = check_addition(current_units, additional_units, m_limits.max_string_units);
+    const auto individual =
+      check_addition(current_units, additional_units, m_limits.max_string_units, resource_limit_reason::string);
+
     if (!individual.has_value())
     {
       return status_result::failure(*individual.error_if());
     }
 
-    const auto total = check_addition(m_string_units, additional_units, m_limits.max_total_string_units);
+    const auto total = check_addition(m_string_units, additional_units, m_limits.max_total_string_units,
+                                      resource_limit_reason::total_string);
+
     if (!total.has_value())
     {
       return status_result::failure(*total.error_if());
@@ -208,13 +229,15 @@ namespace adaptive_json5
    * P031; J5-047.
    * @note units must belong to reservations owned by the caller.
    * Does not release any allocation; storage ownership is separate.
+   * @return Success, or internal_error when units exceed the reserved units; the
+   * counter is left unchanged.
    * @par ID SWU-MEMORY-065
    */
   status_result resource_budget::release_string_units(std::size_t units) noexcept
   {
     if (units > m_string_units)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     m_string_units -= units;
@@ -244,6 +267,27 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Report how many more diagnostic entries fit.
+   * @par Requirements
+   * P031; J5-017; J5-047; issue #125.
+   * @return max_diagnostics - reserved diagnostic entries.
+   * @note Reserves nothing and changes no state. The counting pass passes it to the
+   * lexers, which mark the first warning that does not fit.
+   * Returns zero if the reserved count ever exceeded the limit.
+   * @par ID SWU-MEMORY-077
+   */
+  std::size_t resource_budget::diagnostic_allowance() const noexcept
+  {
+    // Validate before subtracting so a broken invariant cannot wrap around.
+    if (m_diagnostics > m_limits.max_diagnostics)
+    {
+      return c_no_resources;
+    }
+
+    return m_limits.max_diagnostics - m_diagnostics;
+  }
+
+  /**
    * @brief Reserve one retained diagnostic entry.
    * @par Requirements
    * P031; J5-047.
@@ -253,7 +297,9 @@ namespace adaptive_json5
    */
   status_result resource_budget::reserve_diagnostic() noexcept
   {
-    const auto diagnostic = check_addition(m_diagnostics, c_single_resource, m_limits.max_diagnostics);
+    const auto diagnostic =
+      check_addition(m_diagnostics, c_single_resource, m_limits.max_diagnostics, resource_limit_reason::diagnostics);
+
     if (!diagnostic.has_value())
     {
       return status_result::failure(*diagnostic.error_if());
@@ -267,13 +313,14 @@ namespace adaptive_json5
    * @brief Release one retained or rolled-back diagnostic reservation.
    * @par Requirements
    * P031; J5-047.
+   * @return Success, or internal_error when no diagnostic reservation is held.
    * @par ID SWU-MEMORY-068
    */
   status_result resource_budget::release_diagnostic() noexcept
   {
     if (m_diagnostics == c_no_resources)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::internal_fault());
     }
 
     --m_diagnostics;

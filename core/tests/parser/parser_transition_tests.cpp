@@ -84,9 +84,9 @@ namespace
           }
           else
           {
-            EXPECT_EQ(selected.error_if()->code, error_code::syntax);
-            EXPECT_TRUE(selected.error_if()->has_byte_offset);
-            EXPECT_EQ(selected.error_if()->byte_offset, 17u);
+            EXPECT_EQ(selected.error_if()->code(), error_code::syntax);
+            EXPECT_TRUE(selected.error_if()->has_byte_offset());
+            EXPECT_EQ(selected.error_if()->byte_offset(), 17u);
           }
         }
       }
@@ -109,11 +109,11 @@ namespace
     const auto missing = next_container_action(frame, std::nullopt, 9, syntax_mode::json5);
     /* Expect */
     ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_FALSE(invalid.error_if()->has_byte_offset);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::internal_error);
+    EXPECT_FALSE(invalid.error_if()->has_byte_offset());
     ASSERT_FALSE(missing.has_value());
-    EXPECT_EQ(missing.error_if()->code, error_code::syntax);
-    EXPECT_EQ(missing.error_if()->byte_offset, 9u);
+    EXPECT_EQ(missing.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(missing.error_if()->byte_offset(), 9u);
   }
   /* ================================= End Test_J5_013 ================================== */
 
@@ -142,8 +142,8 @@ namespace
     /* Expect */
     ASSERT_FALSE(null_input.has_value());
     ASSERT_FALSE(bad_offset.has_value());
-    EXPECT_EQ(null_input.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(bad_offset.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(null_input.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(bad_offset.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(work.consumed(), 0u);
     EXPECT_EQ(values.size(), 0u);
     EXPECT_EQ(provider.m_attempts, 0u);
@@ -172,12 +172,12 @@ namespace
     /* Expect */
     ASSERT_FALSE(tree.has_value());
     ASSERT_FALSE(primitive.has_value());
-    EXPECT_EQ(tree.error_if()->code, error_code::syntax);
-    EXPECT_EQ(primitive.error_if()->code, error_code::syntax);
-    EXPECT_TRUE(tree.error_if()->has_byte_offset);
-    EXPECT_TRUE(primitive.error_if()->has_byte_offset);
-    EXPECT_EQ(tree.error_if()->byte_offset, 0u);
-    EXPECT_EQ(primitive.error_if()->byte_offset, 0u);
+    EXPECT_EQ(tree.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(primitive.error_if()->code(), error_code::syntax);
+    EXPECT_TRUE(tree.error_if()->has_byte_offset());
+    EXPECT_TRUE(primitive.error_if()->has_byte_offset());
+    EXPECT_EQ(tree.error_if()->byte_offset(), 0u);
+    EXPECT_EQ(primitive.error_if()->byte_offset(), 0u);
     EXPECT_EQ(provider.m_attempts, 0u);
   }
   /* ================================= End Test_J5_026 ================================== */
@@ -205,8 +205,8 @@ namespace
     /* Expect */
     ASSERT_FALSE(no_input.has_value());
     ASSERT_FALSE(unknown.has_value());
-    EXPECT_EQ(no_input.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(unknown.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(no_input.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(unknown.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(values.size(), 0u);
     EXPECT_EQ(provider.m_attempts, 0u);
   }
@@ -266,9 +266,9 @@ namespace
     ASSERT_FALSE(length.has_value());
     ASSERT_FALSE(kind.has_value());
     ASSERT_FALSE(exhausted.has_value());
-    EXPECT_EQ(length.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(kind.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(exhausted.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(length.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(kind.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(exhausted.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(values.size(), 0u);
     EXPECT_EQ(frames.size(), 0u);
     EXPECT_EQ(provider.m_attempts, attempts);
@@ -302,7 +302,7 @@ namespace
       /* Expect */
       // A pending object name must never be silently discarded by array attachment.
       ASSERT_FALSE(attached.has_value());
-      EXPECT_EQ(attached.error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(attached.error_if()->code(), error_code::internal_error);
       EXPECT_EQ(frame.state, state);
       EXPECT_EQ(frame.pending_name.has_value(), state != parser_state::object_value);
       EXPECT_EQ(work.consumed(), 0u);
@@ -329,7 +329,8 @@ namespace
     const auto attached = attach_parsed_value(values, frame, value_index{99}, work, 0);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
-    EXPECT_EQ(attached.error_if()->code, error_code::wrong_type_or_access);
+    // Only the parser supplies the child index, so a dangling one is an internal fault.
+    EXPECT_EQ(attached.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(frame.state, parser_state::array_first_or_end);
     EXPECT_EQ(work.consumed(), c_attachment_work);
   }

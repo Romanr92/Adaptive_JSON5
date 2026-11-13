@@ -90,7 +90,8 @@ namespace adaptive_json5
    * @param value Borrowed document value whose numeric payload is inspected.
    * @param options Work ceiling passed to numeric conversion.
    * @return Exact destination value or an explicit error.
-   * @note Invalid views and non-number values return wrong_type_or_access.
+   * @note Invalid views return wrong_type_or_access (invalid_argument), non-number values
+   * wrong_type_or_access (wrong_type).
    * Booleans and numeric-looking strings are never coerced.
    * Numeric conversion failures propagate unchanged.
    * The owning document must remain alive and unmodified during this call.

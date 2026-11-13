@@ -1,10 +1,12 @@
 #include "adaptive_json5/value/value_iterator.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_view.hpp"
+#include "common/internal_link.hpp"
 #include "value/container_links.hpp"
 #include "value/value_record.hpp"
 
@@ -56,25 +58,25 @@ namespace adaptive_json5
     }
     else
     {
-      return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_iterator>::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
     // Reject impossible counts before starting traversal.
     if (links->count > storage.size())
     {
-      return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_iterator>::failure(error::internal_fault());
     }
 
     if (links->count == 0)
     {
       if (links->first.is_set() || links->last.is_set())
       {
-        return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_iterator>::failure(error::internal_fault());
       }
     }
     else if (!links->first.is_set() || !links->last.is_set())
     {
-      return result<value_iterator>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_iterator>::failure(error::internal_fault());
     }
 
     return result<value_iterator>::success(value_iterator{storage, parent, *links, object});
@@ -87,13 +89,14 @@ namespace adaptive_json5
    * @note Failure leaves traversal state unchanged.
    * Repeated calls after completion return successful empty optionals.
    * Each call performs constant work; P031 adds work accounting.
+   * @note A dangling sibling link reports internal_error (issue #125).
    * @par ID SWU-VALUE-108
    */
   result<std::optional<value_view>> value_iterator::next() noexcept
   {
     if (m_storage == nullptr)
     {
-      return result<std::optional<value_view>>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::optional<value_view>>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     if (m_remaining == 0)
@@ -105,7 +108,7 @@ namespace adaptive_json5
 
     if (!resolved.has_value())
     {
-      return result<std::optional<value_view>>::failure(*resolved.error_if());
+      return result<std::optional<value_view>>::failure(detail::as_internal_fault(*resolved.error_if()));
     }
 
     const auto& child = **resolved.value_if();
@@ -114,13 +117,13 @@ namespace adaptive_json5
     if (!child.parent.is_set() || (child.parent.position() != m_parent.position()) ||
         (child.member_name.has_value() != m_object))
     {
-      return result<std::optional<value_view>>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::optional<value_view>>::failure(error::internal_fault());
     }
 
     // The recorded count and the end of the chain must agree.
     if ((m_remaining == 1 && child.next_sibling.is_set()) || (m_remaining > 1 && !child.next_sibling.is_set()))
     {
-      return result<std::optional<value_view>>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::optional<value_view>>::failure(error::internal_fault());
     }
 
     const value_view current{*m_storage, m_next};

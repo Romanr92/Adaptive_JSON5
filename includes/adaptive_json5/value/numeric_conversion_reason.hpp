@@ -1,6 +1,8 @@
 #ifndef ADAPTIVE_JSON5_NUMERIC_CONVERSION_REASON_HPP_
 #define ADAPTIVE_JSON5_NUMERIC_CONVERSION_REASON_HPP_
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -17,7 +19,7 @@ namespace adaptive_json5
    * Finite floating overflow is distinct from an explicit non-finite token.
    * Resource and allocation failures retain their separate error categories.
    */
-  enum class numeric_conversion_reason
+  enum class numeric_conversion_reason : std::uint8_t
   {
     non_integral,
     out_of_range,

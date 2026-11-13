@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/value_view.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
@@ -8,6 +9,7 @@
 #include "adaptive_json5/value/owned_number.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
+#include "common/internal_link.hpp"
 #include "value/container_links.hpp"
 #include "value/utf8_name_equal.hpp"
 #include "value/value_record.hpp"
@@ -29,7 +31,7 @@ namespace adaptive_json5
   {
     if (m_storage == nullptr)
     {
-      return result<const detail::value_record*>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<const detail::value_record*>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     return m_storage->at(m_index);
@@ -55,7 +57,7 @@ namespace adaptive_json5
     const auto* payload = std::get_if<T>(&(*resolved.value_if())->payload);
     if (payload == nullptr)
     {
-      return result<const T*>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<const T*>::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
     return result<const T*>::success(payload);
@@ -70,6 +72,7 @@ namespace adaptive_json5
    * @note Requires document relationships maintained by validated operations.
    * Traversal is iterative and visits at most position plus one records.
    * P031 adds configurable work accounting.
+   * @note A dangling child link reports internal_error (issue #125).
    * @par ID SWU-VALUE-124
    */
   result<value_view> value_view::child_at(std::size_t position, bool object) const noexcept
@@ -88,7 +91,7 @@ namespace adaptive_json5
       const auto* data = std::get_if<object_data>(&payload);
       if (data == nullptr)
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::access_failure(access_error_reason::wrong_type));
       }
 
       links = &data->members;
@@ -98,15 +101,21 @@ namespace adaptive_json5
       const auto* data = std::get_if<array_data>(&payload);
       if (data == nullptr)
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::access_failure(access_error_reason::wrong_type));
       }
 
       links = &data->elements;
     }
 
-    if ((position >= links->count) || (links->count > m_storage->size()))
+    // A count larger than the storage can only come from a corrupted record.
+    if (links->count > m_storage->size())
     {
-      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_view>::failure(error::internal_fault());
+    }
+
+    if (position >= links->count)
+    {
+      return result<value_view>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
     value_index current = links->first;
@@ -117,7 +126,7 @@ namespace adaptive_json5
 
       if (!child.has_value())
       {
-        return result<value_view>::failure(*child.error_if());
+        return result<value_view>::failure(detail::as_internal_fault(*child.error_if()));
       }
 
       const auto& child_record = **child.value_if();
@@ -125,7 +134,7 @@ namespace adaptive_json5
       if (!child_record.parent.is_set() || (child_record.parent.position() != m_index.position()) ||
           (child_record.member_name.has_value() != object))
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::internal_fault());
       }
 
       if (ordinal == position)
@@ -136,7 +145,7 @@ namespace adaptive_json5
       current = child_record.next_sibling;
     }
 
-    return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+    return result<value_view>::failure(error::internal_fault());
   }
 
   /**
@@ -193,7 +202,7 @@ namespace adaptive_json5
       return result<value_kind>::success(value_kind::object);
     }
 
-    return result<value_kind>::failure(error::without_location(error_code::wrong_type_or_access));
+    return result<value_kind>::failure(error::internal_fault());
   }
 
   /**
@@ -289,14 +298,14 @@ namespace adaptive_json5
       return result<std::size_t>::success(object->members.count);
     }
 
-    return result<std::size_t>::failure(error::without_location(error_code::wrong_type_or_access));
+    return result<std::size_t>::failure(error::access_failure(access_error_reason::wrong_type));
   }
 
   /**
    * @brief Borrow an array element by zero-based source-order position.
    * @par Requirements
    * P030; J5-030; J5-039; J5-040.
-   * @note Rejects nonarrays and out-of-range positions.
+   * @note Rejects nonarrays (wrong_type) and out-of-range positions (index_out_of_range).
    * Linear traversal; repeated indexed enumeration has quadratic total cost.
    * @par ID SWU-VALUE-132
    */
@@ -310,7 +319,7 @@ namespace adaptive_json5
    * @par Requirements
    * P030; J5-031; J5-039; J5-040.
    * @note Includes every duplicate-name occurrence.
-   * Rejects nonobjects and out-of-range positions.
+   * Rejects nonobjects (wrong_type) and out-of-range positions (index_out_of_range).
    * Linear traversal; repeated indexed enumeration has quadratic total cost.
    * @par ID SWU-VALUE-133
    */
@@ -339,7 +348,7 @@ namespace adaptive_json5
     const auto& name = (*resolved.value_if())->member_name;
     if (!name.has_value())
     {
-      return result<const decoded_string*>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<const decoded_string*>::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
     return result<const decoded_string*>::success(&*name);
@@ -372,7 +381,7 @@ namespace adaptive_json5
     // A missing name is invalid access; missing source metadata is permitted.
     if (!member.member_name.has_value())
     {
-      return span_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return span_result::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
     return span_result::success(member.member_name_source_span);
@@ -385,6 +394,7 @@ namespace adaptive_json5
    * @note Walks next_sibling once with the parent and name checks of child_at() and the
    * end-of-chain checks of value_iterator, so the cost is linear in the member count instead
    * of quadratic.
+   * @note A dangling member link reports internal_error (issue #125).
    * @par ID SWU-VALUE-157
    */
   result<value_view> value_view::find_member(std::string_view name) const noexcept
@@ -398,9 +408,15 @@ namespace adaptive_json5
 
     const auto* data = std::get_if<object_data>(&((*resolved.value_if())->payload));
 
-    if ((data == nullptr) || (data->members.count > m_storage->size()))
+    if (data == nullptr)
     {
-      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_view>::failure(error::access_failure(access_error_reason::wrong_type));
+    }
+
+    // A count larger than the storage can only come from a corrupted record.
+    if (data->members.count > m_storage->size())
+    {
+      return result<value_view>::failure(error::internal_fault());
     }
 
     const container_links& links = data->members;
@@ -411,7 +427,7 @@ namespace adaptive_json5
 
     if (!endpoints_valid)
     {
-      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_view>::failure(error::internal_fault());
     }
 
     // utf8_name_equal() stops at the first difference, so check the whole name once here.
@@ -432,7 +448,7 @@ namespace adaptive_json5
 
       if (!child.has_value())
       {
-        return result<value_view>::failure(*child.error_if());
+        return result<value_view>::failure(detail::as_internal_fault(*child.error_if()));
       }
 
       const auto& member = **child.value_if();
@@ -440,7 +456,7 @@ namespace adaptive_json5
       if ((!member.parent.is_set()) || (member.parent.position() != m_index.position()) ||
           (!member.member_name.has_value()))
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::internal_fault());
       }
 
       // The count and the end of the chain must agree, as value_iterator::next() checks;
@@ -450,7 +466,7 @@ namespace adaptive_json5
       if ((last_member == member.next_sibling.is_set()) ||
           (last_member && (current.position() != links.last.position())))
       {
-        return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_view>::failure(error::internal_fault());
       }
 
       const auto equal = detail::utf8_name_equal(*member.member_name, name);
@@ -465,7 +481,7 @@ namespace adaptive_json5
         // Preserved duplicates are never resolved silently (J5-031).
         if (found.has_value())
         {
-          return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+          return result<value_view>::failure(error::access_failure(access_error_reason::duplicate_member));
         }
 
         found = current;
@@ -476,7 +492,7 @@ namespace adaptive_json5
 
     if (!found.has_value())
     {
-      return result<value_view>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_view>::failure(error::access_failure(access_error_reason::absent_member));
     }
 
     return result<value_view>::success(value_view{*m_storage, *found});

@@ -62,9 +62,9 @@ namespace
     else
     {
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 3 + error_offset);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 3 + error_offset);
       EXPECT_EQ(source.offset(), 3u);
     }
     EXPECT_EQ(input, original);
@@ -138,9 +138,9 @@ namespace
         else
         {
           ASSERT_FALSE(actual.has_value());
-          EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
-          EXPECT_EQ(actual.error_if()->byte_offset, length);
+          EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
+          EXPECT_EQ(actual.error_if()->byte_offset(), length);
           EXPECT_EQ(source.offset(), 0u);
         }
       }
@@ -264,9 +264,9 @@ namespace
           auto actual = consume_decimal(source, mode);
           /* Expect */
           ASSERT_FALSE(actual.has_value());
-          EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
-          EXPECT_EQ(actual.error_if()->byte_offset, 2 + prefix.size());
+          EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
+          EXPECT_EQ(actual.error_if()->byte_offset(), 2 + prefix.size());
           EXPECT_EQ(source.offset(), 2u);
         }
       }

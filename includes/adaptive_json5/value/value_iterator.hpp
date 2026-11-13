@@ -70,6 +70,7 @@ namespace adaptive_json5
        * @note Failure leaves traversal state unchanged.
        * Repeated calls after completion return successful empty optionals.
        * Each call performs constant work; P031 adds work accounting.
+       * @note A dangling sibling link reports internal_error (issue #125).
        * @par ID SWU-VALUE-108
        */
       [[nodiscard]] result<std::optional<value_view>> next() noexcept;

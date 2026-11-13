@@ -1,5 +1,6 @@
 #include "adaptive_json5/value/member_lookup.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_name_equal.hpp"
@@ -47,7 +48,7 @@ namespace adaptive_json5
       // An empty array must not be mistaken for an object with no matches.
       if (!std::holds_alternative<object_data>((*resolved.value_if())->payload))
       {
-        return result<member_lookup>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<member_lookup>::failure(error::access_failure(access_error_reason::wrong_type));
       }
 
       auto iterator = value_iterator::create(storage, object);

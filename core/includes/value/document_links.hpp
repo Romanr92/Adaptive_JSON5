@@ -59,6 +59,8 @@ namespace adaptive_json5
      * @note Rejects an attached parent: a parent without ancestors makes cycles impossible.
      * O(1) and loop-free; otherwise identical to attach_child, including atomic failure.
      * Used by the parser, whose open containers stay detached until they close.
+     * @note The parser is the only caller, so every access failure, including an unresolvable index, a
+     * rejected child or an out-of-input span, reports internal_error (issue #125).
      * @par ID SWU-VALUE-048
      */
     [[nodiscard]] status_result attach_to_detached_parent(value_storage& values, value_index root, value_index parent,

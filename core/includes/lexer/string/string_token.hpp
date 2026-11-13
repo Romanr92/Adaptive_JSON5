@@ -96,6 +96,8 @@ namespace adaptive_json5
    * @note byte_offset and byte_length include both source quotation marks.
    * warning_count counts all raw separator warnings.
    * first_warning is present exactly when warning_count is nonzero.
+   * excess_warning is the warning at zero-based index warning_allowance, present exactly
+   * when warning_count exceeds the allowance passed to measure_string (issue #125).
    * Owns nothing, so it can be produced and discarded without a storage provider.
    */
   struct [[nodiscard]] string_measure
@@ -105,6 +107,7 @@ namespace adaptive_json5
       std::size_t byte_length{};
       std::size_t warning_count{};
       std::optional<string_warning> first_warning{};
+      std::optional<string_warning> excess_warning{};
   };
 } // namespace adaptive_json5
 

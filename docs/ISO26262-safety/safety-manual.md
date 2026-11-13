@@ -96,6 +96,14 @@ project decides whether it can rely on it.
 - [ ] **C-3.7** You size `max_diagnostics` so that expected warnings do not make valid
   input fail.
   → [FMEA DG-03](software-safety-analysis.md#diagnostics)
+- [ ] **C-3.8** You release accounted memory only through `owned_block`, never by calling
+  the `accounted_storage` callbacks yourself, and you check `faulted()` after releasing a
+  document. If it is true, you discard that accounting object and its documents.
+  → [A-09](seooc-assumptions.md#a-09-accounted-memory-is-released-only-through-its-owners),
+  [FMEA ME-03](software-safety-analysis.md#memory)
+- [ ] **C-3.9** You treat `internal_error` as a library fault, never as bad input: you
+  reject the document and do not retry with the same objects.
+  → [FMEA PA-02, DG-01](software-safety-analysis.md#parser)
 
 ## 4. Your own work
 
@@ -125,8 +133,7 @@ release you use.
 | `as_double()` changes shared document state although it is `const` (LOG-02) | Concurrent reads of one document are not safe; C-2.2 applies | #124 |
 | `member()` lookup is quadratic in object size (LOG-11) | Long lookup times on large objects | #124 |
 | Document mutators are reachable through public headers (ARC-03) | Accidental modification possible; C-3.3 applies | #128 |
-| Byte counter can wrap on a mismatched release (LOG-07) | Every later allocation fails | #125 |
-| Limit errors do not say which limit or where (LOG-03), and other error-detail gaps | Harder diagnosis; the document is still rejected | #125 |
+| A wrong release size among several outstanding blocks is detected only when it exceeds what the other blocks can hold (ME-03, after #125) | The byte counter can be too low by the difference; C-3.8 applies | A-09 |
 | Stack use not measured yet | You cannot yet check stack use against a documented figure (C-2.1) | #136 |
 | Sanitizer, fuzz, Clang and coverage checks not implemented yet | Less verification evidence than planned | #132, #141 |
 

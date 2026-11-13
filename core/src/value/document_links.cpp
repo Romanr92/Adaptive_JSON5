@@ -1,12 +1,15 @@
 #include "value/document_links.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
 #include "common/checked_size.hpp"
+#include "common/internal_link.hpp"
 #include "value/container_links.hpp"
 #include "value/value_record.hpp"
 
@@ -26,6 +29,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-039; J5-040.
        * @note Bounded by the stored record count; used only by the public builder path.
+       * @note A dangling ancestor link reports internal_error (issue #125).
        * @par ID SWU-VALUE-045
        */
       [[nodiscard]] status_result reject_ancestor_cycle(const value_storage& values, value_index parent,
@@ -39,14 +43,14 @@ namespace adaptive_json5
         {
           if ((remaining == 0) || (ancestor.position() == child.position()))
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
           }
 
           const auto resolved = values.at(ancestor);
 
           if (!resolved.has_value())
           {
-            return status_result::failure(*resolved.error_if());
+            return status_result::failure(as_internal_fault(*resolved.error_if()));
           }
 
           ancestor = (*resolved.value_if())->parent;
@@ -61,6 +65,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
        * @note O(1): every check inspects at most the parent, child and previous last sibling.
+       * @note A dangling last link reports internal_error (issue #125).
        * @par ID SWU-VALUE-046
        */
       [[nodiscard]] status_result link_child(value_storage& values, value_index root, value_index parent,
@@ -72,7 +77,7 @@ namespace adaptive_json5
         {
           if (member_name == nullptr)
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
           }
 
           const auto span = *name_span;
@@ -80,7 +85,7 @@ namespace adaptive_json5
           // Subtraction avoids overflowing the end of the supplied source range.
           if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
           }
         }
 
@@ -103,13 +108,13 @@ namespace adaptive_json5
 
         if ((parent.position() == child.position()) || ((root.is_set()) && (root.position() == child.position())))
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
         }
 
         if (child_record.parent.is_set() || child_record.next_sibling.is_set() ||
             child_record.member_name.has_value() || child_record.member_name_source_span.has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
         }
 
         container_links* links = nullptr;
@@ -119,7 +124,7 @@ namespace adaptive_json5
           auto* array = std::get_if<array_data>(&parent_record.payload);
           if (array == nullptr)
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::wrong_type));
           }
 
           links = &array->elements;
@@ -129,13 +134,13 @@ namespace adaptive_json5
           auto* object = std::get_if<object_data>(&parent_record.payload);
           if (object == nullptr)
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::access_failure(access_error_reason::wrong_type));
           }
 
           links = &object->members;
         }
 
-        const auto new_count = checked_add(links->count, 1);
+        const auto new_count = checked_add(links->count, 1, resource_limit_reason::nodes);
 
         if (!new_count.has_value())
         {
@@ -148,21 +153,21 @@ namespace adaptive_json5
         {
           if (links->first.is_set() || links->last.is_set())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
         }
         else
         {
           if (!links->first.is_set() || !links->last.is_set())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
 
           const auto last_result = values.at(links->last);
 
           if (!last_result.has_value())
           {
-            return status_result::failure(*last_result.error_if());
+            return status_result::failure(as_internal_fault(*last_result.error_if()));
           }
 
           previous_last = *last_result.value_if();
@@ -170,7 +175,7 @@ namespace adaptive_json5
           if (!previous_last->parent.is_set() || (previous_last->parent.position() != parent.position()) ||
               previous_last->next_sibling.is_set())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
         }
 
@@ -253,6 +258,8 @@ namespace adaptive_json5
      * @note Rejects an attached parent: a parent without ancestors makes cycles impossible.
      * O(1) and loop-free; otherwise identical to attach_child, including atomic failure.
      * Used by the parser, whose open containers stay detached until they close.
+     * @note The parser is the only caller, so every access failure, including an unresolvable index, a
+     * rejected child or an out-of-input span, reports internal_error (issue #125).
      * @par ID SWU-VALUE-048
      */
     status_result attach_to_detached_parent(value_storage& values, value_index root, value_index parent,
@@ -263,16 +270,24 @@ namespace adaptive_json5
 
       if (!parent_result.has_value())
       {
-        return status_result::failure(*parent_result.error_if());
+        return status_result::failure(as_internal_fault(*parent_result.error_if()));
       }
 
       // A parent without a parent has no ancestors, so no cycle is possible and no walk is needed.
       if ((*parent_result.value_if())->parent.is_set())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
-      return link_child(values, root, parent, child, member_name, name_span, input_size);
+      const auto linked = link_child(values, root, parent, child, member_name, name_span, input_size);
+
+      if (!linked.has_value())
+      {
+        // The parser is the only caller, so a rejected child or span means the parser is wrong.
+        return status_result::failure(as_internal_fault(*linked.error_if()));
+      }
+
+      return linked;
     }
 
   } // namespace detail

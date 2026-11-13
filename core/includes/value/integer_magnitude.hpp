@@ -31,7 +31,7 @@ namespace adaptive_json5::detail
    * @param radix Supported base: 10 or 16.
    * @param maximum Inclusive permitted magnitude.
    * @return Updated magnitude or an explicit error.
-   * @note Invalid radix or digit returns wrong_type_or_access.
+   * @note Invalid radix or digit returns internal_error (callers pass lexer-validated digits).
    * Exceeding maximum returns numeric_conversion with out_of_range.
    * Performs constant bounded work without allocation.
    * The enclosing conversion must account for each digit-processing step.
@@ -48,7 +48,7 @@ namespace adaptive_json5::detail
    * @param maximum Inclusive permitted magnitude, independent of sign.
    * @param work Shared work budget for analysis and magnitude construction.
    * @return Exact magnitude and original sign, or an explicit error.
-   * @note Empty spelling returns wrong_type_or_access.
+   * @note Empty spelling returns wrong_type_or_access (invalid_argument).
    * Explicit infinity or NaN returns numeric_conversion with non_finite.
    * Finite nonintegral values return numeric_conversion with non_integral.
    * Integral values exceeding maximum return numeric_conversion with out_of_range.

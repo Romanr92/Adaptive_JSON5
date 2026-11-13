@@ -1,7 +1,9 @@
 #include "adaptive_json5/memory/owned_block.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "common/checked_size.hpp"
 
@@ -116,7 +118,7 @@ namespace adaptive_json5
    * P003; P032; J5-003; J5-046; J5-047; J5-051; J5-101.
    * @return Owning block, an explicit result-callback failure,
    * allocation_failure for an unusable provider or null allocation,
-   * or resource_limit for invalid alignment.
+   * or wrong_type_or_access (invalid_argument) for an alignment that is not a power of two.
    * @note Requires deallocate and at least one allocation callback.
    * Prefers allocate_result and never falls back after its failure.
    * A zero-byte request succeeds after provider/alignment validation
@@ -137,7 +139,7 @@ namespace adaptive_json5
     // A power of two has exactly one set bit, so clearing the lowest bit gives zero.
     if ((alignment == 0) || ((alignment & (alignment - 1)) != 0))
     {
-      return result<owned_block>::failure(error::without_location(error_code::resource_limit));
+      return result<owned_block>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     if (bytes == 0)
@@ -184,7 +186,7 @@ namespace adaptive_json5
   result<owned_block> allocate_array(const storage_callbacks& storage, std::size_t count, std::size_t element_size,
                                      std::size_t alignment) noexcept
   {
-    const auto bytes = checked_multiply(count, element_size);
+    const auto bytes = checked_multiply(count, element_size, resource_limit_reason::owned_bytes);
     if (!bytes.has_value())
     {
       return result<owned_block>::failure(*bytes.error_if());

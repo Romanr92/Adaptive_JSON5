@@ -63,7 +63,7 @@ namespace adaptive_json5
    * Complete suffix validation is a separate P028 operation.
    * Nonmatching input and unconsumed suffix bytes are not validated here.
    * Exponent signs are excluded from the digit count; leading zeros count.
-   * Excess exponent digits report resource_limit at the first excess digit.
+   * Excess exponent digits report resource_limit (exponent_digits) at the first excess digit.
    * Zero permits exponent-free numbers but rejects any exponent digit.
    * The default permits any digit count representable by size_t.
    * @par ID SWU-LEXER-016

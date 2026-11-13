@@ -63,6 +63,7 @@ namespace adaptive_json5
        * @note Requires document relationships maintained by validated operations.
        * Traversal is iterative and visits at most position plus one records.
        * P031 adds configurable work accounting.
+       * @note A dangling child link reports internal_error (issue #125).
        * @par ID SWU-VALUE-124
        */
       [[nodiscard]] result<value_view> child_at(std::size_t position, bool object) const noexcept;
@@ -144,7 +145,7 @@ namespace adaptive_json5
        * @brief Borrow an array element by zero-based source-order position.
        * @par Requirements
        * P030; J5-030; J5-039; J5-040.
-       * @note Rejects nonarrays and out-of-range positions.
+       * @note Rejects nonarrays (wrong_type) and out-of-range positions (index_out_of_range).
        * Linear traversal; repeated indexed enumeration has quadratic total cost.
        * @par ID SWU-VALUE-132
        */
@@ -155,7 +156,7 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-031; J5-039; J5-040.
        * @note Includes every duplicate-name occurrence.
-       * Rejects nonobjects and out-of-range positions.
+       * Rejects nonobjects (wrong_type) and out-of-range positions (index_out_of_range).
        * Linear traversal; repeated indexed enumeration has quadratic total cost.
        * @par ID SWU-VALUE-133
        * Use find_member() to look a member up by name in one pass.
@@ -190,14 +191,16 @@ namespace adaptive_json5
        * @par Requirements
        * P030; J5-030; J5-031; J5-033; J5-039; #124.
        * @param name Member name in UTF-8, compared exactly with the decoded name.
-       * @return The member's value; wrong_type_or_access when this is not an object, when no
-       * member has the name, when more than one member has it or when the member list is
-       * damaged; encoding when name is not valid UTF-8.
+       * @return The member's value; wrong_type_or_access with wrong_type when this is not an
+       * object, absent_member when no member has the name, or duplicate_member when more than
+       * one member has it; internal_error when the member list is damaged; encoding when name
+       * is not valid UTF-8.
        * @note Visits each member at most once (linear cost). Checks every member's parent and
        * name as member_at() does, and the list ends as value_iterator does: the first and last
        * links must match the count, only the last member may end the chain, and it must be
        * the member the object records as last. Preserved duplicates are never resolved
        * silently. Allocates nothing.
+       * @note A dangling member link reports internal_error (issue #125).
        * @par ID SWU-VALUE-157
        */
       [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;

@@ -99,7 +99,7 @@ namespace
     ASSERT_TRUE(empty.has_value());
     EXPECT_FALSE(empty.value_if()->is_retained());
     ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_EQ(provider.m_attempts, 0U);
   }
 
@@ -120,7 +120,7 @@ namespace
     const auto copied = retained_source::copy(input_view{c_input.data(), c_input.size()}, provider.callbacks());
     /* Expect */
     ASSERT_FALSE(copied.has_value());
-    EXPECT_EQ(copied.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(copied.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(provider.m_live_bytes, 0U);
   }
   /* ================================= End Test_J5_041 ================================= */

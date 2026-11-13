@@ -1,10 +1,12 @@
 #include "parser/parser_engine.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -84,7 +86,7 @@ namespace adaptive_json5
     {
       if (m_root.is_set())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       bool member = false;
@@ -98,21 +100,21 @@ namespace adaptive_json5
         case parser_state::array_value_after_comma:
           if (parent->pending_name.has_value())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
           break;
 
         case parser_state::object_value:
           if (!parent->pending_name.has_value())
           {
-            return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+            return status_result::failure(error::internal_fault());
           }
 
           member = true;
           break;
 
         default:
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
       }
 
@@ -237,13 +239,13 @@ namespace adaptive_json5
       // Every string reached the sink's reserve hook; anything else here means the lexer skipped it.
       if ((string_length != 0) != m_string_reserved)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
       if (m_warning_record_failed)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The lexer walked the string twice, counting then decoding, so its bytes are charged again.
@@ -256,7 +258,8 @@ namespace adaptive_json5
 
       const source_span span{m_source.offset(), scan.source.offset() - m_source.offset()};
 
-      const auto construction_units = checked_add(span.byte_length, c_record_construction_work);
+      const auto construction_units =
+        checked_add(span.byte_length, c_record_construction_work, resource_limit_reason::work);
 
       if (!construction_units.has_value())
       {
@@ -321,12 +324,12 @@ namespace adaptive_json5
       if ((frame == nullptr) || ((frame->state != parser_state::object_first_name_or_end) &&
                                  (frame->state != parser_state::object_name_after_comma)))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       if (frame->pending_name.has_value())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // The lexer must stop growth before either string limit is exceeded.
@@ -372,7 +375,7 @@ namespace adaptive_json5
       // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
       if (m_warning_record_failed)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Quoted and identifier names are both walked twice, counting then decoding.
@@ -436,7 +439,7 @@ namespace adaptive_json5
 
       if (frame == nullptr)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       parser_state next_state = frame->state;
@@ -446,7 +449,7 @@ namespace adaptive_json5
       {
         if ((frame->state != parser_state::object_colon) || (!frame->pending_name.has_value()))
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
 
         expected = punctuation_kind::colon;
@@ -457,7 +460,7 @@ namespace adaptive_json5
         // P034/P035: a completed element or member must precede every comma.
         if (frame->pending_name.has_value())
         {
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
 
         switch (frame->state)
@@ -471,12 +474,12 @@ namespace adaptive_json5
           break;
 
         default:
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
       }
       else
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Validate the actual byte before publishing the grammar transition.
@@ -556,7 +559,7 @@ namespace adaptive_json5
     {
       if (!completed.is_set() || m_root.is_set())
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       // Reacquire the parent after any stack growth or completed-container pop.
@@ -639,6 +642,23 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Complete a parse failure with the location the engine knows.
+     * @par Requirements
+     * J5-043; J5-044; J5-047; issue #125.
+     * @param failure Failure returned by parse().
+     * @return The failure from locate_limit() at the current cursor offset.
+     * @note A failed step neither advances the cursor nor changes the budget, so the cursor
+     * is at the start of the failing token and the string allowance is the one the lexer saw.
+     * @par ID SWU-PARSER-048
+     */
+    error parser_engine::located_failure(const error& failure) const noexcept
+    {
+      // A failed step does not change the budget, so this is the allowance the lexer saw.
+      const bool total_binding = m_resources.string_unit_allowance() < m_options.limits.max_string_units;
+      return detail::locate_limit(failure, m_source.offset(), total_binding);
+    }
+
+    /**
      * @brief Address the nesting-kind bits for the current pre-pass.
      * @par Requirements
      * P033; J5-046; J5-048.
@@ -652,15 +672,16 @@ namespace adaptive_json5
     /**
      * @brief Count one value without building it: reserve its resources and validate it.
      * @par Requirements
-     * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+     * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
      * @note Mirrors read_value step by step so both report the same errors.
+     * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
      * @par ID SWU-PARSER-018
      */
     status_result parser_engine::count_value() noexcept
     {
       if (m_count_root_done)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       bool member = false;
@@ -678,7 +699,7 @@ namespace adaptive_json5
           break;
 
         default:
-          return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return status_result::failure(error::internal_fault());
         }
       }
 
@@ -735,8 +756,8 @@ namespace adaptive_json5
 
       limited_scan scan = *started.value_if();
 
-      const auto measured =
-        measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size, limits.max_exponent_digits);
+      const auto measured = measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size,
+                                           limits.max_exponent_digits, m_resources.diagnostic_allowance());
 
       if (!measured.has_value())
       {
@@ -768,6 +789,13 @@ namespace adaptive_json5
           return status_result::failure(*reserved_string.error_if());
         }
 
+        // The walk recorded the first warning that no longer fits, so report exactly that one.
+        if (string->excess_warning.has_value())
+        {
+          return status_result::failure(
+            error::limit_at(string->excess_warning->byte_offset, resource_limit_reason::diagnostics));
+        }
+
         // The build pass retains every warning as one diagnostic entry, so count them now.
         for (std::size_t index{}; index < string->warning_count; ++index)
         {
@@ -784,7 +812,7 @@ namespace adaptive_json5
         // Same check and location as owned_number::copy_spelling in the build pass.
         if (number->byte_length > limits.max_number_bytes)
         {
-          return status_result::failure(error::at_offset(error_code::resource_limit, number->byte_offset));
+          return status_result::failure(error::limit_at(number->byte_offset, resource_limit_reason::number_bytes));
         }
       }
 
@@ -804,8 +832,9 @@ namespace adaptive_json5
     /**
      * @brief Count one member name without decoding it.
      * @par Requirements
-     * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+     * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047; issue #125.
      * @note Mirrors read_name except for the duplicate check (ADR 0003, decision 7, C1).
+     * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
      * @par ID SWU-PARSER-019
      */
     status_result parser_engine::count_name() noexcept
@@ -813,7 +842,7 @@ namespace adaptive_json5
       if ((m_count_depth == 0) || ((m_count_top.state != parser_state::object_first_name_or_end) &&
                                    (m_count_top.state != parser_state::object_name_after_comma)))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       const std::size_t max_units = m_resources.string_unit_allowance();
@@ -826,7 +855,8 @@ namespace adaptive_json5
       }
 
       limited_scan scan = *started.value_if();
-      const auto measured = measure_member_name(scan.source, m_options.syntax, max_units);
+      const auto measured =
+        measure_member_name(scan.source, m_options.syntax, max_units, m_resources.diagnostic_allowance());
 
       if (!measured.has_value())
       {
@@ -854,6 +884,13 @@ namespace adaptive_json5
       if (!reserved.has_value())
       {
         return status_result::failure(*reserved.error_if());
+      }
+
+      // The walk recorded the first warning that no longer fits, so report exactly that one.
+      if (name.excess_warning.has_value())
+      {
+        return status_result::failure(
+          error::limit_at(name.excess_warning->byte_offset, resource_limit_reason::diagnostics));
       }
 
       for (std::size_t index{}; index < name.warning_count; ++index)
@@ -884,7 +921,7 @@ namespace adaptive_json5
     {
       if (m_count_depth == 0)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       parser_state next_state = m_count_top.state;
@@ -905,7 +942,7 @@ namespace adaptive_json5
       }
       else
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       cursor candidate = m_source;
@@ -941,7 +978,7 @@ namespace adaptive_json5
 
       if (m_count_depth == 0)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       const auto closable = check_container_close(m_count_top.state, *closing, m_options.syntax);
@@ -1008,7 +1045,7 @@ namespace adaptive_json5
         return status_result::success();
 
       default:
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
     }
 
@@ -1089,7 +1126,7 @@ namespace adaptive_json5
           break;
 
         default:
-          counted = status_result::failure(error::without_location(error_code::wrong_type_or_access));
+          counted = status_result::failure(error::internal_fault());
           break;
         }
       }
@@ -1142,13 +1179,13 @@ namespace adaptive_json5
 
       if ((m_input.data == nullptr) && (m_input.size != 0))
       {
-        return tree_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return tree_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       // All parser allocations must use the configured byte ceiling.
       if (m_owned_byte_limit != m_options.limits.max_owned_bytes)
       {
-        return tree_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return tree_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       const auto input_checked = m_resources.check_input(m_input.size);
@@ -1279,7 +1316,7 @@ namespace adaptive_json5
         }
 
         default:
-          return tree_result::failure(error::without_location(error_code::wrong_type_or_access));
+          return tree_result::failure(error::internal_fault());
         }
       }
 
@@ -1317,11 +1354,19 @@ namespace adaptive_json5
      * @note Invoke once on a fresh engine.
      * This internal operation does not validate trailing input.
      * Every failure requires abandoning this engine instance.
+     * Limit failures without a location are reported at the failing token (located_failure()).
      * @par ID SWU-PARSER-026
      */
     result<parsed_value_tree> parser_engine::run() noexcept
     {
-      return parse(false);
+      auto parsed = parse(false);
+
+      if (!parsed.has_value())
+      {
+        return result<parsed_value_tree>::failure(located_failure(*parsed.error_if()));
+      }
+
+      return parsed;
     }
 
     /**
@@ -1332,11 +1377,19 @@ namespace adaptive_json5
      * Admits trailing trivia according to the selected syntax mode.
      * Success sets consumed_bytes to the complete input size.
      * Failure returns no tree; discard this engine instance.
+     * Limit failures without a location are reported at the failing token (located_failure()).
      * @par ID SWU-PARSER-027
      */
     result<parsed_value_tree> parser_engine::run_complete() noexcept
     {
-      return parse(true);
+      auto parsed = parse(true);
+
+      if (!parsed.has_value())
+      {
+        return result<parsed_value_tree>::failure(located_failure(*parsed.error_if()));
+      }
+
+      return parsed;
     }
   } // namespace detail
 } // namespace adaptive_json5

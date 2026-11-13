@@ -55,7 +55,7 @@ namespace adaptive_json5::detail
    * P038; J5-003; J5-037; J5-046; J5-048.
    * @note Zero has no significant limbs. Initial construction requires no allocation.
    * Storage is reserved once with reserve(); later operations never allocate and fail with
-   * wrong_type_or_access beyond the reservation (ADR 0003, decision 1).
+   * internal_error beyond the reservation (ADR 0003, decision 1).
    * Limbs contain 16 significant bits, least significant first.
    * The provider state must outlive this object and its allocations.
    * Use accounted-storage callbacks to enforce a shared scratch-byte ceiling.
@@ -126,7 +126,7 @@ namespace adaptive_json5::detail
        * P038; J5-037; J5-046.
        * @param limbs Upper bound on the limbs this integer will hold.
        * @return Success, a provider failure (allocation_failure or the accounting ceiling's
-       * resource_limit), or wrong_type_or_access when the integer is nonzero or already reserved.
+       * resource_limit), or internal_error when the integer is nonzero or already reserved.
        * @note Makes at most one allocation; zero limbs allocate nothing.
        * Charges no work: the storage is not zero-filled, and its size is checked by the
        * provider's byte ceiling (ADR 0003, decision 1c).
@@ -162,7 +162,7 @@ namespace adaptive_json5::detail
        * @param work Shared budget charged before limb processing.
        * @return Success or an explicit access/resource failure.
        * @note Decimal multipliers append one to four digits; radix 16 appends
-       * one hexadecimal digit. Invalid radix/digit returns wrong_type_or_access.
+       * one hexadecimal digit. Invalid radix/digit returns internal_error.
        * Charges two work units per existing limb plus one.
        * Failure preserves the integer; successful work charges are not refunded.
        * Never allocates; a carry beyond the reservation fails before mutation.
@@ -194,7 +194,7 @@ namespace adaptive_json5::detail
        * @return Success or an explicit storage/resource failure.
        * @note A zero shift or zero value succeeds without allocation or work charge.
        * Failure preserves the integer; successful work charges are not refunded.
-       * Shifts in place; a result beyond the reservation fails with wrong_type_or_access before mutation.
+       * Shifts in place; a result beyond the reservation fails with internal_error before mutation.
        * Charges one setup unit, one per source limb and one per destination slot.
        * A partial-limb shift needs one additional slot, possibly unused.
        * Unused capacity does not count as a significant limb.
@@ -208,7 +208,7 @@ namespace adaptive_json5::detail
        * P038; J5-003; J5-037; J5-048.
        * @param other Borrowed magnitude to subtract; may refer to this object.
        * @param work Shared budget charged before traversal and mutation.
-       * @return Success, wrong_type_or_access for a negative result,
+       * @return Success, internal_error for a negative result,
        * or an explicit resource failure.
        * @note Allocates nothing. Failure preserves the integer.
        * Charges comparison work first.
@@ -231,7 +231,7 @@ namespace adaptive_json5::detail
        * Other copies charge one setup unit plus one unit per source limb.
        * Failure preserves the destination; successful charges are not refunded.
        * Copying zero retains existing storage but clears the significant count.
-       * Copies into the reservation; a larger source fails with wrong_type_or_access.
+       * Copies into the reservation; a larger source fails with internal_error.
        * @par ID SWU-VALUE-015
        */
       [[nodiscard]] status_result assign(const big_unsigned& other, work_budget& work) noexcept;

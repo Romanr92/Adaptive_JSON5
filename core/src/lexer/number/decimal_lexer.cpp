@@ -2,6 +2,7 @@
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/number/number_token.hpp"
@@ -68,7 +69,7 @@ namespace adaptive_json5
    * Complete suffix validation is a separate P028 operation.
    * Nonmatching input and unconsumed suffix bytes are not validated here.
    * Exponent signs are excluded from the digit count; leading zeros count.
-   * Excess exponent digits report resource_limit at the first excess digit.
+   * Excess exponent digits report resource_limit (exponent_digits) at the first excess digit.
    * Zero permits exponent-free numbers but rejects any exponent digit.
    * The default permits any digit count representable by size_t.
    * @par ID SWU-LEXER-016
@@ -186,7 +187,7 @@ namespace adaptive_json5
         // Reject the first excess digit before consuming it.
         if (candidate.offset() - exponent_start >= max_exponent_digits)
         {
-          return decimal_result::failure(error::at_offset(error_code::resource_limit, candidate.offset()));
+          return decimal_result::failure(error::limit_at(candidate.offset(), resource_limit_reason::exponent_digits));
         }
 
         candidate.advance(c_ascii_byte_count);

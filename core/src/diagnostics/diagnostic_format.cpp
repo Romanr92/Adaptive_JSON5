@@ -1,7 +1,9 @@
 #include "adaptive_json5/diagnostic_format.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/text_position.hpp"
@@ -49,7 +51,7 @@ namespace adaptive_json5
          * J5-045; issue #96.
          * @param buffer Caller storage, or nullptr when capacity is 0.
          * @param capacity Size of buffer in bytes, including the NUL.
-         * @return The writer, or wrong_type_or_access for a null buffer with nonzero capacity.
+         * @return The writer, or wrong_type_or_access (invalid_argument) for a null buffer with nonzero capacity.
          * @note A null buffer with zero capacity is a valid size query.
          * @par ID SWU-DIAGNOSTICS-002
          */
@@ -57,7 +59,7 @@ namespace adaptive_json5
         {
           if ((buffer == nullptr) && (capacity != 0U))
           {
-            return result<message_writer>::failure(error::without_location(error_code::wrong_type_or_access));
+            return result<message_writer>::failure(error::access_failure(access_error_reason::invalid_argument));
           }
 
           return result<message_writer>::success(message_writer{buffer, capacity});
@@ -156,6 +158,8 @@ namespace adaptive_json5
         return "resource limit exceeded";
       case error_code::allocation_failure:
         return "allocation failure";
+      case error_code::internal_error:
+        return "internal error";
       }
 
       // A value outside the enumeration still gets text instead of undefined behavior.
@@ -270,27 +274,109 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Give the fixed text for the limit that would have been exceeded.
+     * @par Requirements
+     * J5-043; J5-047; J5-048; J5-049; issue #125.
+     * @param reason Limit named by the error.
+     * @return Static English text naming the resource_limits field; "resource limit exceeded"
+     * for a value outside the enumeration.
+     * @note No default label, so -Wswitch reports a newly added reason without text.
+     * @par ID SWU-DIAGNOSTICS-016
+     */
+    std::string_view describe(resource_limit_reason reason) noexcept
+    {
+      switch (reason)
+      {
+      case resource_limit_reason::input:
+        return "input exceeds max_input_bytes";
+      case resource_limit_reason::depth:
+        return "nesting exceeds max_depth";
+      case resource_limit_reason::nodes:
+        return "values exceed max_nodes";
+      case resource_limit_reason::members:
+        return "members exceed max_members";
+      case resource_limit_reason::string:
+        return "string exceeds max_string_units";
+      case resource_limit_reason::total_string:
+        return "strings exceed max_total_string_units";
+      case resource_limit_reason::number_bytes:
+        return "number exceeds max_number_bytes";
+      case resource_limit_reason::exponent_digits:
+        return "exponent exceeds max_exponent_digits";
+      case resource_limit_reason::owned_bytes:
+        return "memory exceeds max_owned_bytes";
+      case resource_limit_reason::diagnostics:
+        return "warnings exceed max_diagnostics";
+      case resource_limit_reason::work:
+        return "work exceeds max_work_units";
+      case resource_limit_reason::output_capacity:
+        return "output buffer too small";
+      case resource_limit_reason::conversion_size:
+        return "number too long to convert";
+      }
+
+      return "resource limit exceeded";
+    }
+
+    /**
+     * @brief Give the fixed text for a rejected access or argument.
+     * @par Requirements
+     * J5-031; J5-039; J5-043; issue #125.
+     * @param reason Why the access or argument was rejected.
+     * @return Static English text; "wrong type or invalid access" for a value outside the
+     * enumeration.
+     * @note No default label, so -Wswitch reports a newly added reason without text.
+     * @par ID SWU-DIAGNOSTICS-017
+     */
+    std::string_view describe(access_error_reason reason) noexcept
+    {
+      switch (reason)
+      {
+      case access_error_reason::wrong_type:
+        return "wrong value type";
+      case access_error_reason::absent_member:
+        return "member not found";
+      case access_error_reason::duplicate_member:
+        return "member name is duplicated";
+      case access_error_reason::index_out_of_range:
+        return "index out of range";
+      case access_error_reason::invalid_argument:
+        return "invalid argument";
+      }
+
+      return "wrong type or invalid access";
+    }
+
+    /**
      * @brief Choose the most specific text available for an error.
      * @par Requirements
-     * J5-043; issue #96.
+     * J5-043; issue #96; issue #125.
      * @param failure Error to describe.
-     * @return The syntax or numeric reason text when present, otherwise the category text.
+     * @return The syntax, numeric, limit or access reason text when present, otherwise the
+     * category text.
+     * @note Each reason accessor answers only for its own category, so at most one applies.
      * @par ID SWU-DIAGNOSTICS-010
      */
     std::string_view describe(const error& failure) noexcept
     {
-      // A reason is only meaningful together with its own category.
-      if ((failure.code == error_code::syntax) && failure.syntax_reason.has_value())
+      if (const auto reason = failure.syntax_reason(); reason.has_value())
       {
-        return describe(*failure.syntax_reason);
+        return describe(*reason);
+      }
+      if (const auto reason = failure.numeric_reason(); reason.has_value())
+      {
+        return describe(*reason);
+      }
+      if (const auto reason = failure.limit_reason(); reason.has_value())
+      {
+        return describe(*reason);
+      }
+      if (const auto reason = failure.access_reason(); reason.has_value())
+      {
+        return describe(*reason);
       }
 
-      if ((failure.code == error_code::numeric_conversion) && failure.numeric_reason.has_value())
-      {
-        return describe(*failure.numeric_reason);
-      }
-
-      return describe(failure.code);
+      return describe(failure.code());
     }
 
     /**
@@ -331,7 +417,7 @@ namespace adaptive_json5
     message_writer& writer = *created.value_if();
 
     // Unlocated errors such as allocation failures have no meaningful position to print.
-    if (failure.has_byte_offset)
+    if (failure.has_byte_offset())
     {
       append_position(writer, primary);
       writer.append(": ");
@@ -340,7 +426,7 @@ namespace adaptive_json5
     writer.append(describe(failure));
 
     // Name the earlier occurrence too, so the reader sees both places that clash.
-    if (failure.duplicate_names.has_value() && first_duplicate.has_value())
+    if (failure.duplicate_names().has_value() && first_duplicate.has_value())
     {
       writer.append(" (first at ");
       append_position(writer, *first_duplicate);
@@ -360,12 +446,12 @@ namespace adaptive_json5
   result<std::size_t> format_error(const error& failure, input_view input, char* buffer, std::size_t capacity) noexcept
   {
     // Without a location there is nothing to scan; the position argument is ignored.
-    if (!failure.has_byte_offset)
+    if (!failure.has_byte_offset())
     {
       return format_error_at(failure, text_position{}, std::nullopt, buffer, capacity);
     }
 
-    const auto primary = locate(input, failure.byte_offset);
+    const auto primary = locate(input, failure.byte_offset());
 
     if (!primary.has_value())
     {
@@ -374,9 +460,11 @@ namespace adaptive_json5
 
     std::optional<text_position> first_duplicate{};
 
-    if (failure.duplicate_names.has_value())
+    const auto duplicates = failure.duplicate_names();
+
+    if (duplicates.has_value())
     {
-      const auto first = locate(input, failure.duplicate_names->first.byte_offset);
+      const auto first = locate(input, duplicates->first.byte_offset);
 
       if (!first.has_value())
       {

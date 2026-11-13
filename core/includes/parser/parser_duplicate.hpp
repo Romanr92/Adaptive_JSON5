@@ -29,6 +29,7 @@ namespace adaptive_json5
      * Changes no document, name or cursor state and performs no allocation.
      * Successfully charged work is not refunded on later failure.
      * The caller decides whether the selected policy requires this check.
+     * @note An object or member chain the document cannot resolve reports internal_error (issue #125).
      * @par ID SWU-PARSER-008
      */
     [[nodiscard]] status_result reject_duplicate_name(const document& values, value_index object,

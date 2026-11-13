@@ -66,7 +66,7 @@ namespace adaptive_json5
      * @param input Complete borrowed input.
      * @param start_offset Original offset where the scan begins.
      * @param work Shared work budget; not charged here.
-     * @return The limited scan, or wrong_type_or_access for an invalid input or offset.
+     * @return The limited scan, or internal_error for an invalid input or offset (callers validated both).
      * @note Performs no allocation and reads no input bytes.
      * @par ID SWU-PARSER-040
      */
@@ -80,8 +80,8 @@ namespace adaptive_json5
      * @param scan Scan started by begin_limited_scan.
      * @param end_offset Original offset where the scan stopped; start_offset for no-match.
      * @param work Shared work budget for the parse operation.
-     * @return Success after charging end_offset - start_offset, resource_limit at
-     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or wrong_type_or_access for a reversed range.
+     * @return Success after charging end_offset - start_offset, resource_limit (work) at
+     * view_end when the scan stopped within c_cut_margin_bytes of a cut, or internal_error for a reversed range.
      * @note Call before the scan's result changes the document or cursor.
      * @par ID SWU-PARSER-041
      */
@@ -91,12 +91,14 @@ namespace adaptive_json5
     /**
      * @brief Map a lexer failure that may have been caused by the cut.
      * @par Requirements
-     * P040; J5-049.
+     * P040; J5-049; issue #125.
      * @param scan Scan started by begin_limited_scan.
      * @param failure Error reported by the lexer.
-     * @return resource_limit at view_end when the failure lies within
-     * c_cut_margin_bytes of a cut, has a source range ending there, or has no location;
-     * otherwise failure unchanged.
+     * @return For a syntax or encoding failure in a cut scan: resource_limit (work) at view_end
+     * when the failure lies within c_cut_margin_bytes of the cut, has a source range ending
+     * there, or has no location. Every other failure is returned unchanged.
+     * @note Only grammar and UTF-8 errors can come from the cut hiding the rest of a token;
+     * allocation, internal and other limit failures are real and keep their category.
      * @par ID SWU-PARSER-042
      */
     [[nodiscard]] error limited_scan_error(const limited_scan& scan, const error& failure) noexcept;
@@ -109,12 +111,30 @@ namespace adaptive_json5
      * @param input Complete borrowed input underlying source.
      * @param mode Selected syntax.
      * @param work Shared work budget for the parse operation.
-     * @return Success, a trivia error, or resource_limit when the budget ends inside the trivia.
+     * @return Success, a trivia error, or resource_limit (work) when the budget ends inside the trivia.
      * @note Shared by the container engine and the primitive parser so both charge trivia alike.
      * @par ID SWU-PARSER-043
      */
     [[nodiscard]] status_result skip_trivia_within_budget(cursor& source, input_view input, syntax_mode mode,
                                                           work_budget& work) noexcept;
+
+    /**
+     * @brief Name the binding string limit and locate a token-bound limit failure.
+     * @par Requirements
+     * J5-043; J5-044; J5-047; J5-048; J5-049; issue #125.
+     * @param failure Failure returned by a parse step.
+     * @param token_offset Start of the token the failing step was processing.
+     * @param total_string_binding True when the remaining total string budget was smaller than
+     * max_string_units, so a lexer's string failure really hit max_total_string_units.
+     * @return failure unchanged unless it is resource_limit; otherwise the same failure, with
+     * total_string instead of string when total_string_binding is set, and at token_offset
+     * when it had no location and its limit belongs to one token.
+     * @note input, owned_bytes, output_capacity and conversion_size stay unlocated: they
+     * concern the whole input, memory, or a read after parsing. Existing locations are kept.
+     * @par ID SWU-PARSER-047
+     */
+    [[nodiscard]] error locate_limit(const error& failure, std::size_t token_offset,
+                                     bool total_string_binding) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

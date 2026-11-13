@@ -1,6 +1,8 @@
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
@@ -84,7 +86,7 @@ namespace adaptive_json5
     {
       if (required > m_max_records)
       {
-        return status_result::failure(error::without_location(error_code::resource_limit));
+        return status_result::failure(error::limit_without_location(resource_limit_reason::nodes));
       }
 
       if (required <= m_capacity)
@@ -95,11 +97,11 @@ namespace adaptive_json5
       // An exact reservation is an upper bound, so needing more means the counting pass was wrong.
       if (m_fixed)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       std::size_t capacity = required;
-      const auto doubled = checked_add(m_capacity, m_capacity);
+      const auto doubled = checked_add(m_capacity, m_capacity, resource_limit_reason::nodes);
 
       // Doubling is optional; an overflowing growth estimate can fall back to required.
       if (doubled.has_value())
@@ -169,7 +171,7 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-040; J5-046.
      * @param records Exact number of records this storage will hold.
-     * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
+     * @return Success, resource_limit (nodes), a provider failure, or internal_error when already reserved.
      * @note Failure leaves the storage growable and unchanged.
      * @par ID SWU-VALUE-116
      */
@@ -178,12 +180,12 @@ namespace adaptive_json5
       // One reservation, made while empty, so nothing ever needs relocating.
       if (m_fixed || (m_capacity != 0) || (m_size != 0))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       if (records > m_max_records)
       {
-        return status_result::failure(error::without_location(error_code::resource_limit));
+        return status_result::failure(error::limit_without_location(resource_limit_reason::nodes));
       }
 
       if (records != 0)
@@ -230,7 +232,7 @@ namespace adaptive_json5
     {
       if (m_size >= m_max_records)
       {
-        return result<value_index>::failure(error::without_location(error_code::resource_limit));
+        return result<value_index>::failure(error::limit_without_location(resource_limit_reason::nodes));
       }
 
       // The limit check proves adding one cannot overflow size_t.
@@ -261,7 +263,7 @@ namespace adaptive_json5
     {
       if (!index.is_set() || (index.position() >= m_size))
       {
-        return result<value_record*>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
       }
 
       return result<value_record*>::success(live_record(index.position()));
@@ -278,7 +280,7 @@ namespace adaptive_json5
     {
       if (!index.is_set() || (index.position() >= m_size))
       {
-        return result<const value_record*>::failure(error::without_location(error_code::wrong_type_or_access));
+        return result<const value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
       }
 
       return result<const value_record*>::success(live_record(index.position()));

@@ -33,8 +33,9 @@ namespace adaptive_json5
    * reads, pass each thread its own scratch provider to as_double(scratch) / as_float(scratch).
    * Copyable; copy and move assignment are unavailable because result is not assignable.
    * Every function is noexcept and never throws.
-   * Error codes: wrong_type_or_access for a missing member, a member name that occurs more
-   * than once, an index out of range or a value of another kind; encoding for a name that
+   * Error codes: wrong_type_or_access with access_reason() absent_member for a missing member,
+   * duplicate_member for a member name that occurs more than once, index_out_of_range for an
+   * index out of range and wrong_type for a value of another kind; encoding for a name that
    * is not valid UTF-8; the conversion errors of the numeric and UTF-8 export functions.
    */
   class [[nodiscard]] json5_value
@@ -147,8 +148,9 @@ namespace adaptive_json5
        * J5-030; J5-031; J5-033; J5-039.
        * @param name Member name in UTF-8, compared exactly with the decoded name.
        * @return The member's value, or an object holding the error: the held error;
-       * wrong_type_or_access when this is not an object, when no member has the name, or when
-       * more than one member has it; encoding when name is not valid UTF-8.
+       * wrong_type_or_access with wrong_type when this is not an object, absent_member when no
+       * member has the name, or duplicate_member when more than one member has it; encoding
+       * when name is not valid UTF-8; internal_error when the member list is damaged.
        * @note Exact comparison without normalization or case folding. Preserved duplicate
        * names are never resolved silently (J5-031). Allocates nothing.
        * @par ID SWU-VALUE-069
@@ -161,7 +163,8 @@ namespace adaptive_json5
        * J5-030; J5-039.
        * @param index Zero-based position.
        * @return The element's value, or an object holding the error: the held error;
-       * wrong_type_or_access when this is not an array or index is out of range.
+       * wrong_type_or_access with wrong_type when this is not an array, or index_out_of_range when
+       * index is out of range.
        * @par ID SWU-VALUE-070
        */
       [[nodiscard]] json5_value at(std::size_t index) const noexcept;
@@ -170,7 +173,7 @@ namespace adaptive_json5
        * @brief Report the number of elements of an array or members of an object.
        * @par Requirements
        * J5-030; J5-031.
-       * @return The count; the held error; or wrong_type_or_access for a scalar.
+       * @return The count; the held error; or wrong_type_or_access (wrong_type) for a scalar.
        * @note Members with the same name are each counted.
        * @par ID SWU-VALUE-071
        */
@@ -180,7 +183,7 @@ namespace adaptive_json5
        * @brief Read a boolean value.
        * @par Requirements
        * J5-028; J5-039.
-       * @return The boolean; the held error; or wrong_type_or_access for another kind.
+       * @return The boolean; the held error; or wrong_type_or_access (wrong_type) for another kind.
        * @par ID SWU-VALUE-072
        */
       [[nodiscard]] result<bool> as_bool() const noexcept;
@@ -189,7 +192,7 @@ namespace adaptive_json5
        * @brief Read a number as a signed 64-bit integer, exactly.
        * @par Requirements
        * J5-034; J5-036; J5-039.
-       * @return The integer; the held error; wrong_type_or_access for a non-number; or the
+       * @return The integer; the held error; wrong_type_or_access (wrong_type) for a non-number; or the
        * numeric conversion error when the number is not an integer or is out of range.
        * @note Integrality is mathematical: 1.0 and 1e2 are integers, 1.5 is not.
        * @par ID SWU-VALUE-073
@@ -209,7 +212,7 @@ namespace adaptive_json5
        * @brief Read a number as a double, rounded once, using the document's scratch storage.
        * @par Requirements
        * J5-034; J5-037; J5-039.
-       * @return The double; the held error; wrong_type_or_access for a non-number; or the
+       * @return The double; the held error; wrong_type_or_access (wrong_type) for a non-number; or the
        * numeric conversion error, for example for a non-finite value under the default policy.
        * @note Uses default floating conversion options. Scratch memory comes from the
        * document's own storage and is released before returning.
@@ -265,7 +268,7 @@ namespace adaptive_json5
        * @param buffer Destination for the UTF-8 bytes; no terminating NUL is written.
        * @param capacity Bytes available in buffer.
        * @return A view of the written bytes inside buffer; the held error;
-       * wrong_type_or_access for another kind; resource_limit when capacity is too small;
+       * wrong_type_or_access (wrong_type) for another kind; resource_limit when capacity is too small;
        * encoding for an unpaired surrogate.
        * @note Allocates nothing. The view is valid while buffer is unchanged. Use utf8_size()
        * from adaptive_json5/value/utf8_export.hpp when the needed capacity is unknown.

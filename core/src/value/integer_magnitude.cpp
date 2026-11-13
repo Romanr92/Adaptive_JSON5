@@ -34,7 +34,7 @@ namespace adaptive_json5::detail
 
     if (((radix != c_decimal_radix) && (radix != c_hexadecimal_radix)) || (digit >= radix))
     {
-      return magnitude_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return magnitude_result::failure(error::internal_fault());
     }
 
     // Check before subtracting so an eversized digit cannot cause unsigned wrap.

@@ -182,9 +182,9 @@ namespace
     if (!accepted)
     {
       ASSERT_NE(actual.error_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 3u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 3u);
     }
     EXPECT_EQ(source.offset(), 3u);
     EXPECT_EQ(input, original);
@@ -251,9 +251,9 @@ namespace
     auto actual = consume_scalar(source, mode, provider.callbacks(), 64);
     /* Expect */
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-    EXPECT_TRUE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, expected);
+    EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset());
+    EXPECT_EQ(actual.error_if()->byte_offset(), expected);
     EXPECT_EQ(source.offset(), 2u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -261,9 +261,9 @@ namespace
     {
       auto number = consume_number(source, mode);
       ASSERT_FALSE(number.has_value());
-      EXPECT_EQ(number.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(number.error_if()->has_byte_offset);
-      EXPECT_EQ(number.error_if()->byte_offset, expected);
+      EXPECT_EQ(number.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(number.error_if()->has_byte_offset());
+      EXPECT_EQ(number.error_if()->byte_offset(), expected);
       EXPECT_EQ(source.offset(), 2u);
     }
   }
@@ -276,8 +276,8 @@ namespace
         rejection_case{"NumberLetter", "1foo", 1, 1, true}, rejection_case{"Binary", "0b1", 1, 1, true},
         rejection_case{"OctalPrefix", "0o7", 1, 1, true}, rejection_case{"OctalDigits", "077", 1, 1, true},
         rejection_case{"Separator", "1_0", 1, 1, true}, rejection_case{"HexSuffix", "0x1z", 3, 0, true},
-        rejection_case{"HexIncomplete", "0x", 2, 0, true}, rejection_case{"InfinitySuffix", "Infinityx", 8, 0, true},
-        rejection_case{"NanPoint", "NaN.0", 3, 0, true}, rejection_case{"PlusPlus", "++1", 1, 0, true},
+        rejection_case{"HexIncomplete", "0x", 2, 0, true}, rejection_case{"InfinitySuffix", "Infinityx", 0, 0, false},
+        rejection_case{"NanPoint", "NaN.0", 3, 3, true}, rejection_case{"PlusPlus", "++1", 1, 0, true},
         rejection_case{"DoublePoint", "1.2.3", 3, 3, true}, rejection_case{"NumericEscape", R"(1\u0061)", 1, 1, true},
         rejection_case{"NumericQuote", "1\"x\"", 1, 1, true}, rejection_case{"LiteralPoint", "true.", 4, 4, false},
         rejection_case{"LiteralQuote", "true\"x\"", 4, 4, false}, rejection_case{"StringName", R"("a"x)", 3, 3, false},
@@ -318,12 +318,12 @@ namespace
         auto actual = consume_scalar(source, mode, provider.callbacks(), 64);
         /* Expect */
         ASSERT_FALSE(actual.has_value()) << text;
-        EXPECT_EQ(actual.error_if()->code, error_code::syntax) << text;
-        EXPECT_EQ(actual.error_if()->syntax_reason, syntax_error_reason::unknown_literal) << text;
-        EXPECT_EQ(actual.error_if()->byte_offset, 2u) << text;
-        ASSERT_TRUE(actual.error_if()->source_range.has_value()) << text;
-        EXPECT_EQ(actual.error_if()->source_range->byte_offset, 2u) << text;
-        EXPECT_EQ(actual.error_if()->source_range->byte_length, text.size()) << text;
+        EXPECT_EQ(actual.error_if()->code(), error_code::syntax) << text;
+        EXPECT_EQ(actual.error_if()->syntax_reason(), syntax_error_reason::unknown_literal) << text;
+        EXPECT_EQ(actual.error_if()->byte_offset(), 2u) << text;
+        ASSERT_TRUE(actual.error_if()->source_range().has_value()) << text;
+        EXPECT_EQ(actual.error_if()->source_range()->byte_offset, 2u) << text;
+        EXPECT_EQ(actual.error_if()->source_range()->byte_length, text.size()) << text;
         EXPECT_EQ(source.offset(), 2u) << text;
         EXPECT_EQ(provider.m_live_bytes, 0u) << text;
       }
@@ -452,13 +452,13 @@ namespace
           const auto boundary = check_unquoted_token_boundary(boundary_source, mode);
           /* Expect */
           ASSERT_FALSE(actual.has_value());
-          EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
-          EXPECT_EQ(actual.error_if()->byte_offset, 2 + prefix.size());
+          EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
+          EXPECT_EQ(actual.error_if()->byte_offset(), 2 + prefix.size());
           EXPECT_EQ(source.offset(), 2u);
           ASSERT_FALSE(boundary.has_value());
-          EXPECT_EQ(boundary.error_if()->code, error_code::encoding);
-          EXPECT_EQ(boundary.error_if()->byte_offset, 2 + prefix.size());
+          EXPECT_EQ(boundary.error_if()->code(), error_code::encoding);
+          EXPECT_EQ(boundary.error_if()->byte_offset(), 2 + prefix.size());
           EXPECT_EQ(boundary_source.offset(), 2 + prefix.size());
           EXPECT_EQ(provider.m_live_bytes, 0u);
         }
@@ -502,7 +502,7 @@ namespace
       cursor split_source({split.data(), split.size()});
       auto rejected = consume_scalar(split_source, syntax_mode::json5, provider.callbacks(), 8);
       ASSERT_FALSE(rejected.has_value());
-      EXPECT_EQ(rejected.error_if()->code, error_code::syntax);
+      EXPECT_EQ(rejected.error_if()->code(), error_code::syntax);
       EXPECT_EQ(split_source.offset(), 0u);
     }
   }
@@ -537,9 +537,9 @@ namespace
           else
           {
             ASSERT_FALSE(actual.has_value());
-            EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-            EXPECT_TRUE(actual.error_if()->has_byte_offset);
-            EXPECT_EQ(actual.error_if()->byte_offset, spelling.size());
+            EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+            EXPECT_TRUE(actual.error_if()->has_byte_offset());
+            EXPECT_EQ(actual.error_if()->byte_offset(), spelling.size());
             EXPECT_EQ(source.offset(), 0u);
             EXPECT_EQ(provider.m_live_bytes, 0u);
           }
@@ -567,9 +567,9 @@ namespace
         auto actual = consume_scalar(source, mode, provider.callbacks(), 32);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, input.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), input.size());
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
       }
@@ -608,9 +608,9 @@ namespace
         auto actual = consume_scalar(source, syntax_mode::json5, provider.callbacks(), 32);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_LT(actual.error_if()->byte_offset, input.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::allocation_failure);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_LT(actual.error_if()->byte_offset(), input.size());
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
         EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -642,9 +642,9 @@ namespace
       auto actual = consume_scalar(source, syntax_mode::json5, provider.callbacks(), 4);
       /* Expect */
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, input[0] == 'f' ? 4u : 5u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), input[0] == 'f' ? 4u : 5u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
     }
@@ -653,8 +653,8 @@ namespace
     cursor source({input.data(), input.size()});
     auto actual = consume_scalar(source, syntax_mode::json5, provider.callbacks(), 8);
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-    EXPECT_EQ(actual.error_if()->byte_offset, 6u);
+    EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(actual.error_if()->byte_offset(), 6u);
     EXPECT_EQ(source.offset(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_GT(provider.m_allocations, 0u);

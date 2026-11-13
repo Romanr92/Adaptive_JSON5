@@ -41,7 +41,7 @@ int main()
   std::printf("rejected: %s\n", described.has_value() ? message : "invalid input");
 
   // The category is available for program logic.
-  if (failure.code == adaptive_json5::error_code::syntax)
+  if (failure.code() == adaptive_json5::error_code::syntax)
   {
     std::puts("fix the input; parsing it again gives the same error");
   }

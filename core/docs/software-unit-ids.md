@@ -28,14 +28,14 @@ library was checked to be byte-identical before and after.
 
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
-| API | SWU-API-022 | SWU-API-023 |
-| COMMON | SWU-COMMON-002 | SWU-COMMON-003 |
-| DIAGNOSTICS | SWU-DIAGNOSTICS-015 | SWU-DIAGNOSTICS-016 |
+| API | SWU-API-040 | SWU-API-041 |
+| COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
+| DIAGNOSTICS | SWU-DIAGNOSTICS-017 | SWU-DIAGNOSTICS-018 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
 | LEXER | SWU-LEXER-051 | SWU-LEXER-052 |
-| MEMORY | SWU-MEMORY-075 | SWU-MEMORY-076 |
-| PARSER | SWU-PARSER-046 | SWU-PARSER-047 |
+| MEMORY | SWU-MEMORY-077 | SWU-MEMORY-078 |
+| PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
 | VALUE | SWU-VALUE-157 | SWU-VALUE-158 |
 
@@ -65,13 +65,32 @@ library was checked to be byte-identical before and after.
 | SWU-API-020 | used | `result::has_value()` | `includes/adaptive_json5/result.hpp` | — |
 | SWU-API-021 | used | `result::error_if()` | `includes/adaptive_json5/result.hpp` | — |
 | SWU-API-022 | used | `result::result<void, E>(E)` | `includes/adaptive_json5/result.hpp` | — |
+| SWU-API-023 | used | `error::error(error_code, std::size_t, std::uint32_t, source_span, std::uint8_t, source_span)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-024 | used | `error::has(std::uint32_t)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-025 | used | `error::reason_for(error_code)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-026 | used | `error::code()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-027 | used | `error::byte_offset()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-028 | used | `error::has_byte_offset()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-029 | used | `error::source_range()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-030 | used | `error::duplicate_names()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-031 | used | `error::syntax_reason()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-032 | used | `error::numeric_reason()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-033 | used | `error::limit_reason()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-034 | used | `error::access_reason()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-035 | used | `error::limit_at(std::size_t, resource_limit_reason)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-036 | used | `error::limit_without_location(resource_limit_reason)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-037 | used | `error::access_failure(access_error_reason)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-038 | used | `error::internal_fault()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-039 | used | `error::relocated(std::size_t)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-040 | used | `error::unlocated()` | `includes/adaptive_json5/error.hpp` | — |
 
 ## COMMON
 
 | ID | Status | Function | Defined in | Also documented in |
 | --- | --- | --- | --- | --- |
-| SWU-COMMON-001 | used | `checked_add(std::size_t, std::size_t)` | `core/includes/common/checked_size.hpp` | — |
-| SWU-COMMON-002 | used | `checked_multiply(std::size_t, std::size_t)` | `core/includes/common/checked_size.hpp` | — |
+| SWU-COMMON-001 | used | `checked_add(std::size_t, std::size_t, resource_limit_reason)` | `core/includes/common/checked_size.hpp` | — |
+| SWU-COMMON-002 | used | `checked_multiply(std::size_t, std::size_t, resource_limit_reason)` | `core/includes/common/checked_size.hpp` | — |
+| SWU-COMMON-003 | used | `detail::as_internal_fault(const error &)` | `core/includes/common/internal_link.hpp` | — |
 
 ## DIAGNOSTICS
 
@@ -92,6 +111,8 @@ library was checked to be byte-identical before and after.
 | SWU-DIAGNOSTICS-013 | used | `format_error(const error &, input_view, char *, std::size_t)` | `core/src/diagnostics/diagnostic_format.cpp` | `includes/adaptive_json5/diagnostic_format.hpp` |
 | SWU-DIAGNOSTICS-014 | used | `format_warning_at(const string_warning &, text_position, char *, std::size_t)` | `core/src/diagnostics/diagnostic_format.cpp` | `includes/adaptive_json5/diagnostic_format.hpp` |
 | SWU-DIAGNOSTICS-015 | used | `format_warning(const string_warning &, input_view, char *, std::size_t)` | `core/src/diagnostics/diagnostic_format.cpp` | `includes/adaptive_json5/diagnostic_format.hpp` |
+| SWU-DIAGNOSTICS-016 | used | `(anonymous)::describe(resource_limit_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
+| SWU-DIAGNOSTICS-017 | used | `(anonymous)::describe(access_error_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
 
 ## HOSTED
 
@@ -135,7 +156,7 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-010 | used | `consume_line_terminator(cursor &)` | `core/src/lexer/line_terminator.cpp` | `core/includes/lexer/line_terminator.hpp` |
 | SWU-LEXER-011 | used | `detail::(anonymous)::starts_identifier_name(cursor)` | `core/src/lexer/member_name_lexer.cpp` | — |
 | SWU-LEXER-012 | used | `detail::consume_member_name(cursor &, syntax_mode, const storage_callbacks &, std::size_t, const string_warning_sink *)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
-| SWU-LEXER-013 | used | `detail::measure_member_name(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
+| SWU-LEXER-013 | used | `detail::measure_member_name(cursor &, syntax_mode, std::size_t, std::size_t)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
 | SWU-LEXER-014 | used | `detail::consume_decimal_digits(cursor &)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
 | SWU-LEXER-015 | used | `detail::decimal_expected_error(cursor)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
 | SWU-LEXER-016 | used | `consume_decimal(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
@@ -150,7 +171,7 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-025 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t, std::size_t, std::size_t, const string_warning_sink *)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-026 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-027 | used | `(anonymous)::finish_scalar_measure(cursor &, cursor, const scalar_measure &, syntax_mode)` | `core/src/lexer/scalar_lexer.cpp` | — |
-| SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
+| SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-029 | used | `hex_digit_value(char32_t)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-030 | used | `consume_hex_escape(cursor &, syntax_mode)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-031 | used | `consume_line_continuation(cursor &, syntax_mode)` | `core/src/lexer/string/line_continuation.cpp` | `core/includes/lexer/string/line_continuation.hpp` |
@@ -160,9 +181,9 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-035 | used | `consume_string_piece(cursor &, string_quote, syntax_mode)` | `core/src/lexer/string/string_boundary.cpp` | `core/includes/lexer/string/string_boundary.hpp` |
 | SWU-LEXER-036 | used | `detail::consume_unit_escape(cursor &, syntax_mode)` | `core/src/lexer/string/string_escape.cpp` | `core/includes/lexer/string/string_escape.hpp` |
 | SWU-LEXER-037 | used | `consume_string_escape(cursor &, syntax_mode)` | `core/src/lexer/string/string_escape.cpp` | `core/includes/lexer/string/string_escape.hpp` |
-| SWU-LEXER-038 | used | `(anonymous)::walk_string_body(cursor &, std::size_t, string_quote, syntax_mode, std::size_t, decoded_string_builder *, const string_warning_sink *)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-038 | used | `(anonymous)::walk_string_body(cursor &, std::size_t, string_quote, syntax_mode, std::size_t, std::size_t, decoded_string_builder *, const string_warning_sink *)` | `core/src/lexer/string/string_lexer.cpp` | — |
 | SWU-LEXER-039 | used | `detail::notify_string_warnings(cursor, string_quote, syntax_mode, const string_warning_observer &)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
-| SWU-LEXER-040 | used | `measure_string(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
+| SWU-LEXER-040 | used | `measure_string(cursor &, syntax_mode, std::size_t, std::size_t)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
 | SWU-LEXER-041 | used | `consume_string(cursor &, syntax_mode, const storage_callbacks &, std::size_t, string_warning_observer, const string_warning_sink *)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
 | SWU-LEXER-042 | used | `(anonymous)::add(detail::surrogate_warnings &, const string_warning &)` | `core/src/lexer/string/string_warning.cpp` | — |
 | SWU-LEXER-043 | used | `detail::surrogate_pairing::escape(const encoded_utf16 &, std::size_t, std::size_t)` | `core/src/lexer/string/string_warning.cpp` | `core/includes/lexer/string/string_warning.hpp` |
@@ -234,7 +255,7 @@ library was checked to be byte-identical before and after.
 | SWU-MEMORY-053 | used | `allocate_block(const storage_callbacks &, std::size_t, std::size_t)` | `core/src/memory/owned_block.cpp` | `includes/adaptive_json5/memory/owned_block.hpp` |
 | SWU-MEMORY-054 | used | `allocate_array(const storage_callbacks &, std::size_t, std::size_t, std::size_t)` | `core/src/memory/owned_block.cpp` | `includes/adaptive_json5/memory/owned_block.hpp` |
 | SWU-MEMORY-055 | used | `detail::align_within(std::size_t, std::size_t, void *&, std::size_t &)` | `core/src/memory/pointer_alignment.cpp` | `core/includes/memory/pointer_alignment.hpp` |
-| SWU-MEMORY-056 | used | `resource_budget::check_addition(std::size_t, std::size_t, std::size_t)` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
+| SWU-MEMORY-056 | used | `resource_budget::check_addition(std::size_t, std::size_t, std::size_t, resource_limit_reason)` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
 | SWU-MEMORY-057 | used | `resource_budget::resource_budget(const resource_limits &)` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
 | SWU-MEMORY-058 | used | `resource_budget::check_input(std::size_t)` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
 | SWU-MEMORY-059 | used | `resource_budget::check_number(std::size_t, std::size_t)` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
@@ -254,6 +275,8 @@ library was checked to be byte-identical before and after.
 | SWU-MEMORY-073 | used | `work_budget::consumed()` | `core/src/memory/work_budget.cpp` | `core/includes/memory/work_budget.hpp` |
 | SWU-MEMORY-074 | used | `work_budget::remaining()` | `core/src/memory/work_budget.cpp` | `core/includes/memory/work_budget.hpp` |
 | SWU-MEMORY-075 | used | `owned_block::~owned_block()` | `includes/adaptive_json5/memory/owned_block.hpp` | — |
+| SWU-MEMORY-076 | used | `accounted_storage::faulted()` | `core/src/memory/accounted_storage.cpp` | `includes/adaptive_json5/memory/accounted_storage.hpp` |
+| SWU-MEMORY-077 | used | `resource_budget::diagnostic_allowance()` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
 
 ## PARSER
 
@@ -305,6 +328,8 @@ library was checked to be byte-identical before and after.
 | SWU-PARSER-044 | used | `detail::append_primitive_token(document &, scalar_token, input_view, const parse_options &, const storage_callbacks &)` | `core/src/parser/primitive_parser.cpp` | `core/includes/parser/primitive_parser.hpp` |
 | SWU-PARSER-045 | used | `consume_primitive(document &, cursor &, input_view, const parse_options &, const storage_callbacks &, work_budget &)` | `core/src/parser/primitive_parser.cpp` | `core/includes/parser/primitive_parser.hpp` |
 | SWU-PARSER-046 | used | `parse_primitive_document(input_view, const parse_options &, accounted_storage &)` | `core/src/parser/primitive_parser.cpp` | `core/includes/parser/primitive_parser.hpp` |
+| SWU-PARSER-047 | used | `detail::locate_limit(const error &, std::size_t, bool)` | `core/src/parser/parser_work.cpp` | `core/includes/parser/parser_work.hpp` |
+| SWU-PARSER-048 | used | `detail::parser_engine::located_failure(const error &)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
 
 ## UNICODE
 

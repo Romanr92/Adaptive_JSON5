@@ -1,6 +1,8 @@
 #include "value/number_analysis.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
 #include "common/checked_size.hpp"
@@ -36,7 +38,7 @@ namespace adaptive_json5
       // A moved-from number retains metadata but has no numeric value.
       if (spelling.size == 0)
       {
-        return analysis_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return analysis_result::failure(error::access_failure(access_error_reason::invalid_argument));
       }
 
       const auto charged = work.charge(spelling.size);
@@ -136,7 +138,7 @@ namespace adaptive_json5
       bool exponent_exceeds_threshold{};
       std::size_t exponent_magnitude{};
 
-      const auto scale_limit = checked_add(spelling.size, c_exponent_margin);
+      const auto scale_limit = checked_add(spelling.size, c_exponent_margin, resource_limit_reason::conversion_size);
 
       if (!scale_limit.has_value())
       {
@@ -189,7 +191,7 @@ namespace adaptive_json5
       // Combine the written exponent with the implied fractional scale without unsigned wrap.
       if (exponent_negative)
       {
-        const auto magnitude = checked_add(scale_exponent, fractional_digits);
+        const auto magnitude = checked_add(scale_exponent, fractional_digits, resource_limit_reason::conversion_size);
 
         if (!magnitude.has_value())
         {

@@ -1,6 +1,8 @@
 #include "adaptive_json5/value/utf8_export.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "common/checked_size.hpp"
@@ -16,7 +18,7 @@ namespace adaptive_json5
    * @par Requirements
    * P013; J5-018; J5-029.
    * @return Required bytes, encoding error for unpaired surrogates,
-   * or resource_limit if the byte count cannot be represented.
+   * or resource_limit (output_capacity) if the byte count cannot be represented.
    * @note No terminating NUL is included. Performs no allocation.
    * @par ID SWU-VALUE-103
    */
@@ -57,7 +59,7 @@ namespace adaptive_json5
         byte_count = c_three_byte_count;
       }
 
-      const auto next_total = checked_add(total, byte_count);
+      const auto next_total = checked_add(total, byte_count, resource_limit_reason::output_capacity);
       if (!next_total.has_value())
       {
         return result<std::size_t>::failure(*next_total.error_if());
@@ -79,8 +81,8 @@ namespace adaptive_json5
    * @param destination Writable byte array of capacity bytes.
    * May be nullptr when the required output size is zero.
    * @return Bytes written, encoding error for unpaired surrogates,
-   * resource_limit for insufficient capacity or size overflow,
-   * or wrong_type_or_access for a null nonempty destination.
+   * resource_limit (output_capacity) for insufficient capacity or size overflow,
+   * or wrong_type_or_access (invalid_argument) for a null nonempty destination.
    * @note No allocation or terminating NUL. Embedded NUL is preserved.
    * Validation and capacity failures leave the destination unchanged.
    * Source and destination storage must not overlap.
@@ -110,7 +112,7 @@ namespace adaptive_json5
 
     if (*required.value_if() > capacity)
     {
-      return result<std::size_t>::failure(error::without_location(error_code::resource_limit));
+      return result<std::size_t>::failure(error::limit_without_location(resource_limit_reason::output_capacity));
     }
 
     if (*required.value_if() == std::size_t{})
@@ -120,7 +122,7 @@ namespace adaptive_json5
 
     if (destination == nullptr)
     {
-      return result<std::size_t>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<std::size_t>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     std::size_t index{};

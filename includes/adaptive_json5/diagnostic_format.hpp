@@ -21,7 +21,8 @@ namespace adaptive_json5
    * @param buffer Caller storage for the NUL-terminated message, or nullptr when capacity is 0.
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
    * @return Full message length excluding the NUL, even when the buffer was too small;
-   *         wrong_type_or_access for a null buffer with nonzero capacity or an offset beyond input.
+   *         wrong_type_or_access (invalid_argument) for a null buffer with nonzero capacity or an offset
+   *         beyond input.
    * @note Output is "line: L, column: C: message"; located duplicates append
    * " (first at line: L, column: C)"; unlocated errors print only the message.
    * Truncated output is always NUL-terminated when capacity is nonzero.
@@ -37,11 +38,12 @@ namespace adaptive_json5
    * @par Requirements
    * J5-043; J5-044; J5-045; issue #96.
    * @param failure Error returned by a library operation.
-   * @param primary Position of failure.byte_offset; ignored when the error has no location.
+   * @param primary Position of failure.byte_offset(); ignored when the error has no location.
    * @param first_duplicate Position of the first duplicate name; omitted text when absent.
    * @param buffer Caller storage for the NUL-terminated message, or nullptr when capacity is 0.
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
-   * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with nonzero capacity.
+   * @return Full message length excluding the NUL; wrong_type_or_access (invalid_argument) for a null
+   * buffer with nonzero capacity.
    * @note Produces exactly the text of format_error for the same positions, without scanning input.
    * Performs no allocation and no locale-dependent operation.
    * @par ID SWU-DIAGNOSTICS-012
@@ -58,7 +60,7 @@ namespace adaptive_json5
    * @param input Original input the warning's offset refers to.
    * @param buffer Caller storage for the NUL-terminated message, or nullptr when capacity is 0.
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
-   * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with
+   * @return Full message length excluding the NUL; wrong_type_or_access (invalid_argument) for a null buffer with
    *         nonzero capacity or an offset beyond input.
    * @note Output is "line: L, column: C: warning: message". Same truncation, text and allocation rules as format_error.
    * @par ID SWU-DIAGNOSTICS-015
@@ -74,7 +76,8 @@ namespace adaptive_json5
    * @param position Position of warning.byte_offset.
    * @param buffer Caller storage for the NUL-terminated message, or nullptr when capacity is 0.
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
-   * @return Full message length excluding the NUL; wrong_type_or_access for a null buffer with nonzero capacity.
+   * @return Full message length excluding the NUL; wrong_type_or_access (invalid_argument) for a null
+   * buffer with nonzero capacity.
    * @note Produces exactly the text of format_warning for the same position, without scanning input.
    * @par ID SWU-DIAGNOSTICS-014
    */

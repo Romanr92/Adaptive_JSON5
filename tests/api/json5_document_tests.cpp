@@ -129,13 +129,13 @@ namespace
     for (const auto* failed : {&null_buffer, &no_control_block})
     {
       ASSERT_FALSE(failed->has_value());
-      EXPECT_EQ(failed->error_if()->code, error_code::allocation_failure);
-      EXPECT_FALSE(failed->error_if()->has_byte_offset);
+      EXPECT_EQ(failed->error_if()->code(), error_code::allocation_failure);
+      EXPECT_FALSE(failed->error_if()->has_byte_offset());
     }
     ASSERT_FALSE(no_room_for_values.has_value());
-    EXPECT_EQ(no_room_for_values.error_if()->code, error_code::allocation_failure);
-    EXPECT_TRUE(no_room_for_values.error_if()->has_byte_offset);
-    EXPECT_EQ(no_room_for_values.error_if()->byte_offset, 0U);
+    EXPECT_EQ(no_room_for_values.error_if()->code(), error_code::allocation_failure);
+    EXPECT_TRUE(no_room_for_values.error_if()->has_byte_offset());
+    EXPECT_EQ(no_room_for_values.error_if()->byte_offset(), 0U);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -158,8 +158,8 @@ namespace
     const auto parsed = json5_document::parse({text.data(), text.size()}, memory.bytes, sizeof(memory.bytes), options);
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
-    EXPECT_EQ(parsed.error_if()->code, expected.error_if()->code);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
+    EXPECT_EQ(parsed.error_if()->code(), expected.error_if()->code());
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -184,10 +184,10 @@ namespace
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
-    EXPECT_EQ(failure.code, expected.error_if()->code);
-    EXPECT_EQ(failure.has_byte_offset, expected.error_if()->has_byte_offset);
-    EXPECT_EQ(failure.byte_offset, expected.error_if()->byte_offset);
-    EXPECT_EQ(failure.syntax_reason, expected.error_if()->syntax_reason);
+    EXPECT_EQ(failure.code(), expected.error_if()->code());
+    EXPECT_EQ(failure.has_byte_offset(), expected.error_if()->has_byte_offset());
+    EXPECT_EQ(failure.byte_offset(), expected.error_if()->byte_offset());
+    EXPECT_EQ(failure.syntax_reason(), expected.error_if()->syntax_reason());
   }
 
   INSTANTIATE_TEST_SUITE_P(J5_101_Json5Document, Json5DocumentFailureUnits,
@@ -226,9 +226,9 @@ namespace
                                                 memory.bytes + after, sizeof(memory.bytes) - after);
     /* Expect */
     ASSERT_FALSE(at_start.has_value());
-    EXPECT_EQ(at_start.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(at_start.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(inside.has_value());
-    EXPECT_EQ(inside.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(inside.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_TRUE(adjacent.has_value());
     EXPECT_EQ(adjacent.value_if()->values().size(), 4U);
   }
@@ -325,7 +325,7 @@ namespace
     EXPECT_EQ(second.value_if()->byte_offset, 9U);
     EXPECT_EQ(second.value_if()->byte_length, 3U);
     ASSERT_FALSE(past_end.has_value());
-    EXPECT_EQ(past_end.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(past_end.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_TRUE(parsed_plain.has_value());
     EXPECT_EQ(parsed_plain.value_if()->warning_count(), 0U);
     EXPECT_FALSE(parsed_plain.value_if()->warning(0U).has_value());
@@ -354,7 +354,7 @@ namespace
     EXPECT_EQ(source.warning_count(), 0U);
     const auto moved_from = source.warning(0U);
     ASSERT_FALSE(moved_from.has_value());
-    EXPECT_EQ(moved_from.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(moved_from.error_if()->code(), error_code::wrong_type_or_access);
   }
   /* ================================= End Test_J5_017 ================================= */
   /* =================================== Test_J5_044 =================================== */
@@ -462,7 +462,7 @@ namespace
     for (const auto* failed : {&null_buffer, &error_beyond, &warning_view})
     {
       ASSERT_FALSE(failed->has_value());
-      EXPECT_EQ(failed->error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(failed->error_if()->code(), error_code::wrong_type_or_access);
     }
   }
   /* ================================= End Test_J5_044 ================================= */

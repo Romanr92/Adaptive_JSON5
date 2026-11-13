@@ -81,7 +81,7 @@ namespace
       if (fixture.count != 0)
       {
         ASSERT_NE(exported.error_if(), nullptr);
-        EXPECT_EQ(exported.error_if()->code, error_code::encoding);
+        EXPECT_EQ(exported.error_if()->code(), error_code::encoding);
         for (const auto byte : output)
         {
           EXPECT_EQ(byte, std::byte{0xA5});
@@ -183,7 +183,7 @@ namespace
         ASSERT_EQ(parsed.has_value(), limit >= 2);
         if (limit < 2)
         {
-          EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+          EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
         }
         else
         {
@@ -223,7 +223,7 @@ namespace
           const auto rejected = parse_document({input.data(), input.size()}, options, accounting);
           /* Expect */
           ASSERT_FALSE(rejected.has_value());
-          EXPECT_EQ(rejected.error_if()->code, error_code::allocation_failure);
+          EXPECT_EQ(rejected.error_if()->code(), error_code::allocation_failure);
         }
         EXPECT_EQ(provider.m_live_bytes, 0u);
         provider.m_fail_on = 0;

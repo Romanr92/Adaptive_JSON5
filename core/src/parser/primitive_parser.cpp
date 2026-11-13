@@ -5,6 +5,7 @@
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -64,7 +65,7 @@ namespace adaptive_json5
         if ((input.data == nullptr) || (number->byte_offset > input.size) ||
             (number->byte_length > (input.size - number->byte_offset)))
         {
-          return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+          return result<value_index>::failure(error::internal_fault());
         }
 
         const input_view spelling{input.data + number->byte_offset, number->byte_length};
@@ -77,16 +78,17 @@ namespace adaptive_json5
         {
           auto reason = *owned.error_if();
 
-          if (reason.has_byte_offset)
+          if (reason.has_byte_offset())
           {
             // Reject locations outside the substring before rebasing them.
-            if (reason.byte_offset > spelling.size)
+            if (reason.byte_offset() > spelling.size)
             {
-              return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+              return result<value_index>::failure(error::internal_fault());
             }
 
-            // Translate the substring-relative offset to the original input.
-            reason.byte_offset += number->byte_offset;
+            // Translate the substring-relative offset to the original input; relocated() keeps the
+            // code and reason, e.g. the number_bytes limit.
+            reason = reason.relocated(reason.byte_offset() + number->byte_offset);
           }
 
           return result<value_index>::failure(reason);
@@ -110,7 +112,7 @@ namespace adaptive_json5
         }
       }
 
-      return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<value_index>::failure(error::internal_fault());
     }
   } // namespace detail
 
@@ -154,7 +156,7 @@ namespace adaptive_json5
 
     if (((input.data == nullptr) && (input.size != 0)) || (source.offset() > input.size))
     {
-      return primitive_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return primitive_result::failure(error::internal_fault());
     }
 
     // A primitive root can contain only one owned string value.
@@ -215,14 +217,15 @@ namespace adaptive_json5
       if ((string->first_warning.has_value()) && (c_retained_warning_entries > options.limits.max_diagnostics))
       {
         return primitive_result::failure(
-          error::at_offset(error_code::resource_limit, string->first_warning->byte_offset));
+          error::limit_at(string->first_warning->byte_offset, resource_limit_reason::diagnostics));
       }
 
       value.warning_count = string->warning_count;
       value.first_warning = string->first_warning;
     }
 
-    const auto construction_units = checked_add(value.byte_length, detail::c_record_construction_work);
+    const auto construction_units =
+      checked_add(value.byte_length, detail::c_record_construction_work, resource_limit_reason::work);
 
     if (!construction_units.has_value())
     {
@@ -289,13 +292,13 @@ namespace adaptive_json5
 
     if ((input.data == nullptr) && (input.size != 0))
     {
-      return document_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return document_result::failure(error::internal_fault());
     }
 
     // Reject inconsistent configuration before processing or allocating.
     if (accounting.byte_limit() != options.limits.max_owned_bytes)
     {
-      return document_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return document_result::failure(error::internal_fault());
     }
 
     const resource_budget budget{options.limits};
@@ -316,18 +319,21 @@ namespace adaptive_json5
     document candidate{storage, options.limits.max_nodes};
     cursor source{input};
 
+    // A primitive root holds at most one string, so the total limit binds only when it is the smaller one.
+    const bool total_string_binding = options.limits.max_total_string_units < options.limits.max_string_units;
+
     const auto leading = detail::skip_trivia_within_budget(source, input, options.syntax, work);
 
     if (!leading.has_value())
     {
-      return document_result::failure(*leading.error_if());
+      return document_result::failure(detail::locate_limit(*leading.error_if(), source.offset(), total_string_binding));
     }
 
     const auto parsed = consume_primitive(candidate, source, input, options, storage, work);
 
     if (!parsed.has_value())
     {
-      return document_result::failure(*parsed.error_if());
+      return document_result::failure(detail::locate_limit(*parsed.error_if(), source.offset(), total_string_binding));
     }
 
     if (!parsed.value_if()->has_value())
@@ -341,7 +347,8 @@ namespace adaptive_json5
 
     if (!trailing.has_value())
     {
-      return document_result::failure(*trailing.error_if());
+      return document_result::failure(
+        detail::locate_limit(*trailing.error_if(), source.offset(), total_string_binding));
     }
 
     if (!source.is_at_end())

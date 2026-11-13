@@ -366,3 +366,23 @@ The integrator provides the second, independent ASIL B(D) part of the decomposit
   dependent failure analysis.
 - Without this second part, the library alone does not support ASIL D. In that case
   the integrator has to do their own analysis.
+
+## A-09 Accounted memory is released only through its owners
+
+The integrator releases memory allocated through an `accounted_storage` only through
+the `owned_block` that owns it, and checks `faulted()` after releasing a document.
+
+- Inside the library, only `owned_block` releases a block, exactly once (on
+  destruction or when another block is moved over it). Calling the release callback
+  of `accounted_storage::callbacks()` by hand bypasses this.
+- `accounted_storage` refuses a release that matches no outstanding allocation (a null
+  address, zero bytes, nothing outstanding, more bytes than the outstanding blocks can
+  hold, or a last block of a different size) before your deallocate callback sees it.
+  It then sets `faulted()`, and every later allocation through it fails with
+  `internal_error` (FMEA ME-03).
+- A wrong size among several outstanding blocks is only detected when it exceeds what
+  the other blocks can hold, because the library keeps no per-block headers. A-09 is
+  what covers the remaining cases.
+- If `faulted()` is true, the accounting can no longer be trusted: discard the
+  `accounted_storage` and the documents allocated through it, and treat it as a
+  library fault in your safe reaction (A-06).

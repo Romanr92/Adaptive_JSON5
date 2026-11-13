@@ -34,7 +34,7 @@ namespace
       ASSERT_EQ(parsed.has_value(), diagnostics == 3);
       if (diagnostics != 3)
       {
-        EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
       }
       else
       {
@@ -74,9 +74,9 @@ namespace
       const auto parsed = engine.run();
       /* Expect */
       ASSERT_FALSE(parsed.has_value());
-      EXPECT_EQ(parsed.error_if()->code, error_code::encoding);
-      EXPECT_TRUE(parsed.error_if()->has_byte_offset);
-      EXPECT_EQ(parsed.error_if()->byte_offset, prefix.size());
+      EXPECT_EQ(parsed.error_if()->code(), error_code::encoding);
+      EXPECT_TRUE(parsed.error_if()->has_byte_offset());
+      EXPECT_EQ(parsed.error_if()->byte_offset(), prefix.size());
     }
   }
   /* ================================= End Test_J5_009 ================================== */

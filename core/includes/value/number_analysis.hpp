@@ -43,7 +43,7 @@ namespace adaptive_json5
      * @param number Borrowed number whose spelling remains unchanged.
      * @param work Work budget charged before scanning the spelling.
      * @return Exact number properties or an explicit error.
-     * @note Empty spelling returns unlocated wrong_type_or_access.
+     * @note Empty spelling returns unlocated wrong_type_or_access (invalid_argument).
      * Charge one work unit per spelling byte before scanning.
      * Failed charging returns resource_limit without scanning.
      * Successful charges are not refunded.

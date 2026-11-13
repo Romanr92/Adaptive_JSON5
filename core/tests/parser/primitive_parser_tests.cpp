@@ -209,7 +209,7 @@ namespace
     if (options.syntax == syntax_mode::strict_json && !input.strict)
     {
       ASSERT_FALSE(parsed.has_value());
-      EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
+      EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
       EXPECT_EQ(accounting.current_bytes(), 0u);
       return;
     }
@@ -317,9 +317,9 @@ namespace
     const auto parsed = parse_primitive_document({input.input.data(), input.input.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-    ASSERT_TRUE(parsed.error_if()->has_byte_offset);
-    EXPECT_EQ(parsed.error_if()->byte_offset, input.offset);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+    ASSERT_TRUE(parsed.error_if()->has_byte_offset());
+    EXPECT_EQ(parsed.error_if()->byte_offset(), input.offset);
     EXPECT_EQ(accounting.current_bytes(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
   }
@@ -358,12 +358,12 @@ namespace
     EXPECT_EQ(json5.value_if()->root.byte_offset, 6u);
     EXPECT_EQ(json5.value_if()->root.byte_length, 4u);
     ASSERT_FALSE(strict.has_value());
-    EXPECT_EQ(strict.error_if()->code, error_code::syntax);
-    EXPECT_EQ(strict.error_if()->byte_offset, 0u);
+    EXPECT_EQ(strict.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(strict.error_if()->byte_offset(), 0u);
     ASSERT_FALSE(trailing.has_value());
-    EXPECT_EQ(trailing.error_if()->code, error_code::syntax);
+    EXPECT_EQ(trailing.error_if()->code(), error_code::syntax);
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->byte_offset, 5u);
+    EXPECT_EQ(empty.error_if()->byte_offset(), 5u);
   }
   /* ----------------------------------------------------------------------------------- */
   /* ================================= End Test_J5_026 ================================= */
@@ -457,7 +457,7 @@ namespace
       if (!input.accepted)
       {
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
         EXPECT_EQ(accounting.current_bytes(), 0u);
       }
     }
@@ -538,7 +538,7 @@ namespace
         if (limit < peak)
         {
           ASSERT_FALSE(parsed.has_value());
-          EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+          EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
         }
         else
         {
@@ -555,7 +555,7 @@ namespace
       ASSERT_TRUE(held.has_value());
       const auto denied = parse_primitive_document({input.data(), input.size()}, options, accounting);
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(accounting.current_bytes(), 1u);
     }
     const auto retry = parse_primitive_document({input.data(), input.size()}, options, accounting);
@@ -581,10 +581,10 @@ namespace
     /* Expect */
     ASSERT_FALSE(invalid.has_value());
     ASSERT_FALSE(mismatch.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(mismatch.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_FALSE(invalid.error_if()->has_byte_offset);
-    EXPECT_FALSE(mismatch.error_if()->has_byte_offset);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(mismatch.error_if()->code(), error_code::internal_error);
+    EXPECT_FALSE(invalid.error_if()->has_byte_offset());
+    EXPECT_FALSE(mismatch.error_if()->has_byte_offset());
     EXPECT_EQ(provider.m_attempts, 0u);
     EXPECT_EQ(accounting.current_bytes(), 0u);
   }
@@ -712,7 +712,7 @@ namespace
       const auto failed = parse_primitive_document({input.data(), input.size()}, options, accounting);
       /* Expect */
       ASSERT_FALSE(failed.has_value()) << fail;
-      EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
       EXPECT_EQ(accounting.current_bytes(), baseline);
       EXPECT_EQ(provider.m_live_bytes, baseline);
       const auto root = held.value_if()->values.root();
@@ -754,7 +754,7 @@ namespace
       const auto denied =
         consume_primitive(doc, source, {input.data(), input.size()}, options, accounting.callbacks(), work);
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(source.offset(), 1u);
       EXPECT_EQ(doc.size(), 1u);
     }
@@ -765,7 +765,7 @@ namespace
       const auto denied =
         consume_primitive(doc, source, {input.data(), input.size()}, options, accounting.callbacks(), work);
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(source.offset(), 1u);
       EXPECT_EQ(work.consumed(), 3u);
       EXPECT_EQ(doc.size(), 1u);
@@ -778,7 +778,7 @@ namespace
       const auto failed =
         consume_primitive(doc, source, {input.data(), input.size()}, options, accounting.callbacks(), work);
       ASSERT_FALSE(failed.has_value());
-      EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
       EXPECT_EQ(source.offset(), 1u);
       EXPECT_EQ(doc.size(), 1u);
       provider.m_fail_on = 0;
@@ -818,9 +818,9 @@ namespace
     const auto failed = allocate_block(callbacks, 8, 1);
     /* Expect */
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::resource_limit);
-    EXPECT_TRUE(failed.error_if()->has_byte_offset);
-    EXPECT_EQ(failed.error_if()->byte_offset, 73u);
+    EXPECT_EQ(failed.error_if()->code(), error_code::resource_limit);
+    EXPECT_TRUE(failed.error_if()->has_byte_offset());
+    EXPECT_EQ(failed.error_if()->byte_offset(), 73u);
     EXPECT_EQ(provider.m_checked_attempts, 1u);
     EXPECT_EQ(provider.m_attempts, 0u);
   }
@@ -848,7 +848,7 @@ namespace
     const auto null = allocate_block(callbacks, 1, 1);
     /* Expect */
     ASSERT_FALSE(null.has_value());
-    EXPECT_EQ(null.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(null.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_EQ(provider.m_allocations, provider.m_releases);
     const auto calls = provider.m_checked_attempts;
@@ -877,7 +877,7 @@ namespace
       EXPECT_EQ(downstream.current_bytes(), 8u);
       const auto denied = downstream.allocate(5, 1);
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(upstream.current_bytes(), 8u);
       EXPECT_EQ(downstream.current_bytes(), 8u);
     }
@@ -908,9 +908,9 @@ namespace
     const auto parsed = parse_primitive_document({input.data(), input.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
-    EXPECT_FALSE(parsed.error_if()->has_byte_offset);
-    EXPECT_EQ(parsed.error_if()->byte_offset, 0u);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
+    EXPECT_FALSE(parsed.error_if()->has_byte_offset());
+    EXPECT_EQ(parsed.error_if()->byte_offset(), 0u);
     EXPECT_EQ(accounting.current_bytes(), 0u);
     EXPECT_EQ(provider.m_attempts, 0u);
   }
@@ -934,9 +934,9 @@ namespace
     const auto trailing = parse_primitive_document({extra.data(), extra.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(absent.has_value());
-    EXPECT_EQ(absent.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(absent.error_if()->code(), error_code::allocation_failure);
     ASSERT_FALSE(trailing.has_value());
-    EXPECT_EQ(trailing.error_if()->code, error_code::syntax);
+    EXPECT_EQ(trailing.error_if()->code(), error_code::syntax);
     EXPECT_EQ(accounting.current_bytes(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
   }
@@ -970,15 +970,15 @@ namespace
                                                      {input.data(), input.size()}, options, provider.callbacks());
     /* Expect */
     ASSERT_FALSE(limited.has_value());
-    EXPECT_EQ(limited.error_if()->code, error_code::resource_limit);
-    EXPECT_TRUE(limited.error_if()->has_byte_offset);
-    EXPECT_EQ(limited.error_if()->byte_offset, 1u);
+    EXPECT_EQ(limited.error_if()->code(), error_code::resource_limit);
+    EXPECT_TRUE(limited.error_if()->has_byte_offset());
+    EXPECT_EQ(limited.error_if()->byte_offset(), 1u);
     ASSERT_FALSE(offset.has_value());
     ASSERT_FALSE(length.has_value());
     ASSERT_FALSE(kind.has_value());
-    EXPECT_EQ(offset.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(length.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(kind.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(offset.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(length.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(kind.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(doc.size(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
   }
@@ -1027,10 +1027,10 @@ namespace
       detail::number_access::copy_validated_spelling(long_number, number_kind::hexadecimal, provider.callbacks(), 64);
     ASSERT_FALSE(trusted_limit.has_value());
     ASSERT_FALSE(checked_limit.has_value());
-    EXPECT_EQ(trusted_limit.error_if()->code, checked_limit.error_if()->code);
-    EXPECT_EQ(trusted_limit.error_if()->byte_offset, checked_limit.error_if()->byte_offset);
+    EXPECT_EQ(trusted_limit.error_if()->code(), checked_limit.error_if()->code());
+    EXPECT_EQ(trusted_limit.error_if()->byte_offset(), checked_limit.error_if()->byte_offset());
     ASSERT_FALSE(mismatch.has_value());
-    EXPECT_EQ(mismatch.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(mismatch.error_if()->code(), error_code::internal_error);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -1122,12 +1122,12 @@ namespace
       ASSERT_FALSE(first.has_value());
       ASSERT_FALSE(second.has_value());
       ASSERT_FALSE(third.has_value());
-      EXPECT_EQ(first.error_if()->code, error_code::resource_limit);
-      EXPECT_EQ(second.error_if()->code, error_code::resource_limit);
-      EXPECT_EQ(third.error_if()->code, error_code::resource_limit);
-      EXPECT_EQ(first.error_if()->byte_offset, input.offset);
-      EXPECT_EQ(second.error_if()->byte_offset, input.offset);
-      EXPECT_EQ(third.error_if()->byte_offset, input.offset);
+      EXPECT_EQ(first.error_if()->code(), error_code::resource_limit);
+      EXPECT_EQ(second.error_if()->code(), error_code::resource_limit);
+      EXPECT_EQ(third.error_if()->code(), error_code::resource_limit);
+      EXPECT_EQ(first.error_if()->byte_offset(), input.offset);
+      EXPECT_EQ(second.error_if()->byte_offset(), input.offset);
+      EXPECT_EQ(third.error_if()->byte_offset(), input.offset);
       EXPECT_EQ(decimal.offset(), 0u);
       EXPECT_EQ(number.offset(), 0u);
       EXPECT_EQ(scalar.offset(), 0u);
@@ -1161,8 +1161,8 @@ namespace
     /* Expect */
     ASSERT_FALSE(empty.has_value());
     ASSERT_FALSE(nonempty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::allocation_failure);
-    EXPECT_EQ(nonempty.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(empty.error_if()->code(), error_code::allocation_failure);
+    EXPECT_EQ(nonempty.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(provider.m_checked_attempts, 0u);
   }
   /* ----------------------------------------------------------------------------------- */
@@ -1182,9 +1182,9 @@ namespace
     const auto failed = accounting.allocate(8, 1);
     /* Expect */
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::resource_limit);
-    EXPECT_TRUE(failed.error_if()->has_byte_offset);
-    EXPECT_EQ(failed.error_if()->byte_offset, 73u);
+    EXPECT_EQ(failed.error_if()->code(), error_code::resource_limit);
+    EXPECT_TRUE(failed.error_if()->has_byte_offset());
+    EXPECT_EQ(failed.error_if()->byte_offset(), 73u);
     EXPECT_EQ(provider.m_checked_attempts, 1u);
     EXPECT_EQ(provider.m_attempts, 0u);
     EXPECT_EQ(accounting.current_bytes(), 0u);

@@ -1,6 +1,7 @@
 # Public API requirements
 
-Status: **Draft requirements**. The compiled parser, owned value model, numeric
+Status: **Draft requirements**, except the rows marked Implemented in
+[traceability](traceability.md). The compiled parser, owned value model, numeric
 operations and diagnostics through P040 are implemented and have host unit
 evidence. P041 claim status is recorded in [conformance](conformance.md).
 The schema engine, validation CLI and editor remain later delivery steps.
@@ -21,8 +22,10 @@ may be integrated with recorded provenance. A serializer, comment-preserving
 formatter, streaming API, C ABI and other schema dialects are outside this baseline.
 Source formatting is a development check; it is not a JSON5 formatting product.
 
-The original [proposal Markdown](../core/docs/requirements-proposal-json5-parser-repository.md) is preserved as historical Draft input. These adapted requirements and later user instructions define current scope. Stable J5 IDs preserve proposal traceability; J5-101 records the later embedded requirement. All rows are Draft; issue ownership
-and executed unit tests are recorded in [traceability](traceability.md). Planned
+The original [proposal Markdown](../core/docs/requirements-proposal-json5-parser-repository.md) is preserved as historical Draft input. These adapted requirements and later user instructions define current scope. Stable J5 IDs preserve proposal traceability; J5-101 records the later embedded requirement. All rows are Draft unless
+[traceability](traceability.md) marks them Implemented (owner-agreed wording, whole
+contract implemented, named units passing; not Verified); issue ownership
+and executed unit tests are recorded there. Planned
 checks below are acceptance intentions, not passing evidence. Review a contract
 before declaring it implemented; verification requires executed, named unit tests.
 The proposal's broader integration/fuzz/sanitizer/benchmark/target/editor-host
@@ -80,7 +83,7 @@ for reading the referenced grammar while implementing it.
 | J5-014 — Quoted strings | Quoted strings shall follow the selected grammar's delimiter and unescaped-character rules. | Test delimiter collisions, raw CR/LF, raw tab/control bytes, unterminated strings and escaped quotes in each mode; do not apply JSON's control-character restriction indiscriminately to JSON5. | J5-005, J5-009 | JSON §7; J5 §5 |
 | J5-015 — JSON escapes | The decoder shall implement JSON's permitted escapes and four-hex-digit Unicode escapes without accepting malformed or truncated forms. | Check decoded content and error locations for every escape form, invalid hex digits and end-of-buffer truncations. | J5-014 | JSON §7; ECMA-JSON |
 | J5-016 — JSON5 escapes | JSON5 decoding shall implement J5 §5.1, including its additional escapes and non-escape-character behavior, without C-specific reinterpretations. | Include `\x41`, `\v`, `\0`, `\a`, `\e`, backslash-space, `\01`, `\8`, malformed `\x`/`\u` and exact decoded lengths. In particular `\a`/`\e` must yield letters. | J5-014, J5-015 | J5 §5.1; ES5 §7.8.4 |
-| J5-017 — Continuations and separators | JSON5 shall decode line continuations according to J5 §5.1 and expose a warning for raw U+2028/U+2029 in strings; warnings shall not turn valid parsing into failure. | Check LF, CR, CRLF, U+2028/U+2029 continuations for unchanged joined content; test raw separators, warning spans and strict-mode distinctions. | J5-014, J5-016 | J5 §§5.1–5.2; P warning |
+| J5-017 — Continuations and separators | JSON5 shall decode line continuations according to J5 §5.1 and expose a warning for raw U+2028/U+2029 in strings; warnings shall not turn valid parsing into failure, except that more warnings than `max_diagnostics` (J5-047) shall fail with `resource_limit` (reason `diagnostics`) located at the first warning that does not fit (issue #125, decision D5). | Check LF, CR, CRLF, U+2028/U+2029 continuations for unchanged joined content; test raw separators, warning spans and strict-mode distinctions. | J5-014, J5-016 | J5 §§5.1–5.2; P warning |
 | J5-018 — Surrogate fidelity | String decoding shall preserve escaped UTF-16 units losslessly, including unpaired units admitted by the grammar, and combine valid pairs consistently when converting to Unicode scalars; it shall never silently substitute or drop units. | Compare raw non-BMP characters with paired escapes; preserve lone high/low units and test pair order. Verify representation separately from checked UTF-8 conversion. | J5-009, J5-015, J5-016 | JSON §8.2; ES5 §§6, 7.8.4; P representation |
 | J5-019 — Unquoted member names | JSON5 unquoted names shall follow the referenced IdentifierName grammar, including reserved-word names; strict JSON shall require quoted names. | Category-based name fixtures for start/continuation positions, `$`, `_`, non-ASCII letters, combining marks and ZWNJ/ZWJ; reject digit-first names and unrelated punctuation. | J5-005, J5-006, J5-009 | ES5 §7.6; J5-R |
 | J5-020 — Escaped identifiers | JSON5 identifier escapes shall be decoded before positional validity and equality checks. | Test valid escaped letters and escaped illegal starts/continuations; compare quoted, bare and escaped spellings of the same decoded name. | J5-015, J5-019 | ES5 §7.6 |
@@ -116,7 +119,7 @@ for reading the referenced grammar while implementing it.
 
 | ID / title | Requirement | Planned unit verification / documentation | Dependencies | Basis |
 | --- | --- | --- | --- | --- |
-| J5-043 — Structured errors | Public errors shall distinguish syntax, encoding, duplicate-policy violation, wrong type/access, numeric conversion, configured resource limit and allocation failure; schema/tool layers shall add their own categories without disguising operational failures as invalid input. | Compare stable error codes for representative failures and ensure callers need not parse human-readable text. | J5-003, J5-032, J5-035, J5-039 | P |
+| J5-043 — Structured errors | Public errors shall distinguish syntax, encoding, duplicate-policy violation, wrong type/access, numeric conversion, configured resource limit, allocation failure and internal error (a violated library invariant); a resource limit shall name the exceeded limit and a wrong type/access failure its access reason (issue #125); schema/tool layers shall add their own categories without disguising operational failures as invalid input. | Compare stable error codes for representative failures and ensure callers need not parse human-readable text. | J5-003, J5-032, J5-035, J5-039 | P |
 | J5-044 — Diagnostic locations | Input diagnostics shall carry an original zero-based byte offset plus a documented line/column convention and relevant source range; end-of-input failures shall use a valid end offset. | Exact locations for LF/CR/CRLF and Unicode separators, multibyte characters, invalid UTF-8, both duplicate occurrences and truncated input. | J5-009, J5-041, J5-043 | P |
 | J5-045 — Failure-safe reporting | An allocation/resource failure shall be reportable without a further successful allocation; a minimal stable code/location shall remain available if rich text or path construction cannot be completed. | Exhaust the allocator while constructing the document and error details; verify a valid minimal result without a second failure or termination. | J5-003, J5-043, J5-044 | P |
 | J5-046 — Fallible allocation | All library-controlled fallible allocation, including owned results and schema evaluation, shall use a recoverable mechanism in both exception modes; unsupported throwing/abort-on-OOM dependency paths shall not be advertised as recoverable. | Inject failures at each allocation point, audit containers/dependencies and show how result storage and allocator lifetimes are handled without `bad_alloc` in the default build. | J5-003, J5-040, J5-045 | P |
@@ -257,7 +260,7 @@ ASIL to each J5 row is a later task in #138.
 | SSR-05 — No heap and no shared mutable state | The parser library shall not use the heap, and shall have no mutable global, static or thread-local state, so that independent documents cannot affect each other. | B(D) | J5-042, J5-046, J5-050, J5-101 | A-02, A-05 | Draft |
 | SSR-06 — Value correctness | Parsed strings, member names and numbers shall match the input exactly. A conversion such as `as_int64()`, `as_uint64()` or `as_double()` shall either return the exact value, or the value under the documented rounding rule, or an explicit error. It shall never return a silently cut-off or wrongly rounded value. | B(D) | J5-029, J5-033, J5-034, J5-035, J5-037 | A-06 | Draft |
 | SSR-07 — Bounded stack | The library's stack use shall have a known upper limit that depends only on the configured limits, so that it can be checked against the stack size of a small controller. | B(D) | J5-048, J5-101 (see #136) | A-01 | Draft |
-| SSR-08 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator. | B(D) | J5-004, J5-040, J5-046 | A-03, A-05 | Draft |
+| SSR-08 — Memory bounds | The library shall never read outside the supplied input, and shall never write outside the memory it was given by the integrator. | B(D) | J5-004, J5-040, J5-046 | A-03, A-05, A-09 | Draft |
 
 ## L. Cybersecurity requirements (ISO/SAE 21434)
 

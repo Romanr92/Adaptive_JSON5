@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_frame.hpp"
@@ -58,7 +59,7 @@ namespace adaptive_json5
      * @par Requirements
      * P033; J5-046; J5-048.
      * @param frames Exact number of frames, the pre-pass peak depth.
-     * @return Success, resource_limit, a provider failure, or wrong_type_or_access.
+     * @return Success, resource_limit (depth), a provider failure, or internal_error when already reserved.
      * @note Failure leaves the stack unchanged.
      * @par ID SWU-PARSER-031
      */
@@ -67,12 +68,12 @@ namespace adaptive_json5
       // One reservation, made while empty, so nothing ever needs relocating.
       if ((m_capacity != 0) || (m_size != 0))
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       if (frames > m_max_frames)
       {
-        return status_result::failure(error::without_location(error_code::resource_limit));
+        return status_result::failure(error::limit_without_location(resource_limit_reason::depth));
       }
 
       if (frames == 0)
@@ -131,7 +132,7 @@ namespace adaptive_json5
     {
       if (m_size >= m_max_frames)
       {
-        return status_result::failure(error::without_location(error_code::resource_limit));
+        return status_result::failure(error::limit_without_location(resource_limit_reason::depth));
       }
 
       const auto charged = work.charge(1);
@@ -144,7 +145,7 @@ namespace adaptive_json5
       // Frames are reserved once from the pre-pass peak depth, so needing more means the passes disagree.
       if (m_size >= m_capacity)
       {
-        return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+        return status_result::failure(error::internal_fault());
       }
 
       ::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));

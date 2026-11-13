@@ -12,13 +12,17 @@ namespace adaptive_json5
   /**
    * @brief Enforce an outstanding-byte ceiling over caller-provided storage.
    * @par Requirements
-   * P031; P032; J5-040; J5-046; J5-047; J5-051.
-   * @note Counts requested allocation bytes, including unused capacity.
+   * P031; P032; J5-040; J5-046; J5-047; J5-051; issue #125.
+   * @note Counts requested allocation bytes, including unused capacity, and outstanding blocks.
    * Provider-internal overhead is excluded.
    * This object and its provider state must outlive every returned allocation.
    * Its address must remain stable while any returned allocation exists.
    * Operations require external synchronization if shared between threads.
    * Provider callbacks must not reenter this accounting object.
+   * A release that matches no outstanding block is refused and latches faulted(); after
+   * that every allocation fails with internal_error. Release blocks only through
+   * owned_block, never through callbacks() directly, and check faulted() after releasing
+   * a document (A-09).
    * Construction performs no allocation.
    */
   class [[nodiscard]] accounted_storage
@@ -28,15 +32,20 @@ namespace adaptive_json5
       std::size_t m_limit;
       std::size_t m_current_bytes{};
       std::size_t m_peak_bytes{};
+      std::size_t m_outstanding_blocks{};
+      bool m_faulted{false};
 
       /**
        * @brief Check the byte ceiling, allocate and account for success.
        * @par Requirements
-       * P031; P032; J5-046; J5-047.
+       * P031; P032; J5-046; J5-047; issue #125.
        * @note Called through allocate_block() with validated alignment
        * and nonzero bytes after provider usability has been checked.
-       * Preserves explicit upstream failures without fallback.
+       * Fails with internal_error once faulted(), with wrong_type_or_access (invalid_argument)
+       * for zero bytes and with resource_limit (owned_bytes) above the ceiling; none of these
+       * call the provider. Preserves explicit upstream failures without fallback.
        * Failure leaves current and peak accounting unchanged.
+       * Success counts the bytes and one outstanding block.
        * @par ID SWU-MEMORY-001
        */
       [[nodiscard]] static result<void*> allocate_callback(void* context, std::size_t bytes,
@@ -45,9 +54,15 @@ namespace adaptive_json5
       /**
        * @brief Release one owned allocation and remove its accounted bytes.
        * @par Requirements
-       * P031; J5-040; J5-046; J5-051.
+       * P031; J5-040; J5-046; J5-047; J5-051; issue #125.
        * @note owned_block supplies the original allocation description once.
        * The originating accounting object and provider must still be alive.
+       * A release that cannot match an outstanding block is refused: a null address, zero
+       * bytes, no block outstanding, more bytes than the other blocks leave room for, or a
+       * last block whose size differs from the remaining bytes. A refused release does not
+       * reach the provider, leaves the counters unchanged and latches faulted() (ME-03).
+       * A too-small release or a double release while two or more blocks are outstanding
+       * cannot be detected here; releasing only through owned_block prevents it (A-09).
        * @par ID SWU-MEMORY-002
        */
       static void deallocate_callback(void* context, void* address, std::size_t bytes, std::size_t alignment) noexcept;
@@ -115,7 +130,8 @@ namespace adaptive_json5
        * @note This object must outlive all allocations through these callbacks.
        * Use allocate_block()/allocate_array() for validated allocation dispatch.
        * Direct callback use must satisfy the storage callback contracts.
-       * Deallocation requires the original description exactly once.
+       * Deallocation requires the original description exactly once; a release that matches
+       * no outstanding block is refused and latches faulted().
        * @par ID SWU-MEMORY-004
        */
       [[nodiscard]] storage_callbacks callbacks() noexcept;
@@ -123,9 +139,9 @@ namespace adaptive_json5
       /**
        * @brief Allocate a block through the accounted callback adapter.
        * @par Requirements
-       * P031; P032; J5-040; J5-046; J5-047; J5-051.
-       * @return Owned block, explicit upstream failure, resource_limit
-       * or allocation_failure.
+       * P031; P032; J5-040; J5-046; J5-047; J5-051; issue #125.
+       * @return Owned block, explicit upstream failure, resource_limit (owned_bytes),
+       * allocation_failure, or internal_error once faulted().
        * @note Provider and alignment validation follow allocate_block().
        * Zero bytes produce an empty block without invoking the provider.
        * Failures leave current and peak accounting unchanged.
@@ -136,8 +152,8 @@ namespace adaptive_json5
       /**
        * @brief Allocate an element block after checked size multiplication.
        * @par Requirements
-       * P031; J5-046; J5-047.
-       * @note Overflow and byte-limit failures never call the provider.
+       * P031; J5-046; J5-047; issue #125.
+       * @note Overflow, byte-limit and fault failures never call the provider.
        * Raw storage is returned; element lifetimes are managed by the caller.
        * @par ID SWU-MEMORY-006
        */
@@ -169,6 +185,19 @@ namespace adaptive_json5
        * @par ID SWU-MEMORY-009
        */
       [[nodiscard]] std::size_t peak_bytes() const noexcept;
+
+      /**
+       * @brief Report whether a refused release has stopped all further allocation.
+       * @par Requirements
+       * J5-046; J5-047; issue #125.
+       * @return True after a release that matched no outstanding block (ME-03).
+       * @note The latch is permanent for this object. While it is set, every allocation fails
+       * with internal_error; valid releases still reach the provider, so real blocks are freed.
+       * Check it after releasing a document: release has no return value, so this query is the
+       * only way to see a refused release when no allocation follows (A-09).
+       * @par ID SWU-MEMORY-076
+       */
+      [[nodiscard]] bool faulted() const noexcept;
   };
 } // namespace adaptive_json5
 

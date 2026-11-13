@@ -27,19 +27,20 @@ namespace
   /* ==================================== Test_D96 ===================================== */
   // The syntax factories stay usable in constant expressions and fix the error code to syntax.
   constexpr error c_located = error::syntax_at(5U, syntax_error_reason::missing_colon);
-  static_assert((c_located.code == error_code::syntax) && c_located.has_byte_offset && (c_located.byte_offset == 5U));
-  static_assert(c_located.syntax_reason == syntax_error_reason::missing_colon);
-  static_assert(!c_located.source_range.has_value());
+  static_assert((c_located.code() == error_code::syntax) && c_located.has_byte_offset() &&
+                (c_located.byte_offset() == 5U));
+  static_assert(c_located.syntax_reason() == syntax_error_reason::missing_colon);
+  static_assert(!c_located.source_range().has_value());
   constexpr error c_ranged = error::syntax_at_range(4U, source_span{0U, 4U}, syntax_error_reason::unterminated_string);
-  static_assert((c_ranged.code == error_code::syntax) && (c_ranged.byte_offset == 4U));
-  static_assert(c_ranged.source_range.has_value() && (c_ranged.source_range->byte_length == 4U));
-  static_assert(c_ranged.syntax_reason == syntax_error_reason::unterminated_string);
+  static_assert((c_ranged.code() == error_code::syntax) && (c_ranged.byte_offset() == 4U));
+  static_assert(c_ranged.source_range().has_value() && (c_ranged.source_range()->byte_length == 4U));
+  static_assert(c_ranged.syntax_reason() == syntax_error_reason::unterminated_string);
   // Every other factory leaves the reason empty.
-  static_assert(!error::at_offset(error_code::syntax, 1U).syntax_reason.has_value());
-  static_assert(!error::at_range(error_code::syntax, 1U, source_span{0U, 1U}).syntax_reason.has_value());
-  static_assert(!error::without_location(error_code::allocation_failure).syntax_reason.has_value());
-  static_assert(!error::duplicate_member(source_span{1U, 1U}, source_span{5U, 1U}).syntax_reason.has_value());
-  static_assert(!error::numeric_failure(numeric_conversion_reason::out_of_range).syntax_reason.has_value());
+  static_assert(!error::at_offset(error_code::syntax, 1U).syntax_reason().has_value());
+  static_assert(!error::at_range(error_code::syntax, 1U, source_span{0U, 1U}).syntax_reason().has_value());
+  static_assert(!error::without_location(error_code::allocation_failure).syntax_reason().has_value());
+  static_assert(!error::duplicate_member(source_span{1U, 1U}, source_span{5U, 1U}).syntax_reason().has_value());
+  static_assert(!error::numeric_failure(numeric_conversion_reason::out_of_range).syntax_reason().has_value());
 
   /**
    * @brief One rejected document and the reason its parse must report.
@@ -80,11 +81,11 @@ namespace
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
-    EXPECT_EQ(failure.code, error_code::syntax);
-    EXPECT_EQ(failure.byte_offset, fixture.offset);
-    ASSERT_TRUE(failure.syntax_reason.has_value());
-    EXPECT_EQ(*failure.syntax_reason, fixture.reason);
-    EXPECT_FALSE(failure.numeric_reason.has_value());
+    EXPECT_EQ(failure.code(), error_code::syntax);
+    EXPECT_EQ(failure.byte_offset(), fixture.offset);
+    ASSERT_TRUE(failure.syntax_reason().has_value());
+    EXPECT_EQ(*failure.syntax_reason(), fixture.reason);
+    EXPECT_FALSE(failure.numeric_reason().has_value());
   }
   constexpr syntax_mode c_json5 = syntax_mode::json5;
   constexpr syntax_mode c_strict = syntax_mode::strict_json;
@@ -127,7 +128,7 @@ namespace
       reason_case{"BadHexDigit", "0xG", c_json5, 2, syntax_error_reason::invalid_number},
       reason_case{"NonUnicodeNameEscape", "{a\\x41:1}", c_json5, 2, syntax_error_reason::invalid_identifier},
       reason_case{"MisspelledNull", "nul", c_json5, 0, syntax_error_reason::unknown_literal},
-      reason_case{"InfinitySuffix", "Infinityx", c_json5, 8, syntax_error_reason::unknown_literal},
+      reason_case{"InfinitySuffix", "Infinityx", c_json5, 0, syntax_error_reason::unknown_literal},
       reason_case{"StrictUnquotedName", "{a:1}", c_strict, 1, syntax_error_reason::not_allowed_in_strict_json},
       reason_case{"StrictEscapedName", "{\\u0061:1}", c_strict, 1, syntax_error_reason::not_allowed_in_strict_json},
       reason_case{"StrictNumericName", "{1:2}", c_strict, 1, syntax_error_reason::expected_member_name},
@@ -167,17 +168,17 @@ namespace
     const auto comment_parsed = parse_document({comment_input.data(), comment_input.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(string_parsed.has_value());
-    EXPECT_EQ(string_parsed.error_if()->syntax_reason, syntax_error_reason::unterminated_string);
-    EXPECT_EQ(string_parsed.error_if()->byte_offset, 5U);
-    ASSERT_TRUE(string_parsed.error_if()->source_range.has_value());
-    EXPECT_EQ(string_parsed.error_if()->source_range->byte_offset, 1U);
-    EXPECT_EQ(string_parsed.error_if()->source_range->byte_length, 4U);
+    EXPECT_EQ(string_parsed.error_if()->syntax_reason(), syntax_error_reason::unterminated_string);
+    EXPECT_EQ(string_parsed.error_if()->byte_offset(), 5U);
+    ASSERT_TRUE(string_parsed.error_if()->source_range().has_value());
+    EXPECT_EQ(string_parsed.error_if()->source_range()->byte_offset, 1U);
+    EXPECT_EQ(string_parsed.error_if()->source_range()->byte_length, 4U);
     ASSERT_FALSE(comment_parsed.has_value());
-    EXPECT_EQ(comment_parsed.error_if()->syntax_reason, syntax_error_reason::unterminated_comment);
-    EXPECT_EQ(comment_parsed.error_if()->byte_offset, 5U);
-    ASSERT_TRUE(comment_parsed.error_if()->source_range.has_value());
-    EXPECT_EQ(comment_parsed.error_if()->source_range->byte_offset, 2U);
-    EXPECT_EQ(comment_parsed.error_if()->source_range->byte_length, 3U);
+    EXPECT_EQ(comment_parsed.error_if()->syntax_reason(), syntax_error_reason::unterminated_comment);
+    EXPECT_EQ(comment_parsed.error_if()->byte_offset(), 5U);
+    ASSERT_TRUE(comment_parsed.error_if()->source_range().has_value());
+    EXPECT_EQ(comment_parsed.error_if()->source_range()->byte_offset, 2U);
+    EXPECT_EQ(comment_parsed.error_if()->source_range()->byte_length, 3U);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -200,11 +201,11 @@ namespace
     const auto limited = parse_document({large.data(), large.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(encoding.has_value());
-    EXPECT_EQ(encoding.error_if()->code, error_code::encoding);
-    EXPECT_FALSE(encoding.error_if()->syntax_reason.has_value());
+    EXPECT_EQ(encoding.error_if()->code(), error_code::encoding);
+    EXPECT_FALSE(encoding.error_if()->syntax_reason().has_value());
     ASSERT_FALSE(limited.has_value());
-    EXPECT_EQ(limited.error_if()->code, error_code::resource_limit);
-    EXPECT_FALSE(limited.error_if()->syntax_reason.has_value());
+    EXPECT_EQ(limited.error_if()->code(), error_code::resource_limit);
+    EXPECT_FALSE(limited.error_if()->syntax_reason().has_value());
   }
   /* ================================== End Test_D96 =================================== */
 } // namespace

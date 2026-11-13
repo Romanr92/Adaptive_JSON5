@@ -1,9 +1,11 @@
 #include "adaptive_json5/value/warning_list.hpp"
 
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "common/checked_size.hpp"
@@ -83,7 +85,7 @@ namespace adaptive_json5
       if (current != std::size_t{})
       {
         // Doubling keeps reallocations logarithmic; on overflow the maximum is the answer anyway.
-        const auto doubled = checked_multiply(current, c_growth_factor);
+        const auto doubled = checked_multiply(current, c_growth_factor, resource_limit_reason::diagnostics);
         capacity = doubled.has_value() ? *doubled.value_if() : maximum;
       }
 
@@ -131,7 +133,7 @@ namespace adaptive_json5
    */
   status_result warning_list::reserve(std::size_t additional) noexcept
   {
-    const auto required = checked_add(m_size, additional);
+    const auto required = checked_add(m_size, additional, resource_limit_reason::diagnostics);
 
     if (!required.has_value())
     {
@@ -141,7 +143,7 @@ namespace adaptive_json5
     // Capacity belongs to the list, so no caller can grow it past its maximum.
     if (*required.value_if() > m_max_entries)
     {
-      return status_result::failure(error::without_location(error_code::resource_limit));
+      return status_result::failure(error::limit_without_location(resource_limit_reason::diagnostics));
     }
 
     if (*required.value_if() <= m_capacity)
@@ -182,7 +184,7 @@ namespace adaptive_json5
   {
     if (m_size >= m_capacity)
     {
-      return status_result::failure(error::without_location(error_code::wrong_type_or_access));
+      return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
     write_entry(m_storage, m_size, warning);
@@ -212,7 +214,7 @@ namespace adaptive_json5
   {
     if (index >= m_size)
     {
-      return result<string_warning>::failure(error::without_location(error_code::wrong_type_or_access));
+      return result<string_warning>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
     return result<string_warning>::success(read_entry(m_storage, index));

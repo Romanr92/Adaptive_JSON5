@@ -1,3 +1,4 @@
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 
@@ -13,6 +14,7 @@
 
 namespace
 {
+  using adaptive_json5::access_error_reason;
   using adaptive_json5::allocate_array;
   using adaptive_json5::allocate_block;
   using adaptive_json5::error_code;
@@ -270,8 +272,8 @@ namespace
         else
         {
           ASSERT_NE(allocated.error_if(), nullptr);
-          EXPECT_EQ(allocated.error_if()->code, error_code::allocation_failure);
-          EXPECT_FALSE(allocated.error_if()->has_byte_offset);
+          EXPECT_EQ(allocated.error_if()->code(), error_code::allocation_failure);
+          EXPECT_FALSE(allocated.error_if()->has_byte_offset());
           ++failures;
         }
       }
@@ -317,7 +319,7 @@ namespace
     for (const auto* actual : {&first, &second, &third})
     {
       ASSERT_FALSE(actual->has_value());
-      EXPECT_EQ(actual->error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(actual->error_if()->code(), error_code::allocation_failure);
     }
     EXPECT_EQ(provider.allocations(), 0U);
     EXPECT_EQ(provider.failures(), 0U);
@@ -333,7 +335,7 @@ namespace
   /* Verify alignments that are not a non-zero power of two are rejected.
    * Arrange: Create a provider and choose an invalid alignment.
    * Act: Request a block with that alignment.
-   * Expect: The result is resource_limit and the provider is not called.
+   * Expect: The result is wrong_type_or_access (invalid_argument) and the provider is not called.
    */
   TEST_P(OwnedBlockAlignmentUnits, RejectsInvalidAlignmentBeforeProviderCall)
   {
@@ -343,7 +345,8 @@ namespace
     const auto actual = allocate_block(provider.callbacks(), 8, GetParam());
     /* Expect */
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(actual.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(actual.error_if()->access_reason(), access_error_reason::invalid_argument);
     EXPECT_EQ(provider.allocations(), 0U);
     EXPECT_EQ(provider.failures(), 0U);
   }
@@ -389,8 +392,8 @@ namespace
     const auto actual = allocate_array(provider.callbacks(), c_max / 2 + 1, 2, 8);
     /* Expect */
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-    EXPECT_FALSE(actual.error_if()->has_byte_offset);
+    EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+    EXPECT_FALSE(actual.error_if()->has_byte_offset());
     EXPECT_EQ(provider.allocations(), 0U);
     EXPECT_EQ(provider.failures(), 0U);
   }
@@ -417,7 +420,7 @@ namespace
       ASSERT_TRUE(first.has_value());
       ASSERT_FALSE(oversized.has_value());
       EXPECT_EQ(oversized.value_if(), nullptr);
-      EXPECT_EQ(oversized.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(oversized.error_if()->code(), error_code::allocation_failure);
       ASSERT_TRUE(third.has_value());
       EXPECT_NE(first.value_if()->data(), third.value_if()->data());
       EXPECT_EQ(provider.outstanding_bytes(), 16U);

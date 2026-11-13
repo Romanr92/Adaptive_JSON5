@@ -59,9 +59,9 @@ namespace
     else
     {
       ASSERT_FALSE(actual.has_value());
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->code, mode == syntax_mode::strict_json ? error_code::syntax : item.code);
-      EXPECT_EQ(actual.error_if()->byte_offset, mode == syntax_mode::strict_json ? 3u : 3 + item.offset);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->code(), mode == syntax_mode::strict_json ? error_code::syntax : item.code);
+      EXPECT_EQ(actual.error_if()->byte_offset(), mode == syntax_mode::strict_json ? 3u : 3 + item.offset);
       EXPECT_EQ(source.offset(), 3u);
     }
     EXPECT_EQ(input, original);
@@ -136,9 +136,9 @@ namespace
         else if (mode == syntax_mode::strict_json || length == 3)
         {
           ASSERT_FALSE(actual.has_value());
-          EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
-          EXPECT_EQ(actual.error_if()->byte_offset, mode == syntax_mode::strict_json ? 2u : 5u);
+          EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
+          EXPECT_EQ(actual.error_if()->byte_offset(), mode == syntax_mode::strict_json ? 2u : 5u);
           EXPECT_EQ(source.offset(), 2u);
         }
         else
@@ -234,9 +234,9 @@ namespace
         auto actual = consume_hexadecimal(source, syntax_mode::json5);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, 2 + prefix.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), 2 + prefix.size());
         EXPECT_EQ(source.offset(), 2u);
       }
     }

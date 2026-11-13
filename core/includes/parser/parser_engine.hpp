@@ -1,6 +1,7 @@
 #ifndef PARSER_ENGINE_HPP_
 #define PARSER_ENGINE_HPP_
 
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
@@ -93,9 +94,10 @@ namespace adaptive_json5
         /**
          * @brief Count one value without building it: reserve its resources and validate it.
          * @par Requirements
-         * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+         * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
          * @note Reports the same errors as read_value and allocates nothing (ADR 0003, decision 7).
          * Charges the same scanning work as read_value, but no construction or decode work.
+         * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
          * @par ID SWU-PARSER-018
          */
         [[nodiscard]] status_result count_value() noexcept;
@@ -103,9 +105,10 @@ namespace adaptive_json5
         /**
          * @brief Count one member name without decoding it.
          * @par Requirements
-         * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+         * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047; issue #125.
          * @note Reports the same errors as read_name except duplicate names, which are checked
          * only in the build pass (ADR 0003, decision 7, C1). Allocates nothing.
+         * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
          * @par ID SWU-PARSER-019
          */
         [[nodiscard]] status_result count_name() noexcept;
@@ -253,10 +256,22 @@ namespace adaptive_json5
          * @param context The engine.
          * @param warning Warning found by the decode walk, in source order.
          * @note A failed append means the reservation and the walk disagree; it is reported after
-         * lexing as wrong_type_or_access.
+         * lexing as internal_error.
          * @par ID SWU-PARSER-016
          */
         static void record_warning(void* context, const string_warning& warning) noexcept;
+
+        /**
+         * @brief Complete a parse failure with the location the engine knows.
+         * @par Requirements
+         * J5-043; J5-044; J5-047; issue #125.
+         * @param failure Failure returned by parse().
+         * @return The failure from locate_limit() at the current cursor offset.
+         * @note A failed step neither advances the cursor nor changes the budget, so the cursor
+         * is at the start of the failing token and the string allowance is the one the lexer saw.
+         * @par ID SWU-PARSER-048
+         */
+        [[nodiscard]] error located_failure(const error& failure) const noexcept;
 
       public:
         /**
@@ -279,6 +294,7 @@ namespace adaptive_json5
          * then builds; syntax and limit failures occur before any allocation (ADR 0003, decision 7).
          * This internal operation does not validate trailing input.
          * Every failure requires abandoning this engine instance.
+         * Limit failures without a location are reported at the failing token (located_failure()).
          * @par ID SWU-PARSER-026
          */
         [[nodiscard]] result<parsed_value_tree> run() noexcept;
@@ -293,6 +309,7 @@ namespace adaptive_json5
          * The pre-pass also checks trailing content, so it fails before any allocation.
          * Success sets consumed_bytes to the complete input size.
          * Failure returns no tree; discard this engine instance.
+         * Limit failures without a location are reported at the failing token (located_failure()).
          * @par ID SWU-PARSER-027
          */
         [[nodiscard]] result<parsed_value_tree> run_complete() noexcept;

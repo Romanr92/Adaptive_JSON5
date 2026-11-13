@@ -60,9 +60,9 @@ namespace
     else
     {
       ASSERT_NE(actual.error_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 1u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 1u);
       EXPECT_EQ(source.offset(), 1u);
     }
     EXPECT_EQ(input[1], param.delimiter);
@@ -221,9 +221,9 @@ namespace
         }
         else
         {
-          EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
-          EXPECT_EQ(actual.error_if()->byte_offset, 1u);
+          EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
+          EXPECT_EQ(actual.error_if()->byte_offset(), 1u);
           EXPECT_EQ(source.offset(), 1u);
         }
       }
@@ -335,9 +335,9 @@ namespace
       const auto actual = consume_string_piece(source, **opening.value_if(), mode);
       /* Expect */
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 3u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 3u);
       EXPECT_EQ(source.offset(), 3u);
     }
   }
@@ -374,9 +374,9 @@ namespace
           if (!piece.has_value())
           {
             /* Expect */
-            EXPECT_EQ(piece.error_if()->code, error_code::encoding);
-            EXPECT_TRUE(piece.error_if()->has_byte_offset);
-            EXPECT_EQ(piece.error_if()->byte_offset, 2u);
+            EXPECT_EQ(piece.error_if()->code(), error_code::encoding);
+            EXPECT_TRUE(piece.error_if()->has_byte_offset());
+            EXPECT_EQ(piece.error_if()->byte_offset(), 2u);
             EXPECT_EQ(source.offset(), before);
             break;
           }
@@ -386,9 +386,9 @@ namespace
         {
           const auto eof = consume_string_piece(source, **opening.value_if(), mode);
           ASSERT_FALSE(eof.has_value());
-          EXPECT_EQ(eof.error_if()->code, error_code::syntax);
-          EXPECT_TRUE(eof.error_if()->has_byte_offset);
-          EXPECT_EQ(eof.error_if()->byte_offset, length);
+          EXPECT_EQ(eof.error_if()->code(), error_code::syntax);
+          EXPECT_TRUE(eof.error_if()->has_byte_offset());
+          EXPECT_EQ(eof.error_if()->byte_offset(), length);
           EXPECT_EQ(source.offset(), length);
         }
       }
@@ -415,8 +415,8 @@ namespace
       const auto actual = consume_string_piece(source, **opening.value_if(), mode);
       /* Expect */
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_EQ(actual.error_if()->byte_offset, 1u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_EQ(actual.error_if()->byte_offset(), 1u);
       EXPECT_EQ(source.offset(), 1u);
       EXPECT_EQ(*source.peek(), '\r');
       EXPECT_EQ(*source.peek(1), '\n');

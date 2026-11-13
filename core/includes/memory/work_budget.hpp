@@ -40,7 +40,8 @@ namespace adaptive_json5
        * @par Requirements
        * P031; J5-048; J5-049.
        * @param units Work units to charge.
-       * @return Success or resource_limit without changing consumed work.
+       * @return Success, or resource_limit (work) without a location and without changing
+       * consumed work.
        * @note Exactly exhausting the remaining budget succeeds.
        * Zero units succeed even when the budget is exhausted.
        * @par ID SWU-MEMORY-072

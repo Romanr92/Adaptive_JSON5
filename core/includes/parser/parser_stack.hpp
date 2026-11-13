@@ -121,8 +121,8 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-046; J5-048.
          * @param frames Exact number of frames, the pre-pass peak depth.
-         * @return Success, resource_limit above the frame limit, a provider failure, or
-         * wrong_type_or_access when storage was already allocated.
+         * @return Success, resource_limit (depth) above the frame limit, a provider failure, or
+         * internal_error when storage was already allocated.
          * @note Zero frames allocate nothing. Charges no work: nothing is relocated
          * (ADR 0003, decision 7). Failure leaves the stack unchanged.
          * @par ID SWU-PARSER-031
@@ -134,7 +134,7 @@ namespace adaptive_json5
          * @par Requirements
          * P033; J5-046; J5-048; J5-049; J5-051.
          * @note frame must not reside inside this stack.
-         * A push beyond the reserve_exact() capacity fails with wrong_type_or_access and never allocates.
+         * A push beyond the reserve_exact() capacity fails with internal_error and never allocates.
          * Failure preserves frames and the incoming frame.
          * Each push attempt passing the frame limit costs one work unit.
          * Successful work charges are not refunded after later failure.

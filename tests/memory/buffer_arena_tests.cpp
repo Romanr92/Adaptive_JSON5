@@ -1,3 +1,4 @@
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/buffer_arena.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
@@ -75,7 +76,7 @@ namespace
     const auto denied = allocate_block(arena.callbacks(), 6, 1);
     /* Expect */
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(denied.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(arena.used(), 3u);
     EXPECT_EQ(arena.live_allocations(), 1u);
     EXPECT_EQ(bytes[0], std::byte{42});
@@ -105,7 +106,7 @@ namespace
       const auto empty = allocate_block(arena->callbacks(), 0, 1);
       /* Expect */
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(denied.error_if()->code(), error_code::allocation_failure);
       ASSERT_TRUE(empty.has_value());
       EXPECT_EQ(empty.value_if()->data(), nullptr);
       EXPECT_EQ(arena->capacity(), 0u);
@@ -131,11 +132,12 @@ namespace
     const auto overflow = allocate_array(arena.callbacks(), std::numeric_limits<std::size_t>::max(), 2, 1);
     /* Expect */
     ASSERT_FALSE(huge.has_value());
-    EXPECT_EQ(huge.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(huge.error_if()->code(), error_code::allocation_failure);
     ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(invalid.error_if()->access_reason(), access_error_reason::invalid_argument);
     ASSERT_FALSE(overflow.has_value());
-    EXPECT_EQ(overflow.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(overflow.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(arena.used(), 0u);
     EXPECT_EQ(arena.live_allocations(), 0u);
   }
@@ -167,7 +169,7 @@ namespace
       EXPECT_EQ(arena.used(), 8u);
       const auto denied = allocate_block(arena.callbacks(), 1, 1);
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(denied.error_if()->code(), error_code::allocation_failure);
     }
     EXPECT_EQ(arena.used(), 0u);
     EXPECT_EQ(arena.live_allocations(), 0u);
@@ -315,7 +317,7 @@ namespace
       const auto denied = storage.allocate(1, 1);
       /* Expect */
       ASSERT_FALSE(denied.has_value());
-      EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(storage.current_bytes(), 6u);
       EXPECT_EQ(storage.peak_bytes(), 6u);
       EXPECT_EQ(arena.used(), 6u);

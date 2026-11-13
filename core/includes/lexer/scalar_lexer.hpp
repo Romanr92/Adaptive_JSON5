@@ -8,6 +8,7 @@
 #include "lexer/scalar_token.hpp"
 
 #include <cstddef>
+#include <limits>
 #include <optional>
 
 namespace adaptive_json5
@@ -86,6 +87,8 @@ namespace adaptive_json5
    * @param max_string_units Maximum decoded units in a string token.
    * @param max_identifier_units Maximum decoded identifier units while rejecting unknown words.
    * @param max_exponent_digits Maximum decimal exponent digits.
+   * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never
+   * limits. Passed to measure_string, so a string measurement carries the first excess warning.
    * @return A measurement, successful nullopt at EOF or structural punctuation,
    * or the same located error consume_scalar reports for the same input and limits.
    * @note Tries the alternatives in consume_scalar's order: string, number, literal, identifier.
@@ -94,10 +97,10 @@ namespace adaptive_json5
    * Does not skip trivia or join spellings across trivia.
    * @par ID SWU-LEXER-028
    */
-  [[nodiscard]] result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode,
-                                                                     std::size_t max_string_units,
-                                                                     std::size_t max_identifier_units,
-                                                                     std::size_t max_exponent_digits) noexcept;
+  [[nodiscard]] result<std::optional<scalar_measure>>
+  measure_scalar(cursor& source, syntax_mode mode, std::size_t max_string_units, std::size_t max_identifier_units,
+                 std::size_t max_exponent_digits,
+                 std::size_t warning_allowance = std::numeric_limits<std::size_t>::max()) noexcept;
 
 } // namespace adaptive_json5
 
