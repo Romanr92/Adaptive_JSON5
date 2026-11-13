@@ -80,7 +80,7 @@ namespace
     ASSERT_FALSE(parsed.has_value());
     const auto described = describe(*parsed.error_if(), input, message);
     /* Expect */
-    EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
     ASSERT_TRUE(described.has_value());
     EXPECT_EQ(described.value_if()->substr(0, 6), "line: ");
   }

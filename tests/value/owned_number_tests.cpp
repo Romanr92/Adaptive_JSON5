@@ -162,9 +162,9 @@ namespace
     if (mode == syntax_mode::strict_json && !item.strict_ok)
     {
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, item.strict_offset);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), item.strict_offset);
       EXPECT_EQ(provider.m_attempts, 0u);
       return;
     }
@@ -270,9 +270,9 @@ namespace
     auto actual = owned_number::copy_spelling({item.text.data(), item.text.size()}, mode, provider.callbacks(), 64);
     /* Expect */
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, item.code);
-    EXPECT_TRUE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, item.offset);
+    EXPECT_EQ(actual.error_if()->code(), item.code);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset());
+    EXPECT_EQ(actual.error_if()->byte_offset(), item.offset);
     EXPECT_EQ(provider.m_attempts, 0u);
     EXPECT_EQ(item.text, original);
   }
@@ -356,8 +356,8 @@ namespace
       owned_number::copy_spelling({input.data(), input.size()}, syntax_mode::json5, provider.callbacks(), input.size());
     /* Expect */
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
-    EXPECT_FALSE(failed.error_if()->has_byte_offset);
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
+    EXPECT_FALSE(failed.error_if()->has_byte_offset());
     EXPECT_EQ(provider.m_live_bytes, before);
     const auto view = retained.value_if()->spelling();
     EXPECT_EQ(std::string(view.data, view.size), "-0");
@@ -369,7 +369,7 @@ namespace
     EXPECT_EQ(std::string(copied.data, copied.size), input);
     auto missing = owned_number::copy_spelling({"1", 1}, syntax_mode::json5, {}, 1);
     ASSERT_FALSE(missing.has_value());
-    EXPECT_EQ(missing.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(missing.error_if()->code(), error_code::allocation_failure);
   }
   /* ----------------------------------------------------------------------------------- */
   /* Validate pointer/length and enforce size bounds before syntax scanning or allocation.
@@ -391,18 +391,18 @@ namespace
       owned_number::copy_spelling({input.data(), input.size()}, syntax_mode::json5, provider.callbacks(), 0);
     /* Expect */
     ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_FALSE(invalid.error_if()->has_byte_offset);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_FALSE(invalid.error_if()->has_byte_offset());
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::syntax);
-    EXPECT_TRUE(empty.error_if()->has_byte_offset);
-    EXPECT_EQ(empty.error_if()->byte_offset, 0u);
+    EXPECT_EQ(empty.error_if()->code(), error_code::syntax);
+    EXPECT_TRUE(empty.error_if()->has_byte_offset());
+    EXPECT_EQ(empty.error_if()->byte_offset(), 0u);
     for (const auto* result : {&short_limit, &zero_limit})
     {
       ASSERT_FALSE(result->has_value());
-      EXPECT_EQ(result->error_if()->code, error_code::resource_limit);
-      EXPECT_TRUE(result->error_if()->has_byte_offset);
-      EXPECT_EQ(result->error_if()->byte_offset, 0u);
+      EXPECT_EQ(result->error_if()->code(), error_code::resource_limit);
+      EXPECT_TRUE(result->error_if()->has_byte_offset());
+      EXPECT_EQ(result->error_if()->byte_offset(), 0u);
     }
     EXPECT_EQ(provider.m_attempts, 0u);
     for (const std::size_t limit : {3u, 4u})
@@ -416,7 +416,7 @@ namespace
     const char invalid_syntax = '?';
     auto limited = owned_number::copy_spelling({&invalid_syntax, 1}, syntax_mode::json5, provider.callbacks(), 0);
     ASSERT_FALSE(limited.has_value());
-    EXPECT_EQ(limited.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(limited.error_if()->code(), error_code::resource_limit);
   }
   /* ================================== End Test_J5_046 ================================== */
 } // namespace

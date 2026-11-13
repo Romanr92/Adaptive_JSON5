@@ -206,8 +206,8 @@ namespace
     const auto parsed = param.complete ? engine.run_complete() : engine.run();
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, param.code);
-    EXPECT_EQ(parsed.error_if()->byte_offset, param.byte_offset);
+    EXPECT_EQ(parsed.error_if()->code(), param.code);
+    EXPECT_EQ(parsed.error_if()->byte_offset(), param.byte_offset);
     EXPECT_EQ(provider.m_attempts, 0U);
   }
 
@@ -219,7 +219,7 @@ namespace
                       prepass_failure_case{"MismatchedClose", R"([{"a":[1}])", 512, false, error_code::syntax, 8},
                       prepass_failure_case{"LateStringOverLimit", R"(["ab","abcde"])", 512, false,
                                            error_code::resource_limit, 11},
-                      prepass_failure_case{"DepthOverLimit", "[[[1]]]", 2, false, error_code::resource_limit, 0},
+                      prepass_failure_case{"DepthOverLimit", "[[[1]]]", 2, false, error_code::resource_limit, 2},
                       prepass_failure_case{"TrailingContent", R"({"a":1} x)", 512, true, error_code::syntax, 8},
                       prepass_failure_case{"UnknownWordLate", R"([1,2,foo])", 512, false, error_code::syntax, 5}),
     [](const ::testing::TestParamInfo<prepass_failure_case>& info)
@@ -277,8 +277,8 @@ namespace
     const auto parsed = engine.run_complete();
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-    EXPECT_EQ(parsed.error_if()->byte_offset, input.size());
+    EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(parsed.error_if()->byte_offset(), input.size());
     EXPECT_EQ(provider.m_attempts, 0U);
   }
   /* ================================= End Test_J5_046 ================================= */
@@ -303,13 +303,13 @@ namespace
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
-    EXPECT_EQ(failure.code, error_code::duplicate_policy);
-    EXPECT_EQ(failure.byte_offset, 7U);
-    ASSERT_TRUE(failure.duplicate_names.has_value());
-    EXPECT_EQ(failure.duplicate_names->first.byte_offset, 1U);
-    EXPECT_EQ(failure.duplicate_names->first.byte_length, 3U);
-    EXPECT_EQ(failure.duplicate_names->repeated.byte_offset, 7U);
-    EXPECT_EQ(failure.duplicate_names->repeated.byte_length, 3U);
+    EXPECT_EQ(failure.code(), error_code::duplicate_policy);
+    EXPECT_EQ(failure.byte_offset(), 7U);
+    ASSERT_TRUE(failure.duplicate_names().has_value());
+    EXPECT_EQ(failure.duplicate_names()->first.byte_offset, 1U);
+    EXPECT_EQ(failure.duplicate_names()->first.byte_length, 3U);
+    EXPECT_EQ(failure.duplicate_names()->repeated.byte_offset, 7U);
+    EXPECT_EQ(failure.duplicate_names()->repeated.byte_length, 3U);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -333,8 +333,8 @@ namespace
     const auto parsed = engine.run_complete();
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-    EXPECT_EQ(parsed.error_if()->byte_offset, 13U);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(parsed.error_if()->byte_offset(), 13U);
     EXPECT_EQ(provider.m_attempts, 0U);
   }
   /* ================================= End Test_J5_032 ================================= */

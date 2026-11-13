@@ -156,9 +156,9 @@ namespace
         EXPECT_FALSE(actual.has_value());
         EXPECT_EQ(actual.value_if(), nullptr);
         ASSERT_NE(actual.error_if(), nullptr);
-        EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, prefix.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), prefix.size());
         EXPECT_EQ(source.offset(), prefix.size());
         EXPECT_EQ(source.remaining(), length);
       }
@@ -194,9 +194,9 @@ namespace
         EXPECT_FALSE(actual.has_value());
         EXPECT_EQ(actual.value_if(), nullptr);
         ASSERT_NE(actual.error_if(), nullptr);
-        EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, prefix.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), prefix.size());
         EXPECT_EQ(source.offset(), prefix.size());
         EXPECT_EQ(bytes, before);
       }
@@ -284,9 +284,9 @@ namespace
       /* Expect */
       EXPECT_FALSE(actual.has_value());
       ASSERT_NE(actual.error_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 0U);
+      EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 0U);
       EXPECT_EQ(source.offset(), 0U);
     }
   }
@@ -325,9 +325,9 @@ namespace
           /* Expect */
           EXPECT_FALSE(actual.has_value());
           ASSERT_NE(actual.error_if(), nullptr);
-          EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-          EXPECT_TRUE(actual.error_if()->has_byte_offset);
-          EXPECT_EQ(actual.error_if()->byte_offset, 0U);
+          EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+          EXPECT_TRUE(actual.error_if()->has_byte_offset());
+          EXPECT_EQ(actual.error_if()->byte_offset(), 0U);
           EXPECT_EQ(source.offset(), 0U);
         }
       }

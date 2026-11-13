@@ -1,4 +1,5 @@
 #include "../shared_infrastructure/guard_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 
@@ -52,7 +53,7 @@ namespace
       }
       else
       {
-        EXPECT_EQ(block.error_if()->code, error_code::resource_limit);
+        EXPECT_EQ(block.error_if()->code(), error_code::resource_limit);
         EXPECT_EQ(provider.m_attempts, 0u);
         EXPECT_EQ(storage.current_bytes(), 0u);
         EXPECT_EQ(storage.peak_bytes(), 0u);
@@ -96,7 +97,7 @@ namespace
     const auto retry = storage.allocate(10, alignof(char));
     /* Expect */
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
     ASSERT_TRUE(retry.has_value());
     EXPECT_EQ(storage.current_bytes(), 10u);
     EXPECT_EQ(storage.peak_bytes(), 10u);
@@ -125,7 +126,7 @@ namespace
     const auto retry = storage.allocate(7, alignof(char));
     /* Expect */
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
     ASSERT_TRUE(retry.has_value());
     EXPECT_EQ(storage.current_bytes(), 10u);
     EXPECT_EQ(storage.peak_bytes(), 10u);
@@ -158,18 +159,20 @@ namespace
     const auto array = storage.allocate_array(3, sizeof(char16_t), alignof(char16_t));
     /* Expect */
     ASSERT_FALSE(overflow.has_value());
-    EXPECT_EQ(overflow.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(overflow.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(zero_alignment.has_value());
     ASSERT_FALSE(bad_alignment.has_value());
-    EXPECT_EQ(zero_alignment.error_if()->code, error_code::resource_limit);
-    EXPECT_EQ(bad_alignment.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(zero_alignment.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(zero_alignment.error_if()->access_reason(), access_error_reason::invalid_argument);
+    EXPECT_EQ(bad_alignment.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(bad_alignment.error_if()->access_reason(), access_error_reason::invalid_argument);
     EXPECT_FALSE(zero_bad_alignment.has_value());
     ASSERT_FALSE(absent.has_value());
     ASSERT_FALSE(absent_allocate.has_value());
     ASSERT_FALSE(absent_release.has_value());
-    EXPECT_EQ(absent.error_if()->code, error_code::allocation_failure);
-    EXPECT_EQ(absent_allocate.error_if()->code, error_code::allocation_failure);
-    EXPECT_EQ(absent_release.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(absent.error_if()->code(), error_code::allocation_failure);
+    EXPECT_EQ(absent_allocate.error_if()->code(), error_code::allocation_failure);
+    EXPECT_EQ(absent_release.error_if()->code(), error_code::allocation_failure);
     ASSERT_TRUE(array.has_value());
     EXPECT_EQ(storage.current_bytes(), 3 * sizeof(char16_t));
     EXPECT_EQ(array.value_if()->alignment(), alignof(char16_t));

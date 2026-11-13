@@ -254,11 +254,11 @@ namespace
         /* Expect */
         ASSERT_FALSE(token.has_value()) << input;
         const error& failure = *token.error_if();
-        EXPECT_EQ(failure.code, error_code::syntax) << input;
-        EXPECT_EQ(failure.syntax_reason, syntax_error_reason::unknown_literal) << input;
-        ASSERT_TRUE(failure.source_range.has_value()) << input;
-        EXPECT_EQ(failure.source_range->byte_offset, 0U) << input;
-        EXPECT_EQ(failure.source_range->byte_length, item.length) << input;
+        EXPECT_EQ(failure.code(), error_code::syntax) << input;
+        EXPECT_EQ(failure.syntax_reason(), syntax_error_reason::unknown_literal) << input;
+        ASSERT_TRUE(failure.source_range().has_value()) << input;
+        EXPECT_EQ(failure.source_range()->byte_offset, 0U) << input;
+        EXPECT_EQ(failure.source_range()->byte_length, item.length) << input;
         EXPECT_EQ(source.offset(), 0U) << input;
         EXPECT_EQ(provider.m_attempts, 0U) << input;
       }
@@ -366,7 +366,7 @@ namespace
       const auto parsed = engine.run();
       /* Expect */
       ASSERT_FALSE(parsed.has_value()) << prefix;
-      EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit) << prefix;
+      EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit) << prefix;
     }
   }
 
@@ -459,8 +459,8 @@ namespace
       if (budget < minimum)
       {
         ASSERT_FALSE(parsed.has_value()) << "budget " << budget;
-        EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit)
-          << "budget " << budget << ", error offset " << parsed.error_if()->byte_offset;
+        EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit)
+          << "budget " << budget << ", error offset " << parsed.error_if()->byte_offset();
       }
       else
       {
@@ -522,9 +522,9 @@ namespace
     const auto parsed = engine.run();
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-    EXPECT_TRUE(parsed.error_if()->has_byte_offset);
-    EXPECT_EQ(parsed.error_if()->byte_offset, item.error_offset);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+    EXPECT_TRUE(parsed.error_if()->has_byte_offset());
+    EXPECT_EQ(parsed.error_if()->byte_offset(), item.error_offset);
   }
 
   INSTANTIATE_TEST_SUITE_P(J5_049, J5_049_ScanCutError,

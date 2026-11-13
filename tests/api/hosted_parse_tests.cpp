@@ -115,9 +115,9 @@ namespace
     /* Expect */
     EXPECT_TRUE(lenient.has_value());
     ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code, explicit_strict.error_if()->code);
-    EXPECT_EQ(rejected.error_if()->byte_offset, explicit_strict.error_if()->byte_offset);
-    EXPECT_EQ(rejected.error_if()->syntax_reason, explicit_strict.error_if()->syntax_reason);
+    EXPECT_EQ(rejected.error_if()->code(), explicit_strict.error_if()->code());
+    EXPECT_EQ(rejected.error_if()->byte_offset(), explicit_strict.error_if()->byte_offset());
+    EXPECT_EQ(rejected.error_if()->syntax_reason(), explicit_strict.error_if()->syntax_reason());
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -142,10 +142,10 @@ namespace
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
-    EXPECT_EQ(failure.code, expected.error_if()->code);
-    EXPECT_EQ(failure.has_byte_offset, expected.error_if()->has_byte_offset);
-    EXPECT_EQ(failure.byte_offset, expected.error_if()->byte_offset);
-    EXPECT_EQ(failure.syntax_reason, expected.error_if()->syntax_reason);
+    EXPECT_EQ(failure.code(), expected.error_if()->code());
+    EXPECT_EQ(failure.has_byte_offset(), expected.error_if()->has_byte_offset());
+    EXPECT_EQ(failure.byte_offset(), expected.error_if()->byte_offset());
+    EXPECT_EQ(failure.syntax_reason(), expected.error_if()->syntax_reason());
   }
 
   INSTANTIATE_TEST_SUITE_P(J5_026_HostedParse, HostedParseFailureUnits,

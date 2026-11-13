@@ -1,3 +1,4 @@
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "common/checked_size.hpp"
 
 #include <gtest/gtest.h>
@@ -8,8 +9,8 @@ namespace
   using namespace adaptive_json5;
   constexpr std::size_t c_max = std::numeric_limits<std::size_t>::max();
   /* =================================== Test_J5_046 ==================================== */
-  static_assert(checked_add(1, 2).has_value());
-  static_assert(!checked_multiply(c_max, 2).has_value());
+  static_assert(checked_add(1, 2, resource_limit_reason::owned_bytes).has_value());
+  static_assert(!checked_multiply(c_max, 2, resource_limit_reason::owned_bytes).has_value());
   /**
    * @brief Describe one checked size operation.
    * @par Requirements
@@ -40,14 +41,15 @@ namespace
   /* Verify checked addition returns exact sums or an allocation-free resource limit.
    * Arrange: Select operands around zero and the representable maximum.
    * Act: Add the operands.
-   * Expect: Representable sums are exact; overflow is resource_limit without a location.
+   * Expect: Representable sums are exact; overflow is resource_limit without a location,
+   * carrying the caller's reason (issue #125).
    */
   TEST_P(CheckedAddUnits, ReportsExactSumOrResourceLimit)
   {
     /* Arrange */
     const size_case& param = GetParam();
     /* Act */
-    const auto actual = checked_add(param.left, param.right);
+    const auto actual = checked_add(param.left, param.right, resource_limit_reason::owned_bytes);
     /* Expect */
     ASSERT_EQ(actual.has_value(), param.succeeds);
     if (param.succeeds)
@@ -59,9 +61,10 @@ namespace
     {
       ASSERT_NE(actual.error_if(), nullptr);
       EXPECT_EQ(actual.value_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-      EXPECT_FALSE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 0U);
+      EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+      EXPECT_EQ(actual.error_if()->limit_reason(), resource_limit_reason::owned_bytes);
+      EXPECT_FALSE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 0U);
     }
   }
 
@@ -80,14 +83,15 @@ namespace
   /* Verify checked multiplication returns exact products or an allocation-free resource limit.
    * Arrange: Select operands around zero, one and the representable maximum.
    * Act: Multiply the operands.
-   * Expect: Representable products are exact; overflow is resource_limit without a location.
+   * Expect: Representable products are exact; overflow is resource_limit without a location,
+   * carrying the caller's reason (issue #125).
    */
   TEST_P(CheckedMultiplyUnits, ReportsExactProductOrResourceLimit)
   {
     /* Arrange */
     const size_case& param = GetParam();
     /* Act */
-    const auto actual = checked_multiply(param.left, param.right);
+    const auto actual = checked_multiply(param.left, param.right, resource_limit_reason::owned_bytes);
     /* Expect */
     ASSERT_EQ(actual.has_value(), param.succeeds);
     if (param.succeeds)
@@ -99,9 +103,10 @@ namespace
     {
       ASSERT_NE(actual.error_if(), nullptr);
       EXPECT_EQ(actual.value_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-      EXPECT_FALSE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 0U);
+      EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+      EXPECT_EQ(actual.error_if()->limit_reason(), resource_limit_reason::owned_bytes);
+      EXPECT_FALSE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 0U);
     }
   }
 

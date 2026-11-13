@@ -35,14 +35,14 @@ namespace
   void expect_same_error(const error& measured, const error& consumed)
   {
     EXPECT_EQ(measured.code, consumed.code);
-    EXPECT_EQ(measured.has_byte_offset, consumed.has_byte_offset);
+    EXPECT_EQ(measured.has_byte_offset(), consumed.has_byte_offset());
     EXPECT_EQ(measured.byte_offset, consumed.byte_offset);
-    EXPECT_EQ(measured.syntax_reason, consumed.syntax_reason);
-    ASSERT_EQ(measured.source_range.has_value(), consumed.source_range.has_value());
-    if (measured.source_range.has_value())
+    EXPECT_EQ(measured.syntax_reason(), consumed.syntax_reason());
+    ASSERT_EQ(measured.source_range().has_value(), consumed.source_range().has_value());
+    if (measured.source_range().has_value())
     {
-      EXPECT_EQ(measured.source_range->byte_offset, consumed.source_range->byte_offset);
-      EXPECT_EQ(measured.source_range->byte_length, consumed.source_range->byte_length);
+      EXPECT_EQ(measured.source_range()->byte_offset, consumed.source_range()->byte_offset);
+      EXPECT_EQ(measured.source_range()->byte_length, consumed.source_range()->byte_length);
     }
   }
 

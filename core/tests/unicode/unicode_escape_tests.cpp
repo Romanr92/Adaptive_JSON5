@@ -135,17 +135,17 @@ namespace
       const auto actual = consume_unicode_escape(source);
       /* Expect */
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 2u + length);
+      EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 2u + length);
       EXPECT_EQ(source.offset(), 2u);
     }
     cursor empty;
     const auto actual = consume_unicode_escape(empty);
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-    EXPECT_TRUE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, 0u);
+    EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset());
+    EXPECT_EQ(actual.error_if()->byte_offset(), 0u);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -185,9 +185,9 @@ namespace
       const auto actual = consume_unicode_escape(source);
       /* Expect */
       ASSERT_FALSE(actual.has_value()) << digit_index;
-      EXPECT_EQ(actual.error_if()->code, param.code);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 3u + digit_index);
+      EXPECT_EQ(actual.error_if()->code(), param.code);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 3u + digit_index);
       EXPECT_EQ(source.offset(), 2u);
       EXPECT_EQ(input, before);
     }
@@ -231,9 +231,9 @@ namespace
         const auto actual = consume_unicode_escape(source);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, 3u + digit_index);
+        EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), 3u + digit_index);
         EXPECT_EQ(source.offset(), 2u);
       }
     }
@@ -350,10 +350,10 @@ namespace
     }
     else
     {
-      EXPECT_EQ(decoded.error_if()->code, error_code::encoding);
-      EXPECT_FALSE(decoded.error_if()->has_byte_offset);
-      EXPECT_EQ(exported.error_if()->code, error_code::encoding);
-      EXPECT_FALSE(exported.error_if()->has_byte_offset);
+      EXPECT_EQ(decoded.error_if()->code(), error_code::encoding);
+      EXPECT_FALSE(decoded.error_if()->has_byte_offset());
+      EXPECT_EQ(exported.error_if()->code(), error_code::encoding);
+      EXPECT_FALSE(exported.error_if()->has_byte_offset());
       EXPECT_EQ(output, before);
     }
   }
@@ -403,8 +403,8 @@ namespace
       ASSERT_TRUE(stored.has_value());
       EXPECT_EQ(*stored.value_if(), item.expected);
       ASSERT_FALSE(exported.has_value());
-      EXPECT_EQ(exported.error_if()->code, error_code::encoding);
-      EXPECT_FALSE(exported.error_if()->has_byte_offset);
+      EXPECT_EQ(exported.error_if()->code(), error_code::encoding);
+      EXPECT_FALSE(exported.error_if()->has_byte_offset());
       EXPECT_EQ(output, before);
     }
   }

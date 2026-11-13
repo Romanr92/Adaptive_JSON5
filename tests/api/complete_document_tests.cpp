@@ -158,9 +158,9 @@ namespace
     ASSERT_FALSE(parsed.has_value());
     EXPECT_EQ(parsed.value_if(), nullptr);
     ASSERT_NE(parsed.error_if(), nullptr);
-    EXPECT_EQ(parsed.error_if()->code, fixture.code);
-    EXPECT_TRUE(parsed.error_if()->has_byte_offset);
-    EXPECT_EQ(parsed.error_if()->byte_offset, fixture.offset);
+    EXPECT_EQ(parsed.error_if()->code(), fixture.code);
+    EXPECT_TRUE(parsed.error_if()->has_byte_offset());
+    EXPECT_EQ(parsed.error_if()->byte_offset(), fixture.offset);
     EXPECT_EQ(accounting.current_bytes(), 0u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -225,7 +225,7 @@ namespace
         /* Expect */
         // Explicit lengths must never let a scanner consume the unread closing bytes.
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
         EXPECT_EQ(parsed.value_if(), nullptr);
         EXPECT_EQ(accounting.current_bytes(), 0u);
       }
@@ -293,7 +293,7 @@ namespace
     options.limits.max_work_units = 0;
     const auto limited = parse_document({"null", 4}, options, accounting);
     ASSERT_FALSE(limited.has_value());
-    EXPECT_EQ(limited.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(limited.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(accounting.current_bytes(), baseline);
     options.limits.max_work_units = 32768;
     const auto later = parse_document({"false", 5}, options, accounting);
@@ -334,7 +334,7 @@ namespace
       /* Expect */
       // Each failure point must release partially owned names and descendants without publishing them.
       ASSERT_FALSE(failed.has_value());
-      EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
       EXPECT_EQ(failed.value_if(), nullptr);
       EXPECT_EQ(accounting.current_bytes(), 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
@@ -392,7 +392,7 @@ namespace
       else
       {
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
         EXPECT_EQ(parsed.value_if(), nullptr);
         EXPECT_EQ(accounting.current_bytes(), 0u);
       }
@@ -439,14 +439,14 @@ namespace
     /* Expect */
     // A null pointer with zero length is empty input; with nonzero length it is invalid access.
     ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(wrong_limit.has_value());
-    EXPECT_EQ(wrong_limit.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(wrong_limit.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(missing.has_value());
-    EXPECT_EQ(missing.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(missing.error_if()->code(), error_code::allocation_failure);
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::syntax);
-    EXPECT_EQ(empty.error_if()->byte_offset, 0u);
+    EXPECT_EQ(empty.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(empty.error_if()->byte_offset(), 0u);
     EXPECT_EQ(provider.m_attempts, 0u);
   }
   /* ----------------------------------------------------------------------------------- */
@@ -482,7 +482,7 @@ namespace
         if (limit < peak)
         {
           ASSERT_NE(parsed.error_if(), nullptr);
-          EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+          EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
           EXPECT_EQ(accounting.current_bytes(), 0u);
         }
       }
@@ -494,7 +494,7 @@ namespace
       ASSERT_TRUE(caller_block.has_value());
       const auto failed = parse_document({input.data(), input.size()}, options, shared);
       ASSERT_FALSE(failed.has_value());
-      EXPECT_EQ(failed.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(failed.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(shared.current_bytes(), 1u);
     }
     EXPECT_EQ(shared.current_bytes(), 0u);
@@ -598,13 +598,13 @@ namespace
     }
     ASSERT_FALSE(rejected.has_value());
     EXPECT_EQ(rejected.value_if(), nullptr);
-    EXPECT_EQ(rejected.error_if()->code, error_code::duplicate_policy);
-    EXPECT_EQ(rejected.error_if()->byte_offset, 8u);
-    ASSERT_TRUE(rejected.error_if()->duplicate_names.has_value());
-    EXPECT_EQ(rejected.error_if()->duplicate_names->first.byte_offset, 1u);
-    EXPECT_EQ(rejected.error_if()->duplicate_names->first.byte_length, 1u);
-    EXPECT_EQ(rejected.error_if()->duplicate_names->repeated.byte_offset, 8u);
-    EXPECT_EQ(rejected.error_if()->duplicate_names->repeated.byte_length, 8u);
+    EXPECT_EQ(rejected.error_if()->code(), error_code::duplicate_policy);
+    EXPECT_EQ(rejected.error_if()->byte_offset(), 8u);
+    ASSERT_TRUE(rejected.error_if()->duplicate_names().has_value());
+    EXPECT_EQ(rejected.error_if()->duplicate_names()->first.byte_offset, 1u);
+    EXPECT_EQ(rejected.error_if()->duplicate_names()->first.byte_length, 1u);
+    EXPECT_EQ(rejected.error_if()->duplicate_names()->repeated.byte_offset, 8u);
+    EXPECT_EQ(rejected.error_if()->duplicate_names()->repeated.byte_length, 8u);
   }
   /* ================================= End Test_J5_032 ================================== */
 

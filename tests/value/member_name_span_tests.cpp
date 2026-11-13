@@ -19,9 +19,9 @@ namespace
   {
     /* Arrange */
     constexpr auto duplicate = error::duplicate_member({1, 3}, {12, 8});
-    static_assert(duplicate.code == error_code::duplicate_policy);
-    static_assert(duplicate.duplicate_names.has_value());
-    static_assert(duplicate.duplicate_names->first.byte_offset == 1);
+    static_assert(duplicate.code() == error_code::duplicate_policy);
+    static_assert(duplicate.duplicate_names().has_value());
+    static_assert(duplicate.duplicate_names()->first.byte_offset == 1);
     const auto located = error::at_offset(error_code::syntax, 0);
     const auto unlocated = error::without_location(error_code::allocation_failure);
     /* Act */
@@ -30,15 +30,15 @@ namespace
     // Inline metadata must remain useful when no diagnostic storage provider exists.
     ASSERT_NE(failed.error_if(), nullptr);
     const auto& actual = *failed.error_if();
-    EXPECT_TRUE(actual.has_byte_offset);
-    EXPECT_EQ(actual.byte_offset, 12u);
-    ASSERT_TRUE(actual.duplicate_names.has_value());
-    EXPECT_EQ(actual.duplicate_names->first.byte_offset, 1u);
-    EXPECT_EQ(actual.duplicate_names->first.byte_length, 3u);
-    EXPECT_EQ(actual.duplicate_names->repeated.byte_offset, 12u);
-    EXPECT_EQ(actual.duplicate_names->repeated.byte_length, 8u);
-    EXPECT_FALSE(located.duplicate_names.has_value());
-    EXPECT_FALSE(unlocated.duplicate_names.has_value());
+    EXPECT_TRUE(actual.has_byte_offset());
+    EXPECT_EQ(actual.byte_offset(), 12u);
+    ASSERT_TRUE(actual.duplicate_names().has_value());
+    EXPECT_EQ(actual.duplicate_names()->first.byte_offset, 1u);
+    EXPECT_EQ(actual.duplicate_names()->first.byte_length, 3u);
+    EXPECT_EQ(actual.duplicate_names()->repeated.byte_offset, 12u);
+    EXPECT_EQ(actual.duplicate_names()->repeated.byte_length, 8u);
+    EXPECT_FALSE(located.duplicate_names().has_value());
+    EXPECT_FALSE(unlocated.duplicate_names().has_value());
   }
   /* ================================= End Test_J5_032 ================================== */
 
@@ -117,7 +117,7 @@ namespace
     /* Expect */
     // std::move alone must not empty a supplied owner when validation rejects attachment.
     ASSERT_FALSE(invalid.has_value());
-    EXPECT_EQ(invalid.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(invalid.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_EQ(name.value_if()->size(), 1u);
     auto count = parent.value_if()->container_size();
     ASSERT_TRUE(count.has_value());

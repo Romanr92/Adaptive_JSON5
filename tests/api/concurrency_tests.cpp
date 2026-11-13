@@ -74,10 +74,10 @@ namespace
         {
           return;
         }
-        observed.correct = syntax.error_if()->code == error_code::syntax &&
-                           encoding.error_if()->code == error_code::encoding &&
-                           resource.error_if()->code == error_code::resource_limit &&
-                           allocation.error_if()->code == error_code::allocation_failure;
+        observed.correct = syntax.error_if()->code() == error_code::syntax &&
+                           encoding.error_if()->code() == error_code::encoding &&
+                           resource.error_if()->code() == error_code::resource_limit &&
+                           allocation.error_if()->code() == error_code::allocation_failure;
         const auto root = retained.value_if()->values.root();
         if (!root.has_value())
         {

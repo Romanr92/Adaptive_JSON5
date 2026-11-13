@@ -81,7 +81,7 @@ namespace
     EXPECT_TRUE(second.has_value());
     EXPECT_TRUE(third.has_value());
     ASSERT_FALSE(overflow.has_value());
-    EXPECT_EQ(overflow.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(overflow.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_EQ(list.size(), 3U);
     expect_warning(list, 0U, c_line);
     expect_warning(list, 1U, c_paragraph);
@@ -139,7 +139,7 @@ namespace
     const auto retried = list.reserve(70U);
     /* Expect */
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
     ASSERT_TRUE(retried.has_value());
     ASSERT_EQ(list.size(), 1U);
     expect_warning(list, 0U, c_line);
@@ -169,7 +169,7 @@ namespace
     expect_warning(destination, 1U, c_paragraph);
     const auto beyond = destination.reserve(1U);
     ASSERT_FALSE(beyond.has_value());
-    EXPECT_EQ(beyond.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(beyond.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(source.size(), 0U);
     EXPECT_FALSE(source.at(0U).has_value());
     EXPECT_FALSE(source.append_reserved(c_line).has_value());
@@ -193,10 +193,10 @@ namespace
     /* Expect */
     EXPECT_TRUE(none.has_value());
     ASSERT_FALSE(one.has_value());
-    EXPECT_EQ(one.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(one.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(list.size(), 0U);
     ASSERT_FALSE(read.has_value());
-    EXPECT_EQ(read.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(read.error_if()->code(), error_code::wrong_type_or_access);
   }
   /* ================================= End Test_J5_017 ================================= */
   /* =================================== Test_J5_046 =================================== */
@@ -224,7 +224,7 @@ namespace
     EXPECT_EQ(attempts_after_fill, 1U);
     EXPECT_EQ(provider.m_live_bytes, 16U * c_entry_bytes);
     ASSERT_FALSE(beyond.has_value());
-    EXPECT_EQ(beyond.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(beyond.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(provider.m_attempts, attempts_after_fill);
     EXPECT_EQ(list.size(), 16U);
   }
@@ -247,7 +247,7 @@ namespace
       const auto reserved = list.reserve(1U);
       /* Expect */
       ASSERT_FALSE(reserved.has_value());
-      EXPECT_EQ(reserved.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(reserved.error_if()->code(), error_code::resource_limit);
       EXPECT_EQ(provider.m_attempts, 0U);
     }
   }
@@ -272,7 +272,7 @@ namespace
     const auto reserved = list.reserve(3U);
     /* Expect */
     ASSERT_FALSE(reserved.has_value());
-    EXPECT_EQ(reserved.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(reserved.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(provider.m_attempts, attempts);
     ASSERT_EQ(list.size(), 2U);
     expect_warning(list, 0U, c_line);
@@ -309,7 +309,7 @@ namespace
     EXPECT_EQ(provider.m_attempts, 3U);
     const auto beyond = list.reserve(1U);
     ASSERT_FALSE(beyond.has_value());
-    EXPECT_EQ(beyond.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(beyond.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(list.size(), 200U);
   }
 

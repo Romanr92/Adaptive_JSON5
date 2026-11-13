@@ -283,9 +283,9 @@ namespace
         auto actual = consume_identifier(source, provider.callbacks(), 32);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, 1 + prefix.size());
+        EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), 1 + prefix.size());
         EXPECT_EQ(source.offset(), 1u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
       }
@@ -319,9 +319,9 @@ namespace
       else
       {
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, limit < 2 ? 0u : 4u);
+        EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), limit < 2 ? 0u : 4u);
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
       }
@@ -359,9 +359,9 @@ namespace
       auto actual = consume_identifier(source, provider.callbacks(), input.size());
       /* Expect */
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 0u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::allocation_failure);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 0u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
       EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -392,7 +392,7 @@ namespace
       auto missing = consume_identifier(source, {}, 5);
       /* Expect */
       ASSERT_FALSE(missing.has_value());
-      EXPECT_EQ(missing.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(missing.error_if()->code(), error_code::allocation_failure);
       EXPECT_EQ(source.offset(), 0u);
       auto actual = consume_identifier(source, provider.callbacks(), 5);
       ASSERT_TRUE(actual.has_value());
@@ -486,9 +486,9 @@ namespace
     auto actual = consume_identifier(source, provider.callbacks(), 32);
     /* Expect */
     ASSERT_FALSE(actual.has_value());
-    EXPECT_EQ(actual.error_if()->code, item.code);
-    EXPECT_TRUE(actual.error_if()->has_byte_offset);
-    EXPECT_EQ(actual.error_if()->byte_offset, 2 + item.offset);
+    EXPECT_EQ(actual.error_if()->code(), item.code);
+    EXPECT_TRUE(actual.error_if()->has_byte_offset());
+    EXPECT_EQ(actual.error_if()->byte_offset(), 2 + item.offset);
     EXPECT_EQ(source.offset(), 2u);
     EXPECT_EQ(provider.m_live_bytes, 0u);
     EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -538,9 +538,9 @@ namespace
         auto actual = consume_identifier(source, provider.callbacks(), 32);
         /* Expect */
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, size);
+        EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), size);
         EXPECT_EQ(source.offset(), 2u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
       }
@@ -573,9 +573,9 @@ namespace
       else
       {
         ASSERT_FALSE(actual.has_value());
-        EXPECT_EQ(actual.error_if()->code, error_code::resource_limit);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
-        EXPECT_EQ(actual.error_if()->byte_offset, 6 * limit);
+        EXPECT_EQ(actual.error_if()->code(), error_code::resource_limit);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
+        EXPECT_EQ(actual.error_if()->byte_offset(), 6 * limit);
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
       }
@@ -612,9 +612,9 @@ namespace
       auto actual = consume_identifier(source, provider.callbacks(), 9);
       /* Expect */
       ASSERT_FALSE(actual.has_value());
-      EXPECT_EQ(actual.error_if()->code, error_code::allocation_failure);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 0u);
+      EXPECT_EQ(actual.error_if()->code(), error_code::allocation_failure);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 0u);
       EXPECT_EQ(source.offset(), 0u);
       EXPECT_EQ(provider.m_live_bytes, 0u);
       EXPECT_EQ(provider.m_allocations, provider.m_releases);
@@ -749,9 +749,9 @@ namespace
     if (mode == syntax_mode::strict_json)
     {
       ASSERT_FALSE(member.has_value());
-      EXPECT_EQ(member.error_if()->code, error_code::syntax);
-      EXPECT_TRUE(member.error_if()->has_byte_offset);
-      EXPECT_EQ(member.error_if()->byte_offset, 3u);
+      EXPECT_EQ(member.error_if()->code(), error_code::syntax);
+      EXPECT_TRUE(member.error_if()->has_byte_offset());
+      EXPECT_EQ(member.error_if()->byte_offset(), 3u);
     }
     else
     {

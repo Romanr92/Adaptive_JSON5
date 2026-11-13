@@ -243,7 +243,7 @@ namespace
     expect_error(empty.unit_at(0), error_code::wrong_type_or_access);
     expect_error(decode_utf16(empty, 0), error_code::wrong_type_or_access);
     // Appends never grow storage, so content beyond the reservation is a contract violation.
-    expect_error(append, error_code::wrong_type_or_access);
+    expect_error(append, error_code::internal_error);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -366,7 +366,7 @@ namespace
     /* Expect */
     expect_error(failed, error_code::allocation_failure);
     // A failed reservation leaves no capacity, so nothing can be appended.
-    expect_error(failed_append, error_code::wrong_type_or_access);
+    expect_error(failed_append, error_code::internal_error);
     ASSERT_TRUE(retried.has_value());
     expect_units(text, units);
     EXPECT_EQ(provider.m_allocations, 1u);
@@ -392,7 +392,7 @@ namespace
     const auto appended = builder.append_scalar(0x1F3BC);
     auto text = builder.finish();
     /* Expect */
-    expect_error(appended, error_code::wrong_type_or_access);
+    expect_error(appended, error_code::internal_error);
     EXPECT_EQ(provider.m_attempts, attempts);
     expect_units(text, u"A");
   }
@@ -420,12 +420,12 @@ namespace
     const auto beyond = exact.append_unit(u'C');
     auto full = exact.finish();
     /* Expect */
-    expect_error(above, error_code::resource_limit);
+    expect_error(above, error_code::internal_error);
     EXPECT_EQ(attempts_after_above, 0u);
     ASSERT_TRUE(reserved.has_value());
     ASSERT_TRUE(first.has_value());
     ASSERT_TRUE(pair.has_value());
-    expect_error(beyond, error_code::wrong_type_or_access);
+    expect_error(beyond, error_code::internal_error);
     EXPECT_EQ(provider.m_allocations, 1u);
     expect_units(full, {u'A', 0xD83C, 0xDFBC});
   }
@@ -451,8 +451,8 @@ namespace
     const auto beyond = builder.append_unit(u'C');
     const auto second_reservation = builder.reserve_exact(4);
     /* Expect */
-    expect_error(beyond, error_code::wrong_type_or_access);
-    expect_error(second_reservation, error_code::wrong_type_or_access);
+    expect_error(beyond, error_code::internal_error);
+    expect_error(second_reservation, error_code::internal_error);
     EXPECT_EQ(provider.m_attempts, attempts);
     EXPECT_EQ(builder.size(), 2u);
     EXPECT_EQ(provider.m_live_bytes, 2 * sizeof(char16_t));
@@ -478,7 +478,7 @@ namespace
     auto text = builder.finish();
     /* Expect */
     expect_error(reserved, error_code::allocation_failure);
-    expect_error(appended, error_code::wrong_type_or_access);
+    expect_error(appended, error_code::internal_error);
     EXPECT_EQ(text.size(), 0u);
   }
 

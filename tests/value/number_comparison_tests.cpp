@@ -303,9 +303,9 @@ namespace
     const auto empty_right = compare_numbers(*other.value_if(), *moved_from.value_if(), scratch.callbacks());
     /* Expect */
     ASSERT_FALSE(empty_left.has_value());
-    EXPECT_EQ(empty_left.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(empty_left.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(empty_right.has_value());
-    EXPECT_EQ(empty_right.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(empty_right.error_if()->code(), error_code::wrong_type_or_access);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -339,7 +339,7 @@ namespace
     ASSERT_TRUE(within.has_value());
     EXPECT_EQ(*within.value_if(), c_greater);
     ASSERT_FALSE(beyond.has_value());
-    EXPECT_EQ(beyond.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(beyond.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(scratch.m_live_bytes, 0U);
   }
   /* ================================= End Test_J5_036 ================================= */
@@ -367,9 +367,9 @@ namespace
     const auto scratch_limited = compare_numbers(*left.value_if(), *right.value_if(), scratch.callbacks(), no_scratch);
     /* Expect */
     ASSERT_FALSE(work_limited.has_value());
-    EXPECT_EQ(work_limited.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(work_limited.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(scratch_limited.has_value());
-    EXPECT_EQ(scratch_limited.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(scratch_limited.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(scratch.m_live_bytes, 0U);
   }
 
@@ -404,7 +404,7 @@ namespace
         EXPECT_EQ(*compared.value_if(), c_equal);
         continue;
       }
-      EXPECT_EQ(compared.error_if()->code, error_code::allocation_failure) << "fail_on " << fail_on;
+      EXPECT_EQ(compared.error_if()->code(), error_code::allocation_failure) << "fail_on " << fail_on;
       ++failures;
     }
     /* Expect */

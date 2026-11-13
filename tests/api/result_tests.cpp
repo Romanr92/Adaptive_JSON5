@@ -228,9 +228,9 @@ namespace
     EXPECT_FALSE(failure_copy.has_value());
     EXPECT_EQ(failure_copy.value_if(), nullptr);
     ASSERT_NE(failure_copy.error_if(), nullptr);
-    EXPECT_EQ(failure_copy.error_if()->code, error_code::syntax);
-    EXPECT_EQ(failure_copy.error_if()->byte_offset, 17U);
-    EXPECT_TRUE(failure_copy.error_if()->has_byte_offset);
+    EXPECT_EQ(failure_copy.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(failure_copy.error_if()->byte_offset(), 17U);
+    EXPECT_TRUE(failure_copy.error_if()->has_byte_offset());
     EXPECT_TRUE(success.has_value());
     EXPECT_FALSE(failure.has_value());
   }
@@ -257,8 +257,8 @@ namespace
     EXPECT_FALSE(moved_failure.has_value());
     EXPECT_EQ(moved_failure.value_if(), nullptr);
     ASSERT_NE(moved_failure.error_if(), nullptr);
-    EXPECT_EQ(moved_failure.error_if()->code, error_code::encoding);
-    EXPECT_EQ(moved_failure.error_if()->byte_offset, 17U);
+    EXPECT_EQ(moved_failure.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(moved_failure.error_if()->byte_offset(), 17U);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -331,9 +331,9 @@ namespace
     /* Expect */
     EXPECT_FALSE(moved.has_value());
     ASSERT_NE(moved.error_if(), nullptr);
-    EXPECT_EQ(moved.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_FALSE(moved.error_if()->has_byte_offset);
-    EXPECT_EQ(moved.error_if()->byte_offset, 0U);
+    EXPECT_EQ(moved.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_FALSE(moved.error_if()->has_byte_offset());
+    EXPECT_EQ(moved.error_if()->byte_offset(), 0U);
     EXPECT_FALSE(original.has_value());
   }
 
@@ -354,8 +354,8 @@ namespace
     actual = failed;
     const bool failure_state = !actual.has_value();
     const auto* stored_error = actual.error_if();
-    const bool failure_contents = stored_error != nullptr && stored_error->code == error_code::resource_limit &&
-                                  stored_error->byte_offset == 17 && stored_error->has_byte_offset;
+    const bool failure_contents = stored_error != nullptr && stored_error->code() == error_code::resource_limit &&
+                                  stored_error->byte_offset() == 17 && stored_error->has_byte_offset();
     actual = std::move(succeeded);
     /* Expect */
     EXPECT_TRUE(failure_state);
@@ -444,20 +444,20 @@ namespace
     const auto status = adaptive_json5::status_result::failure(reason);
     /* Expect */
     EXPECT_EQ(static_cast<std::int32_t>(category.code), category.expected_number);
-    EXPECT_EQ(reason.code, category.code);
-    EXPECT_EQ(reason.byte_offset, offset);
-    EXPECT_TRUE(reason.has_byte_offset);
+    EXPECT_EQ(reason.code(), category.code);
+    EXPECT_EQ(reason.byte_offset(), offset);
+    EXPECT_TRUE(reason.has_byte_offset());
     EXPECT_FALSE(value.has_value());
     EXPECT_EQ(value.value_if(), nullptr);
     ASSERT_NE(value.error_if(), nullptr);
-    EXPECT_EQ(value.error_if()->code, category.code);
-    EXPECT_EQ(value.error_if()->byte_offset, offset);
-    EXPECT_TRUE(value.error_if()->has_byte_offset);
+    EXPECT_EQ(value.error_if()->code(), category.code);
+    EXPECT_EQ(value.error_if()->byte_offset(), offset);
+    EXPECT_TRUE(value.error_if()->has_byte_offset());
     EXPECT_FALSE(status.has_value());
     ASSERT_NE(status.error_if(), nullptr);
-    EXPECT_EQ(status.error_if()->code, category.code);
-    EXPECT_EQ(status.error_if()->byte_offset, offset);
-    EXPECT_TRUE(status.error_if()->has_byte_offset);
+    EXPECT_EQ(status.error_if()->code(), category.code);
+    EXPECT_EQ(status.error_if()->byte_offset(), offset);
+    EXPECT_TRUE(status.error_if()->has_byte_offset());
   }
 
   INSTANTIATE_TEST_SUITE_P(CategoriesAndBoundaries, J5_043_LocatedResult,
@@ -489,22 +489,22 @@ namespace
     const auto value = int_result::failure(absent);
     const auto status = adaptive_json5::status_result::failure(absent);
     /* Expect */
-    EXPECT_TRUE(located.has_byte_offset);
-    EXPECT_EQ(located.byte_offset, 0U);
-    EXPECT_FALSE(absent.has_byte_offset);
-    EXPECT_EQ(absent.byte_offset, 0U);
-    EXPECT_EQ(absent.code, category.code);
+    EXPECT_TRUE(located.has_byte_offset());
+    EXPECT_EQ(located.byte_offset(), 0U);
+    EXPECT_FALSE(absent.has_byte_offset());
+    EXPECT_EQ(absent.byte_offset(), 0U);
+    EXPECT_EQ(absent.code(), category.code);
     EXPECT_FALSE(value.has_value());
     EXPECT_EQ(value.value_if(), nullptr);
     ASSERT_NE(value.error_if(), nullptr);
-    EXPECT_EQ(value.error_if()->code, category.code);
-    EXPECT_FALSE(value.error_if()->has_byte_offset);
-    EXPECT_EQ(value.error_if()->byte_offset, 0U);
+    EXPECT_EQ(value.error_if()->code(), category.code);
+    EXPECT_FALSE(value.error_if()->has_byte_offset());
+    EXPECT_EQ(value.error_if()->byte_offset(), 0U);
     EXPECT_FALSE(status.has_value());
     ASSERT_NE(status.error_if(), nullptr);
-    EXPECT_EQ(status.error_if()->code, category.code);
-    EXPECT_FALSE(status.error_if()->has_byte_offset);
-    EXPECT_EQ(status.error_if()->byte_offset, 0U);
+    EXPECT_EQ(status.error_if()->code(), category.code);
+    EXPECT_FALSE(status.error_if()->has_byte_offset());
+    EXPECT_EQ(status.error_if()->byte_offset(), 0U);
   }
 
   INSTANTIATE_TEST_SUITE_P(Categories, J5_043_UnlocatedResult, testing::ValuesIn(code_cases),
@@ -524,10 +524,10 @@ namespace
   constexpr auto allocation_status_result = adaptive_json5::status_result::failure(allocation_reason);
   static_assert(!allocation_value_result.has_value());
   static_assert(allocation_value_result.value_if() == nullptr);
-  static_assert(allocation_value_result.error_if()->code == error_code::allocation_failure);
-  static_assert(allocation_value_result.error_if()->byte_offset == std::numeric_limits<std::size_t>::max());
+  static_assert(allocation_value_result.error_if()->code() == error_code::allocation_failure);
+  static_assert(allocation_value_result.error_if()->byte_offset() == std::numeric_limits<std::size_t>::max());
   static_assert(!allocation_status_result.has_value());
-  static_assert(allocation_status_result.error_if()->code == error_code::allocation_failure);
+  static_assert(allocation_status_result.error_if()->code() == error_code::allocation_failure);
 
   /* Verify the minimal allocation-failure outcome is available in constant evaluation.
    * Arrange: Use compile-time failure results with the largest representable location.
@@ -544,12 +544,12 @@ namespace
     /* Expect */
     ASSERT_NE(value_error, nullptr);
     ASSERT_NE(status_error, nullptr);
-    EXPECT_EQ(value_error->code, error_code::allocation_failure);
-    EXPECT_EQ(value_error->byte_offset, expected_offset);
-    EXPECT_TRUE(value_error->has_byte_offset);
-    EXPECT_EQ(status_error->code, error_code::allocation_failure);
-    EXPECT_EQ(status_error->byte_offset, expected_offset);
-    EXPECT_TRUE(status_error->has_byte_offset);
+    EXPECT_EQ(value_error->code(), error_code::allocation_failure);
+    EXPECT_EQ(value_error->byte_offset(), expected_offset);
+    EXPECT_TRUE(value_error->has_byte_offset());
+    EXPECT_EQ(status_error->code(), error_code::allocation_failure);
+    EXPECT_EQ(status_error->byte_offset(), expected_offset);
+    EXPECT_TRUE(status_error->has_byte_offset());
   }
 
   /* ================================= End Test_J5_045 ================================= */

@@ -127,13 +127,13 @@ namespace
       {
         ASSERT_FALSE(actual.has_value());
         ASSERT_NE(actual.error_if(), nullptr);
-        EXPECT_EQ(actual.error_if()->code, error_code::syntax);
-        EXPECT_TRUE(actual.error_if()->has_byte_offset);
+        EXPECT_EQ(actual.error_if()->code(), error_code::syntax);
+        EXPECT_TRUE(actual.error_if()->has_byte_offset());
         // The closer was expected at the end of the bounded input; the range starts at the opener.
-        EXPECT_EQ(actual.error_if()->byte_offset, end);
-        ASSERT_TRUE(actual.error_if()->source_range.has_value());
-        EXPECT_EQ(actual.error_if()->source_range->byte_offset, 1U);
-        EXPECT_EQ(actual.error_if()->source_range->byte_length, end - 1);
+        EXPECT_EQ(actual.error_if()->byte_offset(), end);
+        ASSERT_TRUE(actual.error_if()->source_range().has_value());
+        EXPECT_EQ(actual.error_if()->source_range()->byte_offset, 1U);
+        EXPECT_EQ(actual.error_if()->source_range()->byte_length, end - 1);
         EXPECT_EQ(actual.value_if(), nullptr);
       }
     }
@@ -166,7 +166,7 @@ namespace
     EXPECT_EQ(line_result.value_if()->value().byte_length, 3U);
     EXPECT_TRUE(line_source.is_at_end());
     ASSERT_FALSE(block_result.has_value());
-    EXPECT_EQ(block_result.error_if()->code, error_code::syntax);
+    EXPECT_EQ(block_result.error_if()->code(), error_code::syntax);
     EXPECT_EQ(block_source.offset(), 0U);
     ASSERT_TRUE(empty_line.has_value());
     EXPECT_FALSE(empty_line.value_if()->has_value());
@@ -211,9 +211,9 @@ namespace
       /* Expect */
       ASSERT_FALSE(actual.has_value());
       ASSERT_NE(actual.error_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, error_code::encoding);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 5U);
+      EXPECT_EQ(actual.error_if()->code(), error_code::encoding);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 5U);
       EXPECT_EQ(actual.value_if(), nullptr);
       EXPECT_EQ(source.offset(), 1U);
       EXPECT_EQ(source.peek(), '/');
@@ -300,9 +300,9 @@ namespace
     {
       ASSERT_FALSE(actual.has_value());
       ASSERT_NE(actual.error_if(), nullptr);
-      EXPECT_EQ(actual.error_if()->code, sample.code);
-      EXPECT_TRUE(actual.error_if()->has_byte_offset);
-      EXPECT_EQ(actual.error_if()->byte_offset, 3 + sample.offset);
+      EXPECT_EQ(actual.error_if()->code(), sample.code);
+      EXPECT_TRUE(actual.error_if()->has_byte_offset());
+      EXPECT_EQ(actual.error_if()->byte_offset(), 3 + sample.offset);
       EXPECT_EQ(actual.value_if(), nullptr);
       EXPECT_EQ(source.offset(), 3U);
     }

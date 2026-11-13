@@ -1,9 +1,11 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "value/document_links.hpp"
 #include "value/value_record.hpp"
 
 #include <gtest/gtest.h>
 #include <limits>
+#include <optional>
 #include <utility>
 #include <variant>
 
@@ -95,6 +97,44 @@ namespace
     }
   }
 
+  /**
+   * @brief Expected failure for one injected attachment fault (issue #125).
+   * @par Requirements
+   * P030; J5-039; J5-043; J5-047.
+   * @param fault Injected inconsistency.
+   * @param detached_entry True for attach_to_detached_parent, which skips the ancestor walk.
+   * @return Expected error code and, for wrong_type_or_access, its access reason.
+   * @note Checks that a public attach call can also reach keep their access reason: a link to an
+   * index outside the storage is index_out_of_range, a cycle or an already linked child is
+   * invalid_argument. The other relationship faults can only come from damaged records and are
+   * internal_error.
+   */
+  std::pair<error_code, std::optional<access_error_reason>> expected_failure(attachment_fault fault,
+                                                                             bool detached_entry)
+  {
+    switch (fault)
+    {
+    case attachment_fault::count_overflow:
+      return {error_code::resource_limit, std::nullopt};
+    case attachment_fault::invalid_last:
+      return {error_code::wrong_type_or_access, access_error_reason::index_out_of_range};
+    case attachment_fault::child_with_sibling:
+    case attachment_fault::child_with_name:
+      return {error_code::wrong_type_or_access, access_error_reason::invalid_argument};
+    case attachment_fault::ancestor_outside_storage:
+      return detached_entry
+               ? std::pair<error_code, std::optional<access_error_reason>>{error_code::internal_error, std::nullopt}
+               : std::pair<error_code, std::optional<access_error_reason>>{error_code::wrong_type_or_access,
+                                                                           access_error_reason::index_out_of_range};
+    case attachment_fault::ancestor_cycle:
+      return detached_entry
+               ? std::pair<error_code, std::optional<access_error_reason>>{error_code::internal_error, std::nullopt}
+               : std::pair<error_code, std::optional<access_error_reason>>{error_code::wrong_type_or_access,
+                                                                           access_error_reason::invalid_argument};
+    default:
+      return {error_code::internal_error, std::nullopt};
+    }
+  }
   /* =================================== Test_J5_039 ==================================== */
   /*
    * Arrange: Three live internal records with one malformed relationship description.
@@ -133,9 +173,9 @@ namespace
     const auto attached = attach_child(values, {}, value_index{0}, value_index{2}, nullptr);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
-    EXPECT_EQ(attached.error_if()->code, GetParam() == attachment_fault::count_overflow
-                                           ? error_code::resource_limit
-                                           : error_code::wrong_type_or_access);
+    const auto expected = expected_failure(GetParam(), false);
+    EXPECT_EQ(attached.error_if()->code(), expected.first);
+    EXPECT_EQ(attached.error_if()->access_reason(), expected.second);
     EXPECT_FALSE(child.parent.is_set());
     EXPECT_EQ(child.next_sibling.is_set(), old_sibling.is_set());
     if (old_sibling.is_set())
@@ -211,9 +251,9 @@ namespace
     const auto attached = attach_to_detached_parent(values, {}, value_index{0}, value_index{2}, nullptr);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
-    EXPECT_EQ(attached.error_if()->code, GetParam() == attachment_fault::count_overflow
-                                           ? error_code::resource_limit
-                                           : error_code::wrong_type_or_access);
+    const auto expected = expected_failure(GetParam(), true);
+    EXPECT_EQ(attached.error_if()->code(), expected.first);
+    EXPECT_EQ(attached.error_if()->access_reason(), expected.second);
     EXPECT_FALSE(child.parent.is_set());
     EXPECT_EQ(child.next_sibling.is_set(), old_sibling);
     EXPECT_EQ(child.member_name.has_value(), old_name);
@@ -256,7 +296,7 @@ namespace
     const auto walked = attach_child(values, {}, value_index{1}, value_index{2}, nullptr);
     /* Expect */
     ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(rejected.error_if()->code(), error_code::internal_error);
     EXPECT_TRUE(unchanged);
     ASSERT_TRUE(walked.has_value());
     ASSERT_TRUE(child.parent.is_set());

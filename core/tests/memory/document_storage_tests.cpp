@@ -134,7 +134,7 @@ namespace
     for (const auto* attempt : {&null_storage, &empty, &small})
     {
       ASSERT_FALSE(attempt->has_value());
-      EXPECT_EQ(attempt->error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(attempt->error_if()->code(), error_code::allocation_failure);
     }
     EXPECT_EQ(byte, std::byte{0x5a});
   }
@@ -156,7 +156,7 @@ namespace
     const auto denied = accounting->allocate(512, 1);
     /* Expect */
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(denied.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(accounting->current_bytes(), 0u);
     EXPECT_EQ(accounting->peak_bytes(), 0u);
     const auto retry = accounting->allocate(8, 1);
@@ -186,7 +186,7 @@ namespace
     ASSERT_TRUE(empty.has_value());
     EXPECT_EQ(empty.value_if()->data(), nullptr);
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(accounting->byte_limit(), 0u);
     EXPECT_EQ(accounting->current_bytes(), 0u);
     EXPECT_EQ(accounting->peak_bytes(), 0u);

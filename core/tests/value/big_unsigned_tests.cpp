@@ -280,7 +280,7 @@ namespace
     const auto appended = value.append_digit(param.digit, param.radix, work);
     /* Expect */
     ASSERT_FALSE(appended.has_value());
-    EXPECT_EQ(appended.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(appended.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(order_of(value, reference), magnitude_order::equal);
   }
 
@@ -455,7 +455,7 @@ namespace
     const auto self = seven.subtract(seven, work);
     /* Expect */
     ASSERT_FALSE(negative.has_value());
-    EXPECT_EQ(negative.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(negative.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(after_rejection, magnitude_order::equal);
     ASSERT_TRUE(self.has_value());
     EXPECT_TRUE(seven.is_zero());
@@ -552,9 +552,9 @@ namespace
     const auto retried = value.append_digit(0U, 10U, setup);
     /* Expect */
     ASSERT_FALSE(appended.has_value());
-    EXPECT_EQ(appended.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(appended.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(shifted.has_value());
-    EXPECT_EQ(shifted.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(shifted.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(small.consumed(), 0U);
     EXPECT_EQ(after_failures, magnitude_order::equal);
     EXPECT_TRUE(retried.has_value());
@@ -589,7 +589,7 @@ namespace
     }
     /* Expect */
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
     EXPECT_TRUE(zero_after_failure);
     EXPECT_TRUE(loaded);
     EXPECT_EQ(provider.m_allocations, allocations + 1U);
@@ -620,7 +620,7 @@ namespace
     EXPECT_TRUE(first.has_value());
     EXPECT_EQ(attempts_after_first, 1U);
     ASSERT_FALSE(repeated.has_value());
-    EXPECT_EQ(repeated.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(repeated.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(provider.m_attempts, attempts_after_first);
     EXPECT_TRUE(value.is_zero());
   }
@@ -655,7 +655,7 @@ namespace
     for (const auto* failure : {&grown, &shifted, &copied})
     {
       ASSERT_FALSE(failure->has_value());
-      EXPECT_EQ(failure->error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(failure->error_if()->code(), error_code::internal_error);
     }
     EXPECT_EQ(order_of(value, reference), magnitude_order::equal);
     EXPECT_TRUE(destination.is_zero());
@@ -720,13 +720,13 @@ namespace
     // 10^20 needs 67 bits; the bound must not be smaller.
     EXPECT_EQ(*twenty_bits.value_if(), 67U);
     ASSERT_FALSE(overflow_bits.has_value());
-    EXPECT_EQ(overflow_bits.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(overflow_bits.error_if()->code(), error_code::resource_limit);
     ASSERT_TRUE(zero_limbs.has_value() && full_limbs.has_value() && partial_limbs.has_value());
     EXPECT_EQ(*zero_limbs.value_if(), 1U);
     EXPECT_EQ(*full_limbs.value_if(), 2U);
     EXPECT_EQ(*partial_limbs.value_if(), 3U);
     ASSERT_FALSE(overflow_limbs.has_value());
-    EXPECT_EQ(overflow_limbs.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(overflow_limbs.error_if()->code(), error_code::resource_limit);
   }
   /* ================================= End Test_J5_037 ================================= */
   /* =================================== Test_J5_038 =================================== */
@@ -782,11 +782,11 @@ namespace
     ASSERT_EQ(as_float.has_value(), !param.fails);
     if (param.fails)
     {
-      EXPECT_EQ(as_double.error_if()->code, error_code::numeric_conversion);
-      ASSERT_TRUE(as_double.error_if()->numeric_reason.has_value());
-      EXPECT_EQ(*as_double.error_if()->numeric_reason, numeric_conversion_reason::non_finite);
-      ASSERT_TRUE(as_float.error_if()->numeric_reason.has_value());
-      EXPECT_EQ(*as_float.error_if()->numeric_reason, numeric_conversion_reason::non_finite);
+      EXPECT_EQ(as_double.error_if()->code(), error_code::numeric_conversion);
+      ASSERT_TRUE(as_double.error_if()->numeric_reason().has_value());
+      EXPECT_EQ(*as_double.error_if()->numeric_reason(), numeric_conversion_reason::non_finite);
+      ASSERT_TRUE(as_float.error_if()->numeric_reason().has_value());
+      EXPECT_EQ(*as_float.error_if()->numeric_reason(), numeric_conversion_reason::non_finite);
       return;
     }
     ASSERT_EQ(as_double.value_if()->has_value(), param.produces_value);

@@ -123,7 +123,7 @@ namespace
         const auto failed = consume_string(source, syntax_mode::json5, provider.callbacks(), 8);
         /* Expect */
         ASSERT_FALSE(failed.has_value());
-        EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+        EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
         EXPECT_EQ(source.offset(), 0u);
         EXPECT_EQ(provider.m_live_bytes, 0u);
         provider.m_fail_on = 0;

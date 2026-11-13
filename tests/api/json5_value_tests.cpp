@@ -92,7 +92,7 @@ namespace
   {
     ASSERT_FALSE(value.ok());
     ASSERT_NE(value.error_if(), nullptr);
-    EXPECT_EQ(value.error_if()->code, code);
+    EXPECT_EQ(value.error_if()->code(), code);
   }
   /* ================================== End Fixtures =================================== */
   /* =================================== Test_J5_030 =================================== */
@@ -214,7 +214,7 @@ namespace
     expect_error(root.member("\xC3"), error_code::encoding);
     const auto scalar_size = root.member("name").size();
     ASSERT_FALSE(scalar_size.has_value());
-    EXPECT_EQ(scalar_size.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(scalar_size.error_if()->code(), error_code::wrong_type_or_access);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -238,10 +238,10 @@ namespace
     const auto as_string = lost.as_string(text, sizeof(text));
     /* Expect */
     expect_error(lost, error_code::wrong_type_or_access);
-    EXPECT_EQ(as_bool.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(as_int.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(as_double.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(as_string.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(as_bool.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(as_int.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(as_double.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(as_string.error_if()->code(), error_code::wrong_type_or_access);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -265,10 +265,10 @@ namespace
     const auto integer = name.as_uint64();
     const auto string = port.as_string(text, sizeof(text));
     /* Expect */
-    EXPECT_EQ(number.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(boolean.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(integer.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(string.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(number.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(boolean.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(integer.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(string.error_if()->code(), error_code::wrong_type_or_access);
   }
   /* ================================= End Test_J5_039 ================================= */
   /* =================================== Test_J5_036 =================================== */
@@ -289,11 +289,11 @@ namespace
     /* Act and Expect */
     EXPECT_EQ(*values.at(0).as_int64().value_if(), 100);
     EXPECT_EQ(*values.at(1).as_uint64().value_if(), 1U);
-    EXPECT_EQ(values.at(2).as_int64().error_if()->code, error_code::numeric_conversion);
+    EXPECT_EQ(values.at(2).as_int64().error_if()->code(), error_code::numeric_conversion);
     EXPECT_EQ(*values.at(3).as_int64().value_if(), -7);
-    EXPECT_EQ(values.at(3).as_uint64().error_if()->code, error_code::numeric_conversion);
+    EXPECT_EQ(values.at(3).as_uint64().error_if()->code(), error_code::numeric_conversion);
     EXPECT_EQ(*values.at(4).as_int64().value_if(), std::numeric_limits<std::int64_t>::max());
-    EXPECT_EQ(values.at(5).as_int64().error_if()->code, error_code::numeric_conversion);
+    EXPECT_EQ(values.at(5).as_int64().error_if()->code(), error_code::numeric_conversion);
     EXPECT_EQ(*values.at(5).as_uint64().value_if(), 9223372036854775808U);
     EXPECT_EQ(*values.at(6).as_uint64().value_if(), std::numeric_limits<std::uint64_t>::max());
     EXPECT_EQ(*values.at(7).as_int64().value_if(), 31);
@@ -333,7 +333,7 @@ namespace
     ASSERT_TRUE(tenth.has_value());
     EXPECT_EQ(*tenth.value_if(), 0.1);
     ASSERT_FALSE(infinity.has_value());
-    EXPECT_EQ(infinity.error_if()->code, error_code::numeric_conversion);
+    EXPECT_EQ(infinity.error_if()->code(), error_code::numeric_conversion);
     EXPECT_EQ(repeated_failures, 0U);
     EXPECT_EQ(fixture.document->current_bytes(), bytes_before);
   }
@@ -453,16 +453,16 @@ namespace
     else
     {
       ASSERT_FALSE(ratio_without.has_value());
-      EXPECT_EQ(ratio_without.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(ratio_without.error_if()->code(), error_code::allocation_failure);
       ASSERT_FALSE(ratio_float_without.has_value());
-      EXPECT_EQ(ratio_float_without.error_if()->code, error_code::allocation_failure);
+      EXPECT_EQ(ratio_float_without.error_if()->code(), error_code::allocation_failure);
     }
     ASSERT_FALSE(long_without.has_value());
-    EXPECT_EQ(long_without.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(long_without.error_if()->code(), error_code::allocation_failure);
     ASSERT_FALSE(long_float_without.has_value());
-    EXPECT_EQ(long_float_without.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(long_float_without.error_if()->code(), error_code::allocation_failure);
     ASSERT_FALSE(from_error.has_value());
-    EXPECT_EQ(from_error.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(from_error.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_EQ(scratch.m_attempts, used_requests);
   }
 
@@ -497,9 +497,9 @@ namespace
     ASSERT_TRUE(long_spelling.has_value());
     EXPECT_EQ(*long_spelling.value_if(), 0x1.000002p0F);
     ASSERT_FALSE(too_large.has_value());
-    EXPECT_EQ(too_large.error_if()->code, error_code::numeric_conversion);
+    EXPECT_EQ(too_large.error_if()->code(), error_code::numeric_conversion);
     ASSERT_FALSE(text.has_value());
-    EXPECT_EQ(text.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(text.error_if()->code(), error_code::wrong_type_or_access);
   }
   /* ================================= End Test_J5_037 ================================= */
   /* =================================== Test_J5_031 =================================== */
@@ -570,7 +570,7 @@ namespace
     expect_error(missing, error_code::wrong_type_or_access);
     if (count == 0U)
     {
-      EXPECT_EQ(first_value.error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(first_value.error_if()->code(), error_code::wrong_type_or_access);
       return;
     }
     ASSERT_TRUE(first_value.has_value());
@@ -629,11 +629,11 @@ namespace
     ASSERT_TRUE(by_position.has_value());
     // The same record yields the same borrowed payload address.
     EXPECT_EQ(*found.value_if()->as_number().value_if(), *by_position.value_if()->as_number().value_if());
-    EXPECT_EQ(duplicated.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(missing.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(invalid_name.error_if()->code, error_code::encoding);
-    EXPECT_EQ(in_array.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(in_invalid_view.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(duplicated.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(missing.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(invalid_name.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(in_array.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(in_invalid_view.error_if()->code(), error_code::wrong_type_or_access);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -670,11 +670,11 @@ namespace
     const json5_value empty_through_member = empty.document->root().member("\xC3");
     const json5_value in_array = array.document->root().member("\xC3");
     /* Expect */
-    EXPECT_EQ(in_empty.error_if()->code, error_code::encoding);
-    EXPECT_EQ(after_difference.error_if()->code, error_code::encoding);
-    EXPECT_EQ(after_match.error_if()->code, error_code::encoding);
-    EXPECT_EQ(cut_four_byte.error_if()->code, error_code::encoding);
-    EXPECT_EQ(stray_continuation.error_if()->code, error_code::encoding);
+    EXPECT_EQ(in_empty.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(after_difference.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(after_match.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(cut_four_byte.error_if()->code(), error_code::encoding);
+    EXPECT_EQ(stray_continuation.error_if()->code(), error_code::encoding);
     ASSERT_TRUE(valid.has_value());
     // The same record yields the same borrowed payload address.
     EXPECT_EQ(*valid.value_if()->as_number().value_if(),
@@ -709,7 +709,7 @@ namespace
     EXPECT_EQ(*cafe.value_if(), "caf\xC3\xA9");
     EXPECT_EQ(cafe.value_if()->data(), exact);
     ASSERT_FALSE(too_short.has_value());
-    EXPECT_EQ(too_short.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(too_short.error_if()->code(), error_code::resource_limit);
     ASSERT_TRUE(empty.has_value());
     EXPECT_TRUE(empty.value_if()->empty());
   }
@@ -769,7 +769,7 @@ namespace
     /* Expect */
     EXPECT_FALSE(ambiguous.ok());
     ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code, error_code::duplicate_policy);
+    EXPECT_EQ(rejected.error_if()->code(), error_code::duplicate_policy);
   }
   /* ================================= End Test_J5_032 ================================= */
   /* =================================== Test_J5_040 =================================== */

@@ -234,10 +234,8 @@ namespace
                    "line: 2, column: 5: unexpected content after value"},
       message_case{"UnknownSyntaxReason", error::syntax_at(c_at, static_cast<syntax_error_reason>(99)),
                    "line: 2, column: 5: syntax error"},
-      // A reason never overrides a different category.
-      message_case{"ReasonIgnoredForOtherCode",
-                   error{error_code::encoding, c_at, true, std::nullopt, std::nullopt, std::nullopt,
-                         syntax_error_reason::missing_colon},
+      // Only a syntax error carries a syntax reason, so other categories format by category.
+      message_case{"ReasonIgnoredForOtherCode", error::at_offset(error_code::encoding, c_at),
                    "line: 2, column: 5: invalid UTF-8"}),
     case_name<message_case>);
   /* ----------------------------------------------------------------------------------- */
@@ -469,7 +467,7 @@ namespace
          {&null_error, &null_error_at, &null_warning_at, &offset_error, &first_error, &offset_warning})
     {
       ASSERT_FALSE(outcome->has_value());
-      EXPECT_EQ(outcome->error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(outcome->error_if()->code(), error_code::wrong_type_or_access);
     }
     for (const char byte : buffer)
     {

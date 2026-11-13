@@ -115,16 +115,16 @@ namespace
     const auto parsed = parse_document(input, options, accounting);
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
-    const auto position = locate(input, failure.byte_offset);
+    const auto position = locate(input, failure.byte_offset());
     /* Expect */
-    EXPECT_EQ(failure.code, param.code);
-    ASSERT_TRUE(failure.has_byte_offset);
-    EXPECT_EQ(failure.byte_offset, param.offset);
-    ASSERT_EQ(failure.source_range.has_value(), param.has_range);
+    EXPECT_EQ(failure.code(), param.code);
+    ASSERT_TRUE(failure.has_byte_offset());
+    EXPECT_EQ(failure.byte_offset(), param.offset);
+    ASSERT_EQ(failure.source_range().has_value(), param.has_range);
     if (param.has_range)
     {
-      EXPECT_EQ(failure.source_range->byte_offset, param.range.byte_offset);
-      EXPECT_EQ(failure.source_range->byte_length, param.range.byte_length);
+      EXPECT_EQ(failure.source_range()->byte_offset, param.range.byte_offset);
+      EXPECT_EQ(failure.source_range()->byte_length, param.range.byte_length);
     }
     ASSERT_TRUE(position.has_value());
     EXPECT_EQ(position.value_if()->line, param.line);
@@ -208,14 +208,14 @@ namespace
     const auto parsed = parse_document(input, options, accounting);
     ASSERT_FALSE(parsed.has_value());
     const error& failure = *parsed.error_if();
-    ASSERT_TRUE(failure.duplicate_names.has_value());
-    const auto first = locate(input, failure.duplicate_names->first.byte_offset);
-    const auto repeated = locate(input, failure.duplicate_names->repeated.byte_offset);
+    ASSERT_TRUE(failure.duplicate_names().has_value());
+    const auto first = locate(input, failure.duplicate_names()->first.byte_offset);
+    const auto repeated = locate(input, failure.duplicate_names()->repeated.byte_offset);
     /* Expect */
-    EXPECT_EQ(failure.code, error_code::duplicate_policy);
-    EXPECT_EQ(failure.byte_offset, 7U);
-    EXPECT_EQ(failure.duplicate_names->first.byte_offset, 1U);
-    EXPECT_EQ(failure.duplicate_names->repeated.byte_offset, 7U);
+    EXPECT_EQ(failure.code(), error_code::duplicate_policy);
+    EXPECT_EQ(failure.byte_offset(), 7U);
+    EXPECT_EQ(failure.duplicate_names()->first.byte_offset, 1U);
+    EXPECT_EQ(failure.duplicate_names()->repeated.byte_offset, 7U);
     ASSERT_TRUE(first.has_value());
     ASSERT_TRUE(repeated.has_value());
     EXPECT_EQ(first.value_if()->line, 1U);
@@ -336,7 +336,7 @@ namespace
     EXPECT_GT(with, without);
     EXPECT_GE(with, input.size());
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(accounting.current_bytes(), 0U);
   }
   /* ================================= End Test_J5_041 ================================= */
@@ -371,13 +371,13 @@ namespace
       // Only a failed parse must release everything; a successful document still owns its storage.
       EXPECT_EQ(accounting.current_bytes(), 0U) << "fail_on " << fail_on;
       const error& failure = *parsed.error_if();
-      EXPECT_EQ(failure.code, error_code::allocation_failure) << "fail_on " << fail_on;
-      EXPECT_FALSE(failure.duplicate_names.has_value()) << "fail_on " << fail_on;
-      EXPECT_FALSE(failure.numeric_reason.has_value()) << "fail_on " << fail_on;
-      EXPECT_FALSE(failure.source_range.has_value()) << "fail_on " << fail_on;
-      if (failure.has_byte_offset)
+      EXPECT_EQ(failure.code(), error_code::allocation_failure) << "fail_on " << fail_on;
+      EXPECT_FALSE(failure.duplicate_names().has_value()) << "fail_on " << fail_on;
+      EXPECT_FALSE(failure.numeric_reason().has_value()) << "fail_on " << fail_on;
+      EXPECT_FALSE(failure.source_range().has_value()) << "fail_on " << fail_on;
+      if (failure.has_byte_offset())
       {
-        EXPECT_LT(failure.byte_offset, input.size()) << "fail_on " << fail_on;
+        EXPECT_LT(failure.byte_offset(), input.size()) << "fail_on " << fail_on;
       }
       ++failures;
     }
@@ -404,7 +404,7 @@ namespace
     const auto parsed = parse_document({input.data(), input.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(parsed.has_value());
-    EXPECT_EQ(parsed.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(parsed.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(parsed.value_if(), nullptr);
     EXPECT_EQ(accounting.current_bytes(), 0U);
   }

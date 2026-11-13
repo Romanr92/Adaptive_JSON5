@@ -208,7 +208,7 @@ namespace
     const auto analysed = detail::analyse_number(*number.value_if(), exact_budget);
     /* Expect */
     ASSERT_FALSE(exhausted.has_value());
-    EXPECT_EQ(exhausted.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(exhausted.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(short_budget.consumed(), 0U);
     ASSERT_TRUE(analysed.has_value());
     EXPECT_EQ(exact_budget.consumed(), 6U);
@@ -233,8 +233,8 @@ namespace
     const auto analysis = detail::analyse_number(*number.value_if(), work);
     /* Expect */
     ASSERT_FALSE(analysis.has_value());
-    EXPECT_EQ(analysis.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_FALSE(analysis.error_if()->has_byte_offset);
+    EXPECT_EQ(analysis.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_FALSE(analysis.error_if()->has_byte_offset());
     EXPECT_EQ(work.consumed(), 0U);
   }
   /* ================================= End Test_J5_036 ================================= */
@@ -312,11 +312,11 @@ namespace
       EXPECT_EQ(*appended.value_if(), param.expected);
       return;
     }
-    EXPECT_EQ(appended.error_if()->code, param.code);
+    EXPECT_EQ(appended.error_if()->code(), param.code);
     if (param.code == error_code::numeric_conversion)
     {
-      ASSERT_TRUE(appended.error_if()->numeric_reason.has_value());
-      EXPECT_EQ(*appended.error_if()->numeric_reason, c_out_of_range);
+      ASSERT_TRUE(appended.error_if()->numeric_reason().has_value());
+      EXPECT_EQ(*appended.error_if()->numeric_reason(), c_out_of_range);
     }
   }
 
@@ -333,8 +333,8 @@ namespace
                  c_uintmax_max, false, 0U, error_code::numeric_conversion},
       digit_case{"ExceedsSmallBound", 25U, 6U, 10U, 255U, false, 0U, error_code::numeric_conversion},
       digit_case{"DigitAboveBound", 0U, 5U, 10U, 4U, false, 0U, error_code::numeric_conversion},
-      digit_case{"DigitEqualsRadix", 0U, 10U, 10U, c_uintmax_max, false, 0U, error_code::wrong_type_or_access},
-      digit_case{"UnsupportedRadix", 0U, 1U, 8U, c_uintmax_max, false, 0U, error_code::wrong_type_or_access}),
+      digit_case{"DigitEqualsRadix", 0U, 10U, 10U, c_uintmax_max, false, 0U, error_code::internal_error},
+      digit_case{"UnsupportedRadix", 0U, 1U, 8U, c_uintmax_max, false, 0U, error_code::internal_error}),
     [](const ::testing::TestParamInfo<digit_case>& info)
     {
       return info.param.name;
@@ -365,9 +365,9 @@ namespace
       EXPECT_EQ(read.value_if()->negative, param.negative);
       return;
     }
-    EXPECT_EQ(read.error_if()->code, error_code::numeric_conversion);
-    ASSERT_TRUE(read.error_if()->numeric_reason.has_value());
-    EXPECT_EQ(*read.error_if()->numeric_reason, param.reason);
+    EXPECT_EQ(read.error_if()->code(), error_code::numeric_conversion);
+    ASSERT_TRUE(read.error_if()->numeric_reason().has_value());
+    EXPECT_EQ(*read.error_if()->numeric_reason(), param.reason);
   }
 
   INSTANTIATE_TEST_SUITE_P(
@@ -423,7 +423,7 @@ namespace
     const auto read = detail::read_integer_magnitude(*number.value_if(), c_uintmax_max, exact_budget);
     /* Expect */
     ASSERT_FALSE(exhausted.has_value());
-    EXPECT_EQ(exhausted.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(exhausted.error_if()->code(), error_code::resource_limit);
     ASSERT_TRUE(read.has_value());
     EXPECT_EQ(read.value_if()->magnitude, 100000U);
     EXPECT_EQ(exact_budget.consumed(), 11U);

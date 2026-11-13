@@ -103,10 +103,10 @@ namespace
       EXPECT_EQ(exponent.has_value(), input.accepted);
       if (!input.accepted)
       {
-        EXPECT_EQ(bytes.error_if()->code, error_code::resource_limit);
-        EXPECT_EQ(spelling.error_if()->code, error_code::resource_limit);
-        EXPECT_EQ(exponent.error_if()->code, error_code::resource_limit);
-        EXPECT_FALSE(bytes.error_if()->has_byte_offset);
+        EXPECT_EQ(bytes.error_if()->code(), error_code::resource_limit);
+        EXPECT_EQ(spelling.error_if()->code(), error_code::resource_limit);
+        EXPECT_EQ(exponent.error_if()->code(), error_code::resource_limit);
+        EXPECT_FALSE(bytes.error_if()->has_byte_offset());
       }
     }
   }
@@ -133,7 +133,7 @@ namespace
     /* Act */
     const auto underflow = budget.release_value(false);
     ASSERT_FALSE(underflow.has_value());
-    EXPECT_EQ(underflow.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(underflow.error_if()->code(), error_code::internal_error);
     ASSERT_TRUE(budget.reserve_value(false).has_value());
     ASSERT_TRUE(budget.reserve_value(false).has_value());
     const auto excess = budget.reserve_value(false);
@@ -145,11 +145,11 @@ namespace
     const auto denied = zero.reserve_value(false);
     /* Expect */
     ASSERT_FALSE(excess.has_value());
-    EXPECT_EQ(excess.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(excess.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(empty.error_if()->code(), error_code::internal_error);
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -169,7 +169,7 @@ namespace
     /* Act */
     const auto underflow = budget.release_value(true);
     ASSERT_FALSE(underflow.has_value());
-    EXPECT_EQ(underflow.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(underflow.error_if()->code(), error_code::internal_error);
     ASSERT_TRUE(budget.reserve_value(true).has_value());
     ASSERT_TRUE(budget.reserve_value(true).has_value());
     const auto excess = budget.reserve_value(true);
@@ -181,11 +181,11 @@ namespace
     const auto denied = zero.reserve_value(true);
     /* Expect */
     ASSERT_FALSE(excess.has_value());
-    EXPECT_EQ(excess.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(excess.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(empty.error_if()->code(), error_code::internal_error);
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -205,7 +205,7 @@ namespace
     /* Act */
     const auto underflow = budget.leave_container();
     ASSERT_FALSE(underflow.has_value());
-    EXPECT_EQ(underflow.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(underflow.error_if()->code(), error_code::internal_error);
     ASSERT_TRUE(budget.enter_container().has_value());
     ASSERT_TRUE(budget.enter_container().has_value());
     const auto excess = budget.enter_container();
@@ -217,11 +217,11 @@ namespace
     const auto denied = zero.enter_container();
     /* Expect */
     ASSERT_FALSE(excess.has_value());
-    EXPECT_EQ(excess.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(excess.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(empty.error_if()->code(), error_code::internal_error);
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -274,7 +274,7 @@ namespace
     /* Act */
     const auto underflow = budget.release_diagnostic();
     ASSERT_FALSE(underflow.has_value());
-    EXPECT_EQ(underflow.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(underflow.error_if()->code(), error_code::internal_error);
     ASSERT_TRUE(budget.reserve_diagnostic().has_value());
     ASSERT_TRUE(budget.reserve_diagnostic().has_value());
     const auto excess = budget.reserve_diagnostic();
@@ -286,11 +286,11 @@ namespace
     const auto denied = zero.reserve_diagnostic();
     /* Expect */
     ASSERT_FALSE(excess.has_value());
-    EXPECT_EQ(excess.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(excess.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(empty.has_value());
-    EXPECT_EQ(empty.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(empty.error_if()->code(), error_code::internal_error);
     ASSERT_FALSE(denied.has_value());
-    EXPECT_EQ(denied.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
   }
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -318,8 +318,8 @@ namespace
     /* Expect */
     ASSERT_FALSE(denied_member.has_value());
     ASSERT_FALSE(denied_node.has_value());
-    EXPECT_EQ(denied_member.error_if()->code, error_code::resource_limit);
-    EXPECT_EQ(denied_node.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(denied_member.error_if()->code(), error_code::resource_limit);
+    EXPECT_EQ(denied_node.error_if()->code(), error_code::resource_limit);
     EXPECT_FALSE(budget.release_value(false).has_value());
     EXPECT_FALSE(budget.release_value(true).has_value());
   }
@@ -346,8 +346,8 @@ namespace
     /* Expect */
     ASSERT_FALSE(wrong_member.has_value());
     ASSERT_FALSE(wrong_nonmember.has_value());
-    EXPECT_EQ(wrong_member.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_EQ(wrong_nonmember.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(wrong_member.error_if()->code(), error_code::internal_error);
+    EXPECT_EQ(wrong_nonmember.error_if()->code(), error_code::internal_error);
     EXPECT_TRUE(member.release_value(true).has_value());
     EXPECT_TRUE(nonmember.release_value(false).has_value());
     EXPECT_FALSE(member.release_value(true).has_value());
@@ -380,10 +380,10 @@ namespace
     /* Expect */
     ASSERT_FALSE(individual.has_value());
     ASSERT_FALSE(total.has_value());
-    EXPECT_EQ(individual.error_if()->code, error_code::resource_limit);
-    EXPECT_EQ(total.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(individual.error_if()->code(), error_code::resource_limit);
+    EXPECT_EQ(total.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(underflow.has_value());
-    EXPECT_EQ(underflow.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(underflow.error_if()->code(), error_code::internal_error);
     EXPECT_TRUE(budget.release_string_units(5).has_value());
     EXPECT_TRUE(budget.release_string_units(0).has_value());
     EXPECT_FALSE(budget.release_string_units(1).has_value());
@@ -557,8 +557,8 @@ namespace
     EXPECT_EQ(next.has_value(), input.accepted);
     if (!input.accepted)
     {
-      EXPECT_EQ(next.error_if()->code, error_code::resource_limit);
-      EXPECT_FALSE(next.error_if()->has_byte_offset);
+      EXPECT_EQ(next.error_if()->code(), error_code::resource_limit);
+      EXPECT_FALSE(next.error_if()->has_byte_offset());
     }
     EXPECT_TRUE(zero.has_value());
     EXPECT_EQ(work.consumed(), input.consumed);
@@ -592,7 +592,7 @@ namespace
       ASSERT_TRUE(work.charge(1).has_value());
       const auto exhausted = work.charge(1);
       ASSERT_FALSE(exhausted.has_value());
-      EXPECT_EQ(exhausted.error_if()->code, error_code::resource_limit);
+      EXPECT_EQ(exhausted.error_if()->code(), error_code::resource_limit);
     }
     /* Expect */
     EXPECT_EQ(storage.current_bytes(), 0u);

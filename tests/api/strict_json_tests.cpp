@@ -178,8 +178,8 @@ namespace
     const auto json5 = parse_document(input, json5_options, json5_accounting);
     /* Expect */
     ASSERT_FALSE(strict.has_value());
-    EXPECT_EQ(strict.error_if()->code, error_code::syntax);
-    EXPECT_EQ(strict.error_if()->byte_offset, fixture.strict_error);
+    EXPECT_EQ(strict.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(strict.error_if()->byte_offset(), fixture.strict_error);
     expect_released(strict_provider, strict_accounting, fixture.name);
     EXPECT_EQ(json5.has_value(), fixture.json5_accepts);
   }
@@ -251,8 +251,8 @@ namespace
     }
     else
     {
-      EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-      EXPECT_EQ(parsed.error_if()->byte_offset, fixture.offset);
+      EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+      EXPECT_EQ(parsed.error_if()->byte_offset(), fixture.offset);
       expect_released(provider, accounting, fixture.name);
     }
   }
@@ -300,7 +300,7 @@ namespace
       else
       {
         ++failures;
-        EXPECT_EQ(parsed.error_if()->code, error_code::allocation_failure) << "fail_on " << fail_on;
+        EXPECT_EQ(parsed.error_if()->code(), error_code::allocation_failure) << "fail_on " << fail_on;
         expect_released(provider, accounting, "StrictFaultSweep");
       }
     }
@@ -332,7 +332,7 @@ namespace
     const auto exact = parse_document({input.data(), input.size()}, options, accounting);
     /* Expect */
     ASSERT_FALSE(below.has_value());
-    EXPECT_EQ(below.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(below.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(bytes_after_failure, 0U);
     EXPECT_TRUE(exact.has_value());
   }

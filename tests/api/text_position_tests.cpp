@@ -117,8 +117,8 @@ namespace
     EXPECT_EQ(end.value_if()->line, 1U);
     EXPECT_EQ(end.value_if()->column, 4U);
     ASSERT_FALSE(past.has_value());
-    EXPECT_EQ(past.error_if()->code, error_code::wrong_type_or_access);
-    EXPECT_FALSE(past.error_if()->has_byte_offset);
+    EXPECT_EQ(past.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_FALSE(past.error_if()->has_byte_offset());
   }
   /* ================================= End Test_J5_044 ================================= */
 } // namespace

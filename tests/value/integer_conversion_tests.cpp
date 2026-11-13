@@ -93,8 +93,8 @@ namespace
       outcome.unsigned_value = static_cast<std::uintmax_t>(*converted.value_if());
       return outcome;
     }
-    outcome.code = converted.error_if()->code;
-    outcome.reason = converted.error_if()->numeric_reason;
+    outcome.code = converted.error_if()->code();
+    outcome.reason = converted.error_if()->numeric_reason();
     return outcome;
   }
 
@@ -319,9 +319,9 @@ namespace
     const auto signed_minus_zero = to_signed_integer(*minus_zero.value_if());
     /* Expect */
     ASSERT_FALSE(unsigned_minus_one.has_value());
-    EXPECT_EQ(unsigned_minus_one.error_if()->code, error_code::numeric_conversion);
-    ASSERT_TRUE(unsigned_minus_one.error_if()->numeric_reason.has_value());
-    EXPECT_EQ(*unsigned_minus_one.error_if()->numeric_reason, c_out_of_range);
+    EXPECT_EQ(unsigned_minus_one.error_if()->code(), error_code::numeric_conversion);
+    ASSERT_TRUE(unsigned_minus_one.error_if()->numeric_reason().has_value());
+    EXPECT_EQ(*unsigned_minus_one.error_if()->numeric_reason(), c_out_of_range);
     ASSERT_TRUE(unsigned_minus_zero.has_value());
     EXPECT_EQ(*unsigned_minus_zero.value_if(), 0U);
     ASSERT_TRUE(unsigned_answer.has_value());
@@ -355,13 +355,13 @@ namespace
     const auto moved_value = to_integer<std::int32_t>(moved);
     /* Expect */
     ASSERT_FALSE(as_unsigned.has_value());
-    EXPECT_EQ(as_unsigned.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(as_unsigned.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(as_signed.has_value());
-    EXPECT_EQ(as_signed.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(as_signed.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(as_int.has_value());
-    EXPECT_EQ(as_int.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(as_int.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(integral.has_value());
-    EXPECT_EQ(integral.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(integral.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_TRUE(moved_value.has_value());
     EXPECT_EQ(*moved_value.value_if(), 1);
   }
@@ -388,13 +388,13 @@ namespace
     const auto integral = is_integral_number(*number.value_if(), options);
     /* Expect */
     ASSERT_FALSE(as_unsigned.has_value());
-    EXPECT_EQ(as_unsigned.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(as_unsigned.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(as_signed.has_value());
-    EXPECT_EQ(as_signed.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(as_signed.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(as_int16.has_value());
-    EXPECT_EQ(as_int16.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(as_int16.error_if()->code(), error_code::resource_limit);
     ASSERT_FALSE(integral.has_value());
-    EXPECT_EQ(integral.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(integral.error_if()->code(), error_code::resource_limit);
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -536,7 +536,7 @@ namespace
     }
     else
     {
-      EXPECT_EQ(converted.error_if()->code, param.conversion_code);
+      EXPECT_EQ(converted.error_if()->code(), param.conversion_code);
     }
     ASSERT_EQ(integral.has_value(), param.queries);
     if (param.queries)
@@ -545,7 +545,7 @@ namespace
     }
     else
     {
-      EXPECT_EQ(integral.error_if()->code, error_code::wrong_type_or_access);
+      EXPECT_EQ(integral.error_if()->code(), error_code::wrong_type_or_access);
     }
   }
 
@@ -578,9 +578,9 @@ namespace
     const auto integral = is_integral_number(view);
     /* Expect */
     ASSERT_FALSE(converted.has_value());
-    EXPECT_EQ(converted.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(converted.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(integral.has_value());
-    EXPECT_EQ(integral.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(integral.error_if()->code(), error_code::wrong_type_or_access);
   }
   /* ================================= End Test_J5_036 ================================= */
 } // namespace

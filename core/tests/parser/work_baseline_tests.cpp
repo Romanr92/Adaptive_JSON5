@@ -216,7 +216,7 @@ namespace
     EXPECT_EQ(*with_defaults.value_if(), param.values);
     EXPECT_TRUE(at_requirement.has_value());
     ASSERT_FALSE(below_requirement.has_value());
-    EXPECT_EQ(below_requirement.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(below_requirement.error_if()->code(), error_code::resource_limit);
   }
 
   INSTANTIATE_TEST_SUITE_P(J5_049_WorkBaseline, WorkBaselineUnits,

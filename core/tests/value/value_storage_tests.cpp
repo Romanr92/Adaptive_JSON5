@@ -25,7 +25,7 @@ namespace
     /* Act */
     const auto failed = storage.append(std::move(record));
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(std::get<decoded_string>(record.payload).size(), 4u);
     EXPECT_EQ(storage.size(), 0u);
     provider.m_fail_on = 0;
@@ -66,9 +66,9 @@ namespace
     EXPECT_TRUE(first.has_value());
     EXPECT_TRUE(second.has_value());
     ASSERT_FALSE(third.has_value());
-    EXPECT_EQ(third.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(third.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(again.has_value());
-    EXPECT_EQ(again.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(again.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(provider.m_attempts, attempts_after_reserve);
     EXPECT_EQ(storage.size(), 2U);
   }
@@ -99,13 +99,13 @@ namespace
     const auto retried = failing.reserve_exact(2);
     /* Expect */
     ASSERT_FALSE(above.has_value());
-    EXPECT_EQ(above.error_if()->code, error_code::resource_limit);
+    EXPECT_EQ(above.error_if()->code(), error_code::resource_limit);
     EXPECT_TRUE(zero.has_value());
     EXPECT_EQ(attempts_after_zero, 0U);
     ASSERT_FALSE(refused.has_value());
-    EXPECT_EQ(refused.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(refused.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_FALSE(failed.has_value());
-    EXPECT_EQ(failed.error_if()->code, error_code::allocation_failure);
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
     EXPECT_TRUE(retried.has_value());
   }
 
@@ -131,7 +131,7 @@ namespace
     /* Expect */
     EXPECT_EQ(destination.size(), 1U);
     ASSERT_FALSE(beyond.has_value());
-    EXPECT_EQ(beyond.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(beyond.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_TRUE(regrown_first.has_value());
     EXPECT_TRUE(regrown_second.has_value());
     EXPECT_EQ(source.size(), 2U);

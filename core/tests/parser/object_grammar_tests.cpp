@@ -68,9 +68,9 @@ namespace
       {
         EXPECT_EQ(parsed.value_if(), nullptr);
         ASSERT_NE(parsed.error_if(), nullptr);
-        EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-        EXPECT_TRUE(parsed.error_if()->has_byte_offset);
-        EXPECT_EQ(parsed.error_if()->byte_offset, fixture.position);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+        EXPECT_TRUE(parsed.error_if()->has_byte_offset());
+        EXPECT_EQ(parsed.error_if()->byte_offset(), fixture.position);
       }
     }
     EXPECT_EQ(accounting.current_bytes(), 0u);

@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "parser/parser_attachment.hpp"
 #include "parser/parser_duplicate.hpp"
 #include "parser/parser_engine.hpp"
@@ -59,15 +60,15 @@ namespace
         ASSERT_FALSE(parsed.has_value());
         EXPECT_EQ(parsed.value_if(), nullptr);
         const auto& error = *parsed.error_if();
-        EXPECT_EQ(error.code, error_code::duplicate_policy);
-        EXPECT_TRUE(error.has_byte_offset);
-        EXPECT_EQ(error.byte_offset, fixture.repeated.byte_offset);
-        ASSERT_TRUE(error.duplicate_names.has_value());
+        EXPECT_EQ(error.code(), error_code::duplicate_policy);
+        EXPECT_TRUE(error.has_byte_offset());
+        EXPECT_EQ(error.byte_offset(), fixture.repeated.byte_offset);
+        ASSERT_TRUE(error.duplicate_names().has_value());
         std::fill(input.begin(), input.end(), '?');
-        EXPECT_EQ(error.duplicate_names->first.byte_offset, fixture.first.byte_offset);
-        EXPECT_EQ(error.duplicate_names->first.byte_length, fixture.first.byte_length);
-        EXPECT_EQ(error.duplicate_names->repeated.byte_offset, fixture.repeated.byte_offset);
-        EXPECT_EQ(error.duplicate_names->repeated.byte_length, fixture.repeated.byte_length);
+        EXPECT_EQ(error.duplicate_names()->first.byte_offset, fixture.first.byte_offset);
+        EXPECT_EQ(error.duplicate_names()->first.byte_length, fixture.first.byte_length);
+        EXPECT_EQ(error.duplicate_names()->repeated.byte_offset, fixture.repeated.byte_offset);
+        EXPECT_EQ(error.duplicate_names()->repeated.byte_length, fixture.repeated.byte_length);
       }
       else
       {
@@ -237,14 +238,14 @@ namespace
     /* Expect */
     // Two unit reads per position must be admitted before any equal-name scan.
     ASSERT_FALSE(checked.has_value());
-    EXPECT_EQ(checked.error_if()->code, GetParam() < 6 ? error_code::resource_limit : error_code::duplicate_policy);
+    EXPECT_EQ(checked.error_if()->code(), GetParam() < 6 ? error_code::resource_limit : error_code::duplicate_policy);
     EXPECT_LE(work.consumed(), GetParam());
     EXPECT_EQ(provider.m_attempts, attempts);
     EXPECT_EQ(candidate.value_if()->size(), 2u);
     if (GetParam() >= 6)
     {
-      ASSERT_TRUE(checked.error_if()->duplicate_names.has_value());
-      EXPECT_EQ(checked.error_if()->duplicate_names->first.byte_offset, 1u);
+      ASSERT_TRUE(checked.error_if()->duplicate_names().has_value());
+      EXPECT_EQ(checked.error_if()->duplicate_names()->first.byte_offset, 1u);
     }
   }
   INSTANTIATE_TEST_SUITE_P(P036, J5_049_DuplicateWork, testing::Values(0u, 1u, 2u, 5u, 6u, 7u),
@@ -273,7 +274,7 @@ namespace
       parser_engine engine{{input.data(), input.size()}, options, accounting};
       const auto parsed = engine.run();
       ASSERT_FALSE(parsed.has_value());
-      ASSERT_EQ(parsed.error_if()->code, error_code::duplicate_policy);
+      ASSERT_EQ(parsed.error_if()->code(), error_code::duplicate_policy);
       attempts = provider.m_attempts;
     }
     ASSERT_GT(attempts, 0u);
@@ -290,7 +291,7 @@ namespace
         /* Expect */
         // Allocation failure is operational; it must not be relabeled as duplicate rejection.
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::allocation_failure);
+        EXPECT_EQ(parsed.error_if()->code(), error_code::allocation_failure);
       }
       EXPECT_EQ(accounting.current_bytes(), 0u);
       provider.m_fail_on = 0;
@@ -298,8 +299,8 @@ namespace
         parser_engine retry{{input.data(), input.size()}, options, accounting};
         const auto parsed = retry.run();
         ASSERT_FALSE(parsed.has_value());
-        EXPECT_EQ(parsed.error_if()->code, error_code::duplicate_policy);
-        ASSERT_TRUE(parsed.error_if()->duplicate_names.has_value());
+        EXPECT_EQ(parsed.error_if()->code(), error_code::duplicate_policy);
+        ASSERT_TRUE(parsed.error_if()->duplicate_names().has_value());
       }
       EXPECT_EQ(accounting.current_bytes(), 0u);
     }
@@ -339,8 +340,10 @@ namespace
       /* Expect */
       // A successful duplicate diagnostic must never substitute byte zero for missing provenance.
       ASSERT_FALSE(checked.has_value());
-      EXPECT_EQ(checked.error_if()->code, error_code::wrong_type_or_access);
-      EXPECT_FALSE(checked.error_if()->duplicate_names.has_value());
+      // An unset or dangling index is rejected by value_storage::at() like a caller's index.
+      const bool dangling = !index.is_set() || (index.position() == 99U);
+      EXPECT_EQ(checked.error_if()->code(), dangling ? error_code::wrong_type_or_access : error_code::internal_error);
+      EXPECT_FALSE(checked.error_if()->duplicate_names().has_value());
     }
     EXPECT_EQ(provider.m_attempts, attempts);
   }
@@ -375,7 +378,7 @@ namespace
     /* Expect */
     // Failed span validation must not consume the pending name or publish comma-or-end state.
     ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code, error_code::wrong_type_or_access);
+    EXPECT_EQ(rejected.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_TRUE(frame.pending_name.has_value());
     EXPECT_EQ(frame.pending_name->size(), 1u);
     EXPECT_EQ(frame.state, parser_state::object_value);

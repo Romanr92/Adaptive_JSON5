@@ -156,8 +156,8 @@ namespace
     }
     else
     {
-      EXPECT_EQ(parsed.error_if()->code, error_code::syntax);
-      EXPECT_EQ(parsed.error_if()->byte_offset, fixture.offset);
+      EXPECT_EQ(parsed.error_if()->code(), error_code::syntax);
+      EXPECT_EQ(parsed.error_if()->byte_offset(), fixture.offset);
       expect_released(provider, accounting, fixture.name);
     }
   }
@@ -231,8 +231,8 @@ namespace
     /* Expect */
     EXPECT_TRUE(json5.has_value());
     ASSERT_FALSE(strict.has_value());
-    EXPECT_EQ(strict.error_if()->code, error_code::syntax);
-    EXPECT_EQ(strict.error_if()->byte_offset, fixture.strict_offset);
+    EXPECT_EQ(strict.error_if()->code(), error_code::syntax);
+    EXPECT_EQ(strict.error_if()->byte_offset(), fixture.strict_offset);
     expect_released(strict_provider, strict_accounting, fixture.name);
   }
   INSTANTIATE_TEST_SUITE_P(
@@ -310,8 +310,8 @@ namespace
       const auto parsed = parse_document({fixture.input.data(), fixture.input.size()}, options, accounting);
       /* Expect */
       ASSERT_FALSE(parsed.has_value());
-      EXPECT_EQ(parsed.error_if()->code, error_code::encoding);
-      EXPECT_EQ(parsed.error_if()->byte_offset, fixture.offset);
+      EXPECT_EQ(parsed.error_if()->code(), error_code::encoding);
+      EXPECT_EQ(parsed.error_if()->byte_offset(), fixture.offset);
       expect_released(provider, accounting, fixture.name);
     }
   }
@@ -370,7 +370,7 @@ namespace
     /* Expect */
     ASSERT_TRUE(reference.has_value());
     ASSERT_TRUE(variant.has_value()) << fixture.name << " error at "
-                                     << (variant.has_value() ? 0U : variant.error_if()->byte_offset);
+                                     << (variant.has_value() ? 0U : variant.error_if()->byte_offset());
     expect_same_value(*reference.value_if()->values.root().value_if(), *variant.value_if()->values.root().value_if(),
                       fixture.name);
   }
@@ -444,9 +444,9 @@ namespace
       const auto parsed = parse_document({fixture.input.data(), length}, options, accounting);
       /* Expect */
       ASSERT_FALSE(parsed.has_value()) << "prefix " << length;
-      const error_code code = parsed.error_if()->code;
+      const error_code code = parsed.error_if()->code();
       EXPECT_TRUE((code == error_code::syntax) || (code == error_code::encoding)) << "prefix " << length;
-      EXPECT_LE(parsed.error_if()->byte_offset, length) << "prefix " << length;
+      EXPECT_LE(parsed.error_if()->byte_offset(), length) << "prefix " << length;
       expect_released(provider, accounting, fixture.name);
     }
   }
@@ -511,7 +511,7 @@ namespace
       else
       {
         ++failures;
-        EXPECT_EQ(parsed.error_if()->code, error_code::allocation_failure) << "fail_on " << fail_on;
+        EXPECT_EQ(parsed.error_if()->code(), error_code::allocation_failure) << "fail_on " << fail_on;
         expect_released(provider, accounting, fixture.name);
       }
     }
