@@ -16,14 +16,14 @@ J5-059, J5-061, J5-063–J5-068.
 | 2 | Dialect API | Decided: explicit `schema_dialect::draft_07`; Draft-07 URI with or without trailing `#`, exact match; subschema `$schema` ignored |
 | 3 | Outcome model | Decided: compile → `result<compiled_schema, schema_error>`, validate → `result<validation_report, schema_error>`; assertion failure is a report, not an error |
 | 4 | Storage ownership | Decided: compiled schema owns a copied, immutable, move-only graph in caller storage; separate work storage per validation |
-| 5 | Budget struct and defaults | Decided: per-category caps plus overall `max_work_steps`; defaults in `docs/memory-and-limits.md` |
+| 5 | Budget struct and defaults | Decided: per-category validation caps plus overall `max_work_steps`; compile limits `max_schema_nodes` and `max_compile_steps`; defaults in `docs/memory-and-limits.md` |
 | 6 | Instance domain | Decided: one pre-pass returns `unsupported_instance` for duplicate names, NaN/Infinity and unpaired surrogates |
 | 7 | Cancellation | Decided: optional callback polled once per evaluation step; returns `cancelled` |
 | 8 | URI handling | Decided: internal RFC 3986 §5 resolver; lowercase scheme/host, dot segments removed, empty fragment = none, no percent-decoding |
-| 9 | Registry API | Decided: caller registers (base URI, parsed schema document) pairs; duplicate URI is an error; no I/O |
+| 9 | Registry API | Decided: caller registers (base URI, schema source text) pairs, parsed by the registry as strict JSON with `reject_duplicates`; duplicate URI is an error; no I/O |
 | 10 | Compiled graph shape | Decided: flat indexed node array, `$ref` resolved to indices at compile time; standard annotations kept, unknown keywords counted |
 | 11 | Exact equality | Decided: type-aware, exact numbers, order-free objects, ordered arrays, explicit stack |
-| 12 | Evaluation engine | Decided: explicit stack, `$ref` siblings ignored, loop detection on the active `$ref` chain, fail-fast default and bounded collect-all |
+| 12 | Evaluation engine | Decided: explicit stack, `$ref` siblings ignored, loop detection on the active `$ref` chain, fail-fast default and bounded collect-all with a truncated flag |
 | 13 | Diagnostic contents | Decided: fixed-size records; JSON Pointers formatted on request into a caller buffer |
 
 ## Decision 1: layout and build target
@@ -112,6 +112,9 @@ by phase, using the existing non-throwing `result` type:
   holds the collected diagnostics.
 - `schema_error` is constructible without allocation (J5-045). Compile errors carry a
   schema location as an index or offset, not an owned string (J5-064).
+- An operational failure always wins: if memory runs out, a budget is exceeded or the
+  run is cancelled after an assertion has already failed, the result is the
+  `schema_error` and no partial report is published (J5-063, J5-051).
 - Reason names reuse the parser's `error_code` names where the meaning is the same
   (`resource_limit`, `allocation_failure`, `internal_error`), so integrators see the
   same words in both layers (J5-043).
@@ -171,7 +174,8 @@ by phase, using the existing non-throwing `result` type:
 
 A budget struct with these fields and defaults, sized generously for build-time
 validation (J5-065, J5-049). All limits are inclusive; exceeding one returns
-`resource_limit` with a sub-reason naming the field.
+`resource_limit` with a sub-reason naming the field. The one exception is
+`max_errors`: reaching it in collect-all mode is not an error (decision 12).
 
 | Field | Default | Counts |
 | --- | --- | --- |
@@ -182,6 +186,17 @@ validation (J5-065, J5-049). All limits are inclusive; exceeding one returns
 | `max_errors` | 100 | Diagnostics kept in collect-all mode |
 | `max_work_steps` | 1,000,000 | Overall cap on all evaluation steps per validation |
 | regex budget | placeholder, unset | Defined with the regex engine in P048 |
+
+Compilation has its own limits, also inclusive and reported as `resource_limit` with
+a sub-reason (J5-047, J5-049):
+
+| Field | Default | Counts |
+| --- | --- | --- |
+| `max_schema_nodes` | 100,000 | Nodes in the compiled graph, across all registered resources |
+| `max_compile_steps` | 1,000,000 | Compile work: keyword checks, `$ref` resolution and pure-cycle detection |
+
+Compilation has no cancellation callback, since it runs at build time and these
+limits bound it.
 
 Defaults and accounting rules are documented in `docs/memory-and-limits.md`, next to
 the parser's limits, when the budget struct is implemented; this ADR records the
@@ -276,10 +291,13 @@ found.
 
 ### Decision
 
-- The caller registers pairs of base URI and an already-parsed strict-JSON schema
-  document (J5-055).
-- Compilation copies what it needs into the compiled schema, so the input documents
-  and the registry can be destroyed afterwards (J5-066).
+- The caller registers pairs of base URI and schema source text (J5-055). The
+  registry parses each text itself as strict JSON with `reject_duplicates`, so
+  compile knows every schema is valid JSON with no duplicate keywords (J5-054,
+  J5-061). An already-parsed document is not accepted, because JSON5-only syntax
+  such as comments or unquoted names leaves no trace after parsing.
+- Compilation copies what it needs into the compiled schema, so the source texts,
+  their parsed documents and the registry can be destroyed afterwards (J5-066).
 - Registering the same normalized URI twice is an error, so a lookup can never
   silently pick one of two schemas.
 - The schema code never touches the network or filesystem; all external schemas
@@ -287,6 +305,9 @@ found.
 
 ### Rejected alternatives
 
+- Accepting already-parsed documents and re-checking them: cannot detect JSON5-only
+  syntax or duplicates that were kept, because a parsed document does not record its
+  syntax mode or duplicate policy.
 - A resolver callback that loads schemas on demand: moves I/O into compilation and
   makes results depend on the environment.
 - Last registration wins on a duplicate URI: hides mistakes in which schema is
@@ -300,7 +321,10 @@ found.
   indices, not pointers.
 - Every `$ref` is resolved to a node index at compile time. A reference that cannot
   be resolved fails compilation with `unresolved_reference` (J5-055).
-- Each node keeps its schema location for diagnostics (J5-064).
+- Each node keeps its schema location for diagnostics (J5-064): its parent's node
+  index and the step that leads to it (a member name or an array index), copied into
+  the compiled schema. The formatter builds the RFC 6901 pointer from these after the
+  schema sources are gone (decisions 4 and 13).
 - Standard annotations are kept: `title`, `description`, `default`, `examples`,
   `$comment`, `readOnly`, `writeOnly`, and `format`, `contentEncoding`,
   `contentMediaType` as annotations (J5-058, J5-069; needed later by P053).
@@ -348,8 +372,9 @@ Type-aware deep equality for `const`, `enum` and `uniqueItems` (J5-061):
   again on the active `$ref` chain. It returns `nonprogressing_reference`, never an
   invalid-instance result (J5-056).
 - Two modes (J5-063): fail-fast, the default, stops at the first assertion failure;
-  collect-all gathers diagnostics up to `max_errors`, then stops and reports that the
-  limit was reached.
+  collect-all gathers diagnostics up to `max_errors`. Reaching `max_errors` is not an
+  error: the report still says invalid and sets a `truncated` flag, because the
+  verdict is known and only the list is incomplete. Fail-fast never reaches it.
 
 ### Rejected alternatives
 
@@ -401,16 +426,20 @@ and are folded into the decisions above:
 | T6 | J5-056 | `nonprogressing_reference` also at compile time for pure `$ref` cycles (decision 3) |
 | T7 | — | `CMakeLists.txt` and `docs/release-packages.md` updated once the schema target exists (decision 1) |
 
-## Review of decisions 4–13 against requirements (open)
+## Review of decisions 4–13 against requirements (2026-11-13)
 
 Decisions 4–13 were checked against `docs/requirements.md` on the issue branch. No
-requirement is contradicted, but these points are still to be settled by the user.
-The suggested resolution is a proposal, not a decision.
+requirement was contradicted. The findings were settled by the user and are folded
+into the decisions above:
 
-| ID | Decisions | Requirement | Finding | Suggested resolution |
-| --- | --- | --- | --- | --- |
-| R1 | 5, 12 | J5-063, J5-065 | Decision 5 says exceeding any budget returns `resource_limit`, but decision 12 says collect-all stops at `max_errors` and reports that the limit was reached. Read literally, an invalid instance with many errors would become an error result and lose its verdict. | Reaching `max_errors` is not an error: the report says invalid and carries a "truncated" flag. `max_errors` is excluded from the `resource_limit` rule. |
-| R2 | 3, 12 | J5-063, J5-051 | J5-063 tests an assertion failure followed by an allocation or cancellation failure. No decision says which outcome wins. | An operational failure always wins: the result is the `schema_error`, and no partial report is published. |
-| R3 | 5, 7 | J5-049, J5-065 | All budgets and cancellation are per validation. Compilation also does unbounded work (node count, `$ref` resolution, pure-cycle detection) and the outcome table already lists `resource_limit` at compile time, but no compile limits are defined. | Add compile limits, for example `max_schema_nodes` and `max_compile_steps`, with defaults in `docs/memory-and-limits.md`. Compile cancellation is not needed for build-time use. |
-| R4 | 9 | J5-054, J5-061 | Decision 9 requires strict-JSON schema documents, but a parsed `json5_document` does not record its syntax mode or duplicate policy, so compile cannot check that a JSON5-only schema or a schema with duplicate keywords was rejected. | Either compile runs the decision 6 pre-pass on every schema document (returning `invalid_schema`) and documents strict-JSON parsing as a caller obligation, or the registry takes source text and parses it itself in strict mode with `reject_duplicates`. |
-| R5 | 10, 13 | J5-064 | Diagnostics must yield a schema location after the schema documents are destroyed (decision 4). Decision 10 says each node keeps "its schema location" without saying what that is. | Each node stores its parent index and the member name or array index that leads to it, copied into the compiled schema, so the formatter can build the RFC 6901 pointer without the source documents. |
+| ID | Requirement | Finding | Resolution |
+| --- | --- | --- | --- |
+| R1 | J5-063, J5-065 | Decisions 5 and 12 disagreed on what reaching `max_errors` returns | A report that says invalid with a `truncated` flag, not `resource_limit` (decisions 5, 12) |
+| R2 | J5-063, J5-051 | No rule for an assertion failure followed by an operational failure | The operational error wins; no partial report (decision 3) |
+| R3 | J5-047, J5-049 | Compilation had no limits | `max_schema_nodes` 100,000 and `max_compile_steps` 1,000,000; no compile cancellation (decision 5) |
+| R4 | J5-054, J5-061 | Compile could not verify that schemas were strict JSON | The registry takes source text and parses it strictly with `reject_duplicates` (decision 9) |
+| R5 | J5-064 | Schema location for diagnostics was undefined | Each node stores its parent index and the step leading to it (decision 10) |
+
+Open detail for P044: how a schema text that fails to parse at registration is
+reported (for example the parser's own error, or `invalid_schema` with a syntax
+sub-reason and the parser's location), and which storage the registry parses into.
