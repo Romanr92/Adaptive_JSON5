@@ -123,7 +123,7 @@ by phase, using the existing non-throwing `result` type:
 
 | Reason | Compile | Validate | Notes |
 | --- | --- | --- | --- |
-| `invalid_schema` | yes | no | Sub-reason: keyword shape, invalid pattern, unsupported pattern (J5-054, J5-060) |
+| `invalid_schema` | yes | no | Sub-reason: syntax (registration, with the parser's error), keyword shape, invalid pattern, unsupported pattern (J5-054, J5-060) |
 | `unresolved_reference` | yes | no | |
 | `unsupported_dialect` | yes | no | Decision 2 |
 | `unsupported_option` | yes | no | A requested assertion mode for `format`, `contentEncoding` or `contentMediaType` that is not supported (J5-069) |
@@ -296,6 +296,11 @@ found.
   compile knows every schema is valid JSON with no duplicate keywords (J5-054,
   J5-061). An already-parsed document is not accepted, because JSON5-only syntax
   such as comments or unquoted names leaves no trace after parsing.
+- A schema text that fails to parse at registration returns `invalid_schema` with a
+  syntax sub-reason, carrying the parser's own error and location unchanged, so the
+  caller sees exactly where the text broke (J5-043, J5-044).
+- The registry parses into its own caller-provided storage, which the caller may
+  release once compilation has finished.
 - Compilation copies what it needs into the compiled schema, so the source texts,
   their parsed documents and the registry can be destroyed afterwards (J5-066).
 - Registering the same normalized URI twice is an error, so a lookup can never
@@ -440,6 +445,4 @@ into the decisions above:
 | R4 | J5-054, J5-061 | Compile could not verify that schemas were strict JSON | The registry takes source text and parses it strictly with `reject_duplicates` (decision 9) |
 | R5 | J5-064 | Schema location for diagnostics was undefined | Each node stores its parent index and the step leading to it (decision 10) |
 
-Open detail for P044: how a schema text that fails to parse at registration is
-reported (for example the parser's own error, or `invalid_schema` with a syntax
-sub-reason and the parser's location), and which storage the registry parses into.
+Registration details for P044 (agreed 2026-11-13) are recorded in decision 9.
