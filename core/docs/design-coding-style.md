@@ -118,7 +118,7 @@ or device/integration-test gate to the repository.
 | Namespaces | Lowercase snake_case | `adaptive_json5` |
 | Types | Lowercase snake_case | `error_code`, `status_result` |
 | Functions and parameters | Lowercase snake_case | `has_value`, `byte_offset` |
-| Public aggregate struct fields | Current style uses snake_case without a member prefix | `code`, `has_byte_offset` |
+| Public aggregate struct fields | Current style uses snake_case without a member prefix | `byte_offset`, `byte_length` |
 | Enum values | Lowercase snake_case | `allocation_failure` |
 | Header guards | Uppercase filename, punctuation replaced by underscores, trailing underscore | `ERROR_HPP_` |
 
@@ -129,8 +129,10 @@ to class data members, not header guards.
 
 The `m_` rule does not prescribe camelCase for the remainder of the name;
 preserve the current snake_case convention. It does not rename function
-parameters or the public fields of the existing `error` aggregate. Revisit
-those conventions only when the user requests a change. GoogleTest suite/test
+parameters. Since issue #125, `error` keeps its data in private members
+(`m_code`, `m_byte_offset`, …) and exposes them through accessors such as
+`code()` and `limit_reason()`. Revisit these conventions only when the user
+requests a change. GoogleTest suite/test
 names retain the requirement conventions in the unit-test skill.
 
 ## Fundamental types

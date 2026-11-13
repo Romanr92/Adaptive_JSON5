@@ -50,7 +50,7 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
   chained and the final read reports it. `ok()` and `error_if()` check a step directly.
 - **Duplicate names:** JSON5 allows an object to repeat a member name, and the
   document keeps every member. `member(name)` then reports `wrong_type_or_access`
-  instead of choosing one. Iterate through `values()` to see all of them.
+  with `access_reason()` `duplicate_member` instead of choosing one. Iterate through `values()` to see all of them.
 - `as_bool`, `as_int64` and `as_uint64` read exactly; `1.0` is an integer, `1.5`
   is not. `as_double` and `as_float` round once, directly to the target type.
   `as_string(buffer, capacity)` writes UTF-8 without a terminating NUL and reports
@@ -185,9 +185,26 @@ Which error tells you what:
 | `error_code` | Meaning | What to do |
 |---|---|---|
 | `syntax`, `encoding`, `duplicate_policy` | The input is invalid for the selected mode or policy | Fix the input; retrying unchanged gives the same error |
-| `resource_limit` | A configured limit or the work budget would be exceeded | Raise the specific limit, or reject the input |
+| `resource_limit` | A configured limit or the work budget would be exceeded; `limit_reason()` names it (see [which limit, and where](#which-limit-and-where)) | Raise that limit, or reject the input |
 | `allocation_failure` | Your allocate callback returned no memory | Free memory or grow your pool, then retry |
-| `wrong_type_or_access` | Invalid argument, for example a `byte_limit()` that doesn't match `max_owned_bytes` | Fix the call |
+| `wrong_type_or_access` | A wrong call; `access_reason()` says which: `wrong_type`, `absent_member`, `duplicate_member`, `index_out_of_range` or `invalid_argument` (for example a `byte_limit()` that doesn't match `max_owned_bytes`) | Fix the call |
+| `internal_error` | The library found its own state inconsistent: its two parse passes disagree, a stored link is damaged, or an `accounted_storage` refused a release that matched no allocation | Report it; the result cannot be trusted. Discard the document and, if `accounting.faulted()` is true, the accounting object too |
+
+Each error carries at most one reason, read through the accessor of its code:
+`syntax_reason()`, `numeric_reason()`, `limit_reason()` or `access_reason()`. The
+accessors of other codes return an empty `std::optional`, so a reason is never
+read under the wrong code. Errors are compact (48 bytes on 64-bit hosts) and
+contain no pointers into the input.
+
+**A refused release latches a fault.** `accounted_storage` checks every release
+before your deallocate callback sees it: a null address, zero bytes, a release
+while no block is outstanding, more bytes than the outstanding blocks can hold,
+or a last block with a different size. Such a release skips your callback (so it
+can never become a double free), leaves the counters unchanged and sets
+`faulted()`. From then on every allocation through that object fails with
+`internal_error`. Inside the library only `owned_block` releases, exactly once;
+release blocks only through it and check `faulted()` after releasing a document
+(safety assumption A-09).
 
 **Internally,** the parser state for one call is single-use. A failed call
 discards that state as a whole instead of undoing its counters step by step. You
@@ -197,7 +214,7 @@ never see this state; the rule is why a fresh call is always the correct retry.
 
 All limits are fields of `resource_limits` in
 `includes/adaptive_json5/memory/resource_limits.hpp`. Exceeding any of them
-returns `resource_limit`.
+returns `resource_limit`, and `limit_reason()` names the limit.
 
 | Limit | Default | What it counts |
 |---|---|---|
@@ -232,12 +249,40 @@ with `resource_limit`, so a budget that is too small never produces a false
 syntax error. If you size `max_work_units` from measurements, keep a few units
 of headroom.
 
-**Unknown words in value position** (for example `nul` or `trueish`) fail with a
-`syntax` error whose `source_range` covers the whole word.
+**Unknown words in value position** (for example `nul`, `trueish`, `None` or
+`Nan`) fail with a `syntax` error with reason `unknown_literal`, whose
+`source_range` covers the whole word. Only a complete `Infinity` or `NaN` is
+reported as `not_allowed_in_strict_json` in strict JSON.
 
 **Warnings.** Every warning is kept. More warnings than `max_diagnostics` fail
-the whole parse with `resource_limit`. No document is returned with some of its
-warnings missing.
+the whole parse with `resource_limit` and reason `diagnostics`, located at the
+first warning that does not fit. This is the one case where warnings turn valid
+input into a failure (J5-017). No document is returned with some of its warnings
+missing.
+
+### Which limit, and where
+
+| Reason | Option | Location |
+|---|---|---|
+| `input` | `max_input_bytes` | none: it concerns the whole input |
+| `depth` | `max_depth` | the opening bracket or brace that is one level too deep |
+| `nodes` | `max_nodes` | the value that is one too many |
+| `members` | `max_members` | the member value that is one too many |
+| `string` | `max_string_units` | the character or escape that exceeds the limit |
+| `total_string` | `max_total_string_units` | as `string`; reported instead of it when the document total was the smaller limit |
+| `number_bytes` | `max_number_bytes` | the number |
+| `exponent_digits` | `max_exponent_digits` | the first exponent digit too many |
+| `owned_bytes` | `max_owned_bytes` | none: it concerns memory, not input |
+| `diagnostics` | `max_diagnostics` | the first warning that does not fit |
+| `work` | `max_work_units` | where the budget ran out |
+| `output_capacity` | buffer of `as_string`/`describe` | none: reported after parsing |
+| `conversion_size` | project limit of numeric conversion | none: reported after parsing |
+
+When a document breaks several rules, the parser reports the first one it meets
+in source order; within one string, its length is checked before its warnings.
+A scan that a small work budget cuts short reports `work` only for grammar and
+UTF-8 errors that the cut can cause; a real allocation failure or another limit
+keeps its own code.
 
 **Warning table.** By default (`warning_storage_policy::fixed`), the first
 warning allocates a table of `max_diagnostics` entries at once, and it never
