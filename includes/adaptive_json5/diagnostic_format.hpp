@@ -38,7 +38,7 @@ namespace adaptive_json5
    * @par Requirements
    * J5-043; J5-044; J5-045; issue #96.
    * @param failure Error returned by a library operation.
-   * @param primary Position of failure.byte_offset; ignored when the error has no location.
+   * @param primary Position of failure.byte_offset(); ignored when the error has no location.
    * @param first_duplicate Position of the first duplicate name; omitted text when absent.
    * @param buffer Caller storage for the NUL-terminated message, or nullptr when capacity is 0.
    * @param capacity Size of buffer in bytes, including room for the terminating NUL.
