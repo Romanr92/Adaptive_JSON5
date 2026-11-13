@@ -1,6 +1,7 @@
 #include "parser/parser_duplicate.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_name_equal.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
@@ -105,7 +106,7 @@ namespace adaptive_json5
         }
 
         // Equal length comparison can read one unit from each name per position.
-        const auto comparison_units = checked_multiply(name.size(), 2);
+        const auto comparison_units = checked_multiply(name.size(), 2, resource_limit_reason::work);
 
         if (!comparison_units.has_value())
         {

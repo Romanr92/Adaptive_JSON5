@@ -2,6 +2,7 @@
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -135,7 +136,7 @@ namespace adaptive_json5
           links = &object->members;
         }
 
-        const auto new_count = checked_add(links->count, 1);
+        const auto new_count = checked_add(links->count, 1, resource_limit_reason::nodes);
 
         if (!new_count.has_value())
         {

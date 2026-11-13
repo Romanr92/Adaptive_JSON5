@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "common/checked_size.hpp"
 #include "input/cursor.hpp"
@@ -86,7 +87,7 @@ namespace adaptive_json5
       const auto emit = [&walk, max_units, output](const encoded_utf16& units,
                                                    std::size_t offset) noexcept -> status_result
       {
-        const auto total = checked_add(walk.units, units.size);
+        const auto total = checked_add(walk.units, units.size, resource_limit_reason::string);
         if ((!total.has_value()) || (*total.value_if() > max_units))
         {
           return status_result::failure(error::at_offset(error_code::resource_limit, offset));

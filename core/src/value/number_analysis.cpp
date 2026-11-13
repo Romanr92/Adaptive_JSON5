@@ -1,6 +1,7 @@
 #include "value/number_analysis.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
 #include "common/checked_size.hpp"
@@ -136,7 +137,7 @@ namespace adaptive_json5
       bool exponent_exceeds_threshold{};
       std::size_t exponent_magnitude{};
 
-      const auto scale_limit = checked_add(spelling.size, c_exponent_margin);
+      const auto scale_limit = checked_add(spelling.size, c_exponent_margin, resource_limit_reason::conversion_size);
 
       if (!scale_limit.has_value())
       {
@@ -189,7 +190,7 @@ namespace adaptive_json5
       // Combine the written exponent with the implied fractional scale without unsigned wrap.
       if (exponent_negative)
       {
-        const auto magnitude = checked_add(scale_exponent, fractional_digits);
+        const auto magnitude = checked_add(scale_exponent, fractional_digits, resource_limit_reason::conversion_size);
 
         if (!magnitude.has_value())
         {

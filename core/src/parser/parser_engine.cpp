@@ -5,6 +5,7 @@
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -256,7 +257,8 @@ namespace adaptive_json5
 
       const source_span span{m_source.offset(), scan.source.offset() - m_source.offset()};
 
-      const auto construction_units = checked_add(span.byte_length, c_record_construction_work);
+      const auto construction_units =
+        checked_add(span.byte_length, c_record_construction_work, resource_limit_reason::work);
 
       if (!construction_units.has_value())
       {

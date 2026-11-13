@@ -2,6 +2,7 @@
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/resource_limits.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
@@ -11,16 +12,23 @@ namespace adaptive_json5
   /**
    * @brief Check whether an additional amount fits without overflowing.
    * @par Requirements
-   * P031; J5-047; J5-048.
+   * P031; J5-047; J5-048; issue #125.
+   * @param current Amount already reserved.
+   * @param additional Amount to add.
+   * @param limit Inclusive maximum for current + additional.
+   * @param reason Limit being checked; every caller names its own resource_limits field.
+   * @return Success, or resource_limit carrying reason without a location; the engine
+   * adds the location of the offending token.
    * @note Subtraction is evaluated only after validating current.
    * @par ID SWU-MEMORY-056
    */
-  status_result resource_budget::check_addition(std::size_t current, std::size_t additional, std::size_t limit) noexcept
+  status_result resource_budget::check_addition(std::size_t current, std::size_t additional, std::size_t limit,
+                                                resource_limit_reason reason) noexcept
   {
     // Subtraction avoids overflowing a speculative current + additional.
     if ((current > limit) || (additional > (limit - current)))
     {
-      return status_result::failure(error::without_location(error_code::resource_limit));
+      return status_result::failure(error::limit_without_location(reason));
     }
 
     return status_result::success();
@@ -45,7 +53,7 @@ namespace adaptive_json5
    */
   status_result resource_budget::check_input(std::size_t bytes) const noexcept
   {
-    return check_addition(c_no_resources, bytes, m_limits.max_input_bytes);
+    return check_addition(c_no_resources, bytes, m_limits.max_input_bytes, resource_limit_reason::input);
   }
 
   /**
@@ -59,13 +67,16 @@ namespace adaptive_json5
    */
   status_result resource_budget::check_number(std::size_t bytes, std::size_t exponent_digits) const noexcept
   {
-    const auto spelling = check_addition(c_no_resources, bytes, m_limits.max_number_bytes);
+    const auto spelling =
+      check_addition(c_no_resources, bytes, m_limits.max_number_bytes, resource_limit_reason::number_bytes);
+
     if (!spelling.has_value())
     {
       return status_result::failure(*spelling.error_if());
     }
 
-    return check_addition(c_no_resources, exponent_digits, m_limits.max_exponent_digits);
+    return check_addition(c_no_resources, exponent_digits, m_limits.max_exponent_digits,
+                          resource_limit_reason::exponent_digits);
   }
 
   /**
@@ -79,7 +90,8 @@ namespace adaptive_json5
    */
   status_result resource_budget::reserve_value(bool member) noexcept
   {
-    const auto node = check_addition(m_nodes, c_single_resource, m_limits.max_nodes);
+    const auto node = check_addition(m_nodes, c_single_resource, m_limits.max_nodes, resource_limit_reason::nodes);
+
     if (!node.has_value())
     {
       return status_result::failure(*node.error_if());
@@ -87,7 +99,9 @@ namespace adaptive_json5
 
     if (member)
     {
-      const auto entry = check_addition(m_members, c_single_resource, m_limits.max_members);
+      const auto entry =
+        check_addition(m_members, c_single_resource, m_limits.max_members, resource_limit_reason::members);
+
       if (!entry.has_value())
       {
         return status_result::failure(*entry.error_if());
@@ -139,7 +153,8 @@ namespace adaptive_json5
    */
   status_result resource_budget::enter_container() noexcept
   {
-    const auto entered = check_addition(m_depth, c_single_resource, m_limits.max_depth);
+    const auto entered = check_addition(m_depth, c_single_resource, m_limits.max_depth, resource_limit_reason::depth);
+
     if (!entered.has_value())
     {
       return status_result::failure(*entered.error_if());
@@ -186,13 +201,17 @@ namespace adaptive_json5
    */
   status_result resource_budget::reserve_string_units(std::size_t current_units, std::size_t additional_units) noexcept
   {
-    const auto individual = check_addition(current_units, additional_units, m_limits.max_string_units);
+    const auto individual =
+      check_addition(current_units, additional_units, m_limits.max_string_units, resource_limit_reason::string);
+
     if (!individual.has_value())
     {
       return status_result::failure(*individual.error_if());
     }
 
-    const auto total = check_addition(m_string_units, additional_units, m_limits.max_total_string_units);
+    const auto total = check_addition(m_string_units, additional_units, m_limits.max_total_string_units,
+                                      resource_limit_reason::total_string);
+
     if (!total.has_value())
     {
       return status_result::failure(*total.error_if());
@@ -253,7 +272,9 @@ namespace adaptive_json5
    */
   status_result resource_budget::reserve_diagnostic() noexcept
   {
-    const auto diagnostic = check_addition(m_diagnostics, c_single_resource, m_limits.max_diagnostics);
+    const auto diagnostic =
+      check_addition(m_diagnostics, c_single_resource, m_limits.max_diagnostics, resource_limit_reason::diagnostics);
+
     if (!diagnostic.has_value())
     {
       return status_result::failure(*diagnostic.error_if());

@@ -4,6 +4,7 @@
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/floating_conversion_policy.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
@@ -506,9 +507,10 @@ namespace adaptive_json5
       detail::big_unsigned denominator{provider};
 
       // Bound the significand without scanning its spelling again.
-      const auto digit_bits = (parts.kind == number_kind::hexadecimal)
-                                ? checked_multiply(parts.digit_count, std::size_t{4})
-                                : detail::decimal_digit_bits(parts.digit_count);
+      const auto digit_bits =
+        (parts.kind == number_kind::hexadecimal)
+          ? checked_multiply(parts.digit_count, std::size_t{4}, resource_limit_reason::conversion_size)
+          : detail::decimal_digit_bits(parts.digit_count);
 
       if (!digit_bits.has_value())
       {
@@ -529,7 +531,8 @@ namespace adaptive_json5
       if (parts.scale_negative)
       {
         // The denominator becomes 10^scale; the extra bit also covers 10^0.
-        const auto scaled_bound = checked_add(denominator_bound, *scale_bits.value_if());
+        const auto scaled_bound =
+          checked_add(denominator_bound, *scale_bits.value_if(), resource_limit_reason::conversion_size);
 
         if (!scaled_bound.has_value())
         {
@@ -540,7 +543,8 @@ namespace adaptive_json5
       }
       else
       {
-        const auto scaled_bound = checked_add(numerator_bound, *scale_bits.value_if());
+        const auto scaled_bound =
+          checked_add(numerator_bound, *scale_bits.value_if(), resource_limit_reason::conversion_size);
 
         if (!scaled_bound.has_value())
         {
@@ -553,7 +557,8 @@ namespace adaptive_json5
       // Both integers must fit the later alignment and remainder operations.
       const std::size_t larger_bound = (numerator_bound > denominator_bound) ? numerator_bound : denominator_bound;
 
-      const auto aligned_bound = checked_add(larger_bound, static_cast<std::size_t>(c_quotient_bits));
+      const auto aligned_bound =
+        checked_add(larger_bound, static_cast<std::size_t>(c_quotient_bits), resource_limit_reason::conversion_size);
 
       if (!aligned_bound.has_value())
       {
@@ -561,7 +566,8 @@ namespace adaptive_json5
       }
 
       // A remainder can temporarily double before the next subtraction.
-      const auto capacity_bits = checked_add(*aligned_bound.value_if(), std::size_t{1});
+      const auto capacity_bits =
+        checked_add(*aligned_bound.value_if(), std::size_t{1}, resource_limit_reason::conversion_size);
 
       if (!capacity_bits.has_value())
       {

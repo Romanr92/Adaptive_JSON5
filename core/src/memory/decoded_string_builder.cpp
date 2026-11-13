@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "common/checked_size.hpp"
@@ -24,7 +25,7 @@ namespace adaptive_json5
    */
   status_result decoded_string_builder::append_units(const char16_t* units, std::size_t count) noexcept
   {
-    const auto new_size = checked_add(m_size, count);
+    const auto new_size = checked_add(m_size, count, resource_limit_reason::string);
     if (!new_size.has_value())
     {
       return status_result::failure(*new_size.error_if());
@@ -63,7 +64,8 @@ namespace adaptive_json5
    * @par Requirements
    * P013; J5-029; J5-040; J5-046.
    * @param units Exact decoded size counted by the caller's first pass.
-   * @return Success, resource_limit above the unit limit, allocation_failure, or
+   * @return Success, internal_error above the unit limit (the caller's counting pass
+   * already enforced it), allocation_failure, or
    * wrong_type_or_access when content or a reservation already exists.
    * @note Makes at most one allocation; zero units allocate nothing.
    * @par ID SWU-MEMORY-022
@@ -76,9 +78,11 @@ namespace adaptive_json5
       return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
+    // The counting pass already rejected strings above the limit, so exceeding it here means
+    // the passes disagree.
     if (units > m_max_units)
     {
-      return status_result::failure(error::without_location(error_code::resource_limit));
+      return status_result::failure(error::internal_fault());
     }
 
     // An empty string owns no storage, so it never needs the provider.

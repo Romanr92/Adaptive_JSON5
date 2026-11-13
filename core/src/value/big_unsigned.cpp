@@ -3,6 +3,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "common/checked_size.hpp"
 
@@ -82,7 +83,7 @@ namespace adaptive_json5::detail
     constexpr std::size_t c_bits_numerator = 10;
     constexpr std::size_t c_bits_denominator = 3;
 
-    const auto scaled = checked_multiply(digits, c_bits_numerator);
+    const auto scaled = checked_multiply(digits, c_bits_numerator, resource_limit_reason::conversion_size);
 
     if (!scaled.has_value())
     {
@@ -90,7 +91,8 @@ namespace adaptive_json5::detail
     }
 
     // Adding denominator - 1 before dividing rounds up.
-    const auto rounded = checked_add(*scaled.value_if(), c_bits_denominator - 1);
+    const auto rounded =
+      checked_add(*scaled.value_if(), c_bits_denominator - 1, resource_limit_reason::conversion_size);
 
     if (!rounded.has_value())
     {
@@ -110,7 +112,7 @@ namespace adaptive_json5::detail
    */
   result<std::size_t> limbs_for_bits(std::size_t bits) noexcept
   {
-    const auto rounded = checked_add(bits, std::size_t{c_limb_bits} - 1);
+    const auto rounded = checked_add(bits, std::size_t{c_limb_bits} - 1, resource_limit_reason::conversion_size);
 
     if (!rounded.has_value())
     {
@@ -118,7 +120,7 @@ namespace adaptive_json5::detail
     }
 
     // The extra limb absorbs the +1 bit of a power of ten and any rounding in the callers' bounds.
-    return checked_add(*rounded.value_if() / c_limb_bits, c_additional_limb);
+    return checked_add(*rounded.value_if() / c_limb_bits, c_additional_limb, resource_limit_reason::conversion_size);
   }
 
   /**
@@ -202,14 +204,15 @@ namespace adaptive_json5::detail
       top = static_cast<limb_type>(top >> 1U);
     }
 
-    const auto lower_bits = checked_multiply(m_size - c_additional_limb, std::size_t{c_limb_bits});
+    const auto lower_bits =
+      checked_multiply(m_size - c_additional_limb, std::size_t{c_limb_bits}, resource_limit_reason::conversion_size);
 
     if (!lower_bits.has_value())
     {
       return length_result::failure(*lower_bits.error_if());
     }
 
-    const auto total_bits = checked_add(*lower_bits.value_if(), top_bits);
+    const auto total_bits = checked_add(*lower_bits.value_if(), top_bits, resource_limit_reason::conversion_size);
 
     if (!total_bits.has_value())
     {
@@ -241,14 +244,14 @@ namespace adaptive_json5::detail
       return status_result::failure(error::without_location(error_code::wrong_type_or_access));
     }
 
-    const auto passes = checked_multiply(m_size, c_limb_passes);
+    const auto passes = checked_multiply(m_size, c_limb_passes, resource_limit_reason::work);
 
     if (!passes.has_value())
     {
       return status_result::failure(*passes.error_if());
     }
 
-    const auto units = checked_add(*passes.value_if(), c_tail_work_units);
+    const auto units = checked_add(*passes.value_if(), c_tail_work_units, resource_limit_reason::work);
 
     if (!units.has_value())
     {
@@ -319,7 +322,7 @@ namespace adaptive_json5::detail
 
     const std::size_t traversal_units = (m_size == other.m_size) ? m_size : 0;
 
-    const auto units = checked_add(traversal_units, c_setup_work_units);
+    const auto units = checked_add(traversal_units, c_setup_work_units, resource_limit_reason::work);
 
     if (!units.has_value())
     {
@@ -388,7 +391,7 @@ namespace adaptive_json5::detail
 
     const auto partial_bits = static_cast<std::uint32_t>(bit_count % c_limb_bits);
 
-    const auto base_count = checked_add(m_size, whole_limbs);
+    const auto base_count = checked_add(m_size, whole_limbs, resource_limit_reason::conversion_size);
 
     if (!base_count.has_value())
     {
@@ -399,7 +402,7 @@ namespace adaptive_json5::detail
 
     if (partial_bits != 0)
     {
-      const auto extended = checked_add(destination_count, c_additional_limb);
+      const auto extended = checked_add(destination_count, c_additional_limb, resource_limit_reason::conversion_size);
 
       if (!extended.has_value())
       {
@@ -409,14 +412,14 @@ namespace adaptive_json5::detail
       destination_count = *extended.value_if();
     }
 
-    const auto traversal_units = checked_add(m_size, destination_count);
+    const auto traversal_units = checked_add(m_size, destination_count, resource_limit_reason::work);
 
     if (!traversal_units.has_value())
     {
       return status_result::failure(*traversal_units.error_if());
     }
 
-    const auto units = checked_add(*traversal_units.value_if(), c_shift_setup_work_units);
+    const auto units = checked_add(*traversal_units.value_if(), c_shift_setup_work_units, resource_limit_reason::work);
 
     if (!units.has_value())
     {
@@ -516,14 +519,14 @@ namespace adaptive_json5::detail
       return status_result::success();
     }
 
-    const auto passes = checked_multiply(m_size, c_subtraction_passes);
+    const auto passes = checked_multiply(m_size, c_subtraction_passes, resource_limit_reason::work);
 
     if (!passes.has_value())
     {
       return status_result::failure(*passes.error_if());
     }
 
-    const auto units = checked_add(*passes.value_if(), c_subtraction_setup_units);
+    const auto units = checked_add(*passes.value_if(), c_subtraction_setup_units, resource_limit_reason::work);
 
     if (!units.has_value())
     {
@@ -599,7 +602,7 @@ namespace adaptive_json5::detail
       return status_result::success();
     }
 
-    const auto units = checked_add(other.m_size, c_copy_setup_working_units);
+    const auto units = checked_add(other.m_size, c_copy_setup_working_units, resource_limit_reason::work);
 
     if (!units.has_value())
     {

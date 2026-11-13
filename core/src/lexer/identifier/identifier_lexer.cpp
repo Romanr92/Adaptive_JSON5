@@ -1,7 +1,9 @@
 #include "lexer/identifier/identifier_lexer.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "common/checked_size.hpp"
@@ -124,7 +126,7 @@ namespace adaptive_json5
           return walk_result::failure(encoded.error_if()->relocated(character_offset));
         }
 
-        const auto total = checked_add(walk.units, encoded.value_if()->size);
+        const auto total = checked_add(walk.units, encoded.value_if()->size, resource_limit_reason::string);
         if ((!total.has_value()) || (*total.value_if() > max_units))
         {
           return walk_result::failure(error::at_offset(error_code::resource_limit, character_offset));

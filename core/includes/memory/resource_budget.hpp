@@ -2,6 +2,7 @@
 #define RESOURCE_BUDGET_HPP_
 
 #include "adaptive_json5/memory/resource_limits.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
@@ -36,12 +37,18 @@ namespace adaptive_json5
       /**
        * @brief Check whether an additional amount fits without overflowing.
        * @par Requirements
-       * P031; J5-047; J5-048.
+       * P031; J5-047; J5-048; issue #125.
+       * @param current Amount already reserved.
+       * @param additional Amount to add.
+       * @param limit Inclusive maximum for current + additional.
+       * @param reason Limit being checked; every caller names its own resource_limits field.
+       * @return Success, or resource_limit carrying reason without a location; the engine
+       * adds the location of the offending token.
        * @note Subtraction is evaluated only after validating current.
        * @par ID SWU-MEMORY-056
        */
-      [[nodiscard]] static status_result check_addition(std::size_t current, std::size_t additional,
-                                                        std::size_t limit) noexcept;
+      [[nodiscard]] static status_result check_addition(std::size_t current, std::size_t additional, std::size_t limit,
+                                                        resource_limit_reason reason) noexcept;
 
     public:
       /**

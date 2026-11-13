@@ -1,6 +1,7 @@
 #include "memory/work_budget.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
@@ -21,7 +22,8 @@ namespace adaptive_json5
    * @par Requirements
    * P031; J5-048; J5-049.
    * @param units Work units to charge.
-   * @return Success or resource_limit without changing consumed work.
+   * @return Success, or resource_limit (work) without a location and without changing
+   * consumed work.
    * @note Exactly exhausting the remaining budget succeeds.
    * Zero units succeed even when the budget is exhausted.
    * @par ID SWU-MEMORY-072
@@ -31,7 +33,7 @@ namespace adaptive_json5
     // Subtraction checks available work without overflowing the total.
     if ((m_consumed > m_limit) || (units > (m_limit - m_consumed)))
     {
-      return status_result::failure(error::without_location(error_code::resource_limit));
+      return status_result::failure(error::limit_without_location(resource_limit_reason::work));
     }
 
     m_consumed += units;

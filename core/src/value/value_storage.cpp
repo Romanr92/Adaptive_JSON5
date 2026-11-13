@@ -1,6 +1,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
@@ -99,7 +100,7 @@ namespace adaptive_json5
       }
 
       std::size_t capacity = required;
-      const auto doubled = checked_add(m_capacity, m_capacity);
+      const auto doubled = checked_add(m_capacity, m_capacity, resource_limit_reason::nodes);
 
       // Doubling is optional; an overflowing growth estimate can fall back to required.
       if (doubled.has_value())

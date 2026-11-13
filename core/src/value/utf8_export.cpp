@@ -1,6 +1,7 @@
 #include "adaptive_json5/value/utf8_export.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "common/checked_size.hpp"
@@ -57,7 +58,7 @@ namespace adaptive_json5
         byte_count = c_three_byte_count;
       }
 
-      const auto next_total = checked_add(total, byte_count);
+      const auto next_total = checked_add(total, byte_count, resource_limit_reason::output_capacity);
       if (!next_total.has_value())
       {
         return result<std::size_t>::failure(*next_total.error_if());

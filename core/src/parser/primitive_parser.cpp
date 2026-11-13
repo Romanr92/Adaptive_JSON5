@@ -5,6 +5,7 @@
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -223,7 +224,8 @@ namespace adaptive_json5
       value.first_warning = string->first_warning;
     }
 
-    const auto construction_units = checked_add(value.byte_length, detail::c_record_construction_work);
+    const auto construction_units =
+      checked_add(value.byte_length, detail::c_record_construction_work, resource_limit_reason::work);
 
     if (!construction_units.has_value())
     {

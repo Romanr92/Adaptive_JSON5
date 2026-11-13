@@ -200,7 +200,7 @@ namespace adaptive_json5
   result<owned_block> accounted_storage::allocate_array(std::size_t count, std::size_t element_size,
                                                         std::size_t alignment) noexcept
   {
-    const auto bytes = checked_multiply(count, element_size);
+    const auto bytes = checked_multiply(count, element_size, resource_limit_reason::owned_bytes);
     if (!bytes.has_value())
     {
       return result<owned_block>::failure(*bytes.error_if());

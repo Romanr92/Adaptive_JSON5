@@ -4,6 +4,7 @@
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "common/checked_size.hpp"
@@ -83,7 +84,7 @@ namespace adaptive_json5
       if (current != std::size_t{})
       {
         // Doubling keeps reallocations logarithmic; on overflow the maximum is the answer anyway.
-        const auto doubled = checked_multiply(current, c_growth_factor);
+        const auto doubled = checked_multiply(current, c_growth_factor, resource_limit_reason::diagnostics);
         capacity = doubled.has_value() ? *doubled.value_if() : maximum;
       }
 
@@ -131,7 +132,7 @@ namespace adaptive_json5
    */
   status_result warning_list::reserve(std::size_t additional) noexcept
   {
-    const auto required = checked_add(m_size, additional);
+    const auto required = checked_add(m_size, additional, resource_limit_reason::diagnostics);
 
     if (!required.has_value())
     {

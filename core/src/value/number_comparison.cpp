@@ -4,6 +4,7 @@
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_kind.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -92,8 +93,10 @@ namespace adaptive_json5
       using limbs_result = result<std::size_t>;
 
       // Hexadecimal digits carry 4 bits each; decimal digits use the 10/3 bound.
-      const auto own_bits = (own.kind == number_kind::hexadecimal) ? checked_multiply(own.digit_count, std::size_t{4})
-                                                                   : detail::decimal_digit_bits(own.digit_count);
+      const auto own_bits =
+        (own.kind == number_kind::hexadecimal)
+          ? checked_multiply(own.digit_count, std::size_t{4}, resource_limit_reason::conversion_size)
+          : detail::decimal_digit_bits(own.digit_count);
 
       if (!own_bits.has_value())
       {
@@ -107,7 +110,8 @@ namespace adaptive_json5
         return limbs_result::failure(*scale_bits.error_if());
       }
 
-      const auto total_bits = checked_add(*own_bits.value_if(), *scale_bits.value_if());
+      const auto total_bits =
+        checked_add(*own_bits.value_if(), *scale_bits.value_if(), resource_limit_reason::conversion_size);
 
       if (!total_bits.has_value())
       {
@@ -190,7 +194,8 @@ namespace adaptive_json5
         return counter_result::failure(*value_bits.error_if());
       }
 
-      const auto power_bits = checked_add(*value_bits.value_if(), c_power_headroom_bits);
+      const auto power_bits =
+        checked_add(*value_bits.value_if(), c_power_headroom_bits, resource_limit_reason::conversion_size);
 
       if (!power_bits.has_value())
       {

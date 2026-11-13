@@ -94,7 +94,8 @@ namespace adaptive_json5
        * @par Requirements
        * P013; J5-029; J5-040; J5-046.
        * @param units Exact decoded size counted by the caller's first pass.
-       * @return Success, resource_limit above the unit limit, allocation_failure, or
+       * @return Success, internal_error above the unit limit (the caller's counting pass
+       * already enforced it), allocation_failure, or
        * wrong_type_or_access when content or a reservation already exists.
        * @note Makes at most one allocation; zero units allocate nothing.
        * Appends up to units then never allocate (ADR 0003, decision 2).
