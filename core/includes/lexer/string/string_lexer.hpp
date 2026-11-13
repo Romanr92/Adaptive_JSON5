@@ -9,6 +9,7 @@
 #include "lexer/string/string_token.hpp"
 
 #include <cstddef>
+#include <limits>
 #include <optional>
 
 namespace adaptive_json5
@@ -36,16 +37,20 @@ namespace adaptive_json5
    * @param source Cursor positioned at a possible opening quote.
    * @param mode Selected input syntax.
    * @param max_units Maximum decoded UTF-16 units.
+   * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
    * @return The measurement, successful nullopt before nonquote input or EOF,
    * or the same located failure consume_string reports for the same input.
    * @note Success consumes through the matching closing quote only.
    * No-match and failure leave the caller's cursor unchanged.
    * Performs no allocation and invokes no warning callbacks (ADR 0003, decisions 2 and 7).
    * Does not skip trivia or validate input following the closing quote.
+   * More warnings than warning_allowance are not a failure: the measurement carries the
+   * first excess one as excess_warning, so the caller can report its exact offset (issue #125).
    * @par ID SWU-LEXER-040
    */
-  [[nodiscard]] result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode,
-                                                                     std::size_t max_units) noexcept;
+  [[nodiscard]] result<std::optional<string_measure>>
+  measure_string(cursor& source, syntax_mode mode, std::size_t max_units,
+                 std::size_t warning_allowance = std::numeric_limits<std::size_t>::max()) noexcept;
 
   /**
    * @brief Consume one complete quoted string into owned decoded storage.

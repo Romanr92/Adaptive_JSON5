@@ -263,6 +263,27 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Report how many more diagnostic entries fit.
+   * @par Requirements
+   * P031; J5-017; J5-047; issue #125.
+   * @return max_diagnostics - reserved diagnostic entries.
+   * @note Reserves nothing and changes no state. The counting pass passes it to the
+   * lexers, which mark the first warning that does not fit.
+   * Returns zero if the reserved count ever exceeded the limit.
+   * @par ID SWU-MEMORY-077
+   */
+  std::size_t resource_budget::diagnostic_allowance() const noexcept
+  {
+    // Validate before subtracting so a broken invariant cannot wrap around.
+    if (m_diagnostics > m_limits.max_diagnostics)
+    {
+      return c_no_resources;
+    }
+
+    return m_limits.max_diagnostics - m_diagnostics;
+  }
+
+  /**
    * @brief Reserve one retained diagnostic entry.
    * @par Requirements
    * P031; J5-047.

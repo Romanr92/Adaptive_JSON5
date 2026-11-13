@@ -15,6 +15,7 @@
 #include "unicode/utf16.hpp"
 
 #include <cstddef>
+#include <limits>
 #include <optional>
 #include <utility>
 
@@ -22,6 +23,10 @@ namespace adaptive_json5
 {
   namespace
   {
+    // Allowance for callers that do not limit warnings: a string cannot produce this many,
+    // so excess_warning stays empty.
+    constexpr std::size_t c_no_warning_allowance = std::numeric_limits<std::size_t>::max();
+
     /**
      * @brief Totals produced by one walk over a string body.
      * @par Requirements
@@ -29,9 +34,10 @@ namespace adaptive_json5
      */
     struct string_walk
     {
-        std::size_t units{};                           // Decoded UTF-16 units.
-        std::size_t warning_count{};                   // All warnings in the body.
-        std::optional<string_warning> first_warning{}; // First warning, if any.
+        std::size_t units{};                            // Decoded UTF-16 units.
+        std::size_t warning_count{};                    // All warnings in the body.
+        std::optional<string_warning> first_warning{};  // First warning, if any.
+        std::optional<string_warning> excess_warning{}; // First warning past warning_allowance, if any.
     };
 
     /**
@@ -43,6 +49,8 @@ namespace adaptive_json5
      * @param quote Quote character that closes the string.
      * @param mode Selected input syntax.
      * @param max_units Maximum decoded UTF-16 units.
+     * @param warning_allowance Warnings that still fit; the first one past it is kept as
+     * excess_warning. Callers that do not limit warnings pass c_no_warning_allowance.
      * @param output Null to count only; otherwise a builder reserved for this string.
      * @param sink Optional parser sink that records each warning; used only while decoding.
      * @return Unit and warning totals, or a located error.
@@ -52,8 +60,8 @@ namespace adaptive_json5
      * @par ID SWU-LEXER-038
      */
     result<string_walk> walk_string_body(cursor& source, std::size_t start, string_quote quote, syntax_mode mode,
-                                         std::size_t max_units, decoded_string_builder* output,
-                                         const string_warning_sink* sink) noexcept
+                                         std::size_t max_units, std::size_t warning_allowance,
+                                         decoded_string_builder* output, const string_warning_sink* sink) noexcept
     {
       using walk_result = result<string_walk>;
 
@@ -61,11 +69,17 @@ namespace adaptive_json5
       detail::surrogate_pairing pairing{};
 
       // Each warning covers distinct source bytes, so the count cannot exceed input size.
-      const auto record = [&walk, sink](const string_warning& warning) noexcept
+      const auto record = [&walk, sink, warning_allowance](const string_warning& warning) noexcept
       {
         if (!walk.first_warning.has_value())
         {
           walk.first_warning = warning;
+        }
+
+        // warning_count is still this warning's zero-based index, so it equals the allowance exactly once.
+        if (walk.warning_count == warning_allowance)
+        {
+          walk.excess_warning = warning;
         }
 
         ++walk.warning_count;
@@ -256,11 +270,14 @@ namespace adaptive_json5
    * @param source Cursor positioned at a possible opening quote.
    * @param mode Selected input syntax.
    * @param max_units Maximum decoded UTF-16 units.
+   * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
    * @return The measurement, nullopt for nonquote input or EOF, or a located failure.
    * @note Performs no allocation (ADR 0003, decisions 2 and 7).
+   * Too many warnings are not a failure here: the caller reports excess_warning.
    * @par ID SWU-LEXER-040
    */
-  result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode, std::size_t max_units) noexcept
+  result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode, std::size_t max_units,
+                                                       std::size_t warning_allowance) noexcept
   {
     using measure_result = result<std::optional<string_measure>>;
 
@@ -281,7 +298,8 @@ namespace adaptive_json5
     }
 
     // A null builder makes the walk validate and count only.
-    const auto counted = walk_string_body(candidate, start, **opening.value_if(), mode, max_units, nullptr, nullptr);
+    const auto counted =
+      walk_string_body(candidate, start, **opening.value_if(), mode, max_units, warning_allowance, nullptr, nullptr);
 
     if (!counted.has_value())
     {
@@ -289,8 +307,9 @@ namespace adaptive_json5
     }
 
     const string_walk& totals = *counted.value_if();
-    const string_measure measured{totals.units, start, candidate.offset() - start, totals.warning_count,
-                                  totals.first_warning};
+    const string_measure measured{
+      totals.units,         start, candidate.offset() - start, totals.warning_count, totals.first_warning,
+      totals.excess_warning};
 
     source = candidate;
     return measure_result::success(measured);
@@ -326,7 +345,7 @@ namespace adaptive_json5
 
     // First pass: the same measurement the parser's pre-pass uses, so both agree by construction.
     cursor counting = source;
-    const auto measured = measure_string(counting, mode, max_units);
+    const auto measured = measure_string(counting, mode, max_units, c_no_warning_allowance);
 
     if (!measured.has_value())
     {
@@ -368,7 +387,8 @@ namespace adaptive_json5
 
     // Second pass: write the units into the reservation.
     cursor decoding = body;
-    const auto decoded = walk_string_body(decoding, start, quote, mode, max_units, &builder, sink);
+    const auto decoded =
+      walk_string_body(decoding, start, quote, mode, max_units, c_no_warning_allowance, &builder, sink);
     if (!decoded.has_value())
     {
       return string_result::failure(*decoded.error_if());

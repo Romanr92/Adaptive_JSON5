@@ -156,6 +156,18 @@ namespace adaptive_json5
       [[nodiscard]] std::size_t string_unit_allowance() const noexcept;
 
       /**
+       * @brief Report how many more diagnostic entries fit.
+       * @par Requirements
+       * P031; J5-017; J5-047; issue #125.
+       * @return max_diagnostics - reserved diagnostic entries.
+       * @note Reserves nothing and changes no state. The counting pass passes it to the
+       * lexers, which mark the first warning that does not fit.
+       * Returns zero if the reserved count ever exceeded the limit.
+       * @par ID SWU-MEMORY-077
+       */
+      [[nodiscard]] std::size_t diagnostic_allowance() const noexcept;
+
+      /**
        * @brief Reserve one retained diagnostic entry.
        * @par Requirements
        * P031; J5-047.

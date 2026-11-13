@@ -94,9 +94,10 @@ namespace adaptive_json5
         /**
          * @brief Count one value without building it: reserve its resources and validate it.
          * @par Requirements
-         * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+         * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
          * @note Reports the same errors as read_value and allocates nothing (ADR 0003, decision 7).
          * Charges the same scanning work as read_value, but no construction or decode work.
+         * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
          * @par ID SWU-PARSER-018
          */
         [[nodiscard]] status_result count_value() noexcept;
@@ -104,9 +105,10 @@ namespace adaptive_json5
         /**
          * @brief Count one member name without decoding it.
          * @par Requirements
-         * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+         * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047; issue #125.
          * @note Reports the same errors as read_name except duplicate names, which are checked
          * only in the build pass (ADR 0003, decision 7, C1). Allocates nothing.
+         * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
          * @par ID SWU-PARSER-019
          */
         [[nodiscard]] status_result count_name() noexcept;

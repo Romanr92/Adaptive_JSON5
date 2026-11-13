@@ -671,8 +671,9 @@ namespace adaptive_json5
     /**
      * @brief Count one value without building it: reserve its resources and validate it.
      * @par Requirements
-     * P033; P034; P035; J5-013; J5-027; J5-046; J5-047; J5-048.
+     * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
      * @note Mirrors read_value step by step so both report the same errors.
+     * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
      * @par ID SWU-PARSER-018
      */
     status_result parser_engine::count_value() noexcept
@@ -754,8 +755,8 @@ namespace adaptive_json5
 
       limited_scan scan = *started.value_if();
 
-      const auto measured =
-        measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size, limits.max_exponent_digits);
+      const auto measured = measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size,
+                                           limits.max_exponent_digits, m_resources.diagnostic_allowance());
 
       if (!measured.has_value())
       {
@@ -785,6 +786,13 @@ namespace adaptive_json5
         if (!reserved_string.has_value())
         {
           return status_result::failure(*reserved_string.error_if());
+        }
+
+        // The walk recorded the first warning that no longer fits, so report exactly that one.
+        if (string->excess_warning.has_value())
+        {
+          return status_result::failure(
+            error::limit_at(string->excess_warning->byte_offset, resource_limit_reason::diagnostics));
         }
 
         // The build pass retains every warning as one diagnostic entry, so count them now.
@@ -823,8 +831,9 @@ namespace adaptive_json5
     /**
      * @brief Count one member name without decoding it.
      * @par Requirements
-     * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047.
+     * P033; P035; J5-017; J5-019; J5-020; J5-046; J5-047; issue #125.
      * @note Mirrors read_name except for the duplicate check (ADR 0003, decision 7, C1).
+     * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
      * @par ID SWU-PARSER-019
      */
     status_result parser_engine::count_name() noexcept
@@ -845,7 +854,8 @@ namespace adaptive_json5
       }
 
       limited_scan scan = *started.value_if();
-      const auto measured = measure_member_name(scan.source, m_options.syntax, max_units);
+      const auto measured =
+        measure_member_name(scan.source, m_options.syntax, max_units, m_resources.diagnostic_allowance());
 
       if (!measured.has_value())
       {
@@ -873,6 +883,13 @@ namespace adaptive_json5
       if (!reserved.has_value())
       {
         return status_result::failure(*reserved.error_if());
+      }
+
+      // The walk recorded the first warning that no longer fits, so report exactly that one.
+      if (name.excess_warning.has_value())
+      {
+        return status_result::failure(
+          error::limit_at(name.excess_warning->byte_offset, resource_limit_reason::diagnostics));
       }
 
       for (std::size_t index{}; index < name.warning_count; ++index)
