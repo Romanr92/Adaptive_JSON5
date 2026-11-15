@@ -40,13 +40,13 @@ namespace
        * @par Requirements
        * P033; J5-046.
        */
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<engine_provider*>(context);
         ++self.m_attempts;
         if ((self.m_attempts == self.m_fail_on) || (alignment > alignof(std::max_align_t)))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         for (auto& record : self.m_records)
         {
@@ -58,10 +58,12 @@ namespace
               ++self.m_allocations;
               self.m_live_bytes += bytes;
             }
-            return record.address;
+            return (record.address != nullptr)
+                     ? result<void*>::success(record.address)
+                     : result<void*>::failure(error::without_location(error_code::allocation_failure));
           }
         }
-        return nullptr;
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       /**

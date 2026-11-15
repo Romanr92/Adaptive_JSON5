@@ -40,13 +40,13 @@ namespace
        * @par Requirements
        * P032; J5-046.
        */
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<primitive_provider*>(context);
         ++self.m_attempts;
         if (self.m_attempts == self.m_fail_on || alignment > alignof(std::max_align_t))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         for (auto& record : self.m_records)
         {
@@ -60,10 +60,12 @@ namespace
               ++self.m_allocations;
               self.m_live_bytes += bytes;
             }
-            return record.address;
+            return (record.address != nullptr)
+                     ? result<void*>::success(record.address)
+                     : result<void*>::failure(error::without_location(error_code::allocation_failure));
           }
         }
-        return nullptr;
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       /**
@@ -107,12 +109,7 @@ namespace
         {
           return result<void*>::success(nullptr);
         }
-        void* address = allocate(context, bytes, alignment);
-        if (address == nullptr)
-        {
-          return result<void*>::failure(error::without_location(error_code::allocation_failure));
-        }
-        return result<void*>::success(address);
+        return allocate(context, bytes, alignment);
       }
 
     public:
@@ -153,13 +150,13 @@ namespace
       }
 
       /**
-       * @brief Expose result-only or dual callbacks for dispatch regression units.
+       * @brief Expose callbacks that inject explicit errors or null success.
        * @par Requirements
        * P032; J5-046.
        */
-      storage_callbacks checked_callbacks(bool both = false) noexcept
+      storage_callbacks checked_callbacks() noexcept
       {
-        return {this, both ? &allocate : nullptr, &release, &allocate_checked};
+        return {this, &allocate_checked, &release};
       }
   };
 
@@ -803,17 +800,17 @@ namespace
   /* ================================= End Test_J5_051 ================================= */
   /* =================================== Test_J5_046 =================================== */
   /*
-   * PrefersResultCallbackAndPreservesExplicitError.
-   * Arrange: Expose both callbacks and inject a located resource error.
-   * Act: Allocate through dispatch while the preferred callback fails.
-   * Expect: No fallback is called and code/location remain unchanged.
+   * PreservesExplicitProviderError.
+   * Arrange: Inject a located resource error into the allocate callback.
+   * Act: Allocate through dispatch.
+   * Expect: The host allocator is not reached and code/location remain unchanged.
    */
-  TEST(J5_046_ResultStorage, PrefersResultCallbackAndPreservesExplicitError)
+  TEST(J5_046_ResultStorage, PreservesExplicitProviderError)
   {
     /* Arrange */
     primitive_provider provider;
     provider.m_checked_error_on = 1;
-    const auto callbacks = provider.checked_callbacks(true);
+    const auto callbacks = provider.checked_callbacks();
     /* Act */
     const auto failed = allocate_block(callbacks, 8, 1);
     /* Expect */
@@ -1168,16 +1165,16 @@ namespace
   /* ----------------------------------------------------------------------------------- */
   /*
    * Accounted adapters preserve explicit upstream errors without updating counters.
-   * Arrange: Expose both host callbacks and inject a located error.
+   * Arrange: Inject a located error into the allocate callback.
    * Act: Allocate through an accounting adapter.
-   * Expect: Original location/category, no fallback and unchanged current/peak bytes.
+   * Expect: Original location/category, host allocator not reached, unchanged current/peak bytes.
    */
   TEST(J5_046_ResultStorage, PreservesLocatedUpstreamFailureThroughAccounting)
   {
     /* Arrange */
     primitive_provider provider;
     provider.m_checked_error_on = 1;
-    accounted_storage accounting{provider.checked_callbacks(true), 8};
+    accounted_storage accounting{provider.checked_callbacks(), 8};
     /* Act */
     const auto failed = accounting.allocate(8, 1);
     /* Expect */

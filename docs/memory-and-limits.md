@@ -108,7 +108,7 @@ callbacks instead of a buffer.
 
 | Object | Purpose |
 |---|---|
-| `storage_callbacks` | Your allocate and deallocate functions, plus a context pointer. Both are `noexcept`, and allocate returns `nullptr` (or a failed `result`) when memory is unavailable. |
+| `storage_callbacks` | Your allocate and deallocate functions, plus a context pointer. Both are `noexcept`. Allocate returns `result<void*>`: aligned storage on success, or a failed `result` when memory is unavailable. |
 | `accounted_storage` | Wraps your callbacks, enforces the byte ceiling and reports `current_bytes()` and `peak_bytes()`. It must stay at a stable address, and it must outlive every document parsed through it. |
 | `parse_options` | Syntax mode, duplicate-name policy and `resource_limits`. `accounting.byte_limit()` must equal `options.limits.max_owned_bytes`. |
 
@@ -130,6 +130,34 @@ if (!parsed.has_value())
   // ... report, then return or try again
 }
 ```
+
+### Migrating a pointer-returning allocator
+
+Earlier releases also accepted an allocate callback returning `void*`, with
+`nullptr` meaning failure. That form was removed
+([ADR 0007](adr/0007-public-api-storage-abi-and-index-identity.md)); there is now
+one allocate callback, and it returns `result<void*>`. Wrap an existing function:
+
+```cpp
+// Before: void* my_allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept;
+result<void*> my_allocate_result(void* context, std::size_t bytes, std::size_t alignment) noexcept
+{
+  void* const address = my_allocate(context, bytes, alignment);
+  if (address == nullptr)
+  {
+    return result<void*>::failure(error::without_location(error_code::allocation_failure));
+  }
+  return result<void*>::success(address);
+}
+
+storage_callbacks callbacks{&my_pool, &my_allocate_result, &my_deallocate};
+```
+
+Report `allocation_failure` when your provider is out of memory. Do not report
+`resource_limit` for that case: `resource_limit` means the configured byte budget
+of `accounted_storage` was reached. Creating the failure allocates nothing. The
+returned address must have the requested alignment and must be released through
+the paired deallocate callback with the same size and alignment.
 
 ### One call on hosted systems (optional)
 
