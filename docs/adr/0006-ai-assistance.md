@@ -21,22 +21,41 @@ guess. It describes the current practice honestly; it is not a marketing stateme
 
 ### 1. Production code is written by the maintainer
 
-All production C++ under `core/src/`, `core/includes/` and `includes/` (the parser,
+All production logic under `core/src/`, `core/includes/` and `includes/` (the parser,
 lexer, memory handling, value model, public headers and the hosted add-on) is written
 by hand by the repository owner. AI tools are not used to generate, rewrite or refactor
 production code.
 
-Evidence: as of release 0.2.0, every commit that changes production C++ is authored
-manually by the maintainer; the git history and the pull-request record are the audit
-trail. Where an AI review suggests a change to production code, the maintainer decides
-whether it is right and implements it himself.
+The one exception to hand-writing is mechanically generated data, which is not AI
+output. `core/includes/unicode/unicode_tables.hpp` is produced by the project-owned
+script `tools/generate_unicode_tables.py` from pinned Unicode data, and its table
+entries are not edited by hand. The script is rated as a TI2 tool in
+[tool confidence](../ISO26262-safety/tool-confidence.md), and
+`core/tests/unicode/unicode_tables_tests.cpp` checks the generated tables against the
+Unicode data. The Eisel–Lemire table of [ADR 0005](0005-allocation-free-number-reads.md)
+follows the same rule.
+
+Evidence: this is the maintainer's own statement of practice. The git history and the
+pull-request record show who authored and merged each change to production code. They
+do not by themselves prove how the contents were written, so this decision rests on
+the maintainer's word and is open to challenge in review. Where an AI review suggests a
+change to production code, the maintainer decides whether it is right and implements
+it himself.
 
 ### 2. Unit tests are AI-assisted and maintainer-reviewed
 
-GoogleTest units under `tests/` and `core/tests/` are drafted with AI assistance from
-the requirements (J5-xxx), the JSON5 specification and the public API, never from the
-implementation. Writing tests from the requirements rather than the code is what makes
-them traceable: each unit is recorded against its requirement in
+GoogleTest units under `tests/` and `core/tests/` are drafted with AI assistance. Two
+things are kept apart:
+
+- **What a test expects** comes from the requirements (J5-xxx), the JSON5
+  specification and the design documents, never from reading the implementation.
+- **What a test calls** follows [ADR 0002](../../core/docs/adr-0002-public-private-source-layout.md):
+  units in `tests/` use only the public API; units in `core/tests/` may include private
+  headers and exercise internal interfaces, such as the input cursor, against their
+  documented contracts.
+
+Taking the expected results from the requirements rather than the code is what makes
+the tests traceable: each unit is recorded against its requirement in
 [traceability](../traceability.md), and a test that only restates what the code does
 would prove nothing.
 
@@ -81,11 +100,16 @@ Positive:
 - Test coverage grows faster than a single developer could manage alone (over 3,400
   GoogleTest cases at 0.2.0) while every case still has a human reviewer.
 - Build and CI work, which is repetitive and easy to get subtly wrong across three
-  platforms, benefits from assistance without affecting the shipped library.
+  platforms, benefits from assistance without AI editing production C++. Build files
+  can still change what is shipped (tool confidence rates CMake and Ninja TI2), so the
+  safeguard is review and validation, see the mitigation below.
 - Documentation stays current with the code because the cost of maintaining it is
   lower.
 - The practice can be explained plainly to an assessor: AI is a drafting and review aid
-  at the edges; the safety-relevant core is hand-written and human-verified.
+  at the edges; the safety-relevant core is hand-written and reviewed by the
+  maintainer. This is not safety verification: the software safety requirements stay
+  Draft, and Verified status needs the independent confirmation measures described in
+  [traceability](../traceability.md).
 
 Negative, with mitigations:
 
@@ -93,9 +117,12 @@ Negative, with mitigations:
   of the specification. Mitigation: decision 2 requires expected values to be traced to
   the specification or design, and the traceability document records which units cover
   which requirement.
-- AI-drafted build files can introduce options or dependencies that nobody asked for.
-  Mitigation: decision 3 requires a local run of the presets and green CI on all three
-  targets before merge, and [dependencies](../dependencies.md) records provenance.
+- AI-drafted build files can introduce options, dependencies or source-list changes
+  that nobody asked for, and so build something different from the reviewed code.
+  Mitigation: decision 3 requires review of every build change, a local run of the
+  presets and green CI on all three targets before merge; the tests run on what CMake
+  built, `build_configuration_tests` checks the build settings, and
+  [dependencies](../dependencies.md) records provenance.
 - Review discipline is a human habit and can slip. Mitigation: this ADR makes the rules
   explicit so that a lapse is a recognisable deviation rather than an unstated norm.
 
