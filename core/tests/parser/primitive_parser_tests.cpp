@@ -2,6 +2,7 @@
 #include "lexer/number/number_lexer.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "parser/primitive_parser.hpp"
+#include "value/document_access.hpp"
 #include "value/number_access.hpp"
 
 #include <array>
@@ -375,8 +376,8 @@ namespace
   {
     /* Arrange */
     primitive_provider provider;
-    document doc{provider.callbacks(), 32};
-    const auto index = doc.make_null();
+    document doc = adaptive_json5::detail::document_access::create(provider.callbacks(), 32);
+    const auto index = adaptive_json5::detail::document_access::make_null(doc);
     ASSERT_TRUE(index.has_value());
     const auto view = doc.view(*index.value_if());
     ASSERT_TRUE(view.has_value());
@@ -384,17 +385,22 @@ namespace
     ASSERT_TRUE(absent.has_value());
     EXPECT_FALSE(absent.value_if()->has_value());
     /* Act */
-    ASSERT_TRUE(doc.set_source_span(*index.value_if(), {2, 4}, 6).has_value());
+    ASSERT_TRUE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {2, 4}, 6).has_value());
     const auto copied = view.value_if()->source_span();
     ASSERT_TRUE(copied.has_value());
-    EXPECT_FALSE(doc.set_source_span(*index.value_if(), {2, 5}, 6).has_value());
-    EXPECT_FALSE(doc.set_source_span(*index.value_if(), {7, 0}, 6).has_value());
-    EXPECT_FALSE(doc.set_source_span(*index.value_if(), {1, std::numeric_limits<std::size_t>::max()}, 6).has_value());
-    EXPECT_FALSE(doc.set_source_span(value_index{}, {0, 0}, 0).has_value());
-    EXPECT_FALSE(doc.set_source_span(value_index{32}, {0, 0}, 0).has_value());
+    EXPECT_FALSE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {2, 5}, 6).has_value());
+    EXPECT_FALSE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {7, 0}, 6).has_value());
+    EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(
+                   doc, *index.value_if(), {1, std::numeric_limits<std::size_t>::max()}, 6)
+                   .has_value());
+    EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(doc, value_index{}, {0, 0}, 0).has_value());
+    EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(doc, value_index{32}, {0, 0}, 0).has_value());
     for (std::int32_t i{}; i < 20; ++i)
     {
-      ASSERT_TRUE(doc.make_null().has_value());
+      ASSERT_TRUE(adaptive_json5::detail::document_access::make_null(doc).has_value());
     }
     const auto retained = view.value_if()->source_span();
     /* Expect */
@@ -402,7 +408,8 @@ namespace
     ASSERT_TRUE(retained.value_if()->has_value());
     EXPECT_EQ(retained.value_if()->value().byte_offset, 2u);
     EXPECT_EQ(retained.value_if()->value().byte_length, 4u);
-    ASSERT_TRUE(doc.set_source_span(*index.value_if(), {6, 0}, 6).has_value());
+    ASSERT_TRUE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {6, 0}, 6).has_value());
     ASSERT_TRUE(copied.value_if()->has_value());
     EXPECT_EQ(copied.value_if()->value().byte_length, 4u);
     const auto replaced = view.value_if()->source_span();
@@ -738,8 +745,8 @@ namespace
     primitive_provider provider;
     parse_options options;
     accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
-    document doc{accounting.callbacks(), 16};
-    const auto held = doc.make_boolean(true);
+    document doc = adaptive_json5::detail::document_access::create(accounting.callbacks(), 16);
+    const auto held = adaptive_json5::detail::document_access::make_boolean(doc, true);
     ASSERT_TRUE(held.has_value());
     const std::string input = " 123";
     const auto baseline = accounting.current_bytes();
@@ -951,7 +958,7 @@ namespace
     /* Arrange */
     primitive_provider provider;
     parse_options options;
-    document doc{provider.callbacks(), 8};
+    document doc = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
     const std::string input = " 123";
     options.limits.max_number_bytes = 2;
     /* Act */
@@ -1040,7 +1047,7 @@ namespace
   {
     /* Arrange */
     primitive_provider provider;
-    document doc{provider.callbacks(), 2};
+    document doc = adaptive_json5::detail::document_access::create(provider.callbacks(), 2);
     parse_options options;
     work_budget work{100};
     const std::string text = "[";

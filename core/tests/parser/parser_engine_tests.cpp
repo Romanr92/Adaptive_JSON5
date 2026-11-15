@@ -1,6 +1,7 @@
 #include "parser/parser_container_close.hpp"
 #include "parser/parser_container_open.hpp"
 #include "parser/parser_engine.hpp"
+#include "value/document_access.hpp"
 
 #include <array>
 #include <cstddef>
@@ -1023,7 +1024,7 @@ namespace
     provider.m_fail_on = 2;
     accounted_storage accounting{provider.callbacks(), 32768};
     work_budget work{100};
-    document destination{accounting.callbacks(), 10};
+    document destination = adaptive_json5::detail::document_access::create(accounting.callbacks(), 10);
     parser_stack frames{accounting.callbacks(), 4};
     // Frames are reserved once before any push (ADR 0003, decision 7).
     ASSERT_TRUE(frames.reserve_exact(4).has_value());
@@ -1050,7 +1051,7 @@ namespace
     engine_provider provider;
     accounted_storage accounting{provider.callbacks(), 32768};
     work_budget work{100};
-    document destination{accounting.callbacks(), 10};
+    document destination = adaptive_json5::detail::document_access::create(accounting.callbacks(), 10);
     parser_stack frames{accounting.callbacks(), 4};
     // Frames are reserved once before any push (ADR 0003, decision 7).
     ASSERT_TRUE(frames.reserve_exact(4).has_value());

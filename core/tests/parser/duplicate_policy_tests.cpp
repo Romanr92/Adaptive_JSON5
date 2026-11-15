@@ -3,6 +3,7 @@
 #include "parser/parser_attachment.hpp"
 #include "parser/parser_duplicate.hpp"
 #include "parser/parser_engine.hpp"
+#include "value/document_access.hpp"
 
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -220,15 +221,16 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto object = values.make_object();
-    const auto child = values.make_null();
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
+    const auto object = adaptive_json5::detail::document_access::make_object(values);
+    const auto child = adaptive_json5::detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
     auto name = decoded_string::copy_units(provider.callbacks(), u"ab", 2);
     ASSERT_TRUE(name.has_value());
-    ASSERT_TRUE(
-      values.append_member(*object.value_if(), std::move(*name.value_if()), *child.value_if(), {1, 4}, 20).has_value());
+    ASSERT_TRUE(adaptive_json5::detail::document_access::append_member(
+                  values, *object.value_if(), std::move(*name.value_if()), *child.value_if(), {1, 4}, 20)
+                  .has_value());
     auto candidate = decoded_string::copy_units(provider.callbacks(), u"ab", 2);
     ASSERT_TRUE(candidate.has_value());
     work_budget work{GetParam()};
@@ -317,17 +319,18 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto object = values.make_object();
-    const auto array = values.make_array();
-    const auto scalar = values.make_null();
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
+    const auto object = adaptive_json5::detail::document_access::make_object(values);
+    const auto array = adaptive_json5::detail::document_access::make_array(values);
+    const auto scalar = adaptive_json5::detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(array.has_value());
     ASSERT_TRUE(scalar.has_value());
     auto stored = decoded_string::copy_units(provider.callbacks(), u"a", 1);
     ASSERT_TRUE(stored.has_value());
-    ASSERT_TRUE(
-      values.append_member(*object.value_if(), std::move(*stored.value_if()), *scalar.value_if()).has_value());
+    ASSERT_TRUE(adaptive_json5::detail::document_access::append_member(
+                  values, *object.value_if(), std::move(*stored.value_if()), *scalar.value_if())
+                  .has_value());
     auto name = decoded_string::copy_units(provider.callbacks(), u"a", 1);
     ASSERT_TRUE(name.has_value());
     const auto attempts = provider.m_attempts;
@@ -357,9 +360,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto object = values.make_object();
-    const auto child = values.make_null();
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
+    const auto object = adaptive_json5::detail::document_access::make_object(values);
+    const auto child = adaptive_json5::detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
     auto name = decoded_string::copy_units(provider.callbacks(), u"a", 1);

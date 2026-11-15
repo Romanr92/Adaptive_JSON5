@@ -83,8 +83,10 @@ project decides whether it can rely on it.
 - [ ] **C-3.2** If staying in your fallback for a long time is dangerous for your
   function, you handle it, for example with a timeout into a safe state.
   → [FMEA LX-03](software-safety-analysis.md#lexer-and-unicode-handling)
-- [ ] **C-3.3** You never modify a parsed document through the document mutators
-  (`make_*`, `append_*`, `set_source_span`, `set_root` and similar).
+- [ ] **C-3.3** You never modify a parsed document. The document mutators
+  (`make_*`, `append_*`, `set_source_span`, `set_root` and similar) are not part of the
+  public API (ADR 0007); do not reach them through the internal `detail` facilities or
+  private headers.
   → [FMEA VM-06](software-safety-analysis.md#value-model-and-conversions)
 - [ ] **C-3.4** You never use a moved-from document.
   → [FMEA AP-02](software-safety-analysis.md#public-api)

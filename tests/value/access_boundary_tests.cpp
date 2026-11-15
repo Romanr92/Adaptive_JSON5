@@ -37,31 +37,6 @@ namespace
     ASSERT_NE(member.error_if(), nullptr);
     EXPECT_EQ(member.error_if()->code(), error_code::wrong_type_or_access);
   }
-  /* ----------------------------------------------------------------------------------- */
-  /*
-   * Arrange: A validated number whose spelling has been moved to another owner.
-   * Act: Try to insert the empty moved-from number, then insert its valid owner.
-   * Expect: Empty spelling is rejected without adding a record; the owner remains usable.
-   */
-  TEST(J5_039_ValueAccess, RejectsMovedFromNumberWithoutAddingRecord)
-  {
-    /* Arrange */
-    document_provider provider;
-    document values{provider.callbacks(), 4};
-    auto number = owned_number::copy_spelling({"12", 2}, syntax_mode::json5, provider.callbacks(), 2);
-    ASSERT_TRUE(number.has_value());
-    owned_number owner{std::move(*number.value_if())};
-    /* Act */
-    // A moved-from number is an ownership state, never a valid zero-length numeric token.
-    const auto rejected = values.make_number(std::move(*number.value_if()));
-    /* Expect */
-    ASSERT_FALSE(rejected.has_value());
-    EXPECT_EQ(rejected.error_if()->code(), error_code::wrong_type_or_access);
-    EXPECT_EQ(values.size(), 0u);
-    const auto accepted = values.make_number(std::move(owner));
-    ASSERT_TRUE(accepted.has_value());
-    EXPECT_EQ(values.size(), 1u);
-  }
   /* ================================= End Test_J5_039 ================================== */
 
   /* =================================== Test_J5_018 ==================================== */

@@ -228,13 +228,13 @@ namespace adaptive_json5
   class [[nodiscard]] document
   {
     private:
-      // Internal parser access to storage; not a supported public API.
+      // Construction and mutation are internal (ADR 0007); the parser reaches them
+      // through detail::document_access. Not a supported public API.
       friend struct detail::document_access;
 
       detail::value_storage m_values;
       value_index m_root{};
 
-    public:
       /**
        * @brief Construct an empty document with explicit storage and record limit.
        * @par Requirements
@@ -243,49 +243,6 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-023
        */
       document(const storage_callbacks& storage, std::size_t max_records) noexcept;
-
-      /**
-       * @brief Transfer record ownership and leave the source empty.
-       * @par Requirements
-       * P030; J5-040.
-       * @note Existing views into either moved-from document state are invalid.
-       * The source retains its storage configuration and can be reused.
-       * @par ID SWU-VALUE-024
-       */
-      document(document&& other) noexcept;
-
-      /**
-       * @brief Release all records and their owned payloads iteratively.
-       * @par Requirements
-       * P030; J5-040.
-       */
-      ~document() noexcept = default;
-
-      /**
-       * @brief Copying is not allowed.
-       * @par Requirements
-       * P030; J5-040; J5-046.
-       * @note A copy of every value needs storage, which can fail, and would duplicate
-       * ownership; documents are moved instead.
-       */
-      document(const document&) = delete;
-
-      /**
-       * @brief Copy assignment is not allowed.
-       * @par Requirements
-       * P030; J5-040.
-       * @note Same reason as the copy constructor.
-       */
-      document& operator=(const document&) = delete;
-
-      /**
-       * @brief Move assignment is not allowed.
-       * @par Requirements
-       * P030; J5-040.
-       * @note Replacing a live document would release its values first; construct a new
-       * document instead.
-       */
-      document& operator=(document&&) = delete;
 
       /**
        * @brief Create a detached null value.
@@ -437,6 +394,50 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-036
        */
       [[nodiscard]] status_result set_root(value_index index) noexcept;
+
+    public:
+      /**
+       * @brief Transfer record ownership and leave the source empty.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Existing views into either moved-from document state are invalid.
+       * The source retains its storage configuration and can be reused.
+       * @par ID SWU-VALUE-024
+       */
+      document(document&& other) noexcept;
+
+      /**
+       * @brief Release all records and their owned payloads iteratively.
+       * @par Requirements
+       * P030; J5-040.
+       */
+      ~document() noexcept = default;
+
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P030; J5-040; J5-046.
+       * @note A copy of every value needs storage, which can fail, and would duplicate
+       * ownership; documents are moved instead.
+       */
+      document(const document&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Same reason as the copy constructor.
+       */
+      document& operator=(const document&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Replacing a live document would release its values first; construct a new
+       * document instead.
+       */
+      document& operator=(document&&) = delete;
 
       /**
        * @brief Borrow checked read-only access to a document-relative value.

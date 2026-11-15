@@ -1,5 +1,6 @@
-#include "../shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "value/document_access.hpp"
 
 #include <gtest/gtest.h>
 #include <limits>
@@ -52,15 +53,17 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto object = values.make_object();
-    const auto child = values.make_null();
-    const auto detached = values.make_null();
+    document values = detail::document_access::create(provider.callbacks(), 8);
+    const auto object = detail::document_access::make_object(values);
+    const auto child = detail::document_access::make_null(values);
+    const auto detached = detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
     ASSERT_TRUE(detached.has_value());
     decoded_string empty_name;
-    ASSERT_TRUE(values.append_member(*object.value_if(), std::move(empty_name), *child.value_if()).has_value());
+    ASSERT_TRUE(
+      detail::document_access::append_member(values, *object.value_if(), std::move(empty_name), *child.value_if())
+        .has_value());
     const auto member = values.view(*child.value_if());
     ASSERT_TRUE(member.has_value());
     const auto absent = member.value_if()->member_name_source_span();
@@ -70,14 +73,15 @@ namespace
     ASSERT_TRUE(unnamed.has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
-    const auto stored = values.set_member_name_source_span(*child.value_if(), {1, 2}, 10);
+    const auto stored = detail::document_access::set_member_name_source_span(values, *child.value_if(), {1, 2}, 10);
     /* Expect */
     ASSERT_TRUE(stored.has_value());
     // Offset subtraction must reject overflow-sized lengths without corrupting the prior range.
     for (const source_span invalid :
          {source_span{11, 0}, source_span{9, 2}, source_span{1, std::numeric_limits<std::size_t>::max()}})
     {
-      EXPECT_FALSE(values.set_member_name_source_span(*child.value_if(), invalid, 10).has_value());
+      EXPECT_FALSE(
+        detail::document_access::set_member_name_source_span(values, *child.value_if(), invalid, 10).has_value());
       const auto span = member.value_if()->member_name_source_span();
       ASSERT_TRUE(span.has_value());
       ASSERT_TRUE(span.value_if()->has_value());
@@ -86,9 +90,11 @@ namespace
     }
     EXPECT_FALSE(unnamed.value_if()->member_name_source_span().has_value());
     EXPECT_FALSE(value_view{}.member_name_source_span().has_value());
-    EXPECT_FALSE(values.set_member_name_source_span(*detached.value_if(), {1, 2}, 10).has_value());
-    EXPECT_FALSE(values.set_member_name_source_span(value_index{99}, {1, 2}, 10).has_value());
-    EXPECT_TRUE(values.set_member_name_source_span(*child.value_if(), {10, 0}, 10).has_value());
+    EXPECT_FALSE(
+      detail::document_access::set_member_name_source_span(values, *detached.value_if(), {1, 2}, 10).has_value());
+    EXPECT_FALSE(detail::document_access::set_member_name_source_span(values, value_index{99}, {1, 2}, 10).has_value());
+    EXPECT_TRUE(
+      detail::document_access::set_member_name_source_span(values, *child.value_if(), {10, 0}, 10).has_value());
     EXPECT_EQ(provider.m_attempts, attempts);
   }
   /* ----------------------------------------------------------------------------------- */
@@ -101,9 +107,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto object = values.make_object();
-    const auto child = values.make_null();
+    document values = detail::document_access::create(provider.callbacks(), 8);
+    const auto object = detail::document_access::make_object(values);
+    const auto child = detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
     auto name = decoded_string::copy_units(provider.callbacks(), u"a", 1);
@@ -112,8 +118,8 @@ namespace
     ASSERT_TRUE(parent.has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
-    const auto invalid =
-      values.append_member(*object.value_if(), std::move(*name.value_if()), *child.value_if(), {9, 2}, 10);
+    const auto invalid = detail::document_access::append_member(values, *object.value_if(), std::move(*name.value_if()),
+                                                                *child.value_if(), {9, 2}, 10);
     /* Expect */
     // std::move alone must not empty a supplied owner when validation rejects attachment.
     ASSERT_FALSE(invalid.has_value());
@@ -122,11 +128,13 @@ namespace
     auto count = parent.value_if()->container_size();
     ASSERT_TRUE(count.has_value());
     EXPECT_EQ(*count.value_if(), 0u);
-    ASSERT_TRUE(
-      values.append_member(*object.value_if(), std::move(*name.value_if()), *child.value_if(), {1, 3}, 10).has_value());
+    ASSERT_TRUE(detail::document_access::append_member(values, *object.value_if(), std::move(*name.value_if()),
+                                                       *child.value_if(), {1, 3}, 10)
+                  .has_value());
     decoded_string replacement;
-    EXPECT_FALSE(
-      values.append_member(*object.value_if(), std::move(replacement), *child.value_if(), {5, 2}, 10).has_value());
+    EXPECT_FALSE(detail::document_access::append_member(values, *object.value_if(), std::move(replacement),
+                                                        *child.value_if(), {5, 2}, 10)
+                   .has_value());
     const auto member = values.view(*child.value_if());
     ASSERT_TRUE(member.has_value());
     const auto span = member.value_if()->member_name_source_span();

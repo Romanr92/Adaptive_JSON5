@@ -670,15 +670,15 @@ an arbitrary identifier is not implicitly a string value.
 ```mermaid
 classDiagram
     class document {
-        +make_null()
-        +make_boolean(value)
-        +make_string(value)
-        +make_number(value)
-        +make_array()
-        +make_object()
-        +append_element(parent, child)
-        +append_member(parent, name, child)
-        +set_root(index)
+        -make_null()
+        -make_boolean(value)
+        -make_string(value)
+        -make_number(value)
+        -make_array()
+        -make_object()
+        -append_element(parent, child)
+        -append_member(parent, name, child)
+        -set_root(index)
         +view(index)
         +iterate(container)
         +lookup_member(object, name)
@@ -729,7 +729,7 @@ It is a variant, not a polymorphic base class: there is no virtual value hierarc
 
 | Type / header | Responsibility and interaction |
 | --- | --- |
-| [`document`](../../includes/adaptive_json5/value/document.hpp) | Owns record storage and a root index. Creates detached values, validates attachment, sets value spans/root and exposes checked access. It is a builder and owner, not a lexer. |
+| [`document`](../../includes/adaptive_json5/value/document.hpp) | Owns record storage and a root index and exposes checked read access. Construction and mutation (creating detached values, attachment, spans and root) are private and reached only by the parser through `detail::document_access` (ADR 0007); consumers obtain documents from parsing. It is an owner, not a lexer. |
 | [`detail::value_storage`](../../includes/adaptive_json5/value/document.hpp) | Growable bounded sequence of live records in caller storage. Appending preserves existing indices; growth relocates records. Cleanup iterates records without following tree links. |
 | [`detail::value_record`](../includes/value/value_record.hpp) | One payload plus parent/sibling indices, optional owned member name, optional value span and optional member-name span. The latter is representation capacity, not evidence that the parser currently populates it. |
 | `detail::value_payload` | Exactly one null, Boolean, string, number, array or object alternative. Owns scalar allocations through the selected owning type. |
