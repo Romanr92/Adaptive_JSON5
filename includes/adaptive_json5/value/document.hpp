@@ -40,6 +40,7 @@ namespace adaptive_json5
 
       private:
         storage_callbacks m_provider;
+        owned_block m_identity{};
         owned_block m_storage{};
         std::size_t m_size{};
         std::size_t m_capacity{};
@@ -201,6 +202,10 @@ namespace adaptive_json5
          * @par ID SWU-VALUE-121
          */
         [[nodiscard]] std::size_t size() const noexcept;
+
+        [[nodiscard]] const void* identity() const noexcept;
+
+        [[nodiscard]] value_index issue(std::size_t position) const noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5
@@ -213,8 +218,7 @@ namespace adaptive_json5
    * P030; P032; J5-028; J5-030; J5-031; J5-033; J5-039; J5-040; J5-041.
    * @note Values are created detached until selected as root or attached later.
    * All indices passed to this document must originate from this document.
-   * Indices do not encode document identity; bounds checking cannot detect
-   * an in-range index incorrectly taken from another document.
+   * Indices carry a storage identity token so access can reject indices from another document.
    * Moving or destroying the document invalidates its existing views and iterators.
    * Appending preserves indices but may invalidate borrowed payload pointers.
    * Every storage provider used by records or payloads must outlive its allocations.
