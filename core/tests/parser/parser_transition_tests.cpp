@@ -4,6 +4,7 @@
 #include "parser/parser_engine.hpp"
 #include "parser/parser_work.hpp"
 #include "parser/primitive_parser.hpp"
+#include "value/document_access.hpp"
 
 #include <gtest/gtest.h>
 
@@ -129,7 +130,7 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
     parse_options options;
     work_budget work{100};
     cursor missing{{nullptr, 1}};
@@ -194,7 +195,7 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
     parse_options options;
     scalar_token number{number_token{number_kind::decimal, 0, 1}};
     scalar_token literal{literal_token{static_cast<literal_kind>(99), 0, 1}};
@@ -251,7 +252,7 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
     parser_stack frames{provider.callbacks(), 4};
     // Frames are reserved once before any push (ADR 0003, decision 7).
     ASSERT_TRUE(frames.reserve_exact(4).has_value());
@@ -283,9 +284,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto parent = values.make_array();
-    const auto child = values.make_null();
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
+    const auto parent = adaptive_json5::detail::document_access::make_array(values);
+    const auto child = adaptive_json5::detail::document_access::make_null(values);
     ASSERT_TRUE(parent.has_value());
     ASSERT_TRUE(child.has_value());
     /* Act */
@@ -318,18 +319,18 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto parent = values.make_array();
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
+    const auto parent = adaptive_json5::detail::document_access::make_array(values);
     ASSERT_TRUE(parent.has_value());
     parser_frame frame;
     frame.container = *parent.value_if();
     work_budget work{100};
     /* Act */
     // Work admission can succeed while relationship validation still fails.
-    const auto attached = attach_parsed_value(values, frame, value_index{99}, work, 0);
+    const auto attached = attach_parsed_value(values, frame, value_index{}, work, 0);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
-    // Only the parser supplies the child index, so a dangling one is an internal fault.
+    // Only the parser supplies the child index, so an unset one is an internal fault.
     EXPECT_EQ(attached.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(frame.state, parser_state::array_first_or_end);
     EXPECT_EQ(work.consumed(), c_attachment_work);

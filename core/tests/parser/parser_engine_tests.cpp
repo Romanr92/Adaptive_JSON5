@@ -1,6 +1,7 @@
 #include "parser/parser_container_close.hpp"
 #include "parser/parser_container_open.hpp"
 #include "parser/parser_engine.hpp"
+#include "value/document_access.hpp"
 
 #include <array>
 #include <cstddef>
@@ -40,13 +41,13 @@ namespace
        * @par Requirements
        * P033; J5-046.
        */
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<engine_provider*>(context);
         ++self.m_attempts;
         if ((self.m_attempts == self.m_fail_on) || (alignment > alignof(std::max_align_t)))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         for (auto& record : self.m_records)
         {
@@ -58,10 +59,12 @@ namespace
               ++self.m_allocations;
               self.m_live_bytes += bytes;
             }
-            return record.address;
+            return (record.address != nullptr)
+                     ? result<void*>::success(record.address)
+                     : result<void*>::failure(error::without_location(error_code::allocation_failure));
           }
         }
-        return nullptr;
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       /**
@@ -1021,7 +1024,7 @@ namespace
     provider.m_fail_on = 2;
     accounted_storage accounting{provider.callbacks(), 32768};
     work_budget work{100};
-    document destination{accounting.callbacks(), 10};
+    document destination = adaptive_json5::detail::document_access::create(accounting.callbacks(), 10);
     parser_stack frames{accounting.callbacks(), 4};
     // Frames are reserved once before any push (ADR 0003, decision 7).
     ASSERT_TRUE(frames.reserve_exact(4).has_value());
@@ -1048,7 +1051,7 @@ namespace
     engine_provider provider;
     accounted_storage accounting{provider.callbacks(), 32768};
     work_budget work{100};
-    document destination{accounting.callbacks(), 10};
+    document destination = adaptive_json5::detail::document_access::create(accounting.callbacks(), 10);
     parser_stack frames{accounting.callbacks(), 4};
     // Frames are reserved once before any push (ADR 0003, decision 7).
     ASSERT_TRUE(frames.reserve_exact(4).has_value());

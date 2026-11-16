@@ -40,6 +40,7 @@ namespace adaptive_json5
 
       private:
         storage_callbacks m_provider;
+        owned_block m_identity{};
         owned_block m_storage{};
         std::size_t m_size{};
         std::size_t m_capacity{};
@@ -157,6 +158,8 @@ namespace adaptive_json5
          * @return Success, resource_limit above max_records, a provider failure, or
          * internal_error when storage was already allocated or reserved.
          * @note Call on empty storage only. Zero records allocate nothing.
+         * A nonzero reservation allocates one identity token and one record block;
+         * both requests use the provider and count against its owned-byte budget.
          * Afterwards, an append beyond records fails with wrong_type_or_access (invalid_argument) and never
          * allocates (ADR 0003, decision 7). Failure leaves the storage growable and unchanged.
          * @par ID SWU-VALUE-116
@@ -201,6 +204,29 @@ namespace adaptive_json5
          * @par ID SWU-VALUE-121
          */
         [[nodiscard]] std::size_t size() const noexcept;
+
+        /**
+         * @brief Return the identity token for this storage.
+         * @par Requirements
+         * P030; J5-039; J5-040; J5-046.
+         * @return Token address, or nullptr before the first successful record allocation.
+         * @note Used only for comparison and never dereferenced. The token remains stable
+         * during growth and transfers with the records when storage is moved.
+         * Moved-from storage has no token until its next successful record allocation.
+         */
+        [[nodiscard]] const void* identity() const noexcept;
+
+        /**
+         * @brief Tag an internal record position with this storage's identity.
+         * @par Requirements
+         * P030; J5-039; J5-040.
+         * @param position Record position, or value_index::c_unset_position.
+         * @return Index carrying the position and this storage's identity token,
+         * or a default unset index for the sentinel.
+         * @note Performs no allocation or membership/bounds validation.
+         * Access through at() validates the index before reading a record.
+         */
+        [[nodiscard]] value_index issue(std::size_t position) const noexcept;
     };
   } // namespace detail
 } // namespace adaptive_json5
@@ -213,8 +239,7 @@ namespace adaptive_json5
    * P030; P032; J5-028; J5-030; J5-031; J5-033; J5-039; J5-040; J5-041.
    * @note Values are created detached until selected as root or attached later.
    * All indices passed to this document must originate from this document.
-   * Indices do not encode document identity; bounds checking cannot detect
-   * an in-range index incorrectly taken from another document.
+   * Indices carry a storage identity token so access can reject indices from another document.
    * Moving or destroying the document invalidates its existing views and iterators.
    * Appending preserves indices but may invalidate borrowed payload pointers.
    * Every storage provider used by records or payloads must outlive its allocations.
@@ -228,13 +253,13 @@ namespace adaptive_json5
   class [[nodiscard]] document
   {
     private:
-      // Internal parser access to storage; not a supported public API.
+      // Construction and mutation are internal (ADR 0007); the parser reaches them
+      // through detail::document_access. Not a supported public API.
       friend struct detail::document_access;
 
       detail::value_storage m_values;
       value_index m_root{};
 
-    public:
       /**
        * @brief Construct an empty document with explicit storage and record limit.
        * @par Requirements
@@ -243,49 +268,6 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-023
        */
       document(const storage_callbacks& storage, std::size_t max_records) noexcept;
-
-      /**
-       * @brief Transfer record ownership and leave the source empty.
-       * @par Requirements
-       * P030; J5-040.
-       * @note Existing views into either moved-from document state are invalid.
-       * The source retains its storage configuration and can be reused.
-       * @par ID SWU-VALUE-024
-       */
-      document(document&& other) noexcept;
-
-      /**
-       * @brief Release all records and their owned payloads iteratively.
-       * @par Requirements
-       * P030; J5-040.
-       */
-      ~document() noexcept = default;
-
-      /**
-       * @brief Copying is not allowed.
-       * @par Requirements
-       * P030; J5-040; J5-046.
-       * @note A copy of every value needs storage, which can fail, and would duplicate
-       * ownership; documents are moved instead.
-       */
-      document(const document&) = delete;
-
-      /**
-       * @brief Copy assignment is not allowed.
-       * @par Requirements
-       * P030; J5-040.
-       * @note Same reason as the copy constructor.
-       */
-      document& operator=(const document&) = delete;
-
-      /**
-       * @brief Move assignment is not allowed.
-       * @par Requirements
-       * P030; J5-040.
-       * @note Replacing a live document would release its values first; construct a new
-       * document instead.
-       */
-      document& operator=(document&&) = delete;
 
       /**
        * @brief Create a detached null value.
@@ -437,6 +419,50 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-036
        */
       [[nodiscard]] status_result set_root(value_index index) noexcept;
+
+    public:
+      /**
+       * @brief Transfer record ownership and leave the source empty.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Existing views into either moved-from document state are invalid.
+       * The source retains its storage configuration and can be reused.
+       * @par ID SWU-VALUE-024
+       */
+      document(document&& other) noexcept;
+
+      /**
+       * @brief Release all records and their owned payloads iteratively.
+       * @par Requirements
+       * P030; J5-040.
+       */
+      ~document() noexcept = default;
+
+      /**
+       * @brief Copying is not allowed.
+       * @par Requirements
+       * P030; J5-040; J5-046.
+       * @note A copy of every value needs storage, which can fail, and would duplicate
+       * ownership; documents are moved instead.
+       */
+      document(const document&) = delete;
+
+      /**
+       * @brief Copy assignment is not allowed.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Same reason as the copy constructor.
+       */
+      document& operator=(const document&) = delete;
+
+      /**
+       * @brief Move assignment is not allowed.
+       * @par Requirements
+       * P030; J5-040.
+       * @note Replacing a live document would release its values first; construct a new
+       * document instead.
+       */
+      document& operator=(document&&) = delete;
 
       /**
        * @brief Borrow checked read-only access to a document-relative value.

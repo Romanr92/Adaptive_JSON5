@@ -515,13 +515,14 @@ namespace
   }
   /* ----------------------------------------------------------------------------------- */
   /*
-   * Refuse to grow a parsed document or its warning table.
-   * Arrange: A document from parse_document, whose value storage and warning table were reserved
-   *          exactly while parsing.
-   * Act: Append a value to the document and a warning without a reservation.
-   * Expect: Both fail with invalid_argument and leave the document unchanged.
+   * Refuse to grow a parsed document's warning table.
+   * Arrange: A document from parse_document, whose warning table was reserved exactly while parsing.
+   * Act: Append a warning without a reservation.
+   * Expect: It fails with invalid_argument and leaves the document unchanged.
+   * @note Values cannot be appended through the public API at all (ADR 0007); the internal
+   *       unit J5_039_AccessReason.RejectsGrowingAParsedDocument covers the value storage.
    */
-  TEST(J5_039_AccessReason, RejectsGrowingAParsedDocument)
+  TEST(J5_039_AccessReason, RejectsGrowingAParsedWarningTable)
   {
     /* Arrange */
     document_provider provider;
@@ -533,13 +534,9 @@ namespace
     parsed_document& document = *parsed.value_if();
     const std::size_t bytes = accounting.current_bytes();
     /* Act */
-    const auto appended = document.values.make_null();
     const auto warned =
       document.warnings.append_reserved(string_warning{string_warning_code::raw_line_separator, 0U, 3U});
     /* Expect */
-    ASSERT_FALSE(appended.has_value());
-    EXPECT_EQ(appended.error_if()->code(), error_code::wrong_type_or_access);
-    EXPECT_EQ(appended.error_if()->access_reason(), access_error_reason::invalid_argument);
     ASSERT_FALSE(warned.has_value());
     EXPECT_EQ(warned.error_if()->access_reason(), access_error_reason::invalid_argument);
     EXPECT_EQ(document.warnings.size(), 0U);

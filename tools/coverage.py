@@ -3,14 +3,17 @@
 """Report local GCC coverage for the compiled core and its public/private headers."""
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+import gzip
 import importlib.util
 import json
 import os
 from pathlib import Path
-import shlex
 import shutil
 import subprocess
 import sys
+import tempfile
+import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,7 +33,15 @@ def reset_counters():
     # Restrict removal to runtime data in this helper's dedicated build tree.
     for counter in BUILD.rglob("*.gcda"):
         if counter.resolve().is_relative_to(BUILD.resolve()):
-            counter.unlink()
+            # Windows briefly locks freshly read files (gcov, antivirus scans).
+            for attempt in range(50):
+                try:
+                    counter.unlink()
+                    break
+                except PermissionError:
+                    if attempt == 49:
+                        raise
+                    time.sleep(0.1)
 
 
 def remove_obsolete_notes():
@@ -53,6 +64,27 @@ def remove_obsolete_notes():
             note.unlink()
             removed += 1
     print(f"Removed {removed} obsolete coverage notes.", flush=True)
+
+
+def extract_counters(gcov, inputs, destination, jobs):
+    """Extract independent profiles in parallel, without launching gcovr per unit."""
+    destination.mkdir()
+
+    def extract(item):
+        index, counter = item
+        command = [gcov, "--json-format", "--branch-probabilities",
+                   "--branch-counts", "--stdout", str(counter.resolve())]
+        result = subprocess.run(command, cwd=ROOT, capture_output=True)
+        if result.returncode:
+            raise OSError(f"gcov failed for {counter}: "
+                          + result.stderr.decode(errors="replace"))
+        # Keep each executable's counts separate until gcovr merges them with
+        # Python integers. Combining GCC profiles first can overflow gcov counts.
+        with gzip.open(destination / f"{index:04}.gcov.json.gz", "wb") as output:
+            output.write(result.stdout)
+
+    with ThreadPoolExecutor(max_workers=jobs) as workers:
+        list(workers.map(extract, enumerate(inputs)))
 
 
 def main():
@@ -121,12 +153,10 @@ def main():
         # describe the current unit run, rather than accumulating older results.
         reset_counters()
 
-        run(["ctest", "--test-dir", BUILD, "--parallel", args.jobs,
-             "--output-on-failure", "--no-tests=error"])
         # Each discovered GoogleTest case is a separate CTest process. All linked
         # executables share the static core's .gcda files, whose concurrent writes
-        # lose counts on the Windows GCC host. Keep parallel validation above,
-        # then collect deterministic counters with one process per registered
+        # lose counts on the Windows GCC host. Run the tests and collect
+        # deterministic counters with one process per registered
         # executable, sequentially. Do not discover stale binaries by globbing.
         discovered = json.loads(subprocess.check_output(
             ["ctest", "--test-dir", str(BUILD), "--show-only=json-v1"],
@@ -137,29 +167,39 @@ def main():
         for executable in executables:
             if not Path(executable).resolve().is_relative_to(BUILD.resolve()):
                 raise OSError("Unit executable is outside the coverage build: " + executable)
-        reset_counters()
-        print("Collecting counters sequentially from registered unit executables.", flush=True)
-        for executable in executables:
-            run([executable, "--gtest_brief=1"])
         report = BUILD / "report"
         report.mkdir(exist_ok=True)
-        run([
-            sys.executable, "-m", "gcovr", BUILD,
-            "--root", ROOT, "--filter", SOURCE_FILTER,
-            "-j", args.jobs,
-            # gcovr parses this argument as a shell-style command, even on Windows.
-            "--gcov-executable", shlex.quote(Path(shutil.which(gcov)).resolve().as_posix()),
-            "--json", report / "coverage.json",
-        ])
-        # Read only this run's data, then discover all requested source files
-        # from the root, including files with no compiler instrumentation.
-        run([
-            sys.executable, "-m", "gcovr", ROOT,
-            "--root", ROOT, "--filter", SOURCE_FILTER,
-            "--json-add-tracefile", report / "coverage.json",
-            "--include", SOURCE_FILTER,
-            "--html-details", report / "index.html", "--print-summary",
-        ])
+        # Raw profiles are temporary; gcovr parses and merges them in one pass
+        # instead of starting a separate report process for every executable.
+        with tempfile.TemporaryDirectory(prefix="raw-", dir=BUILD) as temporary:
+            raw = Path(temporary)
+            print("Extracting uncovered baseline once.", flush=True)
+            reset_counters()
+            extract_counters(gcov, sorted(BUILD.rglob("*.gcno")), raw / "baseline", args.jobs)
+            for index, executable in enumerate(executables):
+                print(f"Collecting unit executable {index + 1}/{len(executables)}.", flush=True)
+                reset_counters()
+                run([executable, "--gtest_brief=1"])
+                counters = sorted(BUILD.rglob("*.gcda"))
+                if not counters:
+                    raise OSError("Unit executable produced no coverage counters: " + executable)
+                extract_counters(gcov, counters, raw / f"unit-{index:03}", args.jobs)
+            # Include uninstrumented source files as well as the zero-count
+            # baseline, preserving uncovered lines, functions and branches.
+            run([
+                sys.executable, "-m", "gcovr", raw,
+                "--root", ROOT, "--filter", SOURCE_FILTER,
+                "--gcov-use-existing-files", "-j", args.jobs,
+                "--include", SOURCE_FILTER,
+                "--html-details", report / "index.html",
+                "--html-single-page", "--html-self-contained",
+                "--no-html-syntax-highlighting", "--print-summary",
+            ])
+        # Remove only artifacts from the older multi-file report, after the
+        # replacement has been generated successfully.
+        for pattern in ("coverage-*.json", "coverage.json", "index.*.html", "index.css", "index.js"):
+            for stale in report.glob(pattern):
+                stale.unlink()
         print("Report: " + str(report / "index.html"))
         return 0
     except (OSError, subprocess.CalledProcessError) as error:

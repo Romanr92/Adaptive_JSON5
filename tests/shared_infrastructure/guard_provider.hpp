@@ -1,6 +1,8 @@
 #ifndef ADAPTIVE_JSON5_TEST_GUARD_PROVIDER_HPP_
 #define ADAPTIVE_JSON5_TEST_GUARD_PROVIDER_HPP_
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/result.hpp"
 
 #include <array>
 #include <cstddef>
@@ -31,13 +33,13 @@ namespace adaptive_json5_test
        * @par Requirements
        * P031; J5-046.
        */
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<guard_provider*>(context);
         ++self.m_attempts;
         if (self.m_attempts == self.m_fail_on || alignment > alignof(std::max_align_t))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         for (auto& record : self.m_records)
         {
@@ -51,10 +53,12 @@ namespace adaptive_json5_test
               ++self.m_allocations;
               self.m_live_bytes += bytes;
             }
-            return record.address;
+            return (record.address != nullptr)
+                     ? result<void*>::success(record.address)
+                     : result<void*>::failure(error::without_location(error_code::allocation_failure));
           }
         }
-        return nullptr;
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       /**

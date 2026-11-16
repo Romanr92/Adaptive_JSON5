@@ -2,6 +2,7 @@
 #include "lexer/number/number_lexer.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "parser/primitive_parser.hpp"
+#include "value/document_access.hpp"
 #include "value/number_access.hpp"
 
 #include <array>
@@ -40,13 +41,13 @@ namespace
        * @par Requirements
        * P032; J5-046.
        */
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<primitive_provider*>(context);
         ++self.m_attempts;
         if (self.m_attempts == self.m_fail_on || alignment > alignof(std::max_align_t))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         for (auto& record : self.m_records)
         {
@@ -60,10 +61,12 @@ namespace
               ++self.m_allocations;
               self.m_live_bytes += bytes;
             }
-            return record.address;
+            return (record.address != nullptr)
+                     ? result<void*>::success(record.address)
+                     : result<void*>::failure(error::without_location(error_code::allocation_failure));
           }
         }
-        return nullptr;
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       /**
@@ -107,12 +110,7 @@ namespace
         {
           return result<void*>::success(nullptr);
         }
-        void* address = allocate(context, bytes, alignment);
-        if (address == nullptr)
-        {
-          return result<void*>::failure(error::without_location(error_code::allocation_failure));
-        }
-        return result<void*>::success(address);
+        return allocate(context, bytes, alignment);
       }
 
     public:
@@ -153,13 +151,13 @@ namespace
       }
 
       /**
-       * @brief Expose result-only or dual callbacks for dispatch regression units.
+       * @brief Expose callbacks that inject explicit errors or null success.
        * @par Requirements
        * P032; J5-046.
        */
-      storage_callbacks checked_callbacks(bool both = false) noexcept
+      storage_callbacks checked_callbacks() noexcept
       {
-        return {this, both ? &allocate : nullptr, &release, &allocate_checked};
+        return {this, &allocate_checked, &release};
       }
   };
 
@@ -378,8 +376,8 @@ namespace
   {
     /* Arrange */
     primitive_provider provider;
-    document doc{provider.callbacks(), 32};
-    const auto index = doc.make_null();
+    document doc = adaptive_json5::detail::document_access::create(provider.callbacks(), 32);
+    const auto index = adaptive_json5::detail::document_access::make_null(doc);
     ASSERT_TRUE(index.has_value());
     const auto view = doc.view(*index.value_if());
     ASSERT_TRUE(view.has_value());
@@ -387,17 +385,21 @@ namespace
     ASSERT_TRUE(absent.has_value());
     EXPECT_FALSE(absent.value_if()->has_value());
     /* Act */
-    ASSERT_TRUE(doc.set_source_span(*index.value_if(), {2, 4}, 6).has_value());
+    ASSERT_TRUE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {2, 4}, 6).has_value());
     const auto copied = view.value_if()->source_span();
     ASSERT_TRUE(copied.has_value());
-    EXPECT_FALSE(doc.set_source_span(*index.value_if(), {2, 5}, 6).has_value());
-    EXPECT_FALSE(doc.set_source_span(*index.value_if(), {7, 0}, 6).has_value());
-    EXPECT_FALSE(doc.set_source_span(*index.value_if(), {1, std::numeric_limits<std::size_t>::max()}, 6).has_value());
-    EXPECT_FALSE(doc.set_source_span(value_index{}, {0, 0}, 0).has_value());
-    EXPECT_FALSE(doc.set_source_span(value_index{32}, {0, 0}, 0).has_value());
+    EXPECT_FALSE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {2, 5}, 6).has_value());
+    EXPECT_FALSE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {7, 0}, 6).has_value());
+    EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(
+                   doc, *index.value_if(), {1, std::numeric_limits<std::size_t>::max()}, 6)
+                   .has_value());
+    EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(doc, value_index{}, {0, 0}, 0).has_value());
     for (std::int32_t i{}; i < 20; ++i)
     {
-      ASSERT_TRUE(doc.make_null().has_value());
+      ASSERT_TRUE(adaptive_json5::detail::document_access::make_null(doc).has_value());
     }
     const auto retained = view.value_if()->source_span();
     /* Expect */
@@ -405,7 +407,8 @@ namespace
     ASSERT_TRUE(retained.value_if()->has_value());
     EXPECT_EQ(retained.value_if()->value().byte_offset, 2u);
     EXPECT_EQ(retained.value_if()->value().byte_length, 4u);
-    ASSERT_TRUE(doc.set_source_span(*index.value_if(), {6, 0}, 6).has_value());
+    ASSERT_TRUE(
+      adaptive_json5::detail::document_access::set_source_span(doc, *index.value_if(), {6, 0}, 6).has_value());
     ASSERT_TRUE(copied.value_if()->has_value());
     EXPECT_EQ(copied.value_if()->value().byte_length, 4u);
     const auto replaced = view.value_if()->source_span();
@@ -741,8 +744,8 @@ namespace
     primitive_provider provider;
     parse_options options;
     accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
-    document doc{accounting.callbacks(), 16};
-    const auto held = doc.make_boolean(true);
+    document doc = adaptive_json5::detail::document_access::create(accounting.callbacks(), 16);
+    const auto held = adaptive_json5::detail::document_access::make_boolean(doc, true);
     ASSERT_TRUE(held.has_value());
     const std::string input = " 123";
     const auto baseline = accounting.current_bytes();
@@ -803,17 +806,17 @@ namespace
   /* ================================= End Test_J5_051 ================================= */
   /* =================================== Test_J5_046 =================================== */
   /*
-   * PrefersResultCallbackAndPreservesExplicitError.
-   * Arrange: Expose both callbacks and inject a located resource error.
-   * Act: Allocate through dispatch while the preferred callback fails.
-   * Expect: No fallback is called and code/location remain unchanged.
+   * PreservesExplicitProviderError.
+   * Arrange: Inject a located resource error into the allocate callback.
+   * Act: Allocate through dispatch.
+   * Expect: The host allocator is not reached and code/location remain unchanged.
    */
-  TEST(J5_046_ResultStorage, PrefersResultCallbackAndPreservesExplicitError)
+  TEST(J5_046_ResultStorage, PreservesExplicitProviderError)
   {
     /* Arrange */
     primitive_provider provider;
     provider.m_checked_error_on = 1;
-    const auto callbacks = provider.checked_callbacks(true);
+    const auto callbacks = provider.checked_callbacks();
     /* Act */
     const auto failed = allocate_block(callbacks, 8, 1);
     /* Expect */
@@ -954,7 +957,7 @@ namespace
     /* Arrange */
     primitive_provider provider;
     parse_options options;
-    document doc{provider.callbacks(), 8};
+    document doc = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
     const std::string input = " 123";
     options.limits.max_number_bytes = 2;
     /* Act */
@@ -1043,7 +1046,7 @@ namespace
   {
     /* Arrange */
     primitive_provider provider;
-    document doc{provider.callbacks(), 2};
+    document doc = adaptive_json5::detail::document_access::create(provider.callbacks(), 2);
     parse_options options;
     work_budget work{100};
     const std::string text = "[";
@@ -1168,16 +1171,16 @@ namespace
   /* ----------------------------------------------------------------------------------- */
   /*
    * Accounted adapters preserve explicit upstream errors without updating counters.
-   * Arrange: Expose both host callbacks and inject a located error.
+   * Arrange: Inject a located error into the allocate callback.
    * Act: Allocate through an accounting adapter.
-   * Expect: Original location/category, no fallback and unchanged current/peak bytes.
+   * Expect: Original location/category, host allocator not reached, unchanged current/peak bytes.
    */
   TEST(J5_046_ResultStorage, PreservesLocatedUpstreamFailureThroughAccounting)
   {
     /* Arrange */
     primitive_provider provider;
     provider.m_checked_error_on = 1;
-    accounted_storage accounting{provider.checked_callbacks(true), 8};
+    accounted_storage accounting{provider.checked_callbacks(), 8};
     /* Act */
     const auto failed = accounting.allocate(8, 1);
     /* Expect */

@@ -1,6 +1,8 @@
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/result.hpp"
 
 #include <algorithm>
 #include <array>
@@ -30,19 +32,20 @@ namespace
   class counting_provider
   {
     private:
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<counting_provider*>(context);
         if (alignment > alignof(std::max_align_t))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         void* address = std::malloc(bytes);
         if (address != nullptr)
         {
           self.m_live_bytes += bytes;
         }
-        return address;
+        return (address != nullptr) ? result<void*>::success(address)
+                                    : result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       static void release(void* context, void* address, std::size_t bytes, std::size_t) noexcept

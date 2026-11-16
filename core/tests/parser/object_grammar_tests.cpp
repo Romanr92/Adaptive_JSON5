@@ -232,8 +232,10 @@ namespace
     const auto count = root.value_if()->container_size();
     ASSERT_TRUE(count.has_value());
     ASSERT_EQ(*count.value_if(), 4u);
-    // Internal engine construction places the root record before all descendants.
-    auto iterator = values.iterate(value_index{0});
+    // Obtain the tagged root index through its public view.
+    const auto root_index = root.value_if()->index();
+    ASSERT_TRUE(root_index.has_value());
+    auto iterator = values.iterate(*root_index.value_if());
     ASSERT_TRUE(iterator.has_value());
     for (std::size_t ordinal = 0; ordinal < 4; ++ordinal)
     {

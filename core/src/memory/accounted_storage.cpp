@@ -20,7 +20,7 @@ namespace adaptive_json5
    * and nonzero bytes after provider usability has been checked.
    * Fails with internal_error once faulted(), with wrong_type_or_access (invalid_argument)
    * for zero bytes and with resource_limit (owned_bytes) above the ceiling; none of these
-   * call the provider. Preserves explicit upstream failures without fallback.
+   * call the provider. Preserves explicit upstream failures unchanged.
    * Failure leaves current and peak accounting unchanged.
    * Success counts the bytes and one outstanding block.
    * @par ID SWU-MEMORY-001
@@ -47,23 +47,14 @@ namespace adaptive_json5
       return result<void*>::failure(error::limit_without_location(resource_limit_reason::owned_bytes));
     }
 
-    void* address = nullptr;
+    const auto allocated = self.m_provider.allocate(self.m_provider.context, bytes, alignment);
 
-    if (self.m_provider.allocate_result != nullptr)
+    if (!allocated.has_value())
     {
-      const auto allocated = self.m_provider.allocate_result(self.m_provider.context, bytes, alignment);
-
-      if (!allocated.has_value())
-      {
-        return result<void*>::failure(*allocated.error_if());
-      }
-
-      address = *allocated.value_if();
+      return result<void*>::failure(*allocated.error_if());
     }
-    else
-    {
-      address = self.m_provider.allocate(self.m_provider.context, bytes, alignment);
-    }
+
+    void* const address = *allocated.value_if();
 
     if (address == nullptr)
     {
@@ -164,13 +155,12 @@ namespace adaptive_json5
    */
   storage_callbacks accounted_storage::callbacks() noexcept
   {
-    if ((m_provider.deallocate == nullptr) ||
-        ((m_provider.allocate == nullptr) && (m_provider.allocate_result == nullptr)))
+    if ((m_provider.allocate == nullptr) || (m_provider.deallocate == nullptr))
     {
       return {};
     }
 
-    return {this, nullptr, &deallocate_callback, &allocate_callback};
+    return {this, &allocate_callback, &deallocate_callback};
   }
 
   /**

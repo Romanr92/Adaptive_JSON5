@@ -125,13 +125,12 @@ namespace adaptive_json5
    * @brief Allocate one block from caller-supplied storage.
    * @par Requirements
    * P003; P032; J5-003; J5-046; J5-047; J5-051; J5-101.
-   * @return Owning block, an explicit result-callback failure,
+   * @return Owning block, the provider's explicit failure,
    * allocation_failure for an unusable provider or null allocation,
    * or wrong_type_or_access (invalid_argument) for an alignment that is not a power of two.
-   * @note Requires deallocate and at least one allocation callback.
-   * Prefers allocate_result and never falls back after its failure.
+   * @note Requires both allocate and deallocate.
    * A zero-byte request succeeds after provider/alignment validation
-   * without invoking either allocation callback.
+   * without invoking the allocate callback.
    * Explicit callback errors are preserved, including location metadata.
    * Failure reporting requires no allocation.
    * @par ID SWU-MEMORY-053

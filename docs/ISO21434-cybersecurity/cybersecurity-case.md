@@ -47,3 +47,9 @@ Status values: **Evidence exists** (evidence is there, but not independently rev
   claim here is affected (the safety and security impact check).
 - A release may only describe a claim as supported when its status is **Evidence exists**
   and an independent reviewer has confirmed it.
+
+Issue #128 adds local evidence relevant to CC-1 and CC-2: private document
+mutation, foreign-index errors and checked compact-link traversal. See
+[the scoped verification record](cybersecurity-verification.md#issue-128-local-verification-evidence-2026-11-16).
+Those claims remain Partial: required CI, dynamic/static analysis and independent
+review are not established by this host unit run. Secure mode (#145) is unchanged.

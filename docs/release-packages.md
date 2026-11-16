@@ -58,6 +58,37 @@ libstdc++ string ABIs. These checks do not prove compatibility with an older gli
 Use the same toolchain distribution/runtime and compatible target flags, or
 rebuild from source.
 
+## ABI policy
+
+Decided in [ADR 0007](adr/0007-public-api-storage-abi-and-index-identity.md).
+The library promises **no binary compatibility between releases**, including patch
+releases. When you upgrade, rebuild the library and every piece of your C++ code
+that includes its headers. A release can change the size or layout of public
+objects, the storage callback signatures and the error enumerations. There is no
+versioned inline namespace yet. This will be reviewed once the API is stable.
+
+This rule covers binary compatibility only. Source changes between releases are
+listed in the release notes.
+
+Code that includes the library and the library itself must agree on:
+
+- the compiler and its C++ standard library ABI (for example the libstdc++
+  string ABI), recorded in the package metadata above;
+- the target architecture, pointer size and calling convention;
+- packing and alignment flags (`-fpack-struct`, `-malign-*` and similar), which
+  change the layout of public objects;
+- the release: public types such as `value_index`, `storage_callbacks` and the
+  document objects can change between releases.
+
+Settings that only select an algorithm inside the compiled library do not change
+the ABI. `ADAPTIVE_JSON5_EISEL_LEMIRE` selects how decimal numbers are converted and
+changes no public declaration. The test, schema, executable and hosted build flags
+add or remove components without changing the core library's public types. The
+library itself is built with exceptions and RTTI OFF and reports failures through
+result values. A consumer built with exceptions or RTTI ON can call the library,
+because no library exception or `typeid` crosses the API. The C++ runtime must still
+match, as listed above.
+
 ## CMake consumption
 
 After extracting, set `CMAKE_PREFIX_PATH` to the package root and use:

@@ -1,6 +1,11 @@
-#include "../shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
+#include "adaptive_json5/memory/accounted_storage.hpp"
+#include "adaptive_json5/options.hpp"
+#include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/value/decoded_name_equal.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "value/document_access.hpp"
 
 #include <array>
 #include <cstddef>
@@ -37,9 +42,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 8};
+    document doc = detail::document_access::create(provider.callbacks(), 8);
     /* Act */
-    const auto index = doc.make_null();
+    const auto index = detail::document_access::make_null(doc);
     ASSERT_TRUE(index.has_value());
     const auto view = doc.view(*index.value_if());
     /* Expect */
@@ -58,9 +63,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 8};
+    document doc = detail::document_access::create(provider.callbacks(), 8);
     /* Act */
-    const auto index = doc.make_boolean(true);
+    const auto index = detail::document_access::make_boolean(doc, true);
     ASSERT_TRUE(index.has_value());
     const auto view = doc.view(*index.value_if());
     /* Expect */
@@ -80,9 +85,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 8};
+    document doc = detail::document_access::create(provider.callbacks(), 8);
     /* Act */
-    const auto index = doc.make_array();
+    const auto index = detail::document_access::make_array(doc);
     ASSERT_TRUE(index.has_value());
     const auto view = doc.view(*index.value_if());
     /* Expect */
@@ -102,9 +107,9 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 8};
+    document doc = detail::document_access::create(provider.callbacks(), 8);
     /* Act */
-    const auto index = doc.make_object();
+    const auto index = detail::document_access::make_object(doc);
     ASSERT_TRUE(index.has_value());
     const auto view = doc.view(*index.value_if());
     /* Expect */
@@ -124,7 +129,7 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 32};
+    document doc = detail::document_access::create(provider.callbacks(), 32);
     char16_t units[] = {u'a', u'\0', static_cast<char16_t>(0xD800)};
     auto text = decoded_string::copy_units(provider.callbacks(), units, 3);
     std::string spelling = "9007199254740993";
@@ -133,15 +138,15 @@ namespace
     ASSERT_TRUE(text.has_value());
     ASSERT_TRUE(number.has_value());
     /* Act */
-    const auto string_index = doc.make_string(std::move(*text.value_if()));
-    const auto number_index = doc.make_number(std::move(*number.value_if()));
+    const auto string_index = detail::document_access::make_string(doc, std::move(*text.value_if()));
+    const auto number_index = detail::document_access::make_number(doc, std::move(*number.value_if()));
     ASSERT_TRUE(string_index.has_value());
     ASSERT_TRUE(number_index.has_value());
     const auto string_view = doc.view(*string_index.value_if());
     ASSERT_TRUE(string_view.has_value());
     for (std::size_t i{}; i < 20; ++i)
     {
-      ASSERT_TRUE(doc.make_null().has_value());
+      ASSERT_TRUE(detail::document_access::make_null(doc).has_value());
     }
     units[0] = u'z';
     spelling.assign(spelling.size(), '0');
@@ -174,22 +179,22 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 16};
-    const auto array = doc.make_array();
-    const auto first = doc.make_boolean(true);
-    const auto second = doc.make_boolean(true);
-    const auto nested = doc.make_array();
-    const auto leaf = doc.make_null();
+    document doc = detail::document_access::create(provider.callbacks(), 16);
+    const auto array = detail::document_access::make_array(doc);
+    const auto first = detail::document_access::make_boolean(doc, true);
+    const auto second = detail::document_access::make_boolean(doc, true);
+    const auto nested = detail::document_access::make_array(doc);
+    const auto leaf = detail::document_access::make_null(doc);
     ASSERT_TRUE(array.has_value());
     ASSERT_TRUE(first.has_value());
     ASSERT_TRUE(second.has_value());
     ASSERT_TRUE(nested.has_value());
     ASSERT_TRUE(leaf.has_value());
-    ASSERT_TRUE(doc.append_element(*nested.value_if(), *leaf.value_if()).has_value());
+    ASSERT_TRUE(detail::document_access::append_element(doc, *nested.value_if(), *leaf.value_if()).has_value());
     /* Act */
-    ASSERT_TRUE(doc.append_element(*array.value_if(), *first.value_if()).has_value());
-    ASSERT_TRUE(doc.append_element(*array.value_if(), *second.value_if()).has_value());
-    ASSERT_TRUE(doc.append_element(*array.value_if(), *nested.value_if()).has_value());
+    ASSERT_TRUE(detail::document_access::append_element(doc, *array.value_if(), *first.value_if()).has_value());
+    ASSERT_TRUE(detail::document_access::append_element(doc, *array.value_if(), *second.value_if()).has_value());
+    ASSERT_TRUE(detail::document_access::append_element(doc, *array.value_if(), *nested.value_if()).has_value());
     auto iterator = doc.iterate(*array.value_if());
     ASSERT_TRUE(iterator.has_value());
     const auto attempts = provider.m_attempts;
@@ -229,17 +234,19 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 16};
-    const auto object = doc.make_object();
+    document doc = detail::document_access::create(provider.callbacks(), 16);
+    const auto object = detail::document_access::make_object(doc);
     ASSERT_TRUE(object.has_value());
     const std::array<const char16_t*, 4> names{u"x", u"y", u"x", u""};
     for (std::size_t i{}; i < names.size(); ++i)
     {
       auto name = decoded_string::copy_units(provider.callbacks(), names[i], i == 3 ? 0 : 1);
-      const auto child = doc.make_boolean(i == 1);
+      const auto child = detail::document_access::make_boolean(doc, i == 1);
       ASSERT_TRUE(name.has_value());
       ASSERT_TRUE(child.has_value());
-      ASSERT_TRUE(doc.append_member(*object.value_if(), std::move(*name.value_if()), *child.value_if()).has_value());
+      ASSERT_TRUE(
+        detail::document_access::append_member(doc, *object.value_if(), std::move(*name.value_if()), *child.value_if())
+          .has_value());
     }
     auto x = decoded_string::copy_units(provider.callbacks(), u"x", 1);
     auto y = decoded_string::copy_units(provider.callbacks(), u"y", 1);
@@ -351,20 +358,23 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 16};
+    document doc = detail::document_access::create(provider.callbacks(), 16);
     value_view invalid;
     decoded_string name;
-    const auto null = doc.make_null();
-    const auto boolean = doc.make_boolean(false);
-    const auto array = doc.make_array();
-    const auto object = doc.make_object();
+    const auto null = detail::document_access::make_null(doc);
+    const auto boolean = detail::document_access::make_boolean(doc, false);
+    const auto array = detail::document_access::make_array(doc);
+    const auto object = detail::document_access::make_object(doc);
     ASSERT_TRUE(null.has_value());
     ASSERT_TRUE(boolean.has_value());
     ASSERT_TRUE(array.has_value());
     ASSERT_TRUE(object.has_value());
     /* Act */
     const auto missing = doc.view(value_index{});
-    const auto outside = doc.view(value_index{doc.size()});
+    document other = detail::document_access::create(provider.callbacks(), 1);
+    const auto foreign = detail::document_access::make_null(other);
+    ASSERT_TRUE(foreign.has_value());
+    const auto outside = doc.view(*foreign.value_if());
     const auto scalar = doc.view(*null.value_if());
     ASSERT_TRUE(scalar.has_value());
     const auto array_view = doc.view(*array.value_if());
@@ -373,7 +383,8 @@ namespace
     ASSERT_TRUE(object_view.has_value());
     /* Expect */
     EXPECT_FALSE(missing.has_value());
-    EXPECT_FALSE(outside.has_value());
+    ASSERT_FALSE(outside.has_value());
+    EXPECT_EQ(outside.error_if()->access_reason(), access_error_reason::foreign_index);
     EXPECT_EQ(missing.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_FALSE(doc.root().has_value());
     EXPECT_FALSE(invalid.kind().has_value());
@@ -421,11 +432,11 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 16};
-    const auto outer = doc.make_array();
-    const auto inner = doc.make_array();
-    const auto object = doc.make_object();
-    const auto scalar = doc.make_null();
+    document doc = detail::document_access::create(provider.callbacks(), 16);
+    const auto outer = detail::document_access::make_array(doc);
+    const auto inner = detail::document_access::make_array(doc);
+    const auto object = detail::document_access::make_object(doc);
+    const auto scalar = detail::document_access::make_null(doc);
     ASSERT_TRUE(outer.has_value());
     ASSERT_TRUE(inner.has_value());
     ASSERT_TRUE(object.has_value());
@@ -434,24 +445,28 @@ namespace
     ASSERT_TRUE(name.has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
-    EXPECT_FALSE(doc.append_element(*scalar.value_if(), *inner.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(*object.value_if(), *scalar.value_if()).has_value());
-    EXPECT_FALSE(doc.append_member(*outer.value_if(), std::move(*name.value_if()), *scalar.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(*outer.value_if(), *outer.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(value_index{}, *inner.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(*outer.value_if(), value_index{}).has_value());
-    ASSERT_TRUE(doc.append_element(*outer.value_if(), *inner.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(*inner.value_if(), *outer.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(*outer.value_if(), *inner.value_if()).has_value());
-    EXPECT_FALSE(doc.set_root(*inner.value_if()).has_value());
-    EXPECT_FALSE(doc.set_root(value_index{}).has_value());
-    ASSERT_TRUE(doc.set_root(*outer.value_if()).has_value());
-    EXPECT_FALSE(doc.set_root(*object.value_if()).has_value());
-    EXPECT_FALSE(doc.append_element(*inner.value_if(), *outer.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *scalar.value_if(), *inner.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *object.value_if(), *scalar.value_if()).has_value());
+    EXPECT_FALSE(
+      detail::document_access::append_member(doc, *outer.value_if(), std::move(*name.value_if()), *scalar.value_if())
+        .has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *outer.value_if(), *outer.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, value_index{}, *inner.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *outer.value_if(), value_index{}).has_value());
+    ASSERT_TRUE(detail::document_access::append_element(doc, *outer.value_if(), *inner.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *inner.value_if(), *outer.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *outer.value_if(), *inner.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::set_root(doc, *inner.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::set_root(doc, value_index{}).has_value());
+    ASSERT_TRUE(detail::document_access::set_root(doc, *outer.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::set_root(doc, *object.value_if()).has_value());
+    EXPECT_FALSE(detail::document_access::append_element(doc, *inner.value_if(), *outer.value_if()).has_value());
     /* Expect */
     EXPECT_EQ(name.value_if()->size(), 4u);
     EXPECT_EQ(*name.value_if()->unit_at(0).value_if(), u'k');
-    ASSERT_TRUE(doc.append_member(*object.value_if(), std::move(*name.value_if()), *scalar.value_if()).has_value());
+    ASSERT_TRUE(
+      detail::document_access::append_member(doc, *object.value_if(), std::move(*name.value_if()), *scalar.value_if())
+        .has_value());
     EXPECT_EQ(name.value_if()->size(), 0u);
     const auto root = doc.root();
     ASSERT_TRUE(root.has_value());
@@ -471,26 +486,28 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document source{provider.callbacks(), 16};
-    const auto object = source.make_object();
+    document source = detail::document_access::create(provider.callbacks(), 16);
+    const auto object = detail::document_access::make_object(source);
     ASSERT_TRUE(object.has_value());
     auto text = decoded_string::copy_units(provider.callbacks(), u"payload", 7);
     auto name = decoded_string::copy_units(provider.callbacks(), u"key", 3);
     ASSERT_TRUE(text.has_value());
     ASSERT_TRUE(name.has_value());
-    const auto child = source.make_string(std::move(*text.value_if()));
+    const auto child = detail::document_access::make_string(source, std::move(*text.value_if()));
     ASSERT_TRUE(child.has_value());
-    ASSERT_TRUE(source.append_member(*object.value_if(), std::move(*name.value_if()), *child.value_if()).has_value());
-    ASSERT_TRUE(source.set_root(*object.value_if()).has_value());
+    ASSERT_TRUE(
+      detail::document_access::append_member(source, *object.value_if(), std::move(*name.value_if()), *child.value_if())
+        .has_value());
+    ASSERT_TRUE(detail::document_access::set_root(source, *object.value_if()).has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
     document moved{std::move(source)};
     EXPECT_EQ(provider.m_attempts, attempts);
     EXPECT_EQ(source.size(), 0u);
     EXPECT_FALSE(source.root().has_value());
-    const auto replacement = source.make_boolean(false);
+    const auto replacement = detail::document_access::make_boolean(source, false);
     ASSERT_TRUE(replacement.has_value());
-    ASSERT_TRUE(source.set_root(*replacement.value_if()).has_value());
+    ASSERT_TRUE(detail::document_access::set_root(source, *replacement.value_if()).has_value());
     const auto root = moved.root();
     ASSERT_TRUE(root.has_value());
     const auto member = root.value_if()->member_at(0);
@@ -518,18 +535,18 @@ namespace
     constexpr std::size_t depth = 2048;
     /* Act */
     {
-      document doc{provider.callbacks(), depth};
-      auto first = doc.make_array();
+      document doc = detail::document_access::create(provider.callbacks(), depth);
+      auto first = detail::document_access::make_array(doc);
       ASSERT_TRUE(first.has_value());
       value_index subtree = *first.value_if();
       for (std::size_t i = 1; i < depth; ++i)
       {
-        const auto parent = doc.make_array();
+        const auto parent = detail::document_access::make_array(doc);
         ASSERT_TRUE(parent.has_value());
-        ASSERT_TRUE(doc.append_element(*parent.value_if(), subtree).has_value());
+        ASSERT_TRUE(detail::document_access::append_element(doc, *parent.value_if(), subtree).has_value());
         subtree = *parent.value_if();
       }
-      ASSERT_TRUE(doc.set_root(subtree).has_value());
+      ASSERT_TRUE(detail::document_access::set_root(doc, subtree).has_value());
       EXPECT_EQ(doc.size(), depth);
     }
     /* Expect */
@@ -549,15 +566,15 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document zero{provider.callbacks(), 0};
-    document doc{provider.callbacks(), 2};
+    document zero = detail::document_access::create(provider.callbacks(), 0);
+    document doc = detail::document_access::create(provider.callbacks(), 2);
     /* Act */
-    const auto denied = zero.make_null();
+    const auto denied = detail::document_access::make_null(zero);
     EXPECT_EQ(provider.m_attempts, 0u);
-    ASSERT_TRUE(doc.make_null().has_value());
-    ASSERT_TRUE(doc.make_boolean(true).has_value());
+    ASSERT_TRUE(detail::document_access::make_null(doc).has_value());
+    ASSERT_TRUE(detail::document_access::make_boolean(doc, true).has_value());
     const auto attempts = provider.m_attempts;
-    const auto excess = doc.make_array();
+    const auto excess = detail::document_access::make_array(doc);
     /* Expect */
     ASSERT_FALSE(denied.has_value());
     EXPECT_EQ(denied.error_if()->code(), error_code::resource_limit);
@@ -565,8 +582,8 @@ namespace
     EXPECT_EQ(excess.error_if()->code(), error_code::resource_limit);
     EXPECT_EQ(doc.size(), 2u);
     EXPECT_EQ(provider.m_attempts, attempts);
-    document missing{{}, 1};
-    const auto no_provider = missing.make_null();
+    document missing = detail::document_access::create({}, 1);
+    const auto no_provider = detail::document_access::make_null(missing);
     ASSERT_FALSE(no_provider.has_value());
     EXPECT_EQ(no_provider.error_if()->code(), error_code::allocation_failure);
   }
@@ -582,15 +599,16 @@ namespace
     /* Arrange */
     constexpr std::size_t records = 33;
     /* Act */
-    for (std::size_t fail = 1; fail <= 7; ++fail)
+    for (std::size_t fail = 1; fail <= 8; ++fail)
     {
       document_provider provider;
       provider.m_fail_on = fail;
-      document doc{provider.callbacks(), records};
+      document doc = detail::document_access::create(provider.callbacks(), records);
       bool observed = false;
+      std::array<value_index, records> indices{};
       for (std::size_t i{}; i < records; ++i)
       {
-        const auto added = doc.make_boolean(i % 2 == 0);
+        const auto added = detail::document_access::make_boolean(doc, i % 2 == 0);
         if (!added.has_value())
         {
           observed = true;
@@ -598,14 +616,19 @@ namespace
           EXPECT_EQ(doc.size(), i);
           for (std::size_t j{}; j < i; ++j)
           {
-            const auto old = doc.view(value_index{j});
+            const auto old = doc.view(indices[j]);
             ASSERT_TRUE(old.has_value());
             EXPECT_EQ(*old.value_if()->as_boolean().value_if(), j % 2 == 0);
           }
           provider.m_fail_on = 0;
-          const auto retry = doc.make_boolean(i % 2 == 0);
+          const auto retry = detail::document_access::make_boolean(doc, i % 2 == 0);
           ASSERT_TRUE(retry.has_value());
           EXPECT_EQ(retry.value_if()->position(), i);
+          indices[i] = *retry.value_if();
+        }
+        else
+        {
+          indices[i] = *added.value_if();
         }
       }
       /* Expect */
@@ -627,17 +650,19 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document doc{provider.callbacks(), 2};
+    document doc = detail::document_access::create(provider.callbacks(), 2);
     const auto& input = GetParam();
     auto stored = decoded_string::copy_units(provider.callbacks(), input.left.data(), input.left.size());
     auto query = decoded_string::copy_units(provider.callbacks(), input.right.data(), input.right.size());
     ASSERT_TRUE(stored.has_value());
     ASSERT_TRUE(query.has_value());
-    const auto object = doc.make_object();
-    const auto child = doc.make_null();
+    const auto object = detail::document_access::make_object(doc);
+    const auto child = detail::document_access::make_null(doc);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
-    ASSERT_TRUE(doc.append_member(*object.value_if(), std::move(*stored.value_if()), *child.value_if()).has_value());
+    ASSERT_TRUE(
+      detail::document_access::append_member(doc, *object.value_if(), std::move(*stored.value_if()), *child.value_if())
+        .has_value());
     /* Act */
     const auto attempts = provider.m_attempts;
     const auto lookup = doc.lookup_member(*object.value_if(), *query.value_if());
@@ -666,7 +691,7 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document source{provider.callbacks(), 1};
+    document source = detail::document_access::create(provider.callbacks(), 1);
     auto text = decoded_string::copy_units(provider.callbacks(), u"", 0);
     auto number = owned_number::copy_spelling({"-0", 2}, syntax_mode::json5, provider.callbacks(), 2);
     ASSERT_TRUE(text.has_value());
@@ -676,23 +701,23 @@ namespace
       switch (GetParam())
       {
       case value_kind::null:
-        return source.make_null();
+        return detail::document_access::make_null(source);
       case value_kind::boolean:
-        return source.make_boolean(true);
+        return detail::document_access::make_boolean(source, true);
       case value_kind::string:
-        return source.make_string(std::move(*text.value_if()));
+        return detail::document_access::make_string(source, std::move(*text.value_if()));
       case value_kind::number:
-        return source.make_number(std::move(*number.value_if()));
+        return detail::document_access::make_number(source, std::move(*number.value_if()));
       case value_kind::array:
-        return source.make_array();
+        return detail::document_access::make_array(source);
       case value_kind::object:
-        return source.make_object();
+        return detail::document_access::make_object(source);
       }
       return result<value_index>::failure(error::without_location(error_code::wrong_type_or_access));
     };
     const auto index = make_root();
     ASSERT_TRUE(index.has_value());
-    ASSERT_TRUE(source.set_root(*index.value_if()).has_value());
+    ASSERT_TRUE(detail::document_access::set_root(source, *index.value_if()).has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
     document first{std::move(source)};
@@ -732,4 +757,58 @@ namespace
                            testing::Values(value_kind::null, value_kind::boolean, value_kind::string,
                                            value_kind::number, value_kind::array, value_kind::object));
   /* ================================== End Test_J5_040 ================================== */
+  /* =================================== Test_J5_039 ==================================== */
+  /*
+   * Arrange: A validated number whose spelling has been moved to another owner.
+   * Act: Try to insert the empty moved-from number, then insert its valid owner.
+   * Expect: Empty spelling is rejected without adding a record; the owner remains usable.
+   */
+  TEST(J5_039_ValueAccess, RejectsMovedFromNumberWithoutAddingRecord)
+  {
+    /* Arrange */
+    document_provider provider;
+    document values = detail::document_access::create(provider.callbacks(), 4);
+    auto number = owned_number::copy_spelling({"12", 2}, syntax_mode::json5, provider.callbacks(), 2);
+    ASSERT_TRUE(number.has_value());
+    owned_number owner{std::move(*number.value_if())};
+    /* Act */
+    // A moved-from number is an ownership state, never a valid zero-length numeric token.
+    const auto rejected = detail::document_access::make_number(values, std::move(*number.value_if()));
+    /* Expect */
+    ASSERT_FALSE(rejected.has_value());
+    EXPECT_EQ(rejected.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(values.size(), 0u);
+    const auto accepted = detail::document_access::make_number(values, std::move(owner));
+    ASSERT_TRUE(accepted.has_value());
+    EXPECT_EQ(values.size(), 1u);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Refuse to grow a parsed document's value storage.
+   * Arrange: A document from parse_document, whose value storage was reserved exactly while parsing.
+   * Act: Append a value through the internal construction access.
+   * Expect: It fails with invalid_argument and leaves the document and accounting unchanged.
+   */
+  TEST(J5_039_AccessReason, RejectsGrowingAParsedDocument)
+  {
+    /* Arrange */
+    document_provider provider;
+    const parse_options options{};
+    accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+    const std::string text = "[1]";
+    auto parsed = parse_document({text.data(), text.size()}, options, accounting);
+    ASSERT_TRUE(parsed.has_value());
+    document& values = parsed.value_if()->values;
+    const std::size_t records = values.size();
+    const std::size_t bytes = accounting.current_bytes();
+    /* Act */
+    const auto appended = detail::document_access::make_null(values);
+    /* Expect */
+    ASSERT_FALSE(appended.has_value());
+    EXPECT_EQ(appended.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(appended.error_if()->access_reason(), access_error_reason::invalid_argument);
+    EXPECT_EQ(values.size(), records);
+    EXPECT_EQ(accounting.current_bytes(), bytes);
+  }
+  /* ================================= End Test_J5_039 ================================== */
 } // namespace

@@ -6,6 +6,10 @@
 
 namespace adaptive_json5
 {
+  namespace detail
+  {
+    class value_storage;
+  } // namespace detail
   /**
    * @brief Identify a position in one document's value storage.
    * @par Requirements
@@ -13,7 +17,7 @@ namespace adaptive_json5
    * @note Contains no ownership and is meaningful only within its originating document.
    * An unset index does not identify a null value.
    * is_set() checks only the sentinel, not document membership or bounds.
-   * Document access must validate bounds before reading storage.
+   * Document access must validate owner identity and bounds before reading storage.
    * No allocation or pointer arithmetic is performed.
    */
   class [[nodiscard]] value_index
@@ -23,6 +27,11 @@ namespace adaptive_json5
 
     private:
       std::size_t m_position = c_unset_position;
+      const void* m_owner = nullptr;
+
+      constexpr value_index(const void* owner, std::size_t position) noexcept : m_position(position), m_owner(owner) {}
+
+      friend class detail::value_storage;
 
     public:
       /**
@@ -31,16 +40,6 @@ namespace adaptive_json5
        * P030; J5-039.
        */
       constexpr value_index() noexcept = default;
-
-      /**
-       * @brief Store an explicit document-relative position.
-       * @par Requirements
-       * P030; J5-039.
-       * @param position Value-storage position, or c_unset_position for unset.
-       * @note Construction does not validate document bounds or membership.
-       * @par ID SWU-VALUE-147
-       */
-      constexpr explicit value_index(std::size_t position) noexcept : m_position(position) {}
 
       /**
        * @brief Check whether this index contains a position rather than the sentinel.
