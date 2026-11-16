@@ -35,13 +35,13 @@ namespace adaptive_json5_test
        * @par Requirements
        * P013; J5-046.
        */
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<string_provider*>(context);
         ++self.m_attempts;
         if (self.m_attempts == self.m_fail_on || bytes > 512 || alignment > alignof(slot))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
         for (auto& item : self.m_slots)
         {
@@ -56,10 +56,10 @@ namespace adaptive_json5_test
             {
               self.m_peak_bytes = self.m_live_bytes;
             }
-            return item.data.data();
+            return result<void*>::success(item.data.data());
           }
         }
-        return nullptr;
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       /**

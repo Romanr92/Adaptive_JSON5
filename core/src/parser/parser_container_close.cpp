@@ -11,6 +11,7 @@
 #include "memory/work_budget.hpp"
 #include "parser/parser_frame.hpp"
 #include "parser/parser_stack.hpp"
+#include "value/document_access.hpp"
 
 #include <cstddef>
 
@@ -149,7 +150,7 @@ namespace adaptive_json5
       const std::size_t end_offset = closing.byte_offset + 1;
       const source_span span{frame->opening_offset, end_offset - frame->opening_offset};
 
-      const auto recorded = destination.set_source_span(completed, span, input_size);
+      const auto recorded = detail::document_access::set_source_span(destination, completed, span, input_size);
 
       if (!recorded.has_value())
       {

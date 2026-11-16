@@ -25,18 +25,19 @@ namespace
   class heap_provider
   {
     private:
-      static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
         auto& self = *static_cast<heap_provider*>(context);
 
         if (alignment > alignof(std::max_align_t))
         {
-          return nullptr;
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
         }
 
         void* address = std::malloc(bytes);
         self.m_live_bytes += (address != nullptr) ? bytes : 0U;
-        return address;
+        return (address != nullptr) ? result<void*>::success(address)
+                                    : result<void*>::failure(error::without_location(error_code::allocation_failure));
       }
 
       static void release(void* context, void* address, std::size_t bytes, std::size_t) noexcept

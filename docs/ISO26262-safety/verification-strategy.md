@@ -97,3 +97,24 @@ jobs build `Debug`, while the release packages are built as `Release`; #130 adds
   integrator's job.
 - **Integration testing** with the integrator's software, including the E2E check
   required by A-08, is the integrator's job.
+
+## Issue #128 local verification evidence (2026-11-16)
+
+[P030](../../core/docs/requirements-json5-implementation-order.md#p030--owned-valuecontainer-model)
+records the exact tested production revision, test-only migration, configurations
+and results: 2,663 host units in each exception mode, 921 validation cases and
+formatting of 269 C++ files. This covers tagged-index rejection and the compact
+private-link/cycle-check follow-up; it is local Windows evidence only.
+
+The affected contracts are SSR-01/CSR-01 (robust access), SSR-02/CSR-02
+(token allocation and budget), SSR-03/CSR-03 (explicit access failures and the
+mutation boundary), SSR-08/CSR-05 (bounds), and SSR-05 (caller storage without
+shared identity counters). A-05/A-09 storage ownership and A-06 error handling
+remain integrator obligations; no safety or cybersecurity assumption is relaxed.
+Foreign-index detection applies only during valid handle lifetimes, including
+moves; it does not detect every stale handle after token reuse. Private links
+remain bounds-checked and damaged links report invariant failures.
+
+No PR/check runs were available for the tested production commit. Planned V4,
+V5, V8 and V9 checks and independent reviews remain outstanding; this evidence
+does not promote any SSR/CSR or safety/cybersecurity case to verified/approved.

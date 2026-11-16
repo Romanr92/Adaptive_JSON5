@@ -26,7 +26,7 @@ namespace adaptive_json5
      * @param name_span Optional original member-name token range.
      * @param input_size Original input size used to validate name_span.
      * @return Success or an explicit relationship/access error.
-     * @note All indices must belong to values; indices do not encode owner identity.
+     * @note Supplied indices must belong to values; at() validates owner identity before record access.
      * Existing relationships must have been created through validated document operations.
      * Rejects an existing parent, root reuse, self-attachment and ancestor cycles.
      * Object names are preserved exactly, including empty and repeated names.

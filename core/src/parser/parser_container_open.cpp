@@ -9,6 +9,7 @@
 #include "parser/parser_frame.hpp"
 #include "parser/parser_stack.hpp"
 #include "parser/parser_work.hpp"
+#include "value/document_access.hpp"
 
 #include <utility>
 
@@ -82,7 +83,8 @@ namespace adaptive_json5
         return result<value_index>::failure(*pushed.error_if());
       }
 
-      const auto created = array ? destination.make_array() : destination.make_object();
+      const auto created =
+        array ? detail::document_access::make_array(destination) : detail::document_access::make_object(destination);
 
       if (!created.has_value())
       {

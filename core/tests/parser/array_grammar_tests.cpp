@@ -141,8 +141,10 @@ namespace
     const auto count = root.value_if()->container_size();
     ASSERT_TRUE(count.has_value());
     ASSERT_EQ(*count.value_if(), 8u);
-    // The internal engine creates the root container before any descendant record.
-    auto iterator = values.iterate(value_index{0});
+    // Obtain the tagged root index through its public view.
+    const auto root_index = root.value_if()->index();
+    ASSERT_TRUE(root_index.has_value());
+    auto iterator = values.iterate(*root_index.value_if());
     ASSERT_TRUE(iterator.has_value());
     std::size_t expected_offset = 1;
     for (std::size_t ordinal = 0; ordinal < 8; ++ordinal)

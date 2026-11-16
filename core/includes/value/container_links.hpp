@@ -1,7 +1,7 @@
 #ifndef CONTAINER_LINKS_HPP_
 #define CONTAINER_LINKS_HPP_
 
-#include "adaptive_json5/value/value_index.hpp"
+#include "value/record_link.hpp"
 
 #include <cstddef>
 
@@ -12,17 +12,18 @@ namespace adaptive_json5
    * @par Requirements
    * P030; J5-030; J5-031.
    * @note Owns no child records or allocations.
-   * Empty chains have count zero and unset first/last indices.
-   * Nonempty chains have set first/last indices.
-   * Each child record supplies the next-sibling index.
-   * The last child's next-sibling index is unset.
+   * first/last are untagged private record links (ADR 0007 §4).
+   * Empty chains have count zero and unset first/last links.
+   * Nonempty chains have set first/last links.
+   * Each child record supplies the next-sibling link.
+   * The last child's next-sibling link is unset.
    * count includes direct children only, not nested descendants.
-   * The document builder must enforce bounds, membership and acyclic links.
+   * Internal document construction enforces bounds, membership and acyclic links.
    */
   struct [[nodiscard]] container_links
   {
-      value_index first{};
-      value_index last{};
+      detail::record_link first{};
+      detail::record_link last{};
       std::size_t count{};
   };
 

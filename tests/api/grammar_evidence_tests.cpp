@@ -1,5 +1,7 @@
 #include "../shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/number_comparison.hpp"
 
 #include <cstddef>
@@ -585,9 +587,14 @@ namespace
     // Unlike document_provider, this has no record cap, because every number and string allocates.
     struct unbounded_provider
     {
-        static void* allocate(void*, std::size_t bytes, std::size_t alignment) noexcept
+        static result<void*> allocate(void*, std::size_t bytes, std::size_t alignment) noexcept
         {
-          return (alignment > alignof(std::max_align_t)) ? nullptr : std::malloc(bytes);
+          void* const address = (alignment > alignof(std::max_align_t)) ? nullptr : std::malloc(bytes);
+          if (address == nullptr)
+          {
+            return result<void*>::failure(error::without_location(error_code::allocation_failure));
+          }
+          return result<void*>::success(address);
         }
         static void release(void*, void* address, std::size_t, std::size_t) noexcept
         {

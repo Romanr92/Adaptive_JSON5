@@ -114,10 +114,28 @@ namespace adaptive_json5
         }
       }
 
+      owned_block pending_identity{};
+
+      if (identity() == nullptr)
+      {
+        auto token = allocate_block(m_provider, 1, 1);
+        if (!token.has_value())
+        {
+          return status_result::failure(*token.error_if());
+        }
+
+        pending_identity = std::move(*token.value_if());
+      }
+
       auto allocation = allocate_array(m_provider, capacity, sizeof(value_record), alignof(value_record));
       if (!allocation.has_value())
       {
         return status_result::failure(*allocation.error_if());
+      }
+
+      if (pending_identity.data() != nullptr)
+      {
+        m_identity = std::move(pending_identity);
       }
 
       for (std::size_t index{}; index < m_size; ++index)
@@ -157,8 +175,8 @@ namespace adaptive_json5
      * @par ID SWU-VALUE-115
      */
     value_storage::value_storage(value_storage&& other) noexcept
-        : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
-          m_capacity(other.m_capacity), m_max_records(other.m_max_records), m_fixed(other.m_fixed)
+        : m_provider(other.m_provider), m_identity(std::move(other.m_identity)), m_storage(std::move(other.m_storage)),
+          m_size(other.m_size), m_capacity(other.m_capacity), m_max_records(other.m_max_records), m_fixed(other.m_fixed)
     {
       other.m_size = 0;
       other.m_capacity = 0;
@@ -172,7 +190,9 @@ namespace adaptive_json5
      * P030; J5-040; J5-046.
      * @param records Exact number of records this storage will hold.
      * @return Success, resource_limit (nodes), a provider failure, or internal_error when already reserved.
-     * @note Failure leaves the storage growable and unchanged.
+     * @note Nonzero reservations allocate a one-byte identity token before the record block.
+     * Both requests use the provider and its accounting. Zero records allocate nothing.
+     * Failure leaves the storage growable and unchanged.
      * @par ID SWU-VALUE-116
      */
     status_result value_storage::reserve_exact(std::size_t records) noexcept
@@ -190,6 +210,13 @@ namespace adaptive_json5
 
       if (records != 0)
       {
+        auto token = allocate_block(m_provider, 1, 1);
+
+        if (!token.has_value())
+        {
+          return status_result::failure(*token.error_if());
+        }
+
         auto allocation = allocate_array(m_provider, records, sizeof(value_record), alignof(value_record));
 
         if (!allocation.has_value())
@@ -197,6 +224,7 @@ namespace adaptive_json5
           return status_result::failure(*allocation.error_if());
         }
 
+        m_identity = std::move(*token.value_if());
         m_storage = std::move(*allocation.value_if());
         m_capacity = records;
       }
@@ -244,7 +272,7 @@ namespace adaptive_json5
         return result<value_index>::failure(*reserved.error_if());
       }
 
-      const value_index index{m_size};
+      const value_index index{identity(), m_size};
 
       ::new (slot_address(m_storage, m_size)) value_record(std::move(record));
       m_size = required;
@@ -261,7 +289,17 @@ namespace adaptive_json5
      */
     result<value_record*> value_storage::at(value_index index) noexcept
     {
-      if (!index.is_set() || (index.position() >= m_size))
+      if (!index.is_set())
+      {
+        return result<value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
+      }
+
+      if (index.m_owner != identity())
+      {
+        return result<value_record*>::failure(error::access_failure(access_error_reason::foreign_index));
+      }
+
+      if (index.position() >= m_size)
       {
         return result<value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
       }
@@ -278,7 +316,17 @@ namespace adaptive_json5
      */
     result<const value_record*> value_storage::at(value_index index) const noexcept
     {
-      if (!index.is_set() || (index.position() >= m_size))
+      if (!index.is_set())
+      {
+        return result<const value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
+      }
+
+      if (index.m_owner != identity())
+      {
+        return result<const value_record*>::failure(error::access_failure(access_error_reason::foreign_index));
+      }
+
+      if (index.position() >= m_size)
       {
         return result<const value_record*>::failure(error::access_failure(access_error_reason::index_out_of_range));
       }
@@ -295,6 +343,39 @@ namespace adaptive_json5
     std::size_t value_storage::size() const noexcept
     {
       return m_size;
+    }
+
+    /**
+     * @brief Return the storage identity token without dereferencing it.
+     * @par Requirements
+     * P030; J5-039; J5-040; J5-046.
+     * @return Token address, or nullptr when no token is owned.
+     * @note Growth preserves the token; moving storage transfers its ownership.
+     */
+    const void* value_storage::identity() const noexcept
+    {
+      return m_identity.data();
+    }
+
+    /**
+     * @brief Construct an index tagged with this storage's identity.
+     * @par Requirements
+     * P030; J5-039; J5-040.
+     * @param position Record position, or the unset position sentinel.
+     * @return Tagged index, or a default unset index for the sentinel.
+     * @note Performs no allocation or bounds validation.
+     * Unset positions yield value_index{} so every unset index has one representation.
+     * Access through at() validates the index before reading a record.
+     * @par ID SWU-VALUE-176
+     */
+    value_index value_storage::issue(std::size_t position) const noexcept
+    {
+      if (position == value_index::c_unset_position)
+      {
+        return value_index{};
+      }
+
+      return value_index{identity(), position};
     }
   } // namespace detail
 } // namespace adaptive_json5

@@ -19,6 +19,7 @@
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_work.hpp"
+#include "value/document_access.hpp"
 #include "value/number_access.hpp"
 
 #include <cstddef>
@@ -56,7 +57,7 @@ namespace adaptive_json5
     {
       if (auto* string = std::get_if<string_token>(&token); string != nullptr)
       {
-        return destination.make_string(std::move(string->value));
+        return detail::document_access::make_string(destination, std::move(string->value));
       }
 
       if (const auto* number = std::get_if<number_token>(&token); number != nullptr)
@@ -94,7 +95,7 @@ namespace adaptive_json5
           return result<value_index>::failure(reason);
         }
 
-        return destination.make_number(std::move(*owned.value_if()));
+        return detail::document_access::make_number(destination, std::move(*owned.value_if()));
       }
 
       if (const auto* literal = std::get_if<literal_token>(&token); literal != nullptr)
@@ -102,13 +103,13 @@ namespace adaptive_json5
         switch (literal->kind)
         {
         case literal_kind::null_literal:
-          return destination.make_null();
+          return detail::document_access::make_null(destination);
 
         case literal_kind::true_literal:
-          return destination.make_boolean(true);
+          return detail::document_access::make_boolean(destination, true);
 
         case literal_kind::false_literal:
-          return destination.make_boolean(false);
+          return detail::document_access::make_boolean(destination, false);
         }
       }
 
@@ -316,7 +317,7 @@ namespace adaptive_json5
     const storage_callbacks storage = accounting.callbacks();
 
     // Keep ownership private until the complete root and suffix are validated.
-    document candidate{storage, options.limits.max_nodes};
+    document candidate = detail::document_access::create(storage, options.limits.max_nodes);
     cursor source{input};
 
     // A primitive root holds at most one string, so the total limit binds only when it is the smaller one.
@@ -359,15 +360,15 @@ namespace adaptive_json5
     const primitive_value root = **parsed.value_if();
 
     // Retain the root location before publishing the owned document.
-    const auto recorded = candidate.set_source_span(
-      root.index, adaptive_json5::source_span{root.byte_offset, root.byte_length}, input.size);
+    const auto recorded = detail::document_access::set_source_span(
+      candidate, root.index, adaptive_json5::source_span{root.byte_offset, root.byte_length}, input.size);
 
     if (!recorded.has_value())
     {
       return document_result::failure(*recorded.error_if());
     }
 
-    const auto established = candidate.set_root(root.index);
+    const auto established = detail::document_access::set_root(candidate, root.index);
 
     if (!established.has_value())
     {

@@ -1,5 +1,6 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
 #include "parser/parser_container_close.hpp"
+#include "value/document_access.hpp"
 
 #include <gtest/gtest.h>
 
@@ -40,8 +41,8 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    document values{provider.callbacks(), 8};
-    const auto container = values.make_array();
+    document values = adaptive_json5::detail::document_access::create(provider.callbacks(), 8);
+    const auto container = adaptive_json5::detail::document_access::make_array(values);
     ASSERT_TRUE(container.has_value());
     parser_stack frames{provider.callbacks(), 2};
     // Frames are reserved once before any push (ADR 0003, decision 7).
@@ -87,7 +88,7 @@ namespace
       frame.pending_name.emplace();
       break;
     case close_fault::invalid_container:
-      frame.container = value_index{99};
+      frame.container = value_index{};
       break;
     default:
       break;

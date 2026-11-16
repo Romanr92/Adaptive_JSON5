@@ -23,7 +23,8 @@ namespace adaptive_json5
    */
   value_iterator::value_iterator(const detail::value_storage& storage, value_index parent, const container_links& links,
                                  bool object) noexcept
-      : m_storage(&storage), m_parent(parent), m_next(links.first), m_remaining(links.count), m_object(object)
+      : m_storage(&storage), m_parent(parent), m_next(storage.issue(links.first.position())), m_remaining(links.count),
+        m_object(object)
   {
   }
 
@@ -113,7 +114,7 @@ namespace adaptive_json5
 
     const auto& child = **resolved.value_if();
 
-    // A sibling chain must remain inside its originating container.
+    // at() validated the container in create() and this child above; stored parent links belong to that storage.
     if (!child.parent.is_set() || (child.parent.position() != m_parent.position()) ||
         (child.member_name.has_value() != m_object))
     {
@@ -129,7 +130,7 @@ namespace adaptive_json5
     const value_view current{*m_storage, m_next};
 
     // Advance only after all check for this child succeed.
-    m_next = child.next_sibling;
+    m_next = m_storage->issue(child.next_sibling.position());
     --m_remaining;
 
     return result<std::optional<value_view>>::success(std::optional<value_view>{current});
