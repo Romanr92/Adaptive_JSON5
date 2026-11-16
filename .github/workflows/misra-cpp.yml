@@ -22,7 +22,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes clang-18 ninja-build
           clang++-18 --version
-      - uses: github/codeql-action/init@v4
+      - name: Initialize CodeQL MISRA and security analysis
+        uses: github/codeql-action/init@v4
         with:
           languages: c-cpp
           build-mode: manual
@@ -39,7 +40,8 @@ jobs:
           -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       - name: Trace Clang compilation
         run: cmake --build build/misra --parallel "$(nproc)"
-      - uses: github/codeql-action/analyze@v4
+      - name: Run CodeQL MISRA and security analysis
+        uses: github/codeql-action/analyze@v4
         with:
           category: misra-cpp-2023-clang
           output: build/misra-sarif
