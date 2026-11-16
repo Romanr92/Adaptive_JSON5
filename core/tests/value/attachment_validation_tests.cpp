@@ -41,6 +41,7 @@ namespace
    * @brief Inject one internal relationship inconsistency into three live records.
    * @par Requirements
    * P030; J5-039.
+   * @param values Storage issuing the injected relationship indices.
    * @param fault Inconsistency to inject.
    * @param parent Destination array record at index 0.
    * @param previous Existing element record at index 1.
@@ -48,16 +49,16 @@ namespace
    * @param links Element links of parent.
    * @note Shared by both attach entry points; changes only live internal records.
    */
-  void inject_fault(attachment_fault fault, value_record& parent, value_record& previous, value_record& child,
-                    container_links& links)
+  void inject_fault(const value_storage& values, attachment_fault fault, value_record& parent, value_record& previous,
+                    value_record& child, container_links& links)
   {
     switch (fault)
     {
     case attachment_fault::ancestor_outside_storage:
-      parent.parent = value_index{99};
+      parent.parent = values.issue(99);
       break;
     case attachment_fault::ancestor_cycle:
-      parent.parent = value_index{0};
+      parent.parent = values.issue(0);
       break;
     case attachment_fault::count_overflow:
       links.count = std::numeric_limits<std::size_t>::max();
@@ -77,19 +78,19 @@ namespace
       links.last = {};
       break;
     case attachment_fault::invalid_last:
-      links.last = value_index{99};
+      links.last = values.issue(99);
       break;
     case attachment_fault::last_without_parent:
       previous.parent = {};
       break;
     case attachment_fault::last_foreign_parent:
-      previous.parent = value_index{1};
+      previous.parent = values.issue(1);
       break;
     case attachment_fault::last_with_sibling:
-      previous.next_sibling = value_index{1};
+      previous.next_sibling = values.issue(1);
       break;
     case attachment_fault::child_with_sibling:
-      child.next_sibling = value_index{1};
+      child.next_sibling = values.issue(1);
       break;
     case attachment_fault::child_with_name:
       child.member_name.emplace();
@@ -143,12 +144,12 @@ namespace
     parent.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(parent)).has_value());
     value_record previous;
-    previous.parent = value_index{0};
+    previous.parent = values.issue(0);
     ASSERT_TRUE(values.append(std::move(previous)).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
-    auto parent_result = values.at(value_index{0});
-    auto previous_result = values.at(value_index{1});
-    auto child_result = values.at(value_index{2});
+    auto parent_result = values.at(values.issue(0));
+    auto previous_result = values.at(values.issue(1));
+    auto child_result = values.at(values.issue(2));
     ASSERT_TRUE(parent_result.has_value());
     ASSERT_TRUE(previous_result.has_value());
     ASSERT_TRUE(child_result.has_value());
@@ -156,14 +157,14 @@ namespace
     auto& previous_record = **previous_result.value_if();
     auto& child = **child_result.value_if();
     auto& links = std::get<array_data>(parent_record.payload).elements;
-    links = {value_index{1}, value_index{1}, 1};
+    links = {values.issue(1), values.issue(1), 1};
     // Inject metadata faults only through live internal records. No private-field hacks or fake allocations.
-    inject_fault(GetParam(), parent_record, previous_record, child, links);
+    inject_fault(values, GetParam(), parent_record, previous_record, child, links);
     const auto old_links = links;
     const auto old_sibling = child.next_sibling;
     const bool old_name = child.member_name.has_value();
     /* Act */
-    const auto attached = attach_child(values, {}, value_index{0}, value_index{2}, nullptr);
+    const auto attached = attach_child(values, {}, values.issue(0), values.issue(2), nullptr);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
     const auto expected = expected_failure(GetParam(), false);
@@ -222,12 +223,12 @@ namespace
     parent.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(parent)).has_value());
     value_record previous;
-    previous.parent = value_index{0};
+    previous.parent = values.issue(0);
     ASSERT_TRUE(values.append(std::move(previous)).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
-    auto parent_result = values.at(value_index{0});
-    auto previous_result = values.at(value_index{1});
-    auto child_result = values.at(value_index{2});
+    auto parent_result = values.at(values.issue(0));
+    auto previous_result = values.at(values.issue(1));
+    auto child_result = values.at(values.issue(2));
     ASSERT_TRUE(parent_result.has_value());
     ASSERT_TRUE(previous_result.has_value());
     ASSERT_TRUE(child_result.has_value());
@@ -235,13 +236,13 @@ namespace
     auto& previous_record = **previous_result.value_if();
     auto& child = **child_result.value_if();
     auto& links = std::get<array_data>(parent_record.payload).elements;
-    links = {value_index{1}, value_index{1}, 1};
-    inject_fault(GetParam(), parent_record, previous_record, child, links);
+    links = {values.issue(1), values.issue(1), 1};
+    inject_fault(values, GetParam(), parent_record, previous_record, child, links);
     const auto old_links = links;
     const bool old_sibling = child.next_sibling.is_set();
     const bool old_name = child.member_name.has_value();
     /* Act */
-    const auto attached = attach_to_detached_parent(values, {}, value_index{0}, value_index{2}, nullptr);
+    const auto attached = attach_to_detached_parent(values, {}, values.issue(0), values.issue(2), nullptr);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
     const auto expected = expected_failure(GetParam(), true);
@@ -274,19 +275,19 @@ namespace
     array.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(array)).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
-    auto array_result = values.at(value_index{1});
-    auto child_result = values.at(value_index{2});
+    auto array_result = values.at(values.issue(1));
+    auto child_result = values.at(values.issue(2));
     ASSERT_TRUE(array_result.has_value());
     ASSERT_TRUE(child_result.has_value());
     auto& array_record = **array_result.value_if();
     auto& child = **child_result.value_if();
     // Only the parent link matters to the detached-parent check; the outer object's links stay unused.
-    array_record.parent = value_index{0};
+    array_record.parent = values.issue(0);
     const auto& elements = std::get<array_data>(array_record.payload).elements;
     /* Act */
-    const auto rejected = attach_to_detached_parent(values, {}, value_index{1}, value_index{2}, nullptr);
+    const auto rejected = attach_to_detached_parent(values, {}, values.issue(1), values.issue(2), nullptr);
     const bool unchanged = !child.parent.is_set() && (elements.count == 0U) && !elements.first.is_set();
-    const auto walked = attach_child(values, {}, value_index{1}, value_index{2}, nullptr);
+    const auto walked = attach_child(values, {}, values.issue(1), values.issue(2), nullptr);
     /* Expect */
     ASSERT_FALSE(rejected.has_value());
     EXPECT_EQ(rejected.error_if()->code(), error_code::internal_error);
@@ -321,18 +322,19 @@ namespace
     ASSERT_TRUE(name.has_value());
     const adaptive_json5::source_span span{1, 3}; // Name token at bytes 1..3 of a 5-byte input.
     /* Act */
-    const auto element = attach_to_detached_parent(values, {}, value_index{0}, value_index{2}, nullptr);
-    const auto member = attach_to_detached_parent(values, {}, value_index{1}, value_index{3}, name.value_if(), span, 5);
+    const auto element = attach_to_detached_parent(values, {}, values.issue(0), values.issue(2), nullptr);
+    const auto member =
+      attach_to_detached_parent(values, {}, values.issue(1), values.issue(3), name.value_if(), span, 5);
     /* Expect */
     ASSERT_TRUE(element.has_value());
     ASSERT_TRUE(member.has_value());
-    const auto& elements = std::get<array_data>((*values.at(value_index{0}).value_if())->payload).elements;
-    const auto& members = std::get<object_data>((*values.at(value_index{1}).value_if())->payload).members;
+    const auto& elements = std::get<array_data>((*values.at(values.issue(0)).value_if())->payload).elements;
+    const auto& members = std::get<object_data>((*values.at(values.issue(1)).value_if())->payload).members;
     EXPECT_EQ(elements.count, 1U);
     EXPECT_EQ(elements.first.position(), 2U);
     EXPECT_EQ(members.count, 1U);
     EXPECT_EQ(members.last.position(), 3U);
-    const auto& named = **values.at(value_index{3}).value_if();
+    const auto& named = **values.at(values.issue(3)).value_if();
     ASSERT_TRUE(named.member_name.has_value());
     EXPECT_EQ(named.member_name->size(), 1U);
     ASSERT_TRUE(named.member_name_source_span.has_value());

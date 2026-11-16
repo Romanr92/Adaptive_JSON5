@@ -390,4 +390,5 @@ namespace adaptive_json5
   {
     return m_values.size();
   }
+
 } // namespace adaptive_json5

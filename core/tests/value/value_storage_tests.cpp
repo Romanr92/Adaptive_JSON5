@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "value/value_record.hpp"
 namespace
@@ -38,17 +39,17 @@ namespace
     ASSERT_TRUE(held.has_value());
     EXPECT_EQ(std::get<decoded_string>((*held.value_if())->payload).size(), 4u);
     EXPECT_FALSE(storage.at(value_index{}).has_value());
-    EXPECT_FALSE(read_only.at(value_index{1}).has_value());
+    EXPECT_FALSE(read_only.at(storage.issue(1)).has_value());
   }
   /* ----------------------------------------------------------------------------------- */
   /*
-   * ReserveExactAllocatesOnceAndNeverGrows.
+   * ReserveExactAllocatesTokenAndRecordsAndNeverGrows.
    * Arrange: Storage with a limit of four records.
    * Act: Reserve two exactly, append three records, then reserve again.
-   * Expect: One allocation; the third append and the second reservation fail with
+   * Expect: Two allocations (identity token and records); the third append and the second reservation fail with
    *         wrong_type_or_access and make no provider request (ADR 0003, decision 7).
    */
-  TEST(J5_046_Document, ReserveExactAllocatesOnceAndNeverGrows)
+  TEST(J5_046_Document, ReserveExactAllocatesTokenAndRecordsAndNeverGrows)
   {
     /* Arrange */
     document_provider provider;
@@ -62,7 +63,7 @@ namespace
     const auto again = storage.reserve_exact(2);
     /* Expect */
     ASSERT_TRUE(reserved.has_value());
-    EXPECT_EQ(attempts_after_reserve, 1U);
+    EXPECT_EQ(attempts_after_reserve, 2U);
     EXPECT_TRUE(first.has_value());
     EXPECT_TRUE(second.has_value());
     ASSERT_FALSE(third.has_value());
@@ -137,4 +138,41 @@ namespace
     EXPECT_EQ(source.size(), 2U);
   }
   /* ================================= End Test_J5_046 ================================== */
+  /* =================================== Test_J5_039 ==================================== */
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: Two live storages with overlapping record positions.
+   * Act: Access unset, foreign and same-owner out-of-range indices through both overloads.
+   * Expect: Unset and bounds failures report index_out_of_range; foreign ownership wins over bounds.
+   */
+  TEST(J5_039_StorageIdentity, ValidatesUnsetOwnerThenBounds)
+  {
+    /* Arrange */
+    document_provider provider;
+    detail::value_storage first{provider.callbacks(), 2};
+    detail::value_storage second{provider.callbacks(), 2};
+    ASSERT_TRUE(first.append(detail::value_record{}).has_value());
+    ASSERT_TRUE(second.append(detail::value_record{}).has_value());
+    /* Act */
+    const auto unset = second.at(value_index{});
+    const auto foreign = second.at(first.issue(0));
+    const auto foreign_outside = second.at(first.issue(99));
+    const auto outside = second.at(second.issue(99));
+    const auto& read_only = second;
+    /* Expect */
+    ASSERT_FALSE(unset.has_value());
+    ASSERT_FALSE(foreign.has_value());
+    ASSERT_FALSE(foreign_outside.has_value());
+    ASSERT_FALSE(outside.has_value());
+    EXPECT_EQ(unset.error_if()->access_reason(), access_error_reason::index_out_of_range);
+    EXPECT_EQ(foreign.error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(foreign_outside.error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(outside.error_if()->access_reason(), access_error_reason::index_out_of_range);
+    EXPECT_EQ(read_only.at(value_index{}).error_if()->access_reason(), access_error_reason::index_out_of_range);
+    EXPECT_EQ(read_only.at(first.issue(0)).error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(read_only.at(first.issue(99)).error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(read_only.at(second.issue(99)).error_if()->access_reason(), access_error_reason::index_out_of_range);
+  }
+
+  /* ================================= End Test_J5_039 ================================== */
 } // namespace

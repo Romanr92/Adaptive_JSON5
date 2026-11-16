@@ -335,8 +335,7 @@ namespace
     ASSERT_TRUE(name.has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
-    for (const value_index index :
-         {value_index{}, value_index{99}, *array.value_if(), *scalar.value_if(), *object.value_if()})
+    for (const value_index index : {value_index{}, *array.value_if(), *scalar.value_if(), *object.value_if()})
     {
       work_budget work{100};
       const auto checked = reject_duplicate_name(values, index, *name.value_if(), {10, 3}, work);

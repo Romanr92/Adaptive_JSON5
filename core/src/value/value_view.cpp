@@ -497,4 +497,14 @@ namespace adaptive_json5
 
     return result<value_view>::success(value_view{*m_storage, *found});
   }
+
+  result<value_index> value_view::index() const noexcept
+  {
+    if (m_storage == nullptr)
+    {
+      return result<value_index>::failure(error::access_failure(access_error_reason::invalid_argument));
+    }
+
+    return result<value_index>::success(m_index);
+  }
 } // namespace adaptive_json5

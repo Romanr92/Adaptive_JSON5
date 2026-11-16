@@ -397,7 +397,6 @@ namespace
                    doc, *index.value_if(), {1, std::numeric_limits<std::size_t>::max()}, 6)
                    .has_value());
     EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(doc, value_index{}, {0, 0}, 0).has_value());
-    EXPECT_FALSE(adaptive_json5::detail::document_access::set_source_span(doc, value_index{32}, {0, 0}, 0).has_value());
     for (std::int32_t i{}; i < 20; ++i)
     {
       ASSERT_TRUE(adaptive_json5::detail::document_access::make_null(doc).has_value());

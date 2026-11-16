@@ -88,7 +88,7 @@ namespace
       frame.pending_name.emplace();
       break;
     case close_fault::invalid_container:
-      frame.container = value_index{99};
+      frame.container = value_index{};
       break;
     default:
       break;

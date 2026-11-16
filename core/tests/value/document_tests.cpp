@@ -371,7 +371,10 @@ namespace
     ASSERT_TRUE(object.has_value());
     /* Act */
     const auto missing = doc.view(value_index{});
-    const auto outside = doc.view(value_index{doc.size()});
+    document other = detail::document_access::create(provider.callbacks(), 1);
+    const auto foreign = detail::document_access::make_null(other);
+    ASSERT_TRUE(foreign.has_value());
+    const auto outside = doc.view(*foreign.value_if());
     const auto scalar = doc.view(*null.value_if());
     ASSERT_TRUE(scalar.has_value());
     const auto array_view = doc.view(*array.value_if());
@@ -380,7 +383,8 @@ namespace
     ASSERT_TRUE(object_view.has_value());
     /* Expect */
     EXPECT_FALSE(missing.has_value());
-    EXPECT_FALSE(outside.has_value());
+    ASSERT_FALSE(outside.has_value());
+    EXPECT_EQ(outside.error_if()->access_reason(), access_error_reason::foreign_index);
     EXPECT_EQ(missing.error_if()->code(), error_code::wrong_type_or_access);
     EXPECT_FALSE(doc.root().has_value());
     EXPECT_FALSE(invalid.kind().has_value());
@@ -595,12 +599,13 @@ namespace
     /* Arrange */
     constexpr std::size_t records = 33;
     /* Act */
-    for (std::size_t fail = 1; fail <= 7; ++fail)
+    for (std::size_t fail = 1; fail <= 8; ++fail)
     {
       document_provider provider;
       provider.m_fail_on = fail;
       document doc = detail::document_access::create(provider.callbacks(), records);
       bool observed = false;
+      std::array<value_index, records> indices{};
       for (std::size_t i{}; i < records; ++i)
       {
         const auto added = detail::document_access::make_boolean(doc, i % 2 == 0);
@@ -611,7 +616,7 @@ namespace
           EXPECT_EQ(doc.size(), i);
           for (std::size_t j{}; j < i; ++j)
           {
-            const auto old = doc.view(value_index{j});
+            const auto old = doc.view(indices[j]);
             ASSERT_TRUE(old.has_value());
             EXPECT_EQ(*old.value_if()->as_boolean().value_if(), j % 2 == 0);
           }
@@ -619,6 +624,11 @@ namespace
           const auto retry = detail::document_access::make_boolean(doc, i % 2 == 0);
           ASSERT_TRUE(retry.has_value());
           EXPECT_EQ(retry.value_if()->position(), i);
+          indices[i] = *retry.value_if();
+        }
+        else
+        {
+          indices[i] = *added.value_if();
         }
       }
       /* Expect */

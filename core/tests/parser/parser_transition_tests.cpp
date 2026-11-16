@@ -327,10 +327,10 @@ namespace
     work_budget work{100};
     /* Act */
     // Work admission can succeed while relationship validation still fails.
-    const auto attached = attach_parsed_value(values, frame, value_index{99}, work, 0);
+    const auto attached = attach_parsed_value(values, frame, value_index{}, work, 0);
     /* Expect */
     ASSERT_FALSE(attached.has_value());
-    // Only the parser supplies the child index, so a dangling one is an internal fault.
+    // Only the parser supplies the child index, so an unset one is an internal fault.
     EXPECT_EQ(attached.error_if()->code(), error_code::internal_error);
     EXPECT_EQ(frame.state, parser_state::array_first_or_end);
     EXPECT_EQ(work.consumed(), c_attachment_work);

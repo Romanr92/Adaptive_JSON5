@@ -221,6 +221,8 @@ namespace
       message_case{"IndexOutOfRange", error::access_failure(access_error_reason::index_out_of_range),
                    "index out of range"},
       message_case{"InvalidArgument", error::access_failure(access_error_reason::invalid_argument), "invalid argument"},
+      message_case{"ForeignIndex", error::access_failure(access_error_reason::foreign_index),
+                   "index belongs to another document"},
       message_case{"UnknownAccessReason", error::access_failure(static_cast<access_error_reason>(99)),
                    "wrong type or invalid access"}),
     case_name<message_case>);

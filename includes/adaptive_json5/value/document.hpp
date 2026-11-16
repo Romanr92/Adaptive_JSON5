@@ -203,8 +203,26 @@ namespace adaptive_json5
          */
         [[nodiscard]] std::size_t size() const noexcept;
 
+        /**
+         * @brief Return the identity token for this storage.
+         * @par Requirements
+         * P030; J5-039; J5-040; J5-046.
+         * @return Token address, or nullptr before the first successful record allocation.
+         * @note Used only for comparison and never dereferenced. The token remains stable
+         * during growth and transfers with the records when storage is moved.
+         * Moved-from storage has no token until its next successful record allocation.
+         */
         [[nodiscard]] const void* identity() const noexcept;
 
+        /**
+         * @brief Tag an internal record position with this storage's identity.
+         * @par Requirements
+         * P030; J5-039; J5-040.
+         * @param position Record position, or value_index::c_unset_position for an unset index.
+         * @return Index carrying the supplied position and this storage's identity token.
+         * @note Performs no allocation or membership/bounds validation.
+         * Access through at() validates the index before reading a record.
+         */
         [[nodiscard]] value_index issue(std::size_t position) const noexcept;
     };
   } // namespace detail

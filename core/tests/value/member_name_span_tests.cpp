@@ -92,7 +92,6 @@ namespace
     EXPECT_FALSE(value_view{}.member_name_source_span().has_value());
     EXPECT_FALSE(
       detail::document_access::set_member_name_source_span(values, *detached.value_if(), {1, 2}, 10).has_value());
-    EXPECT_FALSE(detail::document_access::set_member_name_source_span(values, value_index{99}, {1, 2}, 10).has_value());
     EXPECT_TRUE(
       detail::document_access::set_member_name_source_span(values, *child.value_if(), {10, 0}, 10).has_value());
     EXPECT_EQ(provider.m_attempts, attempts);

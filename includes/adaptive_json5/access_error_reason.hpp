@@ -26,7 +26,8 @@ namespace adaptive_json5
     absent_member,
     duplicate_member,
     index_out_of_range,
-    invalid_argument
+    invalid_argument,
+    foreign_index
   };
 } // namespace adaptive_json5
 
