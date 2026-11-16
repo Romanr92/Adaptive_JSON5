@@ -1,0 +1,50 @@
+name: fuzz
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzz-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    name: fuzz (exceptions ${{ matrix.exceptions }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        exceptions: ['OFF', 'ON']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install Clang and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-18 llvm-18 ninja-build
+      - name: Run fuzz and generate HTML report
+        env:
+          ASAN_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer-18
+        run: python3 tools/runtime_checks.py fuzz --exceptions ${{ matrix.exceptions }} --jobs 2 --seconds ${{ github.event_name == 'schedule' && '1800' || '300' }}
+      - name: Upload fuzz report and evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-report-html-${{ matrix.exceptions }}
+          path: |
+            build/fuzz-*/report/
+            build/fuzz-*/CMakeCache.txt
+            build/fuzz-*/compile_commands.json
+            build/fuzz-*/Testing/Temporary/LastTest.log
+          if-no-files-found: error
+          retention-days: 30

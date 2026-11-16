@@ -8,7 +8,10 @@ high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/S
 
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
 [![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml)
+[![Unit test coverage](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
 [![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
+[![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml)
+[![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml)
 [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml)
 [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
 [![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml)
@@ -505,9 +508,16 @@ Pull requests also publish downloadable HTML reports in GitHub Actions. Open the
 PR's **Checks**, select the workflow run, then download its artifact from the
 run's **Artifacts** section and extract the ZIP before opening the HTML locally:
 
-- `unit-test-coverage-html` from `unit-tests`: open `index.html` for
+- `unit-test-coverage-html` from `unit-test-coverage`: open `index.html` for
   GCC 14 unit-test coverage (exceptions OFF, RTTI OFF; validation tests excluded).
   The coverage helper requires matching GCC/gcov 14 or newer for JSON format 2.
+- `sanitizers-report-html-OFF` / `sanitizers-report-html-ON` from `sanitizers`:
+  open `index.html` for ASan+UBSan unit and validation results, configuration and
+  expandable command logs. JUnit XML and raw logs are included.
+- `fuzz-report-html-OFF` / `fuzz-report-html-ON` from `fuzz`: open `index.html`
+  for the timed libFuzzer result and logs. Seed manifests and any crash/timeout/OOM
+  reproducers are included. PR runs last 5 minutes per exception mode; weekly
+  runs last 30 minutes per mode. Both use RTTI OFF and ASan+UBSan.
 - `misra-report-html` from `misra-cpp`: open the `.html` file for the production
   MISRA/security findings with rule summary and filters; the SARIF is included.
 
@@ -668,3 +678,30 @@ through this project. Feedback on the C++ is very welcome.
 No review catches everything: not my own, not the AI reviews and not the automated
 tests. If you find a mistake, in the code or in how I've applied the standards, please
 open an issue. Corrections are always welcome.
+
+### Sanitizer and fuzz checks
+
+On a native Linux host with Clang 18, Ninja and Python 3, run:
+
+```sh
+python3 tools/runtime_checks.py sanitizers --exceptions OFF
+python3 tools/runtime_checks.py fuzz --exceptions OFF --seconds 300
+```
+
+Use `--exceptions ON` for the second configuration. Sanitizer units use the
+pinned host-only GoogleTest dependency; `--gtest-source PATH` selects an offline
+checkout. Fuzz builds need no GoogleTest. Seeds come from committed third-party
+fixtures; their versions and notices remain in `tests/fixtures/third_party/`.
+The helper prints the self-contained HTML report location, including when a
+build or test fails, and returns a failing exit code. Reports describe the tested
+host configuration, not target verification or safety/security approval.
+
+CMake options `ADAPTIVE_JSON5_ENABLE_SANITIZERS` and
+`ADAPTIVE_JSON5_BUILD_FUZZER` default OFF. These checks currently support native
+Linux GCC/Clang (libFuzzer requires Clang). Instrumentation is private to the
+selected build; use a separate ordinary build for distributable libraries.
+
+Required merge checks for issue #132 are `sanitizers (exceptions OFF)`,
+`sanitizers (exceptions ON)`, `fuzz (exceptions OFF)` and `fuzz (exceptions ON)`.
+Repository branch protection or a ruleset must require them on `main`; workflow
+failure alone does not prevent merging in an unprotected repository.
