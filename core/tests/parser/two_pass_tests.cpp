@@ -168,7 +168,7 @@ namespace
   /* Verify a scalar root reserves one record and no frames.
    * Arrange: The document "true".
    * Act: Run the engine.
-   * Expect: One record request and no request sized in frames.
+   * Expect: One identity-token request, one record request and no frame request.
    */
   TEST(J5_046_TwoPassParse, ScalarRootReservesNoFrames)
   {
@@ -182,7 +182,8 @@ namespace
     const auto parsed = engine.run_complete();
     /* Expect */
     ASSERT_TRUE(parsed.has_value());
-    EXPECT_EQ(provider.m_attempts, 1U);
+    EXPECT_EQ(provider.m_attempts, 2U);
+    EXPECT_EQ(provider.requests_of(1U), 1U);
     EXPECT_EQ(provider.requests_of(sizeof(value_record)), 1U);
   }
 

@@ -1,4 +1,5 @@
 #include "../shared_infrastructure/document_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
@@ -22,12 +23,16 @@ namespace
     /* Arrange */
     const value_view view;
     /* Act */
+    const auto index = view.index();
     const auto boolean = view.as_boolean();
     const auto string = view.as_string();
     const auto number = view.as_number();
     const auto member = view.member_name();
     /* Expect */
     // Callers need readable error results from every typed accessor, including pointer-valued results.
+    ASSERT_NE(index.error_if(), nullptr);
+    EXPECT_EQ(index.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(index.error_if()->access_reason(), access_error_reason::invalid_argument);
     ASSERT_NE(boolean.error_if(), nullptr);
     EXPECT_EQ(boolean.error_if()->code(), error_code::wrong_type_or_access);
     ASSERT_NE(string.error_if(), nullptr);
