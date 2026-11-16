@@ -220,8 +220,9 @@ namespace adaptive_json5
          * @brief Tag an internal record position with this storage's identity.
          * @par Requirements
          * P030; J5-039; J5-040.
-         * @param position Record position, or value_index::c_unset_position for an unset index.
-         * @return Index carrying the supplied position and this storage's identity token.
+         * @param position Record position, or value_index::c_unset_position.
+         * @return Index carrying the position and this storage's identity token,
+         * or a default unset index for the sentinel.
          * @note Performs no allocation or membership/bounds validation.
          * Access through at() validates the index before reading a record.
          */

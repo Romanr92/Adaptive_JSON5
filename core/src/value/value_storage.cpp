@@ -362,11 +362,19 @@ namespace adaptive_json5
      * @par Requirements
      * P030; J5-039; J5-040.
      * @param position Record position, or the unset position sentinel.
-     * @return Tagged index without allocating or validating the position.
-     * @note Access through at() validates the index before reading a record.
+     * @return Tagged index, or a default unset index for the sentinel.
+     * @note Performs no allocation or bounds validation.
+     * Unset positions yield value_index{} so every unset index has one representation.
+     * Access through at() validates the index before reading a record.
+     * @par ID SWU-VALUE-176
      */
     value_index value_storage::issue(std::size_t position) const noexcept
     {
+      if (position == value_index::c_unset_position)
+      {
+        return value_index{};
+      }
+
       return value_index{identity(), position};
     }
   } // namespace detail

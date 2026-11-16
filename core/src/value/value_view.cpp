@@ -118,7 +118,7 @@ namespace adaptive_json5
       return result<value_view>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
-    value_index current = links->first;
+    value_index current = m_storage->issue(links->first.position());
 
     for (std::size_t ordinal{}; ordinal <= position; ++ordinal)
     {
@@ -143,7 +143,7 @@ namespace adaptive_json5
         return result<value_view>::success(value_view{*m_storage, current});
       }
 
-      current = child_record.next_sibling;
+      current = m_storage->issue(child_record.next_sibling.position());
     }
 
     return result<value_view>::failure(error::internal_fault());
@@ -440,7 +440,7 @@ namespace adaptive_json5
     }
 
     std::optional<value_index> found{};
-    value_index current = data->members.first;
+    value_index current = m_storage->issue(data->members.first.position());
 
     // Every member is checked, so a name that occurs twice is detected instead of resolved.
     for (std::size_t ordinal{}; ordinal < data->members.count; ++ordinal)
@@ -490,7 +490,7 @@ namespace adaptive_json5
         found = current;
       }
 
-      current = member.next_sibling;
+      current = m_storage->issue(member.next_sibling.position());
     }
 
     if (!found.has_value())

@@ -11,6 +11,7 @@
 #include "common/checked_size.hpp"
 #include "common/internal_link.hpp"
 #include "value/container_links.hpp"
+#include "value/record_link.hpp"
 #include "value/value_record.hpp"
 
 #include <cstddef>
@@ -165,7 +166,7 @@ namespace adaptive_json5
             return status_result::failure(error::internal_fault());
           }
 
-          const auto last_result = values.at(links->last);
+          const auto last_result = values.at(values.issue(links->last.position()));
 
           if (!last_result.has_value())
           {
@@ -189,18 +190,18 @@ namespace adaptive_json5
           child_record.member_name_source_span = name_span;
         }
 
-        child_record.parent = parent;
+        child_record.parent = record_link{parent.position()};
 
         if (previous_last == nullptr)
         {
-          links->first = child;
+          links->first = record_link{child.position()};
         }
         else
         {
-          previous_last->next_sibling = child;
+          previous_last->next_sibling = record_link{child.position()};
         }
 
-        links->last = child;
+        links->last = record_link{child.position()};
         links->count = *new_count.value_if();
 
         return status_result::success();
