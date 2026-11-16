@@ -1,0 +1,48 @@
+name: sanitizers
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sanitizers-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sanitizers:
+    name: sanitizers (exceptions ${{ matrix.exceptions }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        exceptions: ['OFF', 'ON']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install Clang and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-18 llvm-18 ninja-build
+      - name: Run sanitizers and generate HTML report
+        env:
+          ASAN_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer-18
+        run: python3 tools/runtime_checks.py sanitizers --exceptions ${{ matrix.exceptions }} --jobs 2
+      - name: Upload sanitizers report and evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitizers-report-html-${{ matrix.exceptions }}
+          path: |
+            build/sanitizers-*/report/
+            build/sanitizers-*/CMakeCache.txt
+            build/sanitizers-*/compile_commands.json
+            build/sanitizers-*/Testing/Temporary/LastTest.log
+          if-no-files-found: error
+          retention-days: 30

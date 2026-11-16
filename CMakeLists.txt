@@ -16,6 +16,18 @@ option(ADAPTIVE_JSON5_BUILD_EXECUTABLE
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project targets"
     OFF)
 option(ADAPTIVE_JSON5_ENABLE_RTTI "Enable RTTI in project unit targets" OFF)
+option(ADAPTIVE_JSON5_ENABLE_SANITIZERS "Instrument host checks with ASan and UBSan" OFF)
+option(ADAPTIVE_JSON5_BUILD_FUZZER "Build the host-only Clang libFuzzer harness" OFF)
+if(ADAPTIVE_JSON5_ENABLE_SANITIZERS OR ADAPTIVE_JSON5_BUILD_FUZZER)
+    if(CMAKE_CROSSCOMPILING OR NOT CMAKE_SYSTEM_NAME STREQUAL "Linux"
+            OR NOT CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        message(FATAL_ERROR "Sanitizer/fuzz checks require a native Linux GCC/Clang host")
+    endif()
+endif()
+if(ADAPTIVE_JSON5_BUILD_FUZZER AND
+        (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR NOT ADAPTIVE_JSON5_ENABLE_SANITIZERS))
+    message(FATAL_ERROR "libFuzzer requires Clang and ADAPTIVE_JSON5_ENABLE_SANITIZERS=ON")
+endif()
 option(ADAPTIVE_JSON5_BUILD_HOSTED
     "Build the optional hosted one-call parse API (uses the global heap)" OFF)
 option(ADAPTIVE_JSON5_EISEL_LEMIRE
@@ -49,6 +61,16 @@ function(adaptive_json5_configure_target target)
     set_target_properties(${target} PROPERTIES
         CXX_EXTENSIONS OFF CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     target_compile_features(${target} PRIVATE cxx_std_17)
+    if(ADAPTIVE_JSON5_ENABLE_SANITIZERS)
+        target_compile_options(${target} PRIVATE -fsanitize=address,undefined
+            -fno-sanitize-recover=all -fno-omit-frame-pointer -g)
+        target_link_options(${target} PRIVATE -fsanitize=address,undefined
+            -fno-sanitize-recover=all)
+    endif()
+    if(ADAPTIVE_JSON5_BUILD_FUZZER)
+        target_compile_options(${target} PRIVATE -fsanitize=fuzzer-no-link)
+        target_link_options(${target} PRIVATE -fsanitize=fuzzer-no-link)
+    endif()
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /WX /w14706)
         if(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS)
@@ -95,10 +117,11 @@ if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
     include("${PROJECT_SOURCE_DIR}/cmake/UnitTests.cmake")
 endif()
 if(ADAPTIVE_JSON5_BUILD_LIBRARY OR ADAPTIVE_JSON5_BUILD_TESTS
-        OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
+        OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS OR ADAPTIVE_JSON5_BUILD_FUZZER)
     add_subdirectory(core)
 endif()
-if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS)
+if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS
+        OR ADAPTIVE_JSON5_BUILD_FUZZER)
     add_subdirectory(tests)
 endif()
 

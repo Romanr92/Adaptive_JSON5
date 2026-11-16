@@ -36,34 +36,17 @@ namespace
   allocation_probe g_probe{};
 } // namespace
 
-// Replace the global allocator for this executable so formatting calls can be shown to allocate nothing.
-void* operator new(std::size_t size)
+namespace adaptive_json5_test
 {
-  if (g_probe.m_counting)
+  /** @brief Observe host allocations. @par Requirements Issue #96; J5-045. */
+  void record_heap_allocation() noexcept
   {
-    ++g_probe.m_count;
+    if (g_probe.m_counting)
+    {
+      ++g_probe.m_count;
+    }
   }
-
-  void* memory = std::malloc((size == 0U) ? 1U : size);
-
-  // Host test executables may stop on exhaustion; the library itself never reaches this allocator.
-  if (memory == nullptr)
-  {
-    std::abort();
-  }
-
-  return memory;
-}
-
-void operator delete(void* memory) noexcept
-{
-  std::free(memory);
-}
-
-void operator delete(void* memory, std::size_t) noexcept
-{
-  std::free(memory);
-}
+} // namespace adaptive_json5_test
 
 namespace
 {
