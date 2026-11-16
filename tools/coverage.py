@@ -197,6 +197,7 @@ def main():
                 "--root", ROOT, "--filter", SOURCE_FILTER,
                 "--gcov-use-existing-files", "-j", args.jobs,
                 "--include", SOURCE_FILTER,
+                "--json-summary", report / "summary.json",
                 "--html-details", report / "index.html",
                 "--html-single-page", "--html-self-contained",
                 "--no-html-syntax-highlighting", "--print-summary",

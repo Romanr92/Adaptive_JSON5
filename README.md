@@ -9,6 +9,8 @@ high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/S
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
 [![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml)
 [![Unit test coverage](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
+[![Coverage: lines, functions and branches](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
+[![MISRA / CodeQL critical and high findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
 [![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
 [![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml)
 [![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml)
@@ -705,3 +707,14 @@ Required merge checks for issue #132 are `sanitizers (exceptions OFF)`,
 `sanitizers (exceptions ON)`, `fuzz (exceptions OFF)` and `fuzz (exceptions ON)`.
 Repository branch protection or a ruleset must require them on `main`; workflow
 failure alone does not prevent merging in an unprotected repository.
+
+Measured badges show the last successfully published `main` analysis: line,
+function and branch coverage together, and critical/high CodeQL security-severity
+finding counts across the MISRA/security SARIF report. Findings without numeric
+security severity are shown as unrated; ordinary MISRA errors are not silently
+classified as security-critical. These are report counts, not compliance claims
+or the deduplicated GitHub alert inventory. Workflow status badges remain visible
+so a failed newer analysis is not hidden by older measurements. Before the first
+successful main run publishes the metric branches, measured badges are unavailable.
+Publishing uses a separate job with write permission only on main pushes; PR jobs
+remain read-only. Reports include the generated SVG and coverage summary JSON.
