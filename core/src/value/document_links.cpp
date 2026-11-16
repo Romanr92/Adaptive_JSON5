@@ -55,7 +55,7 @@ namespace adaptive_json5
             return status_result::failure(as_internal_fault(*resolved.error_if()));
           }
 
-          ancestor = (*resolved.value_if())->parent;
+          ancestor = values.issue((*resolved.value_if())->parent.position());
           --remaining;
         }
 
