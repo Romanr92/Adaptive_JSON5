@@ -7,9 +7,12 @@ Tools. Ninja is optional. No WSL or consumer SDK is needed for host development.
 ## Test dependency
 
 CMake FetchContent downloads and builds GoogleTest 1.17.0 at immutable revision
-`52eb8108c5bdec04579160ae17225d66034bd723` into `tools/gtest` when host tests
+`52eb8108c5bdec04579160ae17225d66034bd723` into each build directory's
+`_deps/googletest-src` when host tests
 are enabled. The first configuration requires Git and network access; subsequent
 configurations reuse the checkout without checking for updates.
+Separate build directories keep compiler profiles from modifying one shared
+dependency checkout during concurrent configuration.
 
 For offline work, supply an existing 1.17.0 checkout through
 `-DADAPTIVE_JSON5_GOOGLETEST_SOURCE_DIR=path/to/googletest`. Relative paths are
