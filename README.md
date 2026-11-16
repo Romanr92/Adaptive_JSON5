@@ -496,6 +496,8 @@ and the default security queries. Findings appear in GitHub code scanning;
 analysis alone does not establish MISRA compliance. Required status checks and
 a code-scanning rule for new findings must be enabled in repository settings
 when these become blocking gates. Existing GCC jobs remain in place.
+MISRA analysis also runs on pushes to `main` to populate the Security tab's
+default-branch alerts; pull-request checks report findings relevant to the PR.
 
 Pull requests also publish downloadable HTML reports in GitHub Actions. Open the
 PR's **Checks**, select the workflow run, then download its artifact from the
