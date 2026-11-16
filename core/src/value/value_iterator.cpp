@@ -113,7 +113,7 @@ namespace adaptive_json5
 
     const auto& child = **resolved.value_if();
 
-    // A sibling chain must remain inside its originating container.
+    // at() validated the container in create() and this child above; stored parent links belong to that storage.
     if (!child.parent.is_set() || (child.parent.position() != m_parent.position()) ||
         (child.member_name.has_value() != m_object))
     {

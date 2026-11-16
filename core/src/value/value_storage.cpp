@@ -190,7 +190,9 @@ namespace adaptive_json5
      * P030; J5-040; J5-046.
      * @param records Exact number of records this storage will hold.
      * @return Success, resource_limit (nodes), a provider failure, or internal_error when already reserved.
-     * @note Failure leaves the storage growable and unchanged.
+     * @note Nonzero reservations allocate a one-byte identity token before the record block.
+     * Both requests use the provider and its accounting. Zero records allocate nothing.
+     * Failure leaves the storage growable and unchanged.
      * @par ID SWU-VALUE-116
      */
     status_result value_storage::reserve_exact(std::size_t records) noexcept

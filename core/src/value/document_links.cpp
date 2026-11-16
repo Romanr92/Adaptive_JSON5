@@ -35,6 +35,7 @@ namespace adaptive_json5
       [[nodiscard]] status_result reject_ancestor_cycle(const value_storage& values, value_index parent,
                                                         value_index child) noexcept
       {
+        // attach_child() validated parent and child through at(); ancestor links originate in that same storage.
         // A detached subtree must not be attached beneath one of its own descendants.
         value_index ancestor = parent;
         std::size_t remaining = values.size();
@@ -106,6 +107,7 @@ namespace adaptive_json5
         auto& parent_record = **parent_result.value_if();
         auto& child_record = **child_result.value_if();
 
+        // at() validated parent and child above; root is a link retained by this same storage.
         if ((parent.position() == child.position()) || ((root.is_set()) && (root.position() == child.position())))
         {
           return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
@@ -172,6 +174,7 @@ namespace adaptive_json5
 
           previous_last = *last_result.value_if();
 
+          // at() validated parent and the last record; its parent link was created within this storage.
           if (!previous_last->parent.is_set() || (previous_last->parent.position() != parent.position()) ||
               previous_last->next_sibling.is_set())
           {
@@ -215,7 +218,7 @@ namespace adaptive_json5
      * @param name_span Optional original member-name token range.
      * @param input_size Original input size used to validate name_span.
      * @return Success or an explicit relationship/access error.
-     * @note All indices must belong to values; indices do not encode owner identity.
+     * @note Supplied indices must belong to values; at() validates owner identity before record access.
      * Existing relationships must have been created through validated document operations.
      * Rejects an existing parent, root reuse, self-attachment and ancestor cycles.
      * Object names are preserved exactly, including empty and repeated names.
@@ -232,7 +235,19 @@ namespace adaptive_json5
                                decoded_string* member_name, std::optional<source_span> name_span,
                                std::size_t input_size) noexcept
     {
-      // The public builder may attach any detached subtree, so cycles must be ruled out first.
+      const auto parent_record = values.at(parent);
+      if (!parent_record.has_value())
+      {
+        return status_result::failure(*parent_record.error_if());
+      }
+
+      const auto child_record = values.at(child);
+      if (!child_record.has_value())
+      {
+        return status_result::failure(*child_record.error_if());
+      }
+
+      // Internal subtree attachment validates ownership above before checking ancestor cycles.
       const auto acyclic = reject_ancestor_cycle(values, parent, child);
 
       if (!acyclic.has_value())

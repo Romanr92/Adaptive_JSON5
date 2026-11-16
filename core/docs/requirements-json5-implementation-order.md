@@ -434,6 +434,20 @@ Provide distinct null/boolean/string/number/array/object alternatives, ordered a
 - Unit acceptance: Construct/inspect/move each variant before recursive parsing exists; explicit wrong-type results.
 - Existing contracts: J5-028, J5-030, J5-031, J5-039, J5-040.
 
+Local index-identity evidence for #128 / ADR 0007 (2026-11-16): the Windows/GCC
+`debug-unit-tests` and `debug-unit-tests-exceptions` presets each passed all
+2,663 GoogleTest cases with RTTI OFF (exceptions OFF and ON respectively).
+The new public identity cases are in `tests/value/access_boundary_tests.cpp`;
+internal move/reuse/growth, allocation rollback and token-budget cases are in
+`core/tests/value/value_storage_tests.cpp`; attachment ownership-before-cycle
+validation is in `core/tests/value/attachment_validation_tests.cpp`.
+The `validation-tests` preset also passed all 921 pinned-fixture GoogleTest
+cases with exceptions OFF and RTTI OFF. Clang-format 18 and `git diff --check`
+passed for the changed files. Exact named units are inventoried separately in
+`docs/traceability.md`. These are local executed results for Commit A, not remote CI, embedded-device,
+safety/security approval or verification of the separate compact-private-link
+change (Commit B). Requirement statuses are unchanged.
+
 ### P031 — Resource guards
 
 Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29) (original step issue #31).

@@ -131,6 +131,39 @@ if (!parsed.has_value())
 }
 ```
 
+### Value indices and storage identity
+
+Obtain a `value_index` through `value_view::index()` after root access, lookup or
+iteration. Default construction produces an unset index; constructing a valid
+index from an arbitrary number is not supported. Array element ordinals remain
+ordinary numeric positions.
+
+Index-taking document access checks unset state, storage identity and then bounds.
+An unset index or a same-storage position outside its records reports
+`wrong_type_or_access` with `index_out_of_range`. An index from another live
+document reports `foreign_index`, even when its position is in range; its diagnostic
+text is "index belongs to another document". A default view's `index()` reports
+`invalid_argument`. Issuing or checking an index allocates nothing.
+
+The identity token is allocated before the first record allocation through the
+same caller provider. It requests one byte with alignment one and counts as one
+owned byte and one outstanding allocation. Failed first record allocation releases
+the pending token. Growth preserves the token. Moving a document transfers its
+indices to the destination; the moved-from document rejects them, and internal
+reuse allocates a new token. Views and iterators still become invalid on a move.
+Records and their storage are released before the token. Destroying the document
+ends its indices' validity; token address reuse does not provide stale-handle
+protection after destruction.
+
+For caller buffers, include the token's one byte and any additional alignment
+padding before the record block, alongside control-block and other allocation
+overhead. `peak_bytes()` includes the requested token byte but excludes provider
+metadata and alignment padding. `make_buffer_document_storage()` places the
+control block and exposes the remaining slice to the arena; it does not calculate
+a required size for a whole document. No fixed document-sizing formula is exposed.
+Measure with the target's current record layout; record size depends on the ABI
+and library revision. Do not assume a fixed size across releases.
+
 ### Migrating a pointer-returning allocator
 
 Earlier releases also accepted an allocate callback returning `void*`, with
@@ -215,7 +248,7 @@ Which error tells you what:
 | `syntax`, `encoding`, `duplicate_policy` | The input is invalid for the selected mode or policy | Fix the input; retrying unchanged gives the same error |
 | `resource_limit` | A configured limit or the work budget would be exceeded; `limit_reason()` names it (see [which limit, and where](#which-limit-and-where)) | Raise that limit, or reject the input |
 | `allocation_failure` | Your allocate callback returned no memory | Free memory or grow your pool, then retry |
-| `wrong_type_or_access` | A wrong call; `access_reason()` says which: `wrong_type`, `absent_member`, `duplicate_member`, `index_out_of_range` or `invalid_argument` (for example a `byte_limit()` that doesn't match `max_owned_bytes`) | Fix the call |
+| `wrong_type_or_access` | A wrong call; `access_reason()` says which: `wrong_type`, `absent_member`, `duplicate_member`, `index_out_of_range`, `foreign_index` or `invalid_argument` (for example a `byte_limit()` that doesn't match `max_owned_bytes`) | Fix the call |
 | `internal_error` | The library found its own state inconsistent: its two parse passes disagree, a stored link is damaged, or an `accounted_storage` refused a release that matched no allocation | Report it; the result cannot be trusted. Discard the document and, if `accounting.faulted()` is true, the accounting object too |
 
 Each error carries at most one reason, read through the accessor of its code:
@@ -330,8 +363,9 @@ document into storage reserved once at exactly those sizes.
 
 - **Invalid or over-limit input fails before any allocation.** Syntax errors,
   trailing content and every limit in the table above are found in the first pass.
-- **A successful parse makes few, fixed-size allocations:** one block for all
-  values, one for the open-container frames, plus one per string, member name and
+- **A successful parse makes few, fixed-size allocations:** a one-byte identity
+  token, a block for all values, one for any open-container frames, plus one per
+  string, member name and
   number. Nothing grows or is relocated, so memory pools fragment less.
 - **Work:** both passes are charged. The default `max_work_units` of 131072 covers
   every maximum-size (16384-byte) document shape measured for ADR 0003: the

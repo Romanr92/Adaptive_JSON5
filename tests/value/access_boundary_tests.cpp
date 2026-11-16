@@ -1,10 +1,13 @@
 #include "../shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/access_error_reason.hpp"
+#include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
 
 #include <gtest/gtest.h>
+#include <string_view>
+#include <type_traits>
 #include <utility>
 
 namespace
@@ -42,7 +45,120 @@ namespace
     ASSERT_NE(member.error_if(), nullptr);
     EXPECT_EQ(member.error_if()->code(), error_code::wrong_type_or_access);
   }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: Two parsed arrays with matching positions and one shared accounting provider.
+   * Act: Obtain the index for 20 from A and use it with B containing [90,80].
+   * Expect: Same-document access reads 20; foreign access fails explicitly instead of reading 80.
+   */
+  TEST(J5_039_IndexIdentity, RejectsForeignIndexAtMatchingPosition)
+  {
+    /* Arrange */
+    static_assert(std::is_default_constructible_v<value_index>);
+    static_assert(std::is_copy_constructible_v<value_index>);
+    static_assert(!std::is_constructible_v<value_index, std::size_t>);
+    static_assert(!std::is_constructible_v<value_index, const void*, std::size_t>);
+    document_provider provider;
+    const parse_options options{};
+    accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+    auto first = parse_document({"[10,20]", 7}, options, accounting);
+    auto second = parse_document({"[90,80]", 7}, options, accounting);
+    ASSERT_TRUE(first.has_value());
+    ASSERT_TRUE(second.has_value());
+    const auto root = first.value_if()->values.root();
+    ASSERT_TRUE(root.has_value());
+    const auto element = root.value_if()->element_at(1);
+    ASSERT_TRUE(element.has_value());
+    const auto index = element.value_if()->index();
+    ASSERT_TRUE(index.has_value());
+    const auto attempts = provider.m_attempts;
+    /* Act */
+    const auto same = first.value_if()->values.view(*index.value_if());
+    const auto foreign = second.value_if()->values.view(*index.value_if());
+    const auto unset = second.value_if()->values.view(value_index{});
+    /* Expect */
+    ASSERT_TRUE(same.has_value());
+    const auto number = same.value_if()->as_number();
+    ASSERT_TRUE(number.has_value());
+    const auto spelling = (*number.value_if())->spelling();
+    EXPECT_EQ(std::string_view(spelling.data, spelling.size), "20");
+    ASSERT_FALSE(foreign.has_value());
+    EXPECT_EQ(foreign.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(foreign.error_if()->access_reason(), access_error_reason::foreign_index);
+    ASSERT_FALSE(unset.has_value());
+    EXPECT_EQ(unset.error_if()->access_reason(), access_error_reason::index_out_of_range);
+    EXPECT_EQ(provider.m_attempts, attempts);
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: Two parsed object documents sharing a provider and an index from A's root.
+   * Act: Ask B to iterate and look up a member using A's index.
+   * Expect: Both index-taking public operations reject ownership before container/name access.
+   */
+  TEST(J5_039_IndexIdentity, RejectsForeignContainerInIterationAndLookup)
+  {
+    /* Arrange */
+    document_provider provider;
+    const parse_options options{};
+    accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+    auto first = parse_document({"{}", 2}, options, accounting);
+    auto second = parse_document({"{}", 2}, options, accounting);
+    ASSERT_TRUE(first.has_value());
+    ASSERT_TRUE(second.has_value());
+    const auto root = first.value_if()->values.root();
+    ASSERT_TRUE(root.has_value());
+    const auto index = root.value_if()->index();
+    ASSERT_TRUE(index.has_value());
+    const decoded_string name{};
+    /* Act */
+    const auto iterated = second.value_if()->values.iterate(*index.value_if());
+    const auto found = second.value_if()->values.lookup_member(*index.value_if(), name);
+    /* Expect */
+    ASSERT_FALSE(iterated.has_value());
+    ASSERT_FALSE(found.has_value());
+    EXPECT_EQ(iterated.error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(found.error_if()->access_reason(), access_error_reason::foreign_index);
+  }
+  /* ----------------------------------------------------------------------------------- */
   /* ================================= End Test_J5_039 ================================== */
+  /* =================================== Test_J5_040 ==================================== */
+  /*
+   * Arrange: A parsed array and a copied index obtained from its second element.
+   * Act: Move the document and use the index with destination and source.
+   * Expect: It reads 20 in the destination and reports foreign_index in the emptied source.
+   */
+  TEST(J5_040_IndexIdentity, DocumentMoveTransfersIssuedIndices)
+  {
+    /* Arrange */
+    document_provider provider;
+    const parse_options options{};
+    accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};
+    auto parsed = parse_document({"[10,20]", 7}, options, accounting);
+    ASSERT_TRUE(parsed.has_value());
+    auto& source = parsed.value_if()->values;
+    const auto root = source.root();
+    ASSERT_TRUE(root.has_value());
+    const auto element = root.value_if()->element_at(1);
+    ASSERT_TRUE(element.has_value());
+    const auto issued = element.value_if()->index();
+    ASSERT_TRUE(issued.has_value());
+    const value_index copied = *issued.value_if();
+    const auto attempts = provider.m_attempts;
+    /* Act */
+    document destination{std::move(source)};
+    const auto accepted = destination.view(copied);
+    const auto rejected = source.view(copied);
+    /* Expect */
+    ASSERT_TRUE(accepted.has_value());
+    const auto number = accepted.value_if()->as_number();
+    ASSERT_TRUE(number.has_value());
+    const auto spelling = (*number.value_if())->spelling();
+    EXPECT_EQ(std::string_view(spelling.data, spelling.size), "20");
+    ASSERT_FALSE(rejected.has_value());
+    EXPECT_EQ(rejected.error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(provider.m_attempts, attempts);
+  }
+  /* ================================= End Test_J5_040 ================================== */
 
   /* =================================== Test_J5_018 ==================================== */
   /*

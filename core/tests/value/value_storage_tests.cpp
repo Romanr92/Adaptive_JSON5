@@ -1,7 +1,11 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/access_error_reason.hpp"
+#include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "value/value_record.hpp"
+
+#include <array>
+#include <type_traits>
 namespace
 {
   using namespace adaptive_json5;
@@ -137,6 +141,92 @@ namespace
     EXPECT_TRUE(regrown_second.has_value());
     EXPECT_EQ(source.size(), 2U);
   }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: Exact and growing storage with failure injected at token or record allocation.
+   * Act: Attempt the first allocation, inspect rollback and retry without failure injection.
+   * Expect: Failure publishes no token or records, releases all acquired blocks and permits retry.
+   */
+  TEST(J5_046_StorageIdentity, FirstAllocationFailureRollsBackAndRetries)
+  {
+    /* Arrange */
+    for (const bool exact : {false, true})
+    {
+      for (const std::size_t failure : {1U, 2U})
+      {
+        SCOPED_TRACE(exact);
+        SCOPED_TRACE(failure);
+        document_provider provider;
+        {
+          detail::value_storage storage{provider.callbacks(), 2};
+          provider.m_fail_on = failure;
+          /* Act */
+          if (exact)
+          {
+            const auto failed = storage.reserve_exact(2);
+            ASSERT_FALSE(failed.has_value());
+            EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
+          }
+          else
+          {
+            const auto failed = storage.append(detail::value_record{});
+            ASSERT_FALSE(failed.has_value());
+            EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
+          }
+          /* Expect */
+          EXPECT_EQ(storage.identity(), nullptr);
+          EXPECT_EQ(storage.size(), 0U);
+          EXPECT_EQ(provider.m_attempts, failure);
+          EXPECT_EQ(provider.m_live_bytes, 0U);
+          EXPECT_EQ(provider.m_allocations, provider.m_releases);
+          provider.m_fail_on = 0;
+          if (exact)
+          {
+            ASSERT_TRUE(storage.reserve_exact(2).has_value());
+          }
+          const auto retry = storage.append(detail::value_record{});
+          ASSERT_TRUE(retry.has_value());
+          EXPECT_NE(storage.identity(), nullptr);
+          EXPECT_TRUE(storage.at(*retry.value_if()).has_value());
+        }
+        EXPECT_EQ(provider.m_live_bytes, 0U);
+        EXPECT_EQ(provider.m_allocations, provider.m_releases);
+      }
+    }
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: One live record and a failure on the next record-block growth request.
+   * Act: Append, inspect the original record and token, then retry.
+   * Expect: Failure retains the old token, record and allocation ownership; retry reuses the token.
+   */
+  TEST(J5_046_StorageIdentity, FailedGrowthRetainsIdentityAndRecords)
+  {
+    /* Arrange */
+    document_provider provider;
+    detail::value_storage storage{provider.callbacks(), 2};
+    const auto first = storage.append(detail::value_record{});
+    ASSERT_TRUE(first.has_value());
+    const void* identity = storage.identity();
+    const auto live_bytes = provider.m_live_bytes;
+    const auto allocations = provider.m_allocations;
+    provider.m_fail_on = provider.m_attempts + 1U;
+    /* Act */
+    const auto failed = storage.append(detail::value_record{});
+    /* Expect */
+    ASSERT_FALSE(failed.has_value());
+    EXPECT_EQ(failed.error_if()->code(), error_code::allocation_failure);
+    EXPECT_EQ(storage.identity(), identity);
+    EXPECT_EQ(storage.size(), 1U);
+    EXPECT_TRUE(storage.at(*first.value_if()).has_value());
+    EXPECT_EQ(provider.m_live_bytes, live_bytes);
+    EXPECT_EQ(provider.m_allocations, allocations);
+    provider.m_fail_on = 0;
+    ASSERT_TRUE(storage.append(detail::value_record{}).has_value());
+    EXPECT_EQ(storage.identity(), identity);
+    EXPECT_TRUE(storage.at(*first.value_if()).has_value());
+    EXPECT_EQ(provider.m_allocations, allocations + 1U);
+  }
   /* ================================= End Test_J5_046 ================================== */
   /* =================================== Test_J5_039 ==================================== */
   /* ----------------------------------------------------------------------------------- */
@@ -174,5 +264,98 @@ namespace
     EXPECT_EQ(read_only.at(second.issue(99)).error_if()->access_reason(), access_error_reason::index_out_of_range);
   }
 
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: A growing storage with one issued index and a retained identity address.
+   * Act: Move it, reject its old index at the source, reuse the source and grow the destination.
+   * Expect: Identity follows records; reuse receives a different token and growth preserves indices.
+   */
+  TEST(J5_039_StorageIdentity, MoveReuseAndGrowthPreserveOwnership)
+  {
+    /* Arrange */
+    document_provider provider;
+    detail::value_storage source{provider.callbacks(), 16};
+    const auto first = source.append(detail::value_record{});
+    ASSERT_TRUE(first.has_value());
+    const value_index old = *first.value_if();
+    const void* identity = source.identity();
+    /* Act */
+    detail::value_storage destination{std::move(source)};
+    const auto moved_from = source.at(old);
+    EXPECT_EQ(source.identity(), nullptr);
+    const auto reused = source.append(detail::value_record{});
+    /* Expect */
+    EXPECT_EQ(destination.identity(), identity);
+    ASSERT_TRUE(destination.at(old).has_value());
+    ASSERT_FALSE(moved_from.has_value());
+    EXPECT_EQ(moved_from.error_if()->access_reason(), access_error_reason::foreign_index);
+    ASSERT_TRUE(reused.has_value());
+    EXPECT_NE(source.identity(), identity);
+    EXPECT_TRUE(source.at(*reused.value_if()).has_value());
+    EXPECT_EQ(source.at(old).error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(destination.at(*reused.value_if()).error_if()->access_reason(), access_error_reason::foreign_index);
+    std::array<value_index, 16> indices{};
+    indices[0] = old;
+    for (std::size_t position = 1; position < indices.size(); ++position)
+    {
+      const auto appended = destination.append(detail::value_record{});
+      ASSERT_TRUE(appended.has_value());
+      indices[position] = *appended.value_if();
+      EXPECT_EQ(destination.identity(), identity);
+      for (std::size_t previous = 0; previous <= position; ++previous)
+      {
+        EXPECT_TRUE(destination.at(indices[previous]).has_value());
+        EXPECT_EQ(indices[previous].position(), previous);
+      }
+    }
+  }
   /* ================================= End Test_J5_039 ================================== */
+  /* =================================== Test_J5_047 ==================================== */
+  /*
+   * Arrange: Exact and growing storage with budgets immediately below and at token-plus-record size.
+   * Act: Allocate the first record through accounted storage.
+   * Expect: The one-byte token consumes a block and budget; rejection rolls back and exact fit succeeds.
+   */
+  TEST(J5_047_StorageIdentity, TokenCountsAgainstOwnedByteBudget)
+  {
+    /* Arrange */
+    for (const bool exact : {false, true})
+    {
+      for (const std::size_t limit : {std::size_t{0}, sizeof(detail::value_record), sizeof(detail::value_record) + 1U})
+      {
+        SCOPED_TRACE(exact);
+        SCOPED_TRACE(limit);
+        document_provider provider;
+        accounted_storage accounting{provider.callbacks(), limit};
+        {
+          detail::value_storage storage{accounting.callbacks(), 1};
+          /* Act */
+          const auto reserved = exact ? storage.reserve_exact(1) : status_result::success();
+          const auto added = (!reserved.has_value()) ? result<value_index>::failure(*reserved.error_if())
+                                                     : storage.append(detail::value_record{});
+          /* Expect */
+          if (limit == sizeof(detail::value_record) + 1U)
+          {
+            ASSERT_TRUE(added.has_value());
+            EXPECT_EQ(accounting.current_bytes(), limit);
+            EXPECT_EQ(provider.m_allocations, 2U);
+            EXPECT_NE(storage.identity(), nullptr);
+          }
+          else
+          {
+            ASSERT_FALSE(added.has_value());
+            EXPECT_EQ(added.error_if()->code(), error_code::resource_limit);
+            EXPECT_EQ(added.error_if()->limit_reason(), resource_limit_reason::owned_bytes);
+            EXPECT_EQ(accounting.current_bytes(), 0U);
+            EXPECT_EQ(storage.identity(), nullptr);
+            EXPECT_EQ(provider.m_attempts, limit == 0U ? 0U : 1U);
+          }
+        }
+        EXPECT_EQ(accounting.current_bytes(), 0U);
+        EXPECT_EQ(provider.m_live_bytes, 0U);
+        EXPECT_FALSE(accounting.faulted());
+      }
+    }
+  }
+  /* ================================= End Test_J5_047 ================================== */
 } // namespace

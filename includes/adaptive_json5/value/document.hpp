@@ -158,6 +158,8 @@ namespace adaptive_json5
          * @return Success, resource_limit above max_records, a provider failure, or
          * internal_error when storage was already allocated or reserved.
          * @note Call on empty storage only. Zero records allocate nothing.
+         * A nonzero reservation allocates one identity token and one record block;
+         * both requests use the provider and count against its owned-byte budget.
          * Afterwards, an append beyond records fails with wrong_type_or_access (invalid_argument) and never
          * allocates (ADR 0003, decision 7). Failure leaves the storage growable and unchanged.
          * @par ID SWU-VALUE-116

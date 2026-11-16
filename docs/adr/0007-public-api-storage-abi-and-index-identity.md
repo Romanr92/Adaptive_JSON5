@@ -2,8 +2,11 @@
 
 Status: Policy decisions and index-identity design accepted by the user, 2026-11-15, for
 [#128](https://github.com/Romanr92/Adaptive_JSON5/issues/128).
-Implementation and unit verification remain pending. This ADR does not change
-requirement status or establish implementation evidence. ADR 0006 is being
+Implementation is partial: the mutation boundary, single allocation callback, ABI
+policy and tagged-index/token design are present. Compact private links remain
+pending as a separate change. Named unit inventory is in `docs/traceability.md`;
+executed results are recorded in the implementation sequence. This ADR does not
+change requirement status or establish complete verification. ADR 0006 is being
 prepared on another branch; its number is reserved.
 
 ## Context

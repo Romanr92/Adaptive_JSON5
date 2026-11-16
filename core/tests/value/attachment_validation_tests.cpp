@@ -343,5 +343,37 @@ namespace
     // Success transfers the name, so the caller's owner is now empty.
     EXPECT_EQ(name.value_if()->size(), 0U);
   }
+  /* ----------------------------------------------------------------------------------- */
+  /*
+   * Arrange: A local array at position zero and a foreign record at that same position.
+   * Act: Attach the foreign child through the internal subtree attachment entry point.
+   * Expect: Owner validation reports foreign_index before self-cycle position comparison.
+   */
+  TEST(J5_039_AttachmentIdentity, RejectsForeignChildBeforeCycleComparison)
+  {
+    /* Arrange */
+    document_provider provider;
+    value_storage local{provider.callbacks(), 2};
+    value_storage foreign{provider.callbacks(), 2};
+    value_record array;
+    array.payload.emplace<array_data>();
+    const auto parent = local.append(std::move(array));
+    const auto child = foreign.append(value_record{});
+    ASSERT_TRUE(parent.has_value());
+    ASSERT_TRUE(child.has_value());
+    const auto attempts = provider.m_attempts;
+    /* Act */
+    const auto attached = attach_child(local, {}, *parent.value_if(), *child.value_if(), nullptr);
+    const auto foreign_parent = attach_child(local, {}, *child.value_if(), *parent.value_if(), nullptr);
+    /* Expect */
+    ASSERT_FALSE(attached.has_value());
+    EXPECT_EQ(attached.error_if()->code(), error_code::wrong_type_or_access);
+    EXPECT_EQ(attached.error_if()->access_reason(), access_error_reason::foreign_index);
+    ASSERT_FALSE(foreign_parent.has_value());
+    EXPECT_EQ(foreign_parent.error_if()->access_reason(), access_error_reason::foreign_index);
+    EXPECT_EQ(std::get<array_data>((*local.at(*parent.value_if()).value_if())->payload).elements.count, 0U);
+    EXPECT_FALSE((*foreign.at(*child.value_if()).value_if())->parent.is_set());
+    EXPECT_EQ(provider.m_attempts, attempts);
+  }
   /* ================================= End Test_J5_039 ================================== */
 } // namespace

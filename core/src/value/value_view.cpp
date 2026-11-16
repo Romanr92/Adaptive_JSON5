@@ -131,6 +131,7 @@ namespace adaptive_json5
 
       const auto& child_record = **child.value_if();
 
+      // record() and at() validated this container and child; the parent link is internal to that storage.
       if (!child_record.parent.is_set() || (child_record.parent.position() != m_index.position()) ||
           (child_record.member_name.has_value() != object))
       {
@@ -453,6 +454,7 @@ namespace adaptive_json5
 
       const auto& member = **child.value_if();
 
+      // record() and at() validated this container and member; its parent link is internal to that storage.
       if ((!member.parent.is_set()) || (member.parent.position() != m_index.position()) ||
           (!member.member_name.has_value()))
       {
@@ -461,6 +463,7 @@ namespace adaptive_json5
 
       // The count and the end of the chain must agree, as value_iterator::next() checks;
       // the last member must also be the one the object records as last.
+      // at() validated current above; links.last is retained within the same validated container.
       const bool last_member = (ordinal + 1U == links.count);
 
       if ((last_member == member.next_sibling.is_set()) ||
@@ -498,6 +501,13 @@ namespace adaptive_json5
     return result<value_view>::success(value_view{*m_storage, *found});
   }
 
+  /**
+   * @brief Return the tagged index retained by this view.
+   * @par Requirements
+   * P030; J5-039; J5-040.
+   * @return Stored index, or invalid_argument for a default view.
+   * @note Performs no allocation and does not extend storage lifetime.
+   */
   result<value_index> value_view::index() const noexcept
   {
     if (m_storage == nullptr)

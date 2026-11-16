@@ -17,7 +17,7 @@ namespace adaptive_json5
    * @note Contains no ownership and is meaningful only within its originating document.
    * An unset index does not identify a null value.
    * is_set() checks only the sentinel, not document membership or bounds.
-   * Document access must validate bounds before reading storage.
+   * Document access must validate owner identity and bounds before reading storage.
    * No allocation or pointer arithmetic is performed.
    */
   class [[nodiscard]] value_index
