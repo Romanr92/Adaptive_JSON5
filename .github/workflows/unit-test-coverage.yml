@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
 
+jobs:
   coverage:
     name: Unit test coverage report (GCC)
     runs-on: ubuntu-24.04
