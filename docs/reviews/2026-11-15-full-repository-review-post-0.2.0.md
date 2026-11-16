@@ -228,6 +228,21 @@ security documents that were not updated when the code changed.
 4. R2-LOG-02 with R2-CS-01: linear array iteration for `json5_value`.
 5. R2-FS-02 and R2-FS-04, then the Low items.
 
+**GitHub issues**
+
+Created on 2026-11-16 in milestone M4, as part of #117. Each finding is covered by
+exactly one issue.
+
+| Issue | Number | Subject | Findings covered |
+| --- | --- | --- | --- |
+| R2-01 | [#153](https://github.com/Romanr92/Adaptive_JSON5/issues/153) | `as_double()`/`as_float()` follow the caller's rounding mode | R2-LOG-01, R2-FS-03, R2-STD-01 |
+| R2-02 | [#154](https://github.com/Romanr92/Adaptive_JSON5/issues/154) | Linear array iteration for `json5_value` | R2-LOG-02, R2-CS-01 |
+| R2-03 | [#155](https://github.com/Romanr92/Adaptive_JSON5/issues/155) | Signed unknown words lack a range; default `max_members` unreachable | R2-LOG-03, R2-LOG-04 |
+| R2-04 | [#156](https://github.com/Romanr92/Adaptive_JSON5/issues/156) | Safety and cybersecurity documents back in line with the code | R2-FS-01, R2-FS-07, R2-FS-08, R2-DOC-01, R2-CS-02 |
+| R2-05 | [#157](https://github.com/Romanr92/Adaptive_JSON5/issues/157) | Storage fault state reachable from `json5_document` | R2-FS-02 |
+| R2-06 | [#158](https://github.com/Romanr92/Adaptive_JSON5/issues/158) | Tool evidence: generator, option-OFF test leg, gcovr check | R2-FS-04, R2-FS-05, R2-FS-06 |
+| R2-07 | [#159](https://github.com/Romanr92/Adaptive_JSON5/issues/159) | Bump the development version | R2-ARC-01 |
+
 **Questions (no answer needed for this review)**
 
 1. Should the library be independent of the caller's rounding mode (as before #124), or
