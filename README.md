@@ -7,6 +7,8 @@ high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/S
 21434 CAL 4, with its safety and security work documented in the open.
 
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
+[![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml)
+[![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
 [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml)
 [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
 [![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml)

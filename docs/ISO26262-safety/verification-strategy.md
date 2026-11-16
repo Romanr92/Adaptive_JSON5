@@ -37,7 +37,7 @@ assessor expects, so on 2026-11-07 the owner changed the scope:
 | V5 | **Fuzzing:** a libFuzzer harness that feeds random and mutated input through parsing, value access, conversions and error formatting | No crash, hang or memory error on input nobody thought of (SSR-01, SSR-02, SSR-08) | Every PR for a fixed time (about 5 to 10 minutes); a longer run weekly | **Yes**, but only when it finds a crash, timeout or out-of-memory | Planned in #132 |
 | V6 | **Branch coverage**, measured with GCC, gcov and gcovr | Every branch in the parser library was taken both ways by the tests | Every PR | **Yes**, once full branch coverage is reached (target: end of M4) | Measured locally today with `tools/coverage.py`; CI job planned |
 | V7 | **MC/DC**, measured with GCC 14 and gcovr | Each condition in a decision was shown to change the outcome on its own | Every PR | No, reported as extra evidence | Planned |
-| V8 | **Second compiler:** build and run all unit and validation tests with Clang | Results do not depend on one compiler; guards against a single faulty or compromised compiler (see [tool confidence](tool-confidence.md)) | Every PR | **Yes** | Planned in #141 |
+| V8 | **Second compiler:** build and run all unit and validation tests with Clang | Results do not depend on one compiler; guards against a single faulty or compromised compiler (see [tool confidence](tool-confidence.md)) | Every PR | **Yes**, activation pending | Implemented in #141; CI passed, required-check enforcement pending |
 | V9 | **Static analysis:** clang-tidy (including CERT C++ checks) and CodeQL with its security queries and the MISRA C++:2023 query pack | Code patterns that lead to defects or vulnerabilities, and coding-standard violations | Every PR | **Yes**, for new findings; existing findings are tracked as a backlog | Planned in #146 |
 
 Unit tests are the main method. V4 to V8 run the **same** tests or the same code in
@@ -118,3 +118,16 @@ remain bounds-checked and damaged links report invariant failures.
 No PR/check runs were available for the tested production commit. Planned V4,
 V5, V8 and V9 checks and independent reviews remain outstanding; this evidence
 does not promote any SSR/CSR or safety/cybersecurity case to verified/approved.
+
+## Issue #141 compiler-diversity evidence
+
+The [compiler-diversity PR run](https://github.com/Romanr92/Adaptive_JSON5/actions/runs/43890049540)
+for commit `af6c27ed70046a8d2f9755c3227eede28320ca35` passed the GCC 13 and
+Clang 18 matrix on Ubuntu 24.04, including units and validation in both exception
+modes with RTTI OFF. Compiler versions, configuration and test results are
+uploaded as workflow artifacts. This is host CI evidence, not target evidence
+or approval of any Draft SSR/CSR.
+
+Required-check activation on `main` and the one-time deliberate-failure check
+remain outstanding. Release evidence must retain the compiler-version and test
+artifacts for the release commit beyond their Actions retention period.
