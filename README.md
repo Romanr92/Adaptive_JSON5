@@ -502,7 +502,8 @@ PR's **Checks**, select the workflow run, then download its artifact from the
 run's **Artifacts** section and extract the ZIP before opening the HTML locally:
 
 - `unit-test-coverage-html` from `unit-test-coverage`: open `index.html` for
-  GCC unit-test coverage (exceptions OFF, RTTI OFF; validation tests excluded).
+  GCC 14 unit-test coverage (exceptions OFF, RTTI OFF; validation tests excluded).
+  The coverage helper requires matching GCC/gcov 14 or newer for JSON format 2.
 - `misra-report-html` from `misra-cpp`: open the `.html` file for the production
   MISRA/security findings with rule summary and filters; the SARIF is included.
 
