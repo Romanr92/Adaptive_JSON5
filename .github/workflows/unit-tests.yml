@@ -2,9 +2,10 @@ name: unit-tests
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
-  group: unit-tests-${{ github.event.pull_request.number }}
+  group: unit-tests-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -86,3 +87,30 @@ jobs:
             cmake --build "build/gcc-$mode" --parallel
             ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
           done
+
+  coverage:
+    name: Unit test coverage report (GCC)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install coverage tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++-14 ninja-build
+          python -m pip install gcovr==8.6
+      - name: Build and run units, generate coverage HTML
+        run: python tools/coverage.py --compiler g++-14 --gcov gcov-14
+      - name: Upload unit test coverage HTML
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage-html
+          path: build/coverage/report/
+          if-no-files-found: error
+          retention-days: 30

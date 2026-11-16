@@ -128,6 +128,30 @@
       "displayName": "Compatibility: library",
       "inherits": "release-library",
       "binaryDir": "${sourceDir}/build/library"
+    },
+    {
+      "name": "gcc",
+      "displayName": "GCC library, units and validation",
+      "inherits": "debug-unit-tests",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/gcc",
+      "cacheVariables": {
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "ON",
+        "CMAKE_CXX_COMPILER": "g++"
+      }
+    },
+    {
+      "name": "clang",
+      "displayName": "CLANG library, units and validation",
+      "inherits": "debug-unit-tests",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/clang",
+      "cacheVariables": {
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "ON"
+      },
+      "toolchainFile": "${sourceDir}/cmake/ClangToolchain.cmake"
     }
   ],
   "buildPresets": [
@@ -190,6 +214,16 @@
       "displayName": "Build: Compatibility: library",
       "configurePreset": "library",
       "configuration": "Release"
+    },
+    {
+      "name": "gcc",
+      "configurePreset": "gcc",
+      "configuration": "Debug"
+    },
+    {
+      "name": "clang",
+      "configurePreset": "clang",
+      "configuration": "Debug"
     }
   ],
   "testPresets": [
@@ -264,6 +298,28 @@
     {
       "name": "dev-exceptions",
       "configurePreset": "dev-exceptions",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "gcc",
+      "configurePreset": "gcc",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "clang",
+      "configurePreset": "clang",
       "configuration": "Debug",
       "output": {
         "outputOnFailure": true
