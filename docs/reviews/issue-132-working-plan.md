@@ -1,7 +1,16 @@
 # Issue #132 temporary working plan
 
-Status: planning only, 2026-11-16. No implementation or executed verification is
-claimed by this checklist.
+Status: allocation-probe implementation started, 2026-11-16. Sanitizer/fuzz
+implementation and sanitizer execution remain pending.
+
+First checkpoint: both probe executables now link the same host-only allocation
+replacement source, covering scalar/array, nothrow, aligned, sized and matching
+cleanup overloads. Native Windows MinGW Debug runs passed 2 pure-memory and 80
+diagnostic-format cases in each exception mode (OFF/ON), RTTI OFF. These were
+direct executable runs; the initial CTest filter matched no registered names and
+is not counted as execution evidence. clang-format 18.1.8 and `git diff --check`
+passed. ASan+UBSan has not yet been run; normal passing units do not establish
+sanitizer cleanliness or complete overload coverage.
 
 **DELETE THIS FILE BEFORE MERGING THE ISSUE #132 PR.** This is a temporary work
 aid, not a permanent issue report. Before deletion, retain essential contracts,
