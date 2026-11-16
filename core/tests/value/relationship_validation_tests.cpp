@@ -51,14 +51,14 @@ namespace
     array.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(array)).has_value());
     value_record child;
-    child.parent = values.issue(0);
+    child.parent = record_link{0};
     ASSERT_TRUE(values.append(std::move(child)).has_value());
     const auto parent_record = values.at(values.issue(0));
     const auto child_record = values.at(values.issue(1));
     ASSERT_TRUE(parent_record.has_value());
     ASSERT_TRUE(child_record.has_value());
     auto& links = std::get<array_data>((*parent_record.value_if())->payload).elements;
-    links = {values.issue(1), values.issue(1), 1};
+    links = {record_link{1}, record_link{1}, 1};
     auto& item = **child_record.value_if();
     // These are internal fault-injection cases, not trees obtainable from the public builder.
     // Mutating live record fields exercises defensive checks without invalid object lifetimes.
@@ -82,19 +82,19 @@ namespace
       links.last = {};
       break;
     case relationship_fault::invalid_first:
-      links.first = values.issue(99);
+      links.first = record_link{99};
       break;
     case relationship_fault::no_parent:
       item.parent = {};
       break;
     case relationship_fault::wrong_parent:
-      item.parent = values.issue(1);
+      item.parent = record_link{1};
       break;
     case relationship_fault::unexpected_name:
       item.member_name.emplace();
       break;
     case relationship_fault::extra_sibling:
-      item.next_sibling = values.issue(1);
+      item.next_sibling = record_link{1};
       break;
     case relationship_fault::missing_sibling:
       links.count = 2;
@@ -139,7 +139,7 @@ namespace
     object.payload.emplace<object_data>();
     ASSERT_TRUE(values.append(std::move(object)).has_value());
     value_record child;
-    child.parent = values.issue(0);
+    child.parent = record_link{0};
     child.member_name.emplace();
     ASSERT_TRUE(values.append(std::move(child)).has_value());
     const auto parent_record = values.at(values.issue(0));
@@ -147,7 +147,7 @@ namespace
     ASSERT_TRUE(parent_record.has_value());
     ASSERT_TRUE(child_record.has_value());
     auto& links = std::get<object_data>((*parent_record.value_if())->payload).members;
-    links = {values.issue(1), values.issue(1), 1};
+    links = {record_link{1}, record_link{1}, 1};
     auto& item = **child_record.value_if();
     // Lookup must preserve a broken-chain error; treating it as absence would conceal internal damage.
     switch (GetParam())
@@ -170,19 +170,19 @@ namespace
       links.last = {};
       break;
     case relationship_fault::invalid_first:
-      links.first = values.issue(99);
+      links.first = record_link{99};
       break;
     case relationship_fault::no_parent:
       item.parent = {};
       break;
     case relationship_fault::wrong_parent:
-      item.parent = values.issue(1);
+      item.parent = record_link{1};
       break;
     case relationship_fault::unexpected_name:
       item.member_name.reset();
       break;
     case relationship_fault::extra_sibling:
-      item.next_sibling = values.issue(1);
+      item.next_sibling = record_link{1};
       break;
     case relationship_fault::missing_sibling:
       links.count = 2;
@@ -212,7 +212,7 @@ namespace
     object.payload.emplace<object_data>();
     ASSERT_TRUE(values.append(std::move(object)).has_value());
     value_record child;
-    child.parent = values.issue(0);
+    child.parent = record_link{0};
     child.member_name.emplace();
     ASSERT_TRUE(values.append(std::move(child)).has_value());
     const auto parent_record = values.at(values.issue(0));
@@ -220,7 +220,7 @@ namespace
     ASSERT_TRUE(parent_record.has_value());
     ASSERT_TRUE(child_record.has_value());
     auto& links = std::get<object_data>((*parent_record.value_if())->payload).members;
-    links = {values.issue(1), values.issue(1), 1};
+    links = {record_link{1}, record_link{1}, 1};
     auto& item = **child_record.value_if();
     // Before the fix, ExtraSibling (a self-loop) and MissingLast returned the member as found.
     switch (GetParam())
@@ -243,19 +243,19 @@ namespace
       links.last = {};
       break;
     case relationship_fault::invalid_first:
-      links.first = values.issue(99);
+      links.first = record_link{99};
       break;
     case relationship_fault::no_parent:
       item.parent = {};
       break;
     case relationship_fault::wrong_parent:
-      item.parent = values.issue(1);
+      item.parent = record_link{1};
       break;
     case relationship_fault::unexpected_name:
       item.member_name.reset();
       break;
     case relationship_fault::extra_sibling:
-      item.next_sibling = values.issue(1);
+      item.next_sibling = record_link{1};
       break;
     case relationship_fault::missing_sibling:
       links.count = 2;
@@ -300,21 +300,21 @@ namespace
       value_storage values{provider.callbacks(), 8};
       ASSERT_TRUE(values.reserve_exact(8).has_value());
       value_record array;
-      array.payload.emplace<array_data>(array_data{{values.issue(1), values.issue(1), 1}});
+      array.payload.emplace<array_data>(array_data{{record_link{1}, record_link{1}, 1}});
       ASSERT_TRUE(values.append(std::move(array)).has_value());
       value_record child;
-      child.parent = values.issue(0);
+      child.parent = record_link{0};
       if (fault == 1)
         child.parent = {};
       if (fault == 2)
-        child.parent = values.issue(1);
+        child.parent = record_link{1};
       if (fault == 3)
         child.member_name.emplace();
       ASSERT_TRUE(values.append(std::move(child)).has_value());
       auto parent = values.at(values.issue(0));
       ASSERT_TRUE(parent.has_value());
       if (fault == 0)
-        std::get<array_data>((*parent.value_if())->payload).elements.first = values.issue(99);
+        std::get<array_data>((*parent.value_if())->payload).elements.first = record_link{99};
       if (fault == 4)
         std::get<array_data>((*parent.value_if())->payload).elements.count = 3;
       const value_view view{values, values.issue(0)};
@@ -343,12 +343,12 @@ namespace
       document_provider provider;
       value_storage values{provider.callbacks(), 8};
       ASSERT_TRUE(values.reserve_exact(8).has_value());
-      const value_index last = (damaged == 1) ? values.issue(0) : values.issue(1);
+      const record_link last = (damaged == 1) ? record_link{0} : record_link{1};
       value_record object;
-      object.payload.emplace<object_data>(object_data{{values.issue(1), last, 1}});
+      object.payload.emplace<object_data>(object_data{{record_link{1}, last, 1}});
       ASSERT_TRUE(values.append(std::move(object)).has_value());
       value_record member;
-      member.parent = values.issue(0);
+      member.parent = record_link{0};
       member.member_name.emplace();
       ASSERT_TRUE(values.append(std::move(member)).has_value());
       const value_view view{values, values.issue(0)};

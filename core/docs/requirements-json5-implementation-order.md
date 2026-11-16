@@ -448,6 +448,24 @@ passed for the changed files. Exact named units are inventoried separately in
 safety/security approval or verification of the separate compact-private-link
 change (Commit B). Requirement statuses are unchanged.
 
+Compact-link follow-up for #128 (2026-11-16): tested production revision
+`77c544cdf95d808c983ffff996dd9fadbc8c19f0` (including `4e78361`) plus test-only
+migration of relationship and attachment fault injection to private `record_link`
+positions. Initial builds failed on stale tagged-index assignments in those tests;
+no production code was changed. Windows MinGW GCC Debug passed 2,663/2,663
+GoogleTest cases in each exception mode (OFF/ON), RTTI OFF. The validation preset
+passed 921/921 cases, exceptions OFF and RTTI OFF. Clang-format 18.1.8 passed all
+269 C++ files; `git diff --check` passed. Existing malformed-chain, damaged-link,
+attachment atomicity, cycle and foreign-index cases ran in those suites.
+
+GitHub inspection found no associated PR and zero check runs for this revision.
+Linux x86-64, ARM64 and remote Windows results therefore remain unconfirmed.
+Sanitizer/fuzz, Clang and static-analysis workflows remain planned in #132,
+#141 and #146 and absent from this checkout; coverage CI is also planned.
+These local results do not establish all required merge gates, independent
+safety/security review or device verification. Requirement statuses are unchanged;
+#128 must not be closed solely on this evidence.
+
 ### P031 — Resource guards
 
 Tracking: [#29](https://github.com/Romanr92/Adaptive_JSON5/issues/29) (original step issue #31).

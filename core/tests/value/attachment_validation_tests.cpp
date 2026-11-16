@@ -41,7 +41,6 @@ namespace
    * @brief Inject one internal relationship inconsistency into three live records.
    * @par Requirements
    * P030; J5-039.
-   * @param values Storage issuing the injected relationship indices.
    * @param fault Inconsistency to inject.
    * @param parent Destination array record at index 0.
    * @param previous Existing element record at index 1.
@@ -49,16 +48,16 @@ namespace
    * @param links Element links of parent.
    * @note Shared by both attach entry points; changes only live internal records.
    */
-  void inject_fault(const value_storage& values, attachment_fault fault, value_record& parent, value_record& previous,
-                    value_record& child, container_links& links)
+  void inject_fault(attachment_fault fault, value_record& parent, value_record& previous, value_record& child,
+                    container_links& links)
   {
     switch (fault)
     {
     case attachment_fault::ancestor_outside_storage:
-      parent.parent = values.issue(99);
+      parent.parent = record_link{99};
       break;
     case attachment_fault::ancestor_cycle:
-      parent.parent = values.issue(0);
+      parent.parent = record_link{0};
       break;
     case attachment_fault::count_overflow:
       links.count = std::numeric_limits<std::size_t>::max();
@@ -78,19 +77,19 @@ namespace
       links.last = {};
       break;
     case attachment_fault::invalid_last:
-      links.last = values.issue(99);
+      links.last = record_link{99};
       break;
     case attachment_fault::last_without_parent:
       previous.parent = {};
       break;
     case attachment_fault::last_foreign_parent:
-      previous.parent = values.issue(1);
+      previous.parent = record_link{1};
       break;
     case attachment_fault::last_with_sibling:
-      previous.next_sibling = values.issue(1);
+      previous.next_sibling = record_link{1};
       break;
     case attachment_fault::child_with_sibling:
-      child.next_sibling = values.issue(1);
+      child.next_sibling = record_link{1};
       break;
     case attachment_fault::child_with_name:
       child.member_name.emplace();
@@ -144,7 +143,7 @@ namespace
     parent.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(parent)).has_value());
     value_record previous;
-    previous.parent = values.issue(0);
+    previous.parent = record_link{0};
     ASSERT_TRUE(values.append(std::move(previous)).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
     auto parent_result = values.at(values.issue(0));
@@ -157,9 +156,9 @@ namespace
     auto& previous_record = **previous_result.value_if();
     auto& child = **child_result.value_if();
     auto& links = std::get<array_data>(parent_record.payload).elements;
-    links = {values.issue(1), values.issue(1), 1};
+    links = {record_link{1}, record_link{1}, 1};
     // Inject metadata faults only through live internal records. No private-field hacks or fake allocations.
-    inject_fault(values, GetParam(), parent_record, previous_record, child, links);
+    inject_fault(GetParam(), parent_record, previous_record, child, links);
     const auto old_links = links;
     const auto old_sibling = child.next_sibling;
     const bool old_name = child.member_name.has_value();
@@ -223,7 +222,7 @@ namespace
     parent.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(parent)).has_value());
     value_record previous;
-    previous.parent = values.issue(0);
+    previous.parent = record_link{0};
     ASSERT_TRUE(values.append(std::move(previous)).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
     auto parent_result = values.at(values.issue(0));
@@ -236,8 +235,8 @@ namespace
     auto& previous_record = **previous_result.value_if();
     auto& child = **child_result.value_if();
     auto& links = std::get<array_data>(parent_record.payload).elements;
-    links = {values.issue(1), values.issue(1), 1};
-    inject_fault(values, GetParam(), parent_record, previous_record, child, links);
+    links = {record_link{1}, record_link{1}, 1};
+    inject_fault(GetParam(), parent_record, previous_record, child, links);
     const auto old_links = links;
     const bool old_sibling = child.next_sibling.is_set();
     const bool old_name = child.member_name.has_value();
@@ -282,7 +281,7 @@ namespace
     auto& array_record = **array_result.value_if();
     auto& child = **child_result.value_if();
     // Only the parent link matters to the detached-parent check; the outer object's links stay unused.
-    array_record.parent = values.issue(0);
+    array_record.parent = record_link{0};
     const auto& elements = std::get<array_data>(array_record.payload).elements;
     /* Act */
     const auto rejected = attach_to_detached_parent(values, {}, values.issue(1), values.issue(2), nullptr);

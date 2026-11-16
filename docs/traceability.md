@@ -32,6 +32,15 @@ The per-production view of the same tests is the
 [grammar evidence matrix](../core/docs/design-grammar-evidence.md). Support, limits and deviations
 are collected in the [JSON5 1.0.0 support statement](conformance.md).
 
+The #128 compact-link follow-up keeps the existing named test inventory unchanged:
+`core/tests/value/relationship_validation_tests.cpp` and
+`core/tests/value/attachment_validation_tests.cpp` now inject private `record_link`
+positions rather than public tagged handles. Private representation is in
+`core/includes/value/record_link.hpp`, `container_links.hpp` and `value_record.hpp`;
+checked traversal remains in the compiled storage/link/iterator/lookup operations.
+Executed results and outstanding CI gates are recorded in
+[P030](../core/docs/requirements-json5-implementation-order.md#p030--owned-valuecontainer-model).
+
 ## Layout and mapping rules
 
 Paths follow [ADR 0002](../core/docs/adr-0002-public-private-source-layout.md)

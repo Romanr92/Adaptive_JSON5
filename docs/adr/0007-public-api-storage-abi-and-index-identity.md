@@ -2,9 +2,9 @@
 
 Status: Policy decisions and index-identity design accepted by the user, 2026-11-15, for
 [#128](https://github.com/Romanr92/Adaptive_JSON5/issues/128).
-Implementation is partial: the mutation boundary, single allocation callback, ABI
-policy and tagged-index/token design are present. Compact private links remain
-pending as a separate change. Named unit inventory is in `docs/traceability.md`;
+The mutation boundary, single allocation callback, ABI policy, tagged-index/token
+design and compact private links are implemented in the current checkout. Compact
+links were added in `4e78361`, with the ancestor-walk correction in `77c544c`. Named unit inventory is in `docs/traceability.md`;
 executed results are recorded in the implementation sequence. This ADR does not
 change requirement status or establish complete verification. ADR 0006 is being
 prepared on another branch; its number is reserved.
@@ -18,10 +18,10 @@ references are J5-008, J5-092 and J5-093 in
 [requirements](../requirements.md). Ownership, access, fallible storage and
 embedded constraints also apply (J5-039, J5-040, J5-046, J5-047 and J5-101).
 
-The current public `document` exposes `make_*`, `append_*`, `set_source_span`
+At issue creation, public `document` exposed `make_*`, `append_*`, `set_source_span`
 and `set_root`. Construction helpers and storage representations are also
-reachable through public headers. `storage_callbacks` supports both `allocate`
-and `allocate_result`, preferring the latter. `value_index` contains only a
+reachable through public headers. At issue creation, `storage_callbacks` supported both `allocate`
+and `allocate_result`, preferring the latter. The original `value_index` contained only a
 position; an in-range index from document A can silently address a different
 value in document B.
 
@@ -225,5 +225,9 @@ named test evidence. Current builder-based public units will need adaptation;
 their existence does not verify the new API boundary or owner validation.
 
 The mutation decision addresses SSR-03 through FMEA VM-06/AP-05 and Safety Manual
-C-3.3. The existing safety gap remains open until implementation and evidence are
-available. This ADR is not a safety/security approval and does not close #128.
+C-3.3. The supported mutation surface has been removed and local host evidence is
+recorded in P030. Required CI and independent safety/security review remain
+separate and outstanding. This ADR is not a safety/security approval and does not close #128.
+
+Local verification on 2026-11-16 covers `77c544c` plus test-only migration of
+relationship fault injection to `record_link`; see [P030](../../core/docs/requirements-json5-implementation-order.md#p030--owned-valuecontainer-model).

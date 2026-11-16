@@ -162,3 +162,11 @@ you use.
 | Static analysis not implemented yet | Less evidence than planned | #146 |
 | Releases not yet signed or attested; no SBOM | You can check integrity with checksums only | #131 |
 | Private vulnerability reporting not yet switched on | Reports go through a short public issue first | [`SECURITY.md`](../../SECURITY.md) |
+
+For #128 / ADR 0007, document construction and mutation are internal facilities;
+consumers must not use them to modify parsed documents. Public indices are
+library-issued, checked against document identity, and valid only during the
+owning storage lifetime. Moves transfer index identity to the destination;
+views and iterators retain their documented move invalidation. Stale indices
+after destruction are outside foreign-index detection guarantees. See
+[the scoped verification evidence](cybersecurity-verification.md#issue-128-local-verification-evidence-2026-11-16).
