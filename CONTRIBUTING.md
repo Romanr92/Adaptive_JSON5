@@ -13,6 +13,9 @@ Discuss public API, ownership, exact-number, Unicode and allocation choices in
 the relevant issue before building dependent features. Record durable decisions
 in `docs/adr/`; preserve stable requirement IDs when contracts change.
 
+Where AI assistance is and is not used in this repository, and who is accountable for
+the result, is recorded in [ADR 0006](docs/adr/0006-ai-assistance.md).
+
 For each implementation change:
 
 1. State the behavior and requirement IDs it implements.
