@@ -6,6 +6,7 @@ from html import escape
 import json
 import math
 from pathlib import Path
+import re
 
 
 def coverage_message(data):
@@ -46,22 +47,36 @@ def misra_message(documents):
     return f"critical {counts['critical']} | high {counts['high']} | unrated {counts['unrated']}"
 
 
-def svg(label, message):
+def version_message(text):
+    """Latest published release tag, or 'unreleased' when there is none."""
+    tag = text.strip()
+    if not tag:
+        return "unreleased"
+    if not re.fullmatch(r"v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]+)?", tag):
+        raise ValueError("Unexpected release tag: " + tag)
+    return tag
+
+
+def svg(label, message, color="#17669b"):
     left = len(label) * 7 + 16
     right = len(message) * 7 + 16
     title = escape(label + ": " + message)
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{left+right}" height="24" role="img" aria-label="{title}"><title>{title}</title><rect width="{left}" height="24" fill="#444"/><rect x="{left}" width="{right}" height="24" fill="#17669b"/><g fill="white" text-anchor="middle" font-family="DejaVu Sans,Verdana,sans-serif" font-size="11"><text x="{left/2}" y="16">{escape(label)}</text><text x="{left+right/2}" y="16">{escape(message)}</text></g></svg>'''
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{left+right}" height="24" role="img" aria-label="{title}"><title>{title}</title><rect width="{left}" height="24" fill="#444"/><rect x="{left}" width="{right}" height="24" fill="{color}"/><g fill="white" text-anchor="middle" font-family="DejaVu Sans,Verdana,sans-serif" font-size="11"><text x="{left/2}" y="16">{escape(label)}</text><text x="{left+right/2}" y="16">{escape(message)}</text></g></svg>'''
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("coverage", "misra"))
-    parser.add_argument("sources", nargs="+", type=Path)
+    parser.add_argument("kind", choices=("coverage", "misra", "version"))
+    parser.add_argument("sources", nargs="+", type=Path,
+                        help="gcovr summary, SARIF files, or a text file holding the latest release tag")
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    documents = [json.loads(path.read_text(encoding="utf-8")) for path in args.sources]
-    message = coverage_message(documents[0]) if args.kind == "coverage" else misra_message(documents)
-    label = "unit coverage" if args.kind == "coverage" else "MISRA / CodeQL"
+    if args.kind == "version":
+        label, message = "version", version_message(args.sources[0].read_text(encoding="utf-8"))
+    else:
+        documents = [json.loads(path.read_text(encoding="utf-8")) for path in args.sources]
+        message = coverage_message(documents[0]) if args.kind == "coverage" else misra_message(documents)
+        label = "unit coverage" if args.kind == "coverage" else "MISRA / CodeQL"
     args.output.write_text(svg(label, message), encoding="utf-8")
     print(message)
 
