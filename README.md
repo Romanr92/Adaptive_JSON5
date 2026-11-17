@@ -11,9 +11,9 @@ high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/S
 | Category | Badge | Meaning / report |
 | --- | --- | --- |
 | Version | [![Latest release](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-version/version.svg)](https://github.com/Romanr92/Adaptive_JSON5/releases) | Latest published release; `unreleased` if none |
-| Requirements | [![Requirements mapped to code](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-implementation.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Applicable J5 requirements linked to existing code |
-| Requirements | [![Requirements mapped to tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-tests.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Applicable J5 requirements linked to declared unit tests |
-| Requirements | [![Requirements with passing tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-passing.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Mapped, and every mapped test passed with GCC and Clang in both exception modes ([how to read it](docs/traceability.md#reading-the-badges-and-reports)) |
+| Requirements | [![Requirements mapped to code](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-implementation.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) | Applicable J5 requirements linked to existing code |
+| Requirements | [![Requirements mapped to tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-tests.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) | Applicable J5 requirements linked to declared unit tests |
+| Requirements | [![Requirements with passing tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-passing.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) | Mapped, and every mapped test passed with GCC and Clang in both exception modes ([how to read it](docs/traceability.md#reading-the-badges-and-reports)) |
 | Tests | [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml) | Units on Linux x86-64, Linux ARM64 and Windows MinGW, exceptions OFF and ON |
 | Tests | [![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Units and validation with GCC 13 and Clang 18 |
 | Tests | [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml) | Pinned JSONTestSuite and json5-tests fixtures |
@@ -597,7 +597,7 @@ run's **Artifacts** section and extract the ZIP before opening the HTML locally:
   runs last 30 minutes per mode. Both use RTTI OFF and ASan+UBSan.
 - `misra-report-html` from `misra-cpp`: open the `.html` file for the production
   MISRA/security findings with rule summary and filters; the SARIF is included.
-- `traceability-report-html` from `compiler-diversity`: open `traceability.html` for
+- `traceability-report-html` from `requirements-traceability`: open `traceability.html` for
   the requirement → code → tests → result matrix. The run's summary page shows the
   totals and gaps without downloading. It is informative, not a merge requirement; see
   [reading the badges and reports](docs/traceability.md#reading-the-badges-and-reports).

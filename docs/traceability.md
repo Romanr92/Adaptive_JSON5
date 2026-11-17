@@ -97,8 +97,9 @@ a symbol not found in its files, or a test that its file does not declare. Witho
 
 ## Reading the badges and reports
 
-The `compiler-diversity` workflow runs the analyzer on every pull request and push to
-`main`. It reads the JUnit results of the four required configurations: GCC 13 and
+The `requirements-traceability` workflow runs on every pull request and push to `main`,
+separately from the other checks. It builds and runs the tests in the four required
+configurations and reads their JUnit results: GCC 13 and
 Clang 18, each with exceptions OFF and ON, all with RTTI OFF and validation tests built.
 The three badges in the README are:
 
@@ -122,8 +123,8 @@ The three badges in the README are:
 On a pull request, the run's summary page shows the totals and the gaps. The
 `traceability-report-html` artifact holds `traceability.html`, the full matrix with
 requirement → code → tests → result per configuration, filters and gaps, plus
-`traceability.json`. The job is informative and not a merge requirement; it runs
-after failed test jobs too. Only pushes to `main` publish the badges and report, from
+`traceability.json`. The workflow is informative and not a merge requirement: test
+failures and stale links are reported as gaps without failing its check. Only pushes to `main` publish the badges and report, from
 a separate job with write permission, to the `metrics-traceability` branch.
 
 ## Core requirements
