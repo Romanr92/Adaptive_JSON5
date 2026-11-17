@@ -3451,11 +3451,29 @@
     {
       "id": "J5-099",
       "title": "Portable unit build matrix",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 72,
       "section": "core",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": [
+            ".github/workflows/unit-tests.yml",
+            ".github/workflows/compiler-diversity.yml",
+            ".github/workflows/formatting.yml"
+          ],
+          "note": "Linux x86-64, Linux ARM64 and Windows MinGW-w64 with exceptions OFF and ON, Clang and clang-format"
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/api/build_configuration_tests.cpp",
+          "names": [
+            "J5_001_BuildConfiguration.UsesCxx17OrNewer",
+            "J5_003_BuildConfiguration.AppliesSelectedExceptionMode",
+            "J5_101_BuildConfiguration.AppliesSelectedRttiMode"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-100",
@@ -3464,21 +3482,44 @@
       "issue": 72,
       "section": "core",
       "design": ["core/docs/adr-0002-public-private-source-layout.md"],
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "docs/conformance.md",
+            "docs/licensing.md"
+          ],
+          "note": "Release review evidence; this contract has no unit test"
+        }
+      ],
       "tests": []
     },
     {
       "id": "J5-001",
       "title": "Standalone C++ library",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 68,
       "section": "api",
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "CMakeLists.txt",
+            "includes/adaptive_json5/adaptive_json5.hpp"
+          ],
+          "note": "C++17 without compiler extensions (CXX_EXTENSIONS OFF); one public umbrella header"
+        }
+      ],
       "tests": [
         {
           "file": "tests/api/build_configuration_tests.cpp",
           "names": [
             "J5_001_BuildConfiguration.UsesCxx17OrNewer"
+          ]
+        },
+        {
+          "file": "tests/api/umbrella_header_tests.cpp",
+          "names": [
+            "J5_092_UmbrellaHeader.ParsesAndReadsWithOneInclude",
+            "J5_092_UmbrellaHeader.DescribesFailureWithOneInclude"
           ]
         }
       ]
@@ -3489,7 +3530,15 @@
       "status": "Accepted",
       "issue": 68,
       "section": "api",
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "CMakeLists.txt",
+            "CMakePresets.json"
+          ],
+          "note": "Parser-only library build with optional unit tests; schema and tool targets are not implemented yet"
+        }
+      ],
       "tests": []
     },
     {
@@ -3568,7 +3617,18 @@
       "status": "Accepted",
       "issue": 68,
       "section": "api",
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "LICENSE",
+            "NOTICE",
+            "LICENSES/Unicode-License-V3.txt",
+            "docs/licensing.md",
+            "docs/dependencies.md"
+          ],
+          "note": "Review evidence; this contract has no unit test"
+        }
+      ],
       "tests": []
     },
     {
@@ -4089,8 +4149,24 @@
       "status": "Accepted",
       "issue": 68,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": [
+            ".github/workflows/unit-tests.yml"
+          ],
+          "note": "Same unit suite on Linux x86-64, Linux ARM64 and Windows MinGW-w64; the optional schema component is not implemented yet"
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/api/build_configuration_tests.cpp",
+          "names": [
+            "J5_001_BuildConfiguration.UsesCxx17OrNewer",
+            "J5_003_BuildConfiguration.AppliesSelectedExceptionMode",
+            "J5_101_BuildConfiguration.AppliesSelectedRttiMode"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-092",
@@ -4130,7 +4206,14 @@
       "issue": 68,
       "section": "api",
       "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "docs/dependencies.md"
+          ],
+          "note": "Pinned dependency versions are documented; no public version or configuration information exists yet to unit-test"
+        }
+      ],
       "tests": []
     },
     {
