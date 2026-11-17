@@ -59,8 +59,10 @@ jobs:
           for report in "${reports[@]}"; do
             python3 tools/misra_check.py --report "$report" --no-open
           done
-      - name: Generate measured misra badge
-        run: python3 tools/metric_badges.py misra build/misra-sarif/*.sarif --output build/misra-sarif/misra.svg
+      - name: Generate measured MISRA / CodeQL badges
+        run: >-
+          python3 tools/metric_badges.py misra build/misra-sarif/*.sarif
+          --output build/misra-sarif/misra.svg --output-dir build/misra-sarif
       - name: Upload MISRA reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -79,3 +81,4 @@ jobs:
     with:
       artifact: misra-report-html
       metric: misra
+      files: misra.svg,misra-critical.svg,misra-high.svg,misra-medium.svg,misra-low.svg,misra-unrated.svg

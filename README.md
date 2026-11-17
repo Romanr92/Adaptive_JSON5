@@ -8,24 +8,88 @@ high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/S
 
 ## Project status
 
-| Category | Badge | Meaning / report |
-| --- | --- | --- |
-| Version | [![Latest release](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-version/version.svg)](https://github.com/Romanr92/Adaptive_JSON5/releases) | Latest published release; `unreleased` if none |
-| Requirements | [![Requirements mapped to code](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-implementation.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) | Applicable J5 requirements linked to existing code |
-| Requirements | [![Requirements mapped to tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-tests.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) | Applicable J5 requirements linked to declared unit tests |
-| Requirements | [![Requirements with passing tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-passing.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) | Mapped, and every mapped test passed with GCC and Clang in both exception modes ([how to read it](docs/traceability.md#reading-the-badges-and-reports)) |
-| Tests | [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml) | Units on Linux x86-64, Linux ARM64 and Windows MinGW, exceptions OFF and ON |
-| Tests | [![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Units and validation with GCC 13 and Clang 18 |
-| Tests | [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml) | Pinned JSONTestSuite and json5-tests fixtures |
-| Coverage | [![Unit test coverage](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) | Coverage job status; HTML report artifact |
-| Coverage | [![Coverage: lines, functions and branches](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) | Measured line, function and branch coverage on `main` |
-| Static analysis | [![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) | CodeQL MISRA C++:2023 and security queries |
-| Static analysis | [![MISRA / CodeQL critical and high findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) | Critical/high finding counts on `main` |
-| Runtime checks | [![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml) | Units and validation under AddressSanitizer and UndefinedBehaviorSanitizer |
-| Runtime checks | [![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml) | Timed fuzzing; fails on crash, timeout or out-of-memory |
-| Style | [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml) | clang-format 18 check |
-| Examples | [![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml) | Builds and runs `examples/` (not a merge requirement) |
-| License | [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-17669b)](LICENSE) | [Apache-2.0](LICENSE) |
+| Release | Status |
+| --- | --- |
+| Version | [![Latest release](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-version/version.svg)](https://github.com/Romanr92/Adaptive_JSON5/releases) |
+
+### Requirements traceability
+
+| Metric | Status / report |
+| --- | --- |
+| Mapped to code | [![Requirements mapped to code](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-implementation.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) |
+| Mapped to tests | [![Requirements mapped to tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-tests.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) |
+| All mapped tests passing | [![Requirements with passing tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-passing.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/requirements-traceability.yml) |
+
+### Code coverage
+
+| Metric | Status / report |
+| --- | --- |
+| Line coverage | [![Line coverage](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage-lines.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) |
+| Function coverage | [![Function coverage](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage-functions.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) |
+| Branch coverage | [![Branch coverage](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage-branches.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) |
+
+### Testing and validation
+
+| Check | Workflow / report |
+| --- | --- |
+| Unit tests | [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml) |
+| Compiler diversity | [![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) |
+| JSON / JSON5 validation | [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml) |
+| Coverage workflow | [![Unit test coverage workflow](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) |
+| Sanitizers | [![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml) |
+| Fuzzing | [![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml) |
+
+### Static analysis
+
+| Check / metric | Status / report |
+| --- | --- |
+| MISRA / CodeQL workflow | [![MISRA / CodeQL workflow](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) |
+| Critical findings | [![Critical findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra-critical.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) |
+| High findings | [![High findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra-high.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) |
+| Medium findings | [![Medium findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra-medium.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) |
+| Low findings | [![Low findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra-low.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) |
+| Unrated findings | [![Unrated findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra-unrated.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) |
+
+A passing analysis workflow means the analysis completed; it does not establish
+MISRA compliance. Counts use CodeQL security severity, not the SARIF error/warning
+level. Ordinary MISRA findings without a security score remain unrated.
+
+### Additional checks
+
+| Check | Status / report |
+| --- | --- |
+| Formatting | [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml) |
+| Examples | [![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml) |
+| License | [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-17669b)](LICENSE) |
+
+<details>
+<summary>How to read the badges and find the reports</summary>
+
+- **Version:** latest published release, or `unreleased` if none exists.
+- **Requirements:** applicable J5 requirements linked to existing code, declared
+  unit tests, and requirements whose every mapped test passed with GCC and Clang
+  in both exception modes. Passing tests do not promote a requirement to Verified;
+  see [the traceability definitions](docs/traceability.md#reading-the-badges-and-reports).
+- **Coverage:** measured line, function and branch coverage on `main`. The coverage
+  workflow publishes a downloadable HTML report and currently has no minimum threshold.
+- **Unit tests:** Linux x86-64, Linux ARM64 and Windows MinGW, exceptions OFF and ON.
+  Compiler diversity runs units and validation with GCC 13 and Clang 18. Validation
+  uses the pinned JSONTestSuite and json5-tests fixtures.
+- **Runtime checks:** units and validation under AddressSanitizer and
+  UndefinedBehaviorSanitizer; timed fuzzing fails on crash, timeout or out-of-memory.
+- **Static analysis:** CodeQL MISRA C++:2023 and security queries. Each count covers
+  findings in the SARIF reports, excluding suppressed and absent-baseline results;
+  counts are not the deduplicated GitHub alert inventory. See
+  [CI checks and reports](#ci-checks-and-reports) for classification and artifacts.
+- **Additional checks:** clang-format 18; examples built and run as a non-blocking
+  check; [Apache-2.0 license](LICENSE).
+
+Measured badges show the last successfully published `main` analysis. Workflow
+badges show job status separately, so a failed newer run remains visible. Follow
+any badge to its workflow or report source, and see
+[CI checks and reports](#ci-checks-and-reports) for downloadable HTML artifacts.
+
+</details>
 
 **Status: in development, pre-1.0, not for production use. Not certified and not
 independently assessed: see [Disclaimers](#disclaimers).**
@@ -607,18 +671,25 @@ before merging; GitHub Actions artifacts are downloads rather than hosted pages.
 Coverage currently reports results without a minimum-coverage threshold.
 
 Measured badges in [Project status](#project-status) show the last successfully
-published `main` analysis: line, function and branch coverage together; critical/high
-CodeQL security-severity finding counts across the MISRA/security SARIF report; and
-the three requirements traceability percentages. Findings without numeric
-security severity are shown as unrated; ordinary MISRA errors are not silently
-classified as security-critical. These are report counts, not compliance claims
+published `main` analysis: separate line, function and branch coverage badges;
+critical, high, medium, low and unrated CodeQL finding counts across the
+MISRA/security SARIF report; and
+the three requirements traceability percentages. Counts follow the rule's numeric
+[`security-severity`](https://docs.github.com/en/code-security/reference/code-scanning/sarif-files/sarif-support#reportingdescriptor-object):
+critical is 9.0-10.0, high is 7.0 to below 9.0, medium is 4.0 to below 7.0,
+and low is above 0.0 to below 4.0. Missing scores and 0.0 (undefined security
+severity) are unrated; ordinary MISRA errors are not silently classified as
+security-critical. These are report counts, not compliance claims
 or the deduplicated GitHub alert inventory. Workflow status badges remain visible
 so a failed newer analysis is not hidden by older measurements. Before the first
 successful main run publishes the metric branches, measured badges are unavailable.
 A traceability badge shows `unknown` when its analysis could not run. The version badge
 is regenerated from the latest published GitHub release, or shows `unreleased`.
 Publishing uses a separate job with write permission only on main pushes; PR jobs
-remain read-only. Reports include the generated SVG and coverage summary JSON.
+remain read-only. Reports include the generated SVGs and coverage summary JSON.
+The combined
+`coverage.svg` and `misra.svg` remain published for existing consumers; the README
+uses the short badges at their natural size.
 
 ### MISRA analysis
 

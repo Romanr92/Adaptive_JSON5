@@ -320,6 +320,8 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(tree.run_tool()[0], 0)
         self.assertEqual(first, {path.name: path.read_bytes() for path in (tree.root / "out").iterdir()})
         self.assertIn("66.6% (2/3)", tree.badge("passing"))
+        for key, label in (("implementation", "code"), ("tests", "tests"), ("passing", "passing")):
+            self.assertIn(f'aria-label="{label}: 66.6% (2/3)"', tree.badge(key))
         page = first["traceability.html"].decode("utf-8")
         for text in ("J5-003", "src/code.hpp", "Modes/J5_002_Second.Accepts", "clang: passed", "no tests mapped"):
             self.assertIn(text, page)
@@ -378,6 +380,8 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(tree.badge("tests"), "measured")
         self.assertIn("unknown", tree.badge("passing"))
         self.assertIn(traceability.UNKNOWN_COLOR, tree.badge("implementation"))
+        self.assertIn('aria-label="passing: unknown"', tree.badge("passing"))
+        self.assertIn('aria-label="code: unknown"', tree.badge("implementation"))
 
     def test_summary_lists_totals_configurations_and_gaps(self):
         tree = Tree(self, results={"gcc": dict(PASSING, **{"J5_001_First.Works": "fail"})})
