@@ -12,6 +12,7 @@
 #include "lexer/number/number_token.hpp"
 #include "lexer/punctuation.hpp"
 #include "lexer/scalar_token.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_lexer.hpp"
 #include "lexer/string/string_token.hpp"
 #include "lexer/token_boundary.hpp"
@@ -167,6 +168,9 @@ namespace adaptive_json5
    * @param max_string_units Maximum decoded units in a string token.
    * @param max_identifier_units Maximum temporary decoded identifier units.
    * @param max_exponent_digits Maximum decimal exponent digits.
+   * @param sink Optional parser sink: reserve after the string is allocated, record during decoding.
+   * @param checks Secure-mode checks for string values, normally value_string_checks();
+   * the default applies none (CSR-07). Numbers, literals and identifiers are not checked.
    * @return A scalar token, successful nullopt at EOF or structural punctuation,
    * or an explicit located error.
    * @note No-match and failure leave source unchanged.
@@ -184,8 +188,8 @@ namespace adaptive_json5
    */
   result<std::optional<scalar_token>> consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_string_units, std::size_t max_identifier_units,
-                                                     std::size_t max_exponent_digits,
-                                                     const string_warning_sink* sink) noexcept
+                                                     std::size_t max_exponent_digits, const string_warning_sink* sink,
+                                                     string_checks checks) noexcept
   {
     using scalar_result = result<std::optional<scalar_token>>;
 
@@ -206,7 +210,7 @@ namespace adaptive_json5
     cursor candidate = source;
 
     // Delay public success until the following boundary also validates.
-    auto string = consume_string(candidate, mode, storage, max_string_units, {}, sink);
+    auto string = consume_string(candidate, mode, storage, max_string_units, {}, sink, checks);
     if (!string.has_value())
     {
       return scalar_result::failure(*string.error_if());
@@ -322,14 +326,16 @@ namespace adaptive_json5
    * @param max_exponent_digits Maximum decimal exponent digits.
    * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never
    * limits. Passed to measure_string, so a string measurement carries the first excess warning.
+   * @param checks Secure-mode checks for string values, normally value_string_checks();
+   * the default applies none (CSR-07). Numbers, literals and identifiers are not checked.
    * @return A measurement, nullopt at EOF or structural punctuation, or a located error.
    * @note Keeps consume_scalar's order so both report the same errors (ADR 0003, decision 7).
    * @par ID SWU-LEXER-028
    */
   result<std::optional<scalar_measure>> measure_scalar(cursor& source, syntax_mode mode, std::size_t max_string_units,
                                                        std::size_t max_identifier_units,
-                                                       std::size_t max_exponent_digits,
-                                                       std::size_t warning_allowance) noexcept
+                                                       std::size_t max_exponent_digits, std::size_t warning_allowance,
+                                                       string_checks checks) noexcept
   {
     using measure_result = result<std::optional<scalar_measure>>;
 
@@ -348,7 +354,7 @@ namespace adaptive_json5
 
     cursor candidate = source;
 
-    const auto string = measure_string(candidate, mode, max_string_units, warning_allowance);
+    const auto string = measure_string(candidate, mode, max_string_units, warning_allowance, checks);
 
     if (!string.has_value())
     {

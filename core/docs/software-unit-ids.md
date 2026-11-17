@@ -159,8 +159,8 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-009 | used | `consume_identifier(cursor &, const storage_callbacks &, std::size_t)` | `core/src/lexer/identifier/identifier_lexer.cpp` | `core/includes/lexer/identifier/identifier_lexer.hpp` |
 | SWU-LEXER-010 | used | `consume_line_terminator(cursor &)` | `core/src/lexer/line_terminator.cpp` | `core/includes/lexer/line_terminator.hpp` |
 | SWU-LEXER-011 | used | `detail::(anonymous)::starts_identifier_name(cursor)` | `core/src/lexer/member_name_lexer.cpp` | — |
-| SWU-LEXER-012 | used | `detail::consume_member_name(cursor &, syntax_mode, const storage_callbacks &, std::size_t, const string_warning_sink *)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
-| SWU-LEXER-013 | used | `detail::measure_member_name(cursor &, syntax_mode, std::size_t, std::size_t)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
+| SWU-LEXER-012 | used | `detail::consume_member_name(cursor &, syntax_mode, const storage_callbacks &, std::size_t, const string_warning_sink *, string_checks)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
+| SWU-LEXER-013 | used | `detail::measure_member_name(cursor &, syntax_mode, std::size_t, std::size_t, string_checks)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
 | SWU-LEXER-014 | used | `detail::consume_decimal_digits(cursor &)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
 | SWU-LEXER-015 | used | `detail::decimal_expected_error(cursor)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
 | SWU-LEXER-016 | used | `consume_decimal(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
@@ -172,10 +172,10 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-022 | used | `(anonymous)::may_continue_identifier(adaptive_json5::cursor)` | `core/src/lexer/scalar_lexer.cpp` | — |
 | SWU-LEXER-023 | used | `(anonymous)::match_literal_bytes(const adaptive_json5::cursor &)` | `core/src/lexer/scalar_lexer.cpp` | — |
 | SWU-LEXER-024 | used | `detail::finish_scalar_token(cursor &, cursor, scalar_token, syntax_mode)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
-| SWU-LEXER-025 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t, std::size_t, std::size_t, const string_warning_sink *)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
+| SWU-LEXER-025 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t, std::size_t, std::size_t, const string_warning_sink *, string_checks)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-026 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-027 | used | `(anonymous)::finish_scalar_measure(cursor &, cursor, const scalar_measure &, syntax_mode)` | `core/src/lexer/scalar_lexer.cpp` | — |
-| SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
+| SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t, std::size_t, string_checks)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-029 | used | `hex_digit_value(char32_t)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-030 | used | `consume_hex_escape(cursor &, syntax_mode)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-031 | used | `consume_line_continuation(cursor &, syntax_mode)` | `core/src/lexer/string/line_continuation.cpp` | `core/includes/lexer/string/line_continuation.hpp` |
