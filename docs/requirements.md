@@ -1,6 +1,7 @@
 # Public API requirements
 
-Status: **Draft requirements**, except the rows marked Implemented in
+Status: parser requirements are **Accepted** or **Implemented**, and schema, CLI,
+editor and consumer-example requirements are **Draft**, as recorded per row in
 [traceability](traceability.md). The compiled parser, owned value model, numeric
 operations and diagnostics through P040 are implemented and have host unit
 evidence. P041 claim status is recorded in [conformance](conformance.md).
