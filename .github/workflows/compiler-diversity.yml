@@ -1,0 +1,60 @@
+name: compiler-diversity
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compiler-diversity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compiler-tests:
+    name: compiler-tests (${{ matrix.compiler }}, exceptions ${{ matrix.exceptions }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [g++-13, clang++-18]
+        exceptions: ['OFF', 'ON']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install compilers and build tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++-13 clang-18 ninja-build
+      - name: Record compiler and configuration
+        run: |
+          ${{ matrix.compiler }} --version | tee compiler-version.txt
+          echo 'Debug; C++17; libstdc++; exceptions=${{ matrix.exceptions }}; RTTI=OFF' | tee -a compiler-version.txt
+      - name: Configure units and validation
+        run: >-
+          cmake -S . -B build/compiler-tests -G Ninja
+          -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+          -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          -DADAPTIVE_JSON5_BUILD_LIBRARY=ON
+          -DADAPTIVE_JSON5_BUILD_TESTS=ON
+          -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=ON
+          -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }}
+          -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+      - name: Compile units and validation
+        run: cmake --build build/compiler-tests --parallel "$(nproc)"
+      - name: Run units and validation
+        run: ctest --test-dir build/compiler-tests --parallel "$(nproc)" --output-on-failure --no-tests=error --output-junit results.xml
+      - name: Preserve compiler and test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiler-tests-${{ matrix.compiler }}-${{ matrix.exceptions }}
+          path: |
+            compiler-version.txt
+            build/compiler-tests/results.xml
+            build/compiler-tests/CMakeCache.txt
+            build/compiler-tests/compile_commands.json
+            build/compiler-tests/Testing/Temporary/LastTest.log

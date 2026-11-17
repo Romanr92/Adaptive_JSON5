@@ -1,0 +1,3 @@
+name: MISRA C++ 2023
+packs:
+  - codeql/misra-cpp-coding-standards

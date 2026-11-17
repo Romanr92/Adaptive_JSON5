@@ -2,9 +2,10 @@ name: unit-tests
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
-  group: unit-tests-${{ github.event.pull_request.number }}
+  group: unit-tests-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:

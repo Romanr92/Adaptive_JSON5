@@ -8,6 +8,7 @@ import gzip
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -107,6 +108,11 @@ def main():
     gcov = args.gcov or str(Path(compiler).parent / ("gcov" + suffix))
     if not shutil.which(gcov):
         parser.error("matching gcov not found; supply --gcov PATH")
+    gcov_version = subprocess.check_output([gcov, "--version"], text=True)
+    version = re.search(r"\)\s+(\d+)\.", gcov_version)
+    if version is None or int(version.group(1)) < 14:
+        parser.error("JSON coverage collection requires GCC/gcov 14 or newer "
+                     "(gcovr requires gcov JSON format 2); select matching --compiler and --gcov")
     for tool in ("cmake", "ctest", "ninja"):
         if not shutil.which(tool):
             parser.error(tool + " is required on PATH")
@@ -191,6 +197,7 @@ def main():
                 "--root", ROOT, "--filter", SOURCE_FILTER,
                 "--gcov-use-existing-files", "-j", args.jobs,
                 "--include", SOURCE_FILTER,
+                "--json-summary", report / "summary.json",
                 "--html-details", report / "index.html",
                 "--html-single-page", "--html-self-contained",
                 "--no-html-syntax-highlighting", "--print-summary",

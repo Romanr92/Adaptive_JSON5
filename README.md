@@ -7,6 +7,13 @@ high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/S
 21434 CAL 4, with its safety and security work documented in the open.
 
 [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
+[![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml)
+[![Unit test coverage](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
+[![Coverage: lines, functions and branches](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
+[![MISRA / CodeQL critical and high findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
+[![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
+[![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml)
+[![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml)
 [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml)
 [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
 [![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml)
@@ -351,6 +358,218 @@ not a supported parser release.
 
 ## Building and contributing
 
+Install the local tools below before building with both compilers and running
+MISRA analysis. Git fetches the pinned GoogleTest dependency; CMake builds it,
+so a separate GoogleTest package is not required.
+
+**Windows: install Scoop, then the local tools**
+
+Open a regular, non-administrator PowerShell terminal. Install
+[Scoop using its official instructions](https://github.com/ScoopInstaller/Scoop#installation):
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+```
+
+The first command allows Scoop's installation and management scripts for your
+Windows user account. If Scoop is already installed, skip this step.
+Install the required local build and analysis tools:
+
+```powershell
+scoop install git gcc llvm cmake ninja codeql python
+```
+
+Scoop's [`gcc` package](https://github.com/ScoopInstaller/Main/blob/master/bucket/gcc.json)
+provides GCC; [`llvm`](https://github.com/ScoopInstaller/Main/blob/master/bucket/llvm.json)
+provides Clang and clang-format; [`codeql`](https://github.com/ScoopInstaller/Main/blob/master/bucket/codeql.json)
+provides the CodeQL CLI for MISRA analysis. Restart your terminal and IDE after
+installation so they pick up the updated `PATH`. Check the installed versions:
+
+```powershell
+git --version
+gcc --version
+g++ --version
+clang --version
+clang++ --version
+clang-format --version
+cmake --version
+ninja --version
+codeql version
+```
+
+**Arch Linux: install the local tools**
+
+Install the build tools from the official Arch repositories with a full system
+upgrade (see the [Arch package database](https://archlinux.org/packages/)):
+
+```sh
+sudo pacman -Syu --needed base-devel git gcc clang llvm cmake ninja curl python
+```
+
+For CodeQL, download the Linux x86-64 bundle `codeql-bundle-linux64.tar.gz` from
+[GitHub's CodeQL bundle releases](https://github.com/github/codeql-action/releases),
+as described in the [official CLI setup guide](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/scan-from-the-command-line/set-up-codeql-cli).
+Extract it under your user account and add it to your shell's `PATH`:
+
+```sh
+mkdir -p "$HOME/.local/opt"
+tar -xzf "$HOME/Downloads/codeql-bundle-linux64.tar.gz" -C "$HOME/.local/opt"
+export PATH="$HOME/.local/opt/codeql:$PATH"
+```
+
+Adjust the archive path to match your download. Add the `export PATH` line to
+`~/.bashrc` for Bash or `~/.zshrc` for Zsh to keep it in new terminals. Check:
+
+```sh
+git --version
+gcc --version
+g++ --version
+clang --version
+clang++ --version
+clang-format --version
+cmake --version
+ninja --version
+codeql version
+```
+
+These package-manager installations track current tool versions. CI uses the
+compiler versions stated below and clang-format 18.1.8; the latest local formatter
+may produce different formatting. CodeQL is needed for analysis, while ordinary
+library and test builds need only the build tools.
+
+For the short compiler profiles, run these commands from the repository in
+PowerShell (or a terminal on Linux):
+
+```powershell
+cmake --fresh --preset gcc
+cmake --build --preset gcc --parallel
+ctest --preset gcc --parallel
+
+cmake --fresh --preset clang
+cmake --build --preset clang --parallel
+ctest --preset clang --parallel
+```
+
+The local commands use all available cores with Ninja and CTest.
+Both profiles build the library, units and validation tests in Debug mode with
+exceptions and RTTI OFF. They use separate `build/gcc` and `build/clang`
+directories. Use `--fresh` when replacing a failed or different compiler
+configuration; subsequent configurations can omit it.
+
+On Windows, the `clang` profile locates LLVM and `windres` in the per-user Scoop
+installation (or the `SCOOP` environment variable's directory), explicitly selects
+the MinGW target and uses Scoop GCC's headers and standard library. Clang compiles
+C++, while GCC's driver links the matching MinGW runtime. This avoids requiring
+the MSVC Windows SDK resource compiler. Keep GCC's `bin` directory on `PATH`
+when running the resulting programs. On Linux the profile uses `clang++` from
+`PATH`. Scoop's current compiler versions can differ from CI's pinned major versions.
+
+The explicit commands below are alternatives when the compiler and its required
+toolchain are already configured. On Windows with Scoop, use the profiles above.
+
+To build the library and all host unit tests with GCC or Clang, use separate
+build directories. These commands require Ninja and the selected compiler on
+`PATH` (CI uses `g++-13` and `clang++-18` on Ubuntu 24.04).
+
+GCC:
+
+```sh
+cmake -S . -B build/gcc -G Ninja -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=ON -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+cmake --build build/gcc --parallel
+ctest --test-dir build/gcc --parallel --output-on-failure --no-tests=error
+```
+
+Clang:
+
+```sh
+cmake -S . -B build/clang -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=ON -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+cmake --build build/clang --parallel
+ctest --test-dir build/clang --parallel --output-on-failure --no-tests=error
+```
+
+Both use C++17 and the same project warning flags. On Linux, Clang uses the
+default libstdc++ to match GCC. To include the pinned validation fixtures in
+either build, change `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` to `ON`, then build
+and run CTest again. For a library-only build, set both test options to `OFF`;
+GoogleTest is then neither acquired nor linked. To test exceptions enabled,
+configure another directory with `ADAPTIVE_JSON5_ENABLE_EXCEPTIONS=ON`.
+
+The [`compiler-diversity` CI workflow](.github/workflows/compiler-diversity.yml) builds and runs units and validation with
+GCC 13 and Clang 18 in both exception modes, with RTTI OFF. Compiler versions,
+configuration and test results are uploaded as artifacts. The `misra-cpp`
+workflow analyzes a Clang production build with the CodeQL MISRA C++:2023 pack
+and the default security queries. Findings appear in GitHub code scanning;
+analysis alone does not establish MISRA compliance. Required status checks and
+a code-scanning rule for new findings must be enabled in repository settings
+when these become blocking gates. Existing GCC jobs remain in place.
+MISRA analysis also runs on pushes to `main` to populate the Security tab's
+default-branch alerts; pull-request checks report findings relevant to the PR.
+
+Pull requests also publish downloadable HTML reports in GitHub Actions. Open the
+PR's **Checks**, select the workflow run, then download its artifact from the
+run's **Artifacts** section and extract the ZIP before opening the HTML locally:
+
+- `unit-test-coverage-html` from `unit-test-coverage`: open `index.html` for
+  GCC 14 unit-test coverage (exceptions OFF, RTTI OFF; validation tests excluded).
+  The coverage helper requires matching GCC/gcov 14 or newer for JSON format 2.
+- `sanitizers-report-html-OFF` / `sanitizers-report-html-ON` from `sanitizers`:
+  open `index.html` for ASan+UBSan unit and validation results, configuration and
+  expandable command logs. JUnit XML and raw logs are included.
+- `fuzz-report-html-OFF` / `fuzz-report-html-ON` from `fuzz`: open `index.html`
+  for the timed libFuzzer result and logs. Seed manifests and any crash/timeout/OOM
+  reproducers are included. PR runs last 5 minutes per exception mode; weekly
+  runs last 30 minutes per mode. Both use RTTI OFF and ASan+UBSan.
+- `misra-report-html` from `misra-cpp`: open the `.html` file for the production
+  MISRA/security findings with rule summary and filters; the SARIF is included.
+
+Reports are retained for 30 days. They are generated during PR checks for review
+before merging; GitHub Actions artifacts are downloads rather than hosted pages.
+Coverage currently reports results without a minimum-coverage threshold.
+
+To check MISRA locally, install CodeQL using the platform instructions above
+and check `codeql version`. LLVM alone does not install CodeQL. The analysis uses the
+[CodeQL MISRA C++:2023 pack](https://github.com/github/codeql-coding-standards),
+the same pack selected in [CI](.github/codeql/misra.yml).
+Run the full MISRA check and open its HTML report from the repository directory:
+
+```sh
+python tools/misra_check.py
+```
+
+The script configures a production-only Clang build, captures a clean compilation
+with both unit and validation tests disabled, and excludes examples and GoogleTest.
+MISRA analysis covers the compiled production library and its headers; unit tests
+under `tests/` and `core/tests/` are outside this analysis in both local runs and CI.
+The separate GCC/Clang test jobs continue to compile and execute those tests.
+The script runs the MISRA pack plus the default C++ security queries. It uses all available
+CPU cores for compilation and CodeQL (`--threads=0`). Each run keeps its database
+and `results.sarif` in a new directory under `build/misra/`; the script prints the
+report path and finding count. It converts the SARIF to `results.html` and opens
+it in your default browser. HTML conversion uses Python's standard library;
+the report supports filtering by level, found rule and a case-insensitive file path search,
+with a matching-findings count and a reset button.
+no pip packages or Microsoft C++ Build Tools are needed. If no browser is
+available, open the printed HTML path manually. To convert an existing report
+without rerunning analysis:
+
+```sh
+python tools/misra_check.py --report latest
+```
+
+This selects the newest completed SARIF report under `build/misra/` and opens
+its HTML without rebuilding. To choose a specific report, pass its actual file
+path instead of `latest`.
+
+A zero exit code means analysis completed; findings do not change the exit code.
+Build, analysis or HTML conversion failures return a nonzero exit code.
+
+The workflow follows GitHub's [database creation](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/prepare-code-for-analysis)
+and [query analysis](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/analyze-code)
+instructions. Local analysis and CI currently resolve the available pack version;
+record `codeql version` and downloaded pack versions with your results. A completed
+analysis does not establish MISRA compliance.
+
 Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host units.
 CMake downloads and builds the pinned host-only GoogleTest dependency on the first test
 configuration. From the repository directory:
@@ -461,3 +680,41 @@ through this project. Feedback on the C++ is very welcome.
 No review catches everything: not my own, not the AI reviews and not the automated
 tests. If you find a mistake, in the code or in how I've applied the standards, please
 open an issue. Corrections are always welcome.
+
+### Sanitizer and fuzz checks
+
+On a native Linux host with Clang 18, Ninja and Python 3, run:
+
+```sh
+python3 tools/runtime_checks.py sanitizers --exceptions OFF
+python3 tools/runtime_checks.py fuzz --exceptions OFF --seconds 300
+```
+
+Use `--exceptions ON` for the second configuration. Sanitizer units use the
+pinned host-only GoogleTest dependency; `--gtest-source PATH` selects an offline
+checkout. Fuzz builds need no GoogleTest. Seeds come from committed third-party
+fixtures; their versions and notices remain in `tests/fixtures/third_party/`.
+The helper prints the self-contained HTML report location, including when a
+build or test fails, and returns a failing exit code. Reports describe the tested
+host configuration, not target verification or safety/security approval.
+
+CMake options `ADAPTIVE_JSON5_ENABLE_SANITIZERS` and
+`ADAPTIVE_JSON5_BUILD_FUZZER` default OFF. These checks currently support native
+Linux GCC/Clang (libFuzzer requires Clang). Instrumentation is private to the
+selected build; use a separate ordinary build for distributable libraries.
+
+Required merge checks for issue #132 are `sanitizers (exceptions OFF)`,
+`sanitizers (exceptions ON)`, `fuzz (exceptions OFF)` and `fuzz (exceptions ON)`.
+Repository branch protection or a ruleset must require them on `main`; workflow
+failure alone does not prevent merging in an unprotected repository.
+
+Measured badges show the last successfully published `main` analysis: line,
+function and branch coverage together, and critical/high CodeQL security-severity
+finding counts across the MISRA/security SARIF report. Findings without numeric
+security severity are shown as unrated; ordinary MISRA errors are not silently
+classified as security-critical. These are report counts, not compliance claims
+or the deduplicated GitHub alert inventory. Workflow status badges remain visible
+so a failed newer analysis is not hidden by older measurements. Before the first
+successful main run publishes the metric branches, measured badges are unavailable.
+Publishing uses a separate job with write permission only on main pushes; PR jobs
+remain read-only. Reports include the generated SVG and coverage summary JSON.
