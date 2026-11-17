@@ -72,15 +72,16 @@ functional safety. If you use the library in a safety-related function, fill in 
 ## 3. While parsing
 
 - [ ] **C-3.1** Using **secure mode** is **advised** for data from a network or another
-  untrusted source, once it is available. It is not required.
-  → [Secure mode](tara.md#5-secure-mode-planned), #145
+  untrusted source. It is not required. Start from `secure_parse_options()` and switch
+  off single options only when you need to.
+  → [Secure mode](tara.md#5-secure-mode), #145
 - [ ] **C-3.2** If you do not use secure mode, you handle duplicate member names, zero bytes,
   control characters and unpaired surrogates yourself, for example with
   `reject_duplicates` and your own checks after parsing.
   → [TARA, T-02 and T-06](tara.md#4-controls)
 
 > **⚠️ Secure mode is not fully standard JSON or JSON5.** It deliberately rejects some
-> documents that the standards allow. See the [TARA](tara.md#5-secure-mode-planned).
+> documents that the standards allow. See the [TARA](tara.md#5-secure-mode).
 
 ## 4. After parsing
 
@@ -156,7 +157,6 @@ you use.
 
 | Topic | Effect for you | Tracked in |
 | --- | --- | --- |
-| Secure mode not implemented yet | Duplicate names, zero bytes, control characters and unpaired surrogates are your job (C-3.2) | #145 |
 | `as_double()` buffer use and quadratic `member()` lookup | An attacker can make repeated reads fail or slow down lookups on large objects | #124 |
 | Sanitizer and fuzz runs not implemented yet | Less evidence against memory corruption than planned | #132 |
 | Static analysis not implemented yet | Less evidence than planned | #146 |

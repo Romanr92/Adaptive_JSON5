@@ -97,7 +97,7 @@ For this library, "most thorough" means:
 | Compiler diversity | A blocking second compiler (Clang) | Planned (#141) |
 | Static analysis | clang-tidy and CodeQL, including the MISRA C++:2023 queries, blocking new findings | Planned (#146) |
 | Supply chain | Pinned CI actions, hashed tool installs, SBOM and signed or attested releases; dependency vulnerability scanning | Planned (#131) |
-| Secure input handling | Opt-in secure mode | Planned (#145) |
+| Secure input handling | Opt-in secure mode | Implemented with unit tests (#145) |
 | Reviews | A security review in every milestone; an **independent** reviewer and assessor | Milestone review planned; independent reviewer **open** |
 | Evidence | A complete cybersecurity case | Draft structure ([`cybersecurity-case.md`](cybersecurity-case.md)) |
 

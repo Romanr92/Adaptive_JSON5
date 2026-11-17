@@ -129,6 +129,17 @@ warning consumes one `max_diagnostics` entry, so exhausting that limit returns
 `resource_limit`. This decision does not change numeric, input-encoding, nesting
 or BOM behaviour.
 
+Secure mode (#145, CSR-07) is a deliberate, opt-in deviation from JSON5 1.0 and
+RFC 8259: when it is selected, some documents that both standards allow are rejected.
+It is off by default, so the default options keep full standard support, and the
+conformance validation tests run with the default options.
+
+> **⚠️ Secure mode is not fully standard JSON or JSON5.** It deliberately rejects some
+> documents that the standards allow: duplicate member names, zero bytes and control
+> characters in strings or member names, and unpaired surrogates. A valid document from
+> another system may therefore fail to parse. Use secure mode only when you control both
+> ends, or when rejecting these cases is what you want.
+
 Classified as **spec choice** (the specification permits it), **addition**
 (beyond the specification, opt-in or advisory) or **limit**.
 
@@ -137,6 +148,7 @@ Classified as **spec choice** (the specification permits it), **addition**
 | U+200B as JSON5 whitespace | spec choice | Zs in Unicode 3.0, which ES5 names as its minimum; accepted deliberately. |
 | Raw U+2028/U+2029 in strings | spec choice | Accepted in both modes; JSON5 mode reports `raw_line_separator`/`raw_paragraph_separator` warnings (JSON5 §5.1). |
 | Duplicate member names | spec choice | Kept in order by default (`preserve_all`); `reject_duplicates` compares decoded UTF-16 units exactly, without normalization. |
+| Secure mode | addition (deviation, opt-in) | Off by default. `secure_parse_options()` rejects duplicate names, U+0000 in strings and names (raw, `\0`, `\x00`, `\u0000`), U+0000 to U+001F in names, and unpaired surrogates, with `security_policy` and a `security_reason` (#145, CSR-07). Each option is individually switchable. |
 | Strict-mode BOM | addition | `strict_bom_policy::skip_one`, off by default. |
 | Retained source text | addition | `source_retention_policy::retain_copy`, off by default. |
 | Warnings and line/column | addition | Every warning is retained (bounded by `max_diagnostics`); `locate()` converts byte offsets to 1-based line and code-point column. |

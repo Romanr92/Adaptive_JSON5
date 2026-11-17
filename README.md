@@ -263,6 +263,33 @@ Before parsing, read [memory, limits and failure behavior](docs/memory-and-limit
 It covers buffer sizing, what each limit counts, warnings, what happens when a parse
 fails, and the advanced API.
 
+### Secure mode
+
+For input from a network or another untrusted source, start from
+`secure_parse_options()`. It is off by default; when used, it rejects:
+
+- duplicate member names (`error_code::duplicate_policy`);
+- zero bytes (U+0000) in strings and member names, raw or escaped;
+- control characters (U+0000 to U+001F) in member names, raw or escaped;
+- unpaired surrogates, which otherwise only produce a warning.
+
+Each of the last three fails with `error_code::security_policy`, a `security_reason()`
+and the source range of the offending character or escape. Every option stays
+individually switchable:
+
+```cpp
+adaptive_json5::parse_options options = adaptive_json5::secure_parse_options();
+options.zero_bytes = adaptive_json5::zero_byte_policy::preserve; // the other three stay on
+```
+
+> **⚠️ Secure mode is not fully standard JSON or JSON5.** It deliberately rejects some
+> documents that the standards allow: duplicate member names, zero bytes and control
+> characters in strings or member names, and unpaired surrogates. A valid document from
+> another system may therefore fail to parse. Use secure mode only when you control both
+> ends, or when rejecting these cases is what you want.
+
+See the [TARA, section 5](docs/ISO21434-cybersecurity/tara.md#5-secure-mode).
+
 ### CMake consumption
 
 The source/install package exports the compiled static `AdaptiveJSON5::parser`
