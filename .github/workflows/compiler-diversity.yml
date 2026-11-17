@@ -63,6 +63,8 @@ jobs:
 
   # Requirement -> code -> tests -> result, from the registry and the four results above.
   # Runs after failed test jobs too, so failures appear as gaps rather than as no report.
+  # Informative on pull requests, not a merge requirement: findings are reported in the job
+  # summary and the HTML artifact, and do not fail the check.
   traceability:
     name: Requirements traceability report
     needs: compiler-tests
@@ -82,13 +84,14 @@ jobs:
           pattern: compiler-tests-*
           path: evidence
       - name: Check the registry and generate the report
+        continue-on-error: true
         run: |
           arguments=()
           for configuration in g++-13-OFF g++-13-ON clang++-18-OFF clang++-18-ON; do
             results="$(find "evidence/compiler-tests-$configuration" -name results.xml -print -quit 2>/dev/null || true)"
             if [ -n "$results" ]; then arguments+=(--junit "$configuration=$results"); fi
           done
-          python3 tools/traceability.py --output-dir build/traceability "${arguments[@]}"
+          python3 tools/traceability.py --output-dir build/traceability --summary "$GITHUB_STEP_SUMMARY" "${arguments[@]}"
       - name: Show unknown for any badge that could not be measured
         if: ${{ !cancelled() }}
         run: python3 tools/traceability.py --unknown-badges build/traceability

@@ -378,6 +378,16 @@ class ToolTests(unittest.TestCase):
         self.assertIn("unknown", tree.badge("passing"))
         self.assertIn(traceability.UNKNOWN_COLOR, tree.badge("implementation"))
 
+    def test_summary_lists_totals_configurations_and_gaps(self):
+        tree = Tree(self, results={"gcc": dict(PASSING, **{"J5_001_First.Works": "fail"})})
+        tree.run_tool("--write-docs", "--summary", str(tree.root / "summary.md"))
+        summary = (tree.root / "summary.md").read_text(encoding="utf-8")
+        for text in ("| requirements mapped to code | 66.6% (2/3) |", "| requirements with passing tests | unknown |",
+                     "| `clang` | no results provided |", "- J5-001: J5_001_First.Works failed with gcc",
+                     "Not a merge requirement"):
+            self.assertIn(text, summary)
+        self.assertNotIn("no tests mapped", summary)
+
     def test_html_escapes_registry_text(self):
         data = registry()
         data["requirements"][2]["implementation"] = [{"files": ["src/code.hpp"], "note": "<script>alert(1)</script>"}]

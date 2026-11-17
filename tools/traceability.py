@@ -436,6 +436,31 @@ def html_report(report, registry):
     return "".join(out)
 
 
+def markdown_summary(report):
+    """Short Markdown for the GitHub job summary: totals, configurations and the gaps found."""
+    lines = ["## Requirements traceability", ""]
+    if report["errors"]:
+        lines += ["**Registry problems** (percentages unknown until fixed):", ""]
+        lines += [f"- {error}" for error in report["errors"]] + [""]
+    lines += ["| Badge | Value |", "| --- | --- |"]
+    lines += [f"| {label} | {badge_text(report, key)} |" for key, _, label in BADGES]
+    if report["metrics"]:
+        lines.append(f"| stale links | {report['metrics']['stale_links']} |")
+    lines += ["", "| Configuration | Results |", "| --- | --- |"]
+    lines += [f"| `{name}` | {state['detail']} |" for name, state in report["configurations"].items()]
+    gaps = [(item["id"], gap) for item in report["requirements"] if item["applicable"] for gap in item["gaps"]
+            if not gap.startswith("no ")]
+    if gaps:
+        lines += ["", f"<details><summary>{len(gaps)} stale links and test results that are not passing</summary>", ""]
+        lines += [f"- {identifier}: {gap}" for identifier, gap in gaps[:200]]
+        if len(gaps) > 200:
+            lines.append(f"- … {len(gaps) - 200} more in the HTML report")
+        lines += ["", "</details>"]
+    lines += ["", "Full matrix: the `traceability-report-html` artifact of this run. Not a merge requirement; "
+              "passing tests are evidence, not Verified status.", ""]
+    return "\n".join(lines)
+
+
 def main(arguments=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--registry", type=Path, default=Path("docs/requirements-registry.json"))
@@ -443,6 +468,7 @@ def main(arguments=None):
     parser.add_argument("--junit", action="append", default=[], metavar="CONFIGURATION=FILE",
                         help="JUnit XML of one required configuration; repeat for each")
     parser.add_argument("--output-dir", type=Path, help="write traceability.json, .html and the badges here")
+    parser.add_argument("--summary", type=Path, help="append a Markdown summary to this file")
     parser.add_argument("--write-docs", action="store_true", help="regenerate the tables in the traceability document")
     parser.add_argument("--unknown-badges", type=Path, metavar="DIR",
                         help="only write an 'unknown' badge for each badge missing from DIR, then exit")
@@ -492,6 +518,9 @@ def main(arguments=None):
                                                               newline="\n")
         write_badges(report, args.output_dir)
         print(f"Report: {Path(args.output_dir, 'traceability.html')}")
+    if args.summary:
+        with args.summary.open("a", encoding="utf-8", newline="\n") as summary:
+            summary.write(markdown_summary(report))
     for error in report["errors"]:
         print(f"error: {error}", file=sys.stderr)
     stale = 0

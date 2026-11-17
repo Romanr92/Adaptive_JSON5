@@ -25,9 +25,11 @@ Implemented on 2026-11-13 at Romanr92's request, with PR #151 (issue #125): J5-0
 and J5-039. J5-047 stays Draft although #125 completed its listed limits, because its
 owning issue #69 (cross-component memory accounting) is still open.
 
-Keep exact `SuiteName.TestName` declarations in the Unit Tests inventory, grouped
-by defining file and separated by `; ` when several units cover one requirement. Do not add generated parameter
-case suffixes. Record actual execution results in the corresponding step of the [implementation sequence](../core/docs/requirements-json5-implementation-order.md).
+The Core and API tables below are generated from the
+[requirements registry](requirements-registry.json); edit the registry, not the tables
+(see [Maintaining the registry](#maintaining-the-registry)). Record exact
+`SuiteName.TestName` declarations, without generated parameter case suffixes. Record
+actual execution results in the corresponding step of the [implementation sequence](../core/docs/requirements-json5-implementation-order.md).
 The per-production view of the same tests is the
 [grammar evidence matrix](../core/docs/design-grammar-evidence.md). Support, limits and deviations
 are collected in the [JSON5 1.0.0 support statement](conformance.md).
@@ -61,6 +63,68 @@ and `tests/value` with shared test providers in `tests/shared_infrastructure`.
   units are placed by their contract: J5-094–J5-100 quality evidence under core,
   all other public, optional-component and delivery contracts under API. Each
   requirement appears in exactly one section.
+
+## Maintaining the registry
+
+[`requirements-registry.json`](requirements-registry.json) is the machine-readable
+source of the two tables below. Each requirement has:
+
+| Field | Meaning |
+| --- | --- |
+| `id`, `title` | The J5 ID and title exactly as in [requirements](requirements.md) or the [quality requirements](../core/docs/requirements-quality.md) |
+| `status` | `Draft`, `Implemented`, `Verified`, `Deferred` or `Obsolete`, with the meanings above |
+| `issue` | Owning issue number |
+| `section` | `core` or `api`, by the placement rule above |
+| `implementation` | List of `{"files": [...], "symbols": [...]}`; a header and its `core/src/` translation unit share one entry. An optional `note` holds text that is not a symbol |
+| `tests` | List of `{"file": ..., "names": [...]}` with the exact `Suite.Test` names, or `Instance/Suite.Test` for one instantiation of a parameterized suite |
+| `applicable`, `reason` | Optional. `"applicable": false` removes a requirement from the percentages and needs a written `reason`; an `Obsolete` requirement must set it |
+
+To add a requirement, define it in the requirement document first, then add its entry
+to the registry. To map code or tests, add the files, symbols and test names to its
+entry. Several files, symbols, test files and tests per requirement are allowed. Then
+regenerate the tables and check every link:
+
+```sh
+python tools/traceability.py --write-docs
+```
+
+The command fails on registry problems: duplicate or malformed IDs, an ID or title
+that differs from the requirement documents, a requirement missing from the registry,
+and tables that differ from the registry. It also fails on stale links: a missing file,
+a symbol not found in its files, or a test that its file does not declare. Without
+`--write-docs` it only checks, as CI does. Analyzer units are in
+`tools/tests/test_traceability.py`.
+
+## Reading the badges and reports
+
+The `compiler-diversity` workflow runs the analyzer on every pull request and push to
+`main`. It reads the JUnit results of the four required configurations: GCC 13 and
+Clang 18, each with exceptions OFF and ON, all with RTTI OFF and validation tests built.
+The three badges in the README are:
+
+| Badge | A requirement counts when |
+| --- | --- |
+| requirements mapped to code | it has code links and every link resolves |
+| requirements mapped to tests | it has test links and every test is declared in its file |
+| requirements with passing tests | it is mapped to code and tests, and every mapped test, including every parameterized and typed case, passed in all four configurations |
+
+- **Denominator:** every applicable requirement, whatever its status. Draft, Deferred,
+  unimplemented and unmapped requirements count as gaps, not exclusions. Only
+  `"applicable": false` with a reason excludes one.
+- **Not passing:** a skipped, disabled, failed or missing test in any configuration.
+- **Unknown:** shown when the registry is invalid, the analysis could not run, or any
+  configuration's results are missing or unreadable. A failed run never shows 0% or
+  an older success. Percentages are rounded down, so 100% means no gap at all.
+- **Not Verified:** "passing tests" is evidence for the rule above. A mapping or a
+  green test does not prove the behaviour is correct, does not change a row's status,
+  and is separate from line and branch coverage.
+
+On a pull request, the run's summary page shows the totals and the gaps. The
+`traceability-report-html` artifact holds `traceability.html`, the full matrix with
+requirement → code → tests → result per configuration, filters and gaps, plus
+`traceability.json`. The job is informative and not a merge requirement; it runs
+after failed test jobs too. Only pushes to `main` publish the badges and report, from
+a separate job with write permission, to the `metrics-traceability` branch.
 
 ## Core requirements
 

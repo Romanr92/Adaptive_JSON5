@@ -6,17 +6,26 @@ as a value, so it runs the same on a bare-metal microcontroller and on a
 high-performance computer. It is developed towards ISO 26262 ASIL B(D) and ISO/SAE
 21434 CAL 4, with its safety and security work documented in the open.
 
-[![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml)
-[![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml)
-[![Unit test coverage](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
-[![Coverage: lines, functions and branches](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml)
-[![MISRA / CodeQL critical and high findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
-[![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml)
-[![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml)
-[![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml)
-[![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml)
-[![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml)
-[![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml)
+## Project status
+
+| Category | Badge | Meaning / report |
+| --- | --- | --- |
+| Version | [![Latest release](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-version/version.svg)](https://github.com/Romanr92/Adaptive_JSON5/releases) | Latest published release; `unreleased` if none |
+| Requirements | [![Requirements mapped to code](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-implementation.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Applicable J5 requirements linked to existing code |
+| Requirements | [![Requirements mapped to tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-tests.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Applicable J5 requirements linked to declared unit tests |
+| Requirements | [![Requirements with passing tests](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-traceability/traceability-passing.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Mapped, and every mapped test passed with GCC and Clang in both exception modes ([how to read it](docs/traceability.md#reading-the-badges-and-reports)) |
+| Tests | [![Unit tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-tests.yml) | Units on Linux x86-64, Linux ARM64 and Windows MinGW, exceptions OFF and ON |
+| Tests | [![GCC and Clang tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/compiler-diversity.yml) | Units and validation with GCC 13 and Clang 18 |
+| Tests | [![Validation tests](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/validation-tests.yml) | Pinned JSONTestSuite and json5-tests fixtures |
+| Coverage | [![Unit test coverage](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) | Coverage job status; HTML report artifact |
+| Coverage | [![Coverage: lines, functions and branches](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-coverage/coverage.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/unit-test-coverage.yml) | Measured line, function and branch coverage on `main` |
+| Static analysis | [![MISRA C++](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) | CodeQL MISRA C++:2023 and security queries |
+| Static analysis | [![MISRA / CodeQL critical and high findings](https://raw.githubusercontent.com/Romanr92/Adaptive_JSON5/metrics-misra/misra.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/misra-cpp.yml) | Critical/high finding counts on `main` |
+| Runtime checks | [![ASan and UBSan](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/sanitizers.yml) | Units and validation under AddressSanitizer and UndefinedBehaviorSanitizer |
+| Runtime checks | [![libFuzzer](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/fuzz.yml) | Timed fuzzing; fails on crash, timeout or out-of-memory |
+| Style | [![Formatting](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/formatting.yml) | clang-format 18 check |
+| Examples | [![Examples](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml/badge.svg)](https://github.com/Romanr92/Adaptive_JSON5/actions/workflows/examples.yml) | Builds and runs `examples/` (not a merge requirement) |
+| License | [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-17669b)](LICENSE) | [Apache-2.0](LICENSE) |
 
 **Status: in development, pre-1.0, not for production use. Not certified and not
 independently assessed: see [Disclaimers](#disclaimers).**
@@ -343,8 +352,9 @@ not a supported parser release.
 
 - [Requirements](docs/requirements.md): J5 rows, software safety requirements (section K)
   and cybersecurity requirements (section L).
-- [Traceability](docs/traceability.md): unit tests per requirement, and the safety
-  traceability chain.
+- [Traceability](docs/traceability.md): code and unit tests per requirement, generated
+  from the [requirements registry](docs/requirements-registry.json), how to read the
+  traceability badges, and the safety traceability chain.
 - [JSON5 1.0.0 support statement](docs/conformance.md): claim status, limits,
   implementation-defined behaviour, deviations and executed results.
 - [Grammar evidence matrix](core/docs/design-grammar-evidence.md),
@@ -361,6 +371,8 @@ not a supported parser release.
 Install the local tools below before building with both compilers and running
 MISRA analysis. Git fetches the pinned GoogleTest dependency; CMake builds it,
 so a separate GoogleTest package is not required.
+
+### Install the tools
 
 **Windows: install Scoop, then the local tools**
 
@@ -438,6 +450,8 @@ compiler versions stated below and clang-format 18.1.8; the latest local formatt
 may produce different formatting. CodeQL is needed for analysis, while ordinary
 library and test builds need only the build tools.
 
+### Build and run the tests
+
 For the short compiler profiles, run these commands from the repository in
 PowerShell (or a terminal on Linux):
 
@@ -495,81 +509,6 @@ and run CTest again. For a library-only build, set both test options to `OFF`;
 GoogleTest is then neither acquired nor linked. To test exceptions enabled,
 configure another directory with `ADAPTIVE_JSON5_ENABLE_EXCEPTIONS=ON`.
 
-The [`compiler-diversity` CI workflow](.github/workflows/compiler-diversity.yml) builds and runs units and validation with
-GCC 13 and Clang 18 in both exception modes, with RTTI OFF. Compiler versions,
-configuration and test results are uploaded as artifacts. The `misra-cpp`
-workflow analyzes a Clang production build with the CodeQL MISRA C++:2023 pack
-and the default security queries. Findings appear in GitHub code scanning;
-analysis alone does not establish MISRA compliance. Required status checks and
-a code-scanning rule for new findings must be enabled in repository settings
-when these become blocking gates. Existing GCC jobs remain in place.
-MISRA analysis also runs on pushes to `main` to populate the Security tab's
-default-branch alerts; pull-request checks report findings relevant to the PR.
-
-Pull requests also publish downloadable HTML reports in GitHub Actions. Open the
-PR's **Checks**, select the workflow run, then download its artifact from the
-run's **Artifacts** section and extract the ZIP before opening the HTML locally:
-
-- `unit-test-coverage-html` from `unit-test-coverage`: open `index.html` for
-  GCC 14 unit-test coverage (exceptions OFF, RTTI OFF; validation tests excluded).
-  The coverage helper requires matching GCC/gcov 14 or newer for JSON format 2.
-- `sanitizers-report-html-OFF` / `sanitizers-report-html-ON` from `sanitizers`:
-  open `index.html` for ASan+UBSan unit and validation results, configuration and
-  expandable command logs. JUnit XML and raw logs are included.
-- `fuzz-report-html-OFF` / `fuzz-report-html-ON` from `fuzz`: open `index.html`
-  for the timed libFuzzer result and logs. Seed manifests and any crash/timeout/OOM
-  reproducers are included. PR runs last 5 minutes per exception mode; weekly
-  runs last 30 minutes per mode. Both use RTTI OFF and ASan+UBSan.
-- `misra-report-html` from `misra-cpp`: open the `.html` file for the production
-  MISRA/security findings with rule summary and filters; the SARIF is included.
-
-Reports are retained for 30 days. They are generated during PR checks for review
-before merging; GitHub Actions artifacts are downloads rather than hosted pages.
-Coverage currently reports results without a minimum-coverage threshold.
-
-To check MISRA locally, install CodeQL using the platform instructions above
-and check `codeql version`. LLVM alone does not install CodeQL. The analysis uses the
-[CodeQL MISRA C++:2023 pack](https://github.com/github/codeql-coding-standards),
-the same pack selected in [CI](.github/codeql/misra.yml).
-Run the full MISRA check and open its HTML report from the repository directory:
-
-```sh
-python tools/misra_check.py
-```
-
-The script configures a production-only Clang build, captures a clean compilation
-with both unit and validation tests disabled, and excludes examples and GoogleTest.
-MISRA analysis covers the compiled production library and its headers; unit tests
-under `tests/` and `core/tests/` are outside this analysis in both local runs and CI.
-The separate GCC/Clang test jobs continue to compile and execute those tests.
-The script runs the MISRA pack plus the default C++ security queries. It uses all available
-CPU cores for compilation and CodeQL (`--threads=0`). Each run keeps its database
-and `results.sarif` in a new directory under `build/misra/`; the script prints the
-report path and finding count. It converts the SARIF to `results.html` and opens
-it in your default browser. HTML conversion uses Python's standard library;
-the report supports filtering by level, found rule and a case-insensitive file path search,
-with a matching-findings count and a reset button.
-no pip packages or Microsoft C++ Build Tools are needed. If no browser is
-available, open the printed HTML path manually. To convert an existing report
-without rerunning analysis:
-
-```sh
-python tools/misra_check.py --report latest
-```
-
-This selects the newest completed SARIF report under `build/misra/` and opens
-its HTML without rebuilding. To choose a specific report, pass its actual file
-path instead of `latest`.
-
-A zero exit code means analysis completed; findings do not change the exit code.
-Build, analysis or HTML conversion failures return a nonzero exit code.
-
-The workflow follows GitHub's [database creation](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/prepare-code-for-analysis)
-and [query analysis](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/analyze-code)
-instructions. Local analysis and CI currently resolve the available pack version;
-record `codeql version` and downloaded pack versions with your results. A completed
-analysis does not establish MISRA compliance.
-
 Use CMake 3.25+, a compatible C++17 compiler and GoogleTest 1.17.0 for host units.
 CMake downloads and builds the pinned host-only GoogleTest dependency on the first test
 configuration. From the repository directory:
@@ -600,6 +539,132 @@ including parameterized ones. Exceptions and RTTI default OFF. On Windows, run t
 commands in a Visual Studio developer terminal when using its compiler. See
 [native development](core/docs/design-development.md) for offline GoogleTest,
 formatting and toolchain configuration.
+
+### Sanitizers and fuzzing
+
+
+On a native Linux host with Clang 18, Ninja and Python 3, run:
+
+```sh
+python3 tools/runtime_checks.py sanitizers --exceptions OFF
+python3 tools/runtime_checks.py fuzz --exceptions OFF --seconds 300
+```
+
+Use `--exceptions ON` for the second configuration. Sanitizer units use the
+pinned host-only GoogleTest dependency; `--gtest-source PATH` selects an offline
+checkout. Fuzz builds need no GoogleTest. Seeds come from committed third-party
+fixtures; their versions and notices remain in `tests/fixtures/third_party/`.
+The helper prints the self-contained HTML report location, including when a
+build or test fails, and returns a failing exit code. Reports describe the tested
+host configuration, not target verification or safety/security approval.
+
+CMake options `ADAPTIVE_JSON5_ENABLE_SANITIZERS` and
+`ADAPTIVE_JSON5_BUILD_FUZZER` default OFF. These checks currently support native
+Linux GCC/Clang (libFuzzer requires Clang). Instrumentation is private to the
+selected build; use a separate ordinary build for distributable libraries.
+
+Required merge checks for issue #132 are `sanitizers (exceptions OFF)`,
+`sanitizers (exceptions ON)`, `fuzz (exceptions OFF)` and `fuzz (exceptions ON)`.
+Repository branch protection or a ruleset must require them on `main`; workflow
+failure alone does not prevent merging in an unprotected repository.
+
+### CI checks and reports
+
+The [`compiler-diversity` CI workflow](.github/workflows/compiler-diversity.yml) builds and runs units and validation with
+GCC 13 and Clang 18 in both exception modes, with RTTI OFF. Compiler versions,
+configuration and test results are uploaded as artifacts. The `misra-cpp`
+workflow analyzes a Clang production build with the CodeQL MISRA C++:2023 pack
+and the default security queries. Findings appear in GitHub code scanning;
+analysis alone does not establish MISRA compliance. Required status checks and
+a code-scanning rule for new findings must be enabled in repository settings
+when these become blocking gates. Existing GCC jobs remain in place.
+MISRA analysis also runs on pushes to `main` to populate the Security tab's
+default-branch alerts; pull-request checks report findings relevant to the PR.
+
+Pull requests also publish downloadable HTML reports in GitHub Actions. Open the
+PR's **Checks**, select the workflow run, then download its artifact from the
+run's **Artifacts** section and extract the ZIP before opening the HTML locally:
+
+- `unit-test-coverage-html` from `unit-test-coverage`: open `index.html` for
+  GCC 14 unit-test coverage (exceptions OFF, RTTI OFF; validation tests excluded).
+  The coverage helper requires matching GCC/gcov 14 or newer for JSON format 2.
+- `sanitizers-report-html-OFF` / `sanitizers-report-html-ON` from `sanitizers`:
+  open `index.html` for ASan+UBSan unit and validation results, configuration and
+  expandable command logs. JUnit XML and raw logs are included.
+- `fuzz-report-html-OFF` / `fuzz-report-html-ON` from `fuzz`: open `index.html`
+  for the timed libFuzzer result and logs. Seed manifests and any crash/timeout/OOM
+  reproducers are included. PR runs last 5 minutes per exception mode; weekly
+  runs last 30 minutes per mode. Both use RTTI OFF and ASan+UBSan.
+- `misra-report-html` from `misra-cpp`: open the `.html` file for the production
+  MISRA/security findings with rule summary and filters; the SARIF is included.
+- `traceability-report-html` from `compiler-diversity`: open `traceability.html` for
+  the requirement → code → tests → result matrix. The run's summary page shows the
+  totals and gaps without downloading. It is informative, not a merge requirement; see
+  [reading the badges and reports](docs/traceability.md#reading-the-badges-and-reports).
+
+Reports are retained for 30 days. They are generated during PR checks for review
+before merging; GitHub Actions artifacts are downloads rather than hosted pages.
+Coverage currently reports results without a minimum-coverage threshold.
+
+Measured badges in [Project status](#project-status) show the last successfully
+published `main` analysis: line, function and branch coverage together; critical/high
+CodeQL security-severity finding counts across the MISRA/security SARIF report; and
+the three requirements traceability percentages. Findings without numeric
+security severity are shown as unrated; ordinary MISRA errors are not silently
+classified as security-critical. These are report counts, not compliance claims
+or the deduplicated GitHub alert inventory. Workflow status badges remain visible
+so a failed newer analysis is not hidden by older measurements. Before the first
+successful main run publishes the metric branches, measured badges are unavailable.
+A traceability badge shows `unknown` when its analysis could not run. The version badge
+is regenerated from the latest published GitHub release, or shows `unreleased`.
+Publishing uses a separate job with write permission only on main pushes; PR jobs
+remain read-only. Reports include the generated SVG and coverage summary JSON.
+
+### MISRA analysis
+
+To check MISRA locally, install CodeQL using the platform instructions above
+and check `codeql version`. LLVM alone does not install CodeQL. The analysis uses the
+[CodeQL MISRA C++:2023 pack](https://github.com/github/codeql-coding-standards),
+the same pack selected in [CI](.github/codeql/misra.yml).
+Run the full MISRA check and open its HTML report from the repository directory:
+
+```sh
+python tools/misra_check.py
+```
+
+The script configures a production-only Clang build, captures a clean compilation
+with both unit and validation tests disabled, and excludes examples and GoogleTest.
+MISRA analysis covers the compiled production library and its headers; unit tests
+under `tests/` and `core/tests/` are outside this analysis in both local runs and CI.
+The separate GCC/Clang test jobs continue to compile and execute those tests.
+The script runs the MISRA pack plus the default C++ security queries. It uses all available
+CPU cores for compilation and CodeQL (`--threads=0`). Each run keeps its database
+and `results.sarif` in a new directory under `build/misra/`; the script prints the
+report path and finding count. It converts the SARIF to `results.html` and opens
+it in your default browser. HTML conversion uses Python's standard library;
+no pip packages or Microsoft C++ Build Tools are needed. The report filters by level,
+rule and a case-insensitive file path search, with a matching-findings count and a
+reset button. If no browser is available, open the printed HTML path manually. To
+convert an existing report without rerunning analysis:
+
+```sh
+python tools/misra_check.py --report latest
+```
+
+This selects the newest completed SARIF report under `build/misra/` and opens
+its HTML without rebuilding. To choose a specific report, pass its actual file
+path instead of `latest`.
+
+A zero exit code means analysis completed; findings do not change the exit code.
+Build, analysis or HTML conversion failures return a nonzero exit code.
+
+The workflow follows GitHub's [database creation](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/prepare-code-for-analysis)
+and [query analysis](https://docs.github.com/en/code-security/tutorials/customize-code-scanning/analyze-code)
+instructions. Local analysis and CI currently resolve the available pack version;
+record `codeql version` and downloaded pack versions with your results. A completed
+analysis does not establish MISRA compliance.
+
+### Release packages
 
 Release packaging builds GCC static libraries for Linux x86-64, Linux ARM64, Windows
 MinGW x86-64 and a pinned ARM64 Yocto SDK. Each archive contains the `.a` beside its
@@ -680,41 +745,3 @@ through this project. Feedback on the C++ is very welcome.
 No review catches everything: not my own, not the AI reviews and not the automated
 tests. If you find a mistake, in the code or in how I've applied the standards, please
 open an issue. Corrections are always welcome.
-
-### Sanitizer and fuzz checks
-
-On a native Linux host with Clang 18, Ninja and Python 3, run:
-
-```sh
-python3 tools/runtime_checks.py sanitizers --exceptions OFF
-python3 tools/runtime_checks.py fuzz --exceptions OFF --seconds 300
-```
-
-Use `--exceptions ON` for the second configuration. Sanitizer units use the
-pinned host-only GoogleTest dependency; `--gtest-source PATH` selects an offline
-checkout. Fuzz builds need no GoogleTest. Seeds come from committed third-party
-fixtures; their versions and notices remain in `tests/fixtures/third_party/`.
-The helper prints the self-contained HTML report location, including when a
-build or test fails, and returns a failing exit code. Reports describe the tested
-host configuration, not target verification or safety/security approval.
-
-CMake options `ADAPTIVE_JSON5_ENABLE_SANITIZERS` and
-`ADAPTIVE_JSON5_BUILD_FUZZER` default OFF. These checks currently support native
-Linux GCC/Clang (libFuzzer requires Clang). Instrumentation is private to the
-selected build; use a separate ordinary build for distributable libraries.
-
-Required merge checks for issue #132 are `sanitizers (exceptions OFF)`,
-`sanitizers (exceptions ON)`, `fuzz (exceptions OFF)` and `fuzz (exceptions ON)`.
-Repository branch protection or a ruleset must require them on `main`; workflow
-failure alone does not prevent merging in an unprotected repository.
-
-Measured badges show the last successfully published `main` analysis: line,
-function and branch coverage together, and critical/high CodeQL security-severity
-finding counts across the MISRA/security SARIF report. Findings without numeric
-security severity are shown as unrated; ordinary MISRA errors are not silently
-classified as security-critical. These are report counts, not compliance claims
-or the deduplicated GitHub alert inventory. Workflow status badges remain visible
-so a failed newer analysis is not hidden by older measurements. Before the first
-successful main run publishes the metric branches, measured badges are unavailable.
-Publishing uses a separate job with write permission only on main pushes; PR jobs
-remain read-only. Reports include the generated SVG and coverage summary JSON.
