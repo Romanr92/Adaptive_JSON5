@@ -439,7 +439,6 @@ classDiagram
         +void* context
         +allocate
         +deallocate
-        +allocate_result
     }
     class accounted_storage {
         +callbacks()
@@ -491,8 +490,8 @@ classDiagram
 
 | Type / header | Responsibility and interaction |
 | --- | --- |
-| [`storage_callbacks`](../../includes/adaptive_json5/memory/storage.hpp) | Borrows provider context and function pointers. A usable provider supplies deallocation and an allocation route. Explicit-result allocation takes precedence over pointer-or-null allocation. The context remains caller owned. |
-| `allocate_function`, `allocate_result_function`, `deallocate_function` | Callback aliases, not allocator objects. Requests carry byte count and alignment; release must match the original request and must not allocate or throw. |
+| [`storage_callbacks`](../../includes/adaptive_json5/memory/storage.hpp) | Borrows provider context and function pointers. A usable provider supplies both the result-returning allocation callback and deallocation. The context remains caller owned. |
+| `allocate_function`, `deallocate_function` | Callback aliases, not allocator objects. Requests carry byte count and alignment; release must match the original request and must not allocate or throw. |
 | [`owned_block`](../../includes/adaptive_json5/memory/owned_block.hpp) | Move-only owner of one raw allocation and its release description. Destruction releases it once through the original provider. `allocate_block()` and `allocate_array()` validate requests and checked sizes. |
 | [`accounted_storage`](../../includes/adaptive_json5/memory/accounted_storage.hpp) | Wraps an upstream provider with a ceiling on simultaneously outstanding requested bytes. Exposes callbacks and current/peak counters. Capacity and old/new overlap during growth count; upstream internal overhead does not. |
 | [`decoded_string`](../../includes/adaptive_json5/value/decoded_string.hpp) | Immutable owned UTF-16 units, including embedded NUL and unpaired surrogates. Move construction transfers ownership; copy and move assignment are deleted. |
@@ -556,7 +555,7 @@ sequenceDiagram
     participant Provider as Caller provider
     User->>Account: construct with upstream callbacks and byte limit
     User->>Owner: provide Account.callbacks()
-    Owner->>Account: allocate_result(bytes, alignment)
+    Owner->>Account: allocate(bytes, alignment)
     Account->>Account: check outstanding-byte ceiling
     alt within ceiling
         Account->>Provider: request raw storage
@@ -671,15 +670,15 @@ an arbitrary identifier is not implicitly a string value.
 ```mermaid
 classDiagram
     class document {
-        +make_null()
-        +make_boolean(value)
-        +make_string(value)
-        +make_number(value)
-        +make_array()
-        +make_object()
-        +append_element(parent, child)
-        +append_member(parent, name, child)
-        +set_root(index)
+        -make_null()
+        -make_boolean(value)
+        -make_string(value)
+        -make_number(value)
+        -make_array()
+        -make_object()
+        -append_element(parent, child)
+        -append_member(parent, name, child)
+        -set_root(index)
         +view(index)
         +iterate(container)
         +lookup_member(object, name)
@@ -730,7 +729,7 @@ It is a variant, not a polymorphic base class: there is no virtual value hierarc
 
 | Type / header | Responsibility and interaction |
 | --- | --- |
-| [`document`](../../includes/adaptive_json5/value/document.hpp) | Owns record storage and a root index. Creates detached values, validates attachment, sets value spans/root and exposes checked access. It is a builder and owner, not a lexer. |
+| [`document`](../../includes/adaptive_json5/value/document.hpp) | Owns record storage and a root index and exposes checked read access. Construction and mutation (creating detached values, attachment, spans and root) are private and reached only by the parser through `detail::document_access` (ADR 0007); consumers obtain documents from parsing. It is an owner, not a lexer. |
 | [`detail::value_storage`](../../includes/adaptive_json5/value/document.hpp) | Growable bounded sequence of live records in caller storage. Appending preserves existing indices; growth relocates records. Cleanup iterates records without following tree links. |
 | [`detail::value_record`](../includes/value/value_record.hpp) | One payload plus parent/sibling indices, optional owned member name, optional value span and optional member-name span. The latter is representation capacity, not evidence that the parser currently populates it. |
 | `detail::value_payload` | Exactly one null, Boolean, string, number, array or object alternative. Owns scalar allocations through the selected owning type. |

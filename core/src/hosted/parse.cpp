@@ -22,12 +22,19 @@ namespace adaptive_json5
      * @brief Allocate aligned heap storage without throwing.
      * @par Requirements
      * J5-046.
-     * @return Storage, or nullptr when the heap cannot supply it.
+     * @return Storage, or allocation_failure when the heap cannot supply it.
      * @par ID SWU-HOSTED-001
      */
-    void* hosted_allocate(void* /* context */, std::size_t bytes, std::size_t alignment) noexcept
+    result<void*> hosted_allocate(void* /* context */, std::size_t bytes, std::size_t alignment) noexcept
     {
-      return ::operator new(bytes, std::align_val_t{alignment}, std::nothrow);
+      void* const address = ::operator new(bytes, std::align_val_t{alignment}, std::nothrow);
+
+      if (address == nullptr)
+      {
+        return result<void*>::failure(error::without_location(error_code::allocation_failure));
+      }
+
+      return result<void*>::success(address);
     }
 
     /**
@@ -42,7 +49,7 @@ namespace adaptive_json5
     }
 
     // Stateless, so every call can share it without any global mutable state (J5-050).
-    constexpr storage_callbacks c_hosted_provider{nullptr, &hosted_allocate, &hosted_deallocate, nullptr};
+    constexpr storage_callbacks c_hosted_provider{nullptr, &hosted_allocate, &hosted_deallocate};
 
     /**
      * @brief Heap block holding one document's storage accounting at a stable address.

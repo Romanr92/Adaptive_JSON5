@@ -93,7 +93,7 @@ namespace adaptive_json5
    */
   storage_callbacks buffer_arena::callbacks() noexcept
   {
-    return {this, nullptr, &deallocate_callback, &allocate_callback};
+    return {this, &allocate_callback, &deallocate_callback};
   }
 
   /**

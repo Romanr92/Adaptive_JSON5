@@ -1,5 +1,7 @@
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/parser.hpp"
+#include "adaptive_json5/result.hpp"
 
 #include <cstddef>
 #include <cstdlib>
@@ -20,51 +22,19 @@ namespace
   bool g_counting = false;
   std::size_t g_default_heap_calls = 0;
 
-  /**
-   * @brief Allocate from malloc and record the call while counting.
-   * @par Requirements
-   * P041; J5-042.
-   * @note Failure aborts: this test-only replacement must work with exceptions OFF.
-   */
-  void* counted_allocate(std::size_t bytes)
+} // namespace
+
+namespace adaptive_json5_test
+{
+  /** @brief Observe host allocations. @par Requirements P041; J5-042. */
+  void record_heap_allocation() noexcept
   {
     if (g_counting)
     {
       ++g_default_heap_calls;
     }
-    void* address = std::malloc((bytes == 0U) ? 1U : bytes);
-    if (address == nullptr)
-    {
-      std::abort();
-    }
-    return address;
   }
-} // namespace
-
-void* operator new(std::size_t bytes)
-{
-  return counted_allocate(bytes);
-}
-void* operator new[](std::size_t bytes)
-{
-  return counted_allocate(bytes);
-}
-void operator delete(void* address) noexcept
-{
-  std::free(address);
-}
-void operator delete[](void* address) noexcept
-{
-  std::free(address);
-}
-void operator delete(void* address, std::size_t) noexcept
-{
-  std::free(address);
-}
-void operator delete[](void* address, std::size_t) noexcept
-{
-  std::free(address);
-}
+} // namespace adaptive_json5_test
 /* ================================== End Fixtures =================================== */
 
 namespace
@@ -138,10 +108,15 @@ namespace
     struct provider
     {
         std::size_t m_allocations{};
-        static void* allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
+        static result<void*> allocate(void* context, std::size_t bytes, std::size_t alignment) noexcept
         {
           ++static_cast<provider*>(context)->m_allocations;
-          return (alignment > alignof(std::max_align_t)) ? nullptr : std::malloc(bytes);
+          void* const address = (alignment > alignof(std::max_align_t)) ? nullptr : std::malloc(bytes);
+          if (address == nullptr)
+          {
+            return result<void*>::failure(error::without_location(error_code::allocation_failure));
+          }
+          return result<void*>::success(address);
         }
         static void release(void*, void* address, std::size_t, std::size_t) noexcept
         {

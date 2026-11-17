@@ -2,9 +2,10 @@ name: unit-tests
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
-  group: unit-tests-${{ github.event.pull_request.number }}
+  group: unit-tests-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -20,16 +21,17 @@ jobs:
           persist-credentials: false
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+      # Match concurrency to the runner CPU count; bare --parallel is unbounded with Make.
       - name: Build unit tests
-        run: cmake --build build --config Debug --parallel
+        run: cmake --build build --config Debug --parallel "$(nproc)"
       - name: Run unit tests
         run: ctest --test-dir build --build-config Debug --output-on-failure --no-tests=error
       - name: Configure exceptions-enabled unit tests
         run: cmake --preset debug-unit-tests-exceptions
       - name: Build exceptions-enabled unit tests
-        run: cmake --build --preset debug-unit-tests-exceptions --parallel
+        run: cmake --build --preset debug-unit-tests-exceptions --parallel "$(nproc)"
       - name: Run exceptions-enabled unit tests
-        run: ctest --preset debug-unit-tests-exceptions --parallel --output-on-failure
+        run: ctest --preset debug-unit-tests-exceptions --parallel "$(nproc)" --output-on-failure
 
   gcc-portability:
     name: GCC units (${{ matrix.profile }})

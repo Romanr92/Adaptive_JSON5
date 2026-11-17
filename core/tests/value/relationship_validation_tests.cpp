@@ -46,18 +46,19 @@ namespace
     /* Arrange */
     document_provider provider;
     value_storage values{provider.callbacks(), 8};
+    ASSERT_TRUE(values.reserve_exact(8).has_value());
     value_record array;
     array.payload.emplace<array_data>();
     ASSERT_TRUE(values.append(std::move(array)).has_value());
     value_record child;
-    child.parent = value_index{0};
+    child.parent = record_link{0};
     ASSERT_TRUE(values.append(std::move(child)).has_value());
-    const auto parent_record = values.at(value_index{0});
-    const auto child_record = values.at(value_index{1});
+    const auto parent_record = values.at(values.issue(0));
+    const auto child_record = values.at(values.issue(1));
     ASSERT_TRUE(parent_record.has_value());
     ASSERT_TRUE(child_record.has_value());
     auto& links = std::get<array_data>((*parent_record.value_if())->payload).elements;
-    links = {value_index{1}, value_index{1}, 1};
+    links = {record_link{1}, record_link{1}, 1};
     auto& item = **child_record.value_if();
     // These are internal fault-injection cases, not trees obtainable from the public builder.
     // Mutating live record fields exercises defensive checks without invalid object lifetimes.
@@ -81,26 +82,26 @@ namespace
       links.last = {};
       break;
     case relationship_fault::invalid_first:
-      links.first = value_index{99};
+      links.first = record_link{99};
       break;
     case relationship_fault::no_parent:
       item.parent = {};
       break;
     case relationship_fault::wrong_parent:
-      item.parent = value_index{1};
+      item.parent = record_link{1};
       break;
     case relationship_fault::unexpected_name:
       item.member_name.emplace();
       break;
     case relationship_fault::extra_sibling:
-      item.next_sibling = value_index{1};
+      item.next_sibling = record_link{1};
       break;
     case relationship_fault::missing_sibling:
       links.count = 2;
       break;
     }
     /* Act */
-    auto iterator = value_iterator::create(values, value_index{0});
+    auto iterator = value_iterator::create(values, values.issue(0));
     /* Expect */
     const bool rejected_at_creation =
       GetParam() == relationship_fault::count_too_large || GetParam() == relationship_fault::empty_first ||
@@ -133,19 +134,20 @@ namespace
     /* Arrange */
     document_provider provider;
     value_storage values{provider.callbacks(), 8};
+    ASSERT_TRUE(values.reserve_exact(8).has_value());
     value_record object;
     object.payload.emplace<object_data>();
     ASSERT_TRUE(values.append(std::move(object)).has_value());
     value_record child;
-    child.parent = value_index{0};
+    child.parent = record_link{0};
     child.member_name.emplace();
     ASSERT_TRUE(values.append(std::move(child)).has_value());
-    const auto parent_record = values.at(value_index{0});
-    const auto child_record = values.at(value_index{1});
+    const auto parent_record = values.at(values.issue(0));
+    const auto child_record = values.at(values.issue(1));
     ASSERT_TRUE(parent_record.has_value());
     ASSERT_TRUE(child_record.has_value());
     auto& links = std::get<object_data>((*parent_record.value_if())->payload).members;
-    links = {value_index{1}, value_index{1}, 1};
+    links = {record_link{1}, record_link{1}, 1};
     auto& item = **child_record.value_if();
     // Lookup must preserve a broken-chain error; treating it as absence would conceal internal damage.
     switch (GetParam())
@@ -168,19 +170,19 @@ namespace
       links.last = {};
       break;
     case relationship_fault::invalid_first:
-      links.first = value_index{99};
+      links.first = record_link{99};
       break;
     case relationship_fault::no_parent:
       item.parent = {};
       break;
     case relationship_fault::wrong_parent:
-      item.parent = value_index{1};
+      item.parent = record_link{1};
       break;
     case relationship_fault::unexpected_name:
       item.member_name.reset();
       break;
     case relationship_fault::extra_sibling:
-      item.next_sibling = value_index{1};
+      item.next_sibling = record_link{1};
       break;
     case relationship_fault::missing_sibling:
       links.count = 2;
@@ -188,7 +190,7 @@ namespace
     }
     const decoded_string name;
     /* Act */
-    const auto found = lookup_member(values, value_index{0}, name);
+    const auto found = lookup_member(values, values.issue(0), name);
     /* Expect */
     ASSERT_FALSE(found.has_value());
     EXPECT_EQ(found.error_if()->code(), error_code::internal_error);
@@ -205,19 +207,20 @@ namespace
     /* Arrange */
     document_provider provider;
     value_storage values{provider.callbacks(), 8};
+    ASSERT_TRUE(values.reserve_exact(8).has_value());
     value_record object;
     object.payload.emplace<object_data>();
     ASSERT_TRUE(values.append(std::move(object)).has_value());
     value_record child;
-    child.parent = value_index{0};
+    child.parent = record_link{0};
     child.member_name.emplace();
     ASSERT_TRUE(values.append(std::move(child)).has_value());
-    const auto parent_record = values.at(value_index{0});
-    const auto child_record = values.at(value_index{1});
+    const auto parent_record = values.at(values.issue(0));
+    const auto child_record = values.at(values.issue(1));
     ASSERT_TRUE(parent_record.has_value());
     ASSERT_TRUE(child_record.has_value());
     auto& links = std::get<object_data>((*parent_record.value_if())->payload).members;
-    links = {value_index{1}, value_index{1}, 1};
+    links = {record_link{1}, record_link{1}, 1};
     auto& item = **child_record.value_if();
     // Before the fix, ExtraSibling (a self-loop) and MissingLast returned the member as found.
     switch (GetParam())
@@ -240,25 +243,25 @@ namespace
       links.last = {};
       break;
     case relationship_fault::invalid_first:
-      links.first = value_index{99};
+      links.first = record_link{99};
       break;
     case relationship_fault::no_parent:
       item.parent = {};
       break;
     case relationship_fault::wrong_parent:
-      item.parent = value_index{1};
+      item.parent = record_link{1};
       break;
     case relationship_fault::unexpected_name:
       item.member_name.reset();
       break;
     case relationship_fault::extra_sibling:
-      item.next_sibling = value_index{1};
+      item.next_sibling = record_link{1};
       break;
     case relationship_fault::missing_sibling:
       links.count = 2;
       break;
     }
-    const value_view view{values, value_index{0}};
+    const value_view view{values, values.issue(0)};
     /* Act */
     const auto found = view.find_member("");
     /* Expect */
@@ -295,25 +298,26 @@ namespace
       SCOPED_TRACE(fault);
       document_provider provider;
       value_storage values{provider.callbacks(), 8};
+      ASSERT_TRUE(values.reserve_exact(8).has_value());
       value_record array;
-      array.payload.emplace<array_data>(array_data{{value_index{1}, value_index{1}, 1}});
+      array.payload.emplace<array_data>(array_data{{record_link{1}, record_link{1}, 1}});
       ASSERT_TRUE(values.append(std::move(array)).has_value());
       value_record child;
-      child.parent = value_index{0};
+      child.parent = record_link{0};
       if (fault == 1)
         child.parent = {};
       if (fault == 2)
-        child.parent = value_index{1};
+        child.parent = record_link{1};
       if (fault == 3)
         child.member_name.emplace();
       ASSERT_TRUE(values.append(std::move(child)).has_value());
-      auto parent = values.at(value_index{0});
+      auto parent = values.at(values.issue(0));
       ASSERT_TRUE(parent.has_value());
       if (fault == 0)
-        std::get<array_data>((*parent.value_if())->payload).elements.first = value_index{99};
+        std::get<array_data>((*parent.value_if())->payload).elements.first = record_link{99};
       if (fault == 4)
         std::get<array_data>((*parent.value_if())->payload).elements.count = 3;
-      const value_view view{values, value_index{0}};
+      const value_view view{values, values.issue(0)};
       /* Act */
       // Access validation must precede constructing the returned borrowed view.
       const auto element = view.element_at(0);
@@ -338,15 +342,16 @@ namespace
       /* Arrange */
       document_provider provider;
       value_storage values{provider.callbacks(), 8};
-      const value_index last = (damaged == 1) ? value_index{0} : value_index{1};
+      ASSERT_TRUE(values.reserve_exact(8).has_value());
+      const record_link last = (damaged == 1) ? record_link{0} : record_link{1};
       value_record object;
-      object.payload.emplace<object_data>(object_data{{value_index{1}, last, 1}});
+      object.payload.emplace<object_data>(object_data{{record_link{1}, last, 1}});
       ASSERT_TRUE(values.append(std::move(object)).has_value());
       value_record member;
-      member.parent = value_index{0};
+      member.parent = record_link{0};
       member.member_name.emplace();
       ASSERT_TRUE(values.append(std::move(member)).has_value());
-      const value_view view{values, value_index{0}};
+      const value_view view{values, values.issue(0)};
       /* Act */
       const auto found = view.find_member("");
       /* Expect */

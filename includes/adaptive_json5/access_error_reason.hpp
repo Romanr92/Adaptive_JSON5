@@ -17,6 +17,7 @@ namespace adaptive_json5
    * - index_out_of_range: An index or value handle lies outside its container or storage.
    * - invalid_argument: An argument breaks the call's contract, e.g. a null pointer with a
    *   nonzero size, an invalid alignment or a default-constructed view.
+   * - foreign_index: A set index belongs to another document, regardless of its position.
    * @note The reason refines error_code::wrong_type_or_access; it never replaces the error code.
    * Failed library invariants use error_code::internal_error instead.
    */
@@ -26,7 +27,8 @@ namespace adaptive_json5
     absent_member,
     duplicate_member,
     index_out_of_range,
-    invalid_argument
+    invalid_argument,
+    foreign_index
   };
 } // namespace adaptive_json5
 

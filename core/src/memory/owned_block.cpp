@@ -116,13 +116,12 @@ namespace adaptive_json5
    * @brief Allocate one block from caller-supplied storage.
    * @par Requirements
    * P003; P032; J5-003; J5-046; J5-047; J5-051; J5-101.
-   * @return Owning block, an explicit result-callback failure,
+   * @return Owning block, the provider's explicit failure,
    * allocation_failure for an unusable provider or null allocation,
    * or wrong_type_or_access (invalid_argument) for an alignment that is not a power of two.
-   * @note Requires deallocate and at least one allocation callback.
-   * Prefers allocate_result and never falls back after its failure.
+   * @note Requires both allocate and deallocate.
    * A zero-byte request succeeds after provider/alignment validation
-   * without invoking either allocation callback.
+   * without invoking the allocate callback.
    * Explicit callback errors are preserved, including location metadata.
    * Failure reporting requires no allocation.
    * @par ID SWU-MEMORY-053
@@ -131,7 +130,7 @@ namespace adaptive_json5
                                      std::size_t alignment) noexcept
   {
     // Reject unusable providers before any callback can be invoked.
-    if ((storage.deallocate == nullptr) || ((storage.allocate == nullptr) && (storage.allocate_result == nullptr)))
+    if ((storage.allocate == nullptr) || (storage.deallocate == nullptr))
     {
       return result<owned_block>::failure(error::without_location(error_code::allocation_failure));
     }
@@ -147,25 +146,16 @@ namespace adaptive_json5
       return result<owned_block>::success(owned_block{});
     }
 
-    void* data = nullptr;
+    const auto allocated = storage.allocate(storage.context, bytes, alignment);
 
-    if (storage.allocate_result != nullptr)
+    if (!allocated.has_value())
     {
-      const auto allocated = storage.allocate_result(storage.context, bytes, alignment);
-
-      if (!allocated.has_value())
-      {
-        return result<owned_block>::failure(*allocated.error_if());
-      }
-
-      data = *allocated.value_if();
-    }
-    else
-    {
-      data = storage.allocate(storage.context, bytes, alignment);
+      return result<owned_block>::failure(*allocated.error_if());
     }
 
-    // Neither callback may create a nonempty owner around a null address.
+    void* const data = *allocated.value_if();
+
+    // A successful callback may not create a nonempty owner around a null address.
     if (data == nullptr)
     {
       return result<owned_block>::failure(error::without_location(error_code::allocation_failure));

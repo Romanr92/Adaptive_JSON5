@@ -204,6 +204,15 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-157
        */
       [[nodiscard]] result<value_view> find_member(std::string_view name) const noexcept;
+
+      /**
+       * @brief Return this view's tagged value index.
+       * @par Requirements
+       * P030; J5-039; J5-040.
+       * @return Stored index, or invalid_argument for a default view.
+       * @note Performs no allocation and does not extend storage lifetime.
+       */
+      [[nodiscard]] result<value_index> index() const noexcept;
   };
 } // namespace adaptive_json5
 

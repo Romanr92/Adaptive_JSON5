@@ -33,7 +33,8 @@ target_link_libraries(adaptive_json5_concurrency_unit_tests PRIVATE Threads::Thr
 
 adaptive_json5_add_unit(adaptive_json5_pure_memory_unit_tests
     pure_memory_units
-    pure_memory_tests.cpp)
+    pure_memory_tests.cpp
+    ../shared_infrastructure/global_allocation_probe.cpp)
 # The import scan reads production sources; parsing itself stays in memory.
 target_compile_definitions(adaptive_json5_pure_memory_unit_tests PRIVATE
     "ADAPTIVE_JSON5_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
@@ -58,7 +59,8 @@ adaptive_json5_add_unit(adaptive_json5_error_reason_unit_tests
 # Replaces the global allocator to prove formatting allocates nothing, so it stays in its own executable.
 adaptive_json5_add_unit(adaptive_json5_diagnostic_format_unit_tests
     diagnostic_format_units
-    diagnostic_format_tests.cpp)
+    diagnostic_format_tests.cpp
+    ../shared_infrastructure/global_allocation_probe.cpp)
 
 # Compile every public header in its own test translation unit, without private paths.
 set(adaptive_json5_public_headers

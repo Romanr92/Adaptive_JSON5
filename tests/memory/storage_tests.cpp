@@ -1,6 +1,8 @@
 #include "adaptive_json5/access_error_reason.hpp"
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/result.hpp"
 
 #include <array>
 #include <cstddef>
@@ -17,8 +19,10 @@ namespace
   using adaptive_json5::access_error_reason;
   using adaptive_json5::allocate_array;
   using adaptive_json5::allocate_block;
+  using adaptive_json5::error;
   using adaptive_json5::error_code;
   using adaptive_json5::owned_block;
+  using adaptive_json5::result;
   using adaptive_json5::storage_callbacks;
 
   constexpr std::size_t c_max = std::numeric_limits<std::size_t>::max();
@@ -76,9 +80,14 @@ namespace
       }
 
     private:
-      static void* allocate_thunk(void* context, std::size_t bytes, std::size_t alignment) noexcept
+      static result<void*> allocate_thunk(void* context, std::size_t bytes, std::size_t alignment) noexcept
       {
-        return static_cast<counting_provider*>(context)->allocate(bytes, alignment);
+        void* const address = static_cast<counting_provider*>(context)->allocate(bytes, alignment);
+        if (address == nullptr)
+        {
+          return result<void*>::failure(error::without_location(error_code::allocation_failure));
+        }
+        return result<void*>::success(address);
       }
 
       static void deallocate_thunk(void* context, void* address, std::size_t bytes, std::size_t alignment) noexcept
@@ -125,7 +134,7 @@ namespace
   /* =================================== Test_J5_046 =================================== */
 
   static_assert(
-    std::is_nothrow_invocable_r_v<void*, adaptive_json5::allocate_function, void*, std::size_t, std::size_t>);
+    std::is_nothrow_invocable_r_v<result<void*>, adaptive_json5::allocate_function, void*, std::size_t, std::size_t>);
   static_assert(
     std::is_nothrow_invocable_r_v<void, adaptive_json5::deallocate_function, void*, void*, std::size_t, std::size_t>);
   static_assert(std::is_nothrow_default_constructible_v<storage_callbacks>);
@@ -148,20 +157,21 @@ namespace
 
   /* ------------------------------------------------------------------------------- */
 
-  /* Verify allocation failure is reported as nullptr and leaves nothing to release.
+  /* Verify allocation failure is reported explicitly and leaves nothing to release.
    * Arrange: Create a provider that is already exhausted.
    * Act: Request aligned storage through its callbacks.
-   * Expect: The request returns nullptr and no allocation or release is recorded.
+   * Expect: The request fails with allocation_failure and no allocation or release is recorded.
    */
-  TEST(J5_046_Storage, ReportsFailureAsNullWithoutOutstandingStorage)
+  TEST(J5_046_Storage, ReportsExplicitFailureWithoutOutstandingStorage)
   {
     /* Arrange */
     counting_provider provider{0};
     const storage_callbacks callbacks = provider.callbacks();
     /* Act */
-    void* const actual = callbacks.allocate(callbacks.context, 16, alignof(std::max_align_t));
+    const auto actual = callbacks.allocate(callbacks.context, 16, alignof(std::max_align_t));
     /* Expect */
-    EXPECT_EQ(actual, nullptr);
+    ASSERT_FALSE(actual.has_value());
+    EXPECT_EQ(actual.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(provider.failures(), 1U);
     EXPECT_EQ(provider.allocations(), 0U);
     EXPECT_EQ(provider.releases(), 0U);
@@ -173,7 +183,7 @@ namespace
   /* Verify each allocation can fail independently and successful ones release in balance.
    * Arrange: Allow exactly two allocations, then request three blocks.
    * Act: Allocate, observe the third failure and release the successes.
-   * Expect: Two aligned blocks succeed, the third is nullptr and outstanding bytes return to zero.
+   * Expect: Two aligned blocks succeed, the third fails and outstanding bytes return to zero.
    */
   TEST(J5_046_Storage, BalancesReleaseAfterInjectedFailure)
   {
@@ -181,9 +191,13 @@ namespace
     counting_provider provider{2};
     const storage_callbacks callbacks = provider.callbacks();
     /* Act */
-    void* const first = callbacks.allocate(callbacks.context, 8, alignof(std::max_align_t));
-    void* const second = callbacks.allocate(callbacks.context, 24, alignof(std::max_align_t));
-    void* const third = callbacks.allocate(callbacks.context, 8, alignof(std::max_align_t));
+    const auto first_result = callbacks.allocate(callbacks.context, 8, alignof(std::max_align_t));
+    const auto second_result = callbacks.allocate(callbacks.context, 24, alignof(std::max_align_t));
+    const auto third = callbacks.allocate(callbacks.context, 8, alignof(std::max_align_t));
+    ASSERT_TRUE(first_result.has_value());
+    ASSERT_TRUE(second_result.has_value());
+    void* const first = *first_result.value_if();
+    void* const second = *second_result.value_if();
     const std::size_t outstanding_before_release = provider.outstanding_bytes();
     callbacks.deallocate(callbacks.context, first, 8, alignof(std::max_align_t));
     callbacks.deallocate(callbacks.context, second, 24, alignof(std::max_align_t));
@@ -193,7 +207,8 @@ namespace
     EXPECT_NE(first, second);
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(first) % alignof(std::max_align_t), 0U);
     EXPECT_EQ(reinterpret_cast<std::uintptr_t>(second) % alignof(std::max_align_t), 0U);
-    EXPECT_EQ(third, nullptr);
+    ASSERT_FALSE(third.has_value());
+    EXPECT_EQ(third.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(outstanding_before_release, 32U);
     EXPECT_EQ(provider.allocations(), 2U);
     EXPECT_EQ(provider.failures(), 1U);
@@ -213,7 +228,9 @@ namespace
     /* Arrange */
     counting_provider provider{1};
     const storage_callbacks callbacks = provider.callbacks();
-    void* const block = callbacks.allocate(callbacks.context, 12, 4);
+    const auto allocated = callbacks.allocate(callbacks.context, 12, 4);
+    ASSERT_TRUE(allocated.has_value());
+    void* const block = *allocated.value_if();
     const std::size_t allocation_alignment = provider.last_alignment();
     /* Act */
     callbacks.deallocate(callbacks.context, block, 12, 4);

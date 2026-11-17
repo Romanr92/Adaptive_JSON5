@@ -1,4 +1,6 @@
 #include "../../../tests/shared_infrastructure/byte_array.hpp"
+#include "adaptive_json5/error.hpp"
+#include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "lexer/string/string_boundary.hpp"
 #include "lexer/string/unicode_escape.hpp"
@@ -24,9 +26,14 @@ namespace
    * P017; J5-018.
    * @note Only test callbacks use the host heap; allocation failure remains explicit.
    */
-  void* allocate_test_storage(void*, std::size_t bytes, std::size_t alignment) noexcept
+  result<void*> allocate_test_storage(void*, std::size_t bytes, std::size_t alignment) noexcept
   {
-    return alignment <= alignof(std::max_align_t) ? std::malloc(bytes) : nullptr;
+    void* const address = alignment <= alignof(std::max_align_t) ? std::malloc(bytes) : nullptr;
+    if (address == nullptr)
+    {
+      return result<void*>::failure(error::without_location(error_code::allocation_failure));
+    }
+    return result<void*>::success(address);
   }
 
   /**

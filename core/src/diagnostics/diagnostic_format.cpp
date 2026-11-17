@@ -342,6 +342,8 @@ namespace adaptive_json5
         return "index out of range";
       case access_error_reason::invalid_argument:
         return "invalid argument";
+      case access_error_reason::foreign_index:
+        return "index belongs to another document";
       }
 
       return "wrong type or invalid access";

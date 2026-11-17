@@ -281,7 +281,8 @@ namespace adaptive_json5
         return status_result::failure(*created.error_if());
       }
 
-      const auto recorded = m_document.set_source_span(*created.value_if(), span, m_input.size);
+      const auto recorded =
+        detail::document_access::set_source_span(m_document, *created.value_if(), span, m_input.size);
 
       if (!recorded.has_value())
       {
@@ -1157,9 +1158,9 @@ namespace adaptive_json5
      */
     parser_engine::parser_engine(input_view input, const parse_options& options, accounted_storage& accounting) noexcept
         : m_input(input), m_options(options), m_storage(accounting.callbacks()),
-          m_owned_byte_limit(accounting.byte_limit()), m_source(input), m_document(m_storage, options.limits.max_nodes),
-          m_resources(options.limits), m_work(options.limits.max_work_units),
-          m_frames(m_storage, options.limits.max_depth),
+          m_owned_byte_limit(accounting.byte_limit()), m_source(input),
+          m_document(detail::document_access::create(m_storage, options.limits.max_nodes)), m_resources(options.limits),
+          m_work(options.limits.max_work_units), m_frames(m_storage, options.limits.max_depth),
           m_warnings(m_storage, options.limits.max_diagnostics, options.warning_storage)
     {
     }
@@ -1321,7 +1322,7 @@ namespace adaptive_json5
       }
 
       // Establish the root only after the entire value was completed.
-      const auto rooted = m_document.set_root(m_root);
+      const auto rooted = detail::document_access::set_root(m_document, m_root);
 
       if (!rooted.has_value())
       {

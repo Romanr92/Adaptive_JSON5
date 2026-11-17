@@ -37,7 +37,7 @@ library was checked to be byte-identical before and after.
 | MEMORY | SWU-MEMORY-077 | SWU-MEMORY-078 |
 | PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
-| VALUE | SWU-VALUE-157 | SWU-VALUE-158 |
+| VALUE | SWU-VALUE-170 | SWU-VALUE-171 |
 
 ## API
 
@@ -505,3 +505,16 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-155 | used | `json5_value::as_float()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-156 | used | `json5_value::as_float(const storage_callbacks &)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-157 | used | `value_view::find_member(std::string_view)` | `core/src/value/value_view.cpp` | `includes/adaptive_json5/value/value_view.hpp` |
+| SWU-VALUE-158 | used | `detail::document_access::create(const storage_callbacks &, std::size_t)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-159 | used | `detail::document_access::make_null(document &)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-160 | used | `detail::document_access::make_boolean(document &, bool)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-161 | used | `detail::document_access::make_string(document &, decoded_string)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-162 | used | `detail::document_access::make_number(document &, owned_number)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-163 | used | `detail::document_access::make_array(document &)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-164 | used | `detail::document_access::make_object(document &)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-165 | used | `detail::document_access::append_element(document &, value_index, value_index)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-166 | used | `detail::document_access::append_member(document &, value_index, decoded_string &&, value_index)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-167 | used | `detail::document_access::append_member(document &, value_index, decoded_string &&, value_index, source_span, std::size_t)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-168 | used | `detail::document_access::set_source_span(document &, value_index, source_span, std::size_t)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-169 | used | `detail::document_access::set_member_name_source_span(document &, value_index, source_span, std::size_t)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-170 | used | `detail::document_access::set_root(document &, value_index)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
