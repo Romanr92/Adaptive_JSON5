@@ -26,23 +26,23 @@
     "stale_links": 0,
     "unmapped_tests": 0,
     "implementation": {
-      "count": 55,
-      "percent": 54.4
+      "count": 62,
+      "percent": 61.3
     },
     "tests": {
-      "count": 56,
-      "percent": 55.4
+      "count": 58,
+      "percent": 57.4
     },
     "passing": {
-      "count": 54,
-      "percent": 53.4
+      "count": 57,
+      "percent": 56.4
     }
   },
   "requirements": [
     {
       "id": "J5-004",
       "title": "Input boundary",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -286,7 +286,7 @@
     {
       "id": "J5-006",
       "title": "Unicode data baseline",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "applicable": true,
@@ -361,7 +361,7 @@
     {
       "id": "J5-009",
       "title": "UTF-8 source",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "applicable": true,
@@ -616,7 +616,7 @@
     {
       "id": "J5-010",
       "title": "JSON whitespace",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -678,7 +678,7 @@
     {
       "id": "J5-011",
       "title": "JSON5 whitespace",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "applicable": true,
@@ -796,7 +796,7 @@
     {
       "id": "J5-012",
       "title": "Comments",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 9,
       "section": "core",
       "applicable": true,
@@ -914,7 +914,7 @@
     {
       "id": "J5-013",
       "title": "Structural tokens",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 9,
       "section": "core",
       "applicable": true,
@@ -1098,7 +1098,7 @@
     {
       "id": "J5-014",
       "title": "Quoted strings",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "applicable": true,
@@ -1304,7 +1304,7 @@
     {
       "id": "J5-015",
       "title": "JSON escapes",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "applicable": true,
@@ -1510,7 +1510,7 @@
     {
       "id": "J5-016",
       "title": "JSON5 escapes",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "applicable": true,
@@ -2420,7 +2420,7 @@
     {
       "id": "J5-018",
       "title": "Surrogate fidelity",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "applicable": true,
@@ -2686,7 +2686,7 @@
     {
       "id": "J5-019",
       "title": "Unquoted member names",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "applicable": true,
@@ -2860,7 +2860,7 @@
     {
       "id": "J5-020",
       "title": "Escaped identifiers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 22,
       "section": "core",
       "applicable": true,
@@ -3000,7 +3000,7 @@
     {
       "id": "J5-021",
       "title": "JSON numbers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 25,
       "section": "core",
       "applicable": true,
@@ -3162,7 +3162,7 @@
     {
       "id": "J5-022",
       "title": "JSON5 numbers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 25,
       "section": "core",
       "applicable": true,
@@ -3401,7 +3401,7 @@
     {
       "id": "J5-023",
       "title": "Primitive literals",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 22,
       "section": "core",
       "applicable": true,
@@ -3617,7 +3617,7 @@
     {
       "id": "J5-024",
       "title": "Token boundaries",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 9,
       "section": "core",
       "applicable": true,
@@ -3869,7 +3869,7 @@
     {
       "id": "J5-025",
       "title": "BOM policy",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "applicable": true,
@@ -3950,7 +3950,7 @@
     {
       "id": "J5-026",
       "title": "Complete input",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -4146,7 +4146,7 @@
     {
       "id": "J5-027",
       "title": "Language completeness",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 25,
       "section": "core",
       "applicable": true,
@@ -4352,7 +4352,7 @@
     {
       "id": "J5-028",
       "title": "Value types",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "applicable": true,
@@ -4538,7 +4538,7 @@
     {
       "id": "J5-029",
       "title": "Length-aware strings",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "applicable": true,
@@ -4705,7 +4705,7 @@
     {
       "id": "J5-030",
       "title": "Ordered arrays",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "applicable": true,
@@ -4850,7 +4850,7 @@
     {
       "id": "J5-031",
       "title": "Observable object members",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "applicable": true,
@@ -5011,7 +5011,7 @@
     {
       "id": "J5-032",
       "title": "Duplicate policy",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 33,
       "section": "core",
       "applicable": true,
@@ -5157,7 +5157,7 @@
     {
       "id": "J5-033",
       "title": "Name equality",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 22,
       "section": "core",
       "applicable": true,
@@ -5291,7 +5291,7 @@
     {
       "id": "J5-034",
       "title": "Exact number storage",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "applicable": true,
@@ -5423,7 +5423,7 @@
     {
       "id": "J5-035",
       "title": "Checked integer conversion",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -5594,7 +5594,7 @@
     {
       "id": "J5-036",
       "title": "Value and spelling queries",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -5838,7 +5838,7 @@
     {
       "id": "J5-037",
       "title": "Floating conversion",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -6361,7 +6361,7 @@
     {
       "id": "J5-038",
       "title": "Special numbers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "applicable": true,
@@ -6928,7 +6928,7 @@
     {
       "id": "J5-040",
       "title": "Document lifetime",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -7531,7 +7531,7 @@
     {
       "id": "J5-041",
       "title": "Source spans",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -7893,7 +7893,7 @@
     {
       "id": "J5-043",
       "title": "Structured errors",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -8136,7 +8136,7 @@
     {
       "id": "J5-044",
       "title": "Diagnostic locations",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "applicable": true,
@@ -8474,7 +8474,7 @@
     {
       "id": "J5-046",
       "title": "Fallible allocation",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -9625,7 +9625,7 @@
     {
       "id": "J5-047",
       "title": "Configurable limits",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -10169,7 +10169,7 @@
     {
       "id": "J5-048",
       "title": "Bounded traversal",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -10614,7 +10614,7 @@
     {
       "id": "J5-049",
       "title": "Work budgets",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -10905,7 +10905,7 @@
     {
       "id": "J5-051",
       "title": "Atomic results and reuse",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "core",
       "applicable": true,
@@ -11324,56 +11324,24 @@
     {
       "id": "J5-099",
       "title": "Portable unit build matrix",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 72,
       "section": "core",
       "applicable": true,
       "reason": "",
       "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
-    },
-    {
-      "id": "J5-100",
-      "title": "Release completeness",
-      "status": "Draft",
-      "issue": 72,
-      "section": "core",
-      "applicable": true,
-      "reason": "",
-      "design": [
+      "implementation": [
         {
-          "file": "core/docs/adr-0002-public-private-source-layout.md",
-          "problem": ""
+          "files": [
+            ".github/workflows/unit-tests.yml",
+            ".github/workflows/compiler-diversity.yml",
+            ".github/workflows/formatting.yml"
+          ],
+          "symbols": [],
+          "note": "Linux x86-64, Linux ARM64 and Windows MinGW-w64 with exceptions OFF and ON, Clang and clang-format",
+          "problems": []
         }
       ],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
-    },
-    {
-      "id": "J5-001",
-      "title": "Standalone C++ library",
-      "status": "Draft",
-      "issue": 68,
-      "section": "api",
-      "applicable": true,
-      "reason": "",
-      "design": [],
-      "implementation": [],
       "tests": [
         {
           "id": "J5_001_BuildConfiguration.UsesCxx17OrNewer",
@@ -11385,38 +11353,160 @@
             "clang++-18-OFF": "passed",
             "clang++-18-ON": "passed"
           }
+        },
+        {
+          "id": "J5_003_BuildConfiguration.AppliesSelectedExceptionMode",
+          "file": "tests/api/build_configuration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_101_BuildConfiguration.AppliesSelectedRttiMode",
+          "file": "tests/api/build_configuration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
         }
       ],
-      "code_mapped": false,
+      "code_mapped": true,
       "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
+    },
+    {
+      "id": "J5-100",
+      "title": "Release completeness",
+      "status": "Accepted",
+      "issue": 72,
+      "section": "core",
+      "applicable": true,
+      "reason": "",
+      "design": [
+        {
+          "file": "core/docs/adr-0002-public-private-source-layout.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "docs/conformance.md",
+            "docs/licensing.md"
+          ],
+          "symbols": [],
+          "note": "Release review evidence; this contract has no unit test",
+          "problems": []
+        }
+      ],
+      "tests": [],
+      "code_mapped": true,
+      "test_mapped": false,
       "tests_passing": false,
       "gaps": [
-        "no code mapped"
+        "no tests mapped"
       ]
     },
     {
-      "id": "J5-002",
-      "title": "Build components",
-      "status": "Draft",
+      "id": "J5-001",
+      "title": "Standalone C++ library",
+      "status": "Implemented",
       "issue": 68,
       "section": "api",
       "applicable": true,
       "reason": "",
       "design": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "CMakeLists.txt",
+            "includes/adaptive_json5/adaptive_json5.hpp"
+          ],
+          "symbols": [],
+          "note": "C++17 without compiler extensions (CXX_EXTENSIONS OFF); one public umbrella header",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "J5_001_BuildConfiguration.UsesCxx17OrNewer",
+          "file": "tests/api/build_configuration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_092_UmbrellaHeader.ParsesAndReadsWithOneInclude",
+          "file": "tests/api/umbrella_header_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_092_UmbrellaHeader.DescribesFailureWithOneInclude",
+          "file": "tests/api/umbrella_header_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
+    },
+    {
+      "id": "J5-002",
+      "title": "Build components",
+      "status": "Accepted",
+      "issue": 68,
+      "section": "api",
+      "applicable": true,
+      "reason": "",
+      "design": [],
+      "implementation": [
+        {
+          "files": [
+            "CMakeLists.txt",
+            "CMakePresets.json"
+          ],
+          "symbols": [],
+          "note": "Parser-only library build with optional unit tests; schema and tool targets are not implemented yet",
+          "problems": []
+        }
+      ],
       "tests": [],
-      "code_mapped": false,
+      "code_mapped": true,
       "test_mapped": false,
       "tests_passing": false,
       "gaps": [
-        "no code mapped",
         "no tests mapped"
       ]
     },
     {
       "id": "J5-003",
       "title": "Exception-independent API",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -11582,7 +11672,7 @@
     {
       "id": "J5-005",
       "title": "Syntax selection",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "api",
       "applicable": true,
@@ -11666,26 +11756,38 @@
     {
       "id": "J5-007",
       "title": "License and provenance",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "applicable": true,
       "reason": "",
       "design": [],
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "LICENSE",
+            "NOTICE",
+            "LICENSES/Unicode-License-V3.txt",
+            "docs/licensing.md",
+            "docs/dependencies.md"
+          ],
+          "symbols": [],
+          "note": "Review evidence; this contract has no unit test",
+          "problems": []
+        }
+      ],
       "tests": [],
-      "code_mapped": false,
+      "code_mapped": true,
       "test_mapped": false,
       "tests_passing": false,
       "gaps": [
-        "no code mapped",
         "no tests mapped"
       ]
     },
     {
       "id": "J5-008",
       "title": "Public contracts",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 72,
       "section": "api",
       "applicable": true,
@@ -11760,7 +11862,7 @@
     {
       "id": "J5-042",
       "title": "Pure memory parsing",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -11824,7 +11926,7 @@
     {
       "id": "J5-045",
       "title": "Failure-safe reporting",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -11909,7 +12011,7 @@
     {
       "id": "J5-050",
       "title": "Concurrency",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -11992,7 +12094,7 @@
     {
       "id": "J5-052",
       "title": "Deterministic semantics",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -12828,26 +12930,66 @@
     {
       "id": "J5-091",
       "title": "Native portability",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "applicable": true,
       "reason": "",
       "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "implementation": [
+        {
+          "files": [
+            ".github/workflows/unit-tests.yml"
+          ],
+          "symbols": [],
+          "note": "Same unit suite on Linux x86-64, Linux ARM64 and Windows MinGW-w64; the optional schema component is not implemented yet",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "J5_001_BuildConfiguration.UsesCxx17OrNewer",
+          "file": "tests/api/build_configuration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_003_BuildConfiguration.AppliesSelectedExceptionMode",
+          "file": "tests/api/build_configuration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_101_BuildConfiguration.AppliesSelectedRttiMode",
+          "file": "tests/api/build_configuration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-092",
       "title": "Reusable package",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "applicable": true,
@@ -12922,7 +13064,7 @@
     {
       "id": "J5-093",
       "title": "Versioned consumption",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "applicable": true,
@@ -12933,20 +13075,28 @@
           "problem": ""
         }
       ],
-      "implementation": [],
+      "implementation": [
+        {
+          "files": [
+            "docs/dependencies.md"
+          ],
+          "symbols": [],
+          "note": "Pinned dependency versions are documented; no public version or configuration information exists yet to unit-test",
+          "problems": []
+        }
+      ],
       "tests": [],
-      "code_mapped": false,
+      "code_mapped": true,
       "test_mapped": false,
       "tests_passing": false,
       "gaps": [
-        "no code mapped",
         "no tests mapped"
       ]
     },
     {
       "id": "J5-094",
       "title": "Grammar unit regression coverage",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "api",
       "applicable": true,
@@ -12991,7 +13141,7 @@
     {
       "id": "J5-095",
       "title": "Pinned syntax fixtures",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "api",
       "applicable": true,
@@ -13077,7 +13227,7 @@
     {
       "id": "J5-097",
       "title": "Deterministic robustness unit cases",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 38,
       "section": "api",
       "applicable": true,
@@ -13128,7 +13278,7 @@
     {
       "id": "J5-098",
       "title": "Fault-injection evidence",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 38,
       "section": "api",
       "applicable": true,
@@ -13179,7 +13329,7 @@
     {
       "id": "J5-101",
       "title": "OS-agnostic embedded integration",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "applicable": true,
