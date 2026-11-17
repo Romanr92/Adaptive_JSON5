@@ -102,7 +102,8 @@ namespace adaptive_json5
    * has only `\u0000`, because a raw U+0000 is already a syntax error there.
    * In a member name, name_control_policy::reject still rejects U+0000 when this policy is
    * preserve.
-   * Syntax and encoding errors are reported first. Applies in either syntax mode.
+   * Within one string or name, syntax and encoding errors are reported first; otherwise the
+   * first error in source order wins. Applies in either syntax mode.
    * @warning Secure mode is not fully standard JSON or JSON5. It deliberately rejects some
    * documents that the standards allow: duplicate member names, zero bytes and control
    * characters in strings or member names, and unpaired surrogates. A valid document from
@@ -129,7 +130,8 @@ namespace adaptive_json5
    * String values are not checked by this policy; see zero_byte_policy for U+0000.
    * U+0000 in a name is reported as security_reason::zero_byte while zero_bytes rejects;
    * this policy still rejects it when zero_bytes is switched to preserve.
-   * Syntax and encoding errors are reported first. Applies in either syntax mode.
+   * Within one string or name, syntax and encoding errors are reported first; otherwise the
+   * first error in source order wins. Applies in either syntax mode.
    * @warning Secure mode is not fully standard JSON or JSON5. It deliberately rejects some
    * documents that the standards allow: duplicate member names, zero bytes and control
    * characters in strings or member names, and unpaired surrogates. A valid document from
@@ -152,8 +154,9 @@ namespace adaptive_json5
    * - reject: Fail the parse with error_code::security_policy and
    *   security_reason::unpaired_surrogate; source_range() covers the whole escape.
    * @note Applies to strings and member names in either syntax mode. A high surrogate pairs
-   * only with a low surrogate that is the next decoded unit. Syntax and encoding errors are
-   * reported first.
+   * only with a low surrogate that is the next decoded unit. Within one string or name,
+   * syntax and encoding errors are reported first; otherwise the first error in source order
+   * wins.
    * @warning Secure mode is not fully standard JSON or JSON5. It deliberately rejects some
    * documents that the standards allow: duplicate member names, zero bytes and control
    * characters in strings or member names, and unpaired surrogates. A valid document from

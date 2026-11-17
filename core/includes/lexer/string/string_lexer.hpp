@@ -6,6 +6,7 @@
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/string/string_boundary.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_token.hpp"
 
 #include <cstddef>
@@ -27,7 +28,8 @@ namespace adaptive_json5
      * @par ID SWU-LEXER-039
      */
     [[nodiscard]] status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
-                                                       const string_warning_observer& observer) noexcept;
+                                                       const string_warning_observer& observer,
+                                                       string_checks checks) noexcept;
   } // namespace detail
 
   /**
@@ -38,19 +40,25 @@ namespace adaptive_json5
    * @param mode Selected input syntax.
    * @param max_units Maximum decoded UTF-16 units.
    * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
+   * @param checks Secure-mode checks; the default applies none (CSR-07).
    * @return The measurement, successful nullopt before nonquote input or EOF,
    * or the same located failure consume_string reports for the same input.
    * @note Success consumes through the matching closing quote only.
    * No-match and failure leave the caller's cursor unchanged.
    * Performs no allocation and invokes no warning callbacks (ADR 0003, decisions 2 and 7).
    * Does not skip trivia or validate input following the closing quote.
+   * A secure-mode violation is reported only after the rest of the string is valid, as
+   * error_code::security_policy covering the first offending character or escape.
+   * Under checks.reject_unpaired_surrogate an unpaired surrogate is that violation instead of
+   * a warning, so it is not counted.
    * More warnings than warning_allowance are not a failure: the measurement carries the
    * first excess one as excess_warning, so the caller can report its exact offset (issue #125).
    * @par ID SWU-LEXER-040
    */
   [[nodiscard]] result<std::optional<string_measure>>
   measure_string(cursor& source, syntax_mode mode, std::size_t max_units,
-                 std::size_t warning_allowance = std::numeric_limits<std::size_t>::max()) noexcept;
+                 std::size_t warning_allowance = std::numeric_limits<std::size_t>::max(),
+                 string_checks checks = {}) noexcept;
 
   /**
    * @brief Consume one complete quoted string into owned decoded storage.
@@ -62,6 +70,8 @@ namespace adaptive_json5
    * @param max_units Maximum decoded UTF-16 unit capacity.
    * @param observer Optional observer for all successful-string warnings.
    * @param sink Optional parser sink: reserve after the string is allocated, record during decoding.
+   * @param checks Secure-mode checks; the default applies none (CSR-07). Applied in the
+   * measuring pass, so a violation is reported before any allocation.
    * @return Owned token, successful nullopt before nonquote input or EOF,
    * or an explicit located failure.
    * @note Success consumes through the matching closing quote only.
@@ -77,7 +87,8 @@ namespace adaptive_json5
    */
   [[nodiscard]] result<std::optional<string_token>>
   consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units,
-                 string_warning_observer observer = {}, const string_warning_sink* sink = nullptr) noexcept;
+                 string_warning_observer observer = {}, const string_warning_sink* sink = nullptr,
+                 string_checks checks = {}) noexcept;
 } // namespace adaptive_json5
 
 #endif /* STRING_LEXER_HPP_ */

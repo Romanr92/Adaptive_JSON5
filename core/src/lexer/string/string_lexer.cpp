@@ -1,13 +1,17 @@
 #include "lexer/string/string_lexer.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/security_reason.hpp"
+#include "adaptive_json5/value/string_warning.hpp"
 #include "common/checked_size.hpp"
 #include "input/cursor.hpp"
 #include "lexer/string/string_boundary.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_escape.hpp"
 #include "lexer/string/string_token.hpp"
 #include "lexer/string/string_warning.hpp"
@@ -53,7 +57,10 @@ namespace adaptive_json5
      * excess_warning. Callers that do not limit warnings pass c_no_warning_allowance.
      * @param output Null to count only; otherwise a builder reserved for this string.
      * @param sink Optional parser sink that records each warning; used only while decoding.
+     * @param checks Secure-mode checks (CSR-07).
      * @return Unit and warning totals, or a located error.
+     * @note The first secure-mode violation is kept and reported at the closing quote, so a
+     * syntax, encoding or limit error in the same string takes precedence.
      * @note With a null output, performs no allocation (ADR 0003, decision 2).
      * resource_limit (string) is reported at the piece that first exceeds max_units; the
      * engine names total_string instead when that limit was the smaller one.
@@ -61,12 +68,14 @@ namespace adaptive_json5
      */
     result<string_walk> walk_string_body(cursor& source, std::size_t start, string_quote quote, syntax_mode mode,
                                          std::size_t max_units, std::size_t warning_allowance,
-                                         decoded_string_builder* output, const string_warning_sink* sink) noexcept
+                                         decoded_string_builder* output, const string_warning_sink* sink,
+                                         string_checks checks) noexcept
     {
       using walk_result = result<string_walk>;
 
       string_walk walk{};
       detail::surrogate_pairing pairing{};
+      std::optional<error> violation{};
 
       // Each warning covers distinct source bytes, so the count cannot exceed input size.
       const auto record = [&walk, sink, warning_allowance](const string_warning& warning) noexcept
@@ -95,6 +104,49 @@ namespace adaptive_json5
         for (std::size_t index{}; index < found.size; ++index)
         {
           record(found.items[index]);
+        }
+      };
+
+      // Keep only the first violation, so the reported one is the earliest in source order.
+      const auto reject = [&violation](security_reason reason, source_span span) noexcept
+      {
+        if (!violation.has_value())
+        {
+          violation = error::security_at_range(span, reason);
+        }
+      };
+
+      // Surrogate findings are warnings by default and violations under secure mode.
+      const auto handle_pairing = [&record, &reject, checks](const detail::surrogate_warnings& found) noexcept
+      {
+        for (std::size_t index{}; index < found.size; ++index)
+        {
+          const string_warning& warning = found.items[index];
+          if (checks.reject_unpaired_surrogate)
+          {
+            reject(security_reason::unpaired_surrogate, source_span{warning.byte_offset, warning.byte_length});
+          }
+          else
+          {
+            record(warning);
+          }
+        }
+      };
+
+      // A decoded unit is checked against the zero-byte rule first, then the name-control rule.
+      const auto check_units = [&reject, checks](const encoded_utf16& units, source_span span) noexcept
+      {
+        for (std::size_t index{}; index < units.size; ++index)
+        {
+          const char16_t unit = units.units[index];
+          if (checks.reject_zero_bytes && (unit == u'\0'))
+          {
+            reject(security_reason::zero_byte, span);
+          }
+          else if (checks.reject_control_characters && (unit < u'\x20'))
+          {
+            reject(security_reason::name_control_character, span);
+          }
         }
       };
 
@@ -271,13 +323,14 @@ namespace adaptive_json5
    * @param mode Selected input syntax.
    * @param max_units Maximum decoded UTF-16 units.
    * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
+   * @param checks Secure-mode checks; the default applies none (CSR-07).
    * @return The measurement, nullopt for nonquote input or EOF, or a located failure.
    * @note Performs no allocation (ADR 0003, decisions 2 and 7).
    * Too many warnings are not a failure here: the caller reports excess_warning.
    * @par ID SWU-LEXER-040
    */
   result<std::optional<string_measure>> measure_string(cursor& source, syntax_mode mode, std::size_t max_units,
-                                                       std::size_t warning_allowance) noexcept
+                                                       std::size_t warning_allowance, string_checks checks) noexcept
   {
     using measure_result = result<std::optional<string_measure>>;
 
@@ -324,6 +377,9 @@ namespace adaptive_json5
    * @param storage Caller-owned fallible storage provider.
    * @param max_units Maximum decoded UTF-16 unit capacity.
    * @param observer Optional observer for all successful-string warnings.
+   * @param sink Optional parser sink: reserve after the string is allocated, record during decoding.
+   * @param checks Secure-mode checks; the default applies none (CSR-07). Applied in the
+   * measuring pass, so a violation is reported before any allocation.
    * @return Owned token, successful nullopt before nonquote input or EOF,
    * or an explicit located failure.
    * @note Success consumes through the matching closing quote only.
@@ -339,13 +395,13 @@ namespace adaptive_json5
    */
   result<std::optional<string_token>> consume_string(cursor& source, syntax_mode mode, const storage_callbacks& storage,
                                                      std::size_t max_units, string_warning_observer observer,
-                                                     const string_warning_sink* sink) noexcept
+                                                     const string_warning_sink* sink, string_checks checks) noexcept
   {
     using string_result = result<std::optional<string_token>>;
 
     // First pass: the same measurement the parser's pre-pass uses, so both agree by construction.
     cursor counting = source;
-    const auto measured = measure_string(counting, mode, max_units, c_no_warning_allowance);
+    const auto measured = measure_string(counting, mode, max_units, c_no_warning_allowance, checks);
 
     if (!measured.has_value())
     {
