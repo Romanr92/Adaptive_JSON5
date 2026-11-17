@@ -99,13 +99,6 @@ namespace adaptive_json5
           sink->record(sink->context, warning);
         }
       };
-      const auto record_all = [&record](const detail::surrogate_warnings& found) noexcept
-      {
-        for (std::size_t index{}; index < found.size; ++index)
-        {
-          record(found.items[index]);
-        }
-      };
 
       // Keep only the first violation, so the reported one is the earliest in source order.
       const auto reject = [&violation](security_reason reason, source_span span) noexcept
@@ -198,7 +191,11 @@ namespace adaptive_json5
 
         if (piece.value_if()->kind == string_piece_kind::closing_quote)
         {
-          record_all(pairing.finish());
+          handle_pairing(pairing.finish());
+          if (violation.has_value())
+          {
+            return walk_result::failure(*violation);
+          }
           return walk_result::success(walk);
         }
 
@@ -216,7 +213,8 @@ namespace adaptive_json5
             return walk_result::failure(*emitted.error_if());
           }
 
-          record_all(pairing.escape(*escaped.value_if(), piece_offset, source.offset() - piece_offset));
+          handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, source.offset() - piece_offset));
+          check_units(*escaped.value_if(), source_span{piece_offset, source.offset() - piece_offset});
         }
         else
         {
@@ -233,7 +231,8 @@ namespace adaptive_json5
             return walk_result::failure(*emitted.error_if());
           }
 
-          record_all(pairing.character());
+          handle_pairing(pairing.character());
+          check_units(*encoded.value_if(), source_span{piece_offset, source.offset() - piece_offset});
 
           const auto warning = raw_separator_warning_for(*piece.value_if(), mode);
           if (warning.has_value())
@@ -351,8 +350,8 @@ namespace adaptive_json5
     }
 
     // A null builder makes the walk validate and count only.
-    const auto counted =
-      walk_string_body(candidate, start, **opening.value_if(), mode, max_units, warning_allowance, nullptr, nullptr);
+    const auto counted = walk_string_body(candidate, start, **opening.value_if(), mode, max_units, warning_allowance,
+                                          nullptr, nullptr, checks);
 
     if (!counted.has_value())
     {
@@ -444,7 +443,7 @@ namespace adaptive_json5
     // Second pass: write the units into the reservation.
     cursor decoding = body;
     const auto decoded =
-      walk_string_body(decoding, start, quote, mode, max_units, c_no_warning_allowance, &builder, sink);
+      walk_string_body(decoding, start, quote, mode, max_units, c_no_warning_allowance, &builder, sink, checks);
     if (!decoded.has_value())
     {
       return string_result::failure(*decoded.error_if());

@@ -28,8 +28,7 @@ namespace adaptive_json5
      * @par ID SWU-LEXER-039
      */
     [[nodiscard]] status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
-                                                       const string_warning_observer& observer,
-                                                       string_checks checks) noexcept;
+                                                       const string_warning_observer& observer) noexcept;
   } // namespace detail
 
   /**
