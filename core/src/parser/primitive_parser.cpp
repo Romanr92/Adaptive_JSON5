@@ -15,6 +15,7 @@
 #include "lexer/number/number_token.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_token.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
@@ -177,7 +178,7 @@ namespace adaptive_json5
 
     // Temporary identifier decoding cannot produce more units than input bytes.
     auto token = consume_scalar(scan.source, options.syntax, storage, string_limit, input.size,
-                                options.limits.max_exponent_digits);
+                                options.limits.max_exponent_digits, nullptr, value_string_checks(options));
 
     if (!token.has_value())
     {
