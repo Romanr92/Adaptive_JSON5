@@ -8,7 +8,8 @@ description: Write or update Adaptive_JSON5 GoogleTest units with J5 traceabilit
 # Write Adaptive_JSON5 GoogleTest units
 
 Read `AGENTS.md`, relevant J5 entries in `docs/requirements.md`,
-`docs/traceability.md`, the applicable ADRs and existing test/CMake conventions.
+`docs/traceability.md` (generated from `docs/requirements-registry.json`), the
+applicable ADRs and existing test/CMake conventions.
 Tests may target a reviewed Draft contract without claiming it implemented.
 Preserve normative wording/status; update only test inventory/evidence unless
 the user explicitly requests a requirement change.
@@ -82,11 +83,15 @@ Requirement-specific compile-time checks belong within that requirement block.
 
 ## Traceability and execution
 
-Update the separate **Unit Tests** inventory in `docs/traceability.md` with exact
-`SuiteName.TestName` declarations grouped by defining file, separated by `; ` and
-without generated case suffixes. Also update the row's **Source files and
-functions** entry and keep it in the Core or API section per the documented
-mapping rules. Leave both empty where no units exist. Keep planned verification in
+Record every new or renamed test in the requirement's entry of
+`docs/requirements-registry.json`, not in `docs/traceability.md`, whose tables are
+generated from it. Add exact `SuiteName.TestName` declarations under their defining
+`file` (or `Instance/SuiteName.TestName` for one instantiation), without generated
+case suffixes, and update the entry's `implementation` files and symbols and its
+`section` (core or api, per the documented mapping rules). Leave the lists empty where
+no units exist. Then run `python tools/traceability.py --write-docs`: it regenerates
+the tables, fails on stale links, and lists any test mapped to no requirement, which
+must be mapped before the change is complete. Keep planned verification in
 `docs/requirements.md`; test existence is not a pass or complete coverage.
 
 Record executed configuration/result separately. Run the affected GoogleTest

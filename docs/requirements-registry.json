@@ -4,6 +4,7 @@
   "generated_tables": "docs/traceability.md",
   "issue_url": "https://github.com/Romanr92/Adaptive_JSON5/issues/",
   "required_configurations": ["g++-13-OFF", "g++-13-ON", "clang++-18-OFF", "clang++-18-ON"],
+  "test_roots": ["tests", "core/tests"],
   "requirements": [
     {
       "id": "J5-004",
@@ -1303,6 +1304,7 @@
       "status": "Draft",
       "issue": 29,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/value/document.hpp", "core/src/value/document.cpp"],
@@ -1478,6 +1480,7 @@
       "status": "Draft",
       "issue": 29,
       "section": "core",
+      "design": ["docs/adr/0004-simple-api-and-umbrella-header.md", "docs/adr/0005-allocation-free-number-reads.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/value/document.hpp", "core/src/value/document.cpp"],
@@ -1535,6 +1538,7 @@
       "status": "Draft",
       "issue": 33,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
       "implementation": [
         {
           "files": ["core/includes/parser/parser_engine.hpp", "core/src/parser/parser_engine.cpp"],
@@ -1819,6 +1823,7 @@
       "status": "Draft",
       "issue": 38,
       "section": "core",
+      "design": ["docs/adr/0005-allocation-free-number-reads.md"],
       "implementation": [
         {
           "files": ["core/includes/value/big_unsigned.hpp", "core/src/value/big_unsigned.cpp"],
@@ -1966,6 +1971,7 @@
       "status": "Implemented",
       "issue": 29,
       "section": "core",
+      "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/value/document.hpp", "core/src/value/document.cpp"],
@@ -2112,6 +2118,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/memory/owned_block.hpp", "core/src/memory/owned_block.cpp"],
@@ -2441,6 +2448,7 @@
       "status": "Draft",
       "issue": 38,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/result.hpp"],
@@ -2529,6 +2537,7 @@
       "status": "Draft",
       "issue": 38,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
       "implementation": [
         {
           "files": ["core/includes/input/cursor.hpp"],
@@ -2626,6 +2635,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["core/includes/common/checked_size.hpp"],
@@ -2921,6 +2931,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["core/includes/memory/resource_budget.hpp", "core/src/memory/resource_budget.cpp"],
@@ -3067,6 +3078,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
       "implementation": [
         {
           "files": ["core/includes/memory/resource_budget.hpp", "core/src/memory/resource_budget.cpp"],
@@ -3203,6 +3215,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "core",
+      "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
       "implementation": [
         {
           "files": ["core/includes/memory/work_budget.hpp", "core/src/memory/work_budget.cpp"],
@@ -3301,6 +3314,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "core",
+      "design": ["docs/adr/0005-allocation-free-number-reads.md"],
       "implementation": [
         {
           "files": ["core/includes/common/checked_size.hpp"],
@@ -3449,6 +3463,7 @@
       "status": "Draft",
       "issue": 72,
       "section": "core",
+      "design": ["core/docs/adr-0002-public-private-source-layout.md"],
       "implementation": [],
       "tests": []
     },
@@ -3562,6 +3577,7 @@
       "status": "Draft",
       "issue": 72,
       "section": "api",
+      "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/memory/accounted_storage.hpp", "core/src/memory/accounted_storage.cpp"],
@@ -3653,6 +3669,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "api",
+      "design": ["docs/adr/0005-allocation-free-number-reads.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/parser.hpp", "core/src/parser/parser.cpp"],
@@ -4081,6 +4098,7 @@
       "status": "Draft",
       "issue": 68,
       "section": "api",
+      "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/adaptive_json5.hpp"],
@@ -4111,6 +4129,7 @@
       "status": "Draft",
       "issue": 68,
       "section": "api",
+      "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [],
       "tests": []
     },
@@ -4120,6 +4139,7 @@
       "status": "Draft",
       "issue": 38,
       "section": "api",
+      "design": ["core/docs/adr-0002-public-private-source-layout.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/parser.hpp", "core/src/parser/parser.cpp"],
@@ -4221,6 +4241,7 @@
       "status": "Draft",
       "issue": 69,
       "section": "api",
+      "design": ["docs/adr/0001-project-scope.md", "docs/adr/0004-simple-api-and-umbrella-header.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
       "implementation": [
         {
           "files": ["includes/adaptive_json5/json5_document.hpp", "core/src/memory/json5_document.cpp"],

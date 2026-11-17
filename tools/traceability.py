@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Check the requirements registry and report requirement -> code -> tests -> result.
+"""Check the requirements registry and report requirement -> design -> code -> tests -> result.
 
 Reads docs/requirements-registry.json, checks every link against the working tree and,
 when JUnit XML is given for the required configurations, against executed test results.
-Writes traceability.json, traceability.html and three badges. Standard library only.
+Also checks the SSR/CSR rows and the safety traceability table against the registry and
+lists tests that no requirement claims. Writes traceability.json, traceability.html and
+three badges. Standard library only.
 
-Exit codes: 0 registry consistent; 1 registry problems or stale links; 2 unusable input.
+Exit codes: 0 consistent; 1 registry, safety-table or stale-link problems; 2 unusable input.
+Tests mapped to no requirement are reported but do not change the exit code.
 Test failures do not change the exit code: the test jobs own that.
 """
 # SPDX-License-Identifier: Apache-2.0
@@ -33,8 +36,11 @@ BADGES = (
     ("passing", "traceability-passing.svg", "requirements with passing tests"),
 )
 UNKNOWN_COLOR = "#777"
-TABLE_HEADER = ("| ID | Contract | Status | Owning issue | Source files and functions | Unit tests |\n"
-                "| --- | --- | --- | --- | --- | --- |\n")
+TABLE_HEADER = ("| ID | Contract | Status | Owning issue | Design decisions | Source files and functions | Unit tests |\n"
+                "| --- | --- | --- | --- | --- | --- | --- |\n")
+DECLARATION_PATTERN = re.compile(r"\b(?:TYPED_)?TEST(?:_F|_P)?\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)")
+DERIVED_PATTERN = re.compile(r"\| *((?:SSR|CSR)-\d+) — ")
+SAFETY_HEADING = "## Safety traceability"
 
 
 class InputError(Exception):
@@ -71,6 +77,8 @@ def structure_errors(registry):
     for key in ("requirement_sources", "required_configurations"):
         if not is_strings(registry.get(key)) or not registry[key]:
             errors.append(f"\"{key}\" must be a non-empty list of strings")
+    if not is_strings(registry.get("test_roots", [])):
+        errors.append("\"test_roots\" must be a list of directories")
     seen = set()
     for index, entry in enumerate(registry["requirements"]):
         where = f"requirements[{index}]"
@@ -98,6 +106,8 @@ def structure_errors(registry):
             errors.append(f"{where}: \"applicable\": false needs a written \"reason\"")
         if entry.get("status") == "Obsolete" and applicable is True:
             errors.append(f"{where}: an Obsolete requirement must set \"applicable\": false with a reason")
+        if not is_strings(entry.get("design", [])):
+            errors.append(f"{where}: \"design\" must be a list of design-decision files")
         implementation = entry.get("implementation")
         if not isinstance(implementation, list):
             errors.append(f"{where}: \"implementation\" must be a list")
@@ -134,6 +144,85 @@ def defined_requirements(root, sources):
                     errors.append(f"{match.group(1)}: defined more than once in the requirement documents")
                 defined[match.group(1)] = match.group(2)
     return defined, errors
+
+
+def table_rows(text, pattern):
+    """Yield (header cells, row cells) for each Markdown table row whose line matches pattern."""
+    header, previous = None, ""
+    for line in text.splitlines():
+        if line.startswith("| ---") and previous.startswith("|"):
+            header = [cell.strip() for cell in previous.strip().strip("|").split("|")]
+        elif not line.startswith("|"):
+            header = None
+        elif header and pattern.match(line):
+            yield header, [cell.strip() for cell in line.strip().strip("|").split("|")]
+        previous = line
+
+
+def derived_requirements(root, sources):
+    """SSR and CSR rows of the requirement documents with the J5 rows they relate to."""
+    derived = {}
+    for source in sources:
+        path = safe_path(root, source)
+        if path is None:
+            continue
+        for header, cells in table_rows(path.read_text(encoding="utf-8"), DERIVED_PATTERN):
+            if "Related J5 rows" not in header or len(cells) != len(header):
+                continue
+            identifier, title = cells[0].split(" — ", 1)
+            derived[identifier] = {"title": title, "j5": re.findall(r"J5-\d{3}", cells[header.index("Related J5 rows")])}
+    return derived
+
+
+def safety_table(text):
+    """SSR -> J5 IDs from the safety traceability table of the traceability document, or None."""
+    if SAFETY_HEADING not in text:
+        return None
+    section = text[text.index(SAFETY_HEADING):]
+    rows = {}
+    for header, cells in table_rows(section, re.compile(r"\| *SSR-\d+")):
+        if "J5 rows" in header and len(cells) == len(header):
+            rows[cells[0].split(" — ", 1)[0]] = re.findall(r"J5-\d{3}", cells[header.index("J5 rows")])
+    return rows
+
+
+def consistency_problems(registry, root, derived):
+    """Mismatches between SSR/CSR rows, the safety traceability table and the registry."""
+    problems, listed = [], {entry["id"] for entry in registry["requirements"]}
+    for identifier, item in sorted(derived.items()):
+        problems.extend(f"{identifier} relates to {j5}, which is not in the registry"
+                        for j5 in item["j5"] if j5 not in listed)
+    path = safe_path(root, registry.get("generated_tables", ""))
+    table = safety_table(path.read_text(encoding="utf-8")) if path else None
+    safety = {identifier: item for identifier, item in derived.items() if identifier.startswith("SSR-")}
+    if table is None:
+        if safety and registry.get("generated_tables"):
+            problems.append(f"{registry['generated_tables']} has no '{SAFETY_HEADING}' table for the SSR rows")
+        return problems
+    for identifier, item in sorted(safety.items()):
+        if identifier not in table:
+            problems.append(f"{identifier}: missing from the safety traceability table")
+            continue
+        problems.extend(f"{identifier}: safety traceability table omits {j5}, a related J5 row in the requirements"
+                        for j5 in item["j5"] if j5 not in table[identifier])
+    for identifier, rows in sorted(table.items()):
+        if identifier not in safety:
+            problems.append(f"{identifier}: in the safety traceability table but not defined as an SSR")
+        problems.extend(f"{identifier}: safety traceability table refers to {j5}, which is not in the registry"
+                        for j5 in rows if j5 not in listed)
+    return problems
+
+
+def declared_tests(root, directories):
+    """Every 'Suite.Test' declared under the test directories, with its file."""
+    declared = {}
+    for directory in directories:
+        base = Path(root, directory)
+        for path in sorted(base.rglob("*.cpp")) if base.is_dir() else []:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            for match in DECLARATION_PATTERN.finditer(text):
+                declared.setdefault(match.group(1) + "." + match.group(2), path.relative_to(root).as_posix())
+    return declared
 
 
 def junit_results(path):
@@ -185,7 +274,15 @@ def check_requirement(entry, root, cache):
             cache[relative] = None if path is None else path.read_text(encoding="utf-8", errors="replace")
         return cache[relative]
 
-    gaps, implementation, tests = [], [], []
+    gaps, design, implementation, tests = [], [], [], []
+    cited = re.compile(r"(?<![0-9A-Za-z-])" + re.escape(entry["id"]) + r"(?![0-9])")
+    for name in entry.get("design", []):
+        source = text(name)
+        problem = ("file not found" if source is None
+                   else "" if cited.search(source) else f"does not mention {entry['id']}")
+        design.append({"file": name, "problem": problem})
+        if problem:
+            gaps.append(f"stale design link, {name}: {problem}")
     for item in entry["implementation"]:
         problems = [f"file not found: {name}" for name in item["files"] if text(name) is None]
         for symbol in item.get("symbols", []):
@@ -225,13 +322,14 @@ def check_requirement(entry, root, cache):
         gaps.append("no code mapped")
     if not tests:
         gaps.append("no tests mapped")
-    return implementation, tests, gaps
+    return design, implementation, tests, gaps
 
 
 def analyze(registry, root, junit_paths):
     """Return the report. junit_paths maps a configuration name to its JUnit XML path."""
     errors = structure_errors(registry)
-    report = {"schema": SCHEMA, "errors": errors, "configurations": {}, "metrics": None, "requirements": []}
+    report = {"schema": SCHEMA, "errors": errors, "consistency": [], "configurations": {}, "metrics": None,
+              "requirements": [], "derived": [], "unmapped_tests": []}
     if errors:
         return report
     defined, source_errors = defined_requirements(root, registry["requirement_sources"])
@@ -264,7 +362,7 @@ def analyze(registry, root, junit_paths):
     cache, stale = {}, 0
     counts = {"applicable": 0, "excluded": 0, "implementation": 0, "tests": 0, "passing": 0}
     for entry in registry["requirements"]:
-        implementation, tests, gaps = check_requirement(entry, root, cache)
+        design, implementation, tests, gaps = check_requirement(entry, root, cache)
         stale += sum(1 for gap in gaps if gap.startswith("stale"))
         applicable = entry.get("applicable", True)
         code_mapped = bool(implementation) and not any(item["problems"] for item in implementation)
@@ -289,8 +387,21 @@ def analyze(registry, root, junit_paths):
         report["requirements"].append({
             "id": entry["id"], "title": entry["title"], "status": entry["status"], "issue": entry["issue"],
             "section": entry["section"], "applicable": applicable, "reason": entry.get("reason", ""),
-            "implementation": implementation, "tests": tests, "code_mapped": code_mapped,
+            "design": design, "implementation": implementation, "tests": tests, "code_mapped": code_mapped,
             "test_mapped": test_mapped, "tests_passing": passing, "gaps": gaps})
+
+    # Tests no requirement claims: reported, not counted in the percentages.
+    mapped = {test["id"].split("/", 1)[-1] for item in report["requirements"] for test in item["tests"]}
+    report["unmapped_tests"] = [{"id": name, "file": path}
+                                for name, path in sorted(declared_tests(root, registry.get("test_roots", [])).items())
+                                if name not in mapped]
+    # SSR and CSR rows derive from J5 rows; shown with their J5 results, not counted.
+    derived = derived_requirements(root, registry["requirement_sources"])
+    report["consistency"] = consistency_problems(registry, root, derived)
+    state = {item["id"]: item["tests_passing"] for item in report["requirements"]}
+    for identifier, item in sorted(derived.items()):
+        report["derived"].append({"id": identifier, "title": item["title"],
+                                  "j5": [{"id": j5, "tests_passing": state.get(j5, False)} for j5 in item["j5"]]})
 
     def metric(key, known=True):
         if not known or not counts["applicable"]:
@@ -299,7 +410,8 @@ def analyze(registry, root, junit_paths):
         return {"count": counts[key], "percent": math.floor(1000 * counts[key] / counts["applicable"]) / 10}
 
     report["metrics"] = {"applicable": counts["applicable"], "excluded": counts["excluded"],
-                         "stale_links": stale, "implementation": metric("implementation"),
+                         "stale_links": stale, "unmapped_tests": len(report["unmapped_tests"]),
+                         "implementation": metric("implementation"),
                          "tests": metric("tests"), "passing": metric("passing", evidence)}
     return report
 
@@ -334,7 +446,8 @@ def table(registry, section):
         tests = [f"`{item['file']}`: " + "; ".join(f"`{name}`" for name in item["names"])
                  for item in entry["tests"]]
         issue = f"[#{entry['issue']}]({registry.get('issue_url', '')}{entry['issue']})"
-        cells = (entry["id"], entry["title"], entry["status"], issue, "<br>".join(code), "<br>".join(tests))
+        design = "<br>".join(f"`{name}`" for name in entry.get("design", []))
+        cells = (entry["id"], entry["title"], entry["status"], issue, design, "<br>".join(code), "<br>".join(tests))
         rows.append("| " + " | ".join(cells) + " |\n")
     return TABLE_HEADER + "".join(rows)
 
@@ -389,7 +502,13 @@ def html_report(report, registry):
             out.append(f"<div class=\"tile\"><b>{escape(badge_text(report, key))}</b>{escape(label)}</div>")
         out.append(f"<div class=\"tile\"><b>{metrics['applicable']}</b>applicable requirements "
                    f"({metrics['excluded']} excluded with a reason)</div>")
-        out.append(f"<div class=\"tile\"><b>{metrics['stale_links']}</b>stale links</div></div>")
+        out.append(f"<div class=\"tile\"><b>{metrics['stale_links']}</b>stale links</div>")
+        out.append(f"<div class=\"tile\"><b>{metrics['unmapped_tests']}</b>tests mapped to no requirement</div>"
+                   "</div>")
+    if report["consistency"]:
+        out.append("<h2 class=\"bad\">Safety and security traceability problems</h2><ul>")
+        out.extend(f"<li>{escape(problem)}</li>" for problem in report["consistency"])
+        out.append("</ul>")
     out.append("<h2>Required configurations</h2><table><thead><tr><th>Configuration</th><th>Test results</th>"
                "</tr></thead><tbody>")
     for name, state in report["configurations"].items():
@@ -398,9 +517,12 @@ def html_report(report, registry):
     out.append("</tbody></table><h2>Matrix</h2><div class=\"controls\"><input id=\"query\" type=\"search\" "
                "placeholder=\"Filter by ID, file, test…\"> <label><input id=\"gaps\" type=\"checkbox\"> "
                "gaps only</label> <span id=\"shown\" class=\"muted\"></span></div>"
-               "<table id=\"matrix\"><thead><tr><th>Requirement</th><th>Status</th><th>Code</th><th>Tests and "
-               "results</th><th>Result</th></tr></thead><tbody>")
+               "<table id=\"matrix\"><thead><tr><th>Requirement</th><th>Status</th><th>Design</th><th>Code</th>"
+               "<th>Tests and results</th><th>Result</th></tr></thead><tbody>")
     for item in report["requirements"]:
+        design = "".join(f"<li><code>{escape(entry['file'])}</code>"
+                         + (f" <span class=\"problem\">{escape(entry['problem'])}</span>" if entry["problem"] else "")
+                         + "</li>" for entry in item["design"])
         code = []
         for entry in item["implementation"]:
             line = " / ".join(f"<code>{escape(name)}</code>" for name in entry["files"])
@@ -430,9 +552,26 @@ def html_report(report, registry):
         gaps = "".join(f"<li>{escape(text)}</li>" for text in item["gaps"])
         issue = f"<a href=\"{escape(registry.get('issue_url', ''))}{item['issue']}\">#{item['issue']}</a>"
         out.append(f"<tr data-gap=\"{gap}\"><td><b>{escape(item['id'])}</b><br>{escape(item['title'])}<br>{issue}"
-                   f"</td><td>{escape(item['status'])}</td><td><ul>{''.join(code)}</ul></td>"
+                   f"</td><td>{escape(item['status'])}</td><td><ul>{design}</ul></td><td><ul>{''.join(code)}</ul></td>"
                    f"<td><ul>{''.join(tests)}</ul></td><td>{result}<ul>{gaps}</ul></td></tr>")
-    out.extend(["</tbody></table><script>", SCRIPT, "</script></body></html>\n"])
+    out.append("</tbody></table>")
+    if report["derived"]:
+        out.append("<h2>Safety and security requirements</h2><p class=\"muted\">SSR and CSR rows derive from the J5 "
+                   "rows they relate to and are not counted in the percentages.</p><table><thead><tr>"
+                   "<th>Requirement</th><th>Related J5 rows and their result</th></tr></thead><tbody>")
+        for item in report["derived"]:
+            chips = "".join(
+                f"<span class=\"chip {'ok' if row['tests_passing'] else 'unk' if row['tests_passing'] is None else 'bad'}\">"
+                f"{escape(row['id'])}: {'passing' if row['tests_passing'] else 'unknown' if row['tests_passing'] is None else 'gap'}"
+                "</span>" for row in item["j5"])
+            out.append(f"<tr><td><b>{escape(item['id'])}</b> {escape(item['title'])}</td><td>{chips}</td></tr>")
+        out.append("</tbody></table>")
+    if report["unmapped_tests"]:
+        out.append(f"<h2>Tests mapped to no requirement ({len(report['unmapped_tests'])})</h2><ul>")
+        out.extend(f"<li><code>{escape(test['id'])}</code> <span class=\"muted\">{escape(test['file'])}</span></li>"
+                   for test in report["unmapped_tests"])
+        out.append("</ul>")
+    out.extend(["<script>", SCRIPT, "</script></body></html>\n"])
     return "".join(out)
 
 
@@ -446,6 +585,14 @@ def markdown_summary(report):
     lines += [f"| {label} | {badge_text(report, key)} |" for key, _, label in BADGES]
     if report["metrics"]:
         lines.append(f"| stale links | {report['metrics']['stale_links']} |")
+        lines.append(f"| tests mapped to no requirement | {report['metrics']['unmapped_tests']} |")
+    if report["consistency"]:
+        lines += ["", "**Safety and security traceability problems:**", ""]
+        lines += [f"- {problem}" for problem in report["consistency"]]
+    if report["unmapped_tests"]:
+        lines += ["", f"<details><summary>{len(report['unmapped_tests'])} tests mapped to no requirement</summary>", ""]
+        lines += [f"- `{test['id']}` ({test['file']})" for test in report["unmapped_tests"]]
+        lines += ["", "</details>"]
     lines += ["", "| Configuration | Results |", "| --- | --- |"]
     lines += [f"| `{name}` | {state['detail']} |" for name, state in report["configurations"].items()]
     gaps = [(item["id"], gap) for item in report["requirements"] if item["applicable"] for gap in item["gaps"]
@@ -472,7 +619,21 @@ def main(arguments=None):
     parser.add_argument("--write-docs", action="store_true", help="regenerate the tables in the traceability document")
     parser.add_argument("--unknown-badges", type=Path, metavar="DIR",
                         help="only write an 'unknown' badge for each badge missing from DIR, then exit")
+    parser.add_argument("--list-configurations", action="store_true",
+                        help="print the registry's required configurations, one per line, then exit")
     args = parser.parse_args(arguments)
+
+    if args.list_configurations:
+        try:
+            configurations = load_registry(args.registry).get("required_configurations")
+        except InputError as error:
+            print(f"error: {error}", file=sys.stderr)
+            return 2
+        if not is_strings(configurations) or not configurations:
+            print("error: \"required_configurations\" must be a non-empty list of strings", file=sys.stderr)
+            return 2
+        print("\n".join(configurations))
+        return 0
 
     if args.unknown_badges:
         args.unknown_badges.mkdir(parents=True, exist_ok=True)
@@ -521,8 +682,10 @@ def main(arguments=None):
     if args.summary:
         with args.summary.open("a", encoding="utf-8", newline="\n") as summary:
             summary.write(markdown_summary(report))
-    for error in report["errors"]:
+    for error in report["errors"] + report["consistency"]:
         print(f"error: {error}", file=sys.stderr)
+    if report["unmapped_tests"]:
+        print(f"note: {len(report['unmapped_tests'])} tests are mapped to no requirement (see the report)")
     stale = 0
     for item in report["requirements"]:
         for gap in item["gaps"]:
@@ -533,7 +696,7 @@ def main(arguments=None):
         print(f"{name}: {state['detail']}")
     for key, _, label in BADGES:
         print(f"{label}: {badge_text(report, key)}")
-    return 1 if report["errors"] or stale else 0
+    return 1 if report["errors"] or report["consistency"] or stale else 0
 
 
 if __name__ == "__main__":

@@ -82,8 +82,9 @@ jobs:
       - name: Check the registry and generate the report
         continue-on-error: true
         run: |
+          # The registry is the one list of required configurations; the matrix above must produce each.
           arguments=()
-          for configuration in g++-13-OFF g++-13-ON clang++-18-OFF clang++-18-ON; do
+          for configuration in $(python3 tools/traceability.py --list-configurations); do
             results="$(find "evidence/traceability-junit-$configuration" -name results.xml -print -quit 2>/dev/null || true)"
             if [ -n "$results" ]; then arguments+=(--junit "$configuration=$results"); fi
           done

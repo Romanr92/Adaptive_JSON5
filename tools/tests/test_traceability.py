@@ -43,6 +43,7 @@ def requirement(identifier, title, symbols=None, tests=None, **extra):
 
 def registry():
     return {"schema": 1, "requirement_sources": ["docs/requirements.md"], "generated_tables": "docs/traceability.md",
+            "test_roots": ["tests"],
             "issue_url": "https://example.invalid/issues/", "required_configurations": list(CONFIGURATIONS),
             "requirements": [
                 requirement("J5-001", "First", ["first"], ["J5_001_First.Works"]),
@@ -331,7 +332,7 @@ class ToolTests(unittest.TestCase):
         self.assertIn("unknown", tree.badge("implementation"))
         self.assertEqual(tree.run_tool("--write-docs")[0], 0)
         document = (tree.root / "docs/traceability.md").read_text(encoding="utf-8")
-        self.assertIn("| J5-001 | First | Draft | [#1](https://example.invalid/issues/1) | `src/code.hpp`: `first` | "
+        self.assertIn("| J5-001 | First | Draft | [#1](https://example.invalid/issues/1) |  | `src/code.hpp`: `first` | "
                       "`tests/units.cpp`: `J5_001_First.Works` |\n", document)
         self.assertIn("<!-- traceability:begin api -->\n| ID | Contract |", document)
         self.assertEqual(tree.run_tool()[0], 0)
@@ -394,6 +395,134 @@ class ToolTests(unittest.TestCase):
         page = traceability.html_report(Tree(self, data).report(), data)
         self.assertNotIn("<script>alert(1)</script>", page)
         self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", page)
+
+
+SAFETY_REQUIREMENTS = """
+| ID / title | Requirement | ASIL | Related J5 rows | Related assumptions | Status |
+| --- | --- | --- | --- | --- | --- |
+| SSR-01 — Robust | Handle any input. | B(D) | J5-001, J5-002 | A-03 | Draft |
+
+| ID / title | Requirement | Threats | Shared with | Related J5 rows | Status |
+| --- | --- | --- | --- | --- | --- |
+| CSR-01 — Robust | Handle any input, whatever an attacker sends. | T-01 | SSR-01 | J5-002 | Draft |
+"""
+SAFETY_TABLE = """
+## Safety traceability (ISO 26262)
+
+| SSR | Assumptions | J5 rows | Software units | Unit tests | FMEA rows |
+| --- | --- | --- | --- | --- | --- |
+| SSR-01 — Robust | A-03 | J5-001, J5-002; J5-003 for limits | missing | missing | IN-01 |
+"""
+
+
+class DesignTests(unittest.TestCase):
+    def test_design_link_must_exist_and_cite_the_requirement(self):
+        tree = Tree(self)
+        tree.write("docs/adr/0001-first.md", "# ADR 1\nDecides J5-001 and J5-0010.\n")
+        tree.data["requirements"][0]["design"] = ["docs/adr/0001-first.md"]
+        tree.data["requirements"][1]["design"] = ["docs/adr/0001-first.md", "docs/adr/0009-gone.md"]
+        report = tree.report()
+        self.assertEqual(by_id(report, "J5-001")["design"], [{"file": "docs/adr/0001-first.md", "problem": ""}])
+        self.assertEqual([entry["problem"] for entry in by_id(report, "J5-002")["design"]],
+                         ["does not mention J5-002", "file not found"])
+        self.assertEqual(report["metrics"]["stale_links"], 2)
+        self.assertEqual(report["metrics"]["passing"]["count"], 2)  # design links are not in the percentages
+
+    def test_design_must_be_a_list_of_files(self):
+        data = registry()
+        data["requirements"][0]["design"] = "docs/adr/0001-first.md"
+        self.assertIn("J5-001: \"design\" must be a list of design-decision files", Tree(self, data).report()["errors"])
+
+    def test_design_column_is_generated(self):
+        tree = Tree(self)
+        tree.write("docs/adr/0001-first.md", "J5-001\n")
+        tree.data["requirements"][0]["design"] = ["docs/adr/0001-first.md"]
+        self.assertEqual(tree.run_tool("--write-docs")[0], 0)
+        self.assertIn("| [#1](https://example.invalid/issues/1) | `docs/adr/0001-first.md` | `src/code.hpp`",
+                      (tree.root / "docs/traceability.md").read_text(encoding="utf-8"))
+        self.assertIn("docs/adr/0001-first.md", (tree.root / "out/traceability.html").read_text(encoding="utf-8"))
+
+
+class UnmappedTestTests(unittest.TestCase):
+    def test_declared_test_without_requirement_is_listed_but_not_counted(self):
+        tree = Tree(self, tests=TESTS + "TEST(Helper, Works) {}\nTYPED_TEST(J5_003_Typed, Holds) {}\n")
+        report = tree.report()
+        self.assertEqual(report["unmapped_tests"], [{"id": "Helper.Works", "file": "tests/units.cpp"},
+                                                    {"id": "J5_003_Typed.Holds", "file": "tests/units.cpp"}])
+        self.assertEqual(report["metrics"]["unmapped_tests"], 2)
+        self.assertEqual(report["metrics"]["tests"]["count"], 2)
+        code, _ = tree.run_tool("--write-docs", "--summary", str(tree.root / "summary.md"))
+        self.assertEqual(code, 0)
+        self.assertIn("- `Helper.Works` (tests/units.cpp)", (tree.root / "summary.md").read_text(encoding="utf-8"))
+
+    def test_instantiated_name_maps_its_declaration(self):
+        self.assertEqual(Tree(self).report()["unmapped_tests"], [])
+
+    def test_without_test_roots_nothing_is_scanned(self):
+        data = registry()
+        del data["test_roots"]
+        self.assertEqual(Tree(self, data, tests=TESTS + "TEST(Helper, Works) {}\n").report()["unmapped_tests"], [])
+
+
+class SafetyTests(unittest.TestCase):
+    def tree(self, requirements=SAFETY_REQUIREMENTS, table=SAFETY_TABLE):
+        tree = Tree(self)
+        tree.write("docs/requirements.md", REQUIREMENTS + requirements)
+        tree.write("docs/traceability.md", DOCUMENT + table)
+        return tree
+
+    def test_ssr_and_csr_rows_are_shown_with_their_j5_results_and_not_counted(self):
+        report = self.tree().report()
+        self.assertEqual(report["consistency"], [])
+        self.assertEqual(report["metrics"]["applicable"], 3)
+        self.assertEqual(report["derived"], [
+            {"id": "CSR-01", "title": "Robust", "j5": [{"id": "J5-002", "tests_passing": True}]},
+            {"id": "SSR-01", "title": "Robust", "j5": [{"id": "J5-001", "tests_passing": True},
+                                                       {"id": "J5-002", "tests_passing": True}]}])
+
+    def test_unknown_j5_in_requirements_or_safety_table_is_reported(self):
+        report = self.tree(SAFETY_REQUIREMENTS.replace("| T-01 | SSR-01 | J5-002 |", "| T-01 | SSR-01 | J5-009 |"),
+                           SAFETY_TABLE.replace("J5-003 for limits", "J5-008 for limits")).report()
+        self.assertEqual(report["consistency"], [
+            "CSR-01 relates to J5-009, which is not in the registry",
+            "SSR-01: safety traceability table refers to J5-008, which is not in the registry"])
+        self.assertEqual(traceability.badge_text(report, "tests"), "66.6% (2/3)")
+
+    def test_safety_table_must_cover_every_ssr_and_its_j5_rows(self):
+        report = self.tree(table=SAFETY_TABLE.replace("J5-001, J5-002;", "J5-001;")).report()
+        self.assertEqual(report["consistency"],
+                         ["SSR-01: safety traceability table omits J5-002, a related J5 row in the requirements"])
+        extra = SAFETY_TABLE + "| SSR-09 — Extra | — | J5-001 | missing | missing | missing |\n"
+        report = self.tree(SAFETY_REQUIREMENTS.replace("SSR-01 — Robust | Handle", "SSR-02 — Robust | Handle"),
+                           extra).report()
+        self.assertIn("SSR-02: missing from the safety traceability table", report["consistency"])
+        self.assertIn("SSR-09: in the safety traceability table but not defined as an SSR", report["consistency"])
+
+    def test_missing_safety_table_is_reported_and_fails_the_tool(self):
+        tree = self.tree(table="")
+        self.assertEqual(tree.report()["consistency"],
+                         ["docs/traceability.md has no '## Safety traceability' table for the SSR rows"])
+        code, errors = tree.run_tool("--write-docs")
+        self.assertEqual(code, 1)
+        self.assertIn("no '## Safety traceability' table", errors)
+        self.assertIn("66.6% (2/3)", tree.badge("passing"))
+
+
+class ConfigurationListTests(unittest.TestCase):
+    def test_lists_required_configurations_from_the_registry(self):
+        tree = Tree(self)
+        tree.write("registry.json", json.dumps(tree.data))
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            code = traceability.main(["--registry", str(tree.root / "registry.json"), "--list-configurations"])
+        self.assertEqual((code, output.getvalue()), (0, "gcc\nclang\n"))
+
+    def test_missing_or_empty_list_is_an_error(self):
+        tree = Tree(self)
+        for data in ({"schema": 1, "requirements": []}, dict(tree.data, required_configurations=[])):
+            tree.write("registry.json", json.dumps(data))
+            with contextlib.redirect_stderr(io.StringIO()):
+                code = traceability.main(["--registry", str(tree.root / "registry.json"), "--list-configurations"])
+            self.assertEqual(code, 2)
 
 
 class VersionBadgeTests(unittest.TestCase):
