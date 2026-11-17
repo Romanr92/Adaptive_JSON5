@@ -9,7 +9,7 @@
     {
       "id": "J5-004",
       "title": "Input boundary",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "implementation": [
@@ -82,7 +82,7 @@
     {
       "id": "J5-006",
       "title": "Unicode data baseline",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "implementation": [
@@ -116,7 +116,7 @@
     {
       "id": "J5-009",
       "title": "UTF-8 source",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "implementation": [
@@ -199,7 +199,7 @@
     {
       "id": "J5-010",
       "title": "JSON whitespace",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "implementation": [
@@ -227,7 +227,7 @@
     {
       "id": "J5-011",
       "title": "JSON5 whitespace",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "implementation": [
@@ -263,7 +263,7 @@
     {
       "id": "J5-012",
       "title": "Comments",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 9,
       "section": "core",
       "implementation": [
@@ -294,7 +294,7 @@
     {
       "id": "J5-013",
       "title": "Structural tokens",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 9,
       "section": "core",
       "implementation": [
@@ -354,7 +354,7 @@
     {
       "id": "J5-014",
       "title": "Quoted strings",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "implementation": [
@@ -403,7 +403,7 @@
     {
       "id": "J5-015",
       "title": "JSON escapes",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "implementation": [
@@ -466,7 +466,7 @@
     {
       "id": "J5-016",
       "title": "JSON5 escapes",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "implementation": [
@@ -712,7 +712,7 @@
     {
       "id": "J5-018",
       "title": "Surrogate fidelity",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "implementation": [
@@ -794,7 +794,7 @@
     {
       "id": "J5-019",
       "title": "Unquoted member names",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "implementation": [
@@ -846,7 +846,7 @@
     {
       "id": "J5-020",
       "title": "Escaped identifiers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 22,
       "section": "core",
       "implementation": [
@@ -887,7 +887,7 @@
     {
       "id": "J5-021",
       "title": "JSON numbers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 25,
       "section": "core",
       "implementation": [
@@ -940,7 +940,7 @@
     {
       "id": "J5-022",
       "title": "JSON5 numbers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 25,
       "section": "core",
       "implementation": [
@@ -995,7 +995,7 @@
     {
       "id": "J5-023",
       "title": "Primitive literals",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 22,
       "section": "core",
       "implementation": [
@@ -1063,7 +1063,7 @@
     {
       "id": "J5-024",
       "title": "Token boundaries",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 9,
       "section": "core",
       "implementation": [
@@ -1133,7 +1133,7 @@
     {
       "id": "J5-025",
       "title": "BOM policy",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 5,
       "section": "core",
       "implementation": [
@@ -1175,7 +1175,7 @@
     {
       "id": "J5-026",
       "title": "Complete input",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "implementation": [
@@ -1240,7 +1240,7 @@
     {
       "id": "J5-027",
       "title": "Language completeness",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 25,
       "section": "core",
       "implementation": [
@@ -1301,7 +1301,7 @@
     {
       "id": "J5-028",
       "title": "Value types",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
@@ -1362,7 +1362,7 @@
     {
       "id": "J5-029",
       "title": "Length-aware strings",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 13,
       "section": "core",
       "implementation": [
@@ -1421,7 +1421,7 @@
     {
       "id": "J5-030",
       "title": "Ordered arrays",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "implementation": [
@@ -1477,7 +1477,7 @@
     {
       "id": "J5-031",
       "title": "Observable object members",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "design": ["docs/adr/0004-simple-api-and-umbrella-header.md", "docs/adr/0005-allocation-free-number-reads.md"],
@@ -1535,7 +1535,7 @@
     {
       "id": "J5-032",
       "title": "Duplicate policy",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 33,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
@@ -1595,7 +1595,7 @@
     {
       "id": "J5-033",
       "title": "Name equality",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 22,
       "section": "core",
       "implementation": [
@@ -1651,7 +1651,7 @@
     {
       "id": "J5-034",
       "title": "Exact number storage",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "implementation": [
@@ -1699,7 +1699,7 @@
     {
       "id": "J5-035",
       "title": "Checked integer conversion",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "implementation": [
@@ -1748,7 +1748,7 @@
     {
       "id": "J5-036",
       "title": "Value and spelling queries",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "implementation": [
@@ -1820,7 +1820,7 @@
     {
       "id": "J5-037",
       "title": "Floating conversion",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "design": ["docs/adr/0005-allocation-free-number-reads.md"],
@@ -1936,7 +1936,7 @@
     {
       "id": "J5-038",
       "title": "Special numbers",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 29,
       "section": "core",
       "implementation": [
@@ -2115,7 +2115,7 @@
     {
       "id": "J5-040",
       "title": "Document lifetime",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
@@ -2321,7 +2321,7 @@
     {
       "id": "J5-041",
       "title": "Source spans",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "core",
       "implementation": [
@@ -2445,7 +2445,7 @@
     {
       "id": "J5-043",
       "title": "Structured errors",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 38,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
@@ -2534,7 +2534,7 @@
     {
       "id": "J5-044",
       "title": "Diagnostic locations",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
@@ -2632,7 +2632,7 @@
     {
       "id": "J5-046",
       "title": "Fallible allocation",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
@@ -2928,7 +2928,7 @@
     {
       "id": "J5-047",
       "title": "Configurable limits",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
@@ -3075,7 +3075,7 @@
     {
       "id": "J5-048",
       "title": "Bounded traversal",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
@@ -3212,7 +3212,7 @@
     {
       "id": "J5-049",
       "title": "Work budgets",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "core",
       "design": ["core/docs/adr-0003-storage-and-budget-decisions.md"],
@@ -3311,7 +3311,7 @@
     {
       "id": "J5-051",
       "title": "Atomic results and reuse",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "core",
       "design": ["docs/adr/0005-allocation-free-number-reads.md"],
@@ -3451,7 +3451,7 @@
     {
       "id": "J5-099",
       "title": "Portable unit build matrix",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 72,
       "section": "core",
       "implementation": [],
@@ -3460,7 +3460,7 @@
     {
       "id": "J5-100",
       "title": "Release completeness",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 72,
       "section": "core",
       "design": ["core/docs/adr-0002-public-private-source-layout.md"],
@@ -3470,7 +3470,7 @@
     {
       "id": "J5-001",
       "title": "Standalone C++ library",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "implementation": [],
@@ -3486,7 +3486,7 @@
     {
       "id": "J5-002",
       "title": "Build components",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "implementation": [],
@@ -3495,7 +3495,7 @@
     {
       "id": "J5-003",
       "title": "Exception-independent API",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "implementation": [
@@ -3532,7 +3532,7 @@
     {
       "id": "J5-005",
       "title": "Syntax selection",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "api",
       "implementation": [
@@ -3565,7 +3565,7 @@
     {
       "id": "J5-007",
       "title": "License and provenance",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "implementation": [],
@@ -3574,7 +3574,7 @@
     {
       "id": "J5-008",
       "title": "Public contracts",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 72,
       "section": "api",
       "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
@@ -3604,7 +3604,7 @@
     {
       "id": "J5-042",
       "title": "Pure memory parsing",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "implementation": [
@@ -3630,7 +3630,7 @@
     {
       "id": "J5-045",
       "title": "Failure-safe reporting",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "implementation": [
@@ -3666,7 +3666,7 @@
     {
       "id": "J5-050",
       "title": "Concurrency",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "api",
       "design": ["docs/adr/0005-allocation-free-number-reads.md"],
@@ -3697,7 +3697,7 @@
     {
       "id": "J5-052",
       "title": "Deterministic semantics",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "api",
       "implementation": [
@@ -4086,7 +4086,7 @@
     {
       "id": "J5-091",
       "title": "Native portability",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "implementation": [],
@@ -4095,7 +4095,7 @@
     {
       "id": "J5-092",
       "title": "Reusable package",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
@@ -4126,7 +4126,7 @@
     {
       "id": "J5-093",
       "title": "Versioned consumption",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 68,
       "section": "api",
       "design": ["docs/adr/0007-public-api-storage-abi-and-index-identity.md"],
@@ -4136,7 +4136,7 @@
     {
       "id": "J5-094",
       "title": "Grammar unit regression coverage",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "api",
       "design": ["core/docs/adr-0002-public-private-source-layout.md"],
@@ -4158,7 +4158,7 @@
     {
       "id": "J5-095",
       "title": "Pinned syntax fixtures",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 38,
       "section": "api",
       "implementation": [
@@ -4186,7 +4186,7 @@
     {
       "id": "J5-097",
       "title": "Deterministic robustness unit cases",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 38,
       "section": "api",
       "implementation": [
@@ -4211,7 +4211,7 @@
     {
       "id": "J5-098",
       "title": "Fault-injection evidence",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 38,
       "section": "api",
       "implementation": [
@@ -4238,7 +4238,7 @@
     {
       "id": "J5-101",
       "title": "OS-agnostic embedded integration",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "design": ["docs/adr/0001-project-scope.md", "docs/adr/0004-simple-api-and-umbrella-header.md", "docs/adr/0007-public-api-storage-abi-and-index-identity.md"],

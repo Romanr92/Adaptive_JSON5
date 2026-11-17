@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from metric_badges import svg  # noqa: E402
 
 SCHEMA = 1
-STATUSES = ("Draft", "Implemented", "Verified", "Deferred", "Obsolete")
+STATUSES = ("Draft", "Accepted", "Implemented", "Verified", "Deferred", "Obsolete")
 SECTIONS = ("core", "api")
 ID_PATTERN = re.compile(r"J5-\d{3}")
 TEST_PATTERN = re.compile(r"(?:([A-Za-z0-9_]+)/)?([A-Za-z0-9_]+)\.([A-Za-z0-9_]+)")
