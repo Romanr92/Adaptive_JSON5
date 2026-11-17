@@ -28,8 +28,10 @@ jobs:
           python -m pip install gcovr==8.6
       - name: Build and run units, generate coverage HTML
         run: python tools/coverage.py --compiler g++-14 --gcov gcov-14
-      - name: Generate measured coverage badge
-        run: python3 tools/metric_badges.py coverage build/coverage/report/summary.json --output build/coverage/report/coverage.svg
+      - name: Generate measured coverage badges
+        run: >-
+          python3 tools/metric_badges.py coverage build/coverage/report/summary.json
+          --output build/coverage/report/coverage.svg --output-dir build/coverage/report
       - name: Upload unit test coverage HTML
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -48,3 +50,4 @@ jobs:
     with:
       artifact: unit-test-coverage-html
       metric: coverage
+      files: coverage.svg,coverage-lines.svg,coverage-functions.svg,coverage-branches.svg

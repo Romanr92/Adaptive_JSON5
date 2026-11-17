@@ -35,6 +35,8 @@ BADGES = (
     ("tests", "traceability-tests.svg", "requirements mapped to tests"),
     ("passing", "traceability-passing.svg", "requirements with passing tests"),
 )
+# Keep full descriptions in reports, but short labels in the README's SVGs.
+BADGE_LABELS = {"implementation": "code", "tests": "tests", "passing": "passing"}
 UNKNOWN_COLOR = "#777"
 TABLE_HEADER = ("| ID | Contract | Status | Owning issue | Design decisions | Source files and functions | Unit tests |\n"
                 "| --- | --- | --- | --- | --- | --- | --- |\n")
@@ -424,10 +426,10 @@ def badge_text(report, key):
 
 
 def write_badges(report, directory):
-    for key, filename, label in BADGES:
+    for key, filename, _ in BADGES:
         message = badge_text(report, key) if report else "unknown"
         color = UNKNOWN_COLOR if message == "unknown" else "#17669b"
-        Path(directory, filename).write_text(svg(label, message, color), encoding="utf-8", newline="\n")
+        Path(directory, filename).write_text(svg(BADGE_LABELS[key], message, color), encoding="utf-8", newline="\n")
 
 
 def table(registry, section):
@@ -637,9 +639,9 @@ def main(arguments=None):
 
     if args.unknown_badges:
         args.unknown_badges.mkdir(parents=True, exist_ok=True)
-        for _, filename, label in BADGES:
+        for key, filename, _ in BADGES:
             if not Path(args.unknown_badges, filename).is_file():
-                Path(args.unknown_badges, filename).write_text(svg(label, "unknown", UNKNOWN_COLOR),
+                Path(args.unknown_badges, filename).write_text(svg(BADGE_LABELS[key], "unknown", UNKNOWN_COLOR),
                                                                encoding="utf-8", newline="\n")
         return 0
     try:
