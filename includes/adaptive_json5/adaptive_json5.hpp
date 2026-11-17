@@ -32,6 +32,7 @@
 #include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/security_reason.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/text_position.hpp"
 #include "adaptive_json5/value/decoded_name_equal.hpp"

@@ -28,9 +28,9 @@ library was checked to be byte-identical before and after.
 
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
-| API | SWU-API-040 | SWU-API-041 |
+| API | SWU-API-043 | SWU-API-044 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
-| DIAGNOSTICS | SWU-DIAGNOSTICS-017 | SWU-DIAGNOSTICS-018 |
+| DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
 | LEXER | SWU-LEXER-051 | SWU-LEXER-052 |
@@ -83,6 +83,9 @@ library was checked to be byte-identical before and after.
 | SWU-API-038 | used | `error::internal_fault()` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-039 | used | `error::relocated(std::size_t)` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-040 | used | `error::unlocated()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-041 | used | `error::security_reason()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-042 | used | `error::security_at_range(source_span, security_reason)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-043 | used | `secure_parse_options()` | `includes/adaptive_json5/options.hpp` | — |
 
 ## COMMON
 
@@ -113,6 +116,7 @@ library was checked to be byte-identical before and after.
 | SWU-DIAGNOSTICS-015 | used | `format_warning(const string_warning &, input_view, char *, std::size_t)` | `core/src/diagnostics/diagnostic_format.cpp` | `includes/adaptive_json5/diagnostic_format.hpp` |
 | SWU-DIAGNOSTICS-016 | used | `(anonymous)::describe(resource_limit_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
 | SWU-DIAGNOSTICS-017 | used | `(anonymous)::describe(access_error_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
+| SWU-DIAGNOSTICS-018 | used | `(anonymous)::describe(security_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
 
 ## HOSTED
 

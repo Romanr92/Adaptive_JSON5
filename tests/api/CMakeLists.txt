@@ -75,6 +75,7 @@ set(adaptive_json5_public_headers
     parser.hpp
     resource_limit_reason.hpp
     result.hpp
+    security_reason.hpp
     syntax_error_reason.hpp
     text_position.hpp
     memory/accounted_storage.hpp
