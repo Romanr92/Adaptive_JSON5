@@ -1,0 +1,65 @@
+name: version-badge
+
+# Publishes the README version badge from the latest published GitHub release.
+on:
+  release:
+    types: [published, unpublished, deleted, edited]
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/version-badge.yml
+      - .github/workflows/publish-metric-badge.yml
+      - tools/metric_badges.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version-badge
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Version badge
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      # A release event runs at the tagged commit; the generator comes from main.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.repository.default_branch || github.ref }}
+          persist-credentials: false
+      - name: Read the latest published release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          status="$(curl --silent --show-error --output latest.json --write-out '%{http_code}' \
+            --header "Authorization: Bearer $GITHUB_TOKEN" --header 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/latest")"
+          case "$status" in
+            200) python3 -c "import json; print(json.load(open('latest.json'))['tag_name'])" > release-tag.txt ;;
+            404) : > release-tag.txt ;; # no published release: the badge says unreleased
+            *) echo "Unexpected status $status from the releases API" >&2; exit 1 ;;
+          esac
+      - name: Generate version badge
+        run: |
+          mkdir -p build/version
+          python3 tools/metric_badges.py version release-tag.txt --output build/version/version.svg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: version-badge
+          path: build/version/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-badge:
+    needs: version
+    if: github.event_name == 'release' || github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-metric-badge.yml
+    with:
+      artifact: version-badge
+      metric: version
+      require_main_head: false

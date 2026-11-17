@@ -50,7 +50,10 @@ restriction, and never include `core/tests/` in production source lists.
   implement them. Do not add integration, end-to-end or benchmark gates unless the
   user changes this scope. As a user-approved exception, the non-blocking `examples`
   workflow builds the programs in `examples/` and checks their output; it is not a
-  merge requirement.
+  merge requirement. Likewise, the informative `requirements-traceability` workflow (#163) checks
+  `docs/requirements-registry.json` and reports requirement → code → tests → result;
+  it is not a merge requirement. Edit the registry, not the generated tables in
+  `docs/traceability.md`, and run `python tools/traceability.py --write-docs`.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
   must pass all host unit-test jobs, validation-test jobs, formatting, the
   sanitizer and fuzz jobs, the Clang job and the static-analysis jobs before merging

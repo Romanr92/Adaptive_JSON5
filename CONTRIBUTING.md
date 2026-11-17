@@ -66,7 +66,11 @@ one umbrella header. The P041 technical review is recorded; final claim status a
 required PR evidence are in the [JSON5 1.0.0 support statement](docs/conformance.md),
 together with versions, limits, implementation-defined behaviour, deviations and executed
 results. Requirement rows remain Draft. GoogleTest inventories are in
-[traceability](docs/traceability.md), and the per-production view is the
+[traceability](docs/traceability.md), generated from the
+[requirements registry](docs/requirements-registry.json): map new design decisions,
+code and tests in the registry and run `python tools/traceability.py --write-docs`
+(see [maintaining the registry](docs/traceability.md#maintaining-the-registry)). The
+per-production view is the
 [grammar evidence matrix](core/docs/design-grammar-evidence.md). Draft-07 validation, a
 CLI and VS Code support are independently optional components.
 

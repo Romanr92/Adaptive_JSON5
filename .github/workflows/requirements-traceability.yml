@@ -1,0 +1,114 @@
+name: requirements-traceability
+
+# Requirement -> code -> tests -> result, from docs/requirements-registry.json and the
+# JUnit results of the four required configurations. Informative, not a merge requirement:
+# findings appear in the job summary and the HTML artifact and do not fail the check.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: requirements-traceability-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Same configurations as compiler-diversity; run here so this workflow stands alone.
+  test-evidence:
+    name: test evidence (${{ matrix.compiler }}, exceptions ${{ matrix.exceptions }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [g++-13, clang++-18]
+        exceptions: ['OFF', 'ON']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install compilers and build tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++-13 clang-18 ninja-build
+      - name: Configure units and validation
+        run: >-
+          cmake -S . -B build/traceability-tests -G Ninja
+          -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+          -DCMAKE_BUILD_TYPE=Debug
+          -DADAPTIVE_JSON5_BUILD_LIBRARY=ON
+          -DADAPTIVE_JSON5_BUILD_TESTS=ON
+          -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=ON
+          -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }}
+          -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+      - name: Compile units and validation
+        run: cmake --build build/traceability-tests --parallel "$(nproc)"
+      # Test failures are recorded in the JUnit file and reported as gaps, not as a job failure.
+      - name: Run units and validation
+        continue-on-error: true
+        run: ctest --test-dir build/traceability-tests --parallel "$(nproc)" --no-tests=error --output-junit results.xml
+      - name: Preserve test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: traceability-junit-${{ matrix.compiler }}-${{ matrix.exceptions }}
+          path: build/traceability-tests/results.xml
+          if-no-files-found: ignore
+          retention-days: 30
+
+  # Runs after failed evidence jobs too, so missing results show as unknown, not as no report.
+  traceability:
+    name: Requirements traceability report
+    needs: test-evidence
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Run analyzer units
+        run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
+      - name: Download test results
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: traceability-junit-*
+          path: evidence
+      - name: Check the registry and generate the report
+        continue-on-error: true
+        run: |
+          # The registry is the one list of required configurations; the matrix above must produce each.
+          arguments=()
+          for configuration in $(python3 tools/traceability.py --list-configurations); do
+            results="$(find "evidence/traceability-junit-$configuration" -name results.xml -print -quit 2>/dev/null || true)"
+            if [ -n "$results" ]; then arguments+=(--junit "$configuration=$results"); fi
+          done
+          python3 tools/traceability.py --output-dir build/traceability --summary "$GITHUB_STEP_SUMMARY" "${arguments[@]}"
+      - name: Show unknown for any badge that could not be measured
+        if: ${{ !cancelled() }}
+        run: python3 tools/traceability.py --unknown-badges build/traceability
+      - name: Upload traceability report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: traceability-report-html
+          path: build/traceability/
+          if-no-files-found: error
+          retention-days: 30
+
+  # Only main pushes publish; pull-request code never reaches this write-permission job.
+  publish-badge:
+    needs: traceability
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-metric-badge.yml
+    with:
+      artifact: traceability-report-html
+      metric: traceability
+      files: traceability-implementation.svg,traceability-tests.svg,traceability-passing.svg,traceability.json,traceability.html

@@ -28,6 +28,7 @@ request, including documentation-only changes. AI agents must fill it in too.
 - [ ] Relevant required unit cases pass with exceptions OFF and RTTI OFF.
 - [ ] clang-format 18 check passes.
 - [ ] Named unit references and affected essential public API/limit contracts are accurate; no separate per-issue report is required.
+- [ ] New or changed tests, code and design decisions are mapped in `docs/requirements-registry.json`, and `python tools/traceability.py --write-docs` reports no problems and no unmapped tests.
 - [ ] Incorporated source/data/fixtures have recorded versions and notices.
 
 ## Remaining limitations

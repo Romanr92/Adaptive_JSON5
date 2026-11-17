@@ -8,7 +8,8 @@ description: Explain Adaptive_JSON5 J5 requirements and guide their implementati
 # Guide an Adaptive_JSON5 requirement
 
 Read `AGENTS.md`, `README.md`, the requested entry in `docs/requirements.md`, its
-owner/test inventory in `docs/traceability.md` and relevant ADRs. The original
+owner/design/test inventory in `docs/traceability.md` (generated from
+`docs/requirements-registry.json`) and relevant ADRs. The original
 proposal is historical Draft input, not an authority over later user decisions.
 If an ID is absent, state that rather than inventing a requirement.
 
@@ -210,10 +211,16 @@ build-setting smoke tests.
 ### Record the full traceability chain during verification
 
 When the verification step writes or names the unit tests for a requirement, also
-record the requirement's full traceability chain in `docs/traceability.md`. Keep the
-existing J5 rows as they are (source files, functions and `SuiteName.TestName`
-units), and update the **Safety traceability (ISO 26262)** section of the same file
-for every software safety requirement (SSR) the requirement serves:
+record the requirement's full traceability chain. The J5 rows of `docs/traceability.md`
+are generated: record design decisions (ADRs that mention the J5 ID), source files,
+functions and `SuiteName.TestName` units in that requirement's entry of
+`docs/requirements-registry.json`, never in the tables, then run
+`python tools/traceability.py --write-docs` and fix every problem it reports (see
+[Maintaining the registry](../../../docs/traceability.md#maintaining-the-registry)).
+Then update the hand-written **Safety traceability (ISO 26262)** section of
+`docs/traceability.md` for every software safety requirement (SSR) the requirement
+serves; the same command checks that its J5 rows exist and cover the SSR's related J5
+rows:
 
 1. **Assumptions:** the SEooC assumptions (A-xx) in
    `docs/ISO26262-safety/seooc-assumptions.md` that the SSR follows from.
