@@ -31,7 +31,7 @@ Status values: **Evidence exists** (evidence is there, but not independently rev
 | ID | Claim | Argument | Evidence | Status |
 | --- | --- | --- | --- | --- |
 | CC-1 | Crafted input cannot corrupt memory or take control (T-01) | Every access is bounds-checked, there is no heap and no recursion (CSR-01, CSR-05), and independent dynamic checks look for memory errors | Unit and validation tests (V1, V2); sanitizer runs and fuzzing (V4, V5, SV-2); static analysis (SV-3) | **Partial**: tests exist; sanitizers, fuzzing and static analysis are missing (#132, #146) |
-| CC-2 | Ambiguous or tampered data is not accepted as valid (T-02) | Every failure is an explicit error (CSR-03), values are exact (CSR-04), duplicates are never resolved silently, and secure mode is offered (CSR-07) | Unit tests, including `J5_032_Json5Document.RejectsDuplicateNamesWhenConfigured` | **Partial**: secure mode is not implemented yet (#145) |
+| CC-2 | Ambiguous or tampered data is not accepted as valid (T-02) | Every failure is an explicit error (CSR-03), values are exact (CSR-04), duplicates are never resolved silently, and secure mode is offered (CSR-07) | Unit tests, including `J5_032_Json5Document.RejectsDuplicateNamesWhenConfigured` and the secure-mode units `J5_032_SecureMode*` and `J5_032_StringChecks*` (#145) | **Partial**: secure mode is implemented with unit tests (#145); its fuzz targets (SV-2) are missing (#132) |
 | CC-3 | Crafted input cannot exhaust time or memory (T-03) | Every resource limit is enforced and inclusive (CSR-02), and a work budget bounds the run time | Limit boundary unit tests; fuzzing (V5) | **Partial**: fuzzing is missing (#132); two known denial-of-service gaps (#124) |
 | CC-4 | No data leaks through the library (T-04) | Diagnostics carry only codes, positions and ranges (CSR-08), and a copy of the input is kept only on request | Diagnostic unit tests; API security review (SV-4) | **Partial**: the API security review has not been done yet |
 | CC-5 | The library is built from its reviewed source (T-05) | Pinned dependencies and actions, a second compiler, signed or attested releases, and vulnerability scanning | Tool confidence evaluation; Clang job (V8); release attestation and SBOM; SV-1 | **Missing**: #131, #141 |
@@ -52,4 +52,4 @@ Issue #128 adds local evidence relevant to CC-1 and CC-2: private document
 mutation, foreign-index errors and checked compact-link traversal. See
 [the scoped verification record](cybersecurity-verification.md#issue-128-local-verification-evidence-2026-11-16).
 Those claims remain Partial: required CI, dynamic/static analysis and independent
-review are not established by this host unit run. Secure mode (#145) is unchanged.
+review are not established by this host unit run.

@@ -6,6 +6,7 @@
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_lexer.hpp"
 #include "unicode/unicode.hpp"
 #include "unicode/utf8.hpp"
@@ -47,6 +48,10 @@ namespace adaptive_json5
      * @param mode Selected input syntax.
      * @param storage Fallible provider for decoded name storage.
      * @param max_units Inclusive decoded-name limit for this recognition.
+     * @param sink Optional parser sink for quoted names: reserve after allocation, record while decoding.
+     * @param checks Secure-mode checks for quoted names, normally name_string_checks();
+     * the default applies none (CSR-07). Identifier names are not checked: their grammar
+     * already excludes these characters.
      * @return Owned name, successful nullopt on no-match, or an explicit failure.
      * @note Failure and no-match preserve source.
      * Strict mode reports an identifier-shaped name as not_allowed_in_strict_json.
@@ -58,15 +63,15 @@ namespace adaptive_json5
      */
     result<std::optional<member_name_token>> consume_member_name(cursor& source, syntax_mode mode,
                                                                  const storage_callbacks& storage,
-                                                                 std::size_t max_units,
-                                                                 const string_warning_sink* sink) noexcept
+                                                                 std::size_t max_units, const string_warning_sink* sink,
+                                                                 string_checks checks) noexcept
     {
       using name_result = result<std::optional<member_name_token>>;
 
       cursor candidate = source;
 
       // P035: quoted and identifier names must produce the same owned decoded representation.
-      auto quoted = consume_string(candidate, mode, storage, max_units, {}, sink);
+      auto quoted = consume_string(candidate, mode, storage, max_units, {}, sink, checks);
 
       if (!quoted.has_value())
       {
@@ -132,18 +137,22 @@ namespace adaptive_json5
      * @param max_units Inclusive decoded-name limit for this recognition.
      * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
      * Only quoted names can warn; identifier names leave excess_warning empty.
+     * @param checks Secure-mode checks for quoted names, normally name_string_checks();
+     * the default applies none (CSR-07). Identifier names are not checked: their grammar
+     * already excludes these characters.
      * @return A measurement, nullopt on no-match, or a located failure.
      * @note Keeps consume_member_name's order so both report the same errors (ADR 0003, decision 7).
      * @par ID SWU-LEXER-013
      */
-    result<std::optional<member_name_measure>>
-    measure_member_name(cursor& source, syntax_mode mode, std::size_t max_units, std::size_t warning_allowance) noexcept
+    result<std::optional<member_name_measure>> measure_member_name(cursor& source, syntax_mode mode,
+                                                                   std::size_t max_units, std::size_t warning_allowance,
+                                                                   string_checks checks) noexcept
     {
       using measure_result = result<std::optional<member_name_measure>>;
 
       cursor candidate = source;
 
-      const auto quoted = measure_string(candidate, mode, max_units, warning_allowance);
+      const auto quoted = measure_string(candidate, mode, max_units, warning_allowance, checks);
 
       if (!quoted.has_value())
       {

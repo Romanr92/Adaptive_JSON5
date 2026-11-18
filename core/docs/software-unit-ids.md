@@ -28,12 +28,12 @@ library was checked to be byte-identical before and after.
 
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
-| API | SWU-API-040 | SWU-API-041 |
+| API | SWU-API-043 | SWU-API-044 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
-| DIAGNOSTICS | SWU-DIAGNOSTICS-017 | SWU-DIAGNOSTICS-018 |
+| DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
-| LEXER | SWU-LEXER-051 | SWU-LEXER-052 |
+| LEXER | SWU-LEXER-053 | SWU-LEXER-054 |
 | MEMORY | SWU-MEMORY-077 | SWU-MEMORY-078 |
 | PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
@@ -83,6 +83,9 @@ library was checked to be byte-identical before and after.
 | SWU-API-038 | used | `error::internal_fault()` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-039 | used | `error::relocated(std::size_t)` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-040 | used | `error::unlocated()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-041 | used | `error::security_reason()` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-042 | used | `error::security_at_range(source_span, security_reason)` | `includes/adaptive_json5/error.hpp` | — |
+| SWU-API-043 | used | `secure_parse_options()` | `includes/adaptive_json5/options.hpp` | — |
 
 ## COMMON
 
@@ -113,6 +116,7 @@ library was checked to be byte-identical before and after.
 | SWU-DIAGNOSTICS-015 | used | `format_warning(const string_warning &, input_view, char *, std::size_t)` | `core/src/diagnostics/diagnostic_format.cpp` | `includes/adaptive_json5/diagnostic_format.hpp` |
 | SWU-DIAGNOSTICS-016 | used | `(anonymous)::describe(resource_limit_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
 | SWU-DIAGNOSTICS-017 | used | `(anonymous)::describe(access_error_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
+| SWU-DIAGNOSTICS-018 | used | `(anonymous)::describe(security_reason)` | `core/src/diagnostics/diagnostic_format.cpp` | — |
 
 ## HOSTED
 
@@ -155,8 +159,8 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-009 | used | `consume_identifier(cursor &, const storage_callbacks &, std::size_t)` | `core/src/lexer/identifier/identifier_lexer.cpp` | `core/includes/lexer/identifier/identifier_lexer.hpp` |
 | SWU-LEXER-010 | used | `consume_line_terminator(cursor &)` | `core/src/lexer/line_terminator.cpp` | `core/includes/lexer/line_terminator.hpp` |
 | SWU-LEXER-011 | used | `detail::(anonymous)::starts_identifier_name(cursor)` | `core/src/lexer/member_name_lexer.cpp` | — |
-| SWU-LEXER-012 | used | `detail::consume_member_name(cursor &, syntax_mode, const storage_callbacks &, std::size_t, const string_warning_sink *)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
-| SWU-LEXER-013 | used | `detail::measure_member_name(cursor &, syntax_mode, std::size_t, std::size_t)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
+| SWU-LEXER-012 | used | `detail::consume_member_name(cursor &, syntax_mode, const storage_callbacks &, std::size_t, const string_warning_sink *, string_checks)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
+| SWU-LEXER-013 | used | `detail::measure_member_name(cursor &, syntax_mode, std::size_t, std::size_t, string_checks)` | `core/src/lexer/member_name_lexer.cpp` | `core/includes/lexer/member_name_lexer.hpp` |
 | SWU-LEXER-014 | used | `detail::consume_decimal_digits(cursor &)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
 | SWU-LEXER-015 | used | `detail::decimal_expected_error(cursor)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
 | SWU-LEXER-016 | used | `consume_decimal(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/number/decimal_lexer.cpp` | `core/includes/lexer/number/decimal_lexer.hpp` |
@@ -168,10 +172,10 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-022 | used | `(anonymous)::may_continue_identifier(adaptive_json5::cursor)` | `core/src/lexer/scalar_lexer.cpp` | — |
 | SWU-LEXER-023 | used | `(anonymous)::match_literal_bytes(const adaptive_json5::cursor &)` | `core/src/lexer/scalar_lexer.cpp` | — |
 | SWU-LEXER-024 | used | `detail::finish_scalar_token(cursor &, cursor, scalar_token, syntax_mode)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
-| SWU-LEXER-025 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t, std::size_t, std::size_t, const string_warning_sink *)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
+| SWU-LEXER-025 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t, std::size_t, std::size_t, const string_warning_sink *, string_checks)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-026 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-027 | used | `(anonymous)::finish_scalar_measure(cursor &, cursor, const scalar_measure &, syntax_mode)` | `core/src/lexer/scalar_lexer.cpp` | — |
-| SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
+| SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t, std::size_t, string_checks)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-029 | used | `hex_digit_value(char32_t)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-030 | used | `consume_hex_escape(cursor &, syntax_mode)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-031 | used | `consume_line_continuation(cursor &, syntax_mode)` | `core/src/lexer/string/line_continuation.cpp` | `core/includes/lexer/string/line_continuation.hpp` |
@@ -181,10 +185,10 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-035 | used | `consume_string_piece(cursor &, string_quote, syntax_mode)` | `core/src/lexer/string/string_boundary.cpp` | `core/includes/lexer/string/string_boundary.hpp` |
 | SWU-LEXER-036 | used | `detail::consume_unit_escape(cursor &, syntax_mode)` | `core/src/lexer/string/string_escape.cpp` | `core/includes/lexer/string/string_escape.hpp` |
 | SWU-LEXER-037 | used | `consume_string_escape(cursor &, syntax_mode)` | `core/src/lexer/string/string_escape.cpp` | `core/includes/lexer/string/string_escape.hpp` |
-| SWU-LEXER-038 | used | `(anonymous)::walk_string_body(cursor &, std::size_t, string_quote, syntax_mode, std::size_t, std::size_t, decoded_string_builder *, const string_warning_sink *)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-038 | used | `(anonymous)::walk_string_body(cursor &, std::size_t, string_quote, syntax_mode, std::size_t, std::size_t, decoded_string_builder *, const string_warning_sink *, string_checks)` | `core/src/lexer/string/string_lexer.cpp` | — |
 | SWU-LEXER-039 | used | `detail::notify_string_warnings(cursor, string_quote, syntax_mode, const string_warning_observer &)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
-| SWU-LEXER-040 | used | `measure_string(cursor &, syntax_mode, std::size_t, std::size_t)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
-| SWU-LEXER-041 | used | `consume_string(cursor &, syntax_mode, const storage_callbacks &, std::size_t, string_warning_observer, const string_warning_sink *)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
+| SWU-LEXER-040 | used | `measure_string(cursor &, syntax_mode, std::size_t, std::size_t, string_checks)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
+| SWU-LEXER-041 | used | `consume_string(cursor &, syntax_mode, const storage_callbacks &, std::size_t, string_warning_observer, const string_warning_sink *, string_checks)` | `core/src/lexer/string/string_lexer.cpp` | `core/includes/lexer/string/string_lexer.hpp` |
 | SWU-LEXER-042 | used | `(anonymous)::add(detail::surrogate_warnings &, const string_warning &)` | `core/src/lexer/string/string_warning.cpp` | — |
 | SWU-LEXER-043 | used | `detail::surrogate_pairing::escape(const encoded_utf16 &, std::size_t, std::size_t)` | `core/src/lexer/string/string_warning.cpp` | `core/includes/lexer/string/string_warning.hpp` |
 | SWU-LEXER-044 | used | `detail::surrogate_pairing::character()` | `core/src/lexer/string/string_warning.cpp` | `core/includes/lexer/string/string_warning.hpp` |
@@ -195,6 +199,8 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-049 | used | `skip_strict_json_whitespace(cursor &)` | `core/src/lexer/trivia.cpp` | `core/includes/lexer/trivia.hpp` |
 | SWU-LEXER-050 | used | `skip_trivia(cursor &, syntax_mode)` | `core/src/lexer/trivia.cpp` | `core/includes/lexer/trivia.hpp` |
 | SWU-LEXER-051 | used | `skip_json5_whitespace(cursor &)` | `core/src/lexer/whitespace.cpp` | `core/includes/lexer/whitespace.hpp` |
+| SWU-LEXER-052 | used | `value_string_checks(const parse_options &)` | `core/includes/lexer/string/string_checks.hpp` | — |
+| SWU-LEXER-053 | used | `name_string_checks(const parse_options &)` | `core/includes/lexer/string/string_checks.hpp` | — |
 
 ## MEMORY
 

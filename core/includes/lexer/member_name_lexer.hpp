@@ -7,6 +7,7 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 #include "input/cursor.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_token.hpp"
 
 #include <cstddef>
@@ -61,6 +62,9 @@ namespace adaptive_json5
      * @param storage Fallible provider for decoded name storage.
      * @param max_units Inclusive decoded-name limit for this recognition.
      * @param sink Optional parser sink for quoted names: reserve after allocation, record while decoding.
+     * @param checks Secure-mode checks for quoted names, normally name_string_checks();
+     * the default applies none (CSR-07). Identifier names are not checked: their grammar
+     * already excludes these characters.
      * @return Owned name, successful nullopt on no-match, or an explicit failure.
      * @note Failure and no-match preserve source.
      * Success consumes only the name, leaving the colon unconsumed.
@@ -71,7 +75,7 @@ namespace adaptive_json5
      */
     [[nodiscard]] result<std::optional<member_name_token>>
     consume_member_name(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_units,
-                        const string_warning_sink* sink = nullptr) noexcept;
+                        const string_warning_sink* sink = nullptr, string_checks checks = {}) noexcept;
 
     /**
      * @brief Recognize a member name like consume_member_name, but measure it without allocating.
@@ -82,6 +86,9 @@ namespace adaptive_json5
      * @param max_units Inclusive decoded-name limit for this recognition.
      * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never limits.
      * Only quoted names can warn; identifier names leave excess_warning empty.
+     * @param checks Secure-mode checks for quoted names, normally name_string_checks();
+     * the default applies none (CSR-07). Identifier names are not checked: their grammar
+     * already excludes these characters.
      * @return A measurement, successful nullopt on no-match,
      * or the same located failure consume_member_name reports for the same input.
      * @note Tries a quoted name first, then an identifier name in JSON5 mode only.
@@ -91,7 +98,8 @@ namespace adaptive_json5
      */
     [[nodiscard]] result<std::optional<member_name_measure>>
     measure_member_name(cursor& source, syntax_mode mode, std::size_t max_units,
-                        std::size_t warning_allowance = std::numeric_limits<std::size_t>::max()) noexcept;
+                        std::size_t warning_allowance = std::numeric_limits<std::size_t>::max(),
+                        string_checks checks = {}) noexcept;
   } // namespace detail
 } // namespace adaptive_json5
 

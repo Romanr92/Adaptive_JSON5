@@ -44,6 +44,7 @@ target_include_directories(adaptive_json5_identifier_unit_tests PRIVATE "${PROJE
 
 adaptive_json5_add_unit(adaptive_json5_string_lexer_unit_tests string_lexer_units
     lexer/string/string_lexer_tests.cpp
+    lexer/string/string_checks_tests.cpp
     lexer/lexer_boundary_tests.cpp)
 target_include_directories(adaptive_json5_string_lexer_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
 

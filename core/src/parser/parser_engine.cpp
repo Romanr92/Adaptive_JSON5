@@ -19,6 +19,7 @@
 #include "lexer/punctuation.hpp"
 #include "lexer/scalar_lexer.hpp"
 #include "lexer/scalar_token.hpp"
+#include "lexer/string/string_checks.hpp"
 #include "lexer/string/string_token.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
@@ -205,7 +206,7 @@ namespace adaptive_json5
 
       // Temporary identifier decoding is separate from retained string content.
       auto recognized = consume_scalar(scan.source, m_options.syntax, m_storage, string_limit, m_input.size,
-                                       limits.max_exponent_digits, &sink);
+                                       limits.max_exponent_digits, &sink, value_string_checks(m_options));
 
       if (!recognized.has_value())
       {
@@ -350,7 +351,8 @@ namespace adaptive_json5
       m_warning_record_failed = false;
       const string_warning_sink sink{this, &reserve_string, &record_warning};
 
-      auto recognized = consume_member_name(scan.source, m_options.syntax, m_storage, max_units, &sink);
+      auto recognized =
+        consume_member_name(scan.source, m_options.syntax, m_storage, max_units, &sink, name_string_checks(m_options));
 
       if (!recognized.has_value())
       {
@@ -757,8 +759,9 @@ namespace adaptive_json5
 
       limited_scan scan = *started.value_if();
 
-      const auto measured = measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size,
-                                           limits.max_exponent_digits, m_resources.diagnostic_allowance());
+      const auto measured =
+        measure_scalar(scan.source, m_options.syntax, string_limit, m_input.size, limits.max_exponent_digits,
+                       m_resources.diagnostic_allowance(), value_string_checks(m_options));
 
       if (!measured.has_value())
       {
@@ -856,8 +859,8 @@ namespace adaptive_json5
       }
 
       limited_scan scan = *started.value_if();
-      const auto measured =
-        measure_member_name(scan.source, m_options.syntax, max_units, m_resources.diagnostic_allowance());
+      const auto measured = measure_member_name(scan.source, m_options.syntax, max_units,
+                                                m_resources.diagnostic_allowance(), name_string_checks(m_options));
 
       if (!measured.has_value())
       {

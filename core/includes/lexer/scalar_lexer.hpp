@@ -6,6 +6,7 @@
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "lexer/scalar_token.hpp"
+#include "lexer/string/string_checks.hpp"
 
 #include <cstddef>
 #include <limits>
@@ -42,6 +43,8 @@ namespace adaptive_json5
    * @param max_identifier_units Maximum temporary decoded identifier units.
    * @param max_exponent_digits Maximum decimal exponent digits.
    * @param sink Optional parser sink: reserve after the string is allocated, record during decoding.
+   * @param checks Secure-mode checks for string values, normally value_string_checks();
+   * the default applies none (CSR-07). Numbers, literals and identifiers are not checked.
    * @return A scalar token, successful nullopt at EOF or structural punctuation,
    * or an explicit located error.
    * @note No-match and failure leave source unchanged.
@@ -60,7 +63,7 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<scalar_token>>
   consume_scalar(cursor& source, syntax_mode mode, const storage_callbacks& storage, std::size_t max_string_units,
                  std::size_t max_identifier_units, std::size_t max_exponent_digits,
-                 const string_warning_sink* sink = nullptr) noexcept;
+                 const string_warning_sink* sink = nullptr, string_checks checks = {}) noexcept;
 
   /**
    * @brief Recognize a primitive using the original shared decoded-unit limit.
@@ -89,6 +92,8 @@ namespace adaptive_json5
    * @param max_exponent_digits Maximum decimal exponent digits.
    * @param warning_allowance Warnings that still fit the caller's diagnostic budget; the default never
    * limits. Passed to measure_string, so a string measurement carries the first excess warning.
+   * @param checks Secure-mode checks for string values, normally value_string_checks();
+   * the default applies none (CSR-07). Numbers, literals and identifiers are not checked.
    * @return A measurement, successful nullopt at EOF or structural punctuation,
    * or the same located error consume_scalar reports for the same input and limits.
    * @note Tries the alternatives in consume_scalar's order: string, number, literal, identifier.
@@ -100,7 +105,8 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<scalar_measure>>
   measure_scalar(cursor& source, syntax_mode mode, std::size_t max_string_units, std::size_t max_identifier_units,
                  std::size_t max_exponent_digits,
-                 std::size_t warning_allowance = std::numeric_limits<std::size_t>::max()) noexcept;
+                 std::size_t warning_allowance = std::numeric_limits<std::size_t>::max(),
+                 string_checks checks = {}) noexcept;
 
 } // namespace adaptive_json5
 

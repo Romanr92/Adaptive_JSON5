@@ -5,6 +5,7 @@
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/security_reason.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/text_position.hpp"
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
@@ -160,6 +161,8 @@ namespace adaptive_json5
         return "allocation failure";
       case error_code::internal_error:
         return "internal error";
+      case error_code::security_policy:
+        return "rejected by secure mode";
       }
 
       // A value outside the enumeration still gets text instead of undefined behavior.
@@ -350,11 +353,35 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Give the fixed text for a secure-mode rejection.
+     * @par Requirements
+     * CSR-07; J5-043; issue #145.
+     * @param reason Which secure-mode option rejected the input.
+     * @return Static English text; "rejected by secure mode" for a value outside the enumeration.
+     * @note No default label, so -Wswitch reports a newly added reason without text.
+     * @par ID SWU-DIAGNOSTICS-018
+     */
+    std::string_view describe(security_reason reason) noexcept
+    {
+      switch (reason)
+      {
+      case security_reason::zero_byte:
+        return "zero byte in string or member name";
+      case security_reason::name_control_character:
+        return "control character in member name";
+      case security_reason::unpaired_surrogate:
+        return "unpaired surrogate escape";
+      }
+
+      return "rejected by secure mode";
+    }
+
+    /**
      * @brief Choose the most specific text available for an error.
      * @par Requirements
      * J5-043; issue #96; issue #125.
      * @param failure Error to describe.
-     * @return The syntax, numeric, limit or access reason text when present, otherwise the
+     * @return The syntax, numeric, limit, access or security reason text when present, otherwise the
      * category text.
      * @note Each reason accessor answers only for its own category, so at most one applies.
      * @par ID SWU-DIAGNOSTICS-010
@@ -374,6 +401,10 @@ namespace adaptive_json5
         return describe(*reason);
       }
       if (const auto reason = failure.access_reason(); reason.has_value())
+      {
+        return describe(*reason);
+      }
+      if (const auto reason = failure.security_reason(); reason.has_value())
       {
         return describe(*reason);
       }

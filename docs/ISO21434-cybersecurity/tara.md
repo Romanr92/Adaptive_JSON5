@@ -68,18 +68,28 @@ Full escaping cannot live in the library, because the right escaping depends on 
 the string goes next, and only the integrator knows that. A one-size-fits-all escape
 would give false confidence.
 
-## 5. Secure mode (planned)
+## 5. Secure mode
 
-Secure mode is a planned set of parse options (#145) for input
-that comes from a network or another untrusted source.
+Secure mode is a set of parse options (#145) for input that comes from a network or
+another untrusted source. It is available: `secure_parse_options()` in
+`adaptive_json5/options.hpp`.
 
 - It is **off by default**, so the default behaviour stays fully standard.
 - Turning it on enables **every** security option at once:
-  - reject duplicate member names (`reject_duplicates`);
-  - reject zero bytes (`U+0000`) in strings and member names;
-  - reject control characters in member names;
-  - reject unpaired surrogates, which today only produce a warning.
-- After turning it on, each option can still be switched off individually.
+  - reject duplicate member names (`duplicate_names = reject_duplicates`);
+  - reject zero bytes (`U+0000`), raw or escaped as `\0`, `\x00` or `\u0000`, in strings
+    and member names (`zero_bytes = zero_byte_policy::reject`);
+  - reject control characters U+0000 to U+001F, raw or escaped, in member names
+    (`name_controls = name_control_policy::reject`);
+  - reject unpaired surrogates, which by default only produce a warning
+    (`unpaired_surrogates = unpaired_surrogate_policy::reject`).
+- After turning it on, each option can still be switched off individually; the others
+  stay on.
+- Each rejection is an explicit `error_code::security_policy` error with a
+  `security_reason` and the source range of the offending character or escape. Duplicate
+  names keep `error_code::duplicate_policy`. Nothing is thrown or silently replaced.
+- Within one string or name, syntax and encoding errors are reported first; otherwise the
+  first error in source order wins.
 
 > **⚠️ Secure mode is not fully standard JSON or JSON5.** It deliberately rejects some
 > documents that the standards allow: duplicate member names, zero bytes and control

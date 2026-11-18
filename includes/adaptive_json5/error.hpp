@@ -4,6 +4,7 @@
 #include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
+#include "adaptive_json5/security_reason.hpp"
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
 
@@ -16,7 +17,7 @@ namespace adaptive_json5
   /**
    * @brief Stable categories for explicit library failures.
    * @par Requirements
-   * P002; J5-043; issue #125.
+   * P002; J5-043; CSR-07; issue #125; issue #145.
    * @note The values are stable; new categories are only appended.
    */
   enum class error_code : std::uint8_t
@@ -28,7 +29,8 @@ namespace adaptive_json5
     numeric_conversion = 5,   // No exact conversion for the destination; see numeric_reason().
     resource_limit = 6,       // A configured limit or the work budget would be exceeded; see limit_reason().
     allocation_failure = 7,   // The storage provider could not supply memory.
-    internal_error = 8        // A library invariant failed; the document is rejected. Not caused by the caller.
+    internal_error = 8,       // A library invariant failed; the document is rejected. Not caused by the caller.
+    security_policy = 9       // A secure-mode option rejected the input; see security_reason().
   };
 
   /**
@@ -53,12 +55,13 @@ namespace adaptive_json5
    * so a reason can never belong to a different category than code().
    * byte_offset() is zero-based in the original input; without has_byte_offset() it is zero.
    * source_range(), when present, covers the offending token in the original input;
-   * at_range() and syntax_at_range() set it, and every other factory leaves it empty.
+   * at_range(), syntax_at_range() and security_at_range() set it, and every other factory
+   * leaves it empty.
    * duplicate_names() is present only for duplicate_member(); byte_offset() is then the
    * repeated name's start and source_range() stays empty.
    * Each reason accessor returns a value only for its own category: syntax_reason() for
    * syntax, numeric_reason() for numeric_conversion, limit_reason() for resource_limit and
-   * access_reason() for wrong_type_or_access.
+   * access_reason() for wrong_type_or_access and security_reason() for security_policy.
    * Limit, access and internal failures use limit_at(), limit_without_location(),
    * access_failure() and internal_fault(), so they always carry their reason; at_offset(),
    * at_range() and without_location() are for the other categories.
@@ -268,6 +271,23 @@ namespace adaptive_json5
       }
 
       /**
+       * @brief Return which secure-mode option rejected the input.
+       * @par Requirements
+       * CSR-07; J5-043; issue #145.
+       * @return The reason for error_code::security_policy; empty otherwise.
+       * @par ID SWU-API-041
+       */
+      [[nodiscard]] constexpr std::optional<adaptive_json5::security_reason> security_reason() const noexcept
+      {
+        const auto reason = reason_for(error_code::security_policy);
+        if (!reason.has_value())
+        {
+          return std::nullopt;
+        }
+        return static_cast<adaptive_json5::security_reason>(*reason);
+      }
+
+      /**
        * @brief Copy this failure with a new primary location.
        * @par Requirements
        * J5-043; J5-044; issue #125.
@@ -411,6 +431,23 @@ namespace adaptive_json5
                                                            syntax_error_reason reason) noexcept
       {
         return error{error_code::syntax, byte_offset, c_has_offset | c_has_range | c_has_reason, range,
+                     static_cast<std::uint8_t>(reason)};
+      }
+
+      /**
+       * @brief Construct a secure-mode rejection with its reason and the offending range.
+       * @par Requirements
+       * CSR-07; CSR-03; J5-043; J5-044; J5-045; issue #145.
+       * @param range Original-input extent of the raw character or of the whole escape.
+       * @param reason Which secure-mode option rejected the input.
+       * @return Security-policy error; byte_offset() is the start of range.
+       * @note Performs no allocation.
+       * @par ID SWU-API-042
+       */
+      [[nodiscard]] static constexpr error security_at_range(source_span range,
+                                                             adaptive_json5::security_reason reason) noexcept
+      {
+        return error{error_code::security_policy, range.byte_offset, c_has_offset | c_has_range | c_has_reason, range,
                      static_cast<std::uint8_t>(reason)};
       }
 
