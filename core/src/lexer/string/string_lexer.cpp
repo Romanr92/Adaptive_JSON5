@@ -32,8 +32,8 @@ namespace adaptive_json5
     constexpr std::size_t c_no_warning_allowance = std::numeric_limits<std::size_t>::max();
 
     // Secure-mode limits, compared as char32_t like string_boundary.cpp.
-    constexpr char32_t c_zero_unit = 0x0;
-    constexpr char32_t c_control_max = 0x1F;
+    constexpr char32_t c_zero_unit = U'\0';
+    constexpr char32_t c_control_max = U'\x1F';
 
     /**
      * @brief Totals produced by one walk over a string body.
@@ -225,7 +225,13 @@ namespace adaptive_json5
           }
 
           // The cursor only moves forward, so the escape's end is never before its backslash.
+          const std::size_t escape_end = source.offset();
+          if (escape_end < piece_offset)
+          {
+            return walk_result::failure(error::internal_fault());
+          }
           const std::size_t escape_length = source.offset() - piece_offset;
+
           handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, escape_length));
           check_units(*escaped.value_if(), source_span{piece_offset, escape_length});
         }
@@ -245,7 +251,7 @@ namespace adaptive_json5
           }
 
           handle_pairing(pairing.character());
-          check_units(*encoded.value_if(), source_span{piece_offset, source.offset() - piece_offset});
+          check_units(*encoded.value_if(), source_span{piece_offset, piece.value_if()->byte_length});
 
           const auto warning = raw_separator_warning_for(*piece.value_if(), mode);
           if (warning.has_value())
