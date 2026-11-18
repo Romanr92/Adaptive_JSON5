@@ -3,6 +3,8 @@
 
 #include "adaptive_json5/memory/resource_limits.hpp"
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -11,7 +13,7 @@ namespace adaptive_json5
    * J5-005.
    * @note Selection does not permit additional nonstandard syntax.
    */
-  enum class syntax_mode
+  enum class syntax_mode : std::uint8_t
   {
     json5,
     strict_json
@@ -35,7 +37,7 @@ namespace adaptive_json5
    * another system may therefore fail to parse. Use secure mode only when you control both
    * ends, or when rejecting these cases is what you want.
    */
-  enum class duplicate_name_policy
+  enum class duplicate_name_policy : std::uint8_t
   {
     preserve_all,
     reject_duplicates
@@ -50,7 +52,7 @@ namespace adaptive_json5
    * - retain_copy: Copy the complete input into the parsed document after parsing succeeds.
    * @note The copy is charged to the caller's accounting against max_owned_bytes.
    */
-  enum class source_retention_policy
+  enum class source_retention_policy : std::uint8_t
   {
     discard,
     retain_copy
@@ -66,7 +68,7 @@ namespace adaptive_json5
    * @note JSON5 mode ignores this policy because its whitespace grammar already admits the mark.
    * Skipping keeps original byte offsets in every error, span and warning.
    */
-  enum class strict_bom_policy
+  enum class strict_bom_policy : std::uint8_t
   {
     reject,
     skip_one
@@ -84,7 +86,7 @@ namespace adaptive_json5
    * @note A document without warnings allocates nothing under either policy.
    * More warnings than max_diagnostics fail the parse with resource_limit under either policy.
    */
-  enum class warning_storage_policy
+  enum class warning_storage_policy : std::uint8_t
   {
     fixed,
     adaptive
@@ -110,7 +112,7 @@ namespace adaptive_json5
    * another system may therefore fail to parse. Use secure mode only when you control both
    * ends, or when rejecting these cases is what you want.
    */
-  enum class zero_byte_policy
+  enum class zero_byte_policy : std::uint8_t
   {
     preserve,
     reject
@@ -138,7 +140,7 @@ namespace adaptive_json5
    * another system may therefore fail to parse. Use secure mode only when you control both
    * ends, or when rejecting these cases is what you want.
    */
-  enum class name_control_policy
+  enum class name_control_policy : std::uint8_t
   {
     preserve,
     reject
@@ -163,7 +165,7 @@ namespace adaptive_json5
    * another system may therefore fail to parse. Use secure mode only when you control both
    * ends, or when rejecting these cases is what you want.
    */
-  enum class unpaired_surrogate_policy
+  enum class unpaired_surrogate_policy : std::uint8_t
   {
     warn,
     reject

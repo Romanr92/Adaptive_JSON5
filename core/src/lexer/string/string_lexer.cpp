@@ -31,6 +31,10 @@ namespace adaptive_json5
     // so excess_warning stays empty.
     constexpr std::size_t c_no_warning_allowance = std::numeric_limits<std::size_t>::max();
 
+    // Secure-mode limits, compared as char32_t like string_boundary.cpp.
+    constexpr char32_t c_zero_unit = 0x0;
+    constexpr char32_t c_control_max = 0x1F;
+
     /**
      * @brief Totals produced by one walk over a string body.
      * @par Requirements
@@ -129,17 +133,24 @@ namespace adaptive_json5
       // A decoded unit is checked against the zero-byte rule first, then the name-control rule.
       const auto check_units = [&reject, checks](const encoded_utf16& units, source_span span) noexcept
       {
-        for (std::size_t index{}; index < units.size; ++index)
+        if (units.size == std::size_t{})
         {
-          const char16_t unit = units.units[index];
-          if (checks.reject_zero_bytes && (unit == u'\0'))
-          {
-            reject(security_reason::zero_byte, span);
-          }
-          else if (checks.reject_control_characters && (unit < u'\x20'))
-          {
-            reject(security_reason::name_control_character, span);
-          }
+          return;
+        }
+
+        // Compare as char32_t, like string_boundary, so no character is used as a number.
+        const char32_t unit = units.units[encoded_utf16::c_first_unit_index];
+        if (checks.reject_zero_bytes && (unit == c_zero_unit))
+        {
+          reject(security_reason::zero_byte, span);
+        }
+        else if (checks.reject_control_characters && (unit <= c_control_max))
+        {
+          reject(security_reason::name_control_character, span);
+        }
+        else
+        {
+          // Any other unit is allowed.
         }
       };
 
@@ -213,8 +224,10 @@ namespace adaptive_json5
             return walk_result::failure(*emitted.error_if());
           }
 
-          handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, source.offset() - piece_offset));
-          check_units(*escaped.value_if(), source_span{piece_offset, source.offset() - piece_offset});
+          // The cursor only moves forward, so the escape's end is never before its backslash.
+          const std::size_t escape_length = source.offset() - piece_offset;
+          handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, escape_length));
+          check_units(*escaped.value_if(), source_span{piece_offset, escape_length});
         }
         else
         {
