@@ -230,7 +230,7 @@ namespace adaptive_json5
           {
             return walk_result::failure(error::internal_fault());
           }
-          const std::size_t escape_length = source.offset() - piece_offset;
+          const std::size_t escape_length = escape_end - piece_offset;
 
           handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, escape_length));
           check_units(*escaped.value_if(), source_span{piece_offset, escape_length});
