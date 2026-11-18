@@ -19,12 +19,12 @@
 #include "value/power_of_five_table.hpp"
 #include "value/wide_multiply.hpp"
 
+#include <array>
 #include <cfenv>
 #include <cfloat>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <iterator>
 #include <limits>
 #include <optional>
 
@@ -39,10 +39,60 @@ namespace adaptive_json5
     constexpr std::uint32_t c_decimal_chunk_radix = 10000;
     constexpr std::size_t c_decimal_chunk_digits = 4;
 
-    // Each entry is exact in its own type: 10^22 < 2^53 * 5^22 for double, 10^10 for float.
-    constexpr double c_double_powers_of_ten[] = {1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,  1e8,  1e9,  1e10, 1e11,
-                                                 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
-    constexpr float c_float_powers_of_ten[] = {1e0F, 1e1F, 1e2F, 1e3F, 1e4F, 1e5F, 1e6F, 1e7F, 1e8F, 1e9F, 1e10F};
+#if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
+    // 10^k = 2^k * 5^k is exact while 5^k fits the significand: k <= 22 for double, k <= 10 for float.
+    constexpr std::array<double, 23> c_double_powers_of_ten{1e0,  1e1,  1e2,  1e3,  1e4,  1e5,  1e6,  1e7,
+                                                            1e8,  1e9,  1e10, 1e11, 1e12, 1e13, 1e14, 1e15,
+                                                            1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22};
+    constexpr std::array<float, 11> c_float_powers_of_ten{1e0F, 1e1F, 1e2F, 1e3F, 1e4F, 1e5F,
+                                                          1e6F, 1e7F, 1e8F, 1e9F, 1e10F};
+
+    /**
+     * @brief Look up a power of ten that T represents exactly.
+     * @par Requirements
+     * J5-037.
+     * @tparam T Destination type: float or double.
+     * @param exponent Decimal exponent magnitude.
+     * @return 10^exponent, or an empty optional when it is not exact in T.
+     * @par ID SWU-VALUE-177
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> exact_power_of_ten(std::size_t exponent) noexcept
+    {
+      if constexpr (std::numeric_limits<T>::digits == 53)
+      {
+        if (exponent < c_double_powers_of_ten.size())
+        {
+          return c_double_powers_of_ten[exponent];
+        }
+      }
+      else
+      {
+        if (exponent < c_float_powers_of_ten.size())
+        {
+          return c_float_powers_of_ten[exponent];
+        }
+      }
+
+      return std::nullopt;
+    }
+
+    /**
+     * @brief Report whether the caller's floating-point environment rounds to nearest.
+     * @par Requirements
+     * J5-037; J5-052.
+     * @return False also when the target cannot report its mode; the integer-only steps then decide.
+     * @par ID SWU-VALUE-178
+     */
+    [[nodiscard]] bool rounds_to_nearest() noexcept
+    {
+  #if defined(FE_TONEAREST)
+      return std::fegetround() == FE_TONEAREST;
+  #else
+      return false;
+  #endif
+    }
+#endif // FLT_EVAL_METHOD == 0
 
     /**
      * @brief Convert one validated hexadecimal digit character to its value.
@@ -321,7 +371,8 @@ namespace adaptive_json5
      * @return The correctly rounded value, an empty optional when the exact path is needed,
      * or resource_limit (work) when work is exhausted.
      * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
-     * round-to-nearest; disabled when intermediate precision is wider than T.
+     * round-to-nearest, so it runs only when the caller's rounding mode is to nearest;
+     * disabled when intermediate precision is wider than T.
      * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
      * @par ID SWU-VALUE-153
      */
@@ -384,37 +435,27 @@ namespace adaptive_json5
       {
         using limits = std::numeric_limits<T>;
 
-        // 2^digits is the largest integer range T holds exactly; 10^k is exact for k <= max_exact_power.
+        // 2^digits is the largest integer range T holds exactly.
         constexpr std::uint64_t c_max_exact_significand = std::uint64_t{1} << limits::digits;
 
         if (significand <= c_max_exact_significand)
         {
           // Exact by the bound above, so the result is the same in every rounding mode.
-          T value = static_cast<T>(significand); // exact by the bound above
+          const T exact = static_cast<T>(significand);
+
           if (parts.scale_magnitude == 0)
           {
             return fast_result::success(parts.negative ? -exact : exact);
           }
 
-          T power{};
-          std::size_t max_power{};
-          if constexpr (limits::digits == 53)
-          {
-            max_power = std::size_t(c_double_powers_of_ten) - 1U;
-            power = (parts.scale_magnitude <= max_power) ? c_double_powers_of_ten[parts.scale_magnitude] : T{};
-          }
-          else
-          {
-            max_power = std::size(c_double_powers_of_ten) - 1U;
-            power = (parts.scale_magnitude <= max_power) ? c_float_powers_of_ten[parts.scale_magnitude] : T{};
-          }
+          const std::optional<T> power = exact_power_of_ten<T>(parts.scale_magnitude);
 
           // One multiply or divide rounds in the caller's mode: use it only when that mode is to nearest.
-          if (parts.scale_magnitude <= max_power) && rounds_to_nearest())
-            {
-              const T value = parts.scale_negative ? (exact / power) : (exact * power);
-              return fast_result::success(parts.negative ? -value : value);
-            }
+          if (power.has_value() && rounds_to_nearest())
+          {
+            const T value = parts.scale_negative ? (exact / *power) : (exact * *power);
+            return fast_result::success(parts.negative ? -value : value);
+          }
         }
       }
 #endif // FLT_EVAL_METHOD == 0: x87-style excess precision would round Clinger's operation twice.
@@ -822,19 +863,6 @@ namespace adaptive_json5
 
       return float_result::success(negative ? -magnitude : magnitude);
     }
-
-    /**
-     * @brief Report whether the caller's floating-point environment rounds to nearest.
-     * @return False when the target cannot report its mode, so the caller takes the integer-only steps.
-     */
-    [[nodiscard]] bool rounds_to_nearest() noexcept
-    {
-#if defined(FE_TONEAREST)
-      return std::fegetround() == FE_TONEAREST;
-#else  /* FE_TONEAREST */
-      retrun false;
-#endif /* FE_TONEAREST */
-    }
   } // namespace
 
   /**
@@ -860,5 +888,4 @@ namespace adaptive_json5
   {
     return convert_to_floating<double>(number, scratch, options);
   }
-
 } // namespace adaptive_json5
