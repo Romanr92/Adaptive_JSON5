@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "717 tests"
+      "detail": "732 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "717 tests"
+      "detail": "732 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "717 tests"
+      "detail": "732 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "717 tests"
+      "detail": "732 tests"
     }
   },
   "metrics": {
@@ -5068,6 +5068,44 @@
           ],
           "note": "",
           "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/options.hpp"
+          ],
+          "symbols": [
+            "zero_byte_policy",
+            "name_control_policy",
+            "unpaired_surrogate_policy",
+            "secure_parse_options"
+          ],
+          "note": "Secure mode (CSR-07, issue #145)",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/security_reason.hpp",
+            "includes/adaptive_json5/error.hpp"
+          ],
+          "symbols": [
+            "security_reason",
+            "security_at_range"
+          ],
+          "note": "Secure-mode rejection error (CSR-07)",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/lexer/string/string_checks.hpp",
+            "core/src/lexer/string/string_lexer.cpp"
+          ],
+          "symbols": [
+            "value_string_checks",
+            "name_string_checks",
+            "walk_string_body"
+          ],
+          "note": "Secure-mode string checks (CSR-07)",
+          "problems": []
         }
       ],
       "tests": [
@@ -5140,6 +5178,116 @@
         {
           "id": "J5_032_Json5Document.RejectsDuplicateNamesWhenConfigured",
           "file": "tests/api/json5_value_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "CSR_07/J5_032_SecureModeRejects.RejectsWithReasonAndRange",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "CSR_07/J5_032_SecureModeAccepts.AcceptsOtherValidInput",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "CSR_07/J5_032_SecureModeSwitchOff.OnlySwitchedOffCaseIsAccepted",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_032_SecureModeNameZero.ZeroByteReasonTakesPrecedence",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "CSR_07/J5_032_SecureModeOrder.ReportsAgreedError",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_032_SecureModeError.CarriesOnlyItsOwnReason",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_032_SecureModeError.FormatsPositionAndReason",
+          "file": "tests/api/secure_mode_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_032_StringChecks.FollowsParseOptions",
+          "file": "core/tests/lexer/string/string_checks_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "CSR_07/J5_032_StringChecksLexer.MeasureAndConsumeAgreeWithoutAllocation",
+          "file": "core/tests/lexer/string/string_checks_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_032_StringChecksLexer.RejectionReplacesSurrogateWarning",
+          "file": "core/tests/lexer/string/string_checks_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
