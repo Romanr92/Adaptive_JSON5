@@ -147,7 +147,7 @@ namespace adaptive_json5
       const std::size_t start = word.offset();
       const auto sign = word.peek();
 
-      if (sign.has_value() && ((*sign == '-') || (*sign == '+')))
+      if (sign.has_value() && ((*sign == std::optional<char>{'-'}) || (*sign == std::optional<char>{'+'})))
       {
         word.advance(1);
       }
@@ -164,7 +164,7 @@ namespace adaptive_json5
       }
 
       const identifier_measure& name = **identifier.value_if();
-      return word_result::success(source_span{start, (name.byte_offset + name.byte_length) - start});
+      return word_result::success(source_span{start, word.span_from(start).size});
     }
   } // namespace
 

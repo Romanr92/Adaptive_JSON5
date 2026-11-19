@@ -14,7 +14,7 @@
 
 namespace adaptive_json5
 {
-  namespace detail
+  namespace
   {
     /**
      * @brief Report whether a sign is followed by the first letter of Infinity or NaN.
@@ -29,16 +29,18 @@ namespace adaptive_json5
       cursor probe = source;
       const auto sign = probe.peek();
 
-      if (!sign.has_value() || ((*sign != '-') && (*sign != '+')))
+      if (!sign.has_value() || ((*sign != std::optional<char>{'-'}) && (*sign != std::optional<char>{'+'})))
       {
         return false;
       }
 
       probe.advance(1);
-      const auto first = probe.peek();
-      return first.has_value() && ((*first == 'I') || (*first == 'N'));
+      const auto first = probe.peek(1);
+      return first.has_value() && ((*first == std::optional<char>{'I'}) || (*first == std::optional<char>{'N'}));
     }
-
+  } // namespace
+  namespace detail
+  {
     /**
      * @brief Select a numeric spelling recognizer without skipping input.
      * @par Requirements
