@@ -8,7 +8,6 @@
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "input/cursor.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
-#include "lexer/identifier/identifier_token.hpp"
 #include "lexer/number/number_lexer.hpp"
 #include "lexer/number/number_token.hpp"
 #include "lexer/punctuation.hpp"
@@ -163,7 +162,6 @@ namespace adaptive_json5
         return word_result::success(std::nullopt);
       }
 
-      const identifier_measure& name = **identifier.value_if();
       return word_result::success(source_span{start, word.span_from(start).size});
     }
   } // namespace

@@ -35,7 +35,7 @@ namespace adaptive_json5
       }
 
       probe.advance(1);
-      const auto first = probe.peek(1);
+      const auto first = probe.peek();
       return first.has_value() && ((*first == std::optional<char>{'I'}) || (*first == std::optional<char>{'N'}));
     }
   } // namespace
