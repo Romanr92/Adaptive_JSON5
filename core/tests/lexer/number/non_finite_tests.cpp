@@ -104,7 +104,7 @@ namespace
         non_finite_case{"UpperNan", "NAN", non_finite_outcome::no_match, number_kind::nan, 1},
         non_finite_case{"LowerLastNan", "Nan", non_finite_outcome::no_match, number_kind::nan, 2},
         non_finite_case{"WrongInfinityLast", "InfinitY", non_finite_outcome::no_match, number_kind::infinity, 7},
-        non_finite_case{"SignedMismatch", "-InFinity", non_finite_outcome::failure, number_kind::infinity, 3},
+        non_finite_case{"SignedMismatch", "-InFinity", non_finite_outcome::no_match, number_kind::infinity, 0},
         non_finite_case{"InfinitySuffix", "Infinityx", non_finite_outcome::no_match, number_kind::infinity, 8},
         non_finite_case{"NanDigit", "NaN0", non_finite_outcome::no_match, number_kind::nan, 3},
         non_finite_case{"InfinityUnderscore", "Infinity_", non_finite_outcome::no_match, number_kind::infinity, 8},

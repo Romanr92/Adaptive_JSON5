@@ -2554,7 +2554,8 @@
           "names": [
             "J5_043_ErrorReasons.FactoriesSetCodeReasonAndLocation",
             "J5_043_ErrorReasons.RelocatedAndUnlocatedKeepTheReason",
-            "Issue125/J5_043_UnknownWord.ReportsWholeWordRange"
+            "Issue125/J5_043_UnknownWord.ReportsWholeWordRange",
+            "Issue155/J5_043_UnknownWord.ReportsWholeWordRange"
           ]
         },
         {

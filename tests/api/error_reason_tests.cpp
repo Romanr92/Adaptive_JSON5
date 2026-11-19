@@ -140,7 +140,7 @@ namespace
   /**
    * @brief One unknown word and its expected whole-word range.
    * @par Requirements
-   * J5-024; J5-043; J5-044; issue #125.
+   * J5-024; J5-043; J5-044; issues #125 and #155.
    */
   struct word_case
   {
@@ -209,14 +209,29 @@ namespace
                                            word_case{"IndexStrict", "[Index]", c_strict, c_unknown, 1U, 5U},
                                            word_case{"NanStrict", "[Nan]", c_strict, c_unknown, 1U, 3U},
                                            word_case{"RootNoneStrict", "None", c_strict, c_unknown, 0U, 4U},
-                                           // A sign before the word keeps the located failure at the mismatch.
-                                           word_case{"SignedWord", "[-Nope]", c_json5, c_unknown, 3U, 0U},
                                            // A decimal point is not part of a word, so it is reported at the point.
                                            word_case{"NanPoint", "[NaN.5]", c_json5, c_unknown, 4U, 0U},
                                            // Only a complete Infinity or NaN is a strict-JSON violation.
                                            word_case{"StrictNan", "[NaN]", c_strict,
                                                      syntax_error_reason::not_allowed_in_strict_json, 1U, 0U}),
                            testing::PrintToStringParamName());
+  INSTANTIATE_TEST_SUITE_P(
+    Issue155, J5_043_UnknownWord,
+    testing::Values(word_case{"SignedWord", "[-Nope]", c_json5, c_unknown, 1U, 5U},
+                    word_case{"MinusInfinityPrefixJson5", "[-Infinit]", c_json5, c_unknown, 1U, 8U},
+                    word_case{"MinusInfinityPrefixStrict", "[-Infinit]", c_strict, c_unknown, 1U, 8U},
+                    word_case{"PlusNanPrefixJson5", "[+Na]", c_json5, c_unknown, 1U, 3U},
+                    word_case{"PlusNanPrefixStrict", "[+Na]", c_strict, c_unknown, 1U, 3U},
+                    word_case{"MinusNanSuffixJson5", "[-NaNx]", c_json5, c_unknown, 1U, 5U},
+                    word_case{"MinusNanSuffixStrict", "[-NaNx]", c_strict, c_unknown, 1U, 5U},
+                    word_case{"MinusInfinitySuffixJson5", "[-Infinityx]", c_json5, c_unknown, 1U, 10U},
+                    word_case{"MinusInfinitySuffixStrict", "[-Infinityx]", c_strict, c_unknown, 1U, 10U},
+                    word_case{"EscapedInfinityJson5", R"([-Infini\u0074y])", c_json5, c_unknown, 1U, 14U},
+                    word_case{"EscapedInfinityStrict", R"([-Infini\u0074y])", c_strict, c_unknown, 1U, 14U},
+                    word_case{"SignedPrefixAtEndJson5", "-Inf", c_json5, syntax_error_reason::unexpected_end, 4U, 0U},
+                    word_case{"SignedPrefixAtEndStrict", "-Inf", c_strict, syntax_error_reason::unexpected_end, 4U,
+                              0U}),
+    testing::PrintToStringParamName());
   /* ================================= End Test_J5_043 ================================= */
 
   /* =================================== Test_J5_047 =================================== */
@@ -245,7 +260,7 @@ namespace
    * @par Requirements
    * J5-047; issue #125.
    */
-  resource_limits with(std::size_t resource_limits::* field, std::size_t value)
+  resource_limits with(std::size_t resource_limits::*field, std::size_t value)
   {
     resource_limits limits{};
     limits.*field = value;
