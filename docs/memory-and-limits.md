@@ -298,6 +298,17 @@ escapes, in UTF-16 units: a character outside the Basic Multilingual Plane count
 as 2. Internally there is exactly one counter for the total, so both checks always
 agree.
 
+**How `max_nodes` and `max_members` relate.** Every member's value is also a value,
+so it counts against both limits. An object with N members needs at least N + 1
+nodes: one per member value plus the object itself, and nested containers or array
+elements add more. The member count of a document is therefore always at most
+`max_nodes` − 1, and `max_members` only takes effect when you set it below that.
+With the defaults (1024 and 1024), `max_nodes` always triggers first: the largest
+object that parses has 1023 members, and a 1024th member fails with
+`limit_reason() == nodes`. Use `max_members` when objects should stay smaller than
+the document as a whole, for example `max_nodes = 4096` with `max_members = 256`.
+This is tested by `J5_047_LimitReason.MembersBindOnlyBelowNodesMinusOne`.
+
 **Allocation-free literals.** `true`, `false` and `null` never call your
 allocator. Strings, numbers and the document itself still allocate through it.
 

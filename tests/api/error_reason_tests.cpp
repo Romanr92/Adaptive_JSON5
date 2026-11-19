@@ -245,7 +245,7 @@ namespace
    * @par Requirements
    * J5-047; issue #125.
    */
-  resource_limits with(std::size_t resource_limits::*field, std::size_t value)
+  resource_limits with(std::size_t resource_limits::* field, std::size_t value)
   {
     resource_limits limits{};
     limits.*field = value;
@@ -332,6 +332,81 @@ namespace
     EXPECT_EQ(failure.limit_reason(), resource_limit_reason::work);
     ASSERT_TRUE(failure.has_byte_offset());
     EXPECT_LE(failure.byte_offset(), text.size());
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /**
+   * @brief Build a flat object with the given number of numeric members.
+   * @par Requirements
+   * J5-047; issue #155.
+   * @param members Number of members, named m0, m1, ...
+   * @return The JSON5 object text.
+   */
+  std::string flat_object(std::size_t members)
+  {
+    std::string text = "{";
+    for (std::size_t index{}; index < members; ++index)
+    {
+      text += (index == 0U) ? "m" : ",m";
+      text += std::to_string(index);
+      text += ":0";
+    }
+    text += "}";
+    return text;
+  }
+
+  /**
+   * @brief Parse a flat object with the given limits into a buffer large enough for 1025 members.
+   * @par Requirements
+   * J5-047; issue #155.
+   * @param members Number of members in the object.
+   * @param limits Resource limits for the parse.
+   * @return Success, or the error that stopped the parse.
+   */
+  status_result parse_flat_object(std::size_t members, const resource_limits& limits)
+  {
+    // About 208 owned bytes per value on a 64-bit host (docs/memory-and-limits.md), plus names.
+    std::vector<unsigned char> buffer(std::size_t{1} << 20U);
+    const std::string text = flat_object(members);
+    parse_options options{};
+    options.limits = limits;
+    const auto parsed = json5_document::parse({text.data(), text.size()}, buffer.data(), buffer.size(), options);
+    if (!parsed.has_value())
+    {
+      return status_result::failure(*parsed.error_if());
+    }
+    return status_result::success();
+  }
+
+  /*
+   * Show that max_members binds only below max_nodes - 1, as docs/memory-and-limits.md states.
+   * Arrange: Default limits, and default limits with max_nodes raised to 2048.
+   * Act: Parse flat objects with 1023, 1024 and 1025 members.
+   * Expect: With defaults, 1023 members parse and 1024 fail with nodes, because the object
+   *         itself is a value too. With max_nodes = 2048, 1024 members parse and 1025 fail with
+   *         members.
+   */
+  TEST(J5_047_LimitReason, MembersBindOnlyBelowNodesMinusOne)
+  {
+    /* Arrange */
+    const resource_limits defaults{};
+    resource_limits more_nodes{};
+    more_nodes.max_nodes = 2048U;
+    /* Act */
+    const status_result default_largest = parse_flat_object(1023U, defaults);
+    const status_result default_one_more = parse_flat_object(1024U, defaults);
+    const status_result members_largest = parse_flat_object(1024U, more_nodes);
+    const status_result members_one_more = parse_flat_object(1025U, more_nodes);
+    /* Expect */
+    EXPECT_EQ(defaults.max_nodes, 1024U);
+    EXPECT_EQ(defaults.max_members, 1024U);
+    EXPECT_TRUE(default_largest.has_value());
+    ASSERT_FALSE(default_one_more.has_value());
+    EXPECT_EQ(default_one_more.error_if()->code(), error_code::resource_limit);
+    EXPECT_EQ(default_one_more.error_if()->limit_reason(), resource_limit_reason::nodes);
+    EXPECT_TRUE(members_largest.has_value());
+    ASSERT_FALSE(members_one_more.has_value());
+    EXPECT_EQ(members_one_more.error_if()->code(), error_code::resource_limit);
+    EXPECT_EQ(members_one_more.error_if()->limit_reason(), resource_limit_reason::members);
   }
   /* ================================= End Test_J5_047 ================================= */
 
