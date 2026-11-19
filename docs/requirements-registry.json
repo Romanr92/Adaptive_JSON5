@@ -2554,7 +2554,8 @@
           "names": [
             "J5_043_ErrorReasons.FactoriesSetCodeReasonAndLocation",
             "J5_043_ErrorReasons.RelocatedAndUnlocatedKeepTheReason",
-            "Issue125/J5_043_UnknownWord.ReportsWholeWordRange"
+            "Issue125/J5_043_UnknownWord.ReportsWholeWordRange",
+            "Issue155/J5_043_UnknownWord.ReportsWholeWordRange"
           ]
         },
         {
@@ -3096,7 +3097,8 @@
           "file": "tests/api/error_reason_tests.cpp",
           "names": [
             "Issue125/J5_047_LimitReason.ReportsReasonAtOffendingToken",
-            "J5_047_LimitReason.WorkExhaustionIsLocatedWork"
+            "J5_047_LimitReason.WorkExhaustionIsLocatedWork",
+            "J5_047_LimitReason.MembersBindOnlyBelowNodesMinusOne"
           ]
         },
         {

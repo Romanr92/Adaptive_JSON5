@@ -513,7 +513,7 @@ Current defaults in `resource_limits.hpp`:
 | `max_input_bytes` | 16384 | Complete supplied input bytes |
 | `max_depth` | 512 | Simultaneously open arrays/objects |
 | `max_nodes` | 1024 | All values, including root and containers |
-| `max_members` | 1024 | Object members across the document |
+| `max_members` | 1024 | Object members across the document; binds only below `max_nodes` − 1, see [memory and limits](../../docs/memory-and-limits.md) |
 | `max_string_units` | 4096 | UTF-16 units per string/name |
 | `max_total_string_units` | 16384 | UTF-16 units across strings/names |
 | `max_number_bytes` | 1024 | Bytes per numeric spelling |
