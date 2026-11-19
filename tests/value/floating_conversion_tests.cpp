@@ -9,17 +9,20 @@
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
 
+#include <cfenv>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <gtest/gtest.h>
+#include <ios>
 #include <limits>
 #include <ostream>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -781,4 +784,136 @@ namespace
     EXPECT_GT(failures, 1U);
   }
   /* ================================= End Test_J5_048 ================================= */
+  /* =================================== Test_J5_052 =================================== */
+  /**
+   * @brief One rounding mode the host supports, with its name for diagnostics.
+   * @par Requirements
+   * J5-052; SSR-04.
+   */
+  struct rounding_mode
+  {
+      int value;        // Input <cfenv> rounding-mode macro value.
+      const char* name; // Macro name printed on failure.
+  };
+
+  /**
+   * @brief List the <cfenv> rounding modes this host defines.
+   * @par Requirements
+   * J5-052; SSR-04.
+   * @return Every rounding mode whose macro is defined; a macro is defined only when supported.
+   */
+  std::vector<rounding_mode> available_rounding_modes()
+  {
+    std::vector<rounding_mode> modes;
+#ifdef FE_TONEAREST
+    modes.push_back(rounding_mode{FE_TONEAREST, "FE_TONEAREST"});
+#endif
+#ifdef FE_UPWARD
+    modes.push_back(rounding_mode{FE_UPWARD, "FE_UPWARD"});
+#endif
+#ifdef FE_DOWNWARD
+    modes.push_back(rounding_mode{FE_DOWNWARD, "FE_DOWNWARD"});
+#endif
+#ifdef FE_TOWARDZERO
+    modes.push_back(rounding_mode{FE_TOWARDZERO, "FE_TOWARDZERO"});
+#endif
+    return modes;
+  }
+
+  /**
+   * @brief Restore the caller's floating-point rounding mode when a unit ends.
+   * @par Requirements
+   * J5-052; SSR-04.
+   * @note Keeps a failed assertion from leaking a directed rounding mode into later units.
+   */
+  class rounding_mode_guard
+  {
+    public:
+      rounding_mode_guard() : m_saved{std::fegetround()} {}
+
+      ~rounding_mode_guard()
+      {
+        static_cast<void>(std::fesetround(m_saved));
+      }
+
+      rounding_mode_guard(const rounding_mode_guard&) = delete;
+      rounding_mode_guard& operator=(const rounding_mode_guard&) = delete;
+
+    private:
+      int m_saved;
+  };
+
+  /* Verify float and double results do not depend on the caller's rounding mode.
+   * Arrange: Spellings for each conversion step (Clinger multiply and divide, Eisel-Lemire,
+   *          the exact big-integer path, hexadecimal) with their round-to-nearest values,
+   *          and every rounding mode the host defines.
+   * Act: Under each rounding mode, convert every spelling to double and to float.
+   * Expect: The bit-exact round-to-nearest, ties-to-even value in every mode.
+   */
+  TEST(J5_052_FloatingConversion, IgnoresTheCallerRoundingMode)
+  {
+    /* Arrange */
+    struct rounding_case
+    {
+        const char* spelling; // Input JSON5 numeric spelling.
+        double as_double;     // Expected double, rounded to nearest by the compiler.
+        float as_float;       // Expected float, rounded to nearest by the compiler.
+    };
+    // Literals are converted at compile time, always to nearest; review finding R2-LOG-01.
+    const rounding_case cases[] = {
+      {"0.1", 0.1, 0.1F},                                                    // Clinger divide; wrong under FE_DOWNWARD.
+      {"0.3", 0.3, 0.3F},                                                    // Clinger divide; wrong under FE_UPWARD.
+      {"-0.1", -0.1, -0.1F},                                                 // Negative Clinger divide.
+      {"-123.456", -123.456, -123.456F},                                     // Clinger divide by 10^3.
+      {"2.5e-7", 2.5e-7, 2.5e-7F},                                           // Clinger divide for both types.
+      {"9007199254740991e-22", 9007199254740991e-22, 9007199254740991e-22F}, // Largest double divide.
+      {"1.7e21", 1.7e21, 1.7e21F},                                           // Exact Clinger multiply for double.
+      {"1.23456789e23", 1.23456789e23, 1.23456789e23F},                      // Inexact Clinger multiply for double.
+      {"-1.23456789e23", -1.23456789e23, -1.23456789e23F},                   // Negative inexact multiply.
+      {"16777215e3", 16777215e3, 16777215e3F},                               // Inexact Clinger multiply for float.
+      {"1e22", 1e22, 1e22F},                                                 // Largest double power of ten.
+      {"1e23", 1e23, 1e23F},                                                 // Eisel-Lemire.
+      {"9007199254740993", 9007199254740993.0, 9007199254740993.0F},         // Double tie to even.
+      {"16777217", 16777217.0, 16777217.0F},                                 // Float tie to even.
+      {"1234567890123456789", 1234567890123456789.0, 1234567890123456789.0F}, // Nineteen digits.
+      {"3.4028235e38", 3.4028235e38, 3.4028235e38F},                          // Largest float.
+      {"1.40129846e-45", 1.40129846e-45, 1.40129846e-45F},                    // Smallest float subnormal.
+      {"0.1000000000000000055511151231257827", 0.1, 0.1F},                    // 35 digits: exact path.
+      {"0x1FFFFFFFFFFFFF", 9007199254740991.0, 0x1p53F},                      // Hexadecimal.
+    };
+    const std::vector<rounding_mode> modes = available_rounding_modes();
+    if (modes.size() < 2U)
+    {
+      GTEST_SKIP() << "the host defines no directed rounding mode";
+    }
+    floating_conversion_options options{};
+    options.max_work_units = c_ample_work;
+    options.max_scratch_bytes = c_ample_scratch;
+    guard_provider number_storage;
+    guard_provider scratch;
+    const rounding_mode_guard restore;
+    for (const rounding_mode& mode : modes)
+    {
+      ASSERT_EQ(std::fesetround(mode.value), 0) << mode.name;
+      for (const rounding_case& item : cases)
+      {
+        const auto number = make_number(number_storage, item.spelling);
+        ASSERT_TRUE(number.has_value()) << item.spelling;
+        /* Act */
+        const auto as_double = to_double(*number.value_if(), scratch.callbacks(), options);
+        const auto as_float = to_float(*number.value_if(), scratch.callbacks(), options);
+        /* Expect */
+        ASSERT_TRUE(as_double.has_value()) << mode.name << ' ' << item.spelling;
+        ASSERT_TRUE(as_float.has_value()) << mode.name << ' ' << item.spelling;
+        EXPECT_TRUE(same_value(*as_double.value_if(), item.as_double))
+          << mode.name << ' ' << item.spelling << ": double " << std::hexfloat << *as_double.value_if() << " versus "
+          << item.as_double;
+        EXPECT_TRUE(same_value(*as_float.value_if(), item.as_float))
+          << mode.name << ' ' << item.spelling << ": float " << std::hexfloat << *as_float.value_if() << " versus "
+          << item.as_float;
+      }
+    }
+    EXPECT_EQ(scratch.m_live_bytes, 0U);
+  }
+  /* ================================= End Test_J5_052 ================================= */
 } // namespace
