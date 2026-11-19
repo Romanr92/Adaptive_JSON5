@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "733 tests"
+      "detail": "735 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "733 tests"
+      "detail": "735 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "733 tests"
+      "detail": "735 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "733 tests"
+      "detail": "735 tests"
     }
   },
   "metrics": {
@@ -8254,6 +8254,17 @@
           }
         },
         {
+          "id": "Issue155/J5_043_UnknownWord.ReportsWholeWordRange",
+          "file": "tests/api/error_reason_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
           "id": "J5_043_CutScanError.KeepsRealFailuresAndRemapsOnlyCutArtifacts",
           "file": "core/tests/parser/error_location_tests.cpp",
           "problem": "",
@@ -10288,6 +10299,17 @@
         },
         {
           "id": "J5_047_LimitReason.WorkExhaustionIsLocatedWork",
+          "file": "tests/api/error_reason_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_047_LimitReason.MembersBindOnlyBelowNodesMinusOne",
           "file": "tests/api/error_reason_tests.cpp",
           "problem": "",
           "results": {
