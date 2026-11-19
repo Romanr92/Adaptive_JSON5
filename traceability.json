@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "732 tests"
+      "detail": "733 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "732 tests"
+      "detail": "733 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "732 tests"
+      "detail": "733 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "732 tests"
+      "detail": "733 tests"
     }
   },
   "metrics": {
@@ -12329,6 +12329,17 @@
             "g++-13-ON": "skipped",
             "clang++-18-OFF": "skipped",
             "clang++-18-ON": "skipped"
+          }
+        },
+        {
+          "id": "J5_052_FloatingConversion.IgnoresTheCallerRoundingMode",
+          "file": "tests/value/floating_conversion_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
           }
         },
         {
