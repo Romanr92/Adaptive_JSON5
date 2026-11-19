@@ -8,6 +8,7 @@
 #include "adaptive_json5/syntax_error_reason.hpp"
 #include "input/cursor.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
+#include "lexer/identifier/identifier_token.hpp"
 #include "lexer/number/number_lexer.hpp"
 #include "lexer/number/number_token.hpp"
 #include "lexer/punctuation.hpp"
@@ -125,6 +126,48 @@ namespace
 
 namespace adaptive_json5
 {
+  namespace
+  {
+    /**
+     * @brief Measure an unknown value word, including a sign before it.
+     * @par Requirements
+     * P028; J5-009; J5-041; issue #155.
+     * @param source Cursor at the word or at its sign; not moved.
+     * @param max_identifier_units Maximum decoded identifier units.
+     * @return The word's range starting at the sign, nullopt when no word follows,
+     * or the identifier lexer's located failure.
+     * @note Only a sign before I or N gets here; the number lexer rejects other signed spellings.
+     * @par ID SWU-LEXER-056
+     */
+    [[nodiscard]] result<std::optional<source_span>> measure_unknown_word(const adaptive_json5::cursor& source,
+                                                                          std::size_t max_identifier_units) noexcept
+    {
+      using word_result = result<std::optional<source_span>>;
+      cursor word = source;
+      const std::size_t start = word.offset();
+      const auto sign = word.peek();
+
+      if (sign.has_value() && ((*sign == '-') || (*sign == '+')))
+      {
+        word.advance(1);
+      }
+
+      const auto identifier = measure_identifier(word, max_identifier_units);
+      if (!identifier.has_value())
+      {
+        return word_result::failure(*identifier.error_if());
+      }
+
+      if (!identifier.value_if()->has_value())
+      {
+        return word_result::success(std::nullopt);
+      }
+
+      const identifier_measure& name = **identifier.value_if();
+      return word_result::success(source_span{start, (name.byte_offset + name.byte_length) - start});
+    }
+  } // namespace
+
   namespace detail
   {
     /**
@@ -244,24 +287,21 @@ namespace adaptive_json5
       return detail::finish_scalar_token(source, candidate, std::move(token), mode);
     }
 
-    // Only rejection remains; measuring the word gives the same errors without decoding or allocating it
-    // (ADR 0003, decision 10, F).
-    const auto identifier = measure_identifier(candidate, max_identifier_units);
-    if (!identifier.has_value())
+    // Measure the rejected word without allocating, and include any leading sign (issue #155).
+    const auto word = measure_unknown_word(candidate, max_identifier_units);
+    if (!word.has_value())
     {
-      return scalar_result::failure(*identifier.error_if());
+      return scalar_result::failure(*word.error_if());
     }
 
-    if (!identifier.value_if()->has_value())
+    if (!word.value_if()->has_value())
     {
       return scalar_result::failure(error::syntax_at(start, syntax_error_reason::unexpected_character));
     }
 
-    const auto& name = **identifier.value_if();
-
-    // Unescaped literal spellings were matched above, so any identifier here is unknown.
-    return scalar_result::failure(error::syntax_at_range(
-      name.byte_offset, source_span{name.byte_offset, name.byte_length}, syntax_error_reason::unknown_literal));
+    const source_span& range = **word.value_if();
+    return scalar_result::failure(
+      error::syntax_at_range(range.byte_offset, range, syntax_error_reason::unknown_literal));
   }
 
   /**
@@ -391,24 +431,20 @@ namespace adaptive_json5
       return finish_scalar_measure(source, candidate, measured, mode);
     }
 
-    // Only rejection remains; measuring the identifier gives consume_scalar's errors without decoding it.
-    const auto identifier = measure_identifier(candidate, max_identifier_units);
-
-    if (!identifier.has_value())
+    // Measure the rejected word without allocating, and include any leading sign (issue #155).
+    const auto word = measure_unknown_word(candidate, max_identifier_units);
+    if (!word.has_value())
     {
-      return measure_result::failure(*identifier.error_if());
+      return measure_result::failure(*word.error_if());
     }
 
-    // No identifier either, so this character cannot start any value.
-    if (!identifier.value_if()->has_value())
+    if (!word.value_if()->has_value())
     {
       return measure_result::failure(error::syntax_at(start, syntax_error_reason::unexpected_character));
     }
 
-    const identifier_measure& word = **identifier.value_if();
-
-    // Unescaped literal spellings were matched above, so any identifier here is unknown.
-    return measure_result::failure(error::syntax_at_range(
-      word.byte_offset, source_span{word.byte_offset, word.byte_length}, syntax_error_reason::unknown_literal));
+    const source_span& range = **word.value_if();
+    return measure_result::failure(
+      error::syntax_at_range(range.byte_offset, range, syntax_error_reason::unknown_literal));
   }
 } // namespace adaptive_json5

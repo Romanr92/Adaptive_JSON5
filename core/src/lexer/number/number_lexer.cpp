@@ -17,6 +17,29 @@ namespace adaptive_json5
   namespace detail
   {
     /**
+     * @brief Report whether a sign is followed by the first letter of Infinity or NaN.
+     * @par Requirements
+     * P028; J5-022; issue #155.
+     * @param source Cursor at a possible sign; not moved.
+     * @return True for +I, -I, +N or -N.
+     * @par ID SWU-LEXER-055
+     */
+    [[nodiscard]] bool starts_signed_name(const cursor& source) noexcept
+    {
+      cursor probe = source;
+      const auto sign = probe.peek();
+
+      if (!sign.has_value() || ((*sign != '-') && (*sign != '+')))
+      {
+        return false;
+      }
+
+      probe.advance(1);
+      const auto first = probe.peek();
+      return first.has_value() && ((*first == 'I') || (*first == 'N'));
+    }
+
+    /**
      * @brief Select a numeric spelling recognizer without skipping input.
      * @par Requirements
      * P028; P032; J5-021; J5-022; J5-024; J5-047.
@@ -55,8 +78,14 @@ namespace adaptive_json5
         return non_finite;
       }
 
+      if (starts_signed_name(source))
+      {
+        return result<std::optional<number_token>>::success(std::nullopt);
+      }
+
       return consume_decimal(source, mode, max_exponent_digits);
     }
+
   } // namespace detail
 
   /**
