@@ -3829,6 +3829,12 @@
           ]
         },
         {
+          "file": "tests/value/floating_conversion_tests.cpp",
+          "names": [
+            "J5_052_FloatingConversion.IgnoresTheCallerRoundingMode"
+          ]
+        },
+        {
           "file": "tests/api/concurrency_tests.cpp",
           "names": [
             "P041/J5_050_ConcurrentParsing.IsolatesSuccessFailuresAndLiveDocuments"
