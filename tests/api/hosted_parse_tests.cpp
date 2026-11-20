@@ -256,6 +256,29 @@ namespace
     EXPECT_EQ(first.value_if()->current_bytes(), *small_bytes.value_if());
     EXPECT_EQ(second.value_if()->current_bytes(), *large_bytes.value_if());
   }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify release() and storage_faulted() work for hosted storage.
+   * Arrange: A parsed object.
+   * Act: Call release(), then read storage_faulted().
+   * Expect: No bytes remain, no fault is reported, and destruction afterwards is safe.
+   */
+  TEST(J5_040_HostedParse, ReleaseFreesValuesWithoutStorageFault)
+  {
+    /* Arrange */
+    const std::string text = R"({"items": [1, 2, 3], "name": "hosted"})";
+    auto parsed = hosted::parse({text.data(), text.size()});
+    ASSERT_TRUE(parsed.has_value());
+    json5_document& document = *parsed.value_if();
+    ASSERT_GT(document.current_bytes(), 0U);
+    /* Act */
+    document.release();
+    /* Expect */
+    EXPECT_EQ(document.current_bytes(), 0U);
+    EXPECT_EQ(document.values().size(), 0U);
+    EXPECT_FALSE(document.storage_faulted());
+  }
   /* ================================= End Test_J5_040 ================================= */
   /* =================================== Test_J5_041 =================================== */
 

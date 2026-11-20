@@ -211,6 +211,32 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Release parsed allocations while the storage control block stays alive.
+   * @par Requirements
+   * J5-040; J5-046; J5-051; SSR-02; SSR-08.
+   * @note parsed_document is not assignable, so its contents move into a local that
+   * frees each block through its owned_block at scope exit. m_parsed is left moved-from.
+   * @par ID SWU-MEMORY-080
+   */
+  void json5_document::release() noexcept
+  {
+    // frees the blocks through their owned_block; m_storage stays alive
+    parsed_document discarded{std::move(m_parsed)};
+  }
+
+  /**
+   * @brief Read the latched fault of the storage accounting.
+   * @par Requirements
+   * J5-046; SSR-02; SSR-08.
+   * @return The accounting's faulted(), or false after this document was moved from.
+   * @par ID SWU-MEMORY-081
+   */
+  bool json5_document::storage_faulted() const noexcept
+  {
+    return (m_storage.accounting() != nullptr) && m_storage.accounting()->faulted();
+  }
+
+  /**
    * @brief Report the highest outstanding requested allocation byte count.
    * @par Requirements
    * J5-046; J5-047.

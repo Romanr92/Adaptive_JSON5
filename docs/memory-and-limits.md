@@ -306,6 +306,21 @@ can never become a double free), leaves the counters unchanged and sets
 release blocks only through it and check `faulted()` after releasing a document
 (safety assumption A-09).
 
+**Checking the fault with `json5_document`.** With `json5_document::parse` and
+`hosted::parse` the `accounted_storage` lives inside the document and is
+destroyed with it, so the check is done in two steps before destruction (#157):
+
+```cpp
+doc.release();               // frees every parsed block; the accounting stays alive
+if (doc.storage_faulted()) { // reads accounting.faulted(); false after a move
+  // discard the buffer and treat it as a library fault (A-06)
+}
+```
+
+After `release()` the document is empty: `root()` returns an error and
+`current_bytes()` is 0. Destroying it afterwards only destroys the control
+block. Callers who do not need the check can skip both calls.
+
 **Internally,** the parser state for one call is single-use. A failed call
 discards that state as a whole instead of undoing its counters step by step. You
 never see this state; the rule is why a fresh call is always the correct retry.

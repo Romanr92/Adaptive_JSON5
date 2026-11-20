@@ -386,3 +386,7 @@ the `owned_block` that owns it, and checks `faulted()` after releasing a documen
 - If `faulted()` is true, the accounting can no longer be trusted: discard the
   `accounted_storage` and the documents allocated through it, and treat it as a
   library fault in your safe reaction (A-06).
+- With the simple API (`json5_document::parse`, `hosted::parse`) the
+  `accounted_storage` is inside the document. Call `json5_document::release()`,
+  then check `json5_document::storage_faulted()` before destroying the document
+  (#157).

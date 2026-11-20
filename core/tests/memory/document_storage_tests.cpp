@@ -1,10 +1,15 @@
+#include "adaptive_json5/input.hpp"
+#include "adaptive_json5/json5_document.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/document_storage_owner.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
+#include "adaptive_json5/options.hpp"
 #include "memory/buffer_document_storage.hpp"
+#include "memory/json5_document_access.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <gtest/gtest.h>
 #include <type_traits>
 #include <utility>
@@ -231,4 +236,41 @@ namespace
     EXPECT_EQ(retry.value_if()->data(), original_address);
   }
   /* ================================= End Test_J5_051 ================================= */
+
+  /* =================================== Test_J5_046 =================================== */
+  /*
+   * A refused release inside a json5_document is visible through storage_faulted().
+   * Arrange: Parse an array through caller-buffer storage whose accounting is kept.
+   * Act: Inject a release with a null address through the accounting callbacks, then
+   * call release() on the document.
+   * Expect: storage_faulted() is true before and after release(); the valid releases
+   * done by release() still return every byte.
+   */
+  TEST(J5_046_Json5DocumentStorageFault, RefusedReleaseIsVisibleBeforeAndAfterRelease)
+  {
+    /* Arrange */
+    const char text[] = "[1, 2, 3]";
+    alignas(64) std::byte bytes[4096]{};
+    auto storage = make_buffer_document_storage(bytes, sizeof(bytes), parse_options{}.limits.max_owned_bytes);
+    ASSERT_TRUE(storage.has_value());
+    accounted_storage* const accounting = storage.value_if()->accounting();
+    ASSERT_NE(accounting, nullptr);
+    auto parsed = detail::json5_document_access::parse_with_storage({text, std::strlen(text)}, parse_options{},
+                                                                    std::move(*storage.value_if()));
+    ASSERT_TRUE(parsed.has_value());
+    json5_document& document = *parsed.value_if();
+    ASSERT_FALSE(document.storage_faulted());
+    ASSERT_GT(document.current_bytes(), 0u);
+    /* Act */
+    const storage_callbacks callbacks = accounting->callbacks();
+    // A null address matches no outstanding block, so the accounting refuses and latches.
+    callbacks.deallocate(callbacks.context, nullptr, 4, alignof(char));
+    const bool faulted_before_release = document.storage_faulted();
+    document.release();
+    /* Expect */
+    EXPECT_TRUE(faulted_before_release);
+    EXPECT_TRUE(document.storage_faulted());
+    EXPECT_EQ(document.current_bytes(), 0u);
+  }
+  /* ================================= End Test_J5_046 ================================= */
 } // namespace

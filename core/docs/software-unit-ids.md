@@ -34,7 +34,7 @@ library was checked to be byte-identical before and after.
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
 | LEXER | SWU-LEXER-057 | SWU-LEXER-058 |
-| MEMORY | SWU-MEMORY-079 | SWU-MEMORY-080 |
+| MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
 | VALUE | SWU-VALUE-184 | SWU-VALUE-185 |
@@ -288,6 +288,8 @@ library was checked to be byte-identical before and after.
 | SWU-MEMORY-077 | used | `resource_budget::diagnostic_allowance()` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
 | SWU-MEMORY-078 | used | `detail::store_utf16_units(std::byte *, const std::uint16_t *, std::size_t)` | `core/includes/memory/utf16_storage.hpp` | — |
 | SWU-MEMORY-079 | used | `detail::load_utf16_unit(const std::byte *)` | `core/includes/memory/utf16_storage.hpp` | — |
+| SWU-MEMORY-080 | used | `json5_document::release()` | `core/src/memory/json5_document.cpp` | `includes/adaptive_json5/json5_document.hpp` |
+| SWU-MEMORY-081 | used | `json5_document::storage_faulted()` | `core/src/memory/json5_document.cpp` | `includes/adaptive_json5/json5_document.hpp` |
 
 ## PARSER
 
