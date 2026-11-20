@@ -46,7 +46,11 @@ namespace adaptive_json5
         return false;
       }
 
+      // The input and buffer can belong to different objects. On supported targets,
+      // numeric addresses allow the overlap check to order them and measure their distance.
       std::uintptr_t input_begin = reinterpret_cast<std::uintptr_t>(input.data);
+      // Use the same numeric address representation for the buffer so the overlap
+      // check can subtract the lower address from the higher without forming end pointers.
       std::uintptr_t buffer_begin = reinterpret_cast<std::uintptr_t>(buffer);
 
       // Two ranges overlap when each starts before the other one ends; subtraction avoids overflow.

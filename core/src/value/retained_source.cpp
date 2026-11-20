@@ -67,6 +67,8 @@ namespace adaptive_json5
    */
   input_view retained_source::text() const noexcept
   {
+    // The block holds the retained copy of the caller's char input (J5-041).
+    // Return a char view bounded by the size of that copy.
     return input_view{static_cast<const char*>(m_bytes.data()), m_bytes.size()};
   }
 } // namespace adaptive_json5

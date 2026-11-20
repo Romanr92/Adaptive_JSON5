@@ -105,6 +105,8 @@ namespace adaptive_json5
    */
   input_view owned_number::spelling() const noexcept
   {
+    // The block contains the original number spelling copied from char input.
+    // Return a char view bounded by the size of that owned copy.
     return input_view{static_cast<const char*>(m_storage.data()), m_storage.size()};
   }
 

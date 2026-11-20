@@ -38,6 +38,8 @@ namespace adaptive_json5
       return status_result::failure(error::internal_fault());
     }
 
+    // Decoded UTF-16 units are stored as bytes. The capacity check bounds the entire
+    // write, and the byte view requires no typed UTF-16 object in the block.
     auto* bytes = static_cast<std::byte*>(m_storage.data());
 
     // The capacity check proved that the old offset and complete range fit.
