@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "735 tests"
+      "detail": "746 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "735 tests"
+      "detail": "746 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "735 tests"
+      "detail": "746 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "735 tests"
+      "detail": "746 tests"
     }
   },
   "metrics": {
@@ -4653,6 +4653,28 @@
           }
         },
         {
+          "id": "J5_029_Utf8ExportChar.WritesExactOctetsIntoCharBuffer",
+          "file": "tests/value/string_storage_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_029_Utf8ExportChar.RejectsShortCapacityNullAndSurrogateWithoutWriting",
+          "file": "tests/value/string_storage_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
           "id": "J5_028_ContainerValues.RetainsMixedContentAndChildSpans",
           "file": "core/tests/parser/parser_engine_tests.cpp",
           "problem": "",
@@ -4757,7 +4779,31 @@
             "as_int64",
             "as_uint64",
             "as_double",
-            "as_string"
+            "as_string",
+            "children"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/json5_iterator.hpp",
+            "core/src/value/json5_iterator.cpp"
+          ],
+          "symbols": [
+            "json5_iterator",
+            "next"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/value/value_view.hpp",
+            "core/src/value/value_view.cpp"
+          ],
+          "symbols": [
+            "children"
           ],
           "note": "",
           "problems": []
@@ -4789,6 +4835,17 @@
         {
           "id": "J5_030_Document.PreservesOrderAndSinglePassIteration",
           "file": "core/tests/value/document_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_048_ChildIteration.RejectsDefaultViewAndScalar",
+          "file": "core/tests/value/child_iteration_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
@@ -4832,6 +4889,28 @@
         },
         {
           "id": "J5_030_Json5Value.ReportsEveryKind",
+          "file": "tests/api/json5_value_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_048_Json5Iterator.VisitsObjectMembersInSourceOrder",
+          "file": "tests/api/json5_value_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_048_Json5Iterator.ReportsWrongTypeAndHeldErrors",
           "file": "tests/api/json5_value_tests.cpp",
           "problem": "",
           "results": {
@@ -4929,6 +5008,7 @@
           "symbols": [
             "as_uint64",
             "member",
+            "name",
             "size"
           ],
           "note": "",
@@ -4971,6 +5051,28 @@
         },
         {
           "id": "Sizes/J5_031_MemberLookup.FindsFirstLastMissingAndDuplicate",
+          "file": "tests/api/json5_value_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_031_Json5ValueName.ReadsMemberNamesInSourceOrder",
+          "file": "tests/api/json5_value_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_031_Json5ValueName.ReportsUnnamedValuesAndExportErrors",
           "file": "tests/api/json5_value_tests.cpp",
           "problem": "",
           "results": {
@@ -10767,6 +10869,28 @@
         {
           "id": "J5_048_NumberComparison.FailsEveryScratchAllocationAndAllowsRetry",
           "file": "tests/value/number_comparison_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "Sizes/J5_048_ChildIteration.ReadsEachElementRecordOnce",
+          "file": "core/tests/value/child_iteration_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "Sizes/J5_048_Json5Iterator.VisitsEveryElementOnceInOrder",
+          "file": "tests/api/json5_value_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
