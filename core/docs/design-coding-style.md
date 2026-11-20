@@ -153,8 +153,9 @@ Raw memory (storage blocks, allocation callbacks) is `std::byte`, which may
 alias any object. Text is `char`: caller buffers for UTF-8 output (`as_string()`,
 `name()`, `export_utf8()`) and string literals. Never convert a pointer between
 the two: MISRA C++:2023 forbids `reinterpret_cast` (Rule 8.2.5) and casts from
-`void*` (Rule 8.2.6). Write UTF-8 byte values into a `char` buffer with
-`static_cast<char>(value)`. `std::byte` supports comparison and bitwise
+`void*` (Rule 8.2.6). Produce a UTF-8 byte's `char` by lookup in a table of
+character literals, not by converting an integer to `char` (Rule 7.0.3). Do not
+use `memcpy`; write and read bytes explicitly. `std::byte` supports comparison and bitwise
 operators but no arithmetic; where a byte's value is computed with,
 `static_cast` it to or from a `std::uint*_t` type. Convert a `char` value
 through `std::uint8_t` first

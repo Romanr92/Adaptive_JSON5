@@ -28,7 +28,9 @@ namespace adaptive_json5
     constexpr std::uint32_t c_lower_max = 0x66U;   // 'f'
     constexpr std::uint32_t c_upper_min = 0x41U;   // 'A'
     constexpr std::uint32_t c_upper_max = 0x46U;   // 'F'
-    constexpr std::uint32_t c_letter_value_offset = 10;
+    // Subtracting these bases maps a..f and A..F to 10..15 (0x61 - 0x57 == 10).
+    constexpr std::uint32_t c_lower_base = 0x57U;
+    constexpr std::uint32_t c_upper_base = 0x37U;
 
     if ((character >= c_decimal_min) && (character <= c_decimal_max))
     {
@@ -37,12 +39,12 @@ namespace adaptive_json5
 
     if ((character >= c_lower_min) && (character <= c_lower_max))
     {
-      return static_cast<std::uint16_t>(character - c_lower_min + c_letter_value_offset);
+      return static_cast<std::uint16_t>(character - c_lower_base);
     }
 
     if ((character >= c_upper_min) && (character <= c_upper_max))
     {
-      return static_cast<std::uint16_t>(character - c_upper_min + c_letter_value_offset);
+      return static_cast<std::uint16_t>(character - c_upper_base);
     }
 
     return std::nullopt;

@@ -33,11 +33,11 @@ library was checked to be byte-identical before and after.
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
-| LEXER | SWU-LEXER-056 | SWU-LEXER-057 |
-| MEMORY | SWU-MEMORY-077 | SWU-MEMORY-078 |
+| LEXER | SWU-LEXER-057 | SWU-LEXER-058 |
+| MEMORY | SWU-MEMORY-079 | SWU-MEMORY-080 |
 | PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
-| VALUE | SWU-VALUE-183 | SWU-VALUE-184 |
+| VALUE | SWU-VALUE-184 | SWU-VALUE-185 |
 
 ## API
 
@@ -203,6 +203,7 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-053 | used | `name_string_checks(const parse_options &)` | `core/includes/lexer/string/string_checks.hpp` | — |
 | SWU-LEXER-055 | used | `(anonymous)::starts_signed_name(const cursor &)` | `core/src/lexer/number/number_lexer.cpp` | — |
 | SWU-LEXER-056 | used | `(anonymous)::measure_unknown_word(const cursor &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | — |
+| SWU-LEXER-057 | used | `(anonymous)::next_identifier_scalar(cursor &, bool, std::size_t)` | `core/src/lexer/identifier/identifier_lexer.cpp` | — |
 
 ## MEMORY
 
@@ -285,6 +286,8 @@ library was checked to be byte-identical before and after.
 | SWU-MEMORY-075 | used | `owned_block::~owned_block()` | `includes/adaptive_json5/memory/owned_block.hpp` | — |
 | SWU-MEMORY-076 | used | `accounted_storage::faulted()` | `core/src/memory/accounted_storage.cpp` | `includes/adaptive_json5/memory/accounted_storage.hpp` |
 | SWU-MEMORY-077 | used | `resource_budget::diagnostic_allowance()` | `core/src/memory/resource_budget.cpp` | `core/includes/memory/resource_budget.hpp` |
+| SWU-MEMORY-078 | used | `detail::store_utf16_units(std::byte *, const std::uint16_t *, std::size_t)` | `core/includes/memory/utf16_storage.hpp` | — |
+| SWU-MEMORY-079 | used | `detail::load_utf16_unit(const std::byte *)` | `core/includes/memory/utf16_storage.hpp` | — |
 
 ## PARSER
 
@@ -538,3 +541,4 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-181 | used | `json5_iterator::next()` | `core/src/value/json5_iterator.cpp` | `includes/adaptive_json5/json5_iterator.hpp` |
 | SWU-VALUE-182 | used | `json5_value::children()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-183 | used | `json5_value::name(char *, std::size_t)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
+| SWU-VALUE-184 | used | `(anonymous)::utf8_char(std::uint32_t)` | `core/src/value/utf8_export.cpp` | — |

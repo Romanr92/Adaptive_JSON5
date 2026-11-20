@@ -30,8 +30,11 @@ namespace adaptive_json5
         return result<bool>::success(false);
       }
 
-      for (std::size_t index{}; index < length; ++index)
+      // Compare from the last unit down; the order does not matter for equality.
+      std::size_t index = length;
+      while (index != std::size_t{})
       {
+        --index;
         const auto unit = value.unit_at(index);
         if (!unit.has_value())
         {
@@ -90,31 +93,38 @@ namespace adaptive_json5
     static constexpr std::array<std::uint16_t, 4U> c_true{0x74U, 0x72U, 0x75U, 0x65U};         // "true"
     static constexpr std::array<std::uint16_t, 5U> c_false{0x66U, 0x61U, 0x6CU, 0x73U, 0x65U}; // "false"
 
-    // One literal spelling and the classification it gives.
-    struct literal_spelling
+    // Check the three literal spellings in turn.
+    const auto is_null = detail::identifier_spelling_matches(token.value, c_null.data(), c_null.size());
+    if (!is_null.has_value())
     {
-        const std::uint16_t* units;
-        std::size_t length;
-        identifier_classification classification;
-    };
+      return classification_result::failure(*is_null.error_if());
+    }
 
-    static constexpr std::array<literal_spelling, 3U> c_literals{
-      {{c_null.data(), c_null.size(), identifier_classification::null_literal},
-       {c_true.data(), c_true.size(), identifier_classification::true_literal},
-       {c_false.data(), c_false.size(), identifier_classification::false_literal}}};
-
-    for (const auto& literal : c_literals)
+    if (*is_null.value_if())
     {
-      const auto matches = detail::identifier_spelling_matches(token.value, literal.units, literal.length);
-      if (!matches.has_value())
-      {
-        return classification_result::failure(*matches.error_if());
-      }
+      return classification_result::success(identifier_classification::null_literal);
+    }
 
-      if (*matches.value_if())
-      {
-        return classification_result::success(literal.classification);
-      }
+    const auto is_true = detail::identifier_spelling_matches(token.value, c_true.data(), c_true.size());
+    if (!is_true.has_value())
+    {
+      return classification_result::failure(*is_true.error_if());
+    }
+
+    if (*is_true.value_if())
+    {
+      return classification_result::success(identifier_classification::true_literal);
+    }
+
+    const auto is_false = detail::identifier_spelling_matches(token.value, c_false.data(), c_false.size());
+    if (!is_false.has_value())
+    {
+      return classification_result::failure(*is_false.error_if());
+    }
+
+    if (*is_false.value_if())
+    {
+      return classification_result::success(identifier_classification::false_literal);
     }
 
     return classification_result::success(identifier_classification::unrecognized_value);

@@ -3,6 +3,7 @@
 
 #include "adaptive_json5/result.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
@@ -22,7 +23,7 @@ namespace adaptive_json5
       static constexpr std::size_t c_single_unit_count = 1;
       static constexpr std::size_t c_surrogate_pair_unit_count = 2;
 
-      std::uint16_t units[c_surrogate_pair_unit_count]{};
+      std::array<std::uint16_t, c_surrogate_pair_unit_count> units{};
       std::size_t size = c_first_unit_index;
   };
 

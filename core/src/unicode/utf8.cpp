@@ -84,32 +84,21 @@ namespace adaptive_json5
         decoded_character{static_cast<std::uint32_t>(lead), start, c_ascii_byte_count}});
     }
 
-    std::size_t byte_count = 0;
-    std::uint32_t scalar = 0;
+    const bool two_byte = (lead >= c_two_byte_lead_min) && (lead <= c_two_byte_lead_max);
+    const bool three_byte = (lead >= c_three_byte_lead_min) && (lead <= c_three_byte_lead_max);
+    const bool four_byte = (lead >= c_four_byte_lead_min) && (lead <= c_four_byte_lead_max);
 
-    if ((lead >= c_two_byte_lead_min) && (lead <= c_two_byte_lead_max))
-    {
-      // Expect two bytes and retain the lead byte's five payload bits.
-      byte_count = c_two_byte_count;
-      scalar = static_cast<std::uint32_t>(lead & c_two_byte_payload_mask);
-    }
-    else if ((lead >= c_three_byte_lead_min) && (lead <= c_three_byte_lead_max))
-    {
-      // Expect three bytes and retain the lead byte's four payload bits.
-      byte_count = c_three_byte_count;
-      scalar = static_cast<std::uint32_t>(lead & c_three_byte_payload_mask);
-    }
-    else if ((lead >= c_four_byte_lead_min) && (lead <= c_four_byte_lead_max))
-    {
-      // Expect four bytes and retain the lead byte's three payload bits.
-      byte_count = c_four_byte_count;
-      scalar = static_cast<std::uint32_t>(lead & c_four_byte_payload_mask);
-    }
-    else
+    if (!two_byte && !three_byte && !four_byte)
     {
       // Reject an invalid leading byte without advancing the cursor.
       return decode_result::failure(error::at_offset(error_code::encoding, start));
     }
+
+    // Two, three or four bytes, keeping the lead byte's five, four or three payload bits.
+    const std::size_t byte_count = two_byte ? c_two_byte_count : (three_byte ? c_three_byte_count : c_four_byte_count);
+    const std::byte payload_mask =
+      two_byte ? c_two_byte_payload_mask : (three_byte ? c_three_byte_payload_mask : c_four_byte_payload_mask);
+    std::uint32_t scalar = static_cast<std::uint32_t>(lead & payload_mask);
 
     // Use lookahead so incomplete or malformed input never partially advances.
     for (std::size_t index = c_first_continuation_index; index < byte_count; ++index)

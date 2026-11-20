@@ -7,11 +7,11 @@
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "common/checked_size.hpp"
+#include "memory/utf16_storage.hpp"
 #include "unicode/utf16.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <utility>
 
 namespace adaptive_json5
@@ -41,7 +41,13 @@ namespace adaptive_json5
     auto* bytes = static_cast<std::byte*>(m_storage.data());
 
     // The capacity check proved that the old offset and complete range fit.
-    std::memcpy(bytes + (m_size * sizeof(std::uint16_t)), units, (count * sizeof(std::uint16_t)));
+    const auto offset = checked_multiply(m_size, detail::c_utf16_unit_bytes, resource_limit_reason::string);
+    if (!offset.has_value())
+    {
+      return status_result::failure(error::internal_fault());
+    }
+
+    detail::store_utf16_units(bytes + *offset.value_if(), units, count);
     m_size = *new_size.value_if();
 
     return status_result::success();
@@ -133,7 +139,7 @@ namespace adaptive_json5
       return status_result::failure(*encoded.error_if());
     }
 
-    return append_units(encoded.value_if()->units, encoded.value_if()->size);
+    return append_units(encoded.value_if()->units.data(), encoded.value_if()->size);
   }
 
   /**

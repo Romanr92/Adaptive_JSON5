@@ -35,6 +35,61 @@ namespace adaptive_json5
     };
 
     /**
+     * @brief Read the next identifier character, plain or as a Unicode escape.
+     * @par Requirements
+     * P022; P023; J5-019; J5-020.
+     * @param lookahead Private cursor at the character; advanced past it on success.
+     * @param escaped True when the character starts with a backslash.
+     * @param character_offset Byte offset of the character, for located errors.
+     * @return The character's scalar, successful nullopt at end of input, or a located error.
+     * @par ID SWU-LEXER-057
+     */
+    result<std::optional<std::uint32_t>> next_identifier_scalar(cursor& lookahead, bool escaped,
+                                                                std::size_t character_offset) noexcept
+    {
+      using scalar_result = result<std::optional<std::uint32_t>>;
+
+      constexpr std::size_t c_backslash_byte_count = 1;
+
+      if (escaped)
+      {
+        // The existing escape decoder expects the cursor after the backslash.
+        lookahead.advance(c_backslash_byte_count);
+
+        const auto decoded = consume_unicode_escape(lookahead);
+
+        if (!decoded.has_value())
+        {
+          return scalar_result::failure(*decoded.error_if());
+        }
+
+        if (!decoded.value_if()->has_value())
+        {
+          // Other string escape forms are not identifier escapes.
+          return scalar_result::failure(error::syntax_at(character_offset, syntax_error_reason::invalid_identifier));
+        }
+
+        return scalar_result::success(std::optional<std::uint32_t>{static_cast<std::uint32_t>(**decoded.value_if())});
+      }
+
+      const auto decoded = decode_utf8(lookahead);
+
+      if (!decoded.has_value())
+      {
+        return scalar_result::failure(*decoded.error_if());
+      }
+
+      const auto& character = *decoded.value_if();
+
+      if (!character.has_value())
+      {
+        return scalar_result::success(std::nullopt);
+      }
+
+      return scalar_result::success(std::optional<std::uint32_t>{character->value});
+    }
+
+    /**
      * @brief Walk one identifier, counting its units and optionally writing them.
      * @par Requirements
      * P022; P023; J5-019; J5-020; J5-041; J5-046.
@@ -52,8 +107,6 @@ namespace adaptive_json5
     {
       using walk_result = result<identifier_walk>;
 
-      constexpr std::size_t c_backslash_byte_count = 1;
-
       identifier_walk walk{};
       bool first = true;
 
@@ -64,47 +117,20 @@ namespace adaptive_json5
 
         // Decode privately so a terminating character remains unconsumed.
         cursor lookahead = source;
-        std::uint32_t scalar{};
         const bool escaped = next.has_value() && (*next == '\\');
+        const auto next_scalar = next_identifier_scalar(lookahead, escaped, character_offset);
 
-        if (escaped)
+        if (!next_scalar.has_value())
         {
-          // The existing escape decoder expects the cursor after the backslash.
-          lookahead.advance(c_backslash_byte_count);
-
-          const auto decoded = consume_unicode_escape(lookahead);
-
-          if (!decoded.has_value())
-          {
-            return walk_result::failure(*decoded.error_if());
-          }
-
-          if (!decoded.value_if()->has_value())
-          {
-            // Other string escape forms are not identifier escapes.
-            return walk_result::failure(error::syntax_at(character_offset, syntax_error_reason::invalid_identifier));
-          }
-
-          scalar = static_cast<std::uint32_t>(**decoded.value_if());
+          return walk_result::failure(*next_scalar.error_if());
         }
-        else
+
+        if (!next_scalar.value_if()->has_value())
         {
-          const auto decoded = decode_utf8(lookahead);
-
-          if (!decoded.has_value())
-          {
-            return walk_result::failure(*decoded.error_if());
-          }
-
-          const auto& character = *decoded.value_if();
-
-          if (!character.has_value())
-          {
-            break;
-          }
-
-          scalar = character->value;
+          break;
         }
+
+        const std::uint32_t scalar = **next_scalar.value_if();
 
         const bool admitted = first ? is_identifier_start(scalar) : is_identifier_part(scalar);
 

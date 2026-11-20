@@ -4,11 +4,14 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
+#include "adaptive_json5/resource_limit_reason.hpp"
 #include "adaptive_json5/result.hpp"
+#include "common/checked_size.hpp"
+#include "memory/decoded_string_builder.hpp"
+#include "memory/utf16_storage.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <utility>
 
 namespace adaptive_json5
@@ -61,16 +64,29 @@ namespace adaptive_json5
       return result<decoded_string>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
-    auto allocation = allocate_array(storage, count, sizeof(std::uint16_t), alignof(std::uint16_t));
-    if (!allocation.has_value())
+    // The builder allocates exactly count units and stores them in the layout unit_at() reads.
+    decoded_string_builder builder{storage, count};
+    const auto reserved = builder.reserve_exact(count);
+    if (!reserved.has_value())
     {
-      return result<decoded_string>::failure(*allocation.error_if());
+      return result<decoded_string>::failure(*reserved.error_if());
     }
 
-    // Store representations as bytes; typed reads copy into a live std::uint16_t.
-    std::memcpy(allocation.value_if()->data(), units, allocation.value_if()->size());
+    const std::uint16_t* next = units;
+    std::size_t remaining = count;
+    while (remaining != std::size_t{})
+    {
+      const auto appended = builder.append_unit(*next);
+      if (!appended.has_value())
+      {
+        return result<decoded_string>::failure(*appended.error_if());
+      }
 
-    return result<decoded_string>::success(decoded_string{std::move(*allocation.value_if()), count});
+      ++next;
+      --remaining;
+    }
+
+    return result<decoded_string>::success(builder.finish());
   }
 
   /**
@@ -100,11 +116,13 @@ namespace adaptive_json5
     }
 
     const auto* bytes = static_cast<const std::byte*>(m_storage.data());
-    std::uint16_t unit{};
+    // Successful allocation already proved every in-range unit offset fits.
+    const auto offset = checked_multiply(index, detail::c_utf16_unit_bytes, resource_limit_reason::string);
+    if (!offset.has_value())
+    {
+      return result<std::uint16_t>::failure(error::internal_fault());
+    }
 
-    // Successful allocation alteady proved every in-range unit offset fits,
-    std::memcpy(&unit, bytes + (index * sizeof(std::uint16_t)), sizeof(unit));
-
-    return result<std::uint16_t>::success(unit);
+    return result<std::uint16_t>::success(detail::load_utf16_unit(bytes + *offset.value_if()));
   }
 } // namespace adaptive_json5

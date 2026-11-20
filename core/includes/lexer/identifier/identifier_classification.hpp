@@ -48,8 +48,8 @@ namespace adaptive_json5
      * @param spelling UTF-16 code units of the expected spelling; may be nullptr only when
      * length is zero.
      * @param length Number of code units in spelling.
+     * @return True when value has exactly these units, or the checked-access failure.
      * @note Performs no allocation, normalization or case folding.
-     * Checked-access failures are propagated explicitly.
      * @par ID SWU-LEXER-005
      */
     [[nodiscard]] result<bool> identifier_spelling_matches(const decoded_string& value, const std::uint16_t* spelling,

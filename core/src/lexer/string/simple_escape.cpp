@@ -40,6 +40,7 @@ namespace adaptive_json5
       return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
+    // The NUL escape (backslash zero) keeps this initial value; every other case assigns its unit.
     std::uint16_t unit{};
     bool json5_only = false;
 
@@ -88,7 +89,6 @@ namespace adaptive_json5
       break;
 
     case '0':
-      unit = std::uint16_t{};
       json5_only = true;
       break;
 
