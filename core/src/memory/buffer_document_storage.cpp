@@ -49,8 +49,9 @@ namespace adaptive_json5
        */
       void release_buffer_document_storage(void* block) noexcept
       {
-        // End the control block's lifetime after its allocations have been released.
+        // MISRA justification: End the control block's lifetime after its allocations have been released.
         // The caller owns the backing buffer and retains it after destruction.
+        // codeql::misra_deviation_next_line(DEV-001.02)
         static_cast<buffer_document_storage*>(block)->~buffer_document_storage();
       }
     } // namespace
@@ -83,14 +84,16 @@ namespace adaptive_json5
         return storage_result::failure(error::without_location(error_code::allocation_failure));
       }
 
-      // std::align removes leading padding from space, but not the object's size.
+      // MISRA justification: std::align removes leading padding from space, but not the object's size.
       // Use a byte address to start the arena immediately after the control block.
       // The alignment check has already established room for the control block.
+      // codeql::misra_deviation_next_line(DEV-002.07)
       auto* allocation_begin = static_cast<std::byte*>(aligned) + sizeof(buffer_document_storage);
       const std::size_t allocation_size = space - sizeof(buffer_document_storage);
 
-      // Construct the control block in caller storage without heap allocation (J5-101).
+      // MISRA justification: Construct the control block in caller storage without heap allocation (J5-101).
       // align_within() has checked the size and alignment of the storage.
+      // codeql::misra_deviation_next_line(DEV-001.01)
       auto* block = ::new (aligned) buffer_document_storage(allocation_begin, allocation_size, max_owned_bytes);
 
       return storage_result::success(

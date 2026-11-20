@@ -37,8 +37,9 @@ namespace adaptive_json5
     [[nodiscard]] string_warning read_entry(const owned_block& storage, std::size_t index) noexcept
     {
       string_warning entry{};
-      // Warnings are stored as bytes. Copy the chosen entry into a live local object
+      // MISRA justification: Warnings are stored as bytes. Copy the chosen entry into a live local object
       // without assuming that the block contains an aligned string_warning.
+      // codeql::misra_deviation_next_line(DEV-002.23)
       const auto* bytes = static_cast<const std::byte*>(storage.data());
 
       std::memcpy(&entry, bytes + (index * sizeof(string_warning)), sizeof(entry));
@@ -57,8 +58,9 @@ namespace adaptive_json5
      */
     void write_entry(owned_block& storage, std::size_t index, const string_warning& entry) noexcept
     {
-      // Write the warning's object representation to the reserved byte slot with memcpy,
+      // MISRA justification: Write the warning's object representation to the reserved byte slot with memcpy,
       // so the block need not hold an aligned string_warning object.
+      // codeql::misra_deviation_next_line(DEV-002.24)
       auto* bytes = static_cast<std::byte*>(storage.data());
 
       std::memcpy(bytes + (index * sizeof(string_warning)), &entry, sizeof(entry));

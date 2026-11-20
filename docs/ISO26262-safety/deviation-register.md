@@ -15,11 +15,13 @@
 - **Each line is justified on its own.** A DEV record explains why a rule is deviated and
   how the risk is controlled. Below it, each affected line has its own ID (`DEV-001.01`, …)
   and its own justification. A line without its own approved entry is an open finding.
-- **The justification is linked from the source.** Each deviated line carries a source
-  marker naming its line ID, so the finding is reported as deviated instead of open. The
-  marker format follows the deviation support of the MISRA query pack in use; it is
-  confirmed before the first marker is added. Markers are added to production files by
-  Romanr92.
+- **The justification is linked from the source.** Put the rationale in a
+  `// MISRA justification: ...` comment, with optional consecutive `//` continuation
+  lines. Put `// codeql::misra_deviation_next_line(DEV-001.01)` immediately above
+  the affected code, using the approved line's ID. Local and GitHub Actions scans
+  use `tools/misra_check.py` to index CodeQL records from those comments and the
+  approvals below. The HTML report lists matching findings as **Justified** and
+  keeps their rationale. GitHub code scanning receives the open findings.
 - **Line numbers are informative.** They refer to the tree that was checked when the entry
   was written. The function and the code are what identify a line; update the number when
   code moves.
@@ -37,7 +39,7 @@ Status values: **Proposed**, **Approved** (date, by Romanr92), **Rejected** (fix
 | Rule | MISRA C++:2023 Rule 21.6.3 "Advanced memory management shall not be used" (required) |
 | CodeQL query | `cpp/misra/advanced-memory-management-used` |
 | Requirements protected | J5-101 (caller-buffer parsing), J5-046 (fallible allocation), J5-040 / J5-051 (lifetime), [embedded.md](../embedded.md); DFA-01 / safety manual C-3.6 |
-| Status | Proposed |
+| Status | Approved (2026-11-20, Romanr92) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -72,13 +74,13 @@ destructor call, and misaligned or out-of-range placement.
 
 | ID | Location | Code | Justification | Status |
 | --- | --- | --- | --- | --- |
-| DEV-001.01 | `core/src/memory/buffer_document_storage.cpp:89`, `make_buffer_document_storage()` | `::new (aligned) buffer_document_storage(...)` | Creates the document's control block (arena and accounting) at the start of the caller's buffer, at an address `align_within()` has aligned and checked for size. This is how J5-101 avoids the heap. | Proposed |
-| DEV-001.02 | `core/src/memory/buffer_document_storage.cpp:52`, `release_buffer_document_storage()` | `static_cast<buffer_document_storage*>(block)->~buffer_document_storage();` | Ends the control block created in DEV-001.01. The caller owns the buffer, so it is not freed. `document_storage_owner` calls this exactly once, after every document allocation is released (J5-051). | Proposed |
-| DEV-001.03 | `core/src/parser/parser_stack.cpp:151`, `parser_stack::push()` | `::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));` | Adds a frame to the parser's nesting stack, in a block obtained from the accounted storage (J5-046). The capacity is checked before the slot is used. | Proposed |
-| DEV-001.04 | `core/src/parser/parser_stack.cpp:198`, `parser_stack::pop()` | `live_frame(m_size)->~parser_frame();` | Ends the frame removed by `pop()`, after `m_size` is reduced; that slot is not used again until it is reconstructed. | Proposed |
-| DEV-001.05 | `core/src/value/value_storage.cpp:277`, `value_storage::append()` | `::new (slot_address(m_storage, m_size)) value_record(std::move(record));` | Adds a value record to the document's record block in accounted storage. Capacity and `max_records` are checked first (J5-047). | Proposed |
-| DEV-001.06 | `core/src/value/value_storage.cpp:144`, growth path | `::new (slot_address(*allocation.value_if(), index)) value_record(std::move(*live_record(index)));` | Moves each record into the new, larger block during growth. The old records are ended (DEV-001.07) before the old block is released. | Proposed |
-| DEV-001.07 | `core/src/value/value_storage.cpp:73`, record teardown | `live_record(m_size)->~value_record();` | Ends records in reverse order before their block is released, so each record's owned blocks are released exactly once (J5-040). | Proposed |
+| DEV-001.01 | `core/src/memory/buffer_document_storage.cpp:97`, `make_buffer_document_storage()` | `::new (aligned) buffer_document_storage(...)` | Creates the document's control block (arena and accounting) at the start of the caller's buffer, at an address `align_within()` has aligned and checked for size. This is how J5-101 avoids the heap. | Approved (2026-11-20, Romanr92) |
+| DEV-001.02 | `core/src/memory/buffer_document_storage.cpp:55`, `release_buffer_document_storage()` | `static_cast<buffer_document_storage*>(block)->~buffer_document_storage();` | Ends the control block created in DEV-001.01. The caller owns the buffer, so it is not freed. `document_storage_owner` calls this exactly once, after every document allocation is released (J5-051). | Approved (2026-11-20, Romanr92) |
+| DEV-001.03 | `core/src/parser/parser_stack.cpp:162`, `parser_stack::push()` | `::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));` | Adds a frame to the parser's nesting stack, in a block obtained from the accounted storage (J5-046). The capacity is checked before the slot is used. | Approved (2026-11-20, Romanr92) |
+| DEV-001.04 | `core/src/parser/parser_stack.cpp:212`, `parser_stack::pop()` | `live_frame(m_size)->~parser_frame();` | Ends the frame removed by `pop()`, after `m_size` is reduced; that slot is not used again until it is reconstructed. | Approved (2026-11-20, Romanr92) |
+| DEV-001.05 | `core/src/value/value_storage.cpp:294`, `value_storage::append()` | `::new (slot_address(m_storage, m_size)) value_record(std::move(record));` | Adds a value record to the document's record block in accounted storage. Capacity and `max_records` are checked first (J5-047). | Approved (2026-11-20, Romanr92) |
+| DEV-001.06 | `core/src/value/value_storage.cpp:158`, growth path | `::new (slot_address(*allocation.value_if(), index)) value_record(std::move(*live_record(index)));` | Moves each record into the new, larger block during growth. The old records are ended (DEV-001.07) before the old block is released. | Approved (2026-11-20, Romanr92) |
+| DEV-001.07 | `core/src/value/value_storage.cpp:85`, record teardown | `live_record(m_size)->~value_record();` | Ends records in reverse order before their block is released, so each record's owned blocks are released exactly once (J5-040). | Approved (2026-11-20, Romanr92) |
 
 ---
 
@@ -89,7 +91,7 @@ destructor call, and misaligned or out-of-range placement.
 | Rule | MISRA C++:2023 Rule 8.2.6 "An object with integral, enumerated, or pointer to void type shall not be cast to a pointer type" (required) |
 | CodeQL query | `cpp/misra/int-to-pointer-cast-prohibited` |
 | Requirements protected | ADR 0007 (storage callback ABI), J5-046, J5-101, ADR 0008 (text/byte boundary) |
-| Status | Proposed |
+| Status | Approved (2026-11-20, Romanr92) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -123,30 +125,30 @@ The rule targets converting to a type the memory does not hold.
 
 | ID | Location | Code | Justification | Status |
 | --- | --- | --- | --- | --- |
-| DEV-002.01 | `core/src/memory/accounted_storage.cpp:30`, `allocate_callback()` | `*static_cast<accounted_storage*>(context)` | Gets back the `accounted_storage` that `callbacks()` registered as context (ADR 0007). | Proposed |
-| DEV-002.02 | `core/src/memory/accounted_storage.cpp:93`, `deallocate_callback()` | `*static_cast<accounted_storage*>(context)` | Same as DEV-002.01, for releases. | Proposed |
-| DEV-002.03 | `core/src/memory/buffer_arena.cpp:21`, allocate callback | `*static_cast<buffer_arena*>(context)` | Gets back the `buffer_arena` that registered itself as context. | Proposed |
-| DEV-002.04 | `core/src/memory/buffer_arena.cpp:51`, deallocate callback | `*static_cast<buffer_arena*>(context)` | Same as DEV-002.03, for releases. | Proposed |
-| DEV-002.05 | `core/src/memory/buffer_arena.cpp:69` | `static_cast<std::byte*>(address)` | Views a released block as bytes to compare it with the arena's top. No object is accessed. | Proposed |
-| DEV-002.06 | `core/src/memory/buffer_arena.cpp:84`, constructor | `static_cast<std::byte*>(buffer)` | Views the caller's untyped buffer as bytes for offset arithmetic (J5-101). | Proposed |
-| DEV-002.07 | `core/src/memory/buffer_document_storage.cpp:85` | `static_cast<std::byte*>(aligned) + sizeof(buffer_document_storage)` | Computes where the arena's space starts, directly after the control block (DEV-001.01). | Proposed |
-| DEV-002.08 | `core/src/memory/decoded_string_builder.cpp:41` | `static_cast<std::byte*>(m_storage.data())` | Views an owned block as bytes to write decoded string units. | Proposed |
-| DEV-002.09 | `core/src/parser/parser_stack.cpp:29`, `slot_address()` | `static_cast<std::byte*>(storage.data())` | Views the frame block as bytes to compute a slot's address. | Proposed |
-| DEV-002.10 | `core/src/parser/parser_stack.cpp:42`, `live_frame()` | `std::launder(static_cast<parser_frame*>(slot_address(...)))` | Accesses a frame constructed by DEV-001.03; the index is below `m_size`. | Proposed |
-| DEV-002.11 | `core/src/parser/parser_stack.cpp:54`, `live_frame() const` | `std::launder(static_cast<const parser_frame*>(slot_address(...)))` | Read-only version of DEV-002.10. | Proposed |
-| DEV-002.12 | `core/src/parser/parser_engine.cpp:594`, allocate callback | `*static_cast<parser_engine*>(context)` | Gets back the `parser_engine` that registered itself as context for its internal accounting. | Proposed |
-| DEV-002.13 | `core/src/parser/parser_engine.cpp:639`, deallocate callback | `*static_cast<parser_engine*>(context)` | Same as DEV-002.12, for releases. | Proposed |
-| DEV-002.14 | `core/src/parser/parser_engine.cpp:672` | `static_cast<std::byte*>(m_extra_kinds.data())` | Views the overflow block for container kinds as bytes. | Proposed |
-| DEV-002.15 | `core/src/value/big_unsigned.cpp:48` | `static_cast<const std::byte*>(storage.data())` | Reads big-number limbs stored byte-wise in an owned block. | Proposed |
-| DEV-002.16 | `core/src/value/big_unsigned.cpp:67` | `static_cast<std::byte*>(storage.data())` | Writes big-number limbs byte-wise into an owned block. | Proposed |
-| DEV-002.17 | `core/src/value/decoded_string.cpp:118` | `static_cast<const std::byte*>(m_storage.data())` | Reads stored decoded string units. | Proposed |
-| DEV-002.18 | `core/src/value/owned_number.cpp:108`, `spelling()` | `static_cast<const char*>(m_storage.data())` | Returns the copied number spelling as text. The block holds bytes copied from `char` input (ADR 0008). | Proposed |
-| DEV-002.19 | `core/src/value/retained_source.cpp:70`, `text()` | `static_cast<const char*>(m_bytes.data())` | Returns the retained input copy as text (J5-041, ADR 0008). | Proposed |
-| DEV-002.20 | `core/src/value/value_storage.cpp:33`, `slot_address()` | `static_cast<std::byte*>(storage.data())` | Views the record block as bytes to compute a slot's address. | Proposed |
-| DEV-002.21 | `core/src/value/value_storage.cpp:46`, `live_record()` | `std::launder(static_cast<value_record*>(slot_address(...)))` | Accesses a record constructed by DEV-001.05 / DEV-001.06; the index is below `m_size`. | Proposed |
-| DEV-002.22 | `core/src/value/value_storage.cpp:58`, `live_record() const` | `std::launder(static_cast<const value_record*>(slot_address(...)))` | Read-only version of DEV-002.21. | Proposed |
-| DEV-002.23 | `core/src/value/warning_list.cpp:40` | `static_cast<const std::byte*>(storage.data())` | Reads stored warnings byte-wise. | Proposed |
-| DEV-002.24 | `core/src/value/warning_list.cpp:58` | `static_cast<std::byte*>(storage.data())` | Writes warnings byte-wise into an owned block. | Proposed |
+| DEV-002.01 | `core/src/memory/accounted_storage.cpp:33`, `allocate_callback()` | `*static_cast<accounted_storage*>(context)` | Gets back the `accounted_storage` that `callbacks()` registered as context (ADR 0007). | Approved (2026-11-20, Romanr92) |
+| DEV-002.02 | `core/src/memory/accounted_storage.cpp:99`, `deallocate_callback()` | `*static_cast<accounted_storage*>(context)` | Same as DEV-002.01, for releases. | Approved (2026-11-20, Romanr92) |
+| DEV-002.03 | `core/src/memory/buffer_arena.cpp:24`, allocate callback | `*static_cast<buffer_arena*>(context)` | Gets back the `buffer_arena` that registered itself as context. | Approved (2026-11-20, Romanr92) |
+| DEV-002.04 | `core/src/memory/buffer_arena.cpp:57`, deallocate callback | `*static_cast<buffer_arena*>(context)` | Same as DEV-002.03, for releases. | Approved (2026-11-20, Romanr92) |
+| DEV-002.05 | `core/src/memory/buffer_arena.cpp:78` | `static_cast<std::byte*>(address)` | Views a released block as bytes to compare it with the arena's top. No object is accessed. | Approved (2026-11-20, Romanr92) |
+| DEV-002.06 | `core/src/memory/buffer_arena.cpp:96`, constructor | `static_cast<std::byte*>(buffer)` | Views the caller's untyped buffer as bytes for offset arithmetic (J5-101). | Approved (2026-11-20, Romanr92) |
+| DEV-002.07 | `core/src/memory/buffer_document_storage.cpp:91` | `static_cast<std::byte*>(aligned) + sizeof(buffer_document_storage)` | Computes where the arena's space starts, directly after the control block (DEV-001.01). | Approved (2026-11-20, Romanr92) |
+| DEV-002.08 | `core/src/memory/decoded_string_builder.cpp:44` | `static_cast<std::byte*>(m_storage.data())` | Views an owned block as bytes to write decoded string units. | Approved (2026-11-20, Romanr92) |
+| DEV-002.09 | `core/src/parser/parser_stack.cpp:32`, `slot_address()` | `static_cast<std::byte*>(storage.data())` | Views the frame block as bytes to compute a slot's address. | Approved (2026-11-20, Romanr92) |
+| DEV-002.10 | `core/src/parser/parser_stack.cpp:48`, `live_frame()` | `std::launder(static_cast<parser_frame*>(slot_address(...)))` | Accesses a frame constructed by DEV-001.03; the index is below `m_size`. | Approved (2026-11-20, Romanr92) |
+| DEV-002.11 | `core/src/parser/parser_stack.cpp:63`, `live_frame() const` | `std::launder(static_cast<const parser_frame*>(slot_address(...)))` | Read-only version of DEV-002.10. | Approved (2026-11-20, Romanr92) |
+| DEV-002.12 | `core/src/parser/parser_engine.cpp:600`, `reserve_string()` | `*static_cast<parser_engine*>(context)` | Restores the parser instance registered by the string warning sink to reserve units and warnings for that parse. | Approved (2026-11-20, Romanr92) |
+| DEV-002.13 | `core/src/parser/parser_engine.cpp:648`, `record_warning()` | `*static_cast<parser_engine*>(context)` | Restores the parser instance registered by the string warning sink to record a warning in its reserved storage. | Approved (2026-11-20, Romanr92) |
+| DEV-002.14 | `core/src/parser/parser_engine.cpp:684` | `static_cast<std::byte*>(m_extra_kinds.data())` | Views the overflow block for container kinds as bytes. | Approved (2026-11-20, Romanr92) |
+| DEV-002.15 | `core/src/value/big_unsigned.cpp:51` | `static_cast<const std::byte*>(storage.data())` | Reads big-number limbs stored byte-wise in an owned block. | Approved (2026-11-20, Romanr92) |
+| DEV-002.16 | `core/src/value/big_unsigned.cpp:73` | `static_cast<std::byte*>(storage.data())` | Writes big-number limbs byte-wise into an owned block. | Approved (2026-11-20, Romanr92) |
+| DEV-002.17 | `core/src/value/decoded_string.cpp:121` | `static_cast<const std::byte*>(m_storage.data())` | Reads stored decoded string units. | Approved (2026-11-20, Romanr92) |
+| DEV-002.18 | `core/src/value/owned_number.cpp:111`, `spelling()` | `static_cast<const char*>(m_storage.data())` | Returns the copied number spelling as text. The block holds bytes copied from `char` input (ADR 0008). | Approved (2026-11-20, Romanr92) |
+| DEV-002.19 | `core/src/value/retained_source.cpp:73`, `text()` | `static_cast<const char*>(m_bytes.data())` | Returns the retained input copy as text (J5-041, ADR 0008). | Approved (2026-11-20, Romanr92) |
+| DEV-002.20 | `core/src/value/value_storage.cpp:36`, `slot_address()` | `static_cast<std::byte*>(storage.data())` | Views the record block as bytes to compute a slot's address. | Approved (2026-11-20, Romanr92) |
+| DEV-002.21 | `core/src/value/value_storage.cpp:52`, `live_record()` | `std::launder(static_cast<value_record*>(slot_address(...)))` | Accesses a record constructed by DEV-001.05 / DEV-001.06; the index is below `m_size`. | Approved (2026-11-20, Romanr92) |
+| DEV-002.22 | `core/src/value/value_storage.cpp:67`, `live_record() const` | `std::launder(static_cast<const value_record*>(slot_address(...)))` | Read-only version of DEV-002.21. | Approved (2026-11-20, Romanr92) |
+| DEV-002.23 | `core/src/value/warning_list.cpp:43` | `static_cast<const std::byte*>(storage.data())` | Reads stored warnings byte-wise. | Approved (2026-11-20, Romanr92) |
+| DEV-002.24 | `core/src/value/warning_list.cpp:64` | `static_cast<std::byte*>(storage.data())` | Writes warnings byte-wise into an owned block. | Approved (2026-11-20, Romanr92) |
 
 `core/src/memory/pointer_alignment.cpp:30`, the 25th Rule 8.2.6 finding, is **not** in this
 record: it can be removed by computing the padding with `std::align` (see DEV-003.02).
@@ -160,7 +162,7 @@ record: it can be removed by computing the padding with `std::align` (see DEV-00
 | Rules | MISRA C++:2023 Rule 8.2.5 "`reinterpret_cast` shall not be used" (required); Rule 8.2.7 "A cast should not convert a pointer type to an integral type" (advisory) |
 | CodeQL queries | `cpp/misra/reinterpret-cast-shall-not-be-used`, `cpp/misra/no-pointer-to-integral-cast` |
 | Requirements protected | `json5_document::parse` precondition "input and buffer must not overlap", safety manual C-3.6, DFA-01, SSR-08; J5-046 (alignment); ADR 0008 |
-| Status | Proposed |
+| Status | Approved (2026-11-20, Romanr92) |
 
 ### Why these rules are deviated instead of fixed
 
@@ -191,8 +193,8 @@ precondition.
 
 | ID | Location | Code | Rules | Justification | Status |
 | --- | --- | --- | --- | --- | --- |
-| DEV-003.01 | `core/src/memory/pointer_alignment.cpp:18`, `align_within()` | `reinterpret_cast<std::uintptr_t>(position)` | 8.2.5, 8.2.7 | Reads the address to compute the padding needed for the requested alignment. | Proposed |
-| DEV-003.02 | `core/src/memory/pointer_alignment.cpp:30`, `align_within()` | `reinterpret_cast<void*>(address + padding)` | 8.2.5, 8.2.6 | **Fix proposed instead:** step `position` forward by `padding` bytes through `std::byte*`, or use `std::align`. That also removes the integer-to-pointer conversion. Keep as a deviation only if the owner rejects the fix. | Proposed: fix |
-| DEV-003.03 | `core/src/memory/json5_document.cpp:49`, overlap check | `reinterpret_cast<std::uintptr_t>(input.data)` | 8.2.5, 8.2.7 | Start address of the input, for the input/buffer overlap check (C-3.6). | Proposed |
-| DEV-003.04 | `core/src/memory/json5_document.cpp:50`, overlap check | `reinterpret_cast<std::uintptr_t>(buffer)` | 8.2.5, 8.2.7 | Start address of the buffer, for the same check. | Proposed |
-| DEV-003.05 | `core/src/parser/parser_engine.cpp:67` | `reinterpret_cast<const std::byte*>(input.data)` | 8.2.5 | Views the `char` input as bytes at the text/byte boundary (ADR 0008). Byte access to any object is allowed. | Proposed |
+| DEV-003.01 | `core/src/memory/pointer_alignment.cpp:21`, `align_within()` | `reinterpret_cast<std::uintptr_t>(position)` | 8.2.5, 8.2.7 | Reads the address to compute the padding needed for the requested alignment. | Approved (2026-11-20, Romanr92) |
+| DEV-003.02 | `core/src/memory/pointer_alignment.cpp:33`, `align_within()` | `reinterpret_cast<void*>(address + padding)` | 8.2.5, 8.2.6 | **Fix proposed instead:** step `position` forward by `padding` bytes through `std::byte*`, or use `std::align`. That also removes the integer-to-pointer conversion. Keep as a deviation only if the owner rejects the fix. | Proposed: fix |
+| DEV-003.03 | `core/src/memory/json5_document.cpp:52`, overlap check | `reinterpret_cast<std::uintptr_t>(input.data)` | 8.2.5, 8.2.7 | Start address of the input, for the input/buffer overlap check (C-3.6). | Approved (2026-11-20, Romanr92) |
+| DEV-003.04 | `core/src/memory/json5_document.cpp:56`, overlap check | `reinterpret_cast<std::uintptr_t>(buffer)` | 8.2.5, 8.2.7 | Start address of the buffer, for the same check. | Approved (2026-11-20, Romanr92) |
+| DEV-003.05 | `core/src/parser/parser_engine.cpp:70` | `reinterpret_cast<const std::byte*>(input.data)` | 8.2.5 | Views the `char` input as bytes at the text/byte boundary (ADR 0008). Byte access to any object is allowed. | Approved (2026-11-20, Romanr92) |

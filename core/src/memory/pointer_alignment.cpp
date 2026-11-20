@@ -15,8 +15,9 @@ namespace adaptive_json5
      */
     void* align_within(std::size_t alignment, std::size_t bytes, void*& position, std::size_t& space) noexcept
     {
-      // Use the numeric address to compute alignment padding. Check that both the
+      // MISRA justification: Use the numeric address to compute alignment padding. Check that both the
       // padding and the requested object fit before advancing the position.
+      // codeql::misra_deviation_next_line(DEV-003.01)
       const auto address = reinterpret_cast<std::uintptr_t>(position);
       const auto mask = static_cast<std::uintptr_t>(alignment - 1);
 
