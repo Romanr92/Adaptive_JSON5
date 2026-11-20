@@ -6,16 +6,17 @@
 #include "unicode/utf16.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
 {
   namespace
   {
-    constexpr char16_t c_high_surrogate_min = 0xD800;
-    constexpr char16_t c_high_surrogate_max = 0xDBFF;
-    constexpr char16_t c_low_surrogate_min = 0xDC00;
-    constexpr char16_t c_low_surrogate_max = 0xDFFF;
+    constexpr std::uint32_t c_high_surrogate_min = 0xD800;
+    constexpr std::uint32_t c_high_surrogate_max = 0xDBFF;
+    constexpr std::uint32_t c_low_surrogate_min = 0xDC00;
+    constexpr std::uint32_t c_low_surrogate_max = 0xDFFF;
 
     /**
      * @brief Append one warning to a pairing step's result.
@@ -52,7 +53,7 @@ namespace adaptive_json5
 
       for (std::size_t index{}; index < units.size; ++index)
       {
-        const char16_t unit = units.units[index];
+        const auto unit = static_cast<std::uint32_t>(units.units[index]);
         const bool high = (unit >= c_high_surrogate_min) && (unit <= c_high_surrogate_max);
         const bool low = (unit >= c_low_surrogate_min) && (unit <= c_low_surrogate_max);
 
@@ -127,8 +128,8 @@ namespace adaptive_json5
    */
   std::optional<string_warning> raw_separator_warning_for(const string_piece& piece, syntax_mode mode) noexcept
   {
-    constexpr char32_t c_line_separator = 0x2028;
-    constexpr char32_t c_paragraph_separator = 0x2029;
+    constexpr std::uint32_t c_line_separator = 0x2028;
+    constexpr std::uint32_t c_paragraph_separator = 0x2029;
 
     if ((mode != syntax_mode::json5) || (piece.kind != string_piece_kind::character))
     {

@@ -1,6 +1,8 @@
 #ifndef UNICODE_RANGE_HPP_
 #define UNICODE_RANGE_HPP_
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -11,8 +13,8 @@ namespace adaptive_json5
    */
   struct [[nodiscard]] unicode_range
   {
-      char32_t first;
-      char32_t last;
+      std::uint32_t first;
+      std::uint32_t last;
   };
 } // namespace adaptive_json5
 #endif /* UNICODE_RANGE_HPP_ */

@@ -19,6 +19,8 @@ namespace adaptive_json5
     class value_storage;
     struct value_record;
   } // namespace detail
+
+  class value_iterator;
   /**
    * @brief Borrow checked, read-only access to one document-owned value.
    * @par Requirements
@@ -213,6 +215,20 @@ namespace adaptive_json5
        * @note Performs no allocation and does not extend storage lifetime.
        */
       [[nodiscard]] result<value_index> index() const noexcept;
+
+      /**
+       * @brief Begin linear direct-child iteration over this array or object.
+       * @par Requirements
+       * P030; J5-030; J5-031; J5-039; J5-048; SSR-02; #154.
+       * @return An iterator over the array elements or object members in source order;
+       * wrong_type_or_access with invalid_argument for a default-constructed view, wrong_type
+       * for a scalar; internal_error when the child list is damaged.
+       * @note Each value_iterator::next() call does constant work, so a full walk is linear in
+       * the child count, unlike repeated child_at() / at() calls. Allocates nothing. The
+       * iterator borrows the same storage as this view and is invalidated with it.
+       * @par ID SWU-VALUE-179
+       */
+      [[nodiscard]] result<value_iterator> children() const noexcept;
   };
 } // namespace adaptive_json5
 

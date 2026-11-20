@@ -5,6 +5,7 @@
 #include "unicode/unicode_tables.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -17,11 +18,11 @@ namespace adaptive_json5
      * @note Surrogates are UTF-16 code units, not Unicode scalars.
      * @par ID SWU-UNICODE-001
      */
-    [[nodiscard]] inline constexpr bool is_unicode_scalar(char32_t value) noexcept
+    [[nodiscard]] inline constexpr bool is_unicode_scalar(std::uint32_t value) noexcept
     {
-      constexpr char32_t c_scalar_max = 0x10FFFF;
-      constexpr char32_t c_surrogate_min = 0xD800;
-      constexpr char32_t c_surrogate_max = 0xDFFF;
+      constexpr std::uint32_t c_scalar_max = 0x10FFFF;
+      constexpr std::uint32_t c_surrogate_min = 0xD800;
+      constexpr std::uint32_t c_surrogate_max = 0xDFFF;
 
       // Reject values beyond Unicode's maximum and the surrogate interval.
       return ((value <= c_scalar_max) && ((value < c_surrogate_min) || (value > c_surrogate_max)));
@@ -38,7 +39,7 @@ namespace adaptive_json5
      * @par ID SWU-UNICODE-002
      */
     template <std::size_t RangeCount>
-    [[nodiscard]] inline constexpr bool contains_unicode(char32_t value,
+    [[nodiscard]] inline constexpr bool contains_unicode(std::uint32_t value,
                                                          const unicode_range (&ranges)[RangeCount]) noexcept
     {
       if (!is_unicode_scalar(value))
@@ -87,7 +88,7 @@ namespace adaptive_json5
    * @note This property query does not implement complete JSON5 whitespace.
    * @par ID SWU-UNICODE-003
    */
-  [[nodiscard]] inline constexpr bool is_unicode_space_separator(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_unicode_space_separator(std::uint32_t value) noexcept
   {
     return detail::contains_unicode(value, detail::c_space_separator_ranges);
   }
@@ -99,11 +100,11 @@ namespace adaptive_json5
    * @note Uses versioned Unicode letter categories plus explicit ES5 additions.
    * @par ID SWU-UNICODE-004
    */
-  [[nodiscard]] inline constexpr bool is_identifier_start(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_identifier_start(std::uint32_t value) noexcept
   {
     // ES5 explicitly admits dollar sign and underscore independently
     // of their Unicode categories
-    if ((value == U'$') || (value == U'_'))
+    if ((value == 0x24U) || (value == 0x5FU)) // '$', '_'
     {
       return true;
     }
@@ -120,10 +121,10 @@ namespace adaptive_json5
    * @note Identifier continuation includes every valid starting character.
    * @par ID SWU-UNICODE-005
    */
-  [[nodiscard]] inline constexpr bool is_identifier_part(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_identifier_part(std::uint32_t value) noexcept
   {
-    constexpr char32_t c_zero_width_non_joiner = 0x200C;
-    constexpr char32_t c_zero_width_joiner = 0x200D;
+    constexpr std::uint32_t c_zero_width_non_joiner = 0x200C;
+    constexpr std::uint32_t c_zero_width_joiner = 0x200D;
 
     // Any character valid at the start is also valid afterword.
     if (is_identifier_start(value))

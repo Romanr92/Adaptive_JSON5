@@ -7,10 +7,11 @@
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "common/checked_size.hpp"
+#include "memory/utf16_storage.hpp"
 #include "unicode/utf16.hpp"
 
 #include <cstddef>
-#include <cstring>
+#include <cstdint>
 #include <utility>
 
 namespace adaptive_json5
@@ -23,7 +24,7 @@ namespace adaptive_json5
    * The entire append must fit the reservation before any unit is written.
    * @par ID SWU-MEMORY-020
    */
-  status_result decoded_string_builder::append_units(const char16_t* units, std::size_t count) noexcept
+  status_result decoded_string_builder::append_units(const std::uint16_t* units, std::size_t count) noexcept
   {
     const auto new_size = checked_add(m_size, count, resource_limit_reason::string);
     if (!new_size.has_value())
@@ -40,7 +41,13 @@ namespace adaptive_json5
     auto* bytes = static_cast<std::byte*>(m_storage.data());
 
     // The capacity check proved that the old offset and complete range fit.
-    std::memcpy(bytes + (m_size * sizeof(char16_t)), units, (count * sizeof(char16_t)));
+    const auto offset = checked_multiply(m_size, detail::c_utf16_unit_bytes, resource_limit_reason::string);
+    if (!offset.has_value())
+    {
+      return status_result::failure(error::internal_fault());
+    }
+
+    detail::store_utf16_units(bytes + *offset.value_if(), units, count);
     m_size = *new_size.value_if();
 
     return status_result::success();
@@ -91,7 +98,7 @@ namespace adaptive_json5
       return status_result::success();
     }
 
-    auto allocation = allocate_array(m_provider, units, sizeof(char16_t), alignof(char16_t));
+    auto allocation = allocate_array(m_provider, units, sizeof(std::uint16_t), alignof(std::uint16_t));
 
     if (!allocation.has_value())
     {
@@ -111,7 +118,7 @@ namespace adaptive_json5
    * @note NUL and lone surrogate units are preserved.
    * @par ID SWU-MEMORY-023
    */
-  status_result decoded_string_builder::append_unit(char16_t unit) noexcept
+  status_result decoded_string_builder::append_unit(std::uint16_t unit) noexcept
   {
     return append_units(&unit, encoded_utf16::c_single_unit_count);
   }
@@ -124,7 +131,7 @@ namespace adaptive_json5
    * A surrogate pair is appended completely or not at all.
    * @par ID SWU-MEMORY-024
    */
-  status_result decoded_string_builder::append_scalar(char32_t scalar) noexcept
+  status_result decoded_string_builder::append_scalar(std::uint32_t scalar) noexcept
   {
     const auto encoded = encode_utf16(scalar);
     if (!encoded.has_value())
@@ -132,7 +139,7 @@ namespace adaptive_json5
       return status_result::failure(*encoded.error_if());
     }
 
-    return append_units(encoded.value_if()->units, encoded.value_if()->size);
+    return append_units(encoded.value_if()->units.data(), encoded.value_if()->size);
   }
 
   /**

@@ -146,16 +146,33 @@ examples), so a value's width doesn't depend on the compiler or target:
 | `unsigned int`, `unsigned short`, `unsigned long` | `std::uint16_t`, `std::uint32_t`, `std::uint64_t` |
 | `size_t`, `ptrdiff_t`, `uint32_t` (unqualified) | `std::size_t`, `std::ptrdiff_t`, `std::uint32_t` |
 | `unsigned char` for raw memory or octets | `std::byte` |
+| `char16_t` (UTF-16 code unit) | `std::uint16_t` |
+| `char32_t` (Unicode code point) | `std::uint32_t` |
 
-Raw memory (caller buffers, storage blocks, UTF-8 output) is `std::byte`, which
-may alias any object. `std::byte` supports comparison and bitwise operators but
-no arithmetic; where a byte's value is computed with, `static_cast` it to or from
-a `std::uint*_t` type. Convert a `char` through `std::uint8_t` first
+Raw memory (storage blocks, allocation callbacks) is `std::byte`, which may
+alias any object. Text is `char`: caller buffers for UTF-8 output (`as_string()`,
+`name()`, `export_utf8()`) and string literals. Never convert a pointer between
+the two: MISRA C++:2023 forbids `reinterpret_cast` (Rule 8.2.5) and casts from
+`void*` (Rule 8.2.6). Produce a UTF-8 byte's `char` by lookup in a table of
+character literals, not by converting an integer to `char` (Rule 7.0.3). Do not
+use `memcpy`; write and read bytes explicitly. `std::byte` supports comparison and bitwise
+operators but no arithmetic; where a byte's value is computed with,
+`static_cast` it to or from a `std::uint*_t` type. Convert a `char` value
+through `std::uint8_t` first
 (`static_cast<std::byte>(static_cast<std::uint8_t>(c))`): casting a negative
 `char` straight to `std::byte` is undefined in C++17.
 
-Types with no `std::` name stay as they are: `bool`, `char` (text and string
-literals), `char16_t`, `char32_t`, `float` and `double`.
+The only fundamental types used under their own names are `bool`, `char`,
+`float` and `double`, because C++17 has no `std::` names for them
+(`std::float32_t` and `std::float64_t` arrive in C++23). Character constants for
+code units and code points are hex values with the character in a comment, for
+example `0x0AU // '\n'`. Test code may still spell expected UTF-16 text with
+`u"..."` literals and convert it with `adaptive_json5_test::utf16()`.
+
+`std::uint16_t` promotes to signed `int`, so compare, shift or widen a code unit
+through an explicit `static_cast<std::uint32_t>(unit)`, as MISRA C++:2023 requires.
+See
+[ADR 0008](../../docs/adr/0008-fundamental-types.md).
 
 Keep a fundamental type only where the C++ standard requires exactly that type,
 and say so in a comment at that place. Current cases: `int main()`

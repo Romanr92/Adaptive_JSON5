@@ -7,6 +7,7 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -36,7 +37,7 @@ namespace adaptive_json5
        * The entire append must fit the reservation before any unit is written.
        * @par ID SWU-MEMORY-020
        */
-      [[nodiscard]] status_result append_units(const char16_t* units, std::size_t count) noexcept;
+      [[nodiscard]] status_result append_units(const std::uint16_t* units, std::size_t count) noexcept;
 
     public:
       /**
@@ -110,7 +111,7 @@ namespace adaptive_json5
        * @note NUL and lone surrogate units are preserved.
        * @par ID SWU-MEMORY-023
        */
-      [[nodiscard]] status_result append_unit(char16_t unit) noexcept;
+      [[nodiscard]] status_result append_unit(std::uint16_t unit) noexcept;
 
       /**
        * @brief Append the UTF-16 representation of one Unicode scalar.
@@ -120,7 +121,7 @@ namespace adaptive_json5
        * A surrogate pair is appended completely or not at all.
        * @par ID SWU-MEMORY-024
        */
-      [[nodiscard]] status_result append_scalar(char32_t scalar) noexcept;
+      [[nodiscard]] status_result append_scalar(std::uint32_t scalar) noexcept;
 
       /**
        * @brief Transfer accumulated storage into an immutable string.

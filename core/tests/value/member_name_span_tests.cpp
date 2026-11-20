@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "value/document_access.hpp"
 
@@ -111,7 +112,7 @@ namespace
     const auto child = detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
-    auto name = decoded_string::copy_units(provider.callbacks(), u"a", 1);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"a").data(), 1);
     ASSERT_TRUE(name.has_value());
     const auto parent = values.view(*object.value_if());
     ASSERT_TRUE(parent.has_value());

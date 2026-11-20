@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <iterator>
 
@@ -18,7 +19,7 @@ namespace
    * P006; J5-006.
    */
   template <std::size_t Count>
-  bool table_contains(const unicode_range (&ranges)[Count], char32_t scalar)
+  bool table_contains(const unicode_range (&ranges)[Count], std::uint32_t scalar)
   {
     return std::any_of(std::begin(ranges), std::end(ranges),
                        [scalar](const unicode_range& range)
@@ -39,7 +40,7 @@ namespace
     {
       SCOPED_TRACE(index);
       EXPECT_LE(ranges[index].first, ranges[index].last);
-      EXPECT_LE(ranges[index].last, static_cast<char32_t>(0x10FFFF));
+      EXPECT_LE(ranges[index].last, static_cast<std::uint32_t>(0x10FFFF));
       EXPECT_TRUE(ranges[index].last < 0xD800 || ranges[index].first > 0xDFFF);
       if (index != 0)
       {
@@ -55,12 +56,12 @@ namespace
    */
   struct membership_case
   {
-      const char* name;  // Fixture description.
-      char32_t scalar;   // Input code point.
-      bool start;        // Expected letter-category membership.
-      bool extra;        // Expected additional continuation-category membership.
-      bool space;        // Expected Unicode 17.0.0 Zs membership.
-      bool legacy_space; // Expected Unicode 3.0.0 Zs membership.
+      const char* name;     // Fixture description.
+      std::uint32_t scalar; // Input code point.
+      bool start;           // Expected letter-category membership.
+      bool extra;           // Expected additional continuation-category membership.
+      bool space;           // Expected Unicode 17.0.0 Zs membership.
+      bool legacy_space;    // Expected Unicode 3.0.0 Zs membership.
   };
 
   using J5_006_UnicodeTableMembership = testing::TestWithParam<membership_case>;

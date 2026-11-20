@@ -2,6 +2,7 @@
 #include "adaptive_json5/parser.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <ostream>
 #include <string>
@@ -117,7 +118,8 @@ namespace
   {
     /* Arrange */
     const std::string input{"\"\\\"\\\\\\/\\b\\f\\n\\r\\t\\u0041\\uD83D\\uDE00\""};
-    const std::vector<char16_t> expected{u'"', u'\\', u'/', u'\b', u'\f', u'\n', u'\r', u'\t', u'A', 0xD83D, 0xDE00};
+    const std::vector<std::uint16_t> expected{u'"',  u'\\', u'/', u'\b',  u'\f', u'\n',
+                                              u'\r', u'\t', u'A', 0xD83D, 0xDE00};
     document_provider provider;
     const parse_options options{syntax_mode::strict_json};
     accounted_storage accounting{provider.callbacks(), options.limits.max_owned_bytes};

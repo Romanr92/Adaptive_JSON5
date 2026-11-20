@@ -196,6 +196,9 @@ It prints `port: 8080`. If CMake cannot find a compiler or build tool on Windows
   values, never exceptions.
 - `member()` and `at()` can be chained; a missing member or a wrong type is reported
   by the final read.
+- To visit every element or member, use `children()` and its `next()`, not an `at(i)`
+  loop: a walk is linear, while each `at(i)` starts from the first element. `name()`
+  reads a member's name. See [memory and limits](docs/memory-and-limits.md).
 
 ### Without the heap
 

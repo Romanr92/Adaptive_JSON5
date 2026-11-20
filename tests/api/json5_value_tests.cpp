@@ -1,7 +1,9 @@
 #include "../shared_infrastructure/fast_path_config.hpp"
 #include "../shared_infrastructure/guard_provider.hpp"
+#include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/json5_document.hpp"
+#include "adaptive_json5/json5_iterator.hpp"
 #include "adaptive_json5/json5_value.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
@@ -33,6 +35,11 @@ namespace
   static_assert(std::is_copy_constructible_v<json5_value>);
   static_assert(!std::is_copy_assignable_v<json5_value>);
   static_assert(std::is_same_v<decltype(std::declval<const json5_value&>().member(std::string_view{})), json5_value>);
+  static_assert(noexcept(std::declval<const json5_value&>().children()));
+  static_assert(noexcept(std::declval<json5_iterator&>().next()));
+  static_assert(std::is_same_v<decltype(std::declval<const json5_value&>().children()), json5_iterator>);
+  static_assert(!std::is_copy_constructible_v<json5_iterator> && !std::is_move_constructible_v<json5_iterator>);
+  static_assert(!std::is_copy_assignable_v<json5_iterator> && !std::is_move_assignable_v<json5_iterator>);
 
   /**
    * @brief Own a caller buffer and the document parsed into it, for one unit.
@@ -794,4 +801,237 @@ namespace
     EXPECT_NE(empty.error_if(), nullptr);
   }
   /* ================================= End Test_J5_040 ================================= */
+  /* =================================== Test_J5_048 =================================== */
+
+  /**
+   * @brief Build an array of the numbers 0..count-1, so each element's value is its position.
+   * @par Requirements
+   * J5-030; J5-048.
+   * @param count Number of elements.
+   */
+  std::string numbered_array(std::size_t count)
+  {
+    std::string text = "[";
+    for (std::size_t index{}; index < count; ++index)
+    {
+      text += std::to_string(index) + ",";
+    }
+    return text + "]";
+  }
+
+  /**
+   * @brief Walk all children of a value with children() and next().
+   * @par Requirements
+   * J5-030; J5-048.
+   * @param value Container to walk.
+   * @param limit Maximum number of next() calls, so a broken end of iteration cannot loop.
+   * @return The children in visiting order, and the error of the first failing next(), if any.
+   */
+  std::pair<std::vector<json5_value>, std::optional<error>> walk_children(const json5_value& value, std::size_t limit)
+  {
+    std::vector<json5_value> children;
+    auto iterator = value.children();
+    for (std::size_t call{}; call < limit; ++call)
+    {
+      auto step = iterator.next();
+      if (!step.has_value())
+      {
+        return {std::move(children), *step.error_if()};
+      }
+      if (!step.value_if()->has_value())
+      {
+        break;
+      }
+      children.push_back(**step.value_if());
+    }
+    return {std::move(children), std::nullopt};
+  }
+
+  class J5_048_Json5Iterator : public ::testing::TestWithParam<std::size_t>
+  {
+  };
+
+  /* Verify children() visits arrays of 0, 1 and 1023 elements once each, in source order.
+   * Arrange: An array of the numbers 0..n-1 within the default limits (1023 elements and the
+   *          root make the default 1024 nodes).
+   * Act: Walk it with children() and next(), then call next() twice more.
+   * Expect: n children whose values are their positions and equal at(i); the extra calls
+   *         keep returning an empty optional.
+   */
+  TEST_P(J5_048_Json5Iterator, VisitsEveryElementOnceInOrder)
+  {
+    /* Arrange */
+    const std::size_t count = GetParam();
+    parsed_fixture fixture{numbered_array(count), c_large_buffer_bytes};
+    ASSERT_TRUE(fixture.document.has_value());
+    const json5_value root = fixture.document->root();
+    /* Act */
+    const auto walked = walk_children(root, count + 2U);
+    auto iterator = root.children();
+    for (std::size_t index{}; index < count; ++index)
+    {
+      ASSERT_TRUE(iterator.next().has_value());
+    }
+    const auto end = iterator.next();
+    const auto after_end = iterator.next();
+    /* Expect */
+    EXPECT_FALSE(walked.second.has_value());
+    ASSERT_EQ(walked.first.size(), count);
+    for (std::size_t index{}; index < count; ++index)
+    {
+      const auto by_walk = walked.first[index].as_uint64();
+      const auto by_index = root.at(index).as_uint64();
+      ASSERT_TRUE(by_walk.has_value()) << "element " << index;
+      ASSERT_TRUE(by_index.has_value()) << "element " << index;
+      EXPECT_EQ(*by_walk.value_if(), index);
+      EXPECT_EQ(*by_walk.value_if(), *by_index.value_if());
+    }
+    ASSERT_TRUE(end.has_value());
+    EXPECT_FALSE(end.value_if()->has_value());
+    ASSERT_TRUE(after_end.has_value());
+    EXPECT_FALSE(after_end.value_if()->has_value());
+  }
+
+  INSTANTIATE_TEST_SUITE_P(Sizes, J5_048_Json5Iterator, ::testing::Values(0U, 1U, 1023U));
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify children() visits object members in source order, duplicates included.
+   * Arrange: The configuration object, and an object whose name a occurs twice.
+   * Act: Walk both with children() and next().
+   * Expect: Four configuration members in source order (checked through their kinds and
+   *         values); both duplicate members are visited, with their own values.
+   */
+  TEST(J5_048_Json5Iterator, VisitsObjectMembersInSourceOrder)
+  {
+    /* Arrange */
+    parsed_fixture fixture{c_config};
+    parsed_fixture duplicated{"{a: 1, b: 2, a: 3}"};
+    ASSERT_TRUE(fixture.document.has_value());
+    ASSERT_TRUE(duplicated.document.has_value());
+    /* Act */
+    const auto members = walk_children(fixture.document->root(), 8U);
+    const auto repeated = walk_children(duplicated.document->root(), 8U);
+    /* Expect */
+    EXPECT_FALSE(members.second.has_value());
+    ASSERT_EQ(members.first.size(), 4U);
+    EXPECT_EQ(*members.first[0].member("port").as_uint64().value_if(), 8080U);
+    EXPECT_EQ(*members.first[1].size().value_if(), 3U);
+    EXPECT_TRUE(members.first[2].is_string());
+    EXPECT_TRUE(members.first[3].is_null());
+    EXPECT_FALSE(repeated.second.has_value());
+    ASSERT_EQ(repeated.first.size(), 3U);
+    EXPECT_EQ(*repeated.first[0].as_uint64().value_if(), 1U);
+    EXPECT_EQ(*repeated.first[1].as_uint64().value_if(), 2U);
+    EXPECT_EQ(*repeated.first[2].as_uint64().value_if(), 3U);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify children() reports wrong_type for scalars and passes a held error through.
+   * Arrange: The configuration document: a scalar member and a missing member.
+   * Act: Call next() twice on the iterator of each.
+   * Expect: wrong_type_or_access with wrong_type for the scalar, and absent_member (the held
+   *         error) for the missing member, on every call.
+   */
+  TEST(J5_048_Json5Iterator, ReportsWrongTypeAndHeldErrors)
+  {
+    /* Arrange */
+    parsed_fixture fixture{c_config};
+    ASSERT_TRUE(fixture.document.has_value());
+    const json5_value root = fixture.document->root();
+    auto scalar = root.member("server").member("port").children();
+    auto missing = root.member("absent").children();
+    for (std::size_t call{}; call < 2U; ++call)
+    {
+      SCOPED_TRACE(call);
+      /* Act */
+      const auto from_scalar = scalar.next();
+      const auto from_missing = missing.next();
+      /* Expect */
+      ASSERT_FALSE(from_scalar.has_value());
+      EXPECT_EQ(from_scalar.error_if()->code(), error_code::wrong_type_or_access);
+      EXPECT_EQ(from_scalar.error_if()->access_reason(), access_error_reason::wrong_type);
+      ASSERT_FALSE(from_missing.has_value());
+      EXPECT_EQ(from_missing.error_if()->code(), error_code::wrong_type_or_access);
+      EXPECT_EQ(from_missing.error_if()->access_reason(), access_error_reason::absent_member);
+    }
+  }
+  /* ================================= End Test_J5_048 ================================= */
+  /* =================================== Test_J5_031 =================================== */
+
+  static_assert(noexcept(std::declval<const json5_value&>().name(nullptr, 0U)));
+  static_assert(
+    std::is_same_v<decltype(std::declval<const json5_value&>().name(nullptr, 0U)), result<std::string_view>>);
+
+  /* Verify name() gives each member's decoded name while walking an object with children().
+   * Arrange: An object with a plain, an empty, an escaped and a repeated name.
+   * Act: Walk it with children() and read name() of every member.
+   * Expect: The decoded names in source order, both copies of the repeated name, and the
+   *         same name through member().
+   */
+  TEST(J5_031_Json5ValueName, ReadsMemberNamesInSourceOrder)
+  {
+    /* Arrange */
+    parsed_fixture fixture{R"({a: 1, "": 2, "café": 3, a: 4})"};
+    ASSERT_TRUE(fixture.document.has_value());
+    const json5_value root = fixture.document->root();
+    char buffer[16];
+    std::vector<std::string> names;
+    /* Act */
+    const auto members = walk_children(root, 8U);
+    for (const json5_value& member : members.first)
+    {
+      const auto name = member.name(buffer, sizeof(buffer));
+      ASSERT_TRUE(name.has_value());
+      names.emplace_back(*name.value_if());
+    }
+    const auto through_member = root.member("").name(buffer, sizeof(buffer));
+    /* Expect */
+    EXPECT_FALSE(members.second.has_value());
+    EXPECT_EQ(names, (std::vector<std::string>{"a", "", "caf\xC3\xA9", "a"}));
+    ASSERT_TRUE(through_member.has_value());
+    EXPECT_TRUE(through_member.value_if()->empty());
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify name() reports values without a name, held errors and export failures.
+   * Arrange: The configuration document, and an object whose name is an unpaired surrogate.
+   * Act: Read name() of the root, an array element, a missing member, a member into a
+   *      too-small buffer and the surrogate name.
+   * Expect: wrong_type for the root and the element; the held absent_member; resource_limit
+   *         for the small buffer; encoding for the surrogate.
+   */
+  TEST(J5_031_Json5ValueName, ReportsUnnamedValuesAndExportErrors)
+  {
+    /* Arrange */
+    parsed_fixture fixture{c_config};
+    parsed_fixture surrogate{R"({"\uD800": 1})"};
+    ASSERT_TRUE(fixture.document.has_value());
+    ASSERT_TRUE(surrogate.document.has_value());
+    const json5_value root = fixture.document->root();
+    char buffer[16];
+    char small[2];
+    /* Act */
+    const auto of_root = root.name(buffer, sizeof(buffer));
+    const auto of_element = root.member("tags").at(0).name(buffer, sizeof(buffer));
+    const auto of_missing = root.member("absent").name(buffer, sizeof(buffer));
+    const auto too_small = root.member("server").name(small, sizeof(small));
+    const auto unpaired = walk_children(surrogate.document->root(), 4U);
+    ASSERT_EQ(unpaired.first.size(), 1U);
+    const auto of_surrogate = unpaired.first[0].name(buffer, sizeof(buffer));
+    /* Expect */
+    ASSERT_FALSE(of_root.has_value());
+    EXPECT_EQ(of_root.error_if()->access_reason(), access_error_reason::wrong_type);
+    ASSERT_FALSE(of_element.has_value());
+    EXPECT_EQ(of_element.error_if()->access_reason(), access_error_reason::wrong_type);
+    ASSERT_FALSE(of_missing.has_value());
+    EXPECT_EQ(of_missing.error_if()->access_reason(), access_error_reason::absent_member);
+    ASSERT_FALSE(too_small.has_value());
+    EXPECT_EQ(too_small.error_if()->code(), error_code::resource_limit);
+    ASSERT_FALSE(of_surrogate.has_value());
+    EXPECT_EQ(of_surrogate.error_if()->code(), error_code::encoding);
+  }
+  /* ================================= End Test_J5_031 ================================= */
 } // namespace

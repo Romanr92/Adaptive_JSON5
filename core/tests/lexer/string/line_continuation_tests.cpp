@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <string>
@@ -155,7 +156,7 @@ namespace
     ASSERT_TRUE(builder.append_scalar(last.value_if()->scalar).has_value());
     const auto closing = consume_string_piece(source, **opening.value_if(), syntax_mode::json5);
     auto text = builder.finish();
-    auto output = adaptive_json5_test::make_bytes(0xA5, 0xA5, 0xA5, 0xA5);
+    auto output = adaptive_json5_test::make_chars('#', '#', '#', '#');
     const auto exported = export_utf8(text, output.data(), output.size());
     /* Expect */
     EXPECT_EQ((**continuation.value_if()).byte_offset, 3u);
@@ -166,7 +167,7 @@ namespace
     EXPECT_EQ(text.size(), 3u);
     ASSERT_TRUE(exported.has_value());
     EXPECT_EQ(*exported.value_if(), 3u);
-    EXPECT_EQ(output, adaptive_json5_test::make_bytes(0x41, 0x20, 0x42, 0xA5));
+    EXPECT_EQ(output, adaptive_json5_test::make_chars(0x41, 0x20, 0x42, '#'));
   }
   INSTANTIATE_TEST_SUITE_P(Sequences, J5_017_Continuation,
                            ::testing::Values(continuation_case{"Lf", "\n", 1}, continuation_case{"Cr", "\r", 1},

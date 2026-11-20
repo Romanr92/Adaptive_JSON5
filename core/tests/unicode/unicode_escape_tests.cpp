@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <string>
@@ -61,9 +62,9 @@ namespace
    */
   struct unicode_case
   {
-      const char* name;     // Diagnostic parameter name.
-      std::string spelling; // Input u followed by four hexadecimal digits.
-      char16_t expected;    // Expected decoded unit, including surrogates.
+      const char* name;       // Diagnostic parameter name.
+      std::string spelling;   // Input u followed by four hexadecimal digits.
+      std::uint16_t expected; // Expected decoded unit, including surrogates.
   };
   class J5_015_UnicodeEscape : public ::testing::TestWithParam<unicode_case>
   {
@@ -278,7 +279,7 @@ namespace
       const auto actual = consume_unicode_escape(source);
       ASSERT_TRUE(actual.has_value());
       ASSERT_TRUE(actual.value_if()->has_value());
-      EXPECT_EQ(**actual.value_if(), char16_t{0x41});
+      EXPECT_EQ(**actual.value_if(), std::uint16_t{0x41});
       EXPECT_EQ(source.offset(), 5u);
       EXPECT_EQ(*source.peek(), suffix);
     }
@@ -298,10 +299,10 @@ namespace
       const char* name;                  // Diagnostic parameter name.
       std::string first;                 // Input first Unicode escape suffix.
       std::string second;                // Input second Unicode escape suffix.
-      char16_t first_unit;               // Expected first stored unit.
-      char16_t second_unit;              // Expected second stored unit.
+      std::uint16_t first_unit;          // Expected first stored unit.
+      std::uint16_t second_unit;         // Expected second stored unit.
       bool valid_pair;                   // Whether checked scalar/UTF-8 conversion should succeed.
-      char32_t scalar;                   // Expected scalar for valid pairs; otherwise unused.
+      std::uint32_t scalar;              // Expected scalar for valid pairs; otherwise unused.
       std::array<std::uint8_t, 4> bytes; // Expected four UTF-8 bytes for valid pairs.
   };
   class J5_018_UnicodePair : public ::testing::TestWithParam<pair_case>
@@ -323,8 +324,8 @@ namespace
     decoded_string_builder builder(c_test_storage, 2);
     // Two escaped units; the builder needs its exact reservation first.
     ASSERT_TRUE(builder.reserve_exact(2).has_value());
-    std::array<std::byte, 4> output;
-    output.fill(std::byte{0xA5});
+    std::array<char, 4> output;
+    output.fill('#');
     const auto before = output;
     /* Act */
     const auto first = consume_unicode_escape(first_source);
@@ -353,7 +354,7 @@ namespace
       EXPECT_EQ(decoded.value_if()->value, param.scalar);
       EXPECT_EQ(decoded.value_if()->unit_count, 2u);
       EXPECT_EQ(*exported.value_if(), 4u);
-      EXPECT_EQ(output, adaptive_json5_test::to_bytes(param.bytes));
+      EXPECT_EQ(output, adaptive_json5_test::to_chars(param.bytes));
     }
     else
     {
@@ -395,8 +396,8 @@ namespace
     for (const auto& item : cases)
     {
       cursor source({item.spelling.data(), item.spelling.size()});
-      std::array<std::byte, 4> output;
-      output.fill(std::byte{0xA5});
+      std::array<char, 4> output;
+      output.fill('#');
       const auto before = output;
       /* Act */
       const auto decoded = consume_unicode_escape(source);

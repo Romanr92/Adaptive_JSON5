@@ -23,7 +23,7 @@ namespace adaptive_json5
    * @brief Export a decoded string into caller-provided UTF-8 storage.
    * @par Requirements
    * P013; J5-018; J5-029.
-   * @param destination Writable byte array of capacity bytes.
+   * @param destination Writable char array of capacity bytes.
    * May be nullptr when the required output size is zero.
    * @return Bytes written, encoding error for unpaired surrogates,
    * resource_limit (output_capacity) for insufficient capacity or size overflow,
@@ -34,7 +34,7 @@ namespace adaptive_json5
    * The source must remain unchanged throughout this call.
    * @par ID SWU-VALUE-104
    */
-  [[nodiscard]] result<std::size_t> export_utf8(const decoded_string& source, std::byte* destination,
+  [[nodiscard]] result<std::size_t> export_utf8(const decoded_string& source, char* destination,
                                                 std::size_t capacity) noexcept;
 } // namespace adaptive_json5
 

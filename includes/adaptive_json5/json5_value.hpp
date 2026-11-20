@@ -14,6 +14,7 @@
 namespace adaptive_json5
 {
   class json5_document;
+  class json5_iterator;
 
   /**
    * @brief Navigate and read one value of a json5_document in a few calls.
@@ -52,12 +53,13 @@ namespace adaptive_json5
        * J5-040.
        * @param value The value, or the error of the step that produced it.
        * @param scratch Storage callbacks of the owning document, used by as_double() and as_float().
-       * @note Only json5_document and json5_value itself create values.
+       * @note Only json5_document, json5_iterator and json5_value itself create values.
        * @par ID SWU-VALUE-059
        */
       json5_value(result<value_view> value, const storage_callbacks& scratch) noexcept;
 
       friend class json5_document;
+      friend class json5_iterator;
 
     public:
       /**
@@ -165,6 +167,8 @@ namespace adaptive_json5
        * @return The element's value, or an object holding the error: the held error;
        * wrong_type_or_access with wrong_type when this is not an array, or index_out_of_range when
        * index is out of range.
+       * @note Walks from the first element, so one call costs O(index) and an at(i) loop over
+       * all elements is quadratic. Use children() to visit every element (#154).
        * @par ID SWU-VALUE-070
        */
       [[nodiscard]] json5_value at(std::size_t index) const noexcept;
@@ -178,6 +182,19 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-071
        */
       [[nodiscard]] result<std::size_t> size() const noexcept;
+
+      /**
+       * @brief Begin a linear walk over the elements of an array or the members of an object.
+       * @par Requirements
+       * J5-030; J5-031; J5-039; J5-048; SSR-02; #154.
+       * @return An iterator in source order. A held error, wrong_type_or_access (wrong_type)
+       * for a scalar, or internal_error for a damaged child list is reported by its next().
+       * @note Use this instead of at(i) loops: each next() does constant work, so a full walk
+       * is linear in the child count, while at(index) walks from the first element.
+       * Allocates nothing. The iterator borrows the document like this value.
+       * @par ID SWU-VALUE-182
+       */
+      [[nodiscard]] json5_iterator children() const noexcept;
 
       /**
        * @brief Read a boolean value.
@@ -275,6 +292,22 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-076
        */
       [[nodiscard]] result<std::string_view> as_string(char* buffer, std::size_t capacity) const noexcept;
+
+      /**
+       * @brief Copy the member name of this value as UTF-8 into a caller buffer.
+       * @par Requirements
+       * J5-029; J5-031; J5-033; J5-039; J5-041; #154.
+       * @param buffer Destination for the UTF-8 bytes; no terminating NUL is written.
+       * @param capacity Bytes available in buffer.
+       * @return A view of the written bytes inside buffer; the held error;
+       * wrong_type_or_access (wrong_type) when this value is not an object member (the root
+       * or an array element); resource_limit when capacity is too small; encoding for an
+       * unpaired surrogate.
+       * @note An empty name succeeds with an empty view. Pairs with children() to read the
+       * names of all members, duplicates included. Allocates nothing.
+       * @par ID SWU-VALUE-183
+       */
+      [[nodiscard]] result<std::string_view> name(char* buffer, std::size_t capacity) const noexcept;
   };
 } // namespace adaptive_json5
 

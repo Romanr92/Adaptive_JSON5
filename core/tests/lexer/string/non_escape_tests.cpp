@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
 #include <utility>
@@ -24,9 +25,9 @@ namespace
    */
   struct non_escape_case
   {
-      const char* name;  // Diagnostic parameter name.
-      std::string bytes; // Input UTF-8 bytes immediately after backslash.
-      char32_t scalar;   // Expected unchanged Unicode scalar.
+      const char* name;     // Diagnostic parameter name.
+      std::string bytes;    // Input UTF-8 bytes immediately after backslash.
+      std::uint32_t scalar; // Expected unchanged Unicode scalar.
   };
   class J5_016_NonEscape : public ::testing::TestWithParam<non_escape_case>
   {
@@ -279,8 +280,8 @@ namespace
     /* Expect */
     ASSERT_TRUE(units.has_value());
     EXPECT_EQ(units.value_if()->size, 2u);
-    EXPECT_EQ(units.value_if()->units[0], char16_t{0xD83C});
-    EXPECT_EQ(units.value_if()->units[1], char16_t{0xDFBC});
+    EXPECT_EQ(units.value_if()->units[0], std::uint16_t{0xD83C});
+    EXPECT_EQ(units.value_if()->units[1], std::uint16_t{0xDFBC});
     EXPECT_EQ(source.offset(), input.size());
   }
 

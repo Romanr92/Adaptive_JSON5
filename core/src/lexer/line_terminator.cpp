@@ -5,6 +5,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -24,10 +25,10 @@ namespace adaptive_json5
   {
     using terminator_result = result<std::optional<line_terminator_span>>;
 
-    constexpr char32_t c_line_feed = 0x000A;
-    constexpr char32_t c_carriage_return = 0x000D;
-    constexpr char32_t c_line_separator = 0x2028;
-    constexpr char32_t c_paragraph_separator = 0x2029;
+    constexpr std::uint32_t c_line_feed = 0x000A;
+    constexpr std::uint32_t c_carriage_return = 0x000D;
+    constexpr std::uint32_t c_line_separator = 0x2028;
+    constexpr std::uint32_t c_paragraph_separator = 0x2029;
 
     constexpr char c_line_feed_byte = '\n';
     constexpr std::size_t c_line_feed_byte_count = 1;
@@ -51,7 +52,7 @@ namespace adaptive_json5
       return terminator_result::success(std::nullopt);
     }
 
-    const char32_t scalar = character->value;
+    const std::uint32_t scalar = character->value;
 
     if ((scalar != c_line_feed) && (scalar != c_carriage_return) && (scalar != c_line_separator) &&
         (scalar != c_paragraph_separator))

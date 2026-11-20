@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/access_error_reason.hpp"
 #include "parser/parser_attachment.hpp"
 #include "parser/parser_duplicate.hpp"
@@ -226,12 +227,12 @@ namespace
     const auto child = adaptive_json5::detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
-    auto name = decoded_string::copy_units(provider.callbacks(), u"ab", 2);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"ab").data(), 2);
     ASSERT_TRUE(name.has_value());
     ASSERT_TRUE(adaptive_json5::detail::document_access::append_member(
                   values, *object.value_if(), std::move(*name.value_if()), *child.value_if(), {1, 4}, 20)
                   .has_value());
-    auto candidate = decoded_string::copy_units(provider.callbacks(), u"ab", 2);
+    auto candidate = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"ab").data(), 2);
     ASSERT_TRUE(candidate.has_value());
     work_budget work{GetParam()};
     const auto attempts = provider.m_attempts;
@@ -326,12 +327,12 @@ namespace
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(array.has_value());
     ASSERT_TRUE(scalar.has_value());
-    auto stored = decoded_string::copy_units(provider.callbacks(), u"a", 1);
+    auto stored = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"a").data(), 1);
     ASSERT_TRUE(stored.has_value());
     ASSERT_TRUE(adaptive_json5::detail::document_access::append_member(
                   values, *object.value_if(), std::move(*stored.value_if()), *scalar.value_if())
                   .has_value());
-    auto name = decoded_string::copy_units(provider.callbacks(), u"a", 1);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"a").data(), 1);
     ASSERT_TRUE(name.has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
@@ -364,7 +365,7 @@ namespace
     const auto child = adaptive_json5::detail::document_access::make_null(values);
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(child.has_value());
-    auto name = decoded_string::copy_units(provider.callbacks(), u"a", 1);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"a").data(), 1);
     ASSERT_TRUE(name.has_value());
     parser_frame frame;
     frame.container = *object.value_if();

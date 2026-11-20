@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <limits>
@@ -262,26 +263,26 @@ namespace
   INSTANTIATE_TEST_SUITE_P(
     P032, J5_028_PrimitiveRoot,
     testing::Combine(
-      testing::Values(root_case{"Null", "null", value_kind::null, {}, number_kind::decimal, false, true},
-                      root_case{"True", "true", value_kind::boolean, {}, number_kind::decimal, true, true},
-                      root_case{"False", "false", value_kind::boolean, {}, number_kind::decimal, false, true},
-                      root_case{"EmptyString", "\"\"", value_kind::string, u"", number_kind::decimal, false, true},
-                      root_case{"EscapedString", "\"a\\n\\u0000b\"", value_kind::string,
-                                std::u16string{u'a', u'\n', u'\0', u'b'}, number_kind::decimal, false, true},
-                      root_case{"LoneSurrogate", "\"\\uD800\"", value_kind::string,
-                                std::u16string{static_cast<char16_t>(0xD800)}, number_kind::decimal, false, true, 1},
-                      root_case{"NegativeZero", "-0", value_kind::number, {}, number_kind::decimal, false, true},
-                      root_case{
-                        "LargeInteger", "9007199254740993", value_kind::number, {}, number_kind::decimal, false, true},
-                      root_case{"Fraction", "1.2500", value_kind::number, {}, number_kind::decimal, false, true},
-                      root_case{"Exponent", "1E+02", value_kind::number, {}, number_kind::decimal, false, true},
-                      root_case{"SingleQuoted", "'x'", value_kind::string, u"x", number_kind::decimal, false, false},
-                      root_case{"LeadingPlus", "+1", value_kind::number, {}, number_kind::decimal, false, false},
-                      root_case{"LeadingPoint", ".5", value_kind::number, {}, number_kind::decimal, false, false},
-                      root_case{"TrailingPoint", "1.", value_kind::number, {}, number_kind::decimal, false, false},
-                      root_case{"Hexadecimal", "-0x10", value_kind::number, {}, number_kind::hexadecimal, false, false},
-                      root_case{"Infinity", "-Infinity", value_kind::number, {}, number_kind::infinity, false, false},
-                      root_case{"NaN", "+NaN", value_kind::number, {}, number_kind::nan, false, false}),
+      testing::Values(
+        root_case{"Null", "null", value_kind::null, {}, number_kind::decimal, false, true},
+        root_case{"True", "true", value_kind::boolean, {}, number_kind::decimal, true, true},
+        root_case{"False", "false", value_kind::boolean, {}, number_kind::decimal, false, true},
+        root_case{"EmptyString", "\"\"", value_kind::string, u"", number_kind::decimal, false, true},
+        root_case{"EscapedString", "\"a\\n\\u0000b\"", value_kind::string, std::u16string{u'a', u'\n', u'\0', u'b'},
+                  number_kind::decimal, false, true},
+        root_case{"LoneSurrogate", "\"\\uD800\"", value_kind::string,
+                  std::u16string{static_cast<std::uint16_t>(0xD800)}, number_kind::decimal, false, true, 1},
+        root_case{"NegativeZero", "-0", value_kind::number, {}, number_kind::decimal, false, true},
+        root_case{"LargeInteger", "9007199254740993", value_kind::number, {}, number_kind::decimal, false, true},
+        root_case{"Fraction", "1.2500", value_kind::number, {}, number_kind::decimal, false, true},
+        root_case{"Exponent", "1E+02", value_kind::number, {}, number_kind::decimal, false, true},
+        root_case{"SingleQuoted", "'x'", value_kind::string, u"x", number_kind::decimal, false, false},
+        root_case{"LeadingPlus", "+1", value_kind::number, {}, number_kind::decimal, false, false},
+        root_case{"LeadingPoint", ".5", value_kind::number, {}, number_kind::decimal, false, false},
+        root_case{"TrailingPoint", "1.", value_kind::number, {}, number_kind::decimal, false, false},
+        root_case{"Hexadecimal", "-0x10", value_kind::number, {}, number_kind::hexadecimal, false, false},
+        root_case{"Infinity", "-Infinity", value_kind::number, {}, number_kind::infinity, false, false},
+        root_case{"NaN", "+NaN", value_kind::number, {}, number_kind::nan, false, false}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)));
   /* ================================= End Test_J5_028 ================================= */
   /* =================================== Test_J5_026 =================================== */

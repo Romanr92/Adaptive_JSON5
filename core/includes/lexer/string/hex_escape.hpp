@@ -5,6 +5,7 @@
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -17,7 +18,7 @@ namespace adaptive_json5
    * @note Classification is independent of locale.
    * @par ID SWU-LEXER-029
    */
-  [[nodiscard]] std::optional<char16_t> hex_digit_value(char32_t character) noexcept;
+  [[nodiscard]] std::optional<std::uint16_t> hex_digit_value(std::uint32_t character) noexcept;
 
   /**
    * @brief Decode a JSON5 hexadecimal escape after its backslash.
@@ -33,7 +34,7 @@ namespace adaptive_json5
    * Nonmatching input is not validated. No allocation is performed.
    * @par ID SWU-LEXER-030
    */
-  [[nodiscard]] result<std::optional<char16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<std::uint16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* HEX_ESCAPE_HPP_ */

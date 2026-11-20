@@ -9,9 +9,10 @@
 #include "unicode/unicode.hpp"
 #include "unicode/utf8.hpp"
 
+#include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
-#include <string_view>
 
 namespace adaptive_json5
 {
@@ -47,8 +48,11 @@ namespace adaptive_json5
     using non_finite_result = result<std::optional<number_token>>;
 
     constexpr std::size_t c_ascii_byte_count = 1;
-    constexpr std::string_view c_infinity_spelling{"Infinity"};
-    constexpr std::string_view c_nan_spelling{"NaN"};
+    // Code points of the two spellings; "NaN" uses the first c_nan_length entries.
+    static constexpr std::array<std::uint32_t, 8U> c_infinity_spelling{0x49U, 0x6EU, 0x66U, 0x69U,
+                                                                       0x6EU, 0x69U, 0x74U, 0x79U}; // "Infinity"
+    static constexpr std::array<std::uint32_t, 8U> c_nan_spelling{0x4EU, 0x61U, 0x4EU};             // "NaN"
+    constexpr std::size_t c_nan_length = 3U;
 
     const std::size_t start = source.offset();
 
@@ -70,25 +74,30 @@ namespace adaptive_json5
     // unknown word that the scalar lexer reports whole, from the sign (issue #155).
     const bool signed_word = (candidate.offset() != start);
 
-    std::string_view spelling{};
-    number_kind kind = number_kind::infinity;
-
-    if (*first == 'I')
-    {
-      spelling = c_infinity_spelling;
-    }
-    else if (*first == 'N')
-    {
-      spelling = c_nan_spelling;
-      kind = number_kind::nan;
-    }
-    else
+    // Choose the spelling by the first character's code point. An undecodable first byte is
+    // neither 'I' nor 'N', so it is left to the other recognizers, as before.
+    cursor probe = candidate;
+    const auto first_decoded = decode_utf8(probe);
+    const bool decodable = first_decoded.has_value() && first_decoded.value_if()->has_value();
+    const std::uint32_t first_scalar = decodable ? (*first_decoded.value_if())->value : std::uint32_t{};
+    const bool infinity = (first_scalar == c_infinity_spelling.front());
+    if (!infinity && (first_scalar != c_nan_spelling.front()))
     {
       return non_finite_result::success(std::nullopt);
     }
 
-    for (const char expected : spelling)
+    const auto& spelling = infinity ? c_infinity_spelling : c_nan_spelling;
+    const number_kind kind = infinity ? number_kind::infinity : number_kind::nan;
+    std::size_t remaining = infinity ? c_infinity_spelling.size() : c_nan_length;
+
+    for (const std::uint32_t expected : spelling)
     {
+      if (remaining == std::size_t{})
+      {
+        break;
+      }
+
+      --remaining;
       const auto decoded = decode_utf8(candidate);
       if (!decoded.has_value())
       {
@@ -103,7 +112,7 @@ namespace adaptive_json5
                  : non_finite_result::success(std::nullopt);
       }
 
-      if (character->value != static_cast<char32_t>(expected))
+      if (character->value != expected)
       {
         return non_finite_result::success(std::nullopt);
       }
@@ -120,15 +129,15 @@ namespace adaptive_json5
     const auto& suffix = *following.value_if();
     if (suffix.has_value())
     {
-      const char32_t scalar = suffix->value;
+      const std::uint32_t scalar = suffix->value;
 
       // Reject extended names and escaped suffixes as unknown words; a decimal point is not part of a word.
-      if (is_identifier_part(scalar) || (scalar == U'\\'))
+      if (is_identifier_part(scalar) || (scalar == 0x5CU)) // '\\'
       {
         return non_finite_result::success(std::nullopt);
       }
 
-      if (scalar == U'.')
+      if (scalar == 0x2EU) // '.'
       {
         return non_finite_result::failure(error::syntax_at(suffix->byte_offset, syntax_error_reason::unknown_literal));
       }

@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <optional>
 #include <string>
@@ -36,22 +37,22 @@ namespace
   {
       const char* name;       // Case description.
       std::string_view bytes; // Input bytes with explicit length.
-      char32_t scalar;        // Expected Unicode scalar value.
+      std::uint32_t scalar;   // Expected Unicode scalar value.
   };
 
   const valid_case c_valid_cases[] = {
-    {"AsciiZero", std::string_view{"\x00", 1}, static_cast<char32_t>(0x0)},
-    {"AsciiMax", std::string_view{"\x7f", 1}, static_cast<char32_t>(0x7F)},
-    {"TwoByteMin", std::string_view{"\xc2\x80", 2}, static_cast<char32_t>(0x80)},
-    {"TwoByteMax", std::string_view{"\xdf\xbf", 2}, static_cast<char32_t>(0x7FF)},
-    {"ThreeByteMin", std::string_view{"\xe0\xa0\x80", 3}, static_cast<char32_t>(0x800)},
-    {"BeforeSurrogates", std::string_view{"\xed\x9f\xbf", 3}, static_cast<char32_t>(0xD7FF)},
-    {"AfterSurrogates", std::string_view{"\xee\x80\x80", 3}, static_cast<char32_t>(0xE000)},
-    {"Bom", std::string_view{"\xef\xbb\xbf", 3}, static_cast<char32_t>(0xFEFF)},
-    {"Noncharacter", std::string_view{"\xef\xbf\xbf", 3}, static_cast<char32_t>(0xFFFF)},
-    {"FourByteMin", std::string_view{"\xf0\x90\x80\x80", 4}, static_cast<char32_t>(0x10000)},
-    {"Supplementary", std::string_view{"\xf0\x9f\x98\x80", 4}, static_cast<char32_t>(0x1F600)},
-    {"ScalarMax", std::string_view{"\xf4\x8f\xbf\xbf", 4}, static_cast<char32_t>(0x10FFFF)},
+    {"AsciiZero", std::string_view{"\x00", 1}, static_cast<std::uint32_t>(0x0)},
+    {"AsciiMax", std::string_view{"\x7f", 1}, static_cast<std::uint32_t>(0x7F)},
+    {"TwoByteMin", std::string_view{"\xc2\x80", 2}, static_cast<std::uint32_t>(0x80)},
+    {"TwoByteMax", std::string_view{"\xdf\xbf", 2}, static_cast<std::uint32_t>(0x7FF)},
+    {"ThreeByteMin", std::string_view{"\xe0\xa0\x80", 3}, static_cast<std::uint32_t>(0x800)},
+    {"BeforeSurrogates", std::string_view{"\xed\x9f\xbf", 3}, static_cast<std::uint32_t>(0xD7FF)},
+    {"AfterSurrogates", std::string_view{"\xee\x80\x80", 3}, static_cast<std::uint32_t>(0xE000)},
+    {"Bom", std::string_view{"\xef\xbb\xbf", 3}, static_cast<std::uint32_t>(0xFEFF)},
+    {"Noncharacter", std::string_view{"\xef\xbf\xbf", 3}, static_cast<std::uint32_t>(0xFFFF)},
+    {"FourByteMin", std::string_view{"\xf0\x90\x80\x80", 4}, static_cast<std::uint32_t>(0x10000)},
+    {"Supplementary", std::string_view{"\xf0\x9f\x98\x80", 4}, static_cast<std::uint32_t>(0x1F600)},
+    {"ScalarMax", std::string_view{"\xf4\x8f\xbf\xbf", 4}, static_cast<std::uint32_t>(0x10FFFF)},
   };
 
   /**
@@ -252,7 +253,7 @@ namespace
       ASSERT_TRUE(actual.has_value());
       ASSERT_NE(actual.value_if(), nullptr);
       ASSERT_TRUE(actual.value_if()->has_value());
-      EXPECT_EQ(actual.value_if()->value().value, static_cast<char32_t>(byte));
+      EXPECT_EQ(actual.value_if()->value().value, static_cast<std::uint32_t>(byte));
       EXPECT_EQ(actual.value_if()->value().byte_offset, 0U);
       EXPECT_EQ(actual.value_if()->value().byte_length, 1U);
       EXPECT_EQ(source.offset(), 1U);
@@ -356,7 +357,7 @@ namespace
                           static_cast<char>(0x98),
                           static_cast<char>(0x80),
                           static_cast<char>(0xFF)};
-    const std::array<char32_t, 5> scalars{U'A', 0, 0xA2, 0x20AC, 0x1F600};
+    const std::array<std::uint32_t, 5> scalars{U'A', 0, 0xA2, 0x20AC, 0x1F600};
     const std::array<std::size_t, 5> offsets{0, 1, 2, 4, 7};
     const std::array<std::size_t, 5> lengths{1, 1, 2, 3, 4};
     cursor source{input_view{bytes, 11}};

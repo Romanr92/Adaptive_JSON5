@@ -8,15 +8,16 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
   namespace
   {
-    constexpr char32_t c_line_feed = U'\n';
-    constexpr char32_t c_carriage_return = U'\r';
-    constexpr char32_t c_line_separator = U'\u2028';
-    constexpr char32_t c_paragraph_separator = U'\u2029';
+    constexpr std::uint32_t c_line_feed = 0x0AU;             // '\n'
+    constexpr std::uint32_t c_carriage_return = 0x0DU;       // '\r'
+    constexpr std::uint32_t c_line_separator = 0x2028U;      // '\u2028'
+    constexpr std::uint32_t c_paragraph_separator = 0x2029U; // '\u2029'
     constexpr std::size_t c_single_byte = 1;
     constexpr std::size_t c_first_column = 1;
 
@@ -29,7 +30,7 @@ namespace adaptive_json5
      * @note CRLF is recognized by the caller so that it counts as one break.
      * @par ID SWU-INPUT-010
      */
-    [[nodiscard]] bool is_line_break(char32_t value) noexcept
+    [[nodiscard]] bool is_line_break(std::uint32_t value) noexcept
     {
       return (value == c_line_feed) || (value == c_carriage_return) || (value == c_line_separator) ||
              (value == c_paragraph_separator);
@@ -63,7 +64,7 @@ namespace adaptive_json5
       const auto decoded = decode_utf8(attempt);
 
       std::size_t length = c_single_byte;
-      char32_t value{};
+      std::uint32_t value{};
 
       // Invalid bytes are deliberately not an error here: we may be locating that very encoding failure.
       if (decoded.has_value() && decoded.value_if()->has_value())

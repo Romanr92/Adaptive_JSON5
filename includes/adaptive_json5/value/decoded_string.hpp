@@ -6,6 +6,7 @@
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -101,8 +102,8 @@ namespace adaptive_json5
        * Nonempty input must remain readable for this call only.
        * @par ID SWU-VALUE-019
        */
-      [[nodiscard]] static result<decoded_string> copy_units(const storage_callbacks& storage, const char16_t* units,
-                                                             std::size_t count) noexcept;
+      [[nodiscard]] static result<decoded_string> copy_units(const storage_callbacks& storage,
+                                                             const std::uint16_t* units, std::size_t count) noexcept;
 
       /**
        * @brief Return the number of stored UTF-16 units.
@@ -120,7 +121,7 @@ namespace adaptive_json5
        * @note Surrogate units are returned unchanged.
        * @par ID SWU-VALUE-021
        */
-      [[nodiscard]] result<char16_t> unit_at(std::size_t index) const noexcept;
+      [[nodiscard]] result<std::uint16_t> unit_at(std::size_t index) const noexcept;
   };
 } // namespace adaptive_json5
 

@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
@@ -9,6 +10,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <limits>
@@ -130,7 +132,7 @@ namespace
     /* Arrange */
     document_provider provider;
     document doc = detail::document_access::create(provider.callbacks(), 32);
-    char16_t units[] = {u'a', u'\0', static_cast<char16_t>(0xD800)};
+    std::uint16_t units[] = {u'a', u'\0', static_cast<std::uint16_t>(0xD800)};
     auto text = decoded_string::copy_units(provider.callbacks(), units, 3);
     std::string spelling = "9007199254740993";
     auto number =
@@ -159,7 +161,7 @@ namespace
     EXPECT_EQ((*string.value_if())->size(), 3u);
     EXPECT_EQ(*(*string.value_if())->unit_at(0).value_if(), u'a');
     EXPECT_EQ(*(*string.value_if())->unit_at(1).value_if(), u'\0');
-    EXPECT_EQ(*(*string.value_if())->unit_at(2).value_if(), static_cast<char16_t>(0xD800));
+    EXPECT_EQ(*(*string.value_if())->unit_at(2).value_if(), static_cast<std::uint16_t>(0xD800));
     ASSERT_TRUE(stored_number.has_value());
     const auto bytes = (*stored_number.value_if())->spelling();
     EXPECT_EQ(std::string(bytes.data, bytes.size), "9007199254740993");
@@ -237,10 +239,11 @@ namespace
     document doc = detail::document_access::create(provider.callbacks(), 16);
     const auto object = detail::document_access::make_object(doc);
     ASSERT_TRUE(object.has_value());
-    const std::array<const char16_t*, 4> names{u"x", u"y", u"x", u""};
+    // One-unit names "x", "y", "x"; the last entry is copied with length 0, giving "".
+    const std::array<std::uint16_t, 4> names{0x78U, 0x79U, 0x78U, 0x00U};
     for (std::size_t i{}; i < names.size(); ++i)
     {
-      auto name = decoded_string::copy_units(provider.callbacks(), names[i], i == 3 ? 0 : 1);
+      auto name = decoded_string::copy_units(provider.callbacks(), &names[i], i == 3 ? 0 : 1);
       const auto child = detail::document_access::make_boolean(doc, i == 1);
       ASSERT_TRUE(name.has_value());
       ASSERT_TRUE(child.has_value());
@@ -248,9 +251,9 @@ namespace
         detail::document_access::append_member(doc, *object.value_if(), std::move(*name.value_if()), *child.value_if())
           .has_value());
     }
-    auto x = decoded_string::copy_units(provider.callbacks(), u"x", 1);
-    auto y = decoded_string::copy_units(provider.callbacks(), u"y", 1);
-    auto z = decoded_string::copy_units(provider.callbacks(), u"z", 1);
+    auto x = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"x").data(), 1);
+    auto y = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"y").data(), 1);
+    auto z = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"z").data(), 1);
     ASSERT_TRUE(x.has_value());
     ASSERT_TRUE(y.has_value());
     ASSERT_TRUE(z.has_value());
@@ -286,7 +289,7 @@ namespace
       EXPECT_EQ((*name.value_if())->size(), i == 3 ? 0u : 1u);
       if (i != 3)
       {
-        EXPECT_EQ(*(*name.value_if())->unit_at(0).value_if(), names[i][0]);
+        EXPECT_EQ(*(*name.value_if())->unit_at(0).value_if(), names[i]);
       }
       const auto view = doc.view(*object.value_if());
       ASSERT_TRUE(view.has_value());
@@ -322,8 +325,10 @@ namespace
     /* Arrange */
     document_provider provider;
     const auto& input = GetParam();
-    auto left = decoded_string::copy_units(provider.callbacks(), input.left.data(), input.left.size());
-    auto right = decoded_string::copy_units(provider.callbacks(), input.right.data(), input.right.size());
+    auto left = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(input.left).data(),
+                                           input.left.size());
+    auto right = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(input.right).data(),
+                                            input.right.size());
     ASSERT_TRUE(left.has_value());
     ASSERT_TRUE(right.has_value());
     /* Act */
@@ -339,13 +344,15 @@ namespace
   }
   INSTANTIATE_TEST_SUITE_P(
     P030, J5_033_DecodedName,
-    testing::Values(
-      name_case{u"", u"", true}, name_case{u"x", u"x", true}, name_case{u"x", u"X", false},
-      name_case{u"x", u"xx", false}, name_case{u"abc", u"abd", false}, name_case{u"\u00e9", u"e\u0301", false},
-      name_case{std::u16string{u'a', u'\0', u'b'}, std::u16string{u'a', u'\0', u'b'}, true},
-      name_case{std::u16string{u'a', u'\0', u'b'}, std::u16string{u'a', u'\0', u'c'}, false},
-      name_case{std::u16string{static_cast<char16_t>(0xD800)}, std::u16string{static_cast<char16_t>(0xD800)}, true},
-      name_case{std::u16string{static_cast<char16_t>(0xD800)}, std::u16string{static_cast<char16_t>(0xDC00)}, false}));
+    testing::Values(name_case{u"", u"", true}, name_case{u"x", u"x", true}, name_case{u"x", u"X", false},
+                    name_case{u"x", u"xx", false}, name_case{u"abc", u"abd", false},
+                    name_case{u"\u00e9", u"e\u0301", false},
+                    name_case{std::u16string{u'a', u'\0', u'b'}, std::u16string{u'a', u'\0', u'b'}, true},
+                    name_case{std::u16string{u'a', u'\0', u'b'}, std::u16string{u'a', u'\0', u'c'}, false},
+                    name_case{std::u16string{static_cast<std::uint16_t>(0xD800)},
+                              std::u16string{static_cast<std::uint16_t>(0xD800)}, true},
+                    name_case{std::u16string{static_cast<std::uint16_t>(0xD800)},
+                              std::u16string{static_cast<std::uint16_t>(0xDC00)}, false}));
   /* ================================= End Test_J5_033 ================================= */
   /* =================================== Test_J5_039 =================================== */
   /*
@@ -441,7 +448,7 @@ namespace
     ASSERT_TRUE(inner.has_value());
     ASSERT_TRUE(object.has_value());
     ASSERT_TRUE(scalar.has_value());
-    auto name = decoded_string::copy_units(provider.callbacks(), u"kept", 4);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"kept").data(), 4);
     ASSERT_TRUE(name.has_value());
     const auto attempts = provider.m_attempts;
     /* Act */
@@ -489,8 +496,8 @@ namespace
     document source = detail::document_access::create(provider.callbacks(), 16);
     const auto object = detail::document_access::make_object(source);
     ASSERT_TRUE(object.has_value());
-    auto text = decoded_string::copy_units(provider.callbacks(), u"payload", 7);
-    auto name = decoded_string::copy_units(provider.callbacks(), u"key", 3);
+    auto text = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"payload").data(), 7);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"key").data(), 3);
     ASSERT_TRUE(text.has_value());
     ASSERT_TRUE(name.has_value());
     const auto child = detail::document_access::make_string(source, std::move(*text.value_if()));
@@ -652,8 +659,10 @@ namespace
     document_provider provider;
     document doc = detail::document_access::create(provider.callbacks(), 2);
     const auto& input = GetParam();
-    auto stored = decoded_string::copy_units(provider.callbacks(), input.left.data(), input.left.size());
-    auto query = decoded_string::copy_units(provider.callbacks(), input.right.data(), input.right.size());
+    auto stored = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(input.left).data(),
+                                             input.left.size());
+    auto query = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(input.right).data(),
+                                            input.right.size());
     ASSERT_TRUE(stored.has_value());
     ASSERT_TRUE(query.has_value());
     const auto object = detail::document_access::make_object(doc);
@@ -692,7 +701,7 @@ namespace
     /* Arrange */
     document_provider provider;
     document source = detail::document_access::create(provider.callbacks(), 1);
-    auto text = decoded_string::copy_units(provider.callbacks(), u"", 0);
+    auto text = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"").data(), 0);
     auto number = owned_number::copy_spelling({"-0", 2}, syntax_mode::json5, provider.callbacks(), 2);
     ASSERT_TRUE(text.has_value());
     ASSERT_TRUE(number.has_value());

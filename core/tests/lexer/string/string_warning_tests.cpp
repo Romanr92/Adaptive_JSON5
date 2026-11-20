@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <string>
@@ -65,7 +66,7 @@ namespace
       const char* name;         // Diagnostic parameter name.
       std::string raw;          // Input original UTF-8 separator bytes.
       std::string escaped;      // Input Unicode escape suffix after backslash.
-      char32_t scalar;          // Expected decoded scalar.
+      std::uint32_t scalar;     // Expected decoded scalar.
       string_warning_code code; // Expected JSON5 warning category.
       std::uint8_t final_byte;  // Expected final UTF-8 byte; first two are E2 80.
   };
@@ -110,7 +111,7 @@ namespace
         const auto repeated = raw_separator_warning_for(*piece.value_if(), mode);
         ASSERT_TRUE(builder.append_scalar(piece.value_if()->scalar).has_value());
         auto text = builder.finish();
-        auto output = adaptive_json5_test::make_bytes(0xA5, 0xA5, 0xA5, 0xA5);
+        auto output = adaptive_json5_test::make_chars('#', '#', '#', '#');
         const auto exported = export_utf8(text, output.data(), output.size());
         /* Expect */
         ASSERT_EQ(warning.has_value(), mode == syntax_mode::json5);
@@ -132,7 +133,7 @@ namespace
         EXPECT_EQ(input, before);
         ASSERT_TRUE(exported.has_value());
         EXPECT_EQ(*exported.value_if(), 3u);
-        EXPECT_EQ(output, adaptive_json5_test::make_bytes(0xE2, 0x80, param.final_byte, 0xA5));
+        EXPECT_EQ(output, adaptive_json5_test::make_chars(0xE2, 0x80, param.final_byte, '#'));
         const auto closing = consume_string_piece(source, **opening.value_if(), mode);
         ASSERT_TRUE(closing.has_value());
         EXPECT_EQ(closing.value_if()->kind, string_piece_kind::closing_quote);
@@ -171,7 +172,7 @@ namespace
       EXPECT_FALSE(warning.has_value());
       ASSERT_TRUE(decoded.has_value());
       ASSERT_TRUE(decoded.value_if()->has_value());
-      EXPECT_EQ(**decoded.value_if(), static_cast<char16_t>(param.scalar));
+      EXPECT_EQ(**decoded.value_if(), static_cast<std::uint16_t>(param.scalar));
       ASSERT_TRUE(closing.has_value());
       EXPECT_EQ(closing.value_if()->kind, string_piece_kind::closing_quote);
       EXPECT_TRUE(source.is_at_end());

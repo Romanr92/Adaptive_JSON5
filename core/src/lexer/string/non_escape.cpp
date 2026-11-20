@@ -6,6 +6,7 @@
 #include "input/cursor.hpp"
 #include "unicode/utf8.hpp"
 
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -30,12 +31,12 @@ namespace adaptive_json5
   {
     using escape_result = result<std::optional<decoded_character>>;
 
-    constexpr char32_t c_first_forbidden_digit = U'1';
-    constexpr char32_t c_last_forbidden_digit = U'9';
-    constexpr char32_t c_line_feed = U'\n';
-    constexpr char32_t c_carriage_return = U'\r';
-    constexpr char32_t c_line_separator = 0x2028;
-    constexpr char32_t c_paragraph_separator = 0x2029;
+    constexpr std::uint32_t c_first_forbidden_digit = 0x31U; // '1'
+    constexpr std::uint32_t c_last_forbidden_digit = 0x39U;  // '9'
+    constexpr std::uint32_t c_line_feed = 0x0AU;             // '\n'
+    constexpr std::uint32_t c_carriage_return = 0x0DU;       // '\r'
+    constexpr std::uint32_t c_line_separator = 0x2028;
+    constexpr std::uint32_t c_paragraph_separator = 0x2029;
 
     // Validate through a copy so unsuccessful recognition consumes nothing.
     cursor candidate = source;
@@ -51,23 +52,23 @@ namespace adaptive_json5
       return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
-    const char32_t scalar = character->value;
+    const std::uint32_t scalar = character->value;
 
     // These spellings must never fall back to literal-character decoding.
     switch (scalar)
     {
-    case U'\'':
-    case U'"':
-    case U'\\':
-    case U'b':
-    case U'f':
-    case U'n':
-    case U'r':
-    case U't':
-    case U'v':
-    case U'0':
-    case U'x':
-    case U'u':
+    case 0x27U: // '\''
+    case 0x22U: // '"'
+    case 0x5CU: // '\\'
+    case 0x62U: // 'b'
+    case 0x66U: // 'f'
+    case 0x6EU: // 'n'
+    case 0x72U: // 'r'
+    case 0x74U: // 't'
+    case 0x76U: // 'v'
+    case 0x30U: // '0'
+    case 0x78U: // 'x'
+    case 0x75U: // 'u'
       return escape_result::success(std::nullopt);
 
     default:

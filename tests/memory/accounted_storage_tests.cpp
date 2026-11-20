@@ -4,6 +4,7 @@
 #include "adaptive_json5/memory/owned_block.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
 #include <ostream>
@@ -157,7 +158,7 @@ namespace
     const auto absent_allocate = no_allocate.allocate(1, 1);
     const auto absent_release = no_release.allocate(1, 1);
     EXPECT_EQ(provider.m_attempts, 0u);
-    const auto array = storage.allocate_array(3, sizeof(char16_t), alignof(char16_t));
+    const auto array = storage.allocate_array(3, sizeof(std::uint16_t), alignof(std::uint16_t));
     /* Expect */
     ASSERT_FALSE(overflow.has_value());
     EXPECT_EQ(overflow.error_if()->code(), error_code::resource_limit);
@@ -175,8 +176,8 @@ namespace
     EXPECT_EQ(absent_allocate.error_if()->code(), error_code::allocation_failure);
     EXPECT_EQ(absent_release.error_if()->code(), error_code::allocation_failure);
     ASSERT_TRUE(array.has_value());
-    EXPECT_EQ(storage.current_bytes(), 3 * sizeof(char16_t));
-    EXPECT_EQ(array.value_if()->alignment(), alignof(char16_t));
+    EXPECT_EQ(storage.current_bytes(), 3 * sizeof(std::uint16_t));
+    EXPECT_EQ(array.value_if()->alignment(), alignof(std::uint16_t));
   }
   /* ----------------------------------------------------------------------------------- */
   /**

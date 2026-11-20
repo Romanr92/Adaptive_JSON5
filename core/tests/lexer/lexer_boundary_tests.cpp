@@ -3,6 +3,7 @@
 #include "lexer/string/string_lexer.hpp"
 #include "unicode/unicode.hpp"
 
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
 
@@ -48,7 +49,7 @@ namespace
   TEST(J5_006_UnicodeProperties, RejectsNonScalarsInEveryPropertyTable)
   {
     /* Arrange */
-    const char32_t values[] = {0xD800, 0xDFFF, 0x110000, 0xFFFFFFFF};
+    const std::uint32_t values[] = {0xD800, 0xDFFF, 0x110000, 0xFFFFFFFF};
     /* Act */
     for (const auto value : values)
     {

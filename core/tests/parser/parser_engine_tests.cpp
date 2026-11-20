@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <gtest/gtest.h>
 #include <ostream>
@@ -571,7 +572,7 @@ namespace
       expect_units(**name.value_if(), u"a");
       const auto string = member.value_if()->as_string();
       ASSERT_TRUE(string.has_value());
-      expect_units(**string.value_if(), std::u16string{static_cast<char16_t>(0xD800)});
+      expect_units(**string.value_if(), std::u16string{static_cast<std::uint16_t>(0xD800)});
       EXPECT_GT(accounting.current_bytes(), 0u);
     }
     EXPECT_EQ(accounting.current_bytes(), 0u);
@@ -913,7 +914,7 @@ namespace
     /* Act */
     for (std::size_t index{}; index < 3; ++index)
     {
-      const char16_t unit = static_cast<char16_t>(u'a' + index);
+      const std::uint16_t unit = static_cast<std::uint16_t>(u'a' + index);
       auto name = decoded_string::copy_units(accounting.callbacks(), &unit, 1);
       ASSERT_TRUE(name.has_value());
       parser_frame frame{};
@@ -933,7 +934,7 @@ namespace
       ASSERT_NE(frames.top(), nullptr);
       EXPECT_EQ(frames.top()->opening_offset, remaining - 1);
       ASSERT_TRUE(frames.top()->pending_name.has_value());
-      expect_units(*frames.top()->pending_name, std::u16string{static_cast<char16_t>(u'a' + remaining - 1)});
+      expect_units(*frames.top()->pending_name, std::u16string{static_cast<std::uint16_t>(u'a' + remaining - 1)});
       EXPECT_TRUE(frames.pop());
     }
     EXPECT_EQ(frames.top(), nullptr);
@@ -958,7 +959,7 @@ namespace
     parser_frame first{};
     first.opening_offset = 7;
     ASSERT_TRUE(frames.push(std::move(first), work).has_value());
-    const char16_t unit = u'x';
+    const std::uint16_t unit = u'x';
     auto name = decoded_string::copy_units(accounting.callbacks(), &unit, 1);
     ASSERT_TRUE(name.has_value());
     parser_frame second{};

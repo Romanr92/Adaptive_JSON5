@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
 #include <string>
@@ -14,7 +15,7 @@ namespace
 
   /* =================================== Test_J5_016 =================================== */
 
-  static_assert(noexcept(hex_digit_value(char32_t{})));
+  static_assert(noexcept(hex_digit_value(std::uint32_t{})));
   static_assert(noexcept(consume_hex_escape(std::declval<cursor&>(), syntax_mode::json5)));
 
   /* Verify every admitted ASCII hex character has its independent numeric value.
@@ -26,8 +27,8 @@ namespace
   {
     /* Arrange */
     constexpr std::u32string_view spellings = U"0123456789abcdefABCDEF";
-    constexpr std::array<char16_t, 22> expected{0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
-                                                11, 12, 13, 14, 15, 10, 11, 12, 13, 14, 15};
+    constexpr std::array<std::uint16_t, 22> expected{0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+                                                     11, 12, 13, 14, 15, 10, 11, 12, 13, 14, 15};
     for (std::size_t index = 0; index < spellings.size(); ++index)
     {
       /* Act */
@@ -49,7 +50,7 @@ namespace
   {
     /* Arrange */
     constexpr std::u32string_view admitted = U"0123456789abcdefABCDEF";
-    for (char32_t scalar = 0; scalar <= 255; ++scalar)
+    for (std::uint32_t scalar = 0; scalar <= 255; ++scalar)
     {
       if (admitted.find(scalar) != std::u32string_view::npos)
       {
@@ -60,8 +61,9 @@ namespace
       /* Expect */
       EXPECT_FALSE(actual.has_value()) << static_cast<std::uint32_t>(scalar);
     }
-    for (char32_t scalar : {char32_t{0x0660}, char32_t{0xFF10}, char32_t{0xFF21}, char32_t{0xFF41}, char32_t{0xD800},
-                            char32_t{0x1F3BC}, std::numeric_limits<char32_t>::max()})
+    for (std::uint32_t scalar :
+         {std::uint32_t{0x0660}, std::uint32_t{0xFF10}, std::uint32_t{0xFF21}, std::uint32_t{0xFF41},
+          std::uint32_t{0xD800}, std::uint32_t{0x1F3BC}, std::numeric_limits<std::uint32_t>::max()})
     {
       EXPECT_FALSE(hex_digit_value(scalar).has_value());
     }
@@ -76,9 +78,9 @@ namespace
    */
   struct hex_case
   {
-      const char* name;     // Diagnostic parameter name.
-      std::string spelling; // Input x followed by two ASCII hex digits.
-      char16_t expected;    // Expected decoded UTF-16 unit.
+      const char* name;       // Diagnostic parameter name.
+      std::string spelling;   // Input x followed by two ASCII hex digits.
+      std::uint16_t expected; // Expected decoded UTF-16 unit.
   };
   class J5_016_HexEscape : public ::testing::TestWithParam<hex_case>
   {
@@ -288,7 +290,7 @@ namespace
       /* Expect */
       ASSERT_TRUE(actual.has_value());
       ASSERT_TRUE(actual.value_if()->has_value());
-      EXPECT_EQ(**actual.value_if(), char16_t{0x41});
+      EXPECT_EQ(**actual.value_if(), std::uint16_t{0x41});
       EXPECT_EQ(source.offset(), 4u);
       EXPECT_EQ(*source.peek(), suffix);
     }

@@ -26,9 +26,9 @@ namespace adaptive_json5
    * Nonmatching input is not validated. No allocation is performed.
    * @par ID SWU-LEXER-047
    */
-  result<std::optional<char16_t>> consume_unicode_escape(cursor& source) noexcept
+  result<std::optional<std::uint16_t>> consume_unicode_escape(cursor& source) noexcept
   {
-    using escape_result = result<std::optional<char16_t>>;
+    using escape_result = result<std::optional<std::uint16_t>>;
 
     constexpr char c_unicode_introducer = 'u';
     constexpr std::size_t c_introducer_byte_count = 1;
@@ -49,7 +49,7 @@ namespace adaptive_json5
     // Keep original position until all four digits are validated.
     cursor candidate = source;
     candidate.advance(c_introducer_byte_count);
-    char16_t unit{};
+    std::uint16_t unit{};
 
     for (std::size_t index{}; index < c_unicode_digit_count; ++index)
     {
@@ -72,10 +72,11 @@ namespace adaptive_json5
       }
 
       // Four hexadecimal digits represent exactly one UTF-16 unit.
-      unit = static_cast<char16_t>((unit << c_bits_per_hex_digit) | *digit);
+      unit = static_cast<std::uint16_t>((static_cast<std::uint32_t>(unit) << c_bits_per_hex_digit) |
+                                        static_cast<std::uint32_t>(*digit));
     }
 
     source = candidate;
-    return escape_result::success(std::optional<char16_t>{unit});
+    return escape_result::success(std::optional<std::uint16_t>{unit});
   }
 } // namespace adaptive_json5

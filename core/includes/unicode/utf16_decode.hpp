@@ -5,6 +5,7 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -16,7 +17,7 @@ namespace adaptive_json5
    */
   struct [[nodiscard]] decoded_utf16
   {
-      char32_t value{};
+      std::uint32_t value{};
       std::size_t unit_count{};
   };
 

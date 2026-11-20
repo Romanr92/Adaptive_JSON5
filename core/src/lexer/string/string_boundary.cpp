@@ -7,6 +7,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -73,10 +74,10 @@ namespace adaptive_json5
    */
   result<string_piece> consume_string_piece(cursor& source, string_quote quote, syntax_mode mode) noexcept
   {
-    constexpr char32_t c_reverse_solidus = U'\\';
-    constexpr char32_t c_carriage_return = U'\r';
-    constexpr char32_t c_line_feed = U'\n';
-    constexpr char32_t c_control_max = 0x1F;
+    constexpr std::uint32_t c_reverse_solidus = 0x5CU; // '\\'
+    constexpr std::uint32_t c_carriage_return = 0x0DU; // '\r'
+    constexpr std::uint32_t c_line_feed = 0x0AU;       // '\n'
+    constexpr std::uint32_t c_control_max = 0x1F;
 
     // Validate through a copy so a rejected character consumes no input.
     cursor candidate = source;
@@ -92,10 +93,10 @@ namespace adaptive_json5
       return result<string_piece>::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
-    const char32_t scalar = character->value;
+    const std::uint32_t scalar = character->value;
     string_piece_kind kind = string_piece_kind::character;
 
-    if (scalar == static_cast<char32_t>(quote))
+    if (scalar == static_cast<std::uint32_t>(quote))
     {
       kind = string_piece_kind::closing_quote;
     }

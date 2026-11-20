@@ -69,4 +69,5 @@ add_library(adaptive_json5_parser STATIC
     memory/json5_document.cpp
     value/utf8_name_equal.cpp
     value/json5_value.cpp
+    value/json5_iterator.cpp
 )

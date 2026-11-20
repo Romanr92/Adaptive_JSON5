@@ -5,6 +5,7 @@
 #include "input/cursor.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -17,7 +18,7 @@ namespace adaptive_json5
    */
   struct [[nodiscard]] decoded_character
   {
-      char32_t value;
+      std::uint32_t value;
       std::size_t byte_offset;
       std::size_t byte_length;
   };

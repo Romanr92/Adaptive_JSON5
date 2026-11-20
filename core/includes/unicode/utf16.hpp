@@ -3,7 +3,9 @@
 
 #include "adaptive_json5/result.hpp"
 
+#include <array>
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -21,7 +23,7 @@ namespace adaptive_json5
       static constexpr std::size_t c_single_unit_count = 1;
       static constexpr std::size_t c_surrogate_pair_unit_count = 2;
 
-      char16_t units[c_surrogate_pair_unit_count]{};
+      std::array<std::uint16_t, c_surrogate_pair_unit_count> units{};
       std::size_t size = c_first_unit_index;
   };
 
@@ -34,7 +36,7 @@ namespace adaptive_json5
    * Escaped UTF-16 units must be preserved separately without this conversion.
    * @par ID SWU-UNICODE-006
    */
-  [[nodiscard]] result<encoded_utf16> encode_utf16(char32_t scalar) noexcept;
+  [[nodiscard]] result<encoded_utf16> encode_utf16(std::uint32_t scalar) noexcept;
 } // namespace adaptive_json5
 
 #endif // UTF16_HPP_

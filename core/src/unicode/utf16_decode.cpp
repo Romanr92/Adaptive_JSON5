@@ -21,11 +21,11 @@ namespace adaptive_json5
    */
   result<decoded_utf16> decode_utf16(const decoded_string& source, std::size_t index) noexcept
   {
-    constexpr char32_t c_high_surrogate_min = 0xD800;
-    constexpr char32_t c_high_surrogate_max = 0xDBFF;
-    constexpr char32_t c_low_surrogate_min = 0xDC00;
-    constexpr char32_t c_low_surrogate_max = 0xDFFF;
-    constexpr char32_t c_supplementary_offset = 0x10000;
+    constexpr std::uint32_t c_high_surrogate_min = 0xD800;
+    constexpr std::uint32_t c_high_surrogate_max = 0xDBFF;
+    constexpr std::uint32_t c_low_surrogate_min = 0xDC00;
+    constexpr std::uint32_t c_low_surrogate_max = 0xDFFF;
+    constexpr std::uint32_t c_high_surrogate_base = 0xD7C0U;
     constexpr std::uint32_t c_surrogate_payload_bits = 10;
     constexpr std::size_t c_single_unit_count = 1;
     constexpr std::size_t c_surrogate_pair_unit_count = 2;
@@ -37,7 +37,7 @@ namespace adaptive_json5
       return result<decoded_utf16>::failure(*first.error_if());
     }
 
-    const char32_t leading = *first.value_if();
+    const auto leading = static_cast<std::uint32_t>(*first.value_if());
 
     // A low surrogate cannot begin a scalar.
     if ((leading >= c_low_surrogate_min) && (leading <= c_low_surrogate_max))
@@ -62,15 +62,16 @@ namespace adaptive_json5
       return result<decoded_utf16>::failure(*second.error_if());
     }
 
-    const char32_t trailing = *second.value_if();
+    const auto trailing = static_cast<std::uint32_t>(*second.value_if());
     if ((trailing < c_low_surrogate_min) || (trailing > c_low_surrogate_max))
     {
       return result<decoded_utf16>::failure(error::without_location(error_code::encoding));
     }
 
-    // Combine the two ten-bit payloads, restoring the supplementary offset.
-    const char32_t scalar = c_supplementary_offset + ((leading - c_high_surrogate_min) << c_surrogate_payload_bits) +
-                            (trailing - c_low_surrogate_min);
+    // Combine the two ten-bit payloads. Subtracting c_high_surrogate_base (0xD800 - 0x40)
+    // instead of 0xD800 adds the 0x10000 offset, and the parts do not overlap, so | joins them.
+    const std::uint32_t scalar =
+      ((leading - c_high_surrogate_base) << c_surrogate_payload_bits) | (trailing - c_low_surrogate_min);
 
     return result<decoded_utf16>::success(decoded_utf16{scalar, c_surrogate_pair_unit_count});
   }

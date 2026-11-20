@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
 #include <string_view>
@@ -544,7 +545,7 @@ namespace
     const auto text = first.value_if()->as_string();
     ASSERT_TRUE(text.has_value());
     ASSERT_EQ((*text.value_if())->size(), 3u);
-    const std::array<char16_t, 3> expected{u'x', 0, u'y'};
+    const std::array<std::uint16_t, 3> expected{u'x', 0, u'y'};
     for (std::size_t index = 0; index < expected.size(); ++index)
     {
       const auto unit = (*text.value_if())->unit_at(index);
