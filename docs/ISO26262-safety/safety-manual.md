@@ -131,9 +131,8 @@ release you use.
 
 | Topic | Effect for you | Tracked in |
 | --- | --- | --- |
-| `as_double()` uses up the caller buffer on repeated reads (LOG-01, High) | Later reads can fail for valid data | #124 |
-| `as_double()` changes shared document state although it is `const` (LOG-02) | Concurrent reads of one document are not safe; C-2.2 applies | #124 |
-| `member()` lookup is quadratic in object size (LOG-11) | Long lookup times on large objects | #124 |
+| The plain `as_double()` / `as_float()` still use document storage for numbers that need scratch (LOG-02; LOG-01 and LOG-11 fixed in #124) | Concurrent reads of one document are not safe without `as_double(scratch)` / `as_float(scratch)`; C-2.2 applies | #124; ADR 0005 |
+| `at(i)` loops are quadratic in array size | Long run times when every element is read with `at(i)`; use `children()` | #154 |
 | ARC-03 supported mutation surface removed; internal facilities remain unsupported | C-3.3 still applies. Local host evidence exists; required CI and independent review remain outstanding | #128; ADR 0007 |
 | A wrong release size among several outstanding blocks is detected only when it exceeds what the other blocks can hold (ME-03, after #125) | The byte counter can be too low by the difference; C-3.8 applies | A-09 |
 | Stack use not measured yet | You cannot yet check stack use against a documented figure (C-2.1) | #136 |
