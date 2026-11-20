@@ -10,6 +10,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string_view>
 
@@ -103,7 +104,7 @@ namespace adaptive_json5
                  : non_finite_result::success(std::nullopt);
       }
 
-      if (character->value != static_cast<char32_t>(expected))
+      if (character->value != static_cast<std::uint32_t>(expected))
       {
         return non_finite_result::success(std::nullopt);
       }
@@ -120,15 +121,15 @@ namespace adaptive_json5
     const auto& suffix = *following.value_if();
     if (suffix.has_value())
     {
-      const char32_t scalar = suffix->value;
+      const std::uint32_t scalar = suffix->value;
 
       // Reject extended names and escaped suffixes as unknown words; a decimal point is not part of a word.
-      if (is_identifier_part(scalar) || (scalar == U'\\'))
+      if (is_identifier_part(scalar) || (scalar == 0x5CU)) // '\\'
       {
         return non_finite_result::success(std::nullopt);
       }
 
-      if (scalar == U'.')
+      if (scalar == 0x2EU) // '.'
       {
         return non_finite_result::failure(error::syntax_at(suffix->byte_offset, syntax_error_reason::unknown_literal));
       }

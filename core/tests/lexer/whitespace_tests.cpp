@@ -1,6 +1,7 @@
 #include "lexer/whitespace.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
 #include <string_view>
@@ -26,7 +27,7 @@ namespace
   {
       const char* name;       // Case description.
       std::string_view bytes; // Exact UTF-8 input bytes.
-      char32_t scalar;        // Scalar for the space-only classifier.
+      std::uint32_t scalar;   // Scalar for the space-only classifier.
       bool space;             // Expected space-only classification.
       std::size_t consumed;   // Expected skipped bytes.
       std::size_t lines;      // Expected line-terminator sequence count.

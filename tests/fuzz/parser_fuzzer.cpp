@@ -39,7 +39,7 @@ namespace
     pending[count++] = *index.value_if();
     alignas(std::max_align_t) std::array<std::byte, 65536> scratch{};
     buffer_arena arena(scratch.data(), scratch.size());
-    std::array<std::byte, 16384> utf8{};
+    std::array<char, 16384> utf8{};
     std::size_t visited = 0U;
     while (count != 0U)
     {

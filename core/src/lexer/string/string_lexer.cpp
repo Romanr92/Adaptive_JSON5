@@ -19,6 +19,7 @@
 #include "unicode/utf16.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <optional>
 #include <utility>
@@ -31,9 +32,9 @@ namespace adaptive_json5
     // so excess_warning stays empty.
     constexpr std::size_t c_no_warning_allowance = std::numeric_limits<std::size_t>::max();
 
-    // Secure-mode limits, compared as char32_t like string_boundary.cpp.
-    constexpr char32_t c_zero_unit = U'\0';
-    constexpr char32_t c_control_max = U'\x1F';
+    // Secure-mode limits, compared as std::uint32_t like string_boundary.cpp.
+    constexpr std::uint32_t c_zero_unit = 0x00U;   // '\0'
+    constexpr std::uint32_t c_control_max = 0x1FU; // '\x1F'
 
     /**
      * @brief Totals produced by one walk over a string body.
@@ -138,8 +139,8 @@ namespace adaptive_json5
           return;
         }
 
-        // Compare as char32_t, like string_boundary, so no character is used as a number.
-        const char32_t unit = units.units[encoded_utf16::c_first_unit_index];
+        // Compare as std::uint32_t, like string_boundary, so no character is used as a number.
+        const auto unit = static_cast<std::uint32_t>(units.units[encoded_utf16::c_first_unit_index]);
         if (checks.reject_zero_bytes && (unit == c_zero_unit))
         {
           reject(security_reason::zero_byte, span);

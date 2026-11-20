@@ -1,6 +1,7 @@
 #include "unicode/unicode.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 
 namespace
@@ -22,9 +23,9 @@ namespace
    */
   struct lookup_case
   {
-      const char* name; // Case description.
-      char32_t scalar;  // Input scalar.
-      bool expected;    // Expected interval membership.
+      const char* name;     // Case description.
+      std::uint32_t scalar; // Input scalar.
+      bool expected;        // Expected interval membership.
   };
 
   using J5_006_UnicodeLookup = testing::TestWithParam<lookup_case>;
@@ -72,11 +73,11 @@ namespace
    */
   struct classifier_case
   {
-      const char* name; // Case description.
-      char32_t scalar;  // Input scalar or invalid code point.
-      bool start;       // Expected identifier-start acceptance.
-      bool part;        // Expected identifier-continuation acceptance.
-      bool space;       // Expected modern Zs membership.
+      const char* name;     // Case description.
+      std::uint32_t scalar; // Input scalar or invalid code point.
+      bool start;           // Expected identifier-start acceptance.
+      bool part;            // Expected identifier-continuation acceptance.
+      bool space;           // Expected modern Zs membership.
   };
 
   using J5_019_UnicodeClassifier = testing::TestWithParam<classifier_case>;

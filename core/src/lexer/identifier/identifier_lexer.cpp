@@ -15,6 +15,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <utility>
 
@@ -63,7 +64,7 @@ namespace adaptive_json5
 
         // Decode privately so a terminating character remains unconsumed.
         cursor lookahead = source;
-        char32_t scalar{};
+        std::uint32_t scalar{};
         const bool escaped = next.has_value() && (*next == '\\');
 
         if (escaped)
@@ -84,7 +85,7 @@ namespace adaptive_json5
             return walk_result::failure(error::syntax_at(character_offset, syntax_error_reason::invalid_identifier));
           }
 
-          scalar = static_cast<char32_t>(**decoded.value_if());
+          scalar = static_cast<std::uint32_t>(**decoded.value_if());
         }
         else
         {

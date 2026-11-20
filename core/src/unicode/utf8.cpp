@@ -80,30 +80,30 @@ namespace adaptive_json5
     {
       source.advance(c_ascii_byte_count);
 
-      return decode_result::success(
-        std::optional<decoded_character>{decoded_character{static_cast<char32_t>(lead), start, c_ascii_byte_count}});
+      return decode_result::success(std::optional<decoded_character>{
+        decoded_character{static_cast<std::uint32_t>(lead), start, c_ascii_byte_count}});
     }
 
     std::size_t byte_count = 0;
-    char32_t scalar = 0;
+    std::uint32_t scalar = 0;
 
     if ((lead >= c_two_byte_lead_min) && (lead <= c_two_byte_lead_max))
     {
       // Expect two bytes and retain the lead byte's five payload bits.
       byte_count = c_two_byte_count;
-      scalar = static_cast<char32_t>(lead & c_two_byte_payload_mask);
+      scalar = static_cast<std::uint32_t>(lead & c_two_byte_payload_mask);
     }
     else if ((lead >= c_three_byte_lead_min) && (lead <= c_three_byte_lead_max))
     {
       // Expect three bytes and retain the lead byte's four payload bits.
       byte_count = c_three_byte_count;
-      scalar = static_cast<char32_t>(lead & c_three_byte_payload_mask);
+      scalar = static_cast<std::uint32_t>(lead & c_three_byte_payload_mask);
     }
     else if ((lead >= c_four_byte_lead_min) && (lead <= c_four_byte_lead_max))
     {
       // Expect four bytes and retain the lead byte's three payload bits.
       byte_count = c_four_byte_count;
-      scalar = static_cast<char32_t>(lead & c_four_byte_payload_mask);
+      scalar = static_cast<std::uint32_t>(lead & c_four_byte_payload_mask);
     }
     else
     {
@@ -149,7 +149,8 @@ namespace adaptive_json5
       }
 
       // Make room for six more bits, remove the byte's 10 prefix, and append its payload.
-      scalar = ((scalar << c_continuation_payload_bits) | static_cast<char32_t>(byte & c_continuation_payload_mask));
+      scalar =
+        ((scalar << c_continuation_payload_bits) | static_cast<std::uint32_t>(byte & c_continuation_payload_mask));
     }
 
     // Commit cursor advancement only after the complete sequence validates.

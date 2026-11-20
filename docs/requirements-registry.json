@@ -1399,7 +1399,9 @@
           "names": [
             "J5_029_StringStorage.PreservesNulControlsAndExplicitLength",
             "J5_029_Utf8Export.RejectsEveryShortCapacityWithoutWriting",
-            "J5_029_Utf8Export.WritesMixedWidthsWithoutTerminator"
+            "J5_029_Utf8Export.WritesMixedWidthsWithoutTerminator",
+            "J5_029_Utf8ExportChar.WritesExactOctetsIntoCharBuffer",
+            "J5_029_Utf8ExportChar.RejectsShortCapacityNullAndSurrogateWithoutWriting"
           ]
         },
         {

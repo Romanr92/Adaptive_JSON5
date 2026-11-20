@@ -5,6 +5,7 @@
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -24,7 +25,7 @@ namespace adaptive_json5
    * No allocation is performed.
    * @par ID SWU-LEXER-033
    */
-  [[nodiscard]] result<std::optional<char16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept;
+  [[nodiscard]] result<std::optional<std::uint16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
 #endif /* SIMPLE_ESCAPE_HPP_ */

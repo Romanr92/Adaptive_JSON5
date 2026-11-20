@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <string>
 #include <utility>
@@ -127,9 +128,9 @@ namespace
    */
   struct character_case
   {
-      const char* name;  // Diagnostic parameter name.
-      std::string bytes; // Input UTF-8 bytes for one source character.
-      char32_t scalar;   // Expected Unicode scalar.
+      const char* name;     // Diagnostic parameter name.
+      std::string bytes;    // Input UTF-8 bytes for one source character.
+      std::uint32_t scalar; // Expected Unicode scalar.
   };
 
   class J5_014_Character : public ::testing::TestWithParam<character_case>
@@ -214,7 +215,7 @@ namespace
         if (accepted)
         {
           EXPECT_EQ(actual.value_if()->kind, string_piece_kind::character);
-          EXPECT_EQ(actual.value_if()->scalar, static_cast<char32_t>(byte));
+          EXPECT_EQ(actual.value_if()->scalar, static_cast<std::uint32_t>(byte));
           EXPECT_EQ(actual.value_if()->byte_offset, 1u);
           EXPECT_EQ(actual.value_if()->byte_length, 1u);
           EXPECT_EQ(source.offset(), 2u);
@@ -263,7 +264,7 @@ namespace
         /* Expect */
         ASSERT_TRUE(content.has_value());
         EXPECT_EQ(content.value_if()->kind, string_piece_kind::character);
-        EXPECT_EQ(content.value_if()->scalar, static_cast<char32_t>(opposite));
+        EXPECT_EQ(content.value_if()->scalar, static_cast<std::uint32_t>(opposite));
         ASSERT_TRUE(close.has_value());
         EXPECT_EQ(close.value_if()->kind, string_piece_kind::closing_quote);
         EXPECT_EQ(close.value_if()->byte_offset, 2u);

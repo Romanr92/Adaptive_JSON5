@@ -16,15 +16,15 @@ namespace adaptive_json5
    * Escaped UTF-16 units must be preserved separately without this conversion.
    * @par ID SWU-UNICODE-006
    */
-  result<encoded_utf16> encode_utf16(char32_t scalar) noexcept
+  result<encoded_utf16> encode_utf16(std::uint32_t scalar) noexcept
   {
-    constexpr char32_t c_max_scalar = 0x10FFFF;
-    constexpr char32_t c_high_surrogate_min = 0xD800;
-    constexpr char32_t c_low_surrogate_max = 0xDFFF;
-    constexpr char32_t c_bmp_max = 0xFFFF;
-    constexpr char32_t c_supplementary_offset = 0x10000;
-    constexpr char32_t c_low_surrogate_min = 0xDC00;
-    constexpr char32_t c_payload_mask = 0x3FF;
+    constexpr std::uint32_t c_max_scalar = 0x10FFFF;
+    constexpr std::uint32_t c_high_surrogate_min = 0xD800;
+    constexpr std::uint32_t c_low_surrogate_max = 0xDFFF;
+    constexpr std::uint32_t c_bmp_max = 0xFFFF;
+    constexpr std::uint32_t c_supplementary_offset = 0x10000;
+    constexpr std::uint32_t c_low_surrogate_min = 0xDC00;
+    constexpr std::uint32_t c_payload_mask = 0x3FF;
     constexpr std::uint32_t c_surrogate_payload_bits = 10;
 
     // Surrogate code points are units, not valid Unicode scalers.
@@ -37,18 +37,18 @@ namespace adaptive_json5
 
     if (scalar <= c_bmp_max)
     {
-      output.units[encoded_utf16::c_first_unit_index] = static_cast<char16_t>(scalar);
+      output.units[encoded_utf16::c_first_unit_index] = static_cast<std::uint16_t>(scalar);
       output.size = encoded_utf16::c_single_unit_count;
     }
     else
     {
       // remove the BMP range so the remaining value fits into two ten-bit payloads.
-      const char32_t payload = scalar - c_supplementary_offset;
+      const std::uint32_t payload = scalar - c_supplementary_offset;
 
       output.units[encoded_utf16::c_first_unit_index] =
-        static_cast<char16_t>(c_high_surrogate_min + (payload >> c_surrogate_payload_bits));
+        static_cast<std::uint16_t>(c_high_surrogate_min + (payload >> c_surrogate_payload_bits));
       output.units[encoded_utf16::c_second_unit_index] =
-        static_cast<char16_t>(c_low_surrogate_min + (payload & c_payload_mask));
+        static_cast<std::uint16_t>(c_low_surrogate_min + (payload & c_payload_mask));
       output.size = encoded_utf16::c_surrogate_pair_unit_count;
     }
 

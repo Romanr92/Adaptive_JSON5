@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <utility>
 
@@ -21,10 +22,10 @@ namespace
    */
   struct escape_case
   {
-      const char* name; // Diagnostic parameter name.
-      char spelling;    // Input byte following the backslash.
-      char16_t unit;    // Expected numeric UTF-16 unit.
-      bool json5_only;  // Whether strict JSON must reject the spelling.
+      const char* name;   // Diagnostic parameter name.
+      char spelling;      // Input byte following the backslash.
+      std::uint16_t unit; // Expected numeric UTF-16 unit.
+      bool json5_only;    // Whether strict JSON must reject the spelling.
   };
   class J5_015_SimpleEscape : public ::testing::TestWithParam<escape_case>
   {
@@ -172,7 +173,7 @@ namespace
       EXPECT_EQ(handoff.value_if()->kind, string_piece_kind::escape_start);
       ASSERT_TRUE(escaped.has_value());
       ASSERT_TRUE(escaped.value_if()->has_value());
-      EXPECT_EQ(**escaped.value_if(), char16_t{0x22});
+      EXPECT_EQ(**escaped.value_if(), std::uint16_t{0x22});
       ASSERT_TRUE(closing.has_value());
       EXPECT_EQ(closing.value_if()->kind, string_piece_kind::closing_quote);
       EXPECT_EQ(closing.value_if()->byte_offset, 3u);
@@ -238,7 +239,7 @@ namespace
       /* Expect */
       ASSERT_TRUE(actual.has_value());
       ASSERT_TRUE(actual.value_if()->has_value());
-      EXPECT_EQ(**actual.value_if(), char16_t{});
+      EXPECT_EQ(**actual.value_if(), std::uint16_t{});
       EXPECT_EQ(source.offset(), 2u);
       EXPECT_EQ(*source.peek(), next);
     }
@@ -266,7 +267,7 @@ namespace
     /* Expect */
     ASSERT_TRUE(actual.has_value());
     ASSERT_TRUE(actual.value_if()->has_value());
-    EXPECT_EQ(**actual.value_if(), char16_t{});
+    EXPECT_EQ(**actual.value_if(), std::uint16_t{});
     ASSERT_FALSE(closing.has_value());
     EXPECT_EQ(closing.error_if()->code(), error_code::syntax);
     EXPECT_TRUE(closing.error_if()->has_byte_offset());

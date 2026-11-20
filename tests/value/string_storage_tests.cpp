@@ -1,10 +1,12 @@
 #include "../shared_infrastructure/byte_array.hpp"
 #include "../shared_infrastructure/string_provider.hpp"
+#include "../shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
 #include <string>
@@ -23,10 +25,10 @@ namespace
   {
     /* Arrange */
     string_provider provider;
-    const char16_t input[]{u'A', 0, u'B', 9, 1, u'Z'};
+    const std::uint16_t input[]{u'A', 0, u'B', 9, 1, u'Z'};
     const std::u16string expected{u'A', 0, u'B', 9, 1};
-    std::array<std::byte, 6> output;
-    output.fill(std::byte{0xA5});
+    std::array<char, 6> output;
+    output.fill('#');
     /* Act */
     auto copied = decoded_string::copy_units(provider.callbacks(), input, 5);
     ASSERT_TRUE(copied.has_value());
@@ -35,7 +37,7 @@ namespace
     expect_units(*copied.value_if(), expected);
     ASSERT_TRUE(exported.has_value());
     EXPECT_EQ(*exported.value_if(), 5u);
-    EXPECT_EQ(output, make_bytes(0x41, 0, 0x42, 9, 1, 0xA5));
+    EXPECT_EQ(output, make_chars(0x41, 0, 0x42, 9, 1, '#'));
     EXPECT_EQ(input[5], u'Z');
     expect_error(copied.value_if()->unit_at(5), error_code::wrong_type_or_access);
     expect_error(copied.value_if()->unit_at(std::numeric_limits<std::size_t>::max()), error_code::wrong_type_or_access);
@@ -52,10 +54,11 @@ namespace
     /* Arrange */
     string_provider provider;
     const std::u16string units{u'A', 0x80, 0x800, 0xD83C, 0xDFBC};
-    auto copied = decoded_string::copy_units(provider.callbacks(), units.data(), units.size());
+    auto copied =
+      decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(units).data(), units.size());
     ASSERT_TRUE(copied.has_value());
-    std::array<std::byte, 12> output;
-    output.fill(std::byte{0xA5});
+    std::array<char, 12> output;
+    output.fill('#');
     const auto before = output;
     /* Act */
     for (std::size_t capacity = 0; capacity < 10; ++capacity)
@@ -70,6 +73,64 @@ namespace
   }
   /* ================================= End Test_J5_029 ================================= */
   /* =================================== Test_J5_029 =================================== */
+  /* Verify export_utf8() writes exact UTF-8 octets into a char buffer, bytes >= 0x80 included.
+   * Arrange: Store ASCII, an embedded NUL, and two-, three- and four-byte scalars; fill a char
+   *          buffer with sentinels.
+   * Act: Export into an 11-byte region of a 12-byte buffer.
+   * Expect: 11 bytes, read as octets equal to the expected UTF-8 (so the high bytes survive
+   *         whatever char's sign), and the sentinel after the output unchanged.
+   */
+  TEST(J5_029_Utf8ExportChar, WritesExactOctetsIntoCharBuffer)
+  {
+    /* Arrange */
+    string_provider provider;
+    const std::u16string units{u'A', 0, 0x80, 0x800, 0xD83C, 0xDFBC};
+    auto copied =
+      decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(units).data(), units.size());
+    ASSERT_TRUE(copied.has_value());
+    std::array<char, 12> output;
+    output.fill('#');
+    /* Act */
+    const auto exported = export_utf8(*copied.value_if(), output.data(), 11U);
+    /* Expect */
+    ASSERT_TRUE(exported.has_value());
+    EXPECT_EQ(*exported.value_if(), 11U);
+    EXPECT_EQ(output, make_chars(0x41, 0x00, 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x9F, 0x8E, 0xBC, '#'));
+  }
+  /* ----------------------------------------------------------------------------------- */
+  /* Verify export_utf8() into a char buffer fails before writing.
+   * Arrange: A mixed-width string, a lone high surrogate and a sentinel-filled char buffer.
+   * Act: Export with every short capacity, into nullptr, and the surrogate.
+   * Expect: resource_limit, wrong_type_or_access and encoding, with the buffer unchanged.
+   */
+  TEST(J5_029_Utf8ExportChar, RejectsShortCapacityNullAndSurrogateWithoutWriting)
+  {
+    /* Arrange */
+    string_provider provider;
+    const std::u16string units{u'A', 0x80, 0x800, 0xD83C, 0xDFBC};
+    const std::uint16_t lone[]{0xD800};
+    auto copied =
+      decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(units).data(), units.size());
+    auto surrogate = decoded_string::copy_units(provider.callbacks(), lone, 1U);
+    ASSERT_TRUE(copied.has_value());
+    ASSERT_TRUE(surrogate.has_value());
+    std::array<char, 12> output;
+    output.fill('#');
+    const auto before = output;
+    /* Act */
+    for (std::size_t capacity = 0; capacity < 10; ++capacity)
+    {
+      const auto actual = export_utf8(*copied.value_if(), output.data(), capacity);
+      /* Expect */
+      expect_error(actual, error_code::resource_limit);
+      EXPECT_EQ(output, before) << capacity;
+    }
+    expect_error(export_utf8(*copied.value_if(), nullptr, 10), error_code::wrong_type_or_access);
+    expect_error(export_utf8(*surrogate.value_if(), output.data(), output.size()), error_code::encoding);
+    EXPECT_EQ(output, before);
+  }
+  /* ================================= End Test_J5_029 ================================= */
+  /* =================================== Test_J5_029 =================================== */
   /* Verify successful mixed-width export returns exact content with extra capacity.
    * Arrange: Store independent literal units and initialize output with sentinels.
    * Act: Export a mixed-width string.
@@ -80,16 +141,17 @@ namespace
     /* Arrange */
     string_provider provider;
     const std::u16string units{u'A', 0x80, 0x800, 0xD83C, 0xDFBC};
-    auto copied = decoded_string::copy_units(provider.callbacks(), units.data(), units.size());
+    auto copied =
+      decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(units).data(), units.size());
     ASSERT_TRUE(copied.has_value());
-    std::array<std::byte, 12> output;
-    output.fill(std::byte{0xA5});
+    std::array<char, 12> output;
+    output.fill('#');
     /* Act */
     const auto actual = export_utf8(*copied.value_if(), output.data(), output.size());
     /* Expect */
     ASSERT_TRUE(actual.has_value());
     EXPECT_EQ(*actual.value_if(), 10u);
-    EXPECT_EQ(output, make_bytes(0x41, 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x9F, 0x8E, 0xBC, 0xA5, 0xA5));
+    EXPECT_EQ(output, make_chars(0x41, 0xC2, 0x80, 0xE0, 0xA0, 0x80, 0xF0, 0x9F, 0x8E, 0xBC, '#', '#'));
     EXPECT_EQ(provider.m_attempts, 1u);
   }
   /* ================================= End Test_J5_029 ================================= */
@@ -106,7 +168,7 @@ namespace
     {
       auto text = [&provider]()
       {
-        std::array<char16_t, 3> input{u'A', 0, u'B'};
+        std::array<std::uint16_t, 3> input{u'A', 0, u'B'};
         auto copied = decoded_string::copy_units(provider.callbacks(), input.data(), input.size());
         input.fill(u'X');
         return copied;
@@ -135,8 +197,8 @@ namespace
     /* Arrange */
     string_provider old_provider;
     string_provider new_provider;
-    auto destination = allocate_block(old_provider.callbacks(), 8, alignof(char16_t));
-    auto source = allocate_block(new_provider.callbacks(), 16, alignof(char16_t));
+    auto destination = allocate_block(old_provider.callbacks(), 8, alignof(std::uint16_t));
+    auto source = allocate_block(new_provider.callbacks(), 16, alignof(std::uint16_t));
     ASSERT_TRUE(destination.has_value());
     ASSERT_TRUE(source.has_value());
     void* const address = source.value_if()->data();
@@ -167,7 +229,7 @@ namespace
   {
     /* Arrange */
     string_provider provider;
-    const char16_t unit = u'A';
+    const std::uint16_t unit = u'A';
     const auto callbacks = provider.callbacks();
     /* Act */
     const auto null_input = decoded_string::copy_units(callbacks, nullptr, 1);

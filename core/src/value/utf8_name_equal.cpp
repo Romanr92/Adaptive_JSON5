@@ -8,6 +8,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -64,7 +65,8 @@ namespace adaptive_json5
             return equal_result::failure(*unit.error_if());
           }
 
-          if (*unit.value_if() != encoded.value_if()->units[index])
+          if (static_cast<std::uint32_t>(*unit.value_if()) !=
+              static_cast<std::uint32_t>(encoded.value_if()->units[index]))
           {
             return equal_result::success(false);
           }

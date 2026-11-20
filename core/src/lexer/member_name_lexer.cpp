@@ -36,7 +36,7 @@ namespace adaptive_json5
         const auto first = decode_utf8(source);
 
         return first.has_value() && first.value_if()->has_value() &&
-               (is_identifier_start((*first.value_if())->value) || ((*first.value_if())->value == U'\\'));
+               (is_identifier_start((*first.value_if())->value) || ((*first.value_if())->value == 0x5CU)); // '\\'
       }
     } // namespace
 

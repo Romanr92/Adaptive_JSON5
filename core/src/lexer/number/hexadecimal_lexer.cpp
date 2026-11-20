@@ -10,6 +10,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -110,10 +111,10 @@ namespace adaptive_json5
             error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
         }
 
-        const char32_t scalar = character->value;
+        const std::uint32_t scalar = character->value;
 
         // These suffixes cannot turn a hexadecimal prefix into a valid number.
-        if (is_identifier_part(scalar) || (scalar == U'\\') || (scalar == U'.'))
+        if (is_identifier_part(scalar) || (scalar == 0x5CU) || (scalar == 0x2EU)) // '\\', '.'
         {
           return hexadecimal_result::failure(
             error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));

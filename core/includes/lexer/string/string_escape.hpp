@@ -6,6 +6,7 @@
 #include "input/cursor.hpp"
 #include "unicode/utf16.hpp"
 
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -20,7 +21,7 @@ namespace adaptive_json5
      * Their failures must never fall back to non-escape characters.
      * @par ID SWU-LEXER-036
      */
-    [[nodiscard]] result<std::optional<char16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept;
+    [[nodiscard]] result<std::optional<std::uint16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept;
   } // namespace detail
 
   /**

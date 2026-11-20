@@ -6,6 +6,7 @@
 #include "input/cursor.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -25,9 +26,9 @@ namespace adaptive_json5
    * No allocation is performed.
    * @par ID SWU-LEXER-033
    */
-  result<std::optional<char16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept
+  result<std::optional<std::uint16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept
   {
-    using escape_result = result<std::optional<char16_t>>;
+    using escape_result = result<std::optional<std::uint16_t>>;
 
     constexpr std::size_t c_escape_byte_count = 1;
     constexpr char c_decimal_digits_min = '0';
@@ -39,55 +40,55 @@ namespace adaptive_json5
       return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
-    char16_t unit{};
+    std::uint16_t unit{};
     bool json5_only = false;
 
     switch (*current)
     {
     case '"':
-      unit = u'"';
+      unit = 0x22U; // '"'
       break;
 
     case '\'':
-      unit = u'\'';
+      unit = 0x27U; // '\''
       json5_only = true;
       break;
 
     case '\\':
-      unit = u'\\';
+      unit = 0x5CU; // '\\'
       break;
 
     case '/':
-      unit = u'/';
+      unit = 0x2FU; // '/'
       break;
 
     case 'b':
-      unit = u'\b';
+      unit = 0x08U; // '\b'
       break;
 
     case 'f':
-      unit = u'\f';
+      unit = 0x0CU; // '\f'
       break;
 
     case 'n':
-      unit = u'\n';
+      unit = 0x0AU; // '\n'
       break;
 
     case 'r':
-      unit = u'\r';
+      unit = 0x0DU; // '\r'
       break;
 
     case 't':
-      unit = u'\t';
+      unit = 0x09U; // '\t'
       break;
 
     case 'v':
-      unit = u'\v';
+      unit = 0x0BU; // '\v'
       json5_only = true;
       break;
 
     case '0':
-      unit = char16_t{};
+      unit = std::uint16_t{};
       json5_only = true;
       break;
 
@@ -114,6 +115,6 @@ namespace adaptive_json5
     }
 
     source.advance(c_escape_byte_count);
-    return escape_result::success(std::optional<char16_t>{unit});
+    return escape_result::success(std::optional<std::uint16_t>{unit});
   }
 } // namespace adaptive_json5

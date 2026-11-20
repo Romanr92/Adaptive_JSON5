@@ -74,17 +74,17 @@ namespace
         ASSERT_TRUE(unit.has_value());
         EXPECT_EQ(*unit.value_if(), fixture.units[index]);
       }
-      std::array<std::byte, 32> output{};
-      output.fill(std::byte{0xA5});
+      std::array<char, 32> output{};
+      output.fill('#');
       const auto exported = export_utf8(**string.value_if(), output.data(), output.size());
       EXPECT_EQ(exported.has_value(), fixture.count == 0);
       if (fixture.count != 0)
       {
         ASSERT_NE(exported.error_if(), nullptr);
         EXPECT_EQ(exported.error_if()->code(), error_code::encoding);
-        for (const auto byte : output)
+        for (const char unit : output)
         {
-          EXPECT_EQ(byte, std::byte{0xA5});
+          EXPECT_EQ(unit, '#');
         }
       }
     }

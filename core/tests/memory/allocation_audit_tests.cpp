@@ -15,6 +15,7 @@
 #include "value/big_unsigned.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
 #include <string>
@@ -144,7 +145,7 @@ namespace
     // Counting first allows one exact reservation (ADR 0003, decision 2).
     EXPECT_EQ(provider.m_allocations, 1U);
     // Retained strings are charged against max_owned_bytes, so spare capacity is wasted budget.
-    EXPECT_EQ(provider.m_live_bytes, c_units * sizeof(char16_t));
+    EXPECT_EQ(provider.m_live_bytes, c_units * sizeof(std::uint16_t));
   }
 
   /* ----------------------------------------------------------------------------------- */

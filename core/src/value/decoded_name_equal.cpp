@@ -4,6 +4,7 @@
 #include "adaptive_json5/value/decoded_string.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -43,7 +44,7 @@ namespace adaptive_json5
       }
 
       // Compare decoded units without transforming their content.
-      if (*left_unit.value_if() != *right_unit.value_if())
+      if (static_cast<std::uint32_t>(*left_unit.value_if()) != static_cast<std::uint32_t>(*right_unit.value_if()))
       {
         return result<bool>::success(false);
       }

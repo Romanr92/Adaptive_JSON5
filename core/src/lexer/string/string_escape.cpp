@@ -11,6 +11,7 @@
 #include "lexer/string/unicode_escape.hpp"
 #include "unicode/utf16.hpp"
 
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -25,7 +26,7 @@ namespace adaptive_json5
      * Their failures must never fall back to non-escape characters.
      * @par ID SWU-LEXER-036
      */
-    result<std::optional<char16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept
+    result<std::optional<std::uint16_t>> consume_unit_escape(cursor& source, syntax_mode mode) noexcept
     {
       const auto current = source.peek();
 

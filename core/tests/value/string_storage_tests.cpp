@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/string_provider.hpp"
+#include "../../../tests/shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "memory/decoded_string_builder.hpp"
 #include "unicode/utf16.hpp"
@@ -6,6 +7,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
 #include <string>
@@ -32,7 +34,7 @@ namespace
   struct scalar_case
   {
       const char* name;                // Diagnostic case name.
-      char32_t scalar;                 // Input Unicode scalar.
+      std::uint32_t scalar;            // Input Unicode scalar.
       std::u16string units;            // Expected UTF-16 units.
       std::vector<std::uint8_t> bytes; // Expected UTF-8 octets.
   };
@@ -51,8 +53,8 @@ namespace
     const auto& param = GetParam();
     string_provider provider;
     decoded_string_builder builder(provider.callbacks(), 8);
-    std::array<std::byte, 8> output;
-    output.fill(std::byte{0xA5});
+    std::array<char, 8> output;
+    output.fill('#');
     /* Act */
     const auto encoded = encode_utf16(param.scalar);
     const auto reserved = builder.reserve_exact(param.units.size());
@@ -78,14 +80,14 @@ namespace
     EXPECT_EQ(*measured.value_if(), param.bytes.size());
     ASSERT_TRUE(exported.has_value());
     EXPECT_EQ(*exported.value_if(), param.bytes.size());
-    EXPECT_EQ(output.front(), std::byte{0xA5});
+    EXPECT_EQ(output.front(), '#');
     for (std::size_t i = 0; i < param.bytes.size(); ++i)
     {
-      EXPECT_EQ(output[i + 1], static_cast<std::byte>(param.bytes[i]));
+      EXPECT_EQ(output[i + 1], static_cast<char>(param.bytes[i]));
     }
     for (std::size_t i = param.bytes.size() + 1; i < output.size(); ++i)
     {
-      EXPECT_EQ(output[i], std::byte{0xA5});
+      EXPECT_EQ(output[i], '#');
     }
   }
 
@@ -108,7 +110,7 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
-  class J5_018_InvalidScalar : public ::testing::TestWithParam<char32_t>
+  class J5_018_InvalidScalar : public ::testing::TestWithParam<std::uint32_t>
   {
   };
 
@@ -137,8 +139,9 @@ namespace
     expect_units(text, u"A");
   }
   INSTANTIATE_TEST_SUITE_P(Invalid, J5_018_InvalidScalar,
-                           ::testing::Values(char32_t{0xD800}, char32_t{0xDBFF}, char32_t{0xDC00}, char32_t{0xDFFF},
-                                             char32_t{0x110000}, std::numeric_limits<char32_t>::max()));
+                           ::testing::Values(std::uint32_t{0xD800}, std::uint32_t{0xDBFF}, std::uint32_t{0xDC00},
+                                             std::uint32_t{0xDFFF}, std::uint32_t{0x110000},
+                                             std::numeric_limits<std::uint32_t>::max()));
 
   /* ----------------------------------------------------------------------------------- */
 
@@ -156,10 +159,11 @@ namespace
     /* Arrange */
     string_provider provider;
     const auto& units = GetParam();
-    auto copied = decoded_string::copy_units(provider.callbacks(), units.data(), units.size());
+    auto copied =
+      decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(units).data(), units.size());
     ASSERT_TRUE(copied.has_value());
-    std::array<std::byte, 32> output;
-    output.fill(std::byte{0xA5});
+    std::array<char, 32> output;
+    output.fill('#');
     const auto before = output;
     /* Act */
     const auto decoded = decode_utf16(*copied.value_if(), 1);
@@ -190,7 +194,7 @@ namespace
   {
     /* Arrange */
     string_provider provider;
-    const char16_t units[]{u'A', 0xD83C, 0xDFBC};
+    const std::uint16_t units[]{u'A', 0xD83C, 0xDFBC};
     auto copied = decoded_string::copy_units(provider.callbacks(), units, 3);
     ASSERT_TRUE(copied.has_value());
     /* Act */
@@ -200,7 +204,7 @@ namespace
     const auto huge = decode_utf16(*copied.value_if(), std::numeric_limits<std::size_t>::max());
     /* Expect */
     ASSERT_TRUE(pair.has_value());
-    EXPECT_EQ(pair.value_if()->value, char32_t{0x1F3BC});
+    EXPECT_EQ(pair.value_if()->value, std::uint32_t{0x1F3BC});
     EXPECT_EQ(pair.value_if()->unit_count, 2u);
     expect_error(low, error_code::encoding);
     expect_error(end, error_code::wrong_type_or_access);
@@ -261,8 +265,8 @@ namespace
   static_assert(std::is_nothrow_destructible_v<decoded_string>);
   static_assert(noexcept(decoded_string::copy_units({}, nullptr, 0)));
   static_assert(noexcept(std::declval<decoded_string_builder&>().reserve_exact(std::size_t{})));
-  static_assert(noexcept(std::declval<decoded_string_builder&>().append_unit(char16_t{})));
-  static_assert(noexcept(std::declval<decoded_string_builder&>().append_scalar(char32_t{})));
+  static_assert(noexcept(std::declval<decoded_string_builder&>().append_unit(std::uint16_t{})));
+  static_assert(noexcept(std::declval<decoded_string_builder&>().append_scalar(std::uint32_t{})));
   static_assert(noexcept(std::declval<decoded_string_builder&>().finish()));
   static_assert(noexcept(utf8_size(std::declval<const decoded_string&>())));
   static_assert(noexcept(export_utf8(std::declval<const decoded_string&>(), nullptr, 0)));
@@ -282,7 +286,7 @@ namespace
     {
       decoded_string_builder builder(provider.callbacks(), 20);
       EXPECT_TRUE(builder.reserve_exact(5).has_value());
-      for (char16_t unit : std::u16string{u'A', 0, 0xD800, u'B', 0xDC00})
+      for (std::uint16_t unit : std::u16string{u'A', 0, 0xD800, u'B', 0xDC00})
       {
         EXPECT_TRUE(builder.append_unit(unit).has_value());
       }
@@ -358,7 +362,7 @@ namespace
     const auto failed_append = builder.append_unit(u'A');
     provider.m_fail_on = 0;
     const auto retried = builder.reserve_exact(units.size());
-    for (char16_t unit : units)
+    for (std::uint16_t unit : units)
     {
       ASSERT_TRUE(builder.append_unit(unit).has_value());
     }
@@ -370,7 +374,7 @@ namespace
     ASSERT_TRUE(retried.has_value());
     expect_units(text, units);
     EXPECT_EQ(provider.m_allocations, 1u);
-    EXPECT_EQ(provider.m_live_bytes, units.size() * sizeof(char16_t));
+    EXPECT_EQ(provider.m_live_bytes, units.size() * sizeof(std::uint16_t));
   }
 
   /* ----------------------------------------------------------------------------------- */
@@ -455,7 +459,7 @@ namespace
     expect_error(second_reservation, error_code::internal_error);
     EXPECT_EQ(provider.m_attempts, attempts);
     EXPECT_EQ(builder.size(), 2u);
-    EXPECT_EQ(provider.m_live_bytes, 2 * sizeof(char16_t));
+    EXPECT_EQ(provider.m_live_bytes, 2 * sizeof(std::uint16_t));
     auto text = builder.finish();
     expect_units(text, u"AB");
   }

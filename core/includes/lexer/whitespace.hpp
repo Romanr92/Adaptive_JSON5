@@ -7,6 +7,7 @@
 #include "unicode/unicode_tables.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -34,14 +35,14 @@ namespace adaptive_json5
    * the selected Unicode 17.0.0 category data.
    * @par ID SWU-LEXER-002
    */
-  [[nodiscard]] inline constexpr bool is_json5_space(char32_t value) noexcept
+  [[nodiscard]] inline constexpr bool is_json5_space(std::uint32_t value) noexcept
   {
-    constexpr char32_t c_horizontal_tab = 0x0009;
-    constexpr char32_t c_vertical_tab = 0x000B;
-    constexpr char32_t c_form_feed = 0x000C;
-    constexpr char32_t c_space = 0x0020;
-    constexpr char32_t c_no_break_space = 0x00A0;
-    constexpr char32_t c_byte_order_mark = 0xFEFF;
+    constexpr std::uint32_t c_horizontal_tab = 0x0009;
+    constexpr std::uint32_t c_vertical_tab = 0x000B;
+    constexpr std::uint32_t c_form_feed = 0x000C;
+    constexpr std::uint32_t c_space = 0x0020;
+    constexpr std::uint32_t c_no_break_space = 0x00A0;
+    constexpr std::uint32_t c_byte_order_mark = 0xFEFF;
 
     // These characters are explicitly named by the JSON5 whitespace grammar.
     if ((value == c_horizontal_tab) || (value == c_vertical_tab) || (value == c_form_feed) || (value == c_space) ||

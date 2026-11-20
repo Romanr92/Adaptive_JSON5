@@ -5,6 +5,7 @@
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
 
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <string_view>
 #include <type_traits>
@@ -170,10 +171,10 @@ namespace
   {
     /* Arrange */
     document_provider provider;
-    const char16_t units[] = {0xD800, 0xE000};
+    const std::uint16_t units[] = {0xD800, 0xE000};
     const auto text = decoded_string::copy_units(provider.callbacks(), units, 2);
     ASSERT_TRUE(text.has_value());
-    std::byte output[] = {std::byte{0xA5}, std::byte{0xA5}, std::byte{0xA5}, std::byte{0xA5}};
+    char output[] = {'#', '#', '#', '#'};
     /* Act */
     // The second unit exists but cannot complete the pair; it must not be silently emitted separately.
     const auto size = utf8_size(*text.value_if());
@@ -183,8 +184,8 @@ namespace
     ASSERT_FALSE(exported.has_value());
     EXPECT_EQ(size.error_if()->code(), error_code::encoding);
     EXPECT_EQ(exported.error_if()->code(), error_code::encoding);
-    for (const auto byte : output)
-      EXPECT_EQ(byte, std::byte{0xA5});
+    for (const char unit : output)
+      EXPECT_EQ(unit, '#');
     EXPECT_EQ(*text.value_if()->unit_at(1).value_if(), 0xE000);
   }
   /* ================================= End Test_J5_018 ================================== */

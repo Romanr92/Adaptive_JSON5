@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/access_error_reason.hpp"
 #include "value/document_links.hpp"
 #include "value/value_record.hpp"
@@ -317,7 +318,7 @@ namespace
     ASSERT_TRUE(values.append(std::move(object)).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
     ASSERT_TRUE(values.append(value_record{}).has_value());
-    auto name = decoded_string::copy_units(provider.callbacks(), u"k", 1);
+    auto name = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"k").data(), 1);
     ASSERT_TRUE(name.has_value());
     const adaptive_json5::source_span span{1, 3}; // Name token at bytes 1..3 of a 5-byte input.
     /* Act */

@@ -20,29 +20,29 @@ namespace adaptive_json5
    * @note Classification is independent of locale.
    * @par ID SWU-LEXER-029
    */
-  std::optional<char16_t> hex_digit_value(char32_t character) noexcept
+  std::optional<std::uint16_t> hex_digit_value(std::uint32_t character) noexcept
   {
-    constexpr char32_t c_decimal_min = U'0';
-    constexpr char32_t c_decimal_max = U'9';
-    constexpr char32_t c_lower_min = U'a';
-    constexpr char32_t c_lower_max = U'f';
-    constexpr char32_t c_upper_min = U'A';
-    constexpr char32_t c_upper_max = U'F';
-    constexpr char32_t c_letter_value_offset = 10;
+    constexpr std::uint32_t c_decimal_min = 0x30U; // '0'
+    constexpr std::uint32_t c_decimal_max = 0x39U; // '9'
+    constexpr std::uint32_t c_lower_min = 0x61U;   // 'a'
+    constexpr std::uint32_t c_lower_max = 0x66U;   // 'f'
+    constexpr std::uint32_t c_upper_min = 0x41U;   // 'A'
+    constexpr std::uint32_t c_upper_max = 0x46U;   // 'F'
+    constexpr std::uint32_t c_letter_value_offset = 10;
 
     if ((character >= c_decimal_min) && (character <= c_decimal_max))
     {
-      return static_cast<char16_t>(character - c_decimal_min);
+      return static_cast<std::uint16_t>(character - c_decimal_min);
     }
 
     if ((character >= c_lower_min) && (character <= c_lower_max))
     {
-      return static_cast<char16_t>(character - c_lower_min + c_letter_value_offset);
+      return static_cast<std::uint16_t>(character - c_lower_min + c_letter_value_offset);
     }
 
     if ((character >= c_upper_min) && (character <= c_upper_max))
     {
-      return static_cast<char16_t>(character - c_upper_min + c_letter_value_offset);
+      return static_cast<std::uint16_t>(character - c_upper_min + c_letter_value_offset);
     }
 
     return std::nullopt;
@@ -62,9 +62,9 @@ namespace adaptive_json5
    * Nonmatching input is not validated. No allocation is performed.
    * @par ID SWU-LEXER-030
    */
-  result<std::optional<char16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept
+  result<std::optional<std::uint16_t>> consume_hex_escape(cursor& source, syntax_mode mode) noexcept
   {
-    using escape_result = result<std::optional<char16_t>>;
+    using escape_result = result<std::optional<std::uint16_t>>;
 
     constexpr char c_hex_introducer = 'x';
     constexpr std::size_t c_introducer_byte_count = 1;
@@ -90,7 +90,7 @@ namespace adaptive_json5
     // Keep the original position until the entire escape is validated.
     cursor candidate = source;
     candidate.advance(c_introducer_byte_count);
-    char16_t unit{};
+    std::uint16_t unit{};
 
     for (std::size_t index{}; index < c_hex_digit_count; ++index)
     {
@@ -113,10 +113,11 @@ namespace adaptive_json5
       }
 
       // Two hexadecimal digits fit completely within one UTF-16 unit.
-      unit = static_cast<char16_t>((unit << c_bits_per_hex_digit) | *digit);
+      unit = static_cast<std::uint16_t>((static_cast<std::uint32_t>(unit) << c_bits_per_hex_digit) |
+                                        static_cast<std::uint32_t>(*digit));
     }
 
     source = candidate;
-    return escape_result::success(std::optional<char16_t>{unit});
+    return escape_result::success(std::optional<std::uint16_t>{unit});
   }
 } // namespace adaptive_json5

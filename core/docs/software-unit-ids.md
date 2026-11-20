@@ -141,7 +141,7 @@ library was checked to be byte-identical before and after.
 | SWU-INPUT-007 | used | `cursor::next()` | `core/includes/input/cursor.hpp` | — |
 | SWU-INPUT-008 | used | `cursor::advance(std::size_t)` | `core/includes/input/cursor.hpp` | — |
 | SWU-INPUT-009 | used | `cursor::span_from(std::size_t)` | `core/includes/input/cursor.hpp` | — |
-| SWU-INPUT-010 | used | `(anonymous)::is_line_break(char32_t)` | `core/src/input/text_position.cpp` | — |
+| SWU-INPUT-010 | used | `(anonymous)::is_line_break(std::uint32_t)` | `core/src/input/text_position.cpp` | — |
 | SWU-INPUT-011 | used | `locate(input_view, std::size_t)` | `core/src/input/text_position.cpp` | `includes/adaptive_json5/text_position.hpp` |
 
 ## LEXER
@@ -149,10 +149,10 @@ library was checked to be byte-identical before and after.
 | ID | Status | Function | Defined in | Also documented in |
 | --- | --- | --- | --- | --- |
 | SWU-LEXER-001 | used | `detail::is_decimal_digit(std::optional<char>)` | `core/includes/lexer/number/decimal_lexer.hpp` | — |
-| SWU-LEXER-002 | used | `is_json5_space(char32_t)` | `core/includes/lexer/whitespace.hpp` | — |
+| SWU-LEXER-002 | used | `is_json5_space(std::uint32_t)` | `core/includes/lexer/whitespace.hpp` | — |
 | SWU-LEXER-003 | used | `consume_line_comment(cursor &)` | `core/src/lexer/comment.cpp` | `core/includes/lexer/comment.hpp` |
 | SWU-LEXER-004 | used | `consume_block_comment(cursor &)` | `core/src/lexer/comment.cpp` | `core/includes/lexer/comment.hpp` |
-| SWU-LEXER-005 | used | `detail::identifier_spelling_matches(const decoded_string &, std::u16string_view)` | `core/src/lexer/identifier/identifier_classification.cpp` | `core/includes/lexer/identifier/identifier_classification.hpp` |
+| SWU-LEXER-005 | used | `detail::identifier_spelling_matches(const decoded_string &, const std::uint16_t *, std::size_t)` | `core/src/lexer/identifier/identifier_classification.cpp` | `core/includes/lexer/identifier/identifier_classification.hpp` |
 | SWU-LEXER-006 | used | `classify_identifier(const identifier_token &, identifier_context, syntax_mode)` | `core/src/lexer/identifier/identifier_classification.cpp` | `core/includes/lexer/identifier/identifier_classification.hpp` |
 | SWU-LEXER-007 | used | `(anonymous)::walk_identifier(cursor &, std::size_t, decoded_string_builder *)` | `core/src/lexer/identifier/identifier_lexer.cpp` | — |
 | SWU-LEXER-008 | used | `measure_identifier(cursor &, std::size_t)` | `core/src/lexer/identifier/identifier_lexer.cpp` | `core/includes/lexer/identifier/identifier_lexer.hpp` |
@@ -176,7 +176,7 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-026 | used | `consume_scalar(cursor &, syntax_mode, const storage_callbacks &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
 | SWU-LEXER-027 | used | `(anonymous)::finish_scalar_measure(cursor &, cursor, const scalar_measure &, syntax_mode)` | `core/src/lexer/scalar_lexer.cpp` | — |
 | SWU-LEXER-028 | used | `measure_scalar(cursor &, syntax_mode, std::size_t, std::size_t, std::size_t, std::size_t, string_checks)` | `core/src/lexer/scalar_lexer.cpp` | `core/includes/lexer/scalar_lexer.hpp` |
-| SWU-LEXER-029 | used | `hex_digit_value(char32_t)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
+| SWU-LEXER-029 | used | `hex_digit_value(std::uint32_t)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-030 | used | `consume_hex_escape(cursor &, syntax_mode)` | `core/src/lexer/string/hex_escape.cpp` | `core/includes/lexer/string/hex_escape.hpp` |
 | SWU-LEXER-031 | used | `consume_line_continuation(cursor &, syntax_mode)` | `core/src/lexer/string/line_continuation.cpp` | `core/includes/lexer/string/line_continuation.hpp` |
 | SWU-LEXER-032 | used | `consume_non_escape(cursor &, syntax_mode)` | `core/src/lexer/string/non_escape.cpp` | `core/includes/lexer/string/non_escape.hpp` |
@@ -227,11 +227,11 @@ library was checked to be byte-identical before and after.
 | SWU-MEMORY-017 | used | `detail::(anonymous)::buffer_document_storage::buffer_document_storage(void *, std::size_t, std::size_t)` | `core/src/memory/buffer_document_storage.cpp` | — |
 | SWU-MEMORY-018 | used | `detail::(anonymous)::release_buffer_document_storage(void *)` | `core/src/memory/buffer_document_storage.cpp` | — |
 | SWU-MEMORY-019 | used | `detail::make_buffer_document_storage(void *, std::size_t, std::size_t)` | `core/src/memory/buffer_document_storage.cpp` | `core/includes/memory/buffer_document_storage.hpp` |
-| SWU-MEMORY-020 | used | `decoded_string_builder::append_units(const char16_t *, std::size_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
+| SWU-MEMORY-020 | used | `decoded_string_builder::append_units(const std::uint16_t *, std::size_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
 | SWU-MEMORY-021 | used | `decoded_string_builder::decoded_string_builder(const storage_callbacks &, std::size_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
 | SWU-MEMORY-022 | used | `decoded_string_builder::reserve_exact(std::size_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
-| SWU-MEMORY-023 | used | `decoded_string_builder::append_unit(char16_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
-| SWU-MEMORY-024 | used | `decoded_string_builder::append_scalar(char32_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
+| SWU-MEMORY-023 | used | `decoded_string_builder::append_unit(std::uint16_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
+| SWU-MEMORY-024 | used | `decoded_string_builder::append_scalar(std::uint32_t)` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
 | SWU-MEMORY-025 | used | `decoded_string_builder::finish()` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
 | SWU-MEMORY-026 | used | `decoded_string_builder::size()` | `core/src/memory/decoded_string_builder.cpp` | `core/includes/memory/decoded_string_builder.hpp` |
 | SWU-MEMORY-027 | used | `detail::document_storage_owner::document_storage_owner(void *, accounted_storage *, void (*)(void *) noexcept)` | `core/src/memory/document_storage_owner.cpp` | `includes/adaptive_json5/memory/document_storage_owner.hpp` |
@@ -343,12 +343,12 @@ library was checked to be byte-identical before and after.
 
 | ID | Status | Function | Defined in | Also documented in |
 | --- | --- | --- | --- | --- |
-| SWU-UNICODE-001 | used | `detail::is_unicode_scalar(char32_t)` | `core/includes/unicode/unicode.hpp` | — |
-| SWU-UNICODE-002 | used | `detail::contains_unicode(char32_t, const unicode_range (&)[RangeCount])` | `core/includes/unicode/unicode.hpp` | — |
-| SWU-UNICODE-003 | used | `is_unicode_space_separator(char32_t)` | `core/includes/unicode/unicode.hpp` | — |
-| SWU-UNICODE-004 | used | `is_identifier_start(char32_t)` | `core/includes/unicode/unicode.hpp` | — |
-| SWU-UNICODE-005 | used | `is_identifier_part(char32_t)` | `core/includes/unicode/unicode.hpp` | — |
-| SWU-UNICODE-006 | used | `encode_utf16(char32_t)` | `core/src/unicode/utf16.cpp` | `core/includes/unicode/utf16.hpp` |
+| SWU-UNICODE-001 | used | `detail::is_unicode_scalar(std::uint32_t)` | `core/includes/unicode/unicode.hpp` | — |
+| SWU-UNICODE-002 | used | `detail::contains_unicode(std::uint32_t, const unicode_range (&)[RangeCount])` | `core/includes/unicode/unicode.hpp` | — |
+| SWU-UNICODE-003 | used | `is_unicode_space_separator(std::uint32_t)` | `core/includes/unicode/unicode.hpp` | — |
+| SWU-UNICODE-004 | used | `is_identifier_start(std::uint32_t)` | `core/includes/unicode/unicode.hpp` | — |
+| SWU-UNICODE-005 | used | `is_identifier_part(std::uint32_t)` | `core/includes/unicode/unicode.hpp` | — |
+| SWU-UNICODE-006 | used | `encode_utf16(std::uint32_t)` | `core/src/unicode/utf16.cpp` | `core/includes/unicode/utf16.hpp` |
 | SWU-UNICODE-007 | used | `decode_utf16(const decoded_string &, std::size_t)` | `core/src/unicode/utf16_decode.cpp` | `core/includes/unicode/utf16_decode.hpp` |
 | SWU-UNICODE-008 | used | `decode_utf8(cursor &)` | `core/src/unicode/utf8.cpp` | `core/includes/unicode/utf8.hpp` |
 
@@ -374,7 +374,7 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-016 | used | `decoded_name_equal(const decoded_string &, const decoded_string &)` | `core/src/value/decoded_name_equal.cpp` | `includes/adaptive_json5/value/decoded_name_equal.hpp` |
 | SWU-VALUE-017 | used | `decoded_string::decoded_string(owned_block &&, std::size_t)` | `core/src/value/decoded_string.cpp` | `includes/adaptive_json5/value/decoded_string.hpp` |
 | SWU-VALUE-018 | used | `decoded_string::decoded_string(decoded_string &&)` | `core/src/value/decoded_string.cpp` | `includes/adaptive_json5/value/decoded_string.hpp` |
-| SWU-VALUE-019 | used | `decoded_string::copy_units(const storage_callbacks &, const char16_t *, std::size_t)` | `core/src/value/decoded_string.cpp` | `includes/adaptive_json5/value/decoded_string.hpp` |
+| SWU-VALUE-019 | used | `decoded_string::copy_units(const storage_callbacks &, const std::uint16_t *, std::size_t)` | `core/src/value/decoded_string.cpp` | `includes/adaptive_json5/value/decoded_string.hpp` |
 | SWU-VALUE-020 | used | `decoded_string::size()` | `core/src/value/decoded_string.cpp` | `includes/adaptive_json5/value/decoded_string.hpp` |
 | SWU-VALUE-021 | used | `decoded_string::unit_at(std::size_t)` | `core/src/value/decoded_string.cpp` | `includes/adaptive_json5/value/decoded_string.hpp` |
 | SWU-VALUE-022 | used | `(anonymous)::add_payload(detail::value_storage &, detail::value_payload)` | `core/src/value/document.cpp` | — |
@@ -459,7 +459,7 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-101 | used | `retained_source::is_retained()` | `core/src/value/retained_source.cpp` | `includes/adaptive_json5/value/retained_source.hpp` |
 | SWU-VALUE-102 | used | `retained_source::text()` | `core/src/value/retained_source.cpp` | `includes/adaptive_json5/value/retained_source.hpp` |
 | SWU-VALUE-103 | used | `utf8_size(const decoded_string &)` | `core/src/value/utf8_export.cpp` | `includes/adaptive_json5/value/utf8_export.hpp` |
-| SWU-VALUE-104 | used | `export_utf8(const decoded_string &, unsigned char *, std::size_t)` | `core/src/value/utf8_export.cpp` | `includes/adaptive_json5/value/utf8_export.hpp` |
+| SWU-VALUE-104 | used | `export_utf8(const decoded_string &, char *, std::size_t)` | `core/src/value/utf8_export.cpp` | `includes/adaptive_json5/value/utf8_export.hpp` |
 | SWU-VALUE-105 | used | `detail::utf8_name_equal(const decoded_string &, std::string_view)` | `core/src/value/utf8_name_equal.cpp` | `core/includes/value/utf8_name_equal.hpp` |
 | SWU-VALUE-106 | used | `value_iterator::value_iterator(const detail::value_storage &, value_index, const container_links &, bool)` | `core/src/value/value_iterator.cpp` | `includes/adaptive_json5/value/value_iterator.hpp` |
 | SWU-VALUE-107 | used | `value_iterator::create(const detail::value_storage &, value_index)` | `core/src/value/value_iterator.cpp` | `includes/adaptive_json5/value/value_iterator.hpp` |

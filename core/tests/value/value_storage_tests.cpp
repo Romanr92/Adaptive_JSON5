@@ -1,4 +1,5 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
+#include "../../../tests/shared_infrastructure/utf16_units.hpp"
 #include "adaptive_json5/access_error_reason.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -22,7 +23,7 @@ namespace
     /* Arrange */
     document_provider provider;
     detail::value_storage storage{provider.callbacks(), 2};
-    auto text = decoded_string::copy_units(provider.callbacks(), u"held", 4);
+    auto text = decoded_string::copy_units(provider.callbacks(), adaptive_json5_test::utf16(u"held").data(), 4);
     ASSERT_TRUE(text.has_value());
     detail::value_record record;
     record.payload.emplace<decoded_string>(std::move(*text.value_if()));

@@ -6,6 +6,7 @@
 #include "input/cursor.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -15,10 +16,10 @@ namespace adaptive_json5
    * @par Requirements
    * P014; J5-014.
    */
-  enum class string_quote : char32_t
+  enum class string_quote : std::uint32_t
   {
-    single = U'\'',
-    double_quote = U'"'
+    single = 0x27U,      // '\''
+    double_quote = 0x22U // '"'
   };
 
   /**
@@ -43,7 +44,7 @@ namespace adaptive_json5
   struct [[nodiscard]] string_piece
   {
       string_piece_kind kind;
-      char32_t scalar;
+      std::uint32_t scalar;
       std::size_t byte_offset;
       std::size_t byte_length;
   };

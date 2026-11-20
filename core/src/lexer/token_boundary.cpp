@@ -8,6 +8,8 @@
 #include "lexer/whitespace.hpp"
 #include "unicode/utf8.hpp"
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -41,9 +43,10 @@ namespace adaptive_json5
       return status_result::success();
     }
 
-    const char32_t scalar = character->value;
+    const std::uint32_t scalar = character->value;
 
-    const bool json_whitespace = (scalar == U' ') || (scalar == U'\t') || (scalar == U'\r') || (scalar == U'\n');
+    const bool json_whitespace =
+      (scalar == 0x20U) || (scalar == 0x09U) || (scalar == 0x0DU) || (scalar == 0x0AU); // ' ', '\t', '\r', '\n'
 
     if (json_whitespace)
     {
@@ -52,7 +55,8 @@ namespace adaptive_json5
 
     if (mode == syntax_mode::json5)
     {
-      const bool additional_whitespace = is_json5_space(scalar) || (scalar == U'\u2028') || (scalar == U'\u2029');
+      const bool additional_whitespace =
+        is_json5_space(scalar) || (scalar == 0x2028U) || (scalar == 0x2029U); // '\u2028', '\u2029'
 
       if (additional_whitespace)
       {
@@ -67,7 +71,7 @@ namespace adaptive_json5
       return status_result::success();
     }
 
-    if (scalar == U'/')
+    if (scalar == 0x2FU) // '/'
     {
       // UTF-8 lookahead already advanced past the opening slash.
       const auto next = lookahead.peek();

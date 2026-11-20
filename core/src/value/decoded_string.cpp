@@ -7,6 +7,7 @@
 #include "adaptive_json5/result.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <utility>
 
@@ -47,7 +48,7 @@ namespace adaptive_json5
    * Nonempty input must remain readable for this call only.
    * @par ID SWU-VALUE-019
    */
-  result<decoded_string> decoded_string::copy_units(const storage_callbacks& storage, const char16_t* units,
+  result<decoded_string> decoded_string::copy_units(const storage_callbacks& storage, const std::uint16_t* units,
                                                     std::size_t count) noexcept
   {
     if (count == 0)
@@ -60,13 +61,13 @@ namespace adaptive_json5
       return result<decoded_string>::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
-    auto allocation = allocate_array(storage, count, sizeof(char16_t), alignof(char16_t));
+    auto allocation = allocate_array(storage, count, sizeof(std::uint16_t), alignof(std::uint16_t));
     if (!allocation.has_value())
     {
       return result<decoded_string>::failure(*allocation.error_if());
     }
 
-    // Store representations as bytes; typed reads copy into a live char16_t.
+    // Store representations as bytes; typed reads copy into a live std::uint16_t.
     std::memcpy(allocation.value_if()->data(), units, allocation.value_if()->size());
 
     return result<decoded_string>::success(decoded_string{std::move(*allocation.value_if()), count});
@@ -91,19 +92,19 @@ namespace adaptive_json5
    * @note Surrogate units are returned unchanged.
    * @par ID SWU-VALUE-021
    */
-  result<char16_t> decoded_string::unit_at(std::size_t index) const noexcept
+  result<std::uint16_t> decoded_string::unit_at(std::size_t index) const noexcept
   {
     if (index >= m_size)
     {
-      return result<char16_t>::failure(error::access_failure(access_error_reason::index_out_of_range));
+      return result<std::uint16_t>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
     const auto* bytes = static_cast<const std::byte*>(m_storage.data());
-    char16_t unit{};
+    std::uint16_t unit{};
 
     // Successful allocation alteady proved every in-range unit offset fits,
-    std::memcpy(&unit, bytes + (index * sizeof(char16_t)), sizeof(unit));
+    std::memcpy(&unit, bytes + (index * sizeof(std::uint16_t)), sizeof(unit));
 
-    return result<char16_t>::success(unit);
+    return result<std::uint16_t>::success(unit);
   }
 } // namespace adaptive_json5

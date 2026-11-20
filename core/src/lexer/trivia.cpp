@@ -9,6 +9,7 @@
 #include "unicode/utf8.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -26,10 +27,10 @@ namespace adaptive_json5
    */
   status_result skip_strict_json_whitespace(cursor& source) noexcept
   {
-    constexpr char32_t c_space = 0x0020;
-    constexpr char32_t c_horizontal_tab = 0x0009;
-    constexpr char32_t c_carriage_return = 0x000D;
-    constexpr char32_t c_line_feed = 0x000A;
+    constexpr std::uint32_t c_space = 0x0020;
+    constexpr std::uint32_t c_horizontal_tab = 0x0009;
+    constexpr std::uint32_t c_carriage_return = 0x000D;
+    constexpr std::uint32_t c_line_feed = 0x000A;
 
     // A later encoding failure must not publish partial consumption.
     cursor candidate = source;
@@ -52,7 +53,7 @@ namespace adaptive_json5
         break;
       }
 
-      const char32_t value = character->value;
+      const std::uint32_t value = character->value;
 
       // JSON5's additional whitespace must remain inadmissable in strict JSON.
       if ((value != c_space) && (value != c_horizontal_tab) && (value != c_carriage_return) && (value != c_line_feed))
