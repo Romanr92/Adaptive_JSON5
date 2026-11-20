@@ -331,7 +331,7 @@ namespace adaptive_json5
     }
 
     // export_utf8 writes std::byte; std::byte may alias any object, including a char buffer.
-    const auto written = export_utf8(**text.value_if(), reinterpret_cast<std::byte*>(buffer), capacity);
+    const auto written = export_utf8(**text.value_if(), static_cast<std::byte*>(static_cast<void*>(buffer)), capacity);
 
     if (!written.has_value())
     {
@@ -383,7 +383,8 @@ namespace adaptive_json5
     }
 
     // export_utf8 writes std::byte; std::byte may alias any object, including a char buffer.
-    const auto written = export_utf8(**text.value_if(), reinterpret_cast<std::byte*>(buffer), capacity);
+    // Converting through void* keeps the cast a static_cast (MISRA C++:2023 Rule 8.2.5).
+    const auto written = export_utf8(**text.value_if(), static_cast<std::byte*>(static_cast<void*>(buffer)), capacity);
 
     if (!written.has_value())
     {

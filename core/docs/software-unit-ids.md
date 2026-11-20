@@ -33,11 +33,11 @@ library was checked to be byte-identical before and after.
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
-| LEXER | SWU-LEXER-053 | SWU-LEXER-054 |
+| LEXER | SWU-LEXER-056 | SWU-LEXER-057 |
 | MEMORY | SWU-MEMORY-077 | SWU-MEMORY-078 |
 | PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
-| VALUE | SWU-VALUE-170 | SWU-VALUE-171 |
+| VALUE | SWU-VALUE-183 | SWU-VALUE-184 |
 
 ## API
 
@@ -201,6 +201,8 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-051 | used | `skip_json5_whitespace(cursor &)` | `core/src/lexer/whitespace.cpp` | `core/includes/lexer/whitespace.hpp` |
 | SWU-LEXER-052 | used | `value_string_checks(const parse_options &)` | `core/includes/lexer/string/string_checks.hpp` | — |
 | SWU-LEXER-053 | used | `name_string_checks(const parse_options &)` | `core/includes/lexer/string/string_checks.hpp` | — |
+| SWU-LEXER-055 | used | `(anonymous)::starts_signed_name(const cursor &)` | `core/src/lexer/number/number_lexer.cpp` | — |
+| SWU-LEXER-056 | used | `(anonymous)::measure_unknown_word(const cursor &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | — |
 
 ## MEMORY
 
@@ -524,3 +526,15 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-168 | used | `detail::document_access::set_source_span(document &, value_index, source_span, std::size_t)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
 | SWU-VALUE-169 | used | `detail::document_access::set_member_name_source_span(document &, value_index, source_span, std::size_t)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
 | SWU-VALUE-170 | used | `detail::document_access::set_root(document &, value_index)` | `core/src/value/document_access.cpp` | `core/includes/value/document_access.hpp` |
+| SWU-VALUE-172 | used | `detail::record_link::record_link()` | `core/includes/value/record_link.hpp` | — |
+| SWU-VALUE-173 | used | `detail::record_link::record_link(std::size_t)` | `core/includes/value/record_link.hpp` | — |
+| SWU-VALUE-174 | used | `detail::record_link::is_set()` | `core/includes/value/record_link.hpp` | — |
+| SWU-VALUE-175 | used | `detail::record_link::position()` | `core/includes/value/record_link.hpp` | — |
+| SWU-VALUE-176 | used | `detail::value_storage::issue(std::size_t)` | `core/src/value/value_storage.cpp` | `includes/adaptive_json5/value/document.hpp` |
+| SWU-VALUE-177 | used | `(anonymous)::exact_power_of_ten<T>(std::size_t)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-178 | used | `(anonymous)::rounds_to_nearest()` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-179 | used | `value_view::children()` | `core/src/value/value_view.cpp` | `includes/adaptive_json5/value/value_view.hpp` |
+| SWU-VALUE-180 | used | `json5_iterator::json5_iterator(result<value_iterator>, const storage_callbacks &)` | `core/src/value/json5_iterator.cpp` | `includes/adaptive_json5/json5_iterator.hpp` |
+| SWU-VALUE-181 | used | `json5_iterator::next()` | `core/src/value/json5_iterator.cpp` | `includes/adaptive_json5/json5_iterator.hpp` |
+| SWU-VALUE-182 | used | `json5_value::children()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
+| SWU-VALUE-183 | used | `json5_value::name(char *, std::size_t)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |

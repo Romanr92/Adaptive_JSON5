@@ -40,6 +40,15 @@ namespace adaptive_json5
 
     public:
       /**
+       * @brief End the walk; releases nothing, because the iterator owns no storage.
+       * @par Requirements
+       * J5-030; J5-040.
+       * @note The document and its storage are unaffected; values already returned by
+       * next() stay valid while the document lives.
+       */
+      ~json5_iterator() noexcept;
+
+      /**
        * @brief Prevent copying, so one walk has exactly one traversal position.
        * @par Requirements
        * J5-030; J5-040.

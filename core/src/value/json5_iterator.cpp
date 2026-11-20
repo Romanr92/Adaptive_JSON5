@@ -23,6 +23,15 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief End the walk; releases nothing, because the iterator owns no storage.
+   * @par Requirements
+   * J5-030; J5-040.
+   * @note Defined here, not inline, so the destructor is always emitted in the library
+   * and static analysis can check the class (MISRA C++:2023 Rule 15.0.1).
+   */
+  json5_iterator::~json5_iterator() noexcept = default;
+
+  /**
    * @brief Return the next child, or an empty optional at the end.
    * @par Requirements
    * J5-030; J5-031; J5-039; J5-048; SSR-02.
