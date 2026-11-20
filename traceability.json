@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "746 tests"
+      "detail": "751 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "746 tests"
+      "detail": "751 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "746 tests"
+      "detail": "751 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "746 tests"
+      "detail": "751 tests"
     }
   },
   "metrics": {
@@ -7398,7 +7398,8 @@
             "parse",
             "values",
             "current_bytes",
-            "peak_bytes"
+            "peak_bytes",
+            "release"
           ],
           "note": "",
           "problems": []
@@ -7707,6 +7708,17 @@
           }
         },
         {
+          "id": "J5_040_HostedParse.ReleaseFreesValuesWithoutStorageFault",
+          "file": "tests/api/hosted_parse_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
           "id": "J5_040_DocumentStorageOwner.MovesPreserveAccountingAndReleaseOnce",
           "file": "core/tests/memory/document_storage_tests.cpp",
           "problem": "",
@@ -7730,6 +7742,39 @@
         },
         {
           "id": "J5_040_Json5Document.BufferIsReusableAfterDestructionAndFailure",
+          "file": "tests/api/json5_document_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_040_Json5Document.ReleaseFreesValuesAndKeepsAccounting",
+          "file": "tests/api/json5_document_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_040_Json5Document.CleanDocumentReportsNoStorageFault",
+          "file": "tests/api/json5_document_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_040_Json5Document.MovedFromDocumentReportsNoStorageFault",
           "file": "tests/api/json5_document_tests.cpp",
           "problem": "",
           "results": {
@@ -8868,6 +8913,18 @@
         },
         {
           "files": [
+            "includes/adaptive_json5/json5_document.hpp",
+            "core/src/memory/json5_document.cpp"
+          ],
+          "symbols": [
+            "release",
+            "storage_faulted"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
             "core/includes/lexer/number/decimal_lexer.hpp",
             "core/src/lexer/number/decimal_lexer.cpp"
           ],
@@ -9846,6 +9903,17 @@
         },
         {
           "id": "J5_046_BufferDocumentStorage.PhysicalExhaustionAllowsRetry",
+          "file": "core/tests/memory/document_storage_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_046_Json5DocumentStorageFault.RefusedReleaseIsVisibleBeforeAndAfterRelease",
           "file": "core/tests/memory/document_storage_tests.cpp",
           "problem": "",
           "results": {
