@@ -8,6 +8,7 @@
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
 #include "adaptive_json5/value/value_index.hpp"
+#include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "common/internal_link.hpp"
 #include "value/container_links.hpp"
@@ -516,5 +517,22 @@ namespace adaptive_json5
     }
 
     return result<value_index>::success(m_index);
+  }
+
+  /**
+   * @brief Begin linear direct-child iteration over this array or object.
+   * @par Requirements
+   * P030; J5-030; J5-031; J5-039; J5-048; SSR-02; #154.
+   * @par ID SWU-VALUE-179
+   */
+  result<value_iterator> value_view::children() const noexcept
+  {
+    if (m_storage == nullptr)
+    {
+      return result<value_iterator>::failure(error::access_failure(access_error_reason::invalid_argument));
+    }
+
+    // create() rejects scalars (wrong_type) and damaged child lists (internal_error).
+    return value_iterator::create(*m_storage, m_index);
   }
 } // namespace adaptive_json5

@@ -1,11 +1,13 @@
 #include "adaptive_json5/json5_value.hpp"
 
 #include "adaptive_json5/error.hpp"
+#include "adaptive_json5/json5_iterator.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/floating_conversion.hpp"
 #include "adaptive_json5/value/integer_conversion.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
+#include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 
@@ -163,8 +165,6 @@ namespace adaptive_json5
    */
   json5_value json5_value::at(std::size_t index) const noexcept
   {
-    using view_result = result<value_view>;
-
     if (!m_value.has_value())
     {
       return *this;
@@ -339,5 +339,23 @@ namespace adaptive_json5
     }
 
     return string_result::success(std::string_view{buffer, *written.value_if()});
+  }
+
+  /**
+   * @brief Begin a linear walk over the elements of an array or the members of an object.
+   * @par Requirements
+   * J5-030; J5-031; J5-039; J5-048; SSR-02; #154.
+   * @par ID SWU-VALUE-182
+   */
+  json5_iterator json5_value::children() const noexcept
+  {
+    // Pass a held error on; the iterator reports it from next().
+    if (!m_value.has_value())
+    {
+      return json5_iterator{result<value_iterator>::failure(*m_value.error_if()), m_scratch};
+    }
+
+    // value_view::children() rejects scalars (wrong_type) and damaged child lists (internal_error).
+    return json5_iterator{m_value.value_if()->children(), m_scratch};
   }
 } // namespace adaptive_json5

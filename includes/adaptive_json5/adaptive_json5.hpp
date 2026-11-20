@@ -21,6 +21,7 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/json5_document.hpp"
+#include "adaptive_json5/json5_iterator.hpp"
 #include "adaptive_json5/json5_value.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/buffer_arena.hpp"
