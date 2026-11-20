@@ -958,4 +958,80 @@ namespace
     }
   }
   /* ================================= End Test_J5_048 ================================= */
+  /* =================================== Test_J5_031 =================================== */
+
+  static_assert(noexcept(std::declval<const json5_value&>().name(nullptr, 0U)));
+  static_assert(
+    std::is_same_v<decltype(std::declval<const json5_value&>().name(nullptr, 0U)), result<std::string_view>>);
+
+  /* Verify name() gives each member's decoded name while walking an object with children().
+   * Arrange: An object with a plain, an empty, an escaped and a repeated name.
+   * Act: Walk it with children() and read name() of every member.
+   * Expect: The decoded names in source order, both copies of the repeated name, and the
+   *         same name through member().
+   */
+  TEST(J5_031_Json5ValueName, ReadsMemberNamesInSourceOrder)
+  {
+    /* Arrange */
+    parsed_fixture fixture{R"({a: 1, "": 2, "café": 3, a: 4})"};
+    ASSERT_TRUE(fixture.document.has_value());
+    const json5_value root = fixture.document->root();
+    char buffer[16];
+    std::vector<std::string> names;
+    /* Act */
+    const auto members = walk_children(root, 8U);
+    for (const json5_value& member : members.first)
+    {
+      const auto name = member.name(buffer, sizeof(buffer));
+      ASSERT_TRUE(name.has_value());
+      names.emplace_back(*name.value_if());
+    }
+    const auto through_member = root.member("").name(buffer, sizeof(buffer));
+    /* Expect */
+    EXPECT_FALSE(members.second.has_value());
+    EXPECT_EQ(names, (std::vector<std::string>{"a", "", "caf\xC3\xA9", "a"}));
+    ASSERT_TRUE(through_member.has_value());
+    EXPECT_TRUE(through_member.value_if()->empty());
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify name() reports values without a name, held errors and export failures.
+   * Arrange: The configuration document, and an object whose name is an unpaired surrogate.
+   * Act: Read name() of the root, an array element, a missing member, a member into a
+   *      too-small buffer and the surrogate name.
+   * Expect: wrong_type for the root and the element; the held absent_member; resource_limit
+   *         for the small buffer; encoding for the surrogate.
+   */
+  TEST(J5_031_Json5ValueName, ReportsUnnamedValuesAndExportErrors)
+  {
+    /* Arrange */
+    parsed_fixture fixture{c_config};
+    parsed_fixture surrogate{R"({"\uD800": 1})"};
+    ASSERT_TRUE(fixture.document.has_value());
+    ASSERT_TRUE(surrogate.document.has_value());
+    const json5_value root = fixture.document->root();
+    char buffer[16];
+    char small[2];
+    /* Act */
+    const auto of_root = root.name(buffer, sizeof(buffer));
+    const auto of_element = root.member("tags").at(0).name(buffer, sizeof(buffer));
+    const auto of_missing = root.member("absent").name(buffer, sizeof(buffer));
+    const auto too_small = root.member("server").name(small, sizeof(small));
+    const auto unpaired = walk_children(surrogate.document->root(), 4U);
+    ASSERT_EQ(unpaired.first.size(), 1U);
+    const auto of_surrogate = unpaired.first[0].name(buffer, sizeof(buffer));
+    /* Expect */
+    ASSERT_FALSE(of_root.has_value());
+    EXPECT_EQ(of_root.error_if()->access_reason(), access_error_reason::wrong_type);
+    ASSERT_FALSE(of_element.has_value());
+    EXPECT_EQ(of_element.error_if()->access_reason(), access_error_reason::wrong_type);
+    ASSERT_FALSE(of_missing.has_value());
+    EXPECT_EQ(of_missing.error_if()->access_reason(), access_error_reason::absent_member);
+    ASSERT_FALSE(too_small.has_value());
+    EXPECT_EQ(too_small.error_if()->code(), error_code::resource_limit);
+    ASSERT_FALSE(of_surrogate.has_value());
+    EXPECT_EQ(of_surrogate.error_if()->code(), error_code::encoding);
+  }
+  /* ================================= End Test_J5_031 ================================= */
 } // namespace

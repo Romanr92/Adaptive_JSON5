@@ -1516,7 +1516,7 @@
         },
         {
           "files": ["includes/adaptive_json5/json5_value.hpp", "core/src/value/json5_value.cpp"],
-          "symbols": ["as_uint64", "member", "size"]
+          "symbols": ["as_uint64", "member", "name", "size"]
         }
       ],
       "tests": [
@@ -1542,6 +1542,8 @@
           "file": "tests/api/json5_value_tests.cpp",
           "names": [
             "Sizes/J5_031_MemberLookup.FindsFirstLastMissingAndDuplicate",
+            "J5_031_Json5ValueName.ReadsMemberNamesInSourceOrder",
+            "J5_031_Json5ValueName.ReportsUnnamedValuesAndExportErrors",
             "J5_031_ValueView.FindMemberResolvesOnlyUniqueNames",
             "J5_031_ValueView.FindMemberRejectsInvalidUtf8Anywhere"
           ]

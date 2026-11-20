@@ -358,4 +358,38 @@ namespace adaptive_json5
     // value_view::children() rejects scalars (wrong_type) and damaged child lists (internal_error).
     return json5_iterator{m_value.value_if()->children(), m_scratch};
   }
+
+  /**
+   * @brief Copy the member name of this value as UTF-8 into a caller buffer.
+   * @par Requirements
+   * J5-029; J5-031; J5-033; J5-039; J5-041; #154.
+   * @par ID SWU-VALUE-183
+   */
+  result<std::string_view> json5_value::name(char* buffer, std::size_t capacity) const noexcept
+  {
+    using string_result = result<std::string_view>;
+
+    if (!m_value.has_value())
+    {
+      return string_result::failure(*m_value.error_if());
+    }
+
+    // member_name() reports wrong_type for the root and array elements, which have no name.
+    const auto text = m_value.value_if()->member_name();
+
+    if (!text.has_value())
+    {
+      return string_result::failure(*text.error_if());
+    }
+
+    // export_utf8 writes std::byte; std::byte may alias any object, including a char buffer.
+    const auto written = export_utf8(**text.value_if(), reinterpret_cast<std::byte*>(buffer), capacity);
+
+    if (!written.has_value())
+    {
+      return string_result::failure(*written.error_if());
+    }
+
+    return string_result::success(std::string_view{buffer, *written.value_if()});
+  }
 } // namespace adaptive_json5

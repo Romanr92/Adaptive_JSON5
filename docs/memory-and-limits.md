@@ -50,7 +50,8 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
   chained and the final read reports it. `ok()` and `error_if()` check a step directly.
 - **Duplicate names:** JSON5 allows an object to repeat a member name, and the
   document keeps every member. `member(name)` then reports `wrong_type_or_access`
-  with `access_reason()` `duplicate_member` instead of choosing one. Iterate through `values()` to see all of them.
+  with `access_reason()` `duplicate_member` instead of choosing one. Walk the object with
+  `children()` and read each member's `name()` to see all of them.
 - `as_bool`, `as_int64` and `as_uint64` read exactly; `1.0` is an integer, `1.5`
   is not. `as_double` and `as_float` round once, directly to the target type.
   `as_string(buffer, capacity)` writes UTF-8 without a terminating NUL and reports
@@ -100,7 +101,18 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
   ```
 
   `next()` returns an empty optional at the end, and keeps doing so. It reports a held
-  error or `wrong_type` (scalar) instead of a child. The iterator borrows the document like
+  error or `wrong_type` (scalar) instead of a child.
+- **Member names:** `name(buffer, capacity)` copies the decoded name of an object member
+  as UTF-8, like `as_string()`. Together with `children()` it lists every member of an
+  object, duplicate names included, which `member(name)` cannot do:
+
+  ```cpp
+  char key[64];
+  const auto name = member.name(key, sizeof(key));   // result<std::string_view>
+  ```
+
+  The root and array elements have no name and report `wrong_type`; a too-small buffer
+  reports `resource_limit`, and an unpaired surrogate reports `encoding`. The iterator borrows the document like
   a `json5_value`, allocates nothing, and cannot be copied or moved (#154).
 - A `json5_value` borrows its document: don't keep it after the document is
   destroyed or moved.

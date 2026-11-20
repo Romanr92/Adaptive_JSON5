@@ -292,6 +292,22 @@ namespace adaptive_json5
        * @par ID SWU-VALUE-076
        */
       [[nodiscard]] result<std::string_view> as_string(char* buffer, std::size_t capacity) const noexcept;
+
+      /**
+       * @brief Copy the member name of this value as UTF-8 into a caller buffer.
+       * @par Requirements
+       * J5-029; J5-031; J5-033; J5-039; J5-041; #154.
+       * @param buffer Destination for the UTF-8 bytes; no terminating NUL is written.
+       * @param capacity Bytes available in buffer.
+       * @return A view of the written bytes inside buffer; the held error;
+       * wrong_type_or_access (wrong_type) when this value is not an object member (the root
+       * or an array element); resource_limit when capacity is too small; encoding for an
+       * unpaired surrogate.
+       * @note An empty name succeeds with an empty view. Pairs with children() to read the
+       * names of all members, duplicates included. Allocates nothing.
+       * @par ID SWU-VALUE-183
+       */
+      [[nodiscard]] result<std::string_view> name(char* buffer, std::size_t capacity) const noexcept;
   };
 } // namespace adaptive_json5
 
