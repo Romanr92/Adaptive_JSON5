@@ -172,6 +172,30 @@ namespace adaptive_json5
       [[nodiscard]] std::size_t current_bytes() const noexcept;
 
       /**
+       * @brief Release every parsed allocation now, keeping the storage accounting alive.
+       * @par Requirements
+       * J5-040; J5-046; J5-051; SSR-02; SSR-08.
+       * @note Afterwards the document behaves as moved-from: root() fails, warning_count()
+       * and current_bytes() are 0 and source() is empty. Safe to call more than once and on
+       * a moved-from document. Destruction afterwards only destroys the control block.
+       * Use with storage_faulted() to check A-09 / safety manual C-3.8.
+       * Must not overlap with any other access to this document.
+       * @par ID SWU-MEMORY-080
+       */
+      void release() noexcept;
+
+      /**
+       * @brief Report whether the storage accounting refused a release (FMEA ME-03).
+       * @par Requirements
+       * J5-046; SSR-02; SSR-08.
+       * @return accounted_storage::faulted(); false after ownership was moved away.
+       * @note Call release() first so the document's own releases are included. When true,
+       * discard the document's buffer and treat it as a library fault (A-06, A-09).
+       * @par ID SWU-MEMORY-081
+       */
+      [[nodiscard]] bool storage_faulted() const noexcept;
+
+      /**
        * @brief Report the highest outstanding requested allocation byte count.
        * @par Requirements
        * J5-046; J5-047.

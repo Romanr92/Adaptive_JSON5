@@ -389,4 +389,4 @@ the `owned_block` that owns it, and checks `faulted()` after releasing a documen
 - With the simple API (`json5_document::parse`, `hosted::parse`) the
   `accounted_storage` is inside the document. Call `json5_document::release()`,
   then check `json5_document::storage_faulted()` before destroying the document
-  (#157, planned; not implemented yet).
+  (#157).

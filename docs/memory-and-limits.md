@@ -308,8 +308,7 @@ release blocks only through it and check `faulted()` after releasing a document
 
 **Checking the fault with `json5_document`.** With `json5_document::parse` and
 `hosted::parse` the `accounted_storage` lives inside the document and is
-destroyed with it, so the check is done in two steps before destruction
-(#157, planned; not implemented yet):
+destroyed with it, so the check is done in two steps before destruction (#157):
 
 ```cpp
 doc.release();               // frees every parsed block; the accounting stays alive

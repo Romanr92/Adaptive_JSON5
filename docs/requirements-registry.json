@@ -2237,7 +2237,7 @@
         },
         {
           "files": ["includes/adaptive_json5/json5_document.hpp", "core/src/memory/json5_document.cpp"],
-          "symbols": ["json5_document", "parse", "values", "current_bytes", "peak_bytes"]
+          "symbols": ["json5_document", "parse", "values", "current_bytes", "peak_bytes", "release"]
         },
         {
           "files": ["includes/adaptive_json5/value/document.hpp", "core/src/value/value_storage.cpp"],
@@ -2337,7 +2337,8 @@
           "file": "tests/api/hosted_parse_tests.cpp",
           "names": [
             "J5_040_HostedParse.MoveKeepsDocumentAndStorage",
-            "J5_040_HostedParse.EachCallOwnsIndependentStorage"
+            "J5_040_HostedParse.EachCallOwnsIndependentStorage",
+            "J5_040_HostedParse.ReleaseFreesValuesWithoutStorageFault"
           ]
         },
         {
@@ -2350,7 +2351,10 @@
           "file": "tests/api/json5_document_tests.cpp",
           "names": [
             "J5_040_Json5Document.MoveKeepsDocumentAndStorage",
-            "J5_040_Json5Document.BufferIsReusableAfterDestructionAndFailure"
+            "J5_040_Json5Document.BufferIsReusableAfterDestructionAndFailure",
+            "J5_040_Json5Document.ReleaseFreesValuesAndKeepsAccounting",
+            "J5_040_Json5Document.CleanDocumentReportsNoStorageFault",
+            "J5_040_Json5Document.MovedFromDocumentReportsNoStorageFault"
           ]
         },
         {
@@ -2726,6 +2730,10 @@
           "symbols": ["accounted_storage", "allocate", "allocate_array", "callbacks", "current_bytes", "peak_bytes", "faulted"]
         },
         {
+          "files": ["includes/adaptive_json5/json5_document.hpp", "core/src/memory/json5_document.cpp"],
+          "symbols": ["release", "storage_faulted"]
+        },
+        {
           "files": ["core/includes/lexer/number/decimal_lexer.hpp", "core/src/lexer/number/decimal_lexer.cpp"],
           "symbols": ["has_value"]
         },
@@ -2969,7 +2977,8 @@
           "names": [
             "P003/J5_046_BufferDocumentAlignment.FitsWithinCallerSlice",
             "J5_046_BufferDocumentStorage.RejectsNullEmptyAndUndersizedBuffers",
-            "J5_046_BufferDocumentStorage.PhysicalExhaustionAllowsRetry"
+            "J5_046_BufferDocumentStorage.PhysicalExhaustionAllowsRetry",
+            "J5_046_Json5DocumentStorageFault.RefusedReleaseIsVisibleBeforeAndAfterRelease"
           ]
         },
         {

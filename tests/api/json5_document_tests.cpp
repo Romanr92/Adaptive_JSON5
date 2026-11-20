@@ -289,6 +289,92 @@ namespace
     EXPECT_EQ(again.value_if()->current_bytes(), first_bytes);
     EXPECT_EQ(again.value_if()->values().size(), 6U);
   }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify release() frees the parsed values early and leaves an empty document.
+   * Arrange: A parsed object with a string and numbers, retaining its source, in a caller buffer.
+   * Act: Call release() twice.
+   * Expect: The document is empty like a moved-from one, has no storage fault, and keeps
+   * its peak byte count.
+   */
+  TEST(J5_040_Json5Document, ReleaseFreesValuesAndKeepsAccounting)
+  {
+    /* Arrange */
+    const std::string text = R"({"items": [1, 2, 3], "name": "release"})";
+    caller_buffer memory{};
+    parse_options options{};
+    options.source_text = source_retention_policy::retain_copy;
+    auto parsed = json5_document::parse({text.data(), text.size()}, memory.bytes, sizeof(memory.bytes), options);
+    ASSERT_TRUE(parsed.has_value());
+    json5_document& document = *parsed.value_if();
+    ASSERT_GT(document.current_bytes(), 0U);
+    ASSERT_FALSE(!document.source().is_retained());
+    const std::size_t peak = document.peak_bytes();
+    /* Act */
+    document.release();
+    document.release();
+    /* Expect */
+    EXPECT_EQ(document.current_bytes(), 0U);
+    EXPECT_EQ(document.peak_bytes(), peak);
+    EXPECT_EQ(document.values().size(), 0U);
+    EXPECT_EQ(document.warning_count(), 0U);
+    EXPECT_TRUE(!document.source().is_retained());
+    EXPECT_FALSE(document.root().ok());
+    EXPECT_FALSE(document.storage_faulted());
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify a document with no refused release reports no storage fault.
+   * Arrange: A parsed array in a caller buffer.
+   * Act: Read storage_faulted() before and after release().
+   * Expect: Both reads are false.
+   */
+  TEST(J5_040_Json5Document, CleanDocumentReportsNoStorageFault)
+  {
+    /* Arrange */
+    const std::string text = "[1, 2, 3]";
+    caller_buffer memory{};
+    auto parsed = json5_document::parse({text.data(), text.size()}, memory.bytes, sizeof(memory.bytes));
+    ASSERT_TRUE(parsed.has_value());
+    json5_document& document = *parsed.value_if();
+    /* Act */
+    const bool before = document.storage_faulted();
+    document.release();
+    const bool after = document.storage_faulted();
+    /* Expect */
+    EXPECT_FALSE(before);
+    EXPECT_FALSE(after);
+  }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  /* Verify a moved-from document reports no storage fault and tolerates release().
+   * Arrange: A parsed array in a caller buffer, moved into a new document.
+   * Act: Read storage_faulted() on the source, call release() on it, then read again.
+   * Expect: The source reports false both times; the destination keeps its values.
+   */
+  TEST(J5_040_Json5Document, MovedFromDocumentReportsNoStorageFault)
+  {
+    /* Arrange */
+    const std::string text = "[1, 2, 3]";
+    caller_buffer memory{};
+    auto parsed = json5_document::parse({text.data(), text.size()}, memory.bytes, sizeof(memory.bytes));
+    ASSERT_TRUE(parsed.has_value());
+    json5_document& source = *parsed.value_if();
+    const json5_document destination{std::move(source)};
+    /* Act */
+    const bool before = source.storage_faulted();
+    source.release();
+    const bool after = source.storage_faulted();
+    /* Expect */
+    EXPECT_FALSE(before);
+    EXPECT_FALSE(after);
+    EXPECT_EQ(source.current_bytes(), 0U);
+    EXPECT_EQ(destination.values().size(), 4U);
+    EXPECT_FALSE(destination.storage_faulted());
+  }
   /* ================================= End Test_J5_040 ================================= */
   /* =================================== Test_J5_017 =================================== */
 
