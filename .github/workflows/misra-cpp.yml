@@ -24,12 +24,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes clang-18 ninja-build
           clang++-18 --version
-      - name: Initialize CodeQL MISRA and security analysis
-        uses: github/codeql-action/init@v4
-        with:
-          languages: c-cpp
-          build-mode: manual
-          config-file: .github/codeql/misra.yml
+      # Configure before CodeQL starts tracing, so CMake's compiler-detection sources
+      # (build/misra/CMakeFiles/*/CompilerIdCXX) are not analysed as project code.
       - name: Configure production analysis build
         run: >-
           cmake -S . -B build/misra -G Ninja
@@ -40,6 +36,12 @@ jobs:
           -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF
           -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF
           -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+      - name: Initialize CodeQL MISRA and security analysis
+        uses: github/codeql-action/init@v4
+        with:
+          languages: c-cpp
+          build-mode: manual
+          config-file: .github/codeql/misra.yml
       - name: Trace Clang compilation
         run: cmake --build build/misra --parallel "$(nproc)"
       - name: Run CodeQL MISRA and security analysis

@@ -86,3 +86,5 @@ measures. The owner approves each deviation.
   which already holds the fail-fast text on another branch.
 - Agree complexity limits (STD-07).
 - Start the deviation register (#137).
+- Fix the baseline MISRA C++:2023 findings in the order of
+  [misra-baseline-findings.md](misra-baseline-findings.md) (#166).
