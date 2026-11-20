@@ -59,7 +59,7 @@ matters for each:
 | --- | --- | --- | --- |
 | T-01 | No heap; every access bounds-checked; checked size arithmetic; no recursion; input/buffer overlap detected ([SSR-01, SSR-08](../requirements.md#k-software-safety-requirements-iso-26262)) | Blocking sanitizer and fuzz runs (#132), second compiler (#141) | Memory protection (MPU, PMP, MMU), stack guard regions, ASLR where the OS offers it ([CA-03](cybersecurity-assumptions.md#ca-03-how-memory-is-laid-out-and-why-it-matters)) |
 | T-02 | The `reject_duplicates` duplicate-name policy; `member()` reports an ambiguous name as an error under the default policy | **Secure mode** (section 5) | Use secure mode, or at least `reject_duplicates`, for security-relevant data. **Authenticate the source**: a successful parse only means the syntax is valid, not that the sender is genuine |
-| T-03 | Inclusive resource limits and the work budget ([SSR-02](../requirements.md#k-software-safety-requirements-iso-26262)) | Fix the `as_double()` buffer use and the quadratic `member()` lookup (#124) | Choose every limit for the use case ([A-04](../ISO26262-safety/seooc-assumptions.md#a-04-the-integrator-sets-the-resource-limits)); watchdog or timing supervision |
+| T-03 | Inclusive resource limits and the work budget ([SSR-02](../requirements.md#k-software-safety-requirements-iso-26262)); linear iteration over arrays and objects with `children()` (#154) | Fix the `as_double()` buffer use and the quadratic `member()` lookup (#124) | Choose every limit for the use case ([A-04](../ISO26262-safety/seooc-assumptions.md#a-04-the-integrator-sets-the-resource-limits)); watchdog or timing supervision |
 | T-04 | Errors carry a code, a byte offset and an optional range, not memory contents; a copy of the input is kept only if the integrator enables `retain_copy` (off by default) | — | Decide where error messages and retained input go; do not send them to untrusted receivers |
 | T-05 | Pinned GoogleTest commit; Unicode tables checked by unit tests | Pinned CI actions, hashed tool installs, SBOM and signed or attested releases (#131); second compiler (#141) | Verify release checksums and signatures; build from a tagged release |
 | T-06 | The library never runs or interprets values or member names: no evaluation, no format strings. To the library, a string is just text with an exact length | **Secure mode** rejects zero bytes, control characters and unpaired surrogates (section 5) | Treat every string and member name as untrusted. Escape it for its destination (shell, path, log, script). Always use the returned length: `as_string()` writes no terminating zero byte, and strings may contain zero bytes inside them. Append a terminator only after checking both |
@@ -103,6 +103,9 @@ another untrusted source. It is available: `secure_parse_options()` in
   unit and validation tests.
 - Until #124 is fixed, an attacker can make repeated `as_double()` reads fail and slow
   down `member()` on large objects (T-03).
+- `at(index)` walks from the first element, so an `at(i)` loop over a large array is
+  quadratic. The library offers linear iteration with `children()` (#154); the residual
+  risk is an integrator who loops with `at(i)` anyway (T-03, manual C-4.6).
 - Until secure mode exists, T-02 and T-06 rely on the integrator's own checks, apart
   from `reject_duplicates`.
 - Impact ratings and risk values remain the integrator's job.

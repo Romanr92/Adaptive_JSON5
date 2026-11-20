@@ -75,6 +75,33 @@ const auto first = root.member("hosts").at(0).as_string(name, sizeof(name));
   read.
 - `member(name)` looks at each member once, so a lookup costs time proportional to
   the object's size.
+- **Visiting every element or member:** use `children()`, not an `at(i)` loop. `at(index)`
+  walks from the first element, so one call costs time proportional to `index`, and a
+  loop over all elements takes time proportional to the square of the array's size
+  (about 2.4 ms for 1023 elements, measured on x86-64). `children()` returns a
+  `json5_iterator` whose `next()` does constant work, so a full walk is linear:
+
+  ```cpp
+  auto it = root.member("hosts").children();      // arrays and objects, in source order
+  for (;;)
+  {
+    const auto step = it.next();                   // result is not assignable: one per call
+    if (!step.has_value())
+    {
+      break;                                       // held error, wrong_type or damaged list
+    }
+    if (!step.value_if()->has_value())
+    {
+      break;                                       // end of the walk
+    }
+    const adaptive_json5::json5_value& host = **step.value_if();
+    // ...
+  }
+  ```
+
+  `next()` returns an empty optional at the end, and keeps doing so. It reports a held
+  error or `wrong_type` (scalar) instead of a child. The iterator borrows the document like
+  a `json5_value`, allocates nothing, and cannot be copied or moved (#154).
 - A `json5_value` borrows its document: don't keep it after the document is
   destroyed or moved.
 

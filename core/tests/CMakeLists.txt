@@ -120,6 +120,7 @@ target_include_directories(adaptive_json5_whitespace_unit_tests PRIVATE "${PROJE
 adaptive_json5_add_unit(adaptive_json5_value_storage_unit_tests document_units
     value/value_storage_tests.cpp
     value/relationship_validation_tests.cpp
+    value/child_iteration_tests.cpp
     value/attachment_validation_tests.cpp
     value/document_tests.cpp
     value/member_name_span_tests.cpp)

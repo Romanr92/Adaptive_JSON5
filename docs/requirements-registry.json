@@ -1435,7 +1435,15 @@
         },
         {
           "files": ["includes/adaptive_json5/json5_value.hpp", "core/src/value/json5_value.cpp"],
-          "symbols": ["json5_value", "member", "at", "size", "kind", "as_bool", "as_int64", "as_uint64", "as_double", "as_string"]
+          "symbols": ["json5_value", "member", "at", "size", "kind", "as_bool", "as_int64", "as_uint64", "as_double", "as_string", "children"]
+        },
+        {
+          "files": ["includes/adaptive_json5/json5_iterator.hpp", "core/src/value/json5_iterator.cpp"],
+          "symbols": ["json5_iterator", "next"]
+        },
+        {
+          "files": ["includes/adaptive_json5/value/value_view.hpp", "core/src/value/value_view.cpp"],
+          "symbols": ["children"]
         },
         {
           "files": ["core/includes/value/utf8_name_equal.hpp", "core/src/value/utf8_name_equal.cpp"],
@@ -1454,6 +1462,12 @@
           ]
         },
         {
+          "file": "core/tests/value/child_iteration_tests.cpp",
+          "names": [
+            "J5_048_ChildIteration.RejectsDefaultViewAndScalar"
+          ]
+        },
+        {
           "file": "core/tests/parser/parser_engine_tests.cpp",
           "names": [
             "J5_028_ContainerValues.RetainsMixedContentAndChildSpans"
@@ -1469,7 +1483,9 @@
           "file": "tests/api/json5_value_tests.cpp",
           "names": [
             "J5_030_Json5Value.NavigatesNestedValues",
-            "J5_030_Json5Value.ReportsEveryKind"
+            "J5_030_Json5Value.ReportsEveryKind",
+            "J5_048_Json5Iterator.VisitsObjectMembersInSourceOrder",
+            "J5_048_Json5Iterator.ReportsWrongTypeAndHeldErrors"
           ]
         }
       ]
@@ -3242,6 +3258,18 @@
           "names": [
             "J5_048_NumberComparison.EnforcesWorkAndScratchCeilings",
             "J5_048_NumberComparison.FailsEveryScratchAllocationAndAllowsRetry"
+          ]
+        },
+        {
+          "file": "core/tests/value/child_iteration_tests.cpp",
+          "names": [
+            "Sizes/J5_048_ChildIteration.ReadsEachElementRecordOnce"
+          ]
+        },
+        {
+          "file": "tests/api/json5_value_tests.cpp",
+          "names": [
+            "Sizes/J5_048_Json5Iterator.VisitsEveryElementOnceInOrder"
           ]
         }
       ]

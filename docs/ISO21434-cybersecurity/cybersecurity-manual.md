@@ -108,6 +108,10 @@ functional safety. If you use the library in a safety-related function, fill in 
   `as_double()` takes scratch memory from the document, so two simultaneous reads can
   race (#124).
   → [A-02](../ISO26262-safety/seooc-assumptions.md#a-02-concurrency-one-thread-per-document)
+- [ ] **C-4.6** You visit all elements or members of untrusted arrays and objects with
+  `children()`, not with an `at(i)` loop. `at(index)` walks from the first element, so an
+  `at(i)` loop over an attacker-sized array takes quadratic time; `children()` is linear.
+  → [TARA, T-03](tara.md#4-controls), [Memory and limits](../memory-and-limits.md), #154
 
 ## 5. Your platform
 
@@ -158,6 +162,7 @@ you use.
 | Topic | Effect for you | Tracked in |
 | --- | --- | --- |
 | `as_double()` buffer use and quadratic `member()` lookup | An attacker can make repeated reads fail or slow down lookups on large objects | #124 |
+| `at(i)` loops are quadratic | A loop of `at(i)` over a large array is slow; use `children()` instead (C-4.6) | #154 |
 | Sanitizer and fuzz runs not implemented yet | Less evidence against memory corruption than planned | #132 |
 | Static analysis not implemented yet | Less evidence than planned | #146 |
 | Releases not yet signed or attested; no SBOM | You can check integrity with checksums only | #131 |
