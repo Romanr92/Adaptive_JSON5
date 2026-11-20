@@ -26,6 +26,7 @@ namespace adaptive_json5
      */
     void* parser_stack::slot_address(const owned_block& storage, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
       // MISRA justification: Compute the frame slot as a byte offset inside the allocated block so this
       // helper also works before a frame's lifetime has started.
       // codeql::misra_deviation_next_line(DEV-002.09)
@@ -42,6 +43,7 @@ namespace adaptive_json5
      */
     parser_frame* parser_stack::live_frame(std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
       // MISRA justification: The caller supplies a slot that contains a live frame. Launder the typed
       // pointer to access the current frame even when the slot has been reused.
       // codeql::misra_deviation_next_line(DEV-002.10)
@@ -57,6 +59,7 @@ namespace adaptive_json5
      */
     const parser_frame* parser_stack::live_frame(std::size_t index) const noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
       // MISRA justification: The caller supplies a slot that contains a live frame. Launder the typed
       // pointer for read-only access to the current frame in the slot.
       // codeql::misra_deviation_next_line(DEV-002.11)
@@ -157,6 +160,7 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
+      // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
       // MISRA justification: Start the frame's lifetime in the accounted block after checking slot capacity.
       // codeql::misra_deviation_next_line(DEV-001.03)
       ::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));
@@ -206,6 +210,7 @@ namespace adaptive_json5
       }
 
       --m_size;
+      // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
       // MISRA justification: End the removed frame's lifetime while keeping its slot available for reuse.
       // The next push constructs a new frame before the slot is read again.
       // codeql::misra_deviation_next_line(DEV-001.04)

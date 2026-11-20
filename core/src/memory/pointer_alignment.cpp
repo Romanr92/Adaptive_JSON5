@@ -15,6 +15,8 @@ namespace adaptive_json5
      */
     void* align_within(std::size_t alignment, std::size_t bytes, void*& position, std::size_t& space) noexcept
     {
+      // MISRA rule: RULE-8-2-5 cpp/misra/reinterpret-cast-shall-not-be-used
+      // MISRA rule: RULE-8-2-7 cpp/misra/no-pointer-to-integral-cast
       // MISRA justification: Use the numeric address to compute alignment padding. Check that both the
       // padding and the requested object fit before advancing the position.
       // codeql::misra_deviation_next_line(DEV-003.01)

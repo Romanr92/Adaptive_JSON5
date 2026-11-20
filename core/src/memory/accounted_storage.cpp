@@ -27,6 +27,7 @@ namespace adaptive_json5
    */
   result<void*> accounted_storage::allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
     // MISRA justification: The allocation callback receives the accounted_storage pointer that callbacks()
     // registered as its context, so the cast restores the original type.
     // codeql::misra_deviation_next_line(DEV-002.01)
@@ -93,6 +94,7 @@ namespace adaptive_json5
   void accounted_storage::deallocate_callback(void* context, void* address, std::size_t bytes,
                                               std::size_t alignment) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
     // MISRA justification: The release callback receives the same accounted_storage pointer registered
     // by callbacks(), so releases update the accounting for the original provider.
     // codeql::misra_deviation_next_line(DEV-002.02)

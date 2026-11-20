@@ -17,41 +17,18 @@ import uuid
 import webbrowser
 import xml.etree.ElementTree as ET
 
+from metric_badges import result_rule
 
 ROOT = Path(__file__).resolve().parents[1]
-DEVIATION_REGISTER = ROOT / "docs/ISO26262-safety/deviation-register.md"
 DEVIATION_MARKER = re.compile(r"\s*// codeql::misra_deviation_next_line\((DEV-\d+\.\d+)\)\s*")
+SOURCE_RULE = re.compile(r"\s*// MISRA rule: ((?:RULE|DIR)-\d+(?:-\d+){1,2}) (cpp/misra/[\w-]+)\s*")
+MISRA_RULE_TAG = "external/misra/id/"
 JUSTIFICATION = "// MISRA justification: "
 SOURCE_SUFFIXES = {".cpp", ".hpp", ".h", ".c", ".cc", ".cxx", ".hh", ".hxx", ".ipp", ".inl"}
 
 
-def approved_deviations():
-    """Read per-line approvals and the rule-to-query mapping from the register."""
-    approved = {}
-    for line in DEVIATION_REGISTER.read_text(encoding="utf-8").splitlines():
-        if line.startswith("| Rule"):
-            rules = re.findall(r"\bRule (\d+\.\d+\.\d+)\b", line)
-        elif line.startswith("| CodeQL quer"):
-            queries = re.findall(r"`(cpp/misra/[^\x60]+)`", line)
-            if len(rules) != len(queries) or not queries:
-                raise ValueError("Each MISRA rule in the register needs a corresponding query.")
-            query_by_rule = dict(zip(rules, queries))
-        elif line.startswith("| DEV-"):
-            cells = [cell.strip() for cell in line.split("|")[1:-1]]
-            if not re.fullmatch(r"Approved \(\d{4}-\d{2}-\d{2}, Romanr92\)", cells[-1]):
-                continue
-            entry, location = cells[:2]
-            filename = re.match(r"`([^:]+):\d+`", location).group(1)
-            selected_rules = cells[3].split(", ") if len(cells) == 6 else rules
-            if entry in approved:
-                raise ValueError(f"Duplicate deviation approval: {entry}")
-            approved[entry] = (filename, [(rule, query_by_rule[rule]) for rule in selected_rules])
-    return approved
-
-
 def source_deviations():
-    """Return approved exceptions keyed by source file, code line, and query."""
-    approved = approved_deviations()
+    """Read source exceptions keyed by source file, code line, and query."""
     deviations = {}
     seen = set()
     for directory in ("core/src", "core/includes", "includes"):
@@ -65,8 +42,8 @@ def source_deviations():
                 if not match:
                     continue
                 entry = match[1]
-                if entry not in approved or approved[entry][0] != filename or entry in seen:
-                    raise ValueError(f"{filename}:{index + 1}: unexpected or duplicate MISRA marker {entry}")
+                if entry in seen:
+                    raise ValueError(f"{filename}:{index + 1}: duplicate MISRA marker {entry}")
 
                 start = index - 1
                 while start >= 0 and lines[start].lstrip().startswith("// "):
@@ -80,11 +57,17 @@ def source_deviations():
                 if not first or not following or following.startswith(("//", "/*")):
                     raise ValueError(f"{filename}:{index + 1}: {entry} needs a justification and a following code line")
                 justification = " ".join([first, *(part.lstrip()[3:] for part in lines[start + 1:index])])
-                for rule, query in approved[entry][1]:
-                    deviations[filename, index + 2, query] = (rule, entry, justification)
+                offset = start - 1
+                if offset < 0 or not SOURCE_RULE.fullmatch(lines[offset]):
+                    raise ValueError(f"{filename}:{index + 1}: {entry} needs a MISRA rule and query")
+                while offset >= 0 and (rule_match := SOURCE_RULE.fullmatch(lines[offset])):
+                    rule, query = rule_match.groups()
+                    key = (filename, index + 2, query)
+                    if key in deviations:
+                        raise ValueError(f"{filename}:{offset + 1}: duplicate MISRA query {query}")
+                    deviations[key] = (rule, entry, justification)
+                    offset -= 1
                 seen.add(entry)
-    if missing := approved.keys() - seen:
-        raise ValueError(f"Missing approved MISRA markers: {', '.join(sorted(missing))}")
     return deviations
 
 
@@ -101,7 +84,7 @@ def index_deviations():
     for (_, _, query), (rule, entry, justification) in source_deviations().items():
         record = ET.SubElement(records, "deviations-entry")
         for key, value in (
-            ("rule-id", "RULE-" + rule.replace(".", "-")),
+            ("rule-id", rule),
             ("query-id", query),
             ("code-identifier", entry),
             ("justification", justification),
@@ -123,8 +106,14 @@ def accepted_justifications(result):
             if item.get("status") == "accepted" and item.get("justification")]
 
 
+def misra_rule_ids(rule):
+    return sorted(tag.removeprefix(MISRA_RULE_TAG).upper()
+                  for tag in rule.get("properties", {}).get("tags", [])
+                  if tag.startswith(MISRA_RULE_TAG))
+
+
 def apply_deviations(report, upload=None):
-    """Annotate approved results in the audit SARIF and write an open-only upload."""
+    """Annotate source-justified results and write an open-only upload."""
     deviations = source_deviations()
     data = json.loads(report.read_text(encoding="utf-8-sig"))
     open_runs = []
@@ -139,7 +128,7 @@ def apply_deviations(report, upload=None):
             path = physical.get("artifactLocation", {}).get("uri", "").removeprefix("./")
             line = physical.get("region", {}).get("startLine")
             deviation = deviations.get((path, line, result.get("ruleId")))
-            if not deviation:
+            if not deviation or deviation[0] not in misra_rule_ids(result_rule(run_data, result)):
                 open_results.append(result)
                 continue
             _, entry, reason = deviation
@@ -175,6 +164,24 @@ def run(*args):
                 print("Still running; waiting for the command to finish...", flush=True)
 
 
+def html_start(title):
+    return (
+        "<!doctype html><html lang='en'><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        f"<title>{escape(title)}</title>"
+        "<style>body{font:16px system-ui;margin:2rem;color:#182230}"
+        "table{border-collapse:collapse;width:100%}td,th{padding:.7rem;"
+        "border:1px solid #ccd;text-align:left;vertical-align:top}"
+        "th{background:#eef2f8}td{white-space:pre-wrap;overflow-wrap:anywhere}"
+        "tr:nth-child(even){background:#f8fafc}a{color:#145787}"
+        ".level{display:inline-block;border-radius:.3rem;padding:.15rem .5rem;font-weight:600}"
+        ".error{background:#fee2e2;color:#991b1b}.warning{background:#fef3c7;color:#78350f}"
+        ".note{background:#dbeafe;color:#1e40af}.none{background:#e5e7eb;color:#374151}"
+        ".justified{margin-top:.25rem;background:#dcfce7;color:#166534}</style>"
+        f"<h1>{escape(title)}</h1>"
+    )
+
+
 def write_html(data, destination):
     """Render escaped SARIF findings without third-party Python packages."""
     rows = []
@@ -198,8 +205,11 @@ def write_html(data, destination):
                 line = physical.get("region", {}).get("startLine")
                 locations.append(f"{uri}:{line}" if line else uri)
             if justifications := accepted_justifications(result):
-                cells = (rule_id, "; ".join(locations), "; ".join(justifications))
-                justified_rows.append("<tr>" + "".join(f"<td>{escape(str(cell))}</td>" for cell in cells) + "</tr>")
+                specific_rule = ", ".join(misra_rule_ids(result_rule(run_data, result) or rule)) or "—"
+                cells = (specific_rule, rule_id, "; ".join(locations), "; ".join(justifications))
+                justified_rows.append("<tr><td>" + level_badge(level) +
+                                      "<br><span class='level justified'>Justified</span></td>" +
+                                      "".join(f"<td>{escape(str(cell))}</td>" for cell in cells) + "</tr>")
                 continue
             entry = summary.setdefault(rule_id, {"description": description, "levels": Counter()})
             entry["levels"][level] += 1
@@ -225,22 +235,14 @@ def write_html(data, destination):
         summary_rows.append(f"<tr><td>{escape(str(rule_id))}</td>"
                             f"<td>{escape(str(entry['description']))}</td><td>{levels}</td>"
                             f"<td>{sum(entry['levels'].values())}</td></tr>")
+    justified = destination.with_name(f"{destination.stem}-justified.html")
     destination.write_text(
-        "<!doctype html><html lang='en'><meta charset='utf-8'>"
-        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        "<title>MISRA and security findings</title>"
-        "<style>body{font:16px system-ui;margin:2rem;color:#182230}"
-        "table{border-collapse:collapse;width:100%}td,th{padding:.7rem;"
-        "border:1px solid #ccd;text-align:left;vertical-align:top}"
-        "th{background:#eef2f8}td{white-space:pre-wrap;overflow-wrap:anywhere}"
-        "tr:nth-child(even){background:#f8fafc}"
-        ".level{display:inline-block;border-radius:.3rem;padding:.15rem .5rem;font-weight:600}"
-        ".error{background:#fee2e2;color:#991b1b}.warning{background:#fef3c7;color:#78350f}"
-        ".note{background:#dbeafe;color:#1e40af}.none{background:#e5e7eb;color:#374151}</style>"
-        f"<h1>MISRA and security findings</h1><p>{len(rows)} open findings. "
+        html_start("MISRA and security findings") +
+        f"<nav><a href='{escape(justified.name)}'>Justified findings ({len(justified_rows)})</a></nav>"
+        f"<p>{len(rows)} open findings. "
         "Completed analysis does not establish MISRA compliance.</p>"
         f"<h2>Rules with findings ({len(summary)})</h2>"
-        "<p>Counts cover the complete report; filters below apply to individual findings.</p>"
+        "<p>Counts cover open findings. Filters below apply to individual findings.</p>"
         "<table><thead><tr><th>Rule</th><th>Description</th><th>Levels</th>"
         "<th>Findings</th></tr></thead><tbody>" + "".join(summary_rows) +
         "</tbody></table><h2>Individual findings</h2>"
@@ -255,10 +257,6 @@ def write_html(data, destination):
         "<table id='findings'><thead><tr><th>Level</th><th>Rule ID</th>"
         "<th>Location</th><th>Message</th><th>Rule description</th>"
         "</tr></thead><tbody>" + "".join(rows) +
-        "</tbody></table>"
-        f"<h2>Justified findings ({len(justified_rows)})</h2>"
-        "<table><thead><tr><th>Rule ID</th><th>Location</th><th>Justification</th></tr></thead><tbody>"
-        + "".join(justified_rows) +
         "</tbody></table>"
         "<script>"
         "const rows=Array.from(document.querySelectorAll('#findings tbody tr'));"
@@ -284,13 +282,24 @@ def write_html(data, destination):
         "level.value='';rule.value='';file.value='';filter();});filter();"
         "</script></html>", encoding="utf-8",
     )
+    justified.write_text(
+        html_start("Justified findings") +
+        f"<nav><a href='{escape(destination.name)}'>Open findings ({len(rows)})</a></nav>"
+        f"<p>{len(justified_rows)} justified findings.</p>"
+        "<table><thead><tr><th>Severity</th><th>MISRA rule</th><th>CodeQL query ID</th>"
+        "<th>Location</th><th>Justification</th></tr></thead><tbody>"
+        + "".join(justified_rows) + "</tbody></table></html>",
+        encoding="utf-8",
+    )
+    return justified
 
 
 def open_report(report, open_browser=True):
     data = json.loads(report.read_text(encoding="utf-8-sig"))
     html = report.with_suffix(".html")
-    write_html(data, html)
+    justified = write_html(data, html)
     print(f"HTML report: {html}")
+    print(f"Justified findings: {justified}")
     if open_browser and not webbrowser.open(html.resolve().as_uri()):
         print("Could not open a browser automatically; open the HTML report manually.")
 
@@ -300,9 +309,9 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--report", help="Convert a SARIF file, or 'latest', without rerunning analysis")
     mode.add_argument("--index-deviations", action="store_true",
-                      help="Index approved source justifications inside an active CodeQL database build")
+                      help="Index source justifications inside an active CodeQL database build")
     mode.add_argument("--prepare-sarif", type=Path,
-                      help="Annotate approved deviations in a new SARIF and generate the HTML report")
+                      help="Annotate source deviations in a new SARIF and generate the HTML report")
     parser.add_argument("--upload-sarif", type=Path,
                         help="With --prepare-sarif, write a separate SARIF containing open results")
     parser.add_argument("--no-open", action="store_true", help="Generate HTML without opening a browser")

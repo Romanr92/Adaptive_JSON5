@@ -18,6 +18,7 @@ namespace adaptive_json5
    */
   result<void*> buffer_arena::allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
     // MISRA justification: The allocation callback receives the live buffer_arena instance that callbacks()
     // registered as its context, so it can allocate from that arena.
     // codeql::misra_deviation_next_line(DEV-002.03)
@@ -51,6 +52,7 @@ namespace adaptive_json5
   void buffer_arena::deallocate_callback(void* context, void* address, std::size_t bytes,
                                          std::size_t /* alignment */) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
     // MISRA justification: The release callback receives the live buffer_arena instance that callbacks()
     // registered as its context, so it can apply that arena's release rules.
     // codeql::misra_deviation_next_line(DEV-002.04)
@@ -71,6 +73,7 @@ namespace adaptive_json5
       return;
     }
 
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
     // MISRA justification: Top of stack release: the block ends exactly at the used mark, so give it back.
     // The release callback accepts a block from this arena. Use its byte address
     // to compare the block's end to the arena's used mark without reading the payload.
@@ -90,6 +93,7 @@ namespace adaptive_json5
    * @par ID SWU-MEMORY-012
    */
   buffer_arena::buffer_arena(void* buffer, std::size_t size) noexcept
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
       // MISRA justification: Keep the caller's buffer as a byte view so arena offsets use byte units.
       // The capacity records the supplied extent and is zero for a null buffer.
       // codeql::misra_deviation_next_line(DEV-002.06)

@@ -10,8 +10,9 @@
 This page orders the baseline findings **by rule**, from most to least severe, and records
 each rule as it is fixed. Production C++ and public headers are changed by Romanr92; this
 page, the workflow and the deviation register are documentation and CI work. A rule is
-**Fixed** only when a later `misra-cpp` run reports zero findings for it, and **Deviated**
-only when the owner approves an entry in the deviation register (#137).
+**Fixed** when a later `misra-cpp` run reports zero occurrences, including justified
+ones. The separate **Justified findings** page records occurrences matched by a
+[source deviation comment](deviation-register.md#how-deviations-are-handled).
 
 ## How the order was chosen
 

@@ -115,6 +115,7 @@ namespace adaptive_json5
       return result<std::uint16_t>::failure(error::access_failure(access_error_reason::index_out_of_range));
     }
 
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
     // MISRA justification: The index check bounds the read to a stored UTF-16 unit. Read its bytes
     // without relying on the storage to contain a typed UTF-16 object.
     // codeql::misra_deviation_next_line(DEV-002.17)

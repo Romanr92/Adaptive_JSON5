@@ -42,7 +42,7 @@ jobs:
           languages: c-cpp
           build-mode: manual
           config-file: .github/codeql/misra.yml
-      - name: Index approved MISRA deviations
+      - name: Index MISRA source deviations
         run: python3 tools/misra_check.py --index-deviations
       - name: Trace Clang compilation
         run: cmake --build build/misra --parallel "$(nproc)"
