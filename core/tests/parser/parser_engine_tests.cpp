@@ -587,11 +587,11 @@ namespace
    */
   struct limit_case
   {
-      const char* name;                     // Diagnostic label.
-      const char* input;                    // Input exercising the selected limit.
-      std::size_t resource_limits::* field; // Input option member to configure.
-      std::size_t admitted;                 // Inclusive passing limit.
-      std::size_t rejected;                 // Failing limit.
+      const char* name;                    // Diagnostic label.
+      const char* input;                   // Input exercising the selected limit.
+      std::size_t resource_limits::*field; // Input option member to configure.
+      std::size_t admitted;                // Inclusive passing limit.
+      std::size_t rejected;                // Failing limit.
   };
   /**
    * @brief Print the independent limit fixture label.

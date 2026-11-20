@@ -429,11 +429,11 @@ namespace
    */
   struct limit_case
   {
-      const char* name;                     // Fixture name.
-      std::string input;                    // Input source bytes.
-      std::size_t resource_limits::* field; // Input limit to override.
-      std::size_t limit;                    // Input configured ceiling.
-      bool accepted;                        // Expected complete-root success.
+      const char* name;                    // Fixture name.
+      std::string input;                   // Input source bytes.
+      std::size_t resource_limits::*field; // Input limit to override.
+      std::size_t limit;                   // Input configured ceiling.
+      bool accepted;                       // Expected complete-root success.
   };
   class J5_047_PrimitiveLimit : public testing::TestWithParam<limit_case>
   {

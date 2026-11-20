@@ -358,10 +358,10 @@ namespace
    */
   struct limit_case
   {
-      const char* name;                     // Input case identifier.
-      const char* input;                    // Input complete source.
-      std::size_t resource_limits::* field; // Input limit selected for the operation.
-      std::size_t exact;                    // Expected minimum successful allowance in that limit's units.
+      const char* name;                    // Input case identifier.
+      const char* input;                   // Input complete source.
+      std::size_t resource_limits::*field; // Input limit selected for the operation.
+      std::size_t exact;                   // Expected minimum successful allowance in that limit's units.
   };
   class J5_047_CompleteLimit : public testing::TestWithParam<limit_case>
   {
