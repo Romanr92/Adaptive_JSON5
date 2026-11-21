@@ -15,6 +15,11 @@ namespace adaptive_json5
    * unchanged while an operation reads them.
    * A nonzero size requires data to address at least size readable bytes.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.14)
   struct [[nodiscard]] input_view
   {
       const char* data = nullptr;
@@ -31,6 +36,11 @@ namespace adaptive_json5
    * Construction does not validate the range against an input.
    * Consumers must validate bounds before accessing source bytes.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.13)
   struct [[nodiscard]] source_span
   {
       std::size_t byte_offset{};

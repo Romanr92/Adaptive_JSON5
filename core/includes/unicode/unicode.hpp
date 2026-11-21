@@ -4,6 +4,7 @@
 #include "unicode/unicode_range.hpp"
 #include "unicode/unicode_tables.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
@@ -40,7 +41,7 @@ namespace adaptive_json5
      */
     template <std::size_t RangeCount>
     [[nodiscard]] inline constexpr bool contains_unicode(std::uint32_t value,
-                                                         const unicode_range (&ranges)[RangeCount]) noexcept
+                                                         const std::array<unicode_range, RangeCount>& ranges) noexcept
     {
       if (!is_unicode_scalar(value))
       {
@@ -59,7 +60,7 @@ namespace adaptive_json5
         // MISRA justification: The loop requires begin < end, so end - begin fits.
         // Adding half that distance to begin gives a midpoint strictly below end.
         // codeql::misra_deviation_next_line(DEV-004.01)
-        const std::size_t middle = begin + (end - begin) / 2;
+        const std::size_t middle = begin + ((end - begin) / 2);
         const unicode_range& range = ranges[middle];
 
         if (value < range.first)

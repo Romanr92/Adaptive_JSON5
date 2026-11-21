@@ -15,9 +15,18 @@ namespace adaptive_json5
    * @note Never reads past the explicit buffer length.
    * Operates without requiring or assuming a terminating NUL byte.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.08)
   class [[nodiscard]] cursor
   {
     private:
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.04)
       input_view m_view{};
       std::size_t m_offset = 0;
 
@@ -96,6 +105,10 @@ namespace adaptive_json5
         {
           return std::nullopt;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The check above returns when delta is not below remaining(), so m_offset + delta
+        // stays below the view size.
+        // codeql::misra_deviation_next_line(DEV-004.67)
         return m_view.data[m_offset + delta];
       }
 
@@ -112,6 +125,10 @@ namespace adaptive_json5
         {
           return std::nullopt;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The check above returns at the end of the view, so m_offset is below the view
+        // size before the increment.
+        // codeql::misra_deviation_next_line(DEV-004.66)
         return m_view.data[m_offset++];
       }
 
@@ -124,6 +141,9 @@ namespace adaptive_json5
       constexpr void advance(std::size_t count) noexcept
       {
         const std::size_t rem = remaining();
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The step is limited to remaining(), so m_offset reaches at most the view size.
+        // codeql::misra_deviation_next_line(DEV-004.65)
         m_offset += (count < rem) ? count : rem;
       }
 

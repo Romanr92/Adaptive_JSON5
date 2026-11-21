@@ -75,6 +75,12 @@ namespace adaptive_json5
     {
       // UTF-8 lookahead already advanced past the opening slash.
       const auto next = lookahead.peek();
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.71)
       const bool comment_opener = next.has_value() && ((*next == '/') || (*next == '*'));
 
       if (comment_opener && (mode == syntax_mode::json5))

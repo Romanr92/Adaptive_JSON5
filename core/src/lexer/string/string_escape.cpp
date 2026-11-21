@@ -30,11 +30,23 @@ namespace adaptive_json5
     {
       const auto current = source.peek();
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.39)
       if (current.has_value() && (*current == 'x'))
       {
         return consume_hex_escape(source, mode);
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.38)
       if (current.has_value() && (*current == 'u'))
       {
         return consume_unicode_escape(source);
@@ -70,6 +82,10 @@ namespace adaptive_json5
 
     if (unit.value_if()->has_value())
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.21)
       encoded_utf16 output{};
       output.units[encoded_utf16::c_first_unit_index] = **unit.value_if();
       output.size = encoded_utf16::c_single_unit_count;
@@ -88,6 +104,10 @@ namespace adaptive_json5
     {
       // A complete continuation contributes no units to the string.
       source = candidate;
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.20)
       return result<encoded_utf16>::success(encoded_utf16{});
     }
 

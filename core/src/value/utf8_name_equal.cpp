@@ -51,6 +51,11 @@ namespace adaptive_json5
         }
 
         // One character may be two UTF-16 units (a surrogate pair); compare each.
+        // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+        // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+        // bound that the body does not modify, and changed only in the increment expression. The counter is
+        // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+        // codeql::misra_deviation_next_line(DEV-017.25)
         for (std::size_t index{}; index < encoded.value_if()->size; ++index)
         {
           if (position >= name.size())
@@ -71,6 +76,10 @@ namespace adaptive_json5
             return equal_result::success(false);
           }
 
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.148)
           ++position;
         }
       }

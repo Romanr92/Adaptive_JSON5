@@ -13,6 +13,7 @@
 #include "value/big_unsigned.hpp"
 #include "value/number_analysis.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -28,7 +29,7 @@ namespace adaptive_json5
     // 10^4 < 2^14, so a power more than 14 bits below a value stays at or below it after one chunk step.
     constexpr std::size_t c_chunk_bits = 14;
     constexpr std::uint32_t c_hexadecimal_radix = 16;
-    constexpr std::uint32_t c_hexadecimal_letter_offset = 10;
+    constexpr std::array<std::uint32_t, 6> c_hexadecimal_letter_values{10U, 11U, 12U, 13U, 14U, 15U};
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
 
     // The size bound is charged as one constant unit (ADR 0003, decision 1c).
@@ -46,6 +47,11 @@ namespace adaptive_json5
      * P038; J5-036.
      * @note The digits are accumulated separately in a big_unsigned.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.58)
     struct [[nodiscard]] decimal_form
     {
         std::ptrdiff_t scale{};            // Power of ten applied to the digits.
@@ -63,17 +69,45 @@ namespace adaptive_json5
      */
     [[nodiscard]] std::uint32_t hexadecimal_digit_value(char digit) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Classifies the byte with a range check on ASCII digits or letters; the result is
+      // only used to decide what the byte is. The parser compares UTF-8 input bytes with character literals, so
+      // it relies on an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.37)
       if ((digit >= '0') && (digit <= '9'))
       {
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+        // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares
+        // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character
+        // set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.36)
         return static_cast<std::uint32_t>(digit - '0');
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Classifies the byte with a range check on ASCII digits or letters; the result is
+      // only used to decide what the byte is. The parser compares UTF-8 input bytes with character literals, so
+      // it relies on an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.35)
       if ((digit >= 'a') && (digit <= 'f'))
       {
-        return static_cast<std::uint32_t>(digit - 'a') + c_hexadecimal_letter_offset;
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+        // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares
+        // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character
+        // set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.34)
+        return c_hexadecimal_letter_values[static_cast<std::size_t>(digit - 'a')];
       }
 
-      return static_cast<std::uint32_t>(digit - 'A') + c_hexadecimal_letter_offset;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a value
+      // 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares UTF-8
+      // input bytes with character literals, so it relies on an ASCII-compatible execution character set, where
+      // these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.33)
+      return c_hexadecimal_letter_values[static_cast<std::size_t>(digit - 'A')];
     }
 
     /**
@@ -95,7 +129,7 @@ namespace adaptive_json5
       // Hexadecimal digits carry 4 bits each; decimal digits use the 10/3 bound.
       const auto own_bits =
         (own.kind == number_kind::hexadecimal)
-          ? checked_multiply(own.digit_count, std::size_t{4}, resource_limit_reason::conversion_size)
+          ? checked_multiply(own.digit_count, static_cast<std::size_t>(4U), resource_limit_reason::conversion_size)
           : detail::decimal_digit_bits(own.digit_count);
 
       if (!own_bits.has_value())
@@ -132,8 +166,16 @@ namespace adaptive_json5
     {
       std::uint32_t power = 1;
 
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.20)
       for (std::size_t index{}; index < digits; ++index)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: digits is at most c_chunk_digits (4), so power is at most 10^4.
+        // codeql::misra_deviation_next_line(DEV-004.90)
         power *= c_decimal_radix;
       }
 
@@ -164,6 +206,9 @@ namespace adaptive_json5
           return multiplied;
         }
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: step is the smaller of count and c_chunk_digits, so it is at most count.
+        // codeql::misra_deviation_next_line(DEV-004.89)
         count -= step;
       }
 
@@ -249,6 +294,10 @@ namespace adaptive_json5
           return counter_result::failure(*chunked.error_if());
         }
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: count is the number of decimal digits found so far, which is bounded by the bit
+        // length of the value, so it cannot wrap.
+        // codeql::misra_deviation_next_line(DEV-004.88)
         count += c_chunk_digits;
       }
 
@@ -274,6 +323,10 @@ namespace adaptive_json5
           return counter_result::failure(*multiplied.error_if());
         }
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: count is the number of decimal digits found so far, which is bounded by the bit
+        // length of the value, so it cannot wrap.
+        // codeql::misra_deviation_next_line(DEV-004.87)
         ++count;
       }
     }
@@ -316,7 +369,7 @@ namespace adaptive_json5
       {
         position += c_hexadecimal_prefix_bytes;
 
-        for (; position < spelling.size; ++position)
+        while (position < spelling.size)
         {
           const auto appended =
             digits.append_digit(hexadecimal_digit_value(spelling.data[position]), c_hexadecimal_radix, work);
@@ -325,6 +378,12 @@ namespace adaptive_json5
           {
             return form_result::failure(*appended.error_if());
           }
+
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.86)
+          ++position;
         }
 
         // Hexadecimal digits do not reveal the decimal leading exponent, so count it exactly.
@@ -335,6 +394,10 @@ namespace adaptive_json5
           return form_result::failure(*count.error_if());
         }
 
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: count is the number of decimal digits of a nonzero value, at least one and far
+        // below PTRDIFF_MAX, so subtracting one cannot overflow.
+        // codeql::misra_deviation_next_line(DEV-005.19)
         form.leading_exponent = static_cast<std::ptrdiff_t>(*count.value_if()) - 1;
         return form_result::success(form);
       }
@@ -351,6 +414,10 @@ namespace adaptive_json5
       while (position < spelling.size)
       {
         const char current = spelling.data[position];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+        // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.85)
         ++position;
 
         if ((current == 'e') || (current == 'E'))
@@ -364,8 +431,21 @@ namespace adaptive_json5
           continue;
         }
 
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+        // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares
+        // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character
+        // set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.32)
         const auto digit = static_cast<std::uint32_t>(current - '0');
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: chunk holds at most three digits (999) before this step, so the result is at
+        // most 9999.
+        // codeql::misra_deviation_next_line(DEV-004.84)
         chunk = (chunk * c_decimal_radix) + digit;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: chunk_digits is reset after c_chunk_digits digits, so it is at most 4.
+        // codeql::misra_deviation_next_line(DEV-004.83)
         ++chunk_digits;
 
         if (chunk_digits == c_chunk_digits)
@@ -383,6 +463,10 @@ namespace adaptive_json5
 
         if (after_point)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
+          // count is at most its length and cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.82)
           ++fractional_digits;
         }
 
@@ -394,6 +478,10 @@ namespace adaptive_json5
 
         if (seen_nonzero)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
+          // count is at most its length and cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.81)
           ++significant_digits;
         }
       }
@@ -417,11 +505,21 @@ namespace adaptive_json5
         if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
         {
           exponent_negative = (spelling.data[position] == '-');
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.80)
           ++position;
         }
 
-        for (; position < spelling.size; ++position)
+        while (position < spelling.size)
         {
+          // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+          // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+          // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser
+          // compares UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution
+          // character set, where these characters are contiguous ranges.
+          // codeql::misra_deviation_next_line(DEV-015.31)
           const auto digit = static_cast<std::size_t>(spelling.data[position] - '0');
 
           // Comparison must stay exact, so an oversized exponent is a limit failure, not a saturation.
@@ -430,14 +528,32 @@ namespace adaptive_json5
             return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
           }
 
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: The check above returns a limit failure before exponent could exceed
+          // c_max_exponent.
+          // codeql::misra_deviation_next_line(DEV-004.79)
           exponent = (exponent * c_decimal_radix) + digit;
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.78)
+          ++position;
         }
       }
 
       const auto signed_exponent = static_cast<std::ptrdiff_t>(exponent);
 
       form.scale =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: |exponent| is at most c_max_exponent (PTRDIFF_MAX / 4, checked while parsing)
+        // and fractional_digits is at most the spelling length, limited by max_number_bytes. The result stays
+        // within std::ptrdiff_t while the spelling is shorter than 3/4 of PTRDIFF_MAX.
+        // codeql::misra_deviation_next_line(DEV-005.18)
         (exponent_negative ? -signed_exponent : signed_exponent) - static_cast<std::ptrdiff_t>(fractional_digits);
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: form.scale is bounded as above and significant_digits is at most the spelling
+      // length, so the sum stays within std::ptrdiff_t for spellings shorter than 3/4 of PTRDIFF_MAX.
+      // codeql::misra_deviation_next_line(DEV-005.17)
       form.leading_exponent = form.scale + static_cast<std::ptrdiff_t>(significant_digits) - 1;
 
       return form_result::success(form);
@@ -559,6 +675,10 @@ namespace adaptive_json5
       const bool left_larger_scale = left_parts.scale > right_parts.scale;
       detail::big_unsigned& scaled = left_larger_scale ? left_digits : right_digits;
       const std::ptrdiff_t difference =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: Equal leading exponents bound the scale difference by the two digit counts,
+        // which are at most the spelling lengths, so the difference is far below PTRDIFF_MAX.
+        // codeql::misra_deviation_next_line(DEV-005.16)
         left_larger_scale ? (left_parts.scale - right_parts.scale) : (right_parts.scale - left_parts.scale);
 
       const auto multiplied = scale_by_power_of_ten(scaled, static_cast<std::size_t>(difference), work);

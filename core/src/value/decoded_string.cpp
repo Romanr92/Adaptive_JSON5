@@ -33,6 +33,11 @@ namespace adaptive_json5
    * P013; J5-040.
    * @par ID SWU-VALUE-018
    */
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+  // The tool does not see the specifier in the -fno-exceptions analysis build.
+  // codeql::misra_deviation_next_line(DEV-021.04)
   decoded_string::decoded_string(decoded_string&& other) noexcept
       : m_storage(std::move(other.m_storage)), m_size(other.m_size)
   {

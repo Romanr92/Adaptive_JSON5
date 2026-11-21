@@ -90,12 +90,21 @@ namespace adaptive_json5
 
             // Translate the substring-relative offset to the original input; relocated() keeps the
             // code and reason, e.g. the number_bytes limit.
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: The error offset lies inside the number's spelling, which lies inside the
+            // input, so the sum is an offset inside the input.
+            // codeql::misra_deviation_next_line(DEV-004.100)
             reason = reason.relocated(reason.byte_offset() + number->byte_offset);
           }
 
           return result<value_index>::failure(reason);
         }
 
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The object is moved exactly once in this expression and is not read again
+        // afterwards; the reported accesses are the operand expressions that form this same move (for example
+        // value_if() on a result that still holds its value).
+        // codeql::misra_deviation_next_line(DEV-024.18)
         return detail::document_access::make_number(destination, std::move(*owned.value_if()));
       }
 
@@ -198,8 +207,16 @@ namespace adaptive_json5
       return primitive_result::success(std::nullopt);
     }
 
+    // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+    // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+    // implicit zero of the initialization as an unsuffixed octal literal.
+    // codeql::misra_deviation_next_line(DEV-010.19)
     primitive_value value{};
     value.byte_offset = source.offset();
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+    // it started from, and the difference is the number of bytes consumed.
+    // codeql::misra_deviation_next_line(DEV-004.99)
     value.byte_length = scan.source.offset() - source.offset();
 
     // Preserve metadata before transferring the token's owned string content.
@@ -243,6 +260,11 @@ namespace adaptive_json5
     }
 
     const auto appended =
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.17)
       detail::append_primitive_token(destination, std::move(**token.value_if()), input, options, storage);
 
     if (!appended.has_value())

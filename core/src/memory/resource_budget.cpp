@@ -108,10 +108,17 @@ namespace adaptive_json5
       }
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The node limit was checked above, so m_nodes stays at most the configured maximum.
+    // codeql::misra_deviation_next_line(DEV-004.139)
     ++m_nodes;
 
     if (member)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The member limit was checked above, so m_members stays at most the configured
+      // maximum.
+      // codeql::misra_deviation_next_line(DEV-004.138)
       ++m_members;
     }
 
@@ -135,10 +142,17 @@ namespace adaptive_json5
       return status_result::failure(error::internal_fault());
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The check above returns an internal fault when no node is accounted, so m_nodes is
+    // at least one.
+    // codeql::misra_deviation_next_line(DEV-004.137)
     --m_nodes;
 
     if (member)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Only a node accounted as a member is released here, so m_members is at least one.
+      // codeql::misra_deviation_next_line(DEV-004.136)
       --m_members;
     }
 
@@ -161,6 +175,9 @@ namespace adaptive_json5
       return status_result::failure(*entered.error_if());
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The depth limit was checked above, so m_depth stays at most the configured maximum.
+    // codeql::misra_deviation_next_line(DEV-004.135)
     ++m_depth;
 
     // The pre-pass sizes the frame stack from the deepest point, not the final depth.
@@ -187,6 +204,9 @@ namespace adaptive_json5
       return status_result::failure(error::internal_fault());
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The check above returns an internal fault at depth zero, so m_depth is at least one.
+    // codeql::misra_deviation_next_line(DEV-004.134)
     --m_depth;
     return status_result::success();
   }
@@ -219,6 +239,10 @@ namespace adaptive_json5
       return status_result::failure(*total.error_if());
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: checked_add() above computed the new total within the limit, so this addition cannot
+    // wrap.
+    // codeql::misra_deviation_next_line(DEV-004.133)
     m_string_units += additional_units;
     return status_result::success();
   }
@@ -305,6 +329,10 @@ namespace adaptive_json5
       return status_result::failure(*diagnostic.error_if());
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The diagnostic limit was checked above, so the count stays at most the configured
+    // maximum.
+    // codeql::misra_deviation_next_line(DEV-004.132)
     ++m_diagnostics;
     return status_result::success();
   }
@@ -323,6 +351,10 @@ namespace adaptive_json5
       return status_result::failure(error::internal_fault());
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The check above returns an internal fault when no diagnostic is accounted, so the
+    // count is at least one.
+    // codeql::misra_deviation_next_line(DEV-004.131)
     --m_diagnostics;
     return status_result::success();
   }

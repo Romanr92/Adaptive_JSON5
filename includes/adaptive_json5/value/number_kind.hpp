@@ -1,5 +1,7 @@
 #ifndef ADAPTIVE_JSON5_NUMBER_KIND_HPP_
 #define ADAPTIVE_JSON5_NUMBER_KIND_HPP_
+
+#include <cstdint>
 namespace adaptive_json5
 {
   /**
@@ -8,7 +10,7 @@ namespace adaptive_json5
    * P025; P026; P027; J5-021; J5-022.
    * @note Classification does not perform numeric conversion.
    */
-  enum class number_kind
+  enum class number_kind : std::uint8_t
   {
     decimal,
     hexadecimal,

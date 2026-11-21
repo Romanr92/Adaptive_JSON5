@@ -20,6 +20,14 @@ namespace adaptive_json5
   {
     static_assert(std::is_nothrow_move_constructible_v<value_record>);
     static_assert(std::is_nothrow_destructible_v<value_record>);
+
+    namespace
+    {
+      // The identity token only needs a unique address, so the smallest block is enough.
+      constexpr std::size_t c_token_bytes = 1;
+      constexpr std::size_t c_token_alignment = 1;
+    } // namespace
+
     /**
      * @brief Address one slot within an already size-checked allocation.
      * @par Requirements
@@ -35,7 +43,12 @@ namespace adaptive_json5
       // requiring a live value_record at that address.
       // codeql::misra_deviation_next_line(DEV-002.20)
       auto* bytes = static_cast<std::byte*>(storage.data());
-      return bytes + index * sizeof(value_record);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: index is below the slot count of the block, and the block size (count * sizeof)
+      // was computed with checked_multiply when it was allocated, so this product fits std::size_t.
+      // codeql::misra_deviation_next_line(DEV-004.93)
+      const std::size_t offset = index * sizeof(value_record);
+      return bytes + offset;
     }
 
     /**
@@ -81,6 +94,9 @@ namespace adaptive_json5
     {
       while (m_size != c_empty_size)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The loop runs only while m_size is nonzero, so m_size is at least one.
+        // codeql::misra_deviation_next_line(DEV-004.92)
         --m_size;
         // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
         // MISRA justification: Destroy each live record in reverse order so its owned blocks are released
@@ -134,12 +150,17 @@ namespace adaptive_json5
 
       if (identity() == nullptr)
       {
-        auto token = allocate_block(m_provider, 1, 1);
+        auto token = allocate_block(m_provider, c_token_bytes, c_token_alignment);
         if (!token.has_value())
         {
           return status_result::failure(*token.error_if());
         }
 
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The object is moved exactly once in this expression and is not read again
+        // afterwards; the reported accesses are the operand expressions that form this same move (for example
+        // value_if() on a result that still holds its value).
+        // codeql::misra_deviation_next_line(DEV-024.07)
         pending_identity = std::move(*token.value_if());
       }
 
@@ -154,11 +175,20 @@ namespace adaptive_json5
         m_identity = std::move(pending_identity);
       }
 
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.21)
       for (std::size_t index{}; index < m_size; ++index)
       {
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
         // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
         // MISRA justification: Transfer each record's owned payload into a new object in the aligned block.
         // The moved-from records are destroyed before the old block is released.
+        // The object is moved exactly once in this expression and is not read again afterwards; the reported
+        // accesses are the operand expressions that form this same move (for example value_if() on a result
+        // that still holds its value).
         // codeql::misra_deviation_next_line(DEV-001.06)
         ::new (slot_address(*allocation.value_if(), index)) value_record(std::move(*live_record(index)));
       }
@@ -167,6 +197,11 @@ namespace adaptive_json5
 
       // All moves are non-throwing, so old object can now be destroyed safely.
       destroy_records();
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.06)
       m_storage = std::move(*allocation.value_if());
       m_size = retained_size;
       m_capacity = capacity;
@@ -193,6 +228,11 @@ namespace adaptive_json5
      * @note The source retains its provider and limit and can be reused.
      * @par ID SWU-VALUE-115
      */
+    // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+    // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+    // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+    // The tool does not see the specifier in the -fno-exceptions analysis build.
+    // codeql::misra_deviation_next_line(DEV-021.07)
     value_storage::value_storage(value_storage&& other) noexcept
         : m_provider(other.m_provider), m_identity(std::move(other.m_identity)), m_storage(std::move(other.m_storage)),
           m_size(other.m_size), m_capacity(other.m_capacity), m_max_records(other.m_max_records), m_fixed(other.m_fixed)
@@ -229,7 +269,7 @@ namespace adaptive_json5
 
       if (records != 0)
       {
-        auto token = allocate_block(m_provider, 1, 1);
+        auto token = allocate_block(m_provider, c_token_bytes, c_token_alignment);
 
         if (!token.has_value())
         {
@@ -243,7 +283,17 @@ namespace adaptive_json5
           return status_result::failure(*allocation.error_if());
         }
 
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The object is moved exactly once in this expression and is not read again
+        // afterwards; the reported accesses are the operand expressions that form this same move (for example
+        // value_if() on a result that still holds its value).
+        // codeql::misra_deviation_next_line(DEV-024.05)
         m_identity = std::move(*token.value_if());
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The object is moved exactly once in this expression and is not read again
+        // afterwards; the reported accesses are the operand expressions that form this same move (for example
+        // value_if() on a result that still holds its value).
+        // codeql::misra_deviation_next_line(DEV-024.04)
         m_storage = std::move(*allocation.value_if());
         m_capacity = records;
       }
@@ -283,6 +333,10 @@ namespace adaptive_json5
       }
 
       // The limit check proves adding one cannot overflow size_t.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: m_size is at most max_records, which the limit check keeps below SIZE_MAX, so
+      // adding one cannot wrap.
+      // codeql::misra_deviation_next_line(DEV-004.91)
       const std::size_t required = m_size + 1;
       const auto reserved = reserve(required);
 

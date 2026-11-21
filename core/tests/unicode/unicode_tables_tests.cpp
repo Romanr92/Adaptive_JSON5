@@ -1,10 +1,12 @@
 #include "unicode/unicode_tables.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <iterator>
+#include <string_view>
 
 namespace
 {
@@ -19,7 +21,7 @@ namespace
    * P006; J5-006.
    */
   template <std::size_t Count>
-  bool table_contains(const unicode_range (&ranges)[Count], std::uint32_t scalar)
+  bool table_contains(const std::array<unicode_range, Count>& ranges, std::uint32_t scalar)
   {
     return std::any_of(std::begin(ranges), std::end(ranges),
                        [scalar](const unicode_range& range)
@@ -34,7 +36,7 @@ namespace
    * P006; J5-006.
    */
   template <std::size_t Count>
-  void expect_valid_ranges(const unicode_range (&ranges)[Count])
+  void expect_valid_ranges(const std::array<unicode_range, Count>& ranges)
   {
     for (std::size_t index = 0; index < Count; ++index)
     {
@@ -121,11 +123,11 @@ namespace
   {
     /* Arrange */
     /* Act */
-    const auto* version = tables::c_unicode_data_version;
-    const auto* baseline = tables::c_unicode_identifier_baseline_version;
+    const std::string_view version = tables::c_unicode_data_version;
+    const std::string_view baseline = tables::c_unicode_identifier_baseline_version;
     /* Expect */
-    EXPECT_STREQ(version, "17.0.0");
-    EXPECT_STREQ(baseline, "3.0.0");
+    EXPECT_EQ(version, "17.0.0");
+    EXPECT_EQ(baseline, "3.0.0");
     expect_valid_ranges(tables::c_identifier_start_ranges);
     expect_valid_ranges(tables::c_identifier_extra_ranges);
     expect_valid_ranges(tables::c_space_separator_ranges);

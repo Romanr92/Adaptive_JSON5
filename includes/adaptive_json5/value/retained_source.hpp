@@ -37,7 +37,11 @@ namespace adaptive_json5
        * P039; J5-041.
        * @note Performs no allocation.
        */
-      retained_source(retained_source&& other) noexcept = default;
+      // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+      // MISRA justification: The move operation is declared noexcept in both its declaration and its
+      // definition. The tool does not see the specifier in the -fno-exceptions analysis build.
+      // codeql::misra_deviation_next_line(DEV-022.03)
+      retained_source(retained_source&&) noexcept = default;
 
       /**
        * @brief Release the retained copy through its original provider.

@@ -120,6 +120,11 @@ namespace adaptive_json5
           return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
         }
 
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.24)
         container_links* links = nullptr;
 
         if (member_name == nullptr)
@@ -143,7 +148,7 @@ namespace adaptive_json5
           links = &object->members;
         }
 
-        const auto new_count = checked_add(links->count, 1, resource_limit_reason::nodes);
+        const auto new_count = checked_add(links->count, static_cast<std::size_t>(1U), resource_limit_reason::nodes);
 
         if (!new_count.has_value())
         {
@@ -186,7 +191,7 @@ namespace adaptive_json5
         // All fallible checks precede ownership transfer and relationship change.
         if (member_name != nullptr)
         {
-          child_record.member_name.emplace(std::move(*member_name));
+          static_cast<void>(child_record.member_name.emplace(std::move(*member_name)));
           child_record.member_name_source_span = name_span;
         }
 

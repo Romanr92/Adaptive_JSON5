@@ -48,6 +48,9 @@ authorization of the copyright holder.
 
 #include "unicode/unicode_range.hpp"
 
+#include <array>
+#include <string_view>
+
 namespace adaptive_json5
 {
   namespace detail
@@ -59,8 +62,8 @@ namespace adaptive_json5
 
     // Identifiers preserve Unicode 3.0 category memberships and add Unicode 17.0.0 memberships.
     // Space separators use Unicode 17.0.0 Zs. A separate legacy table supports later whitespace policy.
-    inline constexpr char c_unicode_data_version[] = "17.0.0";
-    inline constexpr char c_unicode_identifier_baseline_version[] = "3.0.0";
+    inline constexpr std::string_view c_unicode_data_version = "17.0.0";
+    inline constexpr std::string_view c_unicode_identifier_baseline_version = "3.0.0";
 
     // Keep one interval per line for reproducible generation and review.
     // clang-format off
@@ -71,8 +74,8 @@ namespace adaptive_json5
      * P006; J5-006.
      * @note Sorted, disjoint intervals; 686 ranges containing 145913 code points.
      */
-    inline constexpr unicode_range c_identifier_start_ranges[] =
-    {
+    inline constexpr std::array<unicode_range, 686> c_identifier_start_ranges =
+    {{
       {0x000041, 0x00005A},
       {0x000061, 0x00007A},
       {0x0000AA, 0x0000AA},
@@ -759,7 +762,7 @@ namespace adaptive_json5
       {0x02F800, 0x02FA1D},
       {0x030000, 0x03134A},
       {0x031350, 0x033479},
-    };
+    }};
 
     /**
      * @brief Immutable inclusive property ranges: c_identifier_extra_ranges.
@@ -767,8 +770,8 @@ namespace adaptive_json5
      * P006; J5-006.
      * @note Sorted, disjoint intervals; 398 ranges containing 3322 code points.
      */
-    inline constexpr unicode_range c_identifier_extra_ranges[] =
-    {
+    inline constexpr std::array<unicode_range, 398> c_identifier_extra_ranges =
+    {{
       {0x000030, 0x000039},
       {0x00005F, 0x00005F},
       {0x000300, 0x00036F},
@@ -1167,7 +1170,7 @@ namespace adaptive_json5
       {0x01E950, 0x01E959},
       {0x01FBF0, 0x01FBF9},
       {0x0E0100, 0x0E01EF},
-    };
+    }};
 
     /**
      * @brief Immutable inclusive property ranges: c_space_separator_ranges.
@@ -1175,8 +1178,8 @@ namespace adaptive_json5
      * P006; J5-006.
      * @note Sorted, disjoint intervals; 7 ranges containing 17 code points.
      */
-    inline constexpr unicode_range c_space_separator_ranges[] =
-    {
+    inline constexpr std::array<unicode_range, 7> c_space_separator_ranges =
+    {{
       {0x000020, 0x000020},
       {0x0000A0, 0x0000A0},
       {0x001680, 0x001680},
@@ -1184,7 +1187,7 @@ namespace adaptive_json5
       {0x00202F, 0x00202F},
       {0x00205F, 0x00205F},
       {0x003000, 0x003000},
-    };
+    }};
 
     /**
      * @brief Immutable inclusive property ranges: c_unicode_3_space_separator_ranges.
@@ -1192,15 +1195,15 @@ namespace adaptive_json5
      * P006; J5-006.
      * @note Sorted, disjoint intervals; 6 ranges containing 17 code points.
      */
-    inline constexpr unicode_range c_unicode_3_space_separator_ranges[] =
-    {
+    inline constexpr std::array<unicode_range, 6> c_unicode_3_space_separator_ranges =
+    {{
       {0x000020, 0x000020},
       {0x0000A0, 0x0000A0},
       {0x001680, 0x001680},
       {0x002000, 0x00200B},
       {0x00202F, 0x00202F},
       {0x003000, 0x003000},
-    };
+    }};
 
     // clang-format on
   } // namespace detail

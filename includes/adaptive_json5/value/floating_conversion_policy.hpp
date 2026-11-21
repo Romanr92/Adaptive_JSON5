@@ -1,6 +1,8 @@
 #ifndef ADAPTIVE_JSON5_FLOATING_CONVERSION_POLICY_HPP_
 #define ADAPTIVE_JSON5_FLOATING_CONVERSION_POLICY_HPP_
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -14,7 +16,7 @@ namespace adaptive_json5
    * This policy does not permit finite conversion overflow.
    * The original numeric spelling remains unchanged.
    */
-  enum class floating_non_finite_policy
+  enum class floating_non_finite_policy : std::uint8_t
   {
     reject,
     allow
@@ -30,7 +32,7 @@ namespace adaptive_json5
    * @note Does not reject representable nonzero subnormal results.
    * Exact zero is accepted independently of this policy.
    */
-  enum class floating_underflow_policy
+  enum class floating_underflow_policy : std::uint8_t
   {
     reject,
     allow_zero

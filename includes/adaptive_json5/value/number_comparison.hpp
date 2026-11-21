@@ -7,6 +7,7 @@
 #include "adaptive_json5/value/owned_number.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace adaptive_json5
 {
@@ -22,7 +23,7 @@ namespace adaptive_json5
    * @note Negative zero equals positive zero.
    * Infinities order beyond every finite value; equal infinities are equal.
    */
-  enum class number_order
+  enum class number_order : std::uint8_t
   {
     less,
     equal,
@@ -38,6 +39,11 @@ namespace adaptive_json5
    * max_scratch_bytes is an inclusive ceiling on simultaneously outstanding temporary bytes.
    * Construction performs no allocation.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.57)
   struct [[nodiscard]] number_comparison_options
   {
       std::size_t max_work_units = resource_limits{}.max_work_units;

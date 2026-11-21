@@ -70,7 +70,8 @@ namespace adaptive_json5
         // codeql::misra_deviation_next_line(DEV-003.05)
         const auto* bytes = reinterpret_cast<const std::byte*>(input.data);
 
-        return (bytes[0] == std::byte{0xEF}) && (bytes[1] == std::byte{0xBB}) && (bytes[2] == std::byte{0xBF});
+        return (bytes[0] == static_cast<std::byte>(0xEFU)) && (bytes[1] == static_cast<std::byte>(0xBBU)) &&
+               (bytes[2] == static_cast<std::byte>(0xBFU));
       }
     } // namespace
 
@@ -87,6 +88,11 @@ namespace adaptive_json5
      * Successful work charges are not refunded.
      * @par ID SWU-PARSER-010
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.12)
     status_result parser_engine::read_value() noexcept
     {
       if (m_root.is_set())
@@ -118,6 +124,11 @@ namespace adaptive_json5
           member = true;
           break;
 
+        case parser_state::array_comma_or_end:
+        case parser_state::object_first_name_or_end:
+        case parser_state::object_name_after_comma:
+        case parser_state::object_colon:
+        case parser_state::object_comma_or_end:
         default:
           return status_result::failure(error::internal_fault());
         }
@@ -140,6 +151,12 @@ namespace adaptive_json5
         return status_result::failure(*reserved_value.error_if());
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.11)
       if ((*current == '[') || (*current == '{'))
       {
         const auto entered = m_resources.enter_container();
@@ -242,7 +259,7 @@ namespace adaptive_json5
       }
 
       // Every string reached the sink's reserve hook; anything else here means the lexer skipped it.
-      const bool has_string_bytes = string_length != std::size_t{0};
+      const bool has_string_bytes = string_length != 0U;
       if ((has_string_bytes && !m_string_reserved) || (!has_string_bytes && m_string_reserved))
       {
         return status_result::failure(error::internal_fault());
@@ -262,6 +279,10 @@ namespace adaptive_json5
         return status_result::failure(*decoded_charged.error_if());
       }
 
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.46)
       const source_span span{m_source.offset(), scan.source.offset() - m_source.offset()};
 
       const auto construction_units =
@@ -324,6 +345,11 @@ namespace adaptive_json5
      * Preserve-all bypasses duplicate scanning.
      * @par ID SWU-PARSER-011
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.11)
     status_result parser_engine::read_name() noexcept
     {
       auto* frame = m_frames.top();
@@ -420,12 +446,16 @@ namespace adaptive_json5
 
       // P035: own the decoded name until its scalar or nested container value is attached.
       // Construct the optional's value directly: decoded_string cannot be assigned
-      frame->pending_name.emplace(std::move(name.value));
+      static_cast<void>(frame->pending_name.emplace(std::move(name.value)));
       frame->name_offset = name.byte_offset;
       frame->name_length = name.byte_length;
       frame->state = parser_state::object_colon;
 
       // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.45)
       m_source.advance(scan.source.offset() - m_source.offset());
 
       return status_result::success();
@@ -441,6 +471,11 @@ namespace adaptive_json5
      * Dispatch work is charged by run().
      * @par ID SWU-PARSER-012
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.10)
     status_result parser_engine::consume_separator(parser_action action) noexcept
     {
       auto* frame = m_frames.top();
@@ -450,6 +485,11 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.21)
       parser_state next_state = frame->state;
       punctuation_kind expected = punctuation_kind::comma;
 
@@ -481,6 +521,12 @@ namespace adaptive_json5
           next_state = parser_state::object_name_after_comma;
           break;
 
+        case parser_state::array_first_or_end:
+        case parser_state::array_value_after_comma:
+        case parser_state::object_first_name_or_end:
+        case parser_state::object_name_after_comma:
+        case parser_state::object_colon:
+        case parser_state::object_value:
         default:
           return status_result::failure(error::internal_fault());
         }
@@ -516,6 +562,11 @@ namespace adaptive_json5
      * The source cursor is committed only after all steps succeed.
      * @par ID SWU-PARSER-013
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.09)
     status_result parser_engine::finish_container() noexcept
     {
       // Keep the closing byte unconsumed until completion succeeds.
@@ -563,6 +614,11 @@ namespace adaptive_json5
      * Otherwise record m_root without publishing the document yet.
      * @par ID SWU-PARSER-014
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.08)
     status_result parser_engine::accept_completed_value(value_index completed) noexcept
     {
       if (!completed.is_set() || m_root.is_set())
@@ -594,6 +650,11 @@ namespace adaptive_json5
      * @return Success, or an explicit diagnostic-limit, unit-limit or storage failure.
      * @par ID SWU-PARSER-015
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.07)
     status_result parser_engine::reserve_string(void* context, std::size_t units, std::size_t warning_count) noexcept
     {
       // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
@@ -610,6 +671,11 @@ namespace adaptive_json5
       }
 
       // Every retained warning is a diagnostic entry, not only the first one.
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.11)
       for (std::size_t index{}; index < warning_count; ++index)
       {
         const auto diagnostic = self.m_resources.reserve_diagnostic();
@@ -686,7 +752,7 @@ namespace adaptive_json5
       // MISRA justification: The overflow block stores the same byte-packed flags as the inline array.
       // Use a byte view when the overflow block is present.
       // codeql::misra_deviation_next_line(DEV-002.14)
-      return (m_extra_kinds.data() != nullptr) ? static_cast<std::byte*>(m_extra_kinds.data()) : m_inline_kinds;
+      return (m_extra_kinds.data() != nullptr) ? static_cast<std::byte*>(m_extra_kinds.data()) : m_inline_kinds.data();
     }
 
     /**
@@ -697,6 +763,11 @@ namespace adaptive_json5
      * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
      * @par ID SWU-PARSER-018
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.06)
     status_result parser_engine::count_value() noexcept
     {
       if (m_count_root_done)
@@ -718,6 +789,11 @@ namespace adaptive_json5
           member = true;
           break;
 
+        case parser_state::array_comma_or_end:
+        case parser_state::object_first_name_or_end:
+        case parser_state::object_name_after_comma:
+        case parser_state::object_colon:
+        case parser_state::object_comma_or_end:
         default:
           return status_result::failure(error::internal_fault());
         }
@@ -740,6 +816,12 @@ namespace adaptive_json5
         return status_result::failure(*reserved_value.error_if());
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.10)
       if ((*current == '[') || (*current == '{'))
       {
         const auto entered = m_resources.enter_container();
@@ -750,13 +832,24 @@ namespace adaptive_json5
         }
 
         // enter_container() succeeded, so m_count_depth is below max_depth and the bit exists.
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+        // between two character operands does not use the numeric value; the tool reports the implicit
+        // promotion of both operands to int. The parser compares UTF-8 input bytes with character literals, so
+        // it relies on an ASCII-compatible execution character set, where these characters are contiguous
+        // ranges.
+        // codeql::misra_deviation_next_line(DEV-015.09)
         const bool object = (*current == '{');
         const std::size_t byte = m_count_depth / c_bits_per_byte;
-        const std::byte mask = std::byte{1} << (m_count_depth % c_bits_per_byte);
+        const std::byte mask = static_cast<std::byte>(1U) << (m_count_depth % c_bits_per_byte);
         std::byte* kinds = nesting_kinds();
 
         kinds[byte] = object ? (kinds[byte] | mask) : (kinds[byte] & ~mask);
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The nesting depth was checked against max_depth before this frame was counted,
+        // so m_count_depth stays at most max_depth.
+        // codeql::misra_deviation_next_line(DEV-004.44)
         ++m_count_depth;
         m_count_top.state = object ? parser_state::object_first_name_or_end : parser_state::array_first_or_end;
         m_source.advance(1);
@@ -818,6 +911,11 @@ namespace adaptive_json5
         }
 
         // The build pass retains every warning as one diagnostic entry, so count them now.
+        // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+        // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+        // bound that the body does not modify, and changed only in the increment expression. The counter is
+        // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+        // codeql::misra_deviation_next_line(DEV-017.10)
         for (std::size_t index{}; index < string->warning_count; ++index)
         {
           const auto diagnostic = m_resources.reserve_diagnostic();
@@ -836,6 +934,10 @@ namespace adaptive_json5
           return status_result::failure(error::limit_at(number->byte_offset, resource_limit_reason::number_bytes));
         }
       }
+      else
+      {
+        // Literal tokens own no extra storage to account for.
+      }
 
       const auto completed = count_completed_value();
 
@@ -845,6 +947,10 @@ namespace adaptive_json5
       }
 
       // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.43)
       m_source.advance(scan.source.offset() - m_source.offset());
 
       return status_result::success();
@@ -858,6 +964,11 @@ namespace adaptive_json5
      * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
      * @par ID SWU-PARSER-019
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.05)
     status_result parser_engine::count_name() noexcept
     {
       if ((m_count_depth == 0) || ((m_count_top.state != parser_state::object_first_name_or_end) &&
@@ -914,6 +1025,11 @@ namespace adaptive_json5
           error::limit_at(name.excess_warning->byte_offset, resource_limit_reason::diagnostics));
       }
 
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.09)
       for (std::size_t index{}; index < name.warning_count; ++index)
       {
         const auto diagnostic = m_resources.reserve_diagnostic();
@@ -927,6 +1043,10 @@ namespace adaptive_json5
       m_count_top.state = parser_state::object_colon;
 
       // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.42)
       m_source.advance(scan.source.offset() - m_source.offset());
 
       return status_result::success();
@@ -938,6 +1058,11 @@ namespace adaptive_json5
      * P033; P034; P035; J5-013; J5-027.
      * @par ID SWU-PARSER-020
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.04)
     status_result parser_engine::count_separator(parser_action action) noexcept
     {
       if (m_count_depth == 0)
@@ -945,6 +1070,11 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.20)
       parser_state next_state = m_count_top.state;
       punctuation_kind expected = punctuation_kind::comma;
 
@@ -986,6 +1116,11 @@ namespace adaptive_json5
      * P033; P034; P035; J5-013; J5-027; J5-048.
      * @par ID SWU-PARSER-021
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.03)
     status_result parser_engine::count_close() noexcept
     {
       cursor candidate = m_source;
@@ -1016,14 +1151,20 @@ namespace adaptive_json5
         return status_result::failure(*release.error_if());
       }
 
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Closing a container requires an open one, so m_count_depth is at least one here.
+      // codeql::misra_deviation_next_line(DEV-004.41)
       --m_count_depth;
 
       if (m_count_depth != 0)
       {
         // The parent was expecting a value when this container opened, so only its kind is needed.
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: This path runs only inside an open container, so m_count_depth is at least one.
+        // codeql::misra_deviation_next_line(DEV-004.40)
         const std::size_t parent = m_count_depth - 1;
-        const bool object =
-          ((nesting_kinds()[parent / c_bits_per_byte] >> (parent % c_bits_per_byte)) & std::byte{1}) != std::byte{0};
+        const bool object = ((nesting_kinds()[parent / c_bits_per_byte] >> (parent % c_bits_per_byte)) &
+                             static_cast<std::byte>(1U)) != static_cast<std::byte>(0U);
 
         m_count_top.state = object ? parser_state::object_value : parser_state::array_first_or_end;
       }
@@ -1045,6 +1186,11 @@ namespace adaptive_json5
      * P033; P034; P035; J5-013.
      * @par ID SWU-PARSER-022
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.02)
     status_result parser_engine::count_completed_value() noexcept
     {
       if (m_count_depth == 0)
@@ -1065,6 +1211,11 @@ namespace adaptive_json5
         m_count_top.state = parser_state::object_comma_or_end;
         return status_result::success();
 
+      case parser_state::array_comma_or_end:
+      case parser_state::object_first_name_or_end:
+      case parser_state::object_name_after_comma:
+      case parser_state::object_colon:
+      case parser_state::object_comma_or_end:
       default:
         return status_result::failure(error::internal_fault());
       }
@@ -1078,11 +1229,20 @@ namespace adaptive_json5
      * @return Success with the counts held in m_resources, or the first error.
      * @par ID SWU-PARSER-023
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.01)
     status_result parser_engine::count_document(bool complete) noexcept
     {
       // Deeper configurations need more bits than the inline array holds (ADR 0003, decision 7, D1).
       if (m_options.limits.max_depth > c_inline_nesting_bits)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Dividing by c_bits_per_byte leaves room below SIZE_MAX, so adding one cannot
+        // wrap.
+        // codeql::misra_deviation_next_line(DEV-004.39)
         const std::size_t bytes = (m_options.limits.max_depth / c_bits_per_byte) + 1;
         auto allocation = allocate_block(m_storage, bytes, alignof(std::byte));
 
@@ -1091,6 +1251,11 @@ namespace adaptive_json5
           return status_result::failure(*allocation.error_if());
         }
 
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The object is moved exactly once in this expression and is not read again
+        // afterwards; the reported accesses are the operand expressions that form this same move (for example
+        // value_if() on a result that still holds its value).
+        // codeql::misra_deviation_next_line(DEV-024.02)
         m_extra_kinds = std::move(*allocation.value_if());
       }
 

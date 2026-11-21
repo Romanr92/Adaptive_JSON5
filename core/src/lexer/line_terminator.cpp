@@ -69,6 +69,12 @@ namespace adaptive_json5
       // Inspect only that byte; other following input remains for the next operation.
       const auto following = candidate.peek();
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.45)
       if ((following.has_value()) && (*following == c_line_feed_byte))
       {
         candidate.advance(c_line_feed_byte_count);

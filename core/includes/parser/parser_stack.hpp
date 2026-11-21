@@ -127,6 +127,11 @@ namespace adaptive_json5
          * (ADR 0003, decision 7). Failure leaves the stack unchanged.
          * @par ID SWU-PARSER-031
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.41)
         [[nodiscard]] status_result reserve_exact(std::size_t frames) noexcept;
 
         /**
@@ -140,6 +145,11 @@ namespace adaptive_json5
          * Successful work charges are not refunded after later failure.
          * @par ID SWU-PARSER-034
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.40)
         [[nodiscard]] status_result push(parser_frame&& frame, work_budget& work) noexcept;
 
         /**

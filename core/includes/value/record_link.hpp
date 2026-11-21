@@ -20,6 +20,10 @@ namespace adaptive_json5
      * Damaged links report internal_error, not a caller access error.
      * Trivially copyable; performs no allocation.
      */
+    // MISRA rule: RULE-4-1-2 cpp/misra/implicit-declaration-of-copy-constructor
+    // MISRA justification: The copy constructor and copy assignment are explicitly declared in the class (=
+    // default or = delete), so nothing relies on a deprecated implicit declaration.
+    // codeql::misra_deviation_next_line(DEV-009.02)
     class [[nodiscard]] record_link
     {
       public:
@@ -46,7 +50,15 @@ namespace adaptive_json5
 
         record_link(const record_link&) noexcept = default;
         record_link& operator=(const record_link&) noexcept = default;
+        // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+        // MISRA justification: The move operation is declared noexcept in both its declaration and its
+        // definition. The tool does not see the specifier in the -fno-exceptions analysis build.
+        // codeql::misra_deviation_next_line(DEV-022.06)
         record_link(record_link&&) noexcept = default;
+        // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+        // MISRA justification: The move operation is declared noexcept in both its declaration and its
+        // definition. The tool does not see the specifier in the -fno-exceptions analysis build.
+        // codeql::misra_deviation_next_line(DEV-022.05)
         record_link& operator=(record_link&&) noexcept = default;
 
         /**

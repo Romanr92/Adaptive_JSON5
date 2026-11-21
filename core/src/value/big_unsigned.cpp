@@ -30,6 +30,7 @@ namespace adaptive_json5::detail
     constexpr std::uint32_t c_decimal_radix_3 = 1000;
     constexpr std::uint32_t c_decimal_radix_4 = 10000;
     constexpr std::size_t c_additional_limb = 1;
+    constexpr std::size_t c_lowest_limb = 0;
 
     /**
      * @brief Read one initialized limb from owned byte storage.
@@ -51,7 +52,17 @@ namespace adaptive_json5::detail
       // codeql::misra_deviation_next_line(DEV-002.15)
       const auto* bytes = static_cast<const std::byte*>(storage.data());
 
-      std::memcpy(&value, bytes + (index * sizeof(limb_type)), sizeof(value));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: index is below the slot count of the block, and the block size (count * sizeof)
+      // was computed with checked_multiply when it was allocated, so this product fits std::size_t.
+      // codeql::misra_deviation_next_line(DEV-004.38)
+      const std::size_t offset = index * sizeof(limb_type);
+      // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+      // MISRA justification: std::memcpy copies bytes between non-overlapping buffers whose sizes were checked
+      // when the storage was allocated. In C++17 this is the defined way to copy a trivially copyable object
+      // representation to or from untyped storage without alignment or aliasing assumptions.
+      // codeql::misra_deviation_next_line(DEV-023.02)
+      static_cast<void>(std::memcpy(&value, bytes + offset, sizeof(value)));
 
       return value;
     }
@@ -66,6 +77,10 @@ namespace adaptive_json5::detail
      * @note Caller guarantees an in-bounds slot.
      * @par ID SWU-VALUE-004
      */
+    // MISRA rule: RULE-10-1-1 cpp/misra/pointer-or-ref-param-not-const
+    // MISRA justification: The function writes into the bytes owned by the block. owned_block::data() is const-
+    // qualified, but a non-const reference documents that the call modifies the block's contents.
+    // codeql::misra_deviation_next_line(DEV-018.01)
     void write_limb(owned_block& storage, std::size_t index, limb_type value) noexcept
     {
       // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
@@ -74,7 +89,17 @@ namespace adaptive_json5::detail
       // codeql::misra_deviation_next_line(DEV-002.16)
       auto* bytes = static_cast<std::byte*>(storage.data());
 
-      std::memcpy(bytes + (index * sizeof(limb_type)), &value, sizeof(value));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: index is below the slot count of the block, and the block size (count * sizeof)
+      // was computed with checked_multiply when it was allocated, so this product fits std::size_t.
+      // codeql::misra_deviation_next_line(DEV-004.37)
+      const std::size_t offset = index * sizeof(limb_type);
+      // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+      // MISRA justification: std::memcpy copies bytes between non-overlapping buffers whose sizes were checked
+      // when the storage was allocated. In C++17 this is the defined way to copy a trivially copyable object
+      // representation to or from untyped storage without alignment or aliasing assumptions.
+      // codeql::misra_deviation_next_line(DEV-023.01)
+      static_cast<void>(std::memcpy(bytes + offset, &value, sizeof(value)));
     }
   } // namespace
 
@@ -120,7 +145,8 @@ namespace adaptive_json5::detail
    */
   result<std::size_t> limbs_for_bits(std::size_t bits) noexcept
   {
-    const auto rounded = checked_add(bits, std::size_t{c_limb_bits} - 1, resource_limit_reason::conversion_size);
+    const auto rounded =
+      checked_add(bits, static_cast<std::size_t>(c_limb_bits) - 1U, resource_limit_reason::conversion_size);
 
     if (!rounded.has_value())
     {
@@ -168,6 +194,11 @@ namespace adaptive_json5::detail
       return status_result::failure(*allocation.error_if());
     }
 
+    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+    // MISRA justification: The object is moved exactly once in this expression and is not read again
+    // afterwards; the reported accesses are the operand expressions that form this same move (for example
+    // value_if() on a result that still holds its value).
+    // codeql::misra_deviation_next_line(DEV-024.01)
     m_storage = std::move(*allocation.value_if());
     m_capacity = limbs;
 
@@ -202,18 +233,30 @@ namespace adaptive_json5::detail
       return length_result::success(0);
     }
 
-    limb_type top = read_limb(m_storage, m_size - c_additional_limb);
+    // Widen first so the shifts and comparisons stay unsigned.
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Callers reach this only for a nonzero value, which has at least one limb, so m_size
+    // - 1 is the top limb index.
+    // codeql::misra_deviation_next_line(DEV-004.36)
+    auto top = static_cast<wide_type>(read_limb(m_storage, m_size - c_additional_limb));
     std::size_t top_bits{};
 
     // Canonical values have a nonzero top limb, so this loop runs at least once.
-    while (top != 0)
+    while (top != 0U)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Counts the bits of one 16-bit limb, so top_bits is at most 16.
+      // codeql::misra_deviation_next_line(DEV-004.35)
       ++top_bits;
-      top = static_cast<limb_type>(top >> 1U);
+      top >>= 1U;
     }
 
-    const auto lower_bits =
-      checked_multiply(m_size - c_additional_limb, std::size_t{c_limb_bits}, resource_limit_reason::conversion_size);
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Callers reach this only for a nonzero value, which has at least one limb, so m_size
+    // - 1 is the top limb index.
+    // codeql::misra_deviation_next_line(DEV-004.34)
+    const auto lower_bits = checked_multiply(m_size - c_additional_limb, static_cast<std::size_t>(c_limb_bits),
+                                             resource_limit_reason::conversion_size);
 
     if (!lower_bits.has_value())
     {
@@ -276,8 +319,17 @@ namespace adaptive_json5::detail
     // Determine whether growth is needed without modifying the current integer.
     wide_type carry = digit;
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.08)
     for (std::size_t index{}; index < m_size; ++index)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The limb is below 2^16, radix and carry are at most 10000, so the result is below
+      // 2^32 and fits wide_type.
+      // codeql::misra_deviation_next_line(DEV-004.33)
       const auto expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
 
       carry = expanded / c_limb_radix;
@@ -294,8 +346,17 @@ namespace adaptive_json5::detail
     // No fallible operations remain, so the integer is updated in place.
     carry = digit;
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.07)
     for (std::size_t index{}; index < m_size; ++index)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The limb is below 2^16, radix and carry are at most 10000, so the result is below
+      // 2^32 and fits wide_type.
+      // codeql::misra_deviation_next_line(DEV-004.32)
       const auto expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
 
       write_limb(m_storage, index, static_cast<limb_type>(expanded % c_limb_radix));
@@ -306,6 +367,10 @@ namespace adaptive_json5::detail
     if (grows)
     {
       write_limb(m_storage, m_size, static_cast<limb_type>(carry));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The value's capacity was reserved for the extra limb before this call, so m_size
+      // stays within it.
+      // codeql::misra_deviation_next_line(DEV-004.31)
       ++m_size;
     }
 
@@ -361,8 +426,9 @@ namespace adaptive_json5::detail
       // Decrement before indexing to avoid unsigned wrap after the final limb.
       --index;
 
-      const auto left = read_limb(m_storage, index);
-      const auto right = read_limb(other.m_storage, index);
+      // Widen first so the comparisons stay unsigned.
+      const auto left = static_cast<wide_type>(read_limb(m_storage, index));
+      const auto right = static_cast<wide_type>(read_limb(other.m_storage, index));
 
       if (left < right)
       {
@@ -451,39 +517,77 @@ namespace adaptive_json5::detail
     if (partial_bits == 0)
     {
       // Move limbs upwards starting at the top, so no source limb is overwritten before it is read.
-      for (std::size_t index = m_size; index != 0;)
+      std::size_t index = m_size;
+
+      while (index != 0U)
       {
         --index;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The capacity for m_size + whole_limbs limbs was reserved before shifting, so the
+        // destination index fits.
+        // codeql::misra_deviation_next_line(DEV-004.30)
         write_limb(m_storage, index + whole_limbs, read_limb(m_storage, index));
       }
     }
     else
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: partial_bits is bit_count % c_limb_bits, so it is below c_limb_bits.
+      // codeql::misra_deviation_next_line(DEV-004.29)
       const std::uint32_t carry_bits = c_limb_bits - partial_bits;
 
       // The bits pushed out of the top limb form a new most significant limb.
-      const auto top = static_cast<limb_type>(read_limb(m_storage, m_size - c_additional_limb) >> carry_bits);
-      write_limb(m_storage, m_size + whole_limbs, top);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Callers reach this only for a nonzero value, which has at least one limb, so
+      // m_size - 1 is the top limb index.
+      // codeql::misra_deviation_next_line(DEV-004.28)
+      const auto top_limb = static_cast<wide_type>(read_limb(m_storage, m_size - c_additional_limb));
+      const wide_type top = top_limb >> carry_bits;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The capacity for m_size + whole_limbs limbs was reserved before shifting, so the
+      // destination index fits.
+      // codeql::misra_deviation_next_line(DEV-004.27)
+      write_limb(m_storage, m_size + whole_limbs, static_cast<limb_type>(top));
 
-      if (top != 0)
+      if (top != 0U)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Counts limbs within the capacity reserved for the shifted value, so it cannot
+        // wrap.
+        // codeql::misra_deviation_next_line(DEV-004.26)
         ++significant_count;
       }
 
       // Each destination limb joins its source limb with the high bits of the limb below.
-      for (std::size_t index = m_size - c_additional_limb; index != 0; --index)
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Callers reach this only for a nonzero value, which has at least one limb, so
+      // m_size - 1 is the top limb index.
+      // codeql::misra_deviation_next_line(DEV-004.25)
+      std::size_t index = m_size - c_additional_limb;
+
+      while (index != 0U)
       {
         const auto high = static_cast<wide_type>(read_limb(m_storage, index)) << partial_bits;
-        const auto low = static_cast<wide_type>(read_limb(m_storage, index - 1)) >> carry_bits;
+        const auto low = static_cast<wide_type>(read_limb(m_storage, index - 1U)) >> carry_bits;
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The capacity for m_size + whole_limbs limbs was reserved before shifting, so the
+        // destination index fits.
+        // codeql::misra_deviation_next_line(DEV-004.24)
         write_limb(m_storage, index + whole_limbs, static_cast<limb_type>((high | low) % c_limb_radix));
+        --index;
       }
 
-      const auto lowest = static_cast<wide_type>(read_limb(m_storage, 0)) << partial_bits;
+      const auto lowest = static_cast<wide_type>(read_limb(m_storage, c_lowest_limb)) << partial_bits;
       write_limb(m_storage, whole_limbs, static_cast<limb_type>(lowest % c_limb_radix));
     }
 
     // Whole-limb shifting introduces zero limbs at the least significant end.
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.06)
     for (std::size_t index{}; index < whole_limbs; ++index)
     {
       write_limb(m_storage, index, limb_type{});
@@ -550,6 +654,11 @@ namespace adaptive_json5::detail
 
     wide_type borrow{};
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.05)
     for (std::size_t index{}; index < m_size; ++index)
     {
       const auto left = static_cast<wide_type>(read_limb(m_storage, index));
@@ -558,11 +667,20 @@ namespace adaptive_json5::detail
         (index < other.m_size) ? static_cast<wide_type>(read_limb(other.m_storage, index)) : wide_type{};
 
       const wide_type subtrahend = right + borrow;
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.19)
       wide_type difference{};
 
       if (left < subtrahend)
       {
         // Borrow one base-65536 unit from the next limb.
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: left is below the limb radix and subtrahend is at most the radix, so the
+        // borrowed difference lies in 0 to 2^17 in the 32-bit wide type.
+        // codeql::misra_deviation_next_line(DEV-004.23)
         difference = (left + c_limb_radix) - subtrahend;
         borrow = c_borrow_units;
       }
@@ -578,13 +696,22 @@ namespace adaptive_json5::detail
     // Keep comparison valid by excluding zer limbs at the significant end.
     while (m_size != 0)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Callers reach this only for a nonzero value, which has at least one limb, so
+      // m_size - 1 is the top limb index.
+      // codeql::misra_deviation_next_line(DEV-004.22)
       const std::size_t highest_index = m_size - c_additional_limb;
 
-      if (read_limb(m_storage, highest_index) != 0)
+      const auto highest = static_cast<wide_type>(read_limb(m_storage, highest_index));
+
+      if (highest != 0U)
       {
         break;
       }
 
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The loop runs only while m_size is nonzero, so m_size is at least one.
+      // codeql::misra_deviation_next_line(DEV-004.21)
       --m_size;
     }
 
@@ -636,6 +763,11 @@ namespace adaptive_json5::detail
       return status_result::failure(error::internal_fault());
     }
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.04)
     for (std::size_t index{}; index < other.m_size; ++index)
     {
       write_limb(m_storage, index, read_limb(other.m_storage, index));

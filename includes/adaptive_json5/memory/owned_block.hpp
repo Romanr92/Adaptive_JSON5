@@ -92,7 +92,7 @@ namespace adaptive_json5
        * No allocation is performed.
        * @par ID SWU-MEMORY-049
        */
-      owned_block& operator=(owned_block&& other) noexcept;
+      owned_block& operator=(owned_block&& other) & noexcept;
 
       /**
        * @brief Access the block's first byte.

@@ -29,7 +29,7 @@ namespace adaptive_json5
     constexpr auto maximum = std::numeric_limits<std::size_t>::max();
 
     // Check remaining capacity before adding; unsigned addition could wrap
-    if (right > maximum - left)
+    if (right > (maximum - left))
     {
       return result<std::size_t>::failure(error::limit_without_location(reason));
     }
@@ -61,6 +61,10 @@ namespace adaptive_json5
       return result<std::size_t>::failure(error::limit_without_location(reason));
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The overflow check above returns before this line when left * right would exceed
+    // SIZE_MAX.
+    // codeql::misra_deviation_next_line(DEV-004.118)
     return result<std::size_t>::success(left * right);
   }
 } // namespace adaptive_json5

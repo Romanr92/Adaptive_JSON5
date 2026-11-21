@@ -53,6 +53,10 @@ namespace adaptive_json5
       constexpr auto c_minimum = static_cast<std::intmax_t>(std::numeric_limits<T>::min());
       constexpr auto c_maximum = static_cast<std::intmax_t>(std::numeric_limits<T>::max());
 
+      // MISRA rule: RULE-0-0-2 cpp/misra/invariant-condition
+      // MISRA justification: Compile-time property of the template parameter or target type. The condition is
+      // constant for one instantiation but differs between the supported types, so it is needed.
+      // codeql::misra_deviation_next_line(DEV-006.02)
       if ((value < c_minimum) || (value > c_maximum))
       {
         return conversion_result::failure(error::numeric_failure(numeric_conversion_reason::out_of_range));
@@ -73,6 +77,10 @@ namespace adaptive_json5
 
       constexpr auto c_maximum = static_cast<std::uintmax_t>(std::numeric_limits<T>::max());
 
+      // MISRA rule: RULE-0-0-2 cpp/misra/invariant-condition
+      // MISRA justification: Compile-time property of the template parameter or target type. The condition is
+      // constant for one instantiation but differs between the supported types, so it is needed.
+      // codeql::misra_deviation_next_line(DEV-006.01)
       if (value > c_maximum)
       {
         return conversion_result::failure(error::numeric_failure(numeric_conversion_reason::out_of_range));

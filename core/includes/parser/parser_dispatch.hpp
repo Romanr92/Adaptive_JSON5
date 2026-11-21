@@ -6,6 +6,7 @@
 #include "parser/parser_frame.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -18,7 +19,7 @@ namespace adaptive_json5
      * P033; P034; P035; J5-013; J5-027.
      * @note Actions describe work without consuming input or changing frames.
      */
-    enum class parser_action
+    enum class parser_action : std::uint8_t
     {
       read_value,
       read_name,

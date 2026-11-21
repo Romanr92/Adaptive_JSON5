@@ -5,6 +5,7 @@
 #include "adaptive_json5/value/value_index.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -18,7 +19,7 @@ namespace adaptive_json5
      * @note Separate initial and post-comma states allow the parser
      * to distinguish empty containers from trailing commas.
      */
-    enum class parser_state
+    enum class parser_state : std::uint8_t
     {
       array_first_or_end,
       array_value_after_comma,
@@ -39,6 +40,11 @@ namespace adaptive_json5
      * pending_name owns a decoded object name until member attachment.
      * This type neither allocates frame storage nor enforces budgets.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.41)
     struct [[nodiscard]] parser_frame
     {
         value_index container{};

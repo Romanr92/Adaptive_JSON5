@@ -126,6 +126,11 @@ namespace adaptive_json5
       return document_result::failure(*storage.error_if());
     }
 
+    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+    // MISRA justification: The object is moved exactly once in this expression and is not read again
+    // afterwards; the reported accesses are the operand expressions that form this same move (for example
+    // value_if() on a result that still holds its value).
+    // codeql::misra_deviation_next_line(DEV-024.09)
     return detail::json5_document_access::parse_with_storage(input, options, std::move(*storage.value_if()));
   }
 
@@ -173,7 +178,11 @@ namespace adaptive_json5
    * @note The storage owner empties other, so the accounting keeps its address.
    * @par ID SWU-MEMORY-038
    */
-  json5_document::json5_document(json5_document&& other) noexcept = default;
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+  // The tool does not see the specifier in the -fno-exceptions analysis build.
+  // codeql::misra_deviation_next_line(DEV-022.04)
+  json5_document::json5_document(json5_document&&) noexcept = default;
 
   /**
    * @brief Release parsed allocations before destroying their storage.
@@ -191,6 +200,10 @@ namespace adaptive_json5
    * @return A reference to m_parsed.values.
    * @par ID SWU-MEMORY-040
    */
+  // MISRA rule: RULE-6-8-4 cpp/misra/member-functions-refqualified
+  // MISRA justification: The reference stays valid while the json5_document lives, as the public contract
+  // states. Ref-qualifying or deleting the rvalue overload would change the public API.
+  // codeql::misra_deviation_next_line(DEV-012.02)
   const document& json5_document::values() const noexcept
   {
     return m_parsed.values;
@@ -203,6 +216,10 @@ namespace adaptive_json5
    * @return A reference to m_parsed.source.
    * @par ID SWU-MEMORY-041
    */
+  // MISRA rule: RULE-6-8-4 cpp/misra/member-functions-refqualified
+  // MISRA justification: The reference stays valid while the json5_document lives, as the public contract
+  // states. Ref-qualifying or deleting the rvalue overload would change the public API.
+  // codeql::misra_deviation_next_line(DEV-012.01)
   const retained_source& json5_document::source() const noexcept
   {
     return m_parsed.source;
@@ -316,6 +333,11 @@ namespace adaptive_json5
         return document_result::failure(*parsed.error_if());
       }
 
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.08)
       return document_result::success(json5_document{std::move(storage), std::move(*parsed.value_if())});
     }
   } // namespace detail

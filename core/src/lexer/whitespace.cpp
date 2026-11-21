@@ -46,6 +46,10 @@ namespace adaptive_json5
       if (terminator.value_if()->has_value())
       {
         // The recognizer already advanced candidate over the complete sequence.
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
+        // count is at most its length and cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.120)
         ++line_break_count;
         continue;
       }
@@ -78,6 +82,10 @@ namespace adaptive_json5
     }
 
     // Cursor offsets count original bytes, including multibyte whitespace.
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+    // it started from, and the difference is the number of bytes consumed.
+    // codeql::misra_deviation_next_line(DEV-004.119)
     const std::size_t length = candidate.offset() - start;
 
     // The entire run succeded, so publish it's advancement togather.

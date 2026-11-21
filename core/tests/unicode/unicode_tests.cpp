@@ -1,5 +1,6 @@
 #include "unicode/unicode.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -10,7 +11,7 @@ namespace
 
   /* =================================== Test_J5_006 =================================== */
 
-  constexpr unicode_range c_lookup_ranges[] = {{10, 12}, {20, 22}, {30, 32}, {40, 42}, {50, 52}};
+  constexpr std::array<unicode_range, 5> c_lookup_ranges{{{10, 12}, {20, 22}, {30, 32}, {40, 42}, {50, 52}}};
   static_assert(noexcept(adaptive_json5::detail::contains_unicode(0, c_lookup_ranges)));
   static_assert(noexcept(adaptive_json5::is_unicode_space_separator(0)));
   static_assert(noexcept(adaptive_json5::is_identifier_start(0)));

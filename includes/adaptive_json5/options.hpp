@@ -186,6 +186,11 @@ namespace adaptive_json5
    * The secure-mode fields default to standard behavior; secure_parse_options() turns them all
    * on, and each can then be switched off on its own.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.16)
   struct [[nodiscard]] parse_options
   {
       syntax_mode syntax = syntax_mode::json5;

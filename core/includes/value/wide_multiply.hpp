@@ -42,8 +42,16 @@ namespace adaptive_json5::detail
     const std::uint64_t high_high = left_high * right_high;
 
     // Middle column: carry out of low_low, the low half of high_low, and all of low_high.
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Each term is below 2^32 or a 32x32-bit product, so the sum is at most (2^32 - 1)^2 +
+    // 2 * (2^32 - 1) = 2^64 - 1 and fits std::uint64_t.
+    // codeql::misra_deviation_next_line(DEV-004.145)
     const std::uint64_t middle = (low_low >> c_half_bits) + (high_low & c_low_32_mask) + low_high;
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: This is the exact high word of a 64x64-bit product, which is at most 2^64 - 2, so
+    // the column sum fits std::uint64_t.
+    // codeql::misra_deviation_next_line(DEV-004.144)
     return product_128{high_high + (high_low >> c_half_bits) + (middle >> c_half_bits),
                        (middle << c_half_bits) | (low_low & c_low_32_mask)};
   }

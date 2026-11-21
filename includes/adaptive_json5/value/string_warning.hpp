@@ -1,6 +1,7 @@
 #ifndef ADAPTIVE_JSON5_STRING_WARNING_TYPES_HPP_
 #define ADAPTIVE_JSON5_STRING_WARNING_TYPES_HPP_
 #include <cstddef>
+#include <cstdint>
 namespace adaptive_json5
 {
   /**
@@ -12,7 +13,7 @@ namespace adaptive_json5
    * Unicode escape whose decoded surrogate has no adjacent partner, in either
    * syntax mode. It covers the complete escape and does not change decoded units.
    */
-  enum class string_warning_code
+  enum class string_warning_code : std::uint8_t
   {
     raw_line_separator,       // Raw U+2028 in a JSON5 string.
     raw_paragraph_separator,  // Raw U+2029 in a JSON5 string.

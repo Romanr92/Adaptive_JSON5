@@ -27,6 +27,11 @@ namespace adaptive_json5
      * Performs no allocation and does not modify the caller's cursor.
      * @par ID SWU-LEXER-039
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.39)
     [[nodiscard]] status_result notify_string_warnings(cursor source, string_quote quote, syntax_mode mode,
                                                        const string_warning_observer& observer) noexcept;
   } // namespace detail

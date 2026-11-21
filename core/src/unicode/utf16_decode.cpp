@@ -56,6 +56,10 @@ namespace adaptive_json5
       return result<decoded_utf16>::failure(error::without_location(error_code::encoding));
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: index is a valid unit index below the unit count, so adding one is at most the unit
+    // count.
+    // codeql::misra_deviation_next_line(DEV-004.143)
     const auto second = source.unit_at(index + c_single_unit_count);
     if (!second.has_value())
     {

@@ -27,6 +27,11 @@ namespace adaptive_json5
       return result<bool>::success(false);
     }
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.26)
     for (std::size_t index{}; index < left.size(); ++index)
     {
       const auto left_unit = left.unit_at(index);

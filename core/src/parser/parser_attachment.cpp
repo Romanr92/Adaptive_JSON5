@@ -67,6 +67,11 @@ namespace adaptive_json5
         object_member = true;
         break;
 
+      case parser_state::array_comma_or_end:
+      case parser_state::object_first_name_or_end:
+      case parser_state::object_name_after_comma:
+      case parser_state::object_colon:
+      case parser_state::object_comma_or_end:
       default:
         return status_result::failure(error::internal_fault());
       }
@@ -84,10 +89,20 @@ namespace adaptive_json5
 
       // P034: append elements in source order; P035: retain every member with its decoded name.
       // Open containers stay detached until they close, so the loop-free attach applies.
-      const auto attached = object_member ? document_access::attach_parsed_member(destination, frame.container,
-                                                                                  std::move(*frame.pending_name), child,
-                                                                                  name_span, input_size)
-                                          : document_access::attach_parsed_element(destination, frame.container, child);
+      // The deviation comment sits inside this expression, so keep clang-format from reflowing it.
+      // clang-format off
+      const auto attached =
+        object_member
+          ? document_access::attach_parsed_member(
+              destination, frame.container,
+              // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+              // MISRA justification: The pending name is moved exactly once into the new member and is
+              // reset after a successful attach; on failure the parse is abandoned, so the moved-from
+              // name is never read.
+              // codeql::misra_deviation_next_line(DEV-024.14)
+              std::move(*frame.pending_name), child, name_span, input_size)
+          : document_access::attach_parsed_element(destination, frame.container, child);
+      // clang-format on
 
       if (!attached.has_value())
       {

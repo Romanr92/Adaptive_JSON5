@@ -27,7 +27,7 @@ namespace adaptive_json5
    * @par Requirements
    * P014; J5-014.
    */
-  enum class string_piece_kind
+  enum class string_piece_kind : std::uint8_t
   {
     character,
     closing_quote,

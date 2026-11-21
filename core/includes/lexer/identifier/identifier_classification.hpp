@@ -16,7 +16,7 @@ namespace adaptive_json5
    * @par Requirements
    * P024; J5-019; J5-023.
    */
-  enum class identifier_context
+  enum class identifier_context : std::uint8_t
   {
     member_name,
     value
@@ -29,7 +29,7 @@ namespace adaptive_json5
    * @note unrecognized_value does not represent an accepted string value.
    * Numeric recognition and final rejection belong to the token dispatcher.
    */
-  enum class identifier_classification
+  enum class identifier_classification : std::uint8_t
   {
     member_name,
     null_literal,

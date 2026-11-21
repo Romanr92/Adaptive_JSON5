@@ -88,9 +88,19 @@ namespace adaptive_json5
       return number_result::failure(allocation.error_if()->unlocated());
     }
 
-    std::memcpy(allocation.value_if()->data(), text.data, text.size);
+    // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+    // MISRA justification: std::memcpy copies bytes between non-overlapping buffers whose sizes were checked
+    // when the storage was allocated. In C++17 this is the defined way to copy a trivially copyable object
+    // representation to or from untyped storage without alignment or aliasing assumptions.
+    // codeql::misra_deviation_next_line(DEV-023.07)
+    static_cast<void>(std::memcpy(allocation.value_if()->data(), text.data, text.size));
 
     const number_kind kind = (**recognized.value_if()).kind;
+    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+    // MISRA justification: The object is moved exactly once in this expression and is not read again
+    // afterwards; the reported accesses are the operand expressions that form this same move (for example
+    // value_if() on a result that still holds its value).
+    // codeql::misra_deviation_next_line(DEV-024.12)
     return number_result::success(owned_number{std::move(*allocation.value_if()), kind});
   }
 

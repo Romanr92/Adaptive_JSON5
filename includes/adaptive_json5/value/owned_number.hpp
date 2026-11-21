@@ -54,6 +54,10 @@ namespace adaptive_json5
        * @note The source becomes empty; views into transferred storage
        * remain valid while the destination owns that storage.
        */
+      // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+      // MISRA justification: The move operation is declared noexcept in both its declaration and its
+      // definition. The tool does not see the specifier in the -fno-exceptions analysis build.
+      // codeql::misra_deviation_next_line(DEV-022.02)
       owned_number(owned_number&& other) noexcept = default;
 
       /**

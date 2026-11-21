@@ -18,6 +18,11 @@ namespace adaptive_json5
    * contains_escape records whether any character used an escape.
    * This token does not determine whether the name is a value literal.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.21)
   struct [[nodiscard]] identifier_token
   {
       decoded_string value{};
@@ -35,6 +40,11 @@ namespace adaptive_json5
    * contains_escape records whether any character used an escape.
    * Owns nothing, so it can be produced and discarded without a storage provider.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.20)
   struct [[nodiscard]] identifier_measure
   {
       std::size_t units{};

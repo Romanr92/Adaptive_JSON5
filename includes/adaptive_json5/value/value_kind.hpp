@@ -1,6 +1,8 @@
 #ifndef VALUE_KIND_HPP_
 #define VALUE_KIND_HPP_
 
+#include <cstdint>
+
 namespace adaptive_json5
 {
   /**
@@ -12,7 +14,7 @@ namespace adaptive_json5
    * owned_number retains their numeric spelling family separately.
    * Null is a value, not an indication of an absent object member.
    */
-  enum class value_kind
+  enum class value_kind : std::uint8_t
   {
     null,
     boolean,

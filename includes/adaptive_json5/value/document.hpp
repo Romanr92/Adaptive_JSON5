@@ -94,6 +94,11 @@ namespace adaptive_json5
          * wrong_type_or_access (invalid_argument) instead of growing.
          * @par ID SWU-VALUE-113
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.20)
         [[nodiscard]] status_result reserve(std::size_t required) noexcept;
 
       public:
@@ -164,6 +169,11 @@ namespace adaptive_json5
          * allocates (ADR 0003, decision 7). Failure leaves the storage growable and unchanged.
          * @par ID SWU-VALUE-116
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.19)
         [[nodiscard]] status_result reserve_exact(std::size_t records) noexcept;
 
         /**
@@ -250,6 +260,10 @@ namespace adaptive_json5
    * Numeric conversions that take scratch storage modify that storage; concurrent
    * conversions need one provider per thread.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions
+  // MISRA justification: The destructor is explicitly declared (~T() noexcept = default) next to the custom
+  // move constructor, and copy and move assignment are explicitly deleted, so all special members are declared.
+  // codeql::misra_deviation_next_line(DEV-020.06)
   class [[nodiscard]] document
   {
     private:
@@ -334,6 +348,11 @@ namespace adaptive_json5
        * Failure leaves the document unchanged.
        * @par ID SWU-VALUE-031
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.18)
       [[nodiscard]] status_result append_element(value_index array, value_index child) noexcept;
 
       /**
@@ -351,6 +370,11 @@ namespace adaptive_json5
        * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
        * @par ID SWU-VALUE-032
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.17)
       [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child) noexcept;
 
       /**
@@ -371,6 +395,11 @@ namespace adaptive_json5
        * The cycle check walks the parent's ancestors: O(depth), bounded by the record count.
        * @par ID SWU-VALUE-033
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.16)
       [[nodiscard]] status_result append_member(value_index object, decoded_string&& name, value_index child,
                                                 adaptive_json5::source_span name_span, std::size_t input_size) noexcept;
 
@@ -389,6 +418,11 @@ namespace adaptive_json5
        * Bounds validation does not prove that the range spells this value.
        * @par ID SWU-VALUE-034
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.15)
       [[nodiscard]] status_result set_source_span(value_index index, adaptive_json5::source_span span,
                                                   std::size_t input_size) noexcept;
 
@@ -407,6 +441,11 @@ namespace adaptive_json5
        * The caller supplies the correct input size and source provenance.
        * @par ID SWU-VALUE-035
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.14)
       [[nodiscard]] status_result set_member_name_source_span(value_index index, adaptive_json5::source_span span,
                                                               std::size_t input_size) noexcept;
 
@@ -418,6 +457,11 @@ namespace adaptive_json5
        * Failure leaves the document unchanged.
        * @par ID SWU-VALUE-036
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.13)
       [[nodiscard]] status_result set_root(value_index index) noexcept;
 
     public:

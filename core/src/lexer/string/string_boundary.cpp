@@ -33,11 +33,28 @@ namespace adaptive_json5
       return opening_result::success(std::nullopt);
     }
 
+    // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+    // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+    // every path assigns the real value before use. For constants and results, the value is read later in the
+    // same function or template instantiation, which the tool does not track.
+    // codeql::misra_deviation_next_line(DEV-007.17)
     string_quote quote{};
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.08)
     if (*current == '"')
     {
       quote = string_quote::double_quote;
     }
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.07)
     else if (*current == '\'')
     {
       if (mode == syntax_mode::strict_json)
@@ -112,6 +129,10 @@ namespace adaptive_json5
         error::syntax_at(character->byte_offset, ((scalar == c_carriage_return) || (scalar == c_line_feed))
                                                    ? syntax_error_reason::line_terminator_in_string
                                                    : syntax_error_reason::control_character_in_string));
+    }
+    else
+    {
+      // Any other scalar is ordinary string content.
     }
 
     source = candidate;

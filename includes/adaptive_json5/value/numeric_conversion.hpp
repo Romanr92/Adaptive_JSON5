@@ -19,6 +19,11 @@ namespace adaptive_json5
    * Zero permits no charged work. No unlimited sentinel is supported.
    * Construction performs no allocation.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.56)
   struct [[nodiscard]] numeric_conversion_options
   {
       std::size_t max_work_units = resource_limits{}.max_work_units;

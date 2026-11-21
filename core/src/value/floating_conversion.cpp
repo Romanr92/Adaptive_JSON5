@@ -34,8 +34,8 @@ namespace adaptive_json5
   {
     constexpr std::uint32_t c_decimal_radix = 10;
     constexpr std::uint32_t c_hexadecimal_radix = 16;
-    constexpr std::uint32_t c_hexadecimal_letter_offset = 10;
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
+    constexpr std::size_t c_sign_byte_count = 1;
     constexpr std::uint32_t c_decimal_chunk_radix = 10000;
     constexpr std::size_t c_decimal_chunk_digits = 4;
     constexpr std::array<std::uint32_t, 6> c_hexadecimal_letter_values{10U, 11U, 12U, 13U, 14U, 15U};
@@ -106,16 +106,44 @@ namespace adaptive_json5
      */
     [[nodiscard]] std::uint32_t hexadecimal_digit_value(char digit) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Classifies the byte with a range check on ASCII digits or letters; the result is
+      // only used to decide what the byte is. The parser compares UTF-8 input bytes with character literals, so
+      // it relies on an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.06)
       if ((digit >= '0') && (digit <= '9'))
       {
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+        // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares
+        // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character
+        // set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.05)
         return static_cast<std::uint32_t>(digit - '0');
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Classifies the byte with a range check on ASCII digits or letters; the result is
+      // only used to decide what the byte is. The parser compares UTF-8 input bytes with character literals, so
+      // it relies on an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.04)
       if ((digit >= 'a') && (digit <= 'f'))
       {
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+        // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares
+        // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character
+        // set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.03)
         return c_hexadecimal_letter_values[static_cast<std::size_t>(digit - 'a')];
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a value
+      // 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares UTF-8
+      // input bytes with character literals, so it relies on an ASCII-compatible execution character set, where
+      // these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.02)
       return c_hexadecimal_letter_values[static_cast<std::size_t>(digit - 'A')];
     }
 
@@ -173,12 +201,7 @@ namespace adaptive_json5
       {
         position += c_hexadecimal_prefix_bytes;
 
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: position is incremented only after the loop condition
-        // position < spelling.size holds, so position + 1 is at most spelling.size and
-        // cannot wrap std::size_t.
-        // codeql::misra_deviation_next_line(DEV-004.16)
-        for (; position < spelling.size; ++position)
+        while (position < spelling.size)
         {
           const auto appended =
             digits.append_digit(hexadecimal_digit_value(spelling.data[position]), c_hexadecimal_radix, work);
@@ -187,6 +210,12 @@ namespace adaptive_json5
           {
             return status_result::failure(*appended.error_if());
           }
+
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: The loop condition position < spelling.size holds here, so
+          // position + 1 is at most spelling.size and cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.16)
+          ++position;
         }
 
         return status_result::success();
@@ -215,6 +244,12 @@ namespace adaptive_json5
           continue;
         }
 
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+        // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares
+        // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character
+        // set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.01)
         const auto digit = static_cast<std::uint32_t>(current - '0');
 
         // At most four decimal digits are accumulated, including leading zeros.
@@ -296,10 +331,22 @@ namespace adaptive_json5
     {
       using limits = std::numeric_limits<T>;
 
-      constexpr std::int32_t c_explicit_bits = limits::digits - 1;              // 52 or 23
-      constexpr std::int32_t c_minimum_exponent = -(limits::max_exponent - 1);  // -1023 or -127
+      constexpr std::int32_t c_explicit_bits = limits::digits - 1;             // 52 or 23
+      constexpr std::int32_t c_minimum_exponent = -(limits::max_exponent - 1); // -1023 or -127
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Compile-time constant: limits::max_exponent is 1024 or 128, giving 2047 or 255. An
+      // overflowing constant expression would not compile.
+      // codeql::misra_deviation_next_line(DEV-005.15)
       constexpr std::int32_t c_infinite_power = (2 * limits::max_exponent) - 1; // 2047 or 255
+      // MISRA rule: RULE-0-0-2 cpp/misra/invariant-condition
+      // MISRA justification: Compile-time property of the template parameter or target type. The condition is
+      // constant for one instantiation but differs between the supported types, so it is needed.
+      // codeql::misra_deviation_next_line(DEV-006.12)
       constexpr std::int32_t c_round_even_min = (limits::digits == 53) ? -4 : -17;
+      // MISRA rule: RULE-0-0-2 cpp/misra/invariant-condition
+      // MISRA justification: Compile-time property of the template parameter or target type. The condition is
+      // constant for one instantiation but differs between the supported types, so it is needed.
+      // codeql::misra_deviation_next_line(DEV-006.11)
       constexpr std::int32_t c_round_even_max = (limits::digits == 53) ? 23 : 10;
       constexpr std::int32_t c_safe_power_min = -27;
       constexpr std::int32_t c_safe_power_max = 55;
@@ -315,8 +362,12 @@ namespace adaptive_json5
       // which the addition would wrap or the shift would leave 64 bits.
       // codeql::misra_deviation_next_line(DEV-004.18)
       constexpr std::uint32_t c_shift_upper = c_shift + 1U;
-      constexpr std::uint64_t c_all_ones = ~std::uint64_t{0};
-      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_bits + 3);
+      constexpr std::uint64_t c_all_ones = std::numeric_limits<std::uint64_t>::max();
+      constexpr auto c_explicit_shift = static_cast<std::uint32_t>(c_explicit_bits);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Compile-time constant: c_explicit_shift is 52 or 23, so the shift is 55 or 26.
+      // codeql::misra_deviation_next_line(DEV-004.19)
+      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_shift + 3U);
       // floor(power * log2(10)) is (power * 217706) / 2^16 for every table exponent.
       constexpr std::int64_t c_log2_ten_scaled = 217706;
       constexpr std::int64_t c_log2_ten_scale = 65536;
@@ -333,8 +384,12 @@ namespace adaptive_json5
       // returns 1 to 64 and the subtraction yields 0 to 63 without wrapping.
       // codeql::misra_deviation_next_line(DEV-004.11)
       const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
-      const std::uint64_t normalized = significand << leading_zeros;
+      const std::uint64_t normalized = significand << static_cast<std::uint32_t>(leading_zeros);
       const detail::power_of_five_128& entry =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power is between c_smallest_power_of_five and c_largest_power_of_five (checked
+        // above), so the difference is a table index from 0 to the table size minus one.
+        // codeql::misra_deviation_next_line(DEV-005.14)
         detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
 
       detail::product_128 product = detail::multiply_64x64_to_128(normalized, entry.high);
@@ -373,9 +428,18 @@ namespace adaptive_json5
       // Floor division written out: right-shifting a negative value is implementation-defined in C++17.
       const std::int64_t scaled = c_log2_ten_scaled * power;
       const std::int64_t floor_log2 =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power lies in the power-of-five table range (checked above), so |scaled| =
+        // |217706 * power| is below 10^8; negating it, adding the scale and dividing by 65536 cannot overflow
+        // std::int64_t.
+        // codeql::misra_deviation_next_line(DEV-005.13)
         (scaled >= 0) ? (scaled / c_log2_ten_scale) : -((-scaled + c_log2_ten_scale - 1) / c_log2_ten_scale);
-      std::int32_t power2 = static_cast<std::int32_t>(floor_log2) + 63 + static_cast<std::int32_t>(upper_bit) -
-                            leading_zeros - c_minimum_exponent;
+      std::int32_t power2 =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power lies in the table range, so |floor_log2| is below 1200; leading_zeros is 0
+        // to 63 and c_minimum_exponent is -1023 or -127, so the sum stays within a few thousand.
+        // codeql::misra_deviation_next_line(DEV-005.12)
+        static_cast<std::int32_t>(floor_log2) + 63 + (upper_bit ? 1 : 0) - leading_zeros - c_minimum_exponent;
 
       if (power2 <= 0)
       {
@@ -387,7 +451,7 @@ namespace adaptive_json5
           ((mantissa & 3U) == 1U) && ((mantissa << mantissa_shift) == product.high))
 
       {
-        mantissa &= ~std::uint64_t{1};
+        mantissa &= ~static_cast<std::uint64_t>(1U);
       }
 
       // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
@@ -399,9 +463,13 @@ namespace adaptive_json5
       mantissa >>= 1U;
 
       // Rounding carried into a new leading bit.
-      if (mantissa >= (std::uint64_t{2} << c_explicit_bits))
+      if (mantissa >= (static_cast<std::uint64_t>(2U) << c_explicit_shift))
       {
-        mantissa = std::uint64_t{1} << c_explicit_bits;
+        mantissa = static_cast<std::uint64_t>(1U) << c_explicit_shift;
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power2 is below c_infinite_power plus a few units here (it comes from the
+        // bounded table exponent), so the increment cannot overflow std::int32_t.
+        // codeql::misra_deviation_next_line(DEV-005.11)
         ++power2;
       }
 
@@ -413,6 +481,10 @@ namespace adaptive_json5
       // mantissa now includes the implicit leading bit and is below 2^digits, so ldexp is exact.
       // Plain int on purpose: the standard declares std::ldexp(T, int).
       const T magnitude =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power2 is between 1 and c_infinite_power - 1 here (checked above), so adding
+        // c_minimum_exponent and subtracting c_explicit_bits stays within a few thousand.
+        // codeql::misra_deviation_next_line(DEV-005.10)
         std::ldexp(static_cast<T>(mantissa), static_cast<int>(power2 + c_minimum_exponent - c_explicit_bits));
 
       return negative ? -magnitude : magnitude;
@@ -454,7 +526,11 @@ namespace adaptive_json5
       std::uint64_t significand{};
 
       // Skip an optional sign; analysis guarantees at least one character.
-      std::size_t position = ((spelling.data[0] == '+') || (spelling.data[0] == '-')) ? 1U : 0U;
+      std::size_t position{};
+      if ((spelling.data[0] == '+') || (spelling.data[0] == '-'))
+      {
+        position = c_sign_byte_count;
+      }
 
       // Hexadecimal 'e' and 'E' are digits, so keep this path separate.
       if (hexadecimal)
@@ -477,12 +553,7 @@ namespace adaptive_json5
       }
       else
       {
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: position is incremented only after the loop condition
-        // position < spelling.size holds, so position + 1 is at most spelling.size and
-        // cannot wrap std::size_t.
-        // codeql::misra_deviation_next_line(DEV-004.05)
-        for (; position < spelling.size; ++position)
+        while (position < spelling.size)
         {
           const char current = spelling.data[position];
 
@@ -494,14 +565,25 @@ namespace adaptive_json5
           // Analysis already accounts for the point in the decimal scale.
           if (current != '.')
           {
+            // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
             // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
             // MISRA justification: try_fast_path() returns before this loop when
             // parts.digit_count exceeds 19, and number analysis only accepts '0'-'9' here
             // besides '.' and the exponent marker. The accumulated value is at most
             // 10^19 - 1, which is below 2^64 - 1, so neither the multiply nor the add can wrap.
+            // Converts an already validated digit or hexadecimal letter to its value, or a value 0-9 back to
+            // its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser compares UTF-8 input
+            // bytes with character literals, so it relies on an ASCII-compatible execution character set, where
+            // these characters are contiguous ranges.
             // codeql::misra_deviation_next_line(DEV-004.04)
             significand = (significand * c_decimal_radix) + static_cast<std::uint32_t>(current - '0');
           }
+
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: The loop condition position < spelling.size holds here, so
+          // position + 1 is at most spelling.size and cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.05)
+          ++position;
         }
       }
 
@@ -510,7 +592,8 @@ namespace adaptive_json5
         using limits = std::numeric_limits<T>;
 
         // 2^digits is the largest integer range T holds exactly.
-        constexpr std::uint64_t c_max_exact_significand = std::uint64_t{1} << limits::digits;
+        constexpr std::uint64_t c_max_exact_significand = static_cast<std::uint64_t>(1U)
+                                                          << static_cast<std::uint32_t>(limits::digits);
 
         if (significand <= c_max_exact_significand)
         {
@@ -540,6 +623,10 @@ namespace adaptive_json5
       if (!hexadecimal && (parts.scale_magnitude <= c_largest_table_scale))
       {
         const auto scale = static_cast<std::int32_t>(parts.scale_magnitude);
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: The branch condition limits scale_magnitude to c_largest_table_scale, so scale
+        // is small and positive and negating it cannot overflow std::int32_t.
+        // codeql::misra_deviation_next_line(DEV-005.09)
         const auto converted = try_eisel_lemire<T>(significand, parts.scale_negative ? -scale : scale, parts.negative);
 
         if (converted.has_value())
@@ -574,13 +661,33 @@ namespace adaptive_json5
 
       constexpr auto c_precision = static_cast<std::ptrdiff_t>(limits::digits);
       // Two extra quotient bits guarantee a rounding bit below the significand.
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Compile-time constant: c_precision is 53 for double and 24
+      // for float, so the result is 55 or 26. The static_assert below rejects any other
+      // value that would leave the 64-bit quotient.
+      // Initialized at the declaration so that no path can read an indeterminate value; every path assigns the
+      // real value before use. For constants and results, the value is read later in the same function or
+      // template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-005.08)
       constexpr std::ptrdiff_t c_quotient_bits = c_precision + 2;
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.16)
       constexpr std::ptrdiff_t c_min_normal_exponent = limits::min_exponent - 1;
       constexpr auto c_overflow_scale = static_cast<std::size_t>(limits::max_exponent10 + 1);
       // 10^-c is below half the smallest subnormal, so such values always round to zero.
       constexpr auto c_underflow_scale = static_cast<std::size_t>(limits::digits10 - limits::min_exponent10 + 3);
-      constexpr auto c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max() / 4);
-
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track. Compile-time constant: the
+      // maximum of std::ptrdiff_t is converted to std::size_t and divided by four, which cannot overflow.
+      // codeql::misra_deviation_next_line(DEV-007.15)
+      constexpr auto c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max()) / 4U;
       work_budget work{options.max_work_units};
 
       const auto analysis = detail::analyse_number(number, work);
@@ -590,6 +697,11 @@ namespace adaptive_json5
         return float_result::failure(*analysis.error_if());
       }
 
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.14)
       const auto special = detail::convert_special_floating<T>(*analysis.value_if(), options);
 
       if (!special.has_value())
@@ -628,6 +740,11 @@ namespace adaptive_json5
       // call at compile time too.
       if constexpr (detail::supports_floating_conversion<T>())
       {
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.13)
         const auto fast = try_fast_path<T>(number.spelling(), parts, work);
 
         if (!fast.has_value())
@@ -651,7 +768,7 @@ namespace adaptive_json5
       // Bound the significand without scanning its spelling again.
       const auto digit_bits =
         (parts.kind == number_kind::hexadecimal)
-          ? checked_multiply(parts.digit_count, std::size_t{4}, resource_limit_reason::conversion_size)
+          ? checked_multiply(parts.digit_count, static_cast<std::size_t>(4U), resource_limit_reason::conversion_size)
           : detail::decimal_digit_bits(parts.digit_count);
 
       if (!digit_bits.has_value())
@@ -700,6 +817,11 @@ namespace adaptive_json5
       const std::size_t larger_bound = (numerator_bound > denominator_bound) ? numerator_bound : denominator_bound;
 
       const auto aligned_bound =
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.12)
         checked_add(larger_bound, static_cast<std::size_t>(c_quotient_bits), resource_limit_reason::conversion_size);
 
       if (!aligned_bound.has_value())
@@ -709,7 +831,12 @@ namespace adaptive_json5
 
       // A remainder can temporarily double before the next subtraction.
       const auto capacity_bits =
-        checked_add(*aligned_bound.value_if(), std::size_t{1}, resource_limit_reason::conversion_size);
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.11)
+        checked_add(*aligned_bound.value_if(), static_cast<std::size_t>(1U), resource_limit_reason::conversion_size);
 
       if (!capacity_bits.has_value())
       {
@@ -765,6 +892,11 @@ namespace adaptive_json5
       const std::size_t full_chunks = parts.scale_magnitude / c_decimal_chunk_digits;
       const std::size_t remaining_scale = parts.scale_magnitude % c_decimal_chunk_digits;
 
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.02)
       for (std::size_t chunk{}; chunk < full_chunks; ++chunk)
       {
         const auto multiplied = scaled.append_digit(0, c_decimal_chunk_radix, work);
@@ -812,10 +944,20 @@ namespace adaptive_json5
 
       // After shifting, the quotient lies in [2^(P+1), 2^(P+3)): enough bits to round once.
       const std::ptrdiff_t shift =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: Both bit counts are at most c_max_bits (PTRDIFF_MAX / 4),
+        // checked above, so their difference is within +/- PTRDIFF_MAX / 4 and subtracting
+        // it from c_quotient_bits cannot overflow std::ptrdiff_t.
+        // codeql::misra_deviation_next_line(DEV-005.07)
         c_quotient_bits - (static_cast<std::ptrdiff_t>(numerator_bits) - static_cast<std::ptrdiff_t>(denominator_bits));
 
       if (shift > 0)
       {
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.10)
         const auto widened = numerator.shift_left(static_cast<std::size_t>(shift), work);
 
         if (!widened.has_value())
@@ -825,6 +967,11 @@ namespace adaptive_json5
       }
       else if (shift < 0)
       {
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.09)
         const auto widened = denominator.shift_left(static_cast<std::size_t>(-shift), work);
 
         if (!widened.has_value())
@@ -832,8 +979,17 @@ namespace adaptive_json5
           return float_result::failure(*widened.error_if());
         }
       }
+      else
+      {
+        // A zero shift means the operands are already aligned.
+      }
 
       // Aligning the divisor with the highest quotient bit replaces division with compare/subtract.
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.08)
       const auto aligned = denominator.shift_left(static_cast<std::size_t>(c_quotient_bits), work);
 
       if (!aligned.has_value())
@@ -843,6 +999,11 @@ namespace adaptive_json5
 
       std::uint_least64_t quotient{};
 
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.01)
       for (std::ptrdiff_t bit = c_quotient_bits; bit >= 0; --bit)
       {
         const auto order = numerator.compare(denominator, work);
@@ -861,7 +1022,7 @@ namespace adaptive_json5
             return float_result::failure(*reduced.error_if());
           }
 
-          quotient |= (std::uint_least64_t{1} << bit);
+          quotient |= (static_cast<std::uint_least64_t>(1U) << static_cast<std::uint32_t>(bit));
         }
 
         if (bit != 0)
@@ -879,6 +1040,11 @@ namespace adaptive_json5
       const bool sticky = !numerator.is_zero();
 
       const auto quotient_bits = static_cast<std::ptrdiff_t>(bit_length_of(quotient));
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: quotient_bits is 0 to 64 and |shift| is at most
+      // PTRDIFF_MAX / 4 + 55 because the bit counts are limited by c_max_bits, so
+      // neither subtraction can overflow std::ptrdiff_t.
+      // codeql::misra_deviation_next_line(DEV-005.06)
       const std::ptrdiff_t leading_exponent = (quotient_bits - 1) - shift;
 
       // Below the normal range, each lower exponent leaves one fewer significand bit.
@@ -886,19 +1052,36 @@ namespace adaptive_json5
 
       if (leading_exponent < c_min_normal_exponent)
       {
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: In this branch leading_exponent < c_min_normal_exponent, so
+        // the difference is positive and at most PTRDIFF_MAX / 4 + 1200 (|leading_exponent|
+        // is bounded through shift). Subtracting it from c_precision cannot overflow.
+        // codeql::misra_deviation_next_line(DEV-005.05)
         kept_bits -= (c_min_normal_exponent - leading_exponent);
       }
 
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: quotient_bits is 0 to 64 and kept_bits is at most c_precision,
+      // and at least c_precision - (PTRDIFF_MAX / 4 + 1200) after the adjustment above.
+      // The difference cannot overflow std::ptrdiff_t.
+      // codeql::misra_deviation_next_line(DEV-005.04)
       std::ptrdiff_t dropped_bits = quotient_bits - kept_bits;
 
       // One bit beyond the quotient already rounds to zero; clamping keeps shifts below 64.
-      if (dropped_bits > (quotient_bits + 1))
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: quotient_bits is the bit length of a 64-bit value, 0 to 64,
+      // so adding one cannot overflow std::ptrdiff_t.
+      // codeql::misra_deviation_next_line(DEV-005.03)
+      const std::ptrdiff_t max_dropped_bits = quotient_bits + 1;
+
+      // One bit beyond the quotient already rounds to zero; clamping keeps shifts below 64.
+      if (dropped_bits > max_dropped_bits)
       {
-        dropped_bits = quotient_bits + 1;
+        dropped_bits = max_dropped_bits;
       }
 
       const auto drop = static_cast<std::uint32_t>(dropped_bits);
-      const std::uint_least64_t rounding_unit = std::uint_least64_t{1} << drop;
+      const std::uint_least64_t rounding_unit = static_cast<std::uint_least64_t>(1U) << drop;
       const std::uint_least64_t half = rounding_unit >> 1U;
       const std::uint_least64_t remainder = quotient % rounding_unit;
       std::uint_least64_t significand = quotient >> drop;
@@ -920,10 +1103,20 @@ namespace adaptive_json5
         return finish_underflow<T>(negative, options);
       }
 
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: dropped_bits is between -53 and quotient_bits + 1 (at most 65),
+      // and |shift| is at most PTRDIFF_MAX / 4 + 55 because the bit counts are limited by
+      // c_max_bits. The difference cannot overflow std::ptrdiff_t.
+      // codeql::misra_deviation_next_line(DEV-005.02)
       const std::ptrdiff_t scale_exponent = dropped_bits - shift;
 
       // Rounding may carry into a new leading bit, so overflow is checked after rounding.
       const std::ptrdiff_t rounded_leading =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: significand is nonzero (checked above), so the bit length
+        // minus one is 0 to 63. scale_exponent is at most PTRDIFF_MAX / 4 + 120 in
+        // magnitude (see the bounds at shift), so the sum cannot overflow std::ptrdiff_t.
+        // codeql::misra_deviation_next_line(DEV-005.01)
         (static_cast<std::ptrdiff_t>(bit_length_of(significand)) - 1) + scale_exponent;
 
       if (rounded_leading >= limits::max_exponent)

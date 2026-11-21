@@ -57,6 +57,11 @@ namespace adaptive_json5
 
     // Transfer ownership only after the entire input has been accepted.
     return document_result::success(
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.15)
       parsed_document{std::move(tree.values), std::move(tree.warnings), std::move(*retained.value_if())});
   }
 } // namespace adaptive_json5

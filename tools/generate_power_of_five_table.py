@@ -80,11 +80,11 @@ def render(table):
         "{",
         "  // One entry per line, q = -342..308, for reproducible generation and review.",
         "  // clang-format off",
-        "  const power_of_five_128 c_power_of_five_table[c_power_of_five_count] = {",
+        "  const std::array<power_of_five_128, c_power_of_five_count> c_power_of_five_table = {{",
     ]
     for q, value in table:
         lines.append(f"    {{0x{value >> 64:016X}U, 0x{value & LOW_MASK:016X}U}}, // 5^{q}")
-    lines += ["  };", "  // clang-format on", "} // namespace adaptive_json5::detail", ""]
+    lines += ["  }};", "  // clang-format on", "} // namespace adaptive_json5::detail", ""]
     return "\n".join(lines)
 
 

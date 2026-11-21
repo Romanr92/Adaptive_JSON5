@@ -33,6 +33,12 @@ namespace adaptive_json5
     const auto first = source.peek();
     const auto second = source.peek(1);
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.44)
     if ((!first.has_value()) || (!second.has_value()) || (*first != c_slash) || (*second != c_slash))
     {
       return comment_result::success(std::nullopt);
@@ -108,6 +114,12 @@ namespace adaptive_json5
     const auto second = source.peek(1);
 
     // Keep line comments and unrelated slash-prefixed input for other recognizers.
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.43)
     if ((!first.has_value()) || (!second.has_value()) || (*first != c_slash) || (*second != c_asterisk))
     {
       return comment_result::success(std::nullopt);
@@ -125,6 +137,12 @@ namespace adaptive_json5
       const auto following = candidate.peek(1);
 
       // Only the first closer matters: embedded openers do not create nesting
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.42)
       if (current.has_value() && following.has_value() && (*current == c_asterisk) && (*following == c_slash))
       {
         candidate.advance(c_delimiter_byte_count);
