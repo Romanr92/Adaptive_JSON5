@@ -38,10 +38,18 @@ namespace adaptive_json5
       const std::size_t visible = (input_left < work.remaining()) ? input_left : work.remaining();
 
       // Start the view at the input's first byte so the cursor keeps original offsets.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: visible is limited to the input bytes left after start_offset, so the sum is at
+      // most the input size.
+      // codeql::misra_deviation_next_line(DEV-004.142)
       cursor source{input_view{input.data, start_offset + visible}};
       source.advance(start_offset);
 
       return result<limited_scan>::success(
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: visible is limited to the input bytes left after start_offset, so the sum is at
+        // most the input size.
+        // codeql::misra_deviation_next_line(DEV-004.141)
         limited_scan{source, start_offset, start_offset + visible, visible < input_left});
     }
 
@@ -147,6 +155,10 @@ namespace adaptive_json5
       }
 
       // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.140)
       source.advance(scan.source.offset() - source.offset());
 
       return status_result::success();

@@ -38,6 +38,10 @@ namespace adaptive_json5
       return status_result::failure(error::internal_fault());
     }
 
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: Decoded UTF-16 units are stored as bytes. The capacity check bounds the entire
+    // write, and the byte view requires no typed UTF-16 object in the block.
+    // codeql::misra_deviation_next_line(DEV-002.08)
     auto* bytes = static_cast<std::byte*>(m_storage.data());
 
     // The capacity check proved that the old offset and complete range fit.
@@ -105,6 +109,11 @@ namespace adaptive_json5
       return status_result::failure(*allocation.error_if());
     }
 
+    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+    // MISRA justification: The object is moved exactly once in this expression and is not read again
+    // afterwards; the reported accesses are the operand expressions that form this same move (for example
+    // value_if() on a result that still holds its value).
+    // codeql::misra_deviation_next_line(DEV-024.13)
     m_storage = std::move(*allocation.value_if());
     m_capacity = units;
 

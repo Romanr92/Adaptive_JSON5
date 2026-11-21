@@ -101,7 +101,7 @@ namespace adaptive_json5
           return result<member_lookup>::success(member_lookup{member_lookup_state::ambiguous, std::nullopt});
         }
 
-        match.emplace(*child);
+        match = *child;
       }
 
       if (!match.has_value())

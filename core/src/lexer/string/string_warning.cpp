@@ -30,6 +30,10 @@ namespace adaptive_json5
       if (found.size < detail::surrogate_warnings::c_capacity)
       {
         found.items[found.size] = warning;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The check above keeps found.size below c_capacity, so the increment reaches at
+        // most c_capacity.
+        // codeql::misra_deviation_next_line(DEV-004.20)
         ++found.size;
       }
     }
@@ -48,9 +52,18 @@ namespace adaptive_json5
     surrogate_warnings surrogate_pairing::escape(const encoded_utf16& units, std::size_t byte_offset,
                                                  std::size_t byte_length) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.02)
       surrogate_warnings found{};
       const string_warning current{string_warning_code::unpaired_surrogate_escape, byte_offset, byte_length};
 
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.03)
       for (std::size_t index{}; index < units.size; ++index)
       {
         const auto unit = static_cast<std::uint32_t>(units.units[index]);
@@ -78,6 +91,10 @@ namespace adaptive_json5
         {
           add(found, current);
         }
+        else
+        {
+          // Neither surrogate half: there is nothing to pair or report.
+        }
       }
 
       return found;
@@ -102,6 +119,10 @@ namespace adaptive_json5
      */
     surrogate_warnings surrogate_pairing::finish() noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.01)
       surrogate_warnings found{};
 
       if (m_pending_high.has_value())
@@ -136,7 +157,12 @@ namespace adaptive_json5
       return std::nullopt;
     }
 
-    string_warning_code code;
+    // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+    // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+    // every path assigns the real value before use. For constants and results, the value is read later in the
+    // same function or template instantiation, which the tool does not track.
+    // codeql::misra_deviation_next_line(DEV-007.18)
+    string_warning_code code{};
 
     if (piece.scalar == c_line_separator)
     {

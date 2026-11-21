@@ -51,6 +51,9 @@ project decides whether it can rely on it.
   you have verified, and you have checked stack use and execution time against your
   budget.
   → [A-01](seooc-assumptions.md#a-01-target-platforms)
+- [ ] **C-2.1a Character set.** Your compiler uses an ASCII-compatible execution
+  character set (the default for GCC, Clang and MSVC; not EBCDIC).
+  → [A-10](seooc-assumptions.md#a-10-the-compiler-uses-an-ascii-compatible-execution-character-set)
 - [ ] **C-2.2 Threads. ⚠️ BRING YOUR OWN MUTEX!** Each document, its buffer and every
   value, view or iterator from it is used by only one thread or task at a time. If
   anything is shared, **you** protect all access with your own mutex, not just single calls.

@@ -18,7 +18,17 @@ namespace adaptive_json5
    */
   struct [[nodiscard]] comment_span
   {
+      // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+      // MISRA justification: Part of the span result returned to callers, so the result describes the complete
+      // recognized range. Unit tests read the member to verify the range; production callers that only need
+      // success ignore it.
+      // codeql::misra_deviation_next_line(DEV-008.02)
       std::size_t byte_offset;
+      // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+      // MISRA justification: Part of the span result returned to callers, so the result describes the complete
+      // recognized range. Unit tests read the member to verify the range; production callers that only need
+      // success ignore it.
+      // codeql::misra_deviation_next_line(DEV-008.01)
       std::size_t byte_length;
   };
 

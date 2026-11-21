@@ -45,6 +45,11 @@ namespace adaptive_json5
     }
 
     const auto& payload = (*resolved.value_if())->payload;
+    // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+    // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+    // every path assigns the real value before use. For constants and results, the value is read later in the
+    // same function or template instantiation, which the tool does not track.
+    // codeql::misra_deviation_next_line(DEV-007.25)
     const container_links* links = nullptr;
     bool object = false;
 
@@ -78,6 +83,10 @@ namespace adaptive_json5
     else if (!links->first.is_set() || !links->last.is_set())
     {
       return result<value_iterator>::failure(error::internal_fault());
+    }
+    else
+    {
+      // A nonempty container with both links set is consistent.
     }
 
     return result<value_iterator>::success(value_iterator{storage, parent, *links, object});
@@ -122,7 +131,7 @@ namespace adaptive_json5
     }
 
     // The recorded count and the end of the chain must agree.
-    if ((m_remaining == 1 && child.next_sibling.is_set()) || (m_remaining > 1 && !child.next_sibling.is_set()))
+    if (((m_remaining == 1) && child.next_sibling.is_set()) || ((m_remaining > 1) && !child.next_sibling.is_set()))
     {
       return result<std::optional<value_view>>::failure(error::internal_fault());
     }
@@ -131,6 +140,9 @@ namespace adaptive_json5
 
     // Advance only after all check for this child succeed.
     m_next = m_storage->issue(child.next_sibling.position());
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: A child was just returned, which requires m_remaining to be at least one.
+    // codeql::misra_deviation_next_line(DEV-004.61)
     --m_remaining;
 
     return result<std::optional<value_view>>::success(std::optional<value_view>{current});

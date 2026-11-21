@@ -6,7 +6,7 @@ namespace adaptive_json5::detail
 {
   // One entry per line, q = -342..308, for reproducible generation and review.
   // clang-format off
-  const power_of_five_128 c_power_of_five_table[c_power_of_five_count] = {
+  const std::array<power_of_five_128, c_power_of_five_count> c_power_of_five_table = {{
     {0xEEF453D6923BD65AU, 0x113FAA2906A13B3FU}, // 5^-342
     {0x9558B4661B6565F8U, 0x4AC7CA59A424C507U}, // 5^-341
     {0xBAAEE17FA23EBF76U, 0x5D79BCF00D2DF649U}, // 5^-340
@@ -658,6 +658,6 @@ namespace adaptive_json5::detail
     {0xB6472E511C81471DU, 0xE0133FE4ADF8E952U}, // 5^306
     {0xE3D8F9E563A198E5U, 0x58180FDDD97723A6U}, // 5^307
     {0x8E679C2F5E44FF8FU, 0x570F09EAA7EA7648U}, // 5^308
-  };
+  }};
   // clang-format on
 } // namespace adaptive_json5::detail

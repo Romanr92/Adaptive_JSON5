@@ -6,6 +6,7 @@
 #include "lexer/string/string_boundary.hpp"
 #include "unicode/utf16.hpp"
 
+#include <array>
 #include <cstddef>
 #include <optional>
 
@@ -34,11 +35,16 @@ namespace adaptive_json5
      * @par Requirements
      * P041; J5-017; J5-018.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.32)
     struct [[nodiscard]] surrogate_warnings
     {
         static constexpr std::size_t c_capacity = 3;
 
-        string_warning items[c_capacity]{};
+        std::array<string_warning, c_capacity> items{};
         std::size_t size{};
     };
 
@@ -52,6 +58,11 @@ namespace adaptive_json5
      * unpaired. Each warning covers the whole escape sequence that produced the unit.
      * Applies in both syntax modes. Performs no allocation.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.31)
     class surrogate_pairing
     {
       private:

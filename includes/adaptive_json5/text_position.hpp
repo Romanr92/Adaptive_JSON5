@@ -15,6 +15,11 @@ namespace adaptive_json5
    * @note Lines and columns are 1-based; byte offsets elsewhere remain 0-based.
    * Columns count Unicode code points; each invalid UTF-8 byte counts as one column.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.19)
   struct [[nodiscard]] text_position
   {
       std::size_t line{1};

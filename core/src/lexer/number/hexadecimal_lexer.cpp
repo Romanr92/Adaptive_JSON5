@@ -46,6 +46,12 @@ namespace adaptive_json5
     cursor candidate = source;
     const auto initial = candidate.peek();
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.74)
     if (initial.has_value() && ((*initial == '+') || (*initial == '-')))
     {
       candidate.advance(c_ascii_byte_count);
@@ -54,11 +60,23 @@ namespace adaptive_json5
     const auto zero = candidate.peek();
     const auto marker = candidate.peek(c_ascii_byte_count);
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.73)
     if (!zero.has_value() || (*zero != '0'))
     {
       return hexadecimal_result::success(std::nullopt);
     }
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.72)
     if (!marker.has_value() || ((*marker != 'x') && (*marker != 'X')))
     {
       return hexadecimal_result::success(std::nullopt);
@@ -124,7 +142,13 @@ namespace adaptive_json5
       }
     }
 
-    const number_token token{number_kind::hexadecimal, start, candidate.offset() - start};
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return hexadecimal_result::failure(error::internal_fault());
+    }
+
+    const number_token token{number_kind::hexadecimal, start, end - start};
     auto completed = hexadecimal_result::success(std::optional<number_token>{token});
 
     source = candidate;

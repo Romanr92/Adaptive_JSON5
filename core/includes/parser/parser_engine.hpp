@@ -19,6 +19,7 @@
 #include "parser/parser_frame.hpp"
 #include "parser/parser_stack.hpp"
 
+#include <array>
 #include <cstddef>
 
 namespace adaptive_json5
@@ -36,6 +37,11 @@ namespace adaptive_json5
      * warnings holds every retained string and member-name warning in source order.
      * The caller's accounting object and storage provider must outlive values.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.44)
     struct [[nodiscard]] parsed_value_tree
     {
         document values;
@@ -54,6 +60,11 @@ namespace adaptive_json5
      * Partial documents are never returned after failure.
      * No recursive descent is used.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.43)
     class [[nodiscard]] parser_engine
     {
       private:
@@ -76,10 +87,14 @@ namespace adaptive_json5
         static constexpr std::size_t c_inline_nesting_bits = 512;
         static constexpr std::size_t c_bits_per_byte = 8;
 
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports
+        // the implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.15)
         parser_frame m_count_top{};
         std::size_t m_count_depth{};
         bool m_count_root_done{};
-        std::byte m_inline_kinds[c_inline_nesting_bits / c_bits_per_byte]{};
+        std::array<std::byte, c_inline_nesting_bits / c_bits_per_byte> m_inline_kinds{};
         owned_block m_extra_kinds{};
 
         /**
@@ -100,6 +115,11 @@ namespace adaptive_json5
          * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
          * @par ID SWU-PARSER-018
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.36)
         [[nodiscard]] status_result count_value() noexcept;
 
         /**
@@ -111,6 +131,11 @@ namespace adaptive_json5
          * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
          * @par ID SWU-PARSER-019
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.35)
         [[nodiscard]] status_result count_name() noexcept;
 
         /**
@@ -120,6 +145,11 @@ namespace adaptive_json5
          * @note Same validation and errors as consume_separator.
          * @par ID SWU-PARSER-020
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.34)
         [[nodiscard]] status_result count_separator(parser_action action) noexcept;
 
         /**
@@ -129,6 +159,11 @@ namespace adaptive_json5
          * @note Uses check_container_close, like close_container, so errors are identical.
          * @par ID SWU-PARSER-021
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.33)
         [[nodiscard]] status_result count_close() noexcept;
 
         /**
@@ -137,6 +172,11 @@ namespace adaptive_json5
          * P033; P034; P035; J5-013.
          * @par ID SWU-PARSER-022
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.32)
         [[nodiscard]] status_result count_completed_value() noexcept;
 
         /**
@@ -149,6 +189,11 @@ namespace adaptive_json5
          * that is released before returning. Leaves m_source where the pre-pass stopped.
          * @par ID SWU-PARSER-023
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.31)
         [[nodiscard]] status_result count_document(bool complete) noexcept;
 
         /**
@@ -174,6 +219,11 @@ namespace adaptive_json5
          * Successful work charges are not refunded.
          * @par ID SWU-PARSER-010
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.30)
         [[nodiscard]] status_result read_value() noexcept;
 
         /**
@@ -192,6 +242,11 @@ namespace adaptive_json5
          * Preserve-all bypasses duplicate scanning.
          * @par ID SWU-PARSER-011
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.29)
         [[nodiscard]] status_result read_name() noexcept;
 
         /**
@@ -204,6 +259,11 @@ namespace adaptive_json5
          * Dispatch work is charged by run().
          * @par ID SWU-PARSER-012
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.28)
         [[nodiscard]] status_result consume_separator(parser_action action) noexcept;
 
         /**
@@ -217,6 +277,11 @@ namespace adaptive_json5
          * The source cursor is committed only after all steps succeed.
          * @par ID SWU-PARSER-013
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.27)
         [[nodiscard]] status_result finish_container() noexcept;
 
         /**
@@ -227,6 +292,11 @@ namespace adaptive_json5
          * Otherwise record m_root without publishing the document yet.
          * @par ID SWU-PARSER-014
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.26)
         [[nodiscard]] status_result accept_completed_value(value_index completed) noexcept;
 
         // Set by the warning-sink hooks while one value or name is lexed (ADR 0003, decision 10, D).
@@ -246,6 +316,11 @@ namespace adaptive_json5
          * Failure may leave partial reservations; the engine must then be abandoned.
          * @par ID SWU-PARSER-015
          */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.25)
         [[nodiscard]] static status_result reserve_string(void* context, std::size_t units,
                                                           std::size_t warning_count) noexcept;
 

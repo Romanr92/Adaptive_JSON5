@@ -33,6 +33,12 @@ namespace adaptive_json5
     const auto first = source.peek();
     const auto second = source.peek(1);
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.44)
     if ((!first.has_value()) || (!second.has_value()) || (*first != c_slash) || (*second != c_slash))
     {
       return comment_result::success(std::nullopt);
@@ -69,8 +75,14 @@ namespace adaptive_json5
       }
     }
 
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return comment_result::failure(error::internal_fault());
+    }
+
     // Position counts bytes, so this also works for multibyte characters.
-    const std::size_t length = candidate.offset() - start;
+    const std::size_t length = end - start;
     source = candidate;
 
     return comment_result::success(std::optional<comment_span>{comment_span{start, length}});
@@ -102,6 +114,12 @@ namespace adaptive_json5
     const auto second = source.peek(1);
 
     // Keep line comments and unrelated slash-prefixed input for other recognizers.
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.43)
     if ((!first.has_value()) || (!second.has_value()) || (*first != c_slash) || (*second != c_asterisk))
     {
       return comment_result::success(std::nullopt);
@@ -119,11 +137,23 @@ namespace adaptive_json5
       const auto following = candidate.peek(1);
 
       // Only the first closer matters: embedded openers do not create nesting
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.42)
       if (current.has_value() && following.has_value() && (*current == c_asterisk) && (*following == c_slash))
       {
         candidate.advance(c_delimiter_byte_count);
 
-        const std::size_t length = candidate.offset() - start;
+        const std::size_t end = candidate.offset();
+        if (end < start)
+        {
+          return comment_result::failure(error::internal_fault());
+        }
+
+        const std::size_t length = end - start;
         source = candidate;
 
         return comment_result::success(std::optional<comment_span>{comment_span{start, length}});
@@ -138,8 +168,14 @@ namespace adaptive_json5
       }
     }
 
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return comment_result::failure(error::internal_fault());
+    }
+
     // Report where the closer was expected, and cover the open comment so tools can highlight it.
-    const source_span open_comment{start, candidate.offset() - start};
+    const source_span open_comment{start, end - start};
 
     return comment_result::failure(
       error::syntax_at_range(candidate.offset(), open_comment, syntax_error_reason::unterminated_comment));

@@ -4,6 +4,7 @@
 #include "input/cursor.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 
 namespace adaptive_json5
@@ -13,7 +14,7 @@ namespace adaptive_json5
    * @par Requirements
    * P012; J5-013.
    */
-  enum class punctuation_kind
+  enum class punctuation_kind : std::uint8_t
   {
     left_brace,
     right_brace,

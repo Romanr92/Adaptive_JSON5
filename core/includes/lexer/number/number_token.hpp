@@ -18,6 +18,11 @@ namespace adaptive_json5
    * Owned numeric spelling and exact-value representation belong to P029.
    * A decimal token is not required to fit a machine numeric type.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.17)
   struct [[nodiscard]] number_token
   {
       number_kind kind = number_kind::decimal;

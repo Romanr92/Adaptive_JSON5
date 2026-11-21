@@ -24,6 +24,11 @@ namespace adaptive_json5
      */
     [[nodiscard]] inline constexpr bool is_decimal_digit(std::optional<char> byte) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Classifies the byte with a range check on ASCII digits or letters; the result is
+      // only used to decide what the byte is. The parser compares UTF-8 input bytes with character literals, so
+      // it relies on an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.61)
       return byte.has_value() && (*byte >= '0') && (*byte <= '9');
     }
 

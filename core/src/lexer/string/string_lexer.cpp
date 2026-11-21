@@ -41,6 +41,11 @@ namespace adaptive_json5
      * @par Requirements
      * P021; J5-017; J5-029; J5-046.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.33)
     struct string_walk
     {
         std::size_t units{};                            // Decoded UTF-16 units.
@@ -78,6 +83,10 @@ namespace adaptive_json5
     {
       using walk_result = result<string_walk>;
 
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.14)
       string_walk walk{};
       detail::surrogate_pairing pairing{};
       std::optional<error> violation{};
@@ -96,6 +105,10 @@ namespace adaptive_json5
           walk.excess_warning = warning;
         }
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Counts warnings of one string, at most one per character of the input, so it
+        // cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.76)
         ++walk.warning_count;
 
         // Recording during this walk replaces a separate re-scan of the string (ADR 0003, decision 10, D).
@@ -117,6 +130,11 @@ namespace adaptive_json5
       // Surrogate findings are warnings by default and violations under secure mode.
       const auto handle_pairing = [&record, &reject, checks](const detail::surrogate_warnings& found) noexcept
       {
+        // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+        // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+        // bound that the body does not modify, and changed only in the increment expression. The counter is
+        // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+        // codeql::misra_deviation_next_line(DEV-017.19)
         for (std::size_t index{}; index < found.size; ++index)
         {
           const string_warning& warning = found.items[index];
@@ -167,6 +185,11 @@ namespace adaptive_json5
 
         if (output != nullptr)
         {
+          // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+          // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with
+          // a bound that the body does not modify, and changed only in the increment expression. The counter is
+          // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+          // codeql::misra_deviation_next_line(DEV-017.18)
           for (std::size_t index{}; index < units.size; ++index)
           {
             const auto appended = output->append_unit(units.units[index]);
@@ -190,6 +213,10 @@ namespace adaptive_json5
           // Running out of input means the string is unterminated; cover it from its opening quote.
           if (source.is_at_end())
           {
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier
+            // offset it started from, and the difference is the number of bytes consumed.
+            // codeql::misra_deviation_next_line(DEV-004.75)
             const source_span open_string{start, source.offset() - start};
 
             return walk_result::failure(
@@ -284,6 +311,11 @@ namespace adaptive_json5
       // Deliver warnings in the same order the first pass counted them.
       const auto deliver = [&observer](const surrogate_warnings& found) noexcept
       {
+        // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+        // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+        // bound that the body does not modify, and changed only in the increment expression. The counter is
+        // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+        // codeql::misra_deviation_next_line(DEV-017.17)
         for (std::size_t index{}; index < found.size; ++index)
         {
           if (observer.notify != nullptr)
@@ -317,6 +349,10 @@ namespace adaptive_json5
           }
 
           const std::size_t escape_offset = piece.value_if()->byte_offset;
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier
+          // offset it started from, and the difference is the number of bytes consumed.
+          // codeql::misra_deviation_next_line(DEV-004.74)
           deliver(pairing.escape(*escaped.value_if(), escape_offset, source.offset() - escape_offset));
         }
         else
@@ -380,6 +416,10 @@ namespace adaptive_json5
 
     const string_walk& totals = *counted.value_if();
     const string_measure measured{
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.73)
       totals.units,         start, candidate.offset() - start, totals.warning_count, totals.first_warning,
       totals.excess_warning};
 
@@ -436,6 +476,12 @@ namespace adaptive_json5
     const std::size_t start = totals.byte_offset;
 
     // Both quote characters are one byte, so the body starts right after the opening quote.
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.30)
     const string_quote quote = (*source.peek() == '\'') ? string_quote::single : string_quote::double_quote;
     cursor body = source;
     body.advance(1);

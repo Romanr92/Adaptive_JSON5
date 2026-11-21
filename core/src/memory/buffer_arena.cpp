@@ -18,9 +18,16 @@ namespace adaptive_json5
    */
   result<void*> buffer_arena::allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: The allocation callback receives the live buffer_arena instance that callbacks()
+    // registered as its context, so it can allocate from that arena.
+    // codeql::misra_deviation_next_line(DEV-002.03)
     auto& self = *static_cast<buffer_arena*>(context);
 
     void* position = self.m_begin + self.m_used;
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The arena never hands out more than its capacity, so m_used is at most m_capacity.
+    // codeql::misra_deviation_next_line(DEV-004.124)
     std::size_t space = self.m_capacity - self.m_used;
 
     // detail::align_with moves position up to the alignment and shrinks space by the padding, or
@@ -33,7 +40,15 @@ namespace adaptive_json5
     }
 
     // Everything before the remaining space, plus this block, is now in use.
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: align_within() succeeded, so space is at most the capacity and bytes is at most
+    // space; the new m_used stays within the capacity.
+    // codeql::misra_deviation_next_line(DEV-004.123)
     self.m_used = (self.m_capacity - space) + bytes;
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Counts live blocks, each taking at least one byte of the finite arena, so the count
+    // cannot wrap.
+    // codeql::misra_deviation_next_line(DEV-004.122)
     ++self.m_live;
 
     return result<void*>::success(aligned);
@@ -48,6 +63,10 @@ namespace adaptive_json5
   void buffer_arena::deallocate_callback(void* context, void* address, std::size_t bytes,
                                          std::size_t /* alignment */) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: The release callback receives the live buffer_arena instance that callbacks()
+    // registered as its context, so it can apply that arena's release rules.
+    // codeql::misra_deviation_next_line(DEV-002.04)
     auto& self = *static_cast<buffer_arena*>(context);
 
     // A release without a live allocation would break the counting; ignore it.
@@ -56,6 +75,9 @@ namespace adaptive_json5
       return;
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Releases a block that this arena handed out, so the live count is at least one here.
+    // codeql::misra_deviation_next_line(DEV-004.121)
     --self.m_live;
 
     // The whole buffer is reused once nothing is live.
@@ -65,7 +87,11 @@ namespace adaptive_json5
       return;
     }
 
-    // Top of stack release: the block ends exactly at the used mark, so give it back.
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: Top of stack release: the block ends exactly at the used mark, so give it back.
+    // The release callback accepts a block from this arena. Use its byte address
+    // to compare the block's end to the arena's used mark without reading the payload.
+    // codeql::misra_deviation_next_line(DEV-002.05)
     auto* const block = static_cast<std::byte*>(address);
     if ((block != nullptr) && (block >= self.m_begin) &&
         ((static_cast<std::size_t>(block - self.m_begin) + bytes) == self.m_used))
@@ -81,6 +107,10 @@ namespace adaptive_json5
    * @par ID SWU-MEMORY-012
    */
   buffer_arena::buffer_arena(void* buffer, std::size_t size) noexcept
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Keep the caller's buffer as a byte view so arena offsets use byte units.
+      // The capacity records the supplied extent and is zero for a null buffer.
+      // codeql::misra_deviation_next_line(DEV-002.06)
       : m_begin(static_cast<std::byte*>(buffer)), m_capacity((buffer != nullptr) ? size : 0)
   {
   }

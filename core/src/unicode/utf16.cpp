@@ -33,6 +33,10 @@ namespace adaptive_json5
       return result<encoded_utf16>::failure(error::without_location(error_code::encoding));
     }
 
+    // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+    // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+    // implicit zero of the initialization as an unsuffixed octal literal.
+    // codeql::misra_deviation_next_line(DEV-010.23)
     encoded_utf16 output{};
 
     if (scalar <= c_bmp_max)

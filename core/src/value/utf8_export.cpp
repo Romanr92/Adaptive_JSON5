@@ -99,6 +99,10 @@ namespace adaptive_json5
       {
         byte_count = c_three_byte_count;
       }
+      else
+      {
+        // Larger scalars keep the four-byte count set above.
+      }
 
       const auto next_total = checked_add(total, byte_count, resource_limit_reason::output_capacity);
       if (!next_total.has_value())
@@ -109,6 +113,10 @@ namespace adaptive_json5
       total = *next_total.value_if();
 
       // Successful decoding guarantees this complete unit sequence is in range.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: unit_count comes from decoding a sequence that lies inside the remaining units, so
+      // index stays at most the unit count.
+      // codeql::misra_deviation_next_line(DEV-004.147)
       index += decoded.value_if()->unit_count;
     }
 
@@ -207,6 +215,10 @@ namespace adaptive_json5
         *next++ = utf8_char(c_continuation_prefix | (scalar & c_continuation_mask));
       }
 
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: unit_count comes from decoding a sequence that lies inside the remaining units, so
+      // index stays at most the unit count.
+      // codeql::misra_deviation_next_line(DEV-004.146)
       index += decoded.value_if()->unit_count;
     }
 

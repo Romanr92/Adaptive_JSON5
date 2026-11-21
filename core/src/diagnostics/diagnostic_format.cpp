@@ -11,6 +11,7 @@
 #include "adaptive_json5/value/numeric_conversion_reason.hpp"
 #include "adaptive_json5/value/string_warning.hpp"
 
+#include <array>
 #include <cstddef>
 #include <limits>
 #include <optional>
@@ -28,6 +29,11 @@ namespace adaptive_json5
      * Keeps counting after the buffer is full so callers learn the required size.
      * Performs no allocation and never writes outside buffer.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.26)
     class message_writer
     {
       private:
@@ -56,6 +62,11 @@ namespace adaptive_json5
          * @note A null buffer with zero capacity is a valid size query.
          * @par ID SWU-DIAGNOSTICS-002
          */
+        // MISRA rule: RULE-6-5-2 cpp/misra/internal-linkage-specified-appropriately
+        // MISRA justification: Here static declares a static member function of a class in the anonymous
+        // namespace; it is not a namespace-scope static, so it does not duplicate the anonymous namespace's
+        // internal linkage.
+        // codeql::misra_deviation_next_line(DEV-011.01)
         [[nodiscard]] static result<message_writer> create(char* buffer, std::size_t capacity) noexcept
         {
           if ((buffer == nullptr) && (capacity != 0U))
@@ -83,6 +94,10 @@ namespace adaptive_json5
               m_buffer[m_length] = character;
             }
 
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: m_length counts the bytes of one diagnostic message, built from fixed texts
+            // and a few numbers, so it stays far below SIZE_MAX.
+            // codeql::misra_deviation_next_line(DEV-004.71)
             ++m_length;
           }
         }
@@ -98,17 +113,31 @@ namespace adaptive_json5
         {
           // Enough room for the largest std::size_t in decimal (20 digits for 64 bits).
           constexpr std::size_t c_max_digits = std::numeric_limits<std::size_t>::digits10 + 1U;
-          char digits[c_max_digits]{};
+          std::array<char, c_max_digits> digits{};
           std::size_t start = c_max_digits;
 
           // Produce digits from the right, so the loop needs no reversal step.
           do
           {
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: c_max_digits has room for every digit of a std::size_t, so start stays above
+            // zero until the last digit is written.
+            // codeql::misra_deviation_next_line(DEV-004.70)
             --start;
+            // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+            // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+            // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser
+            // compares UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution
+            // character set, where these characters are contiguous ranges.
+            // codeql::misra_deviation_next_line(DEV-015.26)
             digits[start] = static_cast<char>('0' + (value % 10U));
             value /= 10U;
           } while (value != 0U);
 
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: start is at most c_max_digits, so the difference is the number of digits
+          // written.
+          // codeql::misra_deviation_next_line(DEV-004.69)
           append(std::string_view{&digits[start], c_max_digits - start});
         }
 
@@ -125,6 +154,10 @@ namespace adaptive_json5
           if (m_capacity != 0U)
           {
             // Truncated text ends at the reserved byte; complete text ends right after itself.
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: The enclosing check guarantees m_capacity != 0, so subtracting one cannot
+            // wrap.
+            // codeql::misra_deviation_next_line(DEV-004.68)
             m_buffer[(m_length < m_capacity) ? m_length : (m_capacity - 1U)] = '\0';
           }
 

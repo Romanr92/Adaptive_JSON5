@@ -92,23 +92,24 @@ def main():
              "// Unicode data copyright 1991-2026 Unicode, Inc.; UCD 17.0.0 ReadMe copyright 2025 Unicode, Inc.",
              "// SPDX-License-Identifier: Unicode-3.0", "/*", *license_text.splitlines(), "*/", "",
              "#ifndef UNICODE_TABLES_HPP_", "#define UNICODE_TABLES_HPP_", "",
-             '#include "unicode/unicode_range.hpp"', "", "namespace adaptive_json5", "{", "  namespace detail", "  {"]
+             '#include "unicode/unicode_range.hpp"', "", "#include <array>", "#include <string_view>", "",
+             "namespace adaptive_json5", "{", "  namespace detail", "  {"]
     for version in ("17.0.0", "3.0.0"):
         source = manifest[version + "/UnicodeData.txt"]
         lines += ["    // " + source["url"], "    // SHA-256: " + source["sha256"]]
     lines += ["", "    // Identifiers preserve Unicode 3.0 category memberships and add Unicode 17.0.0 memberships.",
               "    // Space separators use Unicode 17.0.0 Zs. A separate legacy table supports later whitespace policy.",
-              "    inline constexpr char c_unicode_data_version[] = \"17.0.0\";",
-              "    inline constexpr char c_unicode_identifier_baseline_version[] = \"3.0.0\";", "",
+              "    inline constexpr std::string_view c_unicode_data_version = \"17.0.0\";",
+              "    inline constexpr std::string_view c_unicode_identifier_baseline_version = \"3.0.0\";", "",
               "    // Keep one interval per line for reproducible generation and review.", "    // clang-format off"]
     for name, ranges in tables.items():
         count = sum(last - first + 1 for first, last in ranges)
         lines += ["", "    /**", "     * @brief Immutable inclusive property ranges: " + name + ".",
                   "     * @par Requirements", "     * P006; J5-006.",
                   f"     * @note Sorted, disjoint intervals; {len(ranges)} ranges containing {count} code points.",
-                  "     */", f"    inline constexpr unicode_range {name}[] =", "    {"]
+                  "     */", f"    inline constexpr std::array<unicode_range, {len(ranges)}> {name} =", "    {{"]
         lines.extend(f"      {{0x{first:06X}, 0x{last:06X}}}," for first, last in ranges)
-        lines.append("    };")
+        lines.append("    }};")
         print(f"{name}: {len(ranges)} ranges, {count} code points")
     lines += ["", "    // clang-format on", "  } // namespace detail", "} // namespace adaptive_json5", "",
               "#endif /* UNICODE_TABLES_HPP_ */", ""]

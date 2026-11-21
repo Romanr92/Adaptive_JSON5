@@ -108,7 +108,8 @@ namespace adaptive_json5
         }
 
         // Equal length comparison can read one unit from each name per position.
-        const auto comparison_units = checked_multiply(name.size(), 2, resource_limit_reason::work);
+        const auto comparison_units =
+          checked_multiply(name.size(), static_cast<std::size_t>(2U), resource_limit_reason::work);
 
         if (!comparison_units.has_value())
         {

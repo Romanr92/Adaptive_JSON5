@@ -55,6 +55,8 @@ namespace adaptive_json5
         trailing_comma = true;
         break;
 
+      case parser_state::object_colon:
+      case parser_state::object_value:
       default:
       {
         // A member awaiting its colon or value cannot close successfully.
@@ -147,7 +149,15 @@ namespace adaptive_json5
       }
 
       const value_index completed = frame->container;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: closing.byte_offset is the offset of a byte inside the input, so adding one is at
+      // most the input size.
+      // codeql::misra_deviation_next_line(DEV-004.112)
       const std::size_t end_offset = closing.byte_offset + 1;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The container opened before its closing byte, so end_offset is above
+      // opening_offset.
+      // codeql::misra_deviation_next_line(DEV-004.111)
       const source_span span{frame->opening_offset, end_offset - frame->opening_offset};
 
       const auto recorded = detail::document_access::set_source_span(destination, completed, span, input_size);
@@ -158,7 +168,11 @@ namespace adaptive_json5
       }
 
       // No fallible operation remains after publishing the completed span.
-      frames.pop();
+      // MISRA rule: RULE-7-0-1 cpp/misra/no-conversion-from-bool
+      // MISRA justification: The cast to void explicitly discards pop()'s result, as Rule 0.1.2 permits; it is
+      // not a numeric conversion. A frame is known to exist here, so the result carries no information.
+      // codeql::misra_deviation_next_line(DEV-014.02)
+      static_cast<void>(frames.pop());
 
       return result<value_index>::success(completed);
     }

@@ -37,9 +37,23 @@ namespace adaptive_json5
     [[nodiscard]] string_warning read_entry(const owned_block& storage, std::size_t index) noexcept
     {
       string_warning entry{};
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Warnings are stored as bytes. Copy the chosen entry into a live local object
+      // without assuming that the block contains an aligned string_warning.
+      // codeql::misra_deviation_next_line(DEV-002.23)
       const auto* bytes = static_cast<const std::byte*>(storage.data());
 
-      std::memcpy(&entry, bytes + (index * sizeof(string_warning)), sizeof(entry));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: index is below the slot count of the block, and the block size (count * sizeof)
+      // was computed with checked_multiply when it was allocated, so this product fits std::size_t.
+      // codeql::misra_deviation_next_line(DEV-004.64)
+      const std::size_t offset = index * sizeof(string_warning);
+      // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+      // MISRA justification: std::memcpy copies bytes between non-overlapping buffers whose sizes were checked
+      // when the storage was allocated. In C++17 this is the defined way to copy a trivially copyable object
+      // representation to or from untyped storage without alignment or aliasing assumptions.
+      // codeql::misra_deviation_next_line(DEV-023.04)
+      static_cast<void>(std::memcpy(&entry, bytes + offset, sizeof(entry)));
 
       return entry;
     }
@@ -53,11 +67,32 @@ namespace adaptive_json5
      * @param entry Value to store.
      * @par ID SWU-VALUE-137
      */
+    // MISRA rule: RULE-10-1-1 cpp/misra/pointer-or-ref-param-not-const
+    // MISRA justification: The function writes into the bytes owned by the block. owned_block::data() is const-
+    // qualified, but a non-const reference documents that the call modifies the block's contents.
+    // codeql::misra_deviation_next_line(DEV-018.02)
     void write_entry(owned_block& storage, std::size_t index, const string_warning& entry) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Write the warning's object representation to the reserved byte slot with memcpy,
+      // so the block need not hold an aligned string_warning object.
+      // codeql::misra_deviation_next_line(DEV-002.24)
       auto* bytes = static_cast<std::byte*>(storage.data());
 
-      std::memcpy(bytes + (index * sizeof(string_warning)), &entry, sizeof(entry));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: index is below the slot count of the block, and the block size (count * sizeof)
+      // was computed with checked_multiply when it was allocated, so this product fits std::size_t.
+      // codeql::misra_deviation_next_line(DEV-004.63)
+      const std::size_t offset = index * sizeof(string_warning);
+      // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+      // MISRA rule: RULE-8-7-1 cpp/misra/pointer-argument-to-cstring-function-is-invalid
+      // MISRA justification: std::memcpy copies bytes between non-overlapping buffers whose sizes were checked
+      // when the storage was allocated. In C++17 this is the defined way to copy a trivially copyable object
+      // representation to or from untyped storage without alignment or aliasing assumptions. entry is a
+      // reference to a string_warning, so &entry points to a whole string_warning and sizeof(entry) is the size
+      // of that object. The tool takes the size of a pointer instead.
+      // codeql::misra_deviation_next_line(DEV-023.03)
+      static_cast<void>(std::memcpy(bytes + offset, &entry, sizeof(entry)));
     }
 
     /**
@@ -116,6 +151,11 @@ namespace adaptive_json5
    * P039; J5-040.
    * @par ID SWU-VALUE-140
    */
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+  // The tool does not see the specifier in the -fno-exceptions analysis build.
+  // codeql::misra_deviation_next_line(DEV-021.01)
   warning_list::warning_list(warning_list&& other) noexcept
       : m_provider(other.m_provider), m_storage(std::move(other.m_storage)), m_size(other.m_size),
         m_capacity(other.m_capacity), m_max_entries(other.m_max_entries), m_policy(other.m_policy)
@@ -162,6 +202,11 @@ namespace adaptive_json5
 
     owned_block& replacement = *allocation.value_if();
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.14)
     for (std::size_t index{}; index < m_size; ++index)
     {
       write_entry(replacement, index, read_entry(m_storage, index));
@@ -188,6 +233,10 @@ namespace adaptive_json5
     }
 
     write_entry(m_storage, m_size, warning);
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: append_reserved() checked m_size against the reserved capacity, so the increment
+    // stays within it.
+    // codeql::misra_deviation_next_line(DEV-004.62)
     ++m_size;
 
     return status_result::success();

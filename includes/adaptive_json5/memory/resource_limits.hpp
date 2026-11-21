@@ -15,6 +15,11 @@ namespace adaptive_json5
    * These settings describe limits; construction performs no allocation.
    * Enforcement and checked arithmetic belong to the resource guards.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.15)
   struct [[nodiscard]] resource_limits
   {
       // Bound the complete supplied input, including whitespace and comments.

@@ -21,7 +21,7 @@ namespace adaptive_json5::detail
    * - greater: The left magnitude is larger.
    * @note Describes magnitude only; signs and non-finite values are handled separately.
    */
-  enum class magnitude_order
+  enum class magnitude_order : std::uint8_t
   {
     less,
     equal,

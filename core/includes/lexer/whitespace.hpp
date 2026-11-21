@@ -20,8 +20,23 @@ namespace adaptive_json5
    */
   struct [[nodiscard]] whitespace_span
   {
+      // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+      // MISRA justification: Part of the span result returned to callers, so the result describes the complete
+      // recognized range. Unit tests read the member to verify the range; production callers that only need
+      // success ignore it.
+      // codeql::misra_deviation_next_line(DEV-008.10)
       std::size_t byte_offset;
+      // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+      // MISRA justification: Part of the span result returned to callers, so the result describes the complete
+      // recognized range. Unit tests read the member to verify the range; production callers that only need
+      // success ignore it.
+      // codeql::misra_deviation_next_line(DEV-008.09)
       std::size_t byte_length;
+      // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+      // MISRA justification: Part of the span result returned to callers, so the result describes the complete
+      // recognized range. Unit tests read the member to verify the range; production callers that only need
+      // success ignore it.
+      // codeql::misra_deviation_next_line(DEV-008.08)
       std::size_t line_break_count;
   };
 

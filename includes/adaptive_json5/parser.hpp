@@ -21,6 +21,11 @@ namespace adaptive_json5
    * The originating accounting object and its provider must outlive values and warnings.
    * source holds a copy of the input only when parse_options::source_text requests it.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.35)
   struct [[nodiscard]] parsed_document
   {
       document values;

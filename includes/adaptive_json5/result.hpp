@@ -19,6 +19,14 @@ namespace adaptive_json5
    * Assignment is disabled. Copying is available only for copyable payloads.
    */
   template <typename T, typename E = error>
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA rule: RULE-4-1-2 cpp/misra/implicit-declaration-of-copy-constructor
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database. The copy constructor and copy assignment
+  // are explicitly declared in the class (= default or = delete), so nothing relies on a deprecated implicit
+  // declaration.
+  // codeql::misra_deviation_next_line(DEV-020.12)
   class [[nodiscard]] result
   {
       /**
@@ -47,6 +55,10 @@ namespace adaptive_json5
       static_assert(std::is_nothrow_destructible_v<E>, "E must support non-throwing destruction");
 
     private:
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.12)
       static constexpr std::size_t c_value_index = 0;
       static constexpr std::size_t c_error_index = 1;
 
@@ -119,6 +131,10 @@ namespace adaptive_json5
        * @par Requirements
        * P002; J5-003.
        */
+      // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+      // MISRA justification: The move operation is declared noexcept in both its declaration and its
+      // definition. The tool does not see the specifier in the -fno-exceptions analysis build.
+      // codeql::misra_deviation_next_line(DEV-022.01)
       result(result&&) noexcept = default;
 
       /**
@@ -200,6 +216,11 @@ namespace adaptive_json5
    * to error storage owned by this result.
    */
   template <typename E>
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.11)
   class [[nodiscard]] result<void, E>
   {
       /**

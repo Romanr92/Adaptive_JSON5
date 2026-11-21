@@ -27,6 +27,10 @@ namespace adaptive_json5
    */
   result<void*> accounted_storage::allocate_callback(void* context, std::size_t bytes, std::size_t alignment) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: The allocation callback receives the accounted_storage pointer that callbacks()
+    // registered as its context, so the cast restores the original type.
+    // codeql::misra_deviation_next_line(DEV-002.01)
     auto& self = *static_cast<accounted_storage*>(context);
 
     // A refused release left the accounting unreliable, so nothing is allocated any more.
@@ -62,7 +66,15 @@ namespace adaptive_json5
     }
 
     // The byte-ceiling check proved this addition cannot overflow.
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The byte-ceiling check above proved that this addition stays within the configured
+    // maximum.
+    // codeql::misra_deviation_next_line(DEV-004.128)
     self.m_current_bytes += bytes;
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Counts live blocks; each one occupies at least one byte of the checked byte ceiling,
+    // so the count cannot wrap.
+    // codeql::misra_deviation_next_line(DEV-004.127)
     ++self.m_outstanding_blocks;
 
     if (self.m_current_bytes > self.m_peak_bytes)
@@ -90,6 +102,10 @@ namespace adaptive_json5
   void accounted_storage::deallocate_callback(void* context, void* address, std::size_t bytes,
                                               std::size_t alignment) noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: The release callback receives the same accounted_storage pointer registered
+    // by callbacks(), so releases update the accounting for the original provider.
+    // codeql::misra_deviation_next_line(DEV-002.02)
     auto& self = *static_cast<accounted_storage*>(context);
 
     // Every outstanding block has at least one byte, so the others still need blocks - 1 bytes.
@@ -106,7 +122,15 @@ namespace adaptive_json5
     }
 
     self.m_provider.deallocate(self.m_provider.context, address, bytes, alignment);
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Releases a block that this storage allocated earlier, so its size was added to
+    // m_current_bytes before.
+    // codeql::misra_deviation_next_line(DEV-004.126)
     self.m_current_bytes -= bytes;
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Releases a block that this storage allocated earlier, so the count is at least one
+    // here.
+    // codeql::misra_deviation_next_line(DEV-004.125)
     --self.m_outstanding_blocks;
   }
 

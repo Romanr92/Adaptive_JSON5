@@ -738,6 +738,11 @@ with both unit and validation tests disabled, and excludes examples and GoogleTe
 MISRA analysis covers the compiled production library and its headers; unit tests
 under `tests/` and `core/tests/` are outside this analysis in both local runs and CI.
 The separate GCC/Clang test jobs continue to compile and execute those tests.
+Both local and CI analysis index MISRA deviations from their
+[source justification comments](docs/ISO26262-safety/deviation-register.md#how-deviations-are-handled).
+The HTML report links to a separate **Justified findings** page for exact
+matches. The page includes the CodeQL severity badge and MISRA rule. GitHub
+code scanning receives the open findings.
 The script runs the MISRA pack plus the default C++ security queries. It uses all available
 CPU cores for compilation and CodeQL (`--threads=0`). Each run keeps its database
 and `results.sarif` in a new directory under `build/misra/`; the script prints the

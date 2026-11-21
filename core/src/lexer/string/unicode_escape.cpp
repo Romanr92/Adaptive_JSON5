@@ -41,6 +41,12 @@ namespace adaptive_json5
       return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
     }
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.67)
     if (*current != c_unicode_introducer)
     {
       return escape_result::success(std::nullopt);
@@ -51,6 +57,11 @@ namespace adaptive_json5
     candidate.advance(c_introducer_byte_count);
     std::uint16_t unit{};
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.23)
     for (std::size_t index{}; index < c_unicode_digit_count; ++index)
     {
       const auto decoded = decode_utf8(candidate);

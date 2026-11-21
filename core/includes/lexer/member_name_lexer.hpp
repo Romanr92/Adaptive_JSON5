@@ -26,6 +26,11 @@ namespace adaptive_json5
      * Provider state must outlive the owned name.
      * Identifier names have no string warnings.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.03)
     struct [[nodiscard]] member_name_token
     {
         decoded_string value{};
@@ -44,10 +49,25 @@ namespace adaptive_json5
      * excess_warning is the quoted name's first warning past the measuring allowance.
      * Owns nothing, so it can be produced and discarded without a storage provider.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.02)
     struct [[nodiscard]] member_name_measure
     {
         std::size_t units{};
+        // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+        // MISRA justification: Part of the span result returned to callers, so the result describes the
+        // complete recognized range. Unit tests read the member to verify the range; production callers that
+        // only need success ignore it.
+        // codeql::misra_deviation_next_line(DEV-008.07)
         std::size_t byte_offset{};
+        // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+        // MISRA justification: Part of the span result returned to callers, so the result describes the
+        // complete recognized range. Unit tests read the member to verify the range; production callers that
+        // only need success ignore it.
+        // codeql::misra_deviation_next_line(DEV-008.06)
         std::size_t byte_length{};
         std::size_t warning_count{};
         std::optional<string_warning> excess_warning{};

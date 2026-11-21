@@ -25,6 +25,10 @@ namespace adaptive_json5
    * No terminating NUL is stored or required.
    * The storage provider state must outlive this object.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions
+  // MISRA justification: The destructor is explicitly declared (~T() noexcept = default) next to the custom
+  // move constructor, and copy and move assignment are explicitly deleted, so all special members are declared.
+  // codeql::misra_deviation_next_line(DEV-020.05)
   class [[nodiscard]] decoded_string
   {
     private:

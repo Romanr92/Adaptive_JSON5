@@ -16,6 +16,11 @@ namespace adaptive_json5
    * @note Only the first size entries contain output units.
    * These units are stored inline without allocation.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.28)
   struct [[nodiscard]] encoded_utf16
   {
       static constexpr std::size_t c_first_unit_index = 0;

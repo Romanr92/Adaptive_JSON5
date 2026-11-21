@@ -41,9 +41,22 @@ namespace adaptive_json5
    * Quoted-name spans include their quotation marks.
    * Contains no source pointers and performs no allocation.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.10)
   struct [[nodiscard]] duplicate_names_locations
   {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.11)
       source_span first{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.10)
       source_span repeated{};
   };
 
@@ -67,6 +80,11 @@ namespace adaptive_json5
    * at_range() and without_location() are for the other categories.
    * Error metadata contains no source pointers and performs no allocation.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.09)
   struct [[nodiscard]] error
   {
     private:
@@ -83,6 +101,8 @@ namespace adaptive_json5
       static constexpr std::uint32_t c_has_range = 2U;
       static constexpr std::uint32_t c_has_reason = 4U;
       static constexpr std::uint32_t c_has_duplicate = 8U;
+      static constexpr std::size_t c_no_offset = 0U;
+      static constexpr std::uint8_t c_no_reason = 0U;
 
       /**
        * @brief Store one failure exactly as a factory describes it.
@@ -364,7 +384,7 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error without_location(error_code code) noexcept
       {
-        return error{code, 0U, 0U};
+        return error{code, c_no_offset, 0U};
       }
 
       /**
@@ -379,8 +399,12 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error duplicate_member(source_span first, source_span repeated) noexcept
       {
-        return error{
-          error_code::duplicate_policy, repeated.byte_offset, c_has_offset | c_has_duplicate, repeated, 0U, first};
+        return error{error_code::duplicate_policy,
+                     repeated.byte_offset,
+                     c_has_offset | c_has_duplicate,
+                     repeated,
+                     c_no_reason,
+                     first};
       }
 
       /**
@@ -395,7 +419,11 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error numeric_failure(numeric_conversion_reason reason) noexcept
       {
-        return error{error_code::numeric_conversion, 0U, c_has_reason, source_span{},
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports
+        // the implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.09)
+        return error{error_code::numeric_conversion, c_no_offset, c_has_reason, source_span{},
                      static_cast<std::uint8_t>(reason)};
       }
 
@@ -412,6 +440,10 @@ namespace adaptive_json5
       [[nodiscard]] static constexpr error syntax_at(std::size_t byte_offset, syntax_error_reason reason) noexcept
       {
         // The code is fixed, so a reason can never be attached to a non-syntax category.
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports
+        // the implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.08)
         return error{error_code::syntax, byte_offset, c_has_offset | c_has_reason, source_span{},
                      static_cast<std::uint8_t>(reason)};
       }
@@ -463,6 +495,10 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error limit_at(std::size_t byte_offset, resource_limit_reason reason) noexcept
       {
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports
+        // the implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.07)
         return error{error_code::resource_limit, byte_offset, c_has_offset | c_has_reason, source_span{},
                      static_cast<std::uint8_t>(reason)};
       }
@@ -479,7 +515,12 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error limit_without_location(resource_limit_reason reason) noexcept
       {
-        return error{error_code::resource_limit, 0U, c_has_reason, source_span{}, static_cast<std::uint8_t>(reason)};
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports
+        // the implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.06)
+        return error{error_code::resource_limit, c_no_offset, c_has_reason, source_span{},
+                     static_cast<std::uint8_t>(reason)};
       }
 
       /**
@@ -493,7 +534,11 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error access_failure(access_error_reason reason) noexcept
       {
-        return error{error_code::wrong_type_or_access, 0U, c_has_reason, source_span{},
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports
+        // the implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.05)
+        return error{error_code::wrong_type_or_access, c_no_offset, c_has_reason, source_span{},
                      static_cast<std::uint8_t>(reason)};
       }
 
@@ -508,7 +553,7 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr error internal_fault() noexcept
       {
-        return error{error_code::internal_error, 0U, 0U};
+        return error{error_code::internal_error, c_no_offset, 0U};
       }
   };
 

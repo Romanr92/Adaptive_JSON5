@@ -35,7 +35,7 @@ library was checked to be byte-identical before and after.
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
 | LEXER | SWU-LEXER-057 | SWU-LEXER-058 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
-| PARSER | SWU-PARSER-048 | SWU-PARSER-049 |
+| PARSER | SWU-PARSER-049 | SWU-PARSER-050 |
 | UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
 | VALUE | SWU-VALUE-184 | SWU-VALUE-185 |
 
@@ -343,6 +343,7 @@ library was checked to be byte-identical before and after.
 | SWU-PARSER-046 | used | `parse_primitive_document(input_view, const parse_options &, accounted_storage &)` | `core/src/parser/primitive_parser.cpp` | `core/includes/parser/primitive_parser.hpp` |
 | SWU-PARSER-047 | used | `detail::locate_limit(const error &, std::size_t, bool)` | `core/src/parser/parser_work.cpp` | `core/includes/parser/parser_work.hpp` |
 | SWU-PARSER-048 | used | `detail::parser_engine::located_failure(const error &)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-049 | used | `detail::attach_child(document &, parser_frame &, value_index, bool, source_span, std::size_t)` | `core/src/parser/parser_attachment.cpp` | — |
 
 ## UNICODE
 

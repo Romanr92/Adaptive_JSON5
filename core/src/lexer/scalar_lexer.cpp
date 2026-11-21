@@ -19,6 +19,7 @@
 #include "unicode/unicode.hpp"
 #include "unicode/utf8.hpp"
 
+#include <array>
 #include <cstddef>
 #include <limits>
 #include <optional>
@@ -34,14 +35,24 @@ namespace
    * @par Requirements
    * P028; J5-023; J5-046.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.29)
   struct literal_spelling
   {
       std::string_view text;
       literal_kind kind;
   };
 
-  constexpr literal_spelling c_literal_spelling[] = {
-    {"null", literal_kind::null_literal}, {"true", literal_kind::true_literal}, {"false", literal_kind::false_literal}};
+  // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+  // MISRA justification: c_literal_spelling is a namespace-scope constexpr variable, not a static data member,
+  // and it is declared only once.
+  // codeql::misra_deviation_next_line(DEV-009.01)
+  constexpr std::array<literal_spelling, 3> c_literal_spelling{{{"null", literal_kind::null_literal},
+                                                                {"true", literal_kind::true_literal},
+                                                                {"false", literal_kind::false_literal}}};
 
   /**
    * @brief Report whether the character after a spelling could extend an identifier.
@@ -62,6 +73,12 @@ namespace
     }
 
     // An escape could decode to an identifier part, as in true\u0041.
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.28)
     if (*next == '\\')
     {
       return true;
@@ -92,9 +109,21 @@ namespace
     for (const literal_spelling& literal : c_literal_spelling)
     {
       bool matches = true;
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.15)
       for (std::size_t index{}; index < literal.text.size(); ++index)
       {
         const auto byte = source.peek(index);
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+        // between two character operands does not use the numeric value; the tool reports the implicit
+        // promotion of both operands to int. The parser compares UTF-8 input bytes with character literals, so
+        // it relies on an ASCII-compatible execution character set, where these characters are contiguous
+        // ranges.
+        // codeql::misra_deviation_next_line(DEV-015.27)
         if ((!byte.has_value()) || (*byte != literal.text[index]))
         {
           matches = false;
@@ -259,6 +288,11 @@ namespace adaptive_json5
 
     if (string.value_if()->has_value())
     {
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.03)
       scalar_token token{std::in_place_type<string_token>, std::move(**string.value_if())};
       return detail::finish_scalar_token(source, candidate, std::move(token), mode);
     }

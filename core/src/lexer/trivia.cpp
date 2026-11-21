@@ -119,12 +119,30 @@ namespace adaptive_json5
       const auto second = candidate.peek(1);
 
       // Leave a lone slash or another tojen for the token recognizer.
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.70)
       if ((!first.has_value()) || (!second.has_value()) || (*first != c_slash))
       {
         break;
       }
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.69)
       const bool is_line_comment = (*second == c_slash);
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.68)
       const bool is_block_comment = (*second == c_asterisk);
 
       if ((!is_line_comment) && (!is_block_comment))
@@ -150,6 +168,10 @@ namespace adaptive_json5
       // Repeat because another whitespace run or comment may follow.
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+    // it started from, and the difference is the number of bytes consumed.
+    // codeql::misra_deviation_next_line(DEV-004.115)
     const std::size_t length = candidate.offset() - start;
     source = candidate;
 

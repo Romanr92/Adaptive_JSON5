@@ -5,6 +5,7 @@
 #include "lexer/string/string_token.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <variant>
 
 namespace adaptive_json5
@@ -14,7 +15,7 @@ namespace adaptive_json5
    * @par Requirements
    * P024; P028; J5-023.
    */
-  enum class literal_kind
+  enum class literal_kind : std::uint8_t
   {
     null_literal,
     true_literal,
@@ -28,9 +29,19 @@ namespace adaptive_json5
    * @note Contains source metadata only and requires no allocation.
    * The spelling must be exact, lowercase and unescaped.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.01)
   struct [[nodiscard]] literal_token
   {
       literal_kind kind = literal_kind::null_literal;
+      // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+      // MISRA justification: Part of the span result returned to callers, so the result describes the complete
+      // recognized range. Unit tests read the member to verify the range; production callers that only need
+      // success ignore it.
+      // codeql::misra_deviation_next_line(DEV-008.05)
       std::size_t byte_offset{};
       std::size_t byte_length{};
   };

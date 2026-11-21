@@ -27,6 +27,11 @@ namespace adaptive_json5
    * Warning metadata follows the recognized string token.
    * Nonstring primitives have no string warnings.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.48)
   struct [[nodiscard]] primitive_value
   {
       value_index index{};
@@ -45,9 +50,18 @@ namespace adaptive_json5
    * All storage provider states must outlive the owned allocations.
    * Original input is not retained.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.47)
   struct [[nodiscard]] primitive_document
   {
       document values;
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.16)
       primitive_value root{};
   };
 

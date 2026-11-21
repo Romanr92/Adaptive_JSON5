@@ -26,8 +26,17 @@ namespace adaptive_json5
      */
     void* parser_stack::slot_address(const owned_block& storage, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Compute the frame slot as a byte offset inside the allocated block so this
+      // helper also works before a frame's lifetime has started.
+      // codeql::misra_deviation_next_line(DEV-002.09)
       auto* bytes = static_cast<std::byte*>(storage.data());
-      return bytes + (index * sizeof(parser_frame));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: index is below the slot count of the block, and the block size (count * sizeof)
+      // was computed with checked_multiply when it was allocated, so this product fits std::size_t.
+      // codeql::misra_deviation_next_line(DEV-004.98)
+      const std::size_t offset = index * sizeof(parser_frame);
+      return bytes + offset;
     }
 
     /**
@@ -39,6 +48,10 @@ namespace adaptive_json5
      */
     parser_frame* parser_stack::live_frame(std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The caller supplies a slot that contains a live frame. Launder the typed
+      // pointer to access the current frame even when the slot has been reused.
+      // codeql::misra_deviation_next_line(DEV-002.10)
       return std::launder(static_cast<parser_frame*>(slot_address(m_storage, index)));
     }
 
@@ -51,6 +64,10 @@ namespace adaptive_json5
      */
     const parser_frame* parser_stack::live_frame(std::size_t index) const noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The caller supplies a slot that contains a live frame. Launder the typed
+      // pointer for read-only access to the current frame in the slot.
+      // codeql::misra_deviation_next_line(DEV-002.11)
       return std::launder(static_cast<const parser_frame*>(slot_address(m_storage, index)));
     }
 
@@ -63,6 +80,11 @@ namespace adaptive_json5
      * @note Failure leaves the stack unchanged.
      * @par ID SWU-PARSER-031
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.38)
     status_result parser_stack::reserve_exact(std::size_t frames) noexcept
     {
       // One reservation, made while empty, so nothing ever needs relocating.
@@ -88,6 +110,11 @@ namespace adaptive_json5
         return status_result::failure(*allocation.error_if());
       }
 
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.16)
       m_storage = std::move(*allocation.value_if());
       m_capacity = frames;
 
@@ -128,6 +155,11 @@ namespace adaptive_json5
      * Successful work charges are not refunded after later failure.
      * @par ID SWU-PARSER-034
      */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.37)
     status_result parser_stack::push(parser_frame&& frame, work_budget& work) noexcept
     {
       if (m_size >= m_max_frames)
@@ -148,7 +180,14 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
+      // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+      // MISRA justification: Start the frame's lifetime in the accounted block after checking slot capacity.
+      // codeql::misra_deviation_next_line(DEV-001.03)
       ::new (slot_address(m_storage, m_size)) parser_frame(std::move(frame));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: push() checked m_size against the reserved capacity, so the increment stays within
+      // it.
+      // codeql::misra_deviation_next_line(DEV-004.97)
       ++m_size;
 
       return status_result::success();
@@ -164,6 +203,9 @@ namespace adaptive_json5
      */
     parser_frame* parser_stack::top() noexcept
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The condition handles m_size == 0 first, so m_size - 1 is the last frame's index.
+      // codeql::misra_deviation_next_line(DEV-004.96)
       return (m_size == 0) ? nullptr : live_frame(m_size - 1);
     }
 
@@ -176,6 +218,9 @@ namespace adaptive_json5
      */
     const parser_frame* parser_stack::top() const noexcept
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The condition handles m_size == 0 first, so m_size - 1 is the last frame's index.
+      // codeql::misra_deviation_next_line(DEV-004.95)
       return (m_size == 0) ? nullptr : live_frame(m_size - 1);
     }
 
@@ -194,7 +239,14 @@ namespace adaptive_json5
         return false;
       }
 
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: The check above returns when the stack is empty, so m_size is at least one.
+      // codeql::misra_deviation_next_line(DEV-004.94)
       --m_size;
+      // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+      // MISRA justification: End the removed frame's lifetime while keeping its slot available for reuse.
+      // The next push constructs a new frame before the slot is read again.
+      // codeql::misra_deviation_next_line(DEV-001.04)
       live_frame(m_size)->~parser_frame();
       return true;
     }
@@ -208,9 +260,12 @@ namespace adaptive_json5
      */
     void parser_stack::clear() noexcept
     {
-      while (m_size != 0)
+      // pop() reports false once no frame is left.
+      bool removed = pop();
+
+      while (removed)
       {
-        pop();
+        removed = pop();
       }
     }
 

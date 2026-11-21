@@ -59,6 +59,12 @@ namespace adaptive_json5
     // Inspect the sign privately so other recognizers retain the complete input.
     cursor candidate = source;
     const auto initial = candidate.peek();
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.46)
     if (initial.has_value() && ((*initial == '-') || (*initial == '+')))
     {
       candidate.advance(c_ascii_byte_count);
@@ -149,7 +155,13 @@ namespace adaptive_json5
       return non_finite_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
     }
 
-    const number_token token{kind, start, candidate.offset() - start};
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return non_finite_result::failure(error::internal_fault());
+    }
+
+    const number_token token{kind, start, end - start};
     auto completed = non_finite_result::success(std::optional<number_token>{token});
 
     source = candidate;

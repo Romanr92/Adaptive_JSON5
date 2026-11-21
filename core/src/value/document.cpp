@@ -58,6 +58,11 @@ namespace adaptive_json5
    * The source retains its storage configuration and can be reused.
    * @par ID SWU-VALUE-024
    */
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+  // The tool does not see the specifier in the -fno-exceptions analysis build.
+  // codeql::misra_deviation_next_line(DEV-021.06)
   document::document(document&& other) noexcept : m_values(std::move(other.m_values)), m_root(other.m_root)
   {
     other.m_root = value_index{};
@@ -232,7 +237,7 @@ namespace adaptive_json5
     }
 
     // Replace metadata only after all validation succeeds.
-    (*resolved.value_if())->source_span.emplace(span);
+    (*resolved.value_if())->source_span = span;
 
     return status_result::success();
   }
@@ -276,7 +281,7 @@ namespace adaptive_json5
       return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
     }
 
-    record.member_name_source_span.emplace(span);
+    record.member_name_source_span = span;
 
     return status_result::success();
   }

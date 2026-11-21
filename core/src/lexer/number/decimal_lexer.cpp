@@ -88,7 +88,19 @@ namespace adaptive_json5
       return decimal_result::success(std::nullopt);
     }
 
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.66)
     const bool signed_start = (*initial == '+') || (*initial == '-');
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.65)
     if (!signed_start && (*initial != '.') && !detail::is_decimal_digit(initial))
     {
       return decimal_result::success(std::nullopt);
@@ -99,6 +111,12 @@ namespace adaptive_json5
 
     if (signed_start)
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.64)
       if ((*initial == '+') && (mode == syntax_mode::strict_json))
       {
         return decimal_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
@@ -110,6 +128,12 @@ namespace adaptive_json5
     const auto first = candidate.peek();
 
     // Let the non-finite recognizer inspect the complete original spelling.
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+    // compatible execution character set, where these characters are contiguous ranges.
+    // codeql::misra_deviation_next_line(DEV-015.63)
     if (first.has_value() && ((*first == 'I') || (*first == 'N')))
     {
       return decimal_result::success(std::nullopt);
@@ -131,6 +155,12 @@ namespace adaptive_json5
     {
       has_integer = true;
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.62)
       if (*first == '0')
       {
         candidate.advance(c_ascii_byte_count);
@@ -168,6 +198,10 @@ namespace adaptive_json5
     {
       return decimal_result::failure(detail::decimal_expected_error(candidate));
     }
+    else
+    {
+      // An integer part without a fraction needs no further checks here.
+    }
 
     const auto exponent = candidate.peek();
     if ((exponent == std::optional<char>{'e'}) || (exponent == std::optional<char>{'E'}))
@@ -185,7 +219,7 @@ namespace adaptive_json5
       while (detail::is_decimal_digit(candidate.peek()))
       {
         // Reject the first excess digit before consuming it.
-        if (candidate.offset() - exponent_start >= max_exponent_digits)
+        if ((candidate.offset() - exponent_start) >= max_exponent_digits)
         {
           return decimal_result::failure(error::limit_at(candidate.offset(), resource_limit_reason::exponent_digits));
         }
@@ -199,6 +233,10 @@ namespace adaptive_json5
       }
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+    // it started from, and the difference is the number of bytes consumed.
+    // codeql::misra_deviation_next_line(DEV-004.114)
     const number_token token{number_kind::decimal, start, candidate.offset() - start};
     auto completed = decimal_result::success(std::optional<number_token>{token});
 

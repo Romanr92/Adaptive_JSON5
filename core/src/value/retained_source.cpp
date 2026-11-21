@@ -42,7 +42,17 @@ namespace adaptive_json5
       return source_result::failure(*allocation.error_if());
     }
 
-    std::memcpy(allocation.value_if()->data(), input.data, input.size);
+    // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+    // MISRA justification: std::memcpy copies bytes between non-overlapping buffers whose sizes were checked
+    // when the storage was allocated. In C++17 this is the defined way to copy a trivially copyable object
+    // representation to or from untyped storage without alignment or aliasing assumptions.
+    // codeql::misra_deviation_next_line(DEV-023.06)
+    static_cast<void>(std::memcpy(allocation.value_if()->data(), input.data, input.size));
+    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+    // MISRA justification: The object is moved exactly once in this expression and is not read again
+    // afterwards; the reported accesses are the operand expressions that form this same move (for example
+    // value_if() on a result that still holds its value).
+    // codeql::misra_deviation_next_line(DEV-024.11)
     retained.m_bytes = std::move(*allocation.value_if());
 
     return source_result::success(std::move(retained));
@@ -67,6 +77,10 @@ namespace adaptive_json5
    */
   input_view retained_source::text() const noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: The block holds the retained copy of the caller's char input (J5-041).
+    // Return a char view bounded by the size of that copy.
+    // codeql::misra_deviation_next_line(DEV-002.19)
     return input_view{static_cast<const char*>(m_bytes.data()), m_bytes.size()};
   }
 } // namespace adaptive_json5

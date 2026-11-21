@@ -36,6 +36,10 @@ namespace adaptive_json5
       return status_result::failure(error::limit_without_location(resource_limit_reason::work));
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: The check above returns when units exceeds the remaining budget, so m_consumed stays
+    // at most m_limit.
+    // codeql::misra_deviation_next_line(DEV-004.130)
     m_consumed += units;
     return status_result::success();
   }
@@ -60,6 +64,9 @@ namespace adaptive_json5
    */
   std::size_t work_budget::remaining() const noexcept
   {
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: charge() keeps m_consumed at most m_limit, so the difference cannot wrap.
+    // codeql::misra_deviation_next_line(DEV-004.129)
     return m_limit - m_consumed;
   }
 } // namespace adaptive_json5

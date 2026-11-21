@@ -1,6 +1,7 @@
 #ifndef ADAPTIVE_JSON5_DETAIL_POWER_OF_FIVE_TABLE_HPP_
 #define ADAPTIVE_JSON5_DETAIL_POWER_OF_FIVE_TABLE_HPP_
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
@@ -32,7 +33,7 @@ namespace adaptive_json5::detail
    * q >= 0 entries are truncated; q < 0 entries are reciprocals rounded up.
    * Built only when ADAPTIVE_JSON5_EISEL_LEMIRE is ON (ADR 0005, decision 3).
    */
-  extern const power_of_five_128 c_power_of_five_table[c_power_of_five_count];
+  extern const std::array<power_of_five_128, c_power_of_five_count> c_power_of_five_table;
 } // namespace adaptive_json5::detail
 
 #endif /* ADAPTIVE_JSON5_DETAIL_POWER_OF_FIVE_TABLE_HPP_ */

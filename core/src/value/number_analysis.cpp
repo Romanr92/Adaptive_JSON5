@@ -48,13 +48,17 @@ namespace adaptive_json5
         return analysis_result::failure(*charged.error_if());
       }
 
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+      // implicit zero of the initialization as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.24)
       number_analysis analysis{};
       analysis.kind = number.kind();
 
       std::size_t position{};
       const char first = spelling.data[position];
 
-      if ((first == '+') || first == '-')
+      if ((first == '+') || (first == '-'))
       {
         analysis.negative = (first == '-');
         ++position;
@@ -79,7 +83,15 @@ namespace adaptive_json5
             analysis.is_zero = false;
           }
 
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
+          // count is at most its length and cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.110)
           ++analysis.digit_count;
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.109)
           ++position;
         }
 
@@ -95,6 +107,10 @@ namespace adaptive_json5
       while (position < spelling.size)
       {
         const char current = spelling.data[position];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+        // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.108)
         ++position;
 
         if ((current == 'e') || (current == 'E'))
@@ -109,15 +125,27 @@ namespace adaptive_json5
         }
         else
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
+          // count is at most its length and cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.107)
           ++analysis.digit_count;
 
           if (after_point)
           {
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so
+            // the count is at most its length and cannot wrap std::size_t.
+            // codeql::misra_deviation_next_line(DEV-004.106)
             ++fractional_digits;
           }
 
           if (current == '0')
           {
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so
+            // the count is at most its length and cannot wrap std::size_t.
+            // codeql::misra_deviation_next_line(DEV-004.105)
             ++trailing_zeros;
           }
           else
@@ -156,12 +184,26 @@ namespace adaptive_json5
         if ((first_exponent == '+') || (first_exponent == '-'))
         {
           exponent_negative = (first_exponent == '-');
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.104)
           ++position;
         }
 
         while (position < spelling.size)
         {
+          // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+          // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+          // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser
+          // compares UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution
+          // character set, where these characters are contiguous ranges.
+          // codeql::misra_deviation_next_line(DEV-015.40)
           const auto digit = static_cast<std::size_t>(spelling.data[position] - '0');
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.103)
           ++position;
 
           if (scale_exponent < *scale_limit.value_if())
@@ -169,20 +211,28 @@ namespace adaptive_json5
             // Saturate before multiplying so arbitrarily long exponents cannot wrap.
             scale_exponent = (scale_exponent > ((*scale_limit.value_if() - digit) / 10))
                                ? *scale_limit.value_if()
-                               : (scale_exponent * 10) + digit;
+                               // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+                               // MISRA justification: The condition selects the saturated limit when the next
+                               // value would exceed it, so this branch stays within the limit.
+                               // codeql::misra_deviation_next_line(DEV-004.102)
+                               : ((scale_exponent * 10) + digit);
           }
 
           if (!exponent_exceeds_threshold)
           {
             // Compare before multiplication to avoid overflowing size_t.
-            if ((exponent_magnitude > (threshold / 10) ||
-                 ((exponent_magnitude == (threshold / 10)) && (digit > (threshold % 10)))))
+            if ((exponent_magnitude > (threshold / 10)) ||
+                ((exponent_magnitude == (threshold / 10)) && (digit > (threshold % 10))))
             {
               exponent_exceeds_threshold = true;
             }
             else
             {
-              exponent_magnitude = exponent_magnitude * 10 + digit;
+              // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+              // MISRA justification: The check above stops accumulating once the value would exceed threshold,
+              // so this stays within threshold.
+              // codeql::misra_deviation_next_line(DEV-004.101)
+              exponent_magnitude = (exponent_magnitude * 10) + digit;
             }
           }
         }

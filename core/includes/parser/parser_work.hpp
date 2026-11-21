@@ -51,6 +51,11 @@ namespace adaptive_json5
      * @note source reports original input offsets. Do not assign source to a
      * long-lived cursor; its view ends at view_end.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.42)
     struct [[nodiscard]] limited_scan
     {
         cursor source;            // Scan cursor positioned at start_offset.

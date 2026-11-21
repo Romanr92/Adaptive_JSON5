@@ -24,12 +24,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes clang-18 ninja-build
           clang++-18 --version
-      - name: Initialize CodeQL MISRA and security analysis
-        uses: github/codeql-action/init@v4
-        with:
-          languages: c-cpp
-          build-mode: manual
-          config-file: .github/codeql/misra.yml
+      # Configure before CodeQL starts tracing, so CMake's compiler-detection sources
+      # (build/misra/CMakeFiles/*/CompilerIdCXX) are not analysed as project code.
       - name: Configure production analysis build
         run: >-
           cmake -S . -B build/misra -G Ninja
@@ -40,6 +36,14 @@ jobs:
           -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF
           -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF
           -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+      - name: Initialize CodeQL MISRA and security analysis
+        uses: github/codeql-action/init@v4
+        with:
+          languages: c-cpp
+          build-mode: manual
+          config-file: .github/codeql/misra.yml
+      - name: Index MISRA source deviations
+        run: python3 tools/misra_check.py --index-deviations
       - name: Trace Clang compilation
         run: cmake --build build/misra --parallel "$(nproc)"
       - name: Run CodeQL MISRA and security analysis
@@ -47,6 +51,7 @@ jobs:
         with:
           category: misra-cpp-2023-clang
           output: build/misra-sarif
+          upload: never
       - name: Generate MISRA HTML report
         if: ${{ !cancelled() }}
         run: |
@@ -57,8 +62,14 @@ jobs:
             exit 1
           fi
           for report in "${reports[@]}"; do
-            python3 tools/misra_check.py --report "$report" --no-open
+            python3 tools/misra_check.py --prepare-sarif "$report" \
+              --upload-sarif "build/misra-open-sarif/${report##*/}" --no-open
           done
+      - name: Upload open CodeQL findings
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          category: misra-cpp-2023-clang
+          sarif_file: build/misra-open-sarif
       - name: Generate measured MISRA / CodeQL badges
         run: >-
           python3 tools/metric_badges.py misra build/misra-sarif/*.sarif

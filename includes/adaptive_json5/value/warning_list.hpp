@@ -21,6 +21,10 @@ namespace adaptive_json5
    * Moving transfers the entries and leaves the source empty; copying is unavailable.
    * Entries own no input bytes; offsets and lengths refer to the original input.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions
+  // MISRA justification: The destructor is explicitly declared (~T() noexcept = default) next to the custom
+  // move constructor, and copy and move assignment are explicitly deleted, so all special members are declared.
+  // codeql::misra_deviation_next_line(DEV-020.07)
   class [[nodiscard]] warning_list
   {
     private:
@@ -114,6 +118,11 @@ namespace adaptive_json5
        * The old allocation is retained during copying.
        * @par ID SWU-VALUE-141
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.22)
       [[nodiscard]] status_result reserve(std::size_t additional) noexcept;
 
       /**
@@ -125,6 +134,11 @@ namespace adaptive_json5
        * @note Never allocates, so it is safe inside a warning observer.
        * @par ID SWU-VALUE-142
        */
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.21)
       [[nodiscard]] status_result append_reserved(const string_warning& warning) noexcept;
 
       /**

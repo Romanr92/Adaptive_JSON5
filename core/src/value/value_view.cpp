@@ -85,6 +85,11 @@ namespace adaptive_json5
     }
 
     const auto& payload = (*resolved.value_if())->payload;
+    // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+    // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+    // every path assigns the real value before use. For constants and results, the value is read later in the
+    // same function or template instantiation, which the tool does not track.
+    // codeql::misra_deviation_next_line(DEV-007.26)
     const container_links* links = nullptr;
 
     if (object)
@@ -121,6 +126,11 @@ namespace adaptive_json5
 
     value_index current = m_storage->issue(links->first.position());
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.13)
     for (std::size_t ordinal{}; ordinal <= position; ++ordinal)
     {
       const auto child = m_storage->at(current);
@@ -444,6 +454,11 @@ namespace adaptive_json5
     value_index current = m_storage->issue(data->members.first.position());
 
     // Every member is checked, so a name that occurs twice is detected instead of resolved.
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+    // bound that the body does not modify, and changed only in the increment expression. The counter is
+    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+    // codeql::misra_deviation_next_line(DEV-017.12)
     for (std::size_t ordinal{}; ordinal < data->members.count; ++ordinal)
     {
       const auto child = m_storage->at(current);
@@ -465,7 +480,7 @@ namespace adaptive_json5
       // The count and the end of the chain must agree, as value_iterator::next() checks;
       // the last member must also be the one the object records as last.
       // at() validated current above; links.last is retained within the same validated container.
-      const bool last_member = (ordinal + 1U == links.count);
+      const bool last_member = ((ordinal + 1U) == links.count);
 
       if ((last_member == member.next_sibling.is_set()) ||
           (last_member && (current.position() != links.last.position())))

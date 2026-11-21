@@ -1,5 +1,6 @@
 #include "lexer/line_terminator.hpp"
 
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "unicode/utf8.hpp"
@@ -68,17 +69,29 @@ namespace adaptive_json5
       // Inspect only that byte; other following input remains for the next operation.
       const auto following = candidate.peek();
 
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.45)
       if ((following.has_value()) && (*following == c_line_feed_byte))
       {
         candidate.advance(c_line_feed_byte_count);
       }
     }
 
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return terminator_result::failure(error::internal_fault());
+    }
+
     // Offsets measure original bytes, so Unicode separators span three bytes
     // and CRLF spans two bytes without counting as two terminator sequences.
-    const std::size_t length = candidate.offset() - start;
+    const std::size_t length = end - start;
 
-    // Recognition succeded: comit the complete sequence in one operation.
+    // Recognition succeeded: commit the complete sequence in one operation.
     source = candidate;
 
     return terminator_result::success(std::optional<line_terminator_span>{line_terminator_span{start, length}});

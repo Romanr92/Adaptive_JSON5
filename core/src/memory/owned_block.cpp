@@ -30,6 +30,11 @@ namespace adaptive_json5
    * P003; J5-040; J5-051.
    * @par ID SWU-MEMORY-048
    */
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+  // The tool does not see the specifier in the -fno-exceptions analysis build.
+  // codeql::misra_deviation_next_line(DEV-021.03)
   owned_block::owned_block(owned_block&& other) noexcept
       : m_storage(other.m_storage), m_data(other.m_data), m_bytes(other.m_bytes), m_alignment(other.m_alignment)
   {
@@ -50,7 +55,12 @@ namespace adaptive_json5
    * No allocation is performed.
    * @par ID SWU-MEMORY-049
    */
-  owned_block& owned_block::operator=(owned_block&& other) noexcept
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA justification: The move operation is declared noexcept in both its declaration and its definition.
+  // The tool does not see the specifier in the -fno-exceptions analysis build.
+  // codeql::misra_deviation_next_line(DEV-021.02)
+  owned_block& owned_block::operator=(owned_block&& other) & noexcept
   {
     // Self-move must not release the allocation we intend to keep.
     if (this == &other)

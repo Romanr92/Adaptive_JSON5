@@ -32,6 +32,11 @@ namespace adaptive_json5
    * Observer state must remain valid throughout the lexer call.
    * Notifications occur in source order only after complete string success.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.25)
   struct [[nodiscard]] string_warning_observer
   {
       void* context = nullptr;
@@ -61,9 +66,19 @@ namespace adaptive_json5
    * If decoding fails after reserve, some warnings may already be recorded; the parser then
    * abandons its state (ADR 0003, decision 9). Both functions are required.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.24)
   struct [[nodiscard]] string_warning_sink
   {
       void* context = nullptr;
+      // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+      // MISRA justification: The declaration and the definition use the same alias (status_result for
+      // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+      // alias across translation units and reports it as different.
+      // codeql::misra_deviation_next_line(DEV-013.24)
       string_reserve_function reserve = nullptr;
       string_warning_function record = nullptr;
   };
@@ -80,6 +95,11 @@ namespace adaptive_json5
    * first_warning is present exactly when warning_count is nonzero.
    * Warning metadata is retained even when callbacks are disabled.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.23)
   struct [[nodiscard]] string_token
   {
       decoded_string value{};
@@ -100,6 +120,11 @@ namespace adaptive_json5
    * when warning_count exceeds the allowance passed to measure_string (issue #125).
    * Owns nothing, so it can be produced and discarded without a storage provider.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+  // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+  // implicit members that are never odr-used are not in its database.
+  // codeql::misra_deviation_next_line(DEV-020.22)
   struct [[nodiscard]] string_measure
   {
       std::size_t units{};

@@ -390,3 +390,21 @@ the `owned_block` that owns it, and checks `faulted()` after releasing a documen
   `accounted_storage` is inside the document. Call `json5_document::release()`,
   then check `json5_document::storage_faulted()` before destroying the document
   (#157).
+
+## A-10 The compiler uses an ASCII-compatible execution character set
+
+The integrator compiles the library with an execution character set in which the basic
+source characters have their ASCII values. GCC, Clang and MSVC do this by default
+(UTF-8 or a code page with ASCII in its lower half); EBCDIC targets are not supported.
+
+- The parser reads UTF-8 input byte by byte and compares those bytes with character
+  literals such as `'{'`, `'"'`, `'e'` or `'0'`. That comparison is only correct when the
+  literal has the same value as the UTF-8 byte.
+- Digit and hexadecimal-letter values are computed as `c - '0'`, `c - 'a'` and
+  `c - 'A'`. The C++ standard guarantees that `'0'`–`'9'` are contiguous; the letter
+  ranges `'a'`–`'f'` and `'A'`–`'F'` are contiguous only in an ASCII-compatible set.
+- The MISRA Rule 7.0.3 deviations (DEV-015 and the related DEV-004 entry in the
+  [deviation register](deviation-register.md)) rely on this assumption.
+- A compiler with a different execution character set would misparse valid input
+  without reporting an error, so the integrator must confirm this assumption for the
+  toolchain it uses.
