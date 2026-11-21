@@ -12,84 +12,86 @@ namespace adaptive_json5
 {
   namespace detail
   {
-    /**
-     * @brief Compare decoded names, charging for both inputs only when their lengths match.
-     * @par Requirements
-     * P036; J5-032; J5-033; J5-048; J5-049.
-     * @par ID SWU-PARSER-053
-     */
-    static result<bool> matches_member_name(const value_view& member, const decoded_string& name,
-                                            work_budget& work) noexcept
+    namespace
     {
-      const auto existing = member.member_name();
-
-      if (!existing.has_value())
+      /**
+       * @brief Compare decoded names, charging for both inputs only when their lengths match.
+       * @par Requirements
+       * P036; J5-032; J5-033; J5-048; J5-049.
+       * @par ID SWU-PARSER-053
+       */
+      result<bool> matches_member_name(const value_view& member, const decoded_string& name, work_budget& work) noexcept
       {
-        return result<bool>::failure(*existing.error_if());
+        const auto existing = member.member_name();
+
+        if (!existing.has_value())
+        {
+          return result<bool>::failure(*existing.error_if());
+        }
+
+        const auto& previous_name = **existing.value_if();
+
+        if (previous_name.size() != name.size())
+        {
+          return result<bool>::success(false);
+        }
+
+        // Equal length comparison can read one unit from each name per position.
+        const auto comparison_units =
+          checked_multiply(name.size(), static_cast<std::size_t>(2U), resource_limit_reason::work);
+
+        if (!comparison_units.has_value())
+        {
+          return result<bool>::failure(*comparison_units.error_if());
+        }
+
+        const auto comparison = work.charge(*comparison_units.value_if());
+
+        if (!comparison.has_value())
+        {
+          return result<bool>::failure(*comparison.error_if());
+        }
+
+        return decoded_name_equal(previous_name, name);
       }
 
-      const auto& previous_name = **existing.value_if();
-
-      if (previous_name.size() != name.size())
+      /**
+       * @brief Charge the object inspection and validate the parent before iterating its members.
+       * @par Requirements
+       * P036; J5-032; J5-033; J5-048; J5-049.
+       * @par ID SWU-PARSER-054
+       */
+      status_result check_duplicate_parent(const document& values, value_index object, work_budget& work) noexcept
       {
-        return result<bool>::success(false);
+        const auto inspection = work.charge(1);
+
+        if (!inspection.has_value())
+        {
+          return status_result::failure(*inspection.error_if());
+        }
+
+        const auto parent = values.view(object);
+
+        if (!parent.has_value())
+        {
+          return status_result::failure(as_internal_fault(*parent.error_if()));
+        }
+
+        const auto kind = parent.value_if()->kind();
+
+        if (!kind.has_value())
+        {
+          return status_result::failure(*kind.error_if());
+        }
+
+        // generic iteration also accepts arrays; duplicate-name checks required objects.
+        if (*kind.value_if() != value_kind::object)
+        {
+          return status_result::failure(error::internal_fault());
+        }
+        return status_result::success();
       }
-
-      // Equal length comparison can read one unit from each name per position.
-      const auto comparison_units =
-        checked_multiply(name.size(), static_cast<std::size_t>(2U), resource_limit_reason::work);
-
-      if (!comparison_units.has_value())
-      {
-        return result<bool>::failure(*comparison_units.error_if());
-      }
-
-      const auto comparison = work.charge(*comparison_units.value_if());
-
-      if (!comparison.has_value())
-      {
-        return result<bool>::failure(*comparison.error_if());
-      }
-
-      return decoded_name_equal(previous_name, name);
-    }
-
-    /**
-     * @brief Charge the object inspection and validate the parent before iterating its members.
-     * @par Requirements
-     * P036; J5-032; J5-033; J5-048; J5-049.
-     * @par ID SWU-PARSER-054
-     */
-    static status_result check_duplicate_parent(const document& values, value_index object, work_budget& work) noexcept
-    {
-      const auto inspection = work.charge(1);
-
-      if (!inspection.has_value())
-      {
-        return status_result::failure(*inspection.error_if());
-      }
-
-      const auto parent = values.view(object);
-
-      if (!parent.has_value())
-      {
-        return status_result::failure(as_internal_fault(*parent.error_if()));
-      }
-
-      const auto kind = parent.value_if()->kind();
-
-      if (!kind.has_value())
-      {
-        return status_result::failure(*kind.error_if());
-      }
-
-      // generic iteration also accepts arrays; duplicate-name checks required objects.
-      if (*kind.value_if() != value_kind::object)
-      {
-        return status_result::failure(error::internal_fault());
-      }
-      return status_result::success();
-    }
+    } // namespace
 
     /**
      * @brief Reject a decoded name matching an existing member of one object.

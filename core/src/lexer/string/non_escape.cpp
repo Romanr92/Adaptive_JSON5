@@ -11,36 +11,39 @@
 
 namespace adaptive_json5
 {
-  /**
-   * @brief Recognize escape introducers handled by the dedicated escape scanners.
-   * @par Requirements
-   * P018; J5-016.
-   * @par ID SWU-LEXER-064
-   */
-  static bool is_recognized_escape(std::uint32_t scalar) noexcept
+  namespace
   {
-    // These spellings must never fall back to literal-character decoding.
-    switch (scalar)
+    /**
+     * @brief Recognize escape introducers handled by the dedicated escape scanners.
+     * @par Requirements
+     * P018; J5-016.
+     * @par ID SWU-LEXER-064
+     */
+    bool is_recognized_escape(std::uint32_t scalar) noexcept
     {
-    case 0x27U: // '\''
-    case 0x22U: // '"'
-    case 0x5CU: // '\\'
-    case 0x62U: // 'b'
-    case 0x66U: // 'f'
-    case 0x6EU: // 'n'
-    case 0x72U: // 'r'
-    case 0x74U: // 't'
-    case 0x76U: // 'v'
-    case 0x30U: // '0'
-    case 0x78U: // 'x'
-    case 0x75U: // 'u'
-      return true;
+      // These spellings must never fall back to literal-character decoding.
+      switch (scalar)
+      {
+      case 0x27U: // '\''
+      case 0x22U: // '"'
+      case 0x5CU: // '\\'
+      case 0x62U: // 'b'
+      case 0x66U: // 'f'
+      case 0x6EU: // 'n'
+      case 0x72U: // 'r'
+      case 0x74U: // 't'
+      case 0x76U: // 'v'
+      case 0x30U: // '0'
+      case 0x78U: // 'x'
+      case 0x75U: // 'u'
+        return true;
 
-    default:
-      break;
+      default:
+        break;
+      }
+      return false;
     }
-    return false;
-  }
+  } // namespace
 
   /**
    * @brief Consume a JSON5 non-escape character after its backslash.

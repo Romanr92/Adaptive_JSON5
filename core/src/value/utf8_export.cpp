@@ -123,53 +123,56 @@ namespace adaptive_json5
     return result<std::size_t>::success(total);
   }
 
-  /**
-   * @brief Encode one validated scalar into the caller's prechecked UTF-8 output range.
-   * @par Requirements
-   * P013; J5-018; J5-029.
-   * @par ID SWU-VALUE-219
-   */
-  static void write_utf8_scalar(char*& next, std::uint32_t scalar) noexcept
+  namespace
   {
-    constexpr std::uint32_t c_ascii_max = 0x7F;
-    constexpr std::uint32_t c_two_byte_max = 0x7FF;
-    constexpr std::uint32_t c_three_byte_max = 0xFFFF;
-    constexpr std::uint32_t c_two_byte_prefix = 0xC0;
-    constexpr std::uint32_t c_three_byte_prefix = 0xE0;
-    constexpr std::uint32_t c_four_byte_prefix = 0xF0;
-    constexpr std::uint32_t c_continuation_prefix = 0x80;
-    constexpr std::uint32_t c_continuation_mask = 0x3F;
-    constexpr std::uint32_t c_one_payload_shift = 6;
-    constexpr std::uint32_t c_two_payload_shift = 12;
-    constexpr std::uint32_t c_three_payload_shift = 18;
-    if (scalar <= c_ascii_max)
+    /**
+     * @brief Encode one validated scalar into the caller's prechecked UTF-8 output range.
+     * @par Requirements
+     * P013; J5-018; J5-029.
+     * @par ID SWU-VALUE-219
+     */
+    void write_utf8_scalar(char*& next, std::uint32_t scalar) noexcept
     {
-      *next++ = utf8_char(scalar);
-    }
-    else
-    {
-      if (scalar <= c_two_byte_max)
+      constexpr std::uint32_t c_ascii_max = 0x7F;
+      constexpr std::uint32_t c_two_byte_max = 0x7FF;
+      constexpr std::uint32_t c_three_byte_max = 0xFFFF;
+      constexpr std::uint32_t c_two_byte_prefix = 0xC0;
+      constexpr std::uint32_t c_three_byte_prefix = 0xE0;
+      constexpr std::uint32_t c_four_byte_prefix = 0xF0;
+      constexpr std::uint32_t c_continuation_prefix = 0x80;
+      constexpr std::uint32_t c_continuation_mask = 0x3F;
+      constexpr std::uint32_t c_one_payload_shift = 6;
+      constexpr std::uint32_t c_two_payload_shift = 12;
+      constexpr std::uint32_t c_three_payload_shift = 18;
+      if (scalar <= c_ascii_max)
       {
-        *next++ = utf8_char(c_two_byte_prefix | (scalar >> c_one_payload_shift));
+        *next++ = utf8_char(scalar);
       }
       else
       {
-        if (scalar <= c_three_byte_max)
+        if (scalar <= c_two_byte_max)
         {
-          *next++ = utf8_char(c_three_byte_prefix | (scalar >> c_two_payload_shift));
+          *next++ = utf8_char(c_two_byte_prefix | (scalar >> c_one_payload_shift));
         }
         else
         {
-          *next++ = utf8_char(c_four_byte_prefix | (scalar >> c_three_payload_shift));
-          *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_two_payload_shift) & c_continuation_mask));
+          if (scalar <= c_three_byte_max)
+          {
+            *next++ = utf8_char(c_three_byte_prefix | (scalar >> c_two_payload_shift));
+          }
+          else
+          {
+            *next++ = utf8_char(c_four_byte_prefix | (scalar >> c_three_payload_shift));
+            *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_two_payload_shift) & c_continuation_mask));
+          }
+
+          *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_one_payload_shift) & c_continuation_mask));
         }
 
-        *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_one_payload_shift) & c_continuation_mask));
+        *next++ = utf8_char(c_continuation_prefix | (scalar & c_continuation_mask));
       }
-
-      *next++ = utf8_char(c_continuation_prefix | (scalar & c_continuation_mask));
     }
-  }
+  } // namespace
 
   /**
    * @brief Export a decoded string into caller-provided UTF-8 storage.

@@ -62,148 +62,150 @@ namespace adaptive_json5
         return status_result::success();
       }
 
-      /**
-       * @brief Select the array elements or object members that will receive the child.
-       * @par Requirements
-       * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
-       * @par ID SWU-VALUE-196
-       */
-      static result<container_links*> child_links(value_record& parent_record,
-                                                  const decoded_string* member_name) noexcept
+      namespace
       {
-        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-        // every path assigns the real value before use. For constants and results, the value is read later in
-        // the same function or template instantiation, which the tool does not track.
-        // codeql::misra_deviation_next_line(DEV-007.24)
-        container_links* links = nullptr;
-
-        if (member_name == nullptr)
+        /**
+         * @brief Select the array elements or object members that will receive the child.
+         * @par Requirements
+         * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
+         * @par ID SWU-VALUE-196
+         */
+        result<container_links*> child_links(value_record& parent_record, const decoded_string* member_name) noexcept
         {
-          auto* array = std::get_if<array_data>(&parent_record.payload);
-          if (array == nullptr)
-          {
-            return result<container_links*>::failure(error::access_failure(access_error_reason::wrong_type));
-          }
+          // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+          // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+          // every path assigns the real value before use. For constants and results, the value is read later in
+          // the same function or template instantiation, which the tool does not track.
+          // codeql::misra_deviation_next_line(DEV-007.24)
+          container_links* links = nullptr;
 
-          links = &array->elements;
-        }
-        else
-        {
-          auto* object = std::get_if<object_data>(&parent_record.payload);
-          if (object == nullptr)
-          {
-            return result<container_links*>::failure(error::access_failure(access_error_reason::wrong_type));
-          }
-
-          links = &object->members;
-        }
-        return result<container_links*>::success(links);
-      }
-
-      /**
-       * @brief Resolve and validate the current tail before transferring ownership to the parent.
-       * @par Requirements
-       * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
-       * @par ID SWU-VALUE-197
-       */
-      static result<value_record*> find_last_child(value_storage& values, value_index parent,
-                                                   const container_links& links) noexcept
-      {
-        value_record* previous_last = nullptr;
-
-        if (links.count == 0)
-        {
-          if (links.first.is_set() || links.last.is_set())
-          {
-            return result<value_record*>::failure(error::internal_fault());
-          }
-        }
-        else
-        {
-          if (!links.first.is_set() || !links.last.is_set())
-          {
-            return result<value_record*>::failure(error::internal_fault());
-          }
-
-          const auto last_result = values.at(values.issue(links.last.position()));
-
-          if (!last_result.has_value())
-          {
-            return result<value_record*>::failure(as_internal_fault(*last_result.error_if()));
-          }
-
-          previous_last = *last_result.value_if();
-
-          // at() validated parent and the last record; its parent link was created within this storage.
-          if (!previous_last->parent.is_set() || (previous_last->parent.position() != parent.position()) ||
-              previous_last->next_sibling.is_set())
-          {
-            return result<value_record*>::failure(error::internal_fault());
-          }
-        }
-        return result<value_record*>::success(previous_last);
-      }
-
-      /**
-       * @brief Transfer the optional name and update both ends of the validated sibling chain.
-       * @par Requirements
-       * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
-       * @par ID SWU-VALUE-198
-       */
-      static void publish_child_links(value_record& child_record, value_record* previous_last, container_links& links,
-                                      value_index parent, value_index child, decoded_string* member_name,
-                                      std::optional<source_span> name_span, std::size_t count) noexcept
-      {
-        // All fallible checks precede ownership transfer and relationship change.
-        if (member_name != nullptr)
-        {
-          static_cast<void>(child_record.member_name.emplace(std::move(*member_name)));
-          child_record.member_name_source_span = name_span;
-        }
-
-        child_record.parent = record_link{parent.position()};
-
-        if (previous_last == nullptr)
-        {
-          links.first = record_link{child.position()};
-        }
-        else
-        {
-          previous_last->next_sibling = record_link{child.position()};
-        }
-
-        links.last = record_link{child.position()};
-        links.count = count;
-      }
-
-      /**
-       * @brief Check that optional member-name metadata has a name and fits inside the input.
-       * @par Requirements
-       * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
-       * @par ID SWU-VALUE-199
-       */
-      static status_result validate_member_span(const decoded_string* member_name, std::optional<source_span> name_span,
-                                                std::size_t input_size) noexcept
-      {
-        // Validate source metadata before transferring the name or attaching the child.
-        if (name_span.has_value())
-        {
           if (member_name == nullptr)
           {
-            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
+            auto* array = std::get_if<array_data>(&parent_record.payload);
+            if (array == nullptr)
+            {
+              return result<container_links*>::failure(error::access_failure(access_error_reason::wrong_type));
+            }
+
+            links = &array->elements;
           }
-
-          const auto span = *name_span;
-
-          // Subtraction avoids overflowing the end of the supplied source range.
-          if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
+          else
           {
-            return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
+            auto* object = std::get_if<object_data>(&parent_record.payload);
+            if (object == nullptr)
+            {
+              return result<container_links*>::failure(error::access_failure(access_error_reason::wrong_type));
+            }
+
+            links = &object->members;
           }
+          return result<container_links*>::success(links);
         }
-        return status_result::success();
-      }
+
+        /**
+         * @brief Resolve and validate the current tail before transferring ownership to the parent.
+         * @par Requirements
+         * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
+         * @par ID SWU-VALUE-197
+         */
+        result<value_record*> find_last_child(value_storage& values, value_index parent,
+                                              const container_links& links) noexcept
+        {
+          value_record* previous_last = nullptr;
+
+          if (links.count == 0)
+          {
+            if (links.first.is_set() || links.last.is_set())
+            {
+              return result<value_record*>::failure(error::internal_fault());
+            }
+          }
+          else
+          {
+            if (!links.first.is_set() || !links.last.is_set())
+            {
+              return result<value_record*>::failure(error::internal_fault());
+            }
+
+            const auto last_result = values.at(values.issue(links.last.position()));
+
+            if (!last_result.has_value())
+            {
+              return result<value_record*>::failure(as_internal_fault(*last_result.error_if()));
+            }
+
+            previous_last = *last_result.value_if();
+
+            // at() validated parent and the last record; its parent link was created within this storage.
+            if (!previous_last->parent.is_set() || (previous_last->parent.position() != parent.position()) ||
+                previous_last->next_sibling.is_set())
+            {
+              return result<value_record*>::failure(error::internal_fault());
+            }
+          }
+          return result<value_record*>::success(previous_last);
+        }
+
+        /**
+         * @brief Transfer the optional name and update both ends of the validated sibling chain.
+         * @par Requirements
+         * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
+         * @par ID SWU-VALUE-198
+         */
+        void publish_child_links(value_record& child_record, value_record* previous_last, container_links& links,
+                                 value_index parent, value_index child, decoded_string* member_name,
+                                 std::optional<source_span> name_span, std::size_t count) noexcept
+        {
+          // All fallible checks precede ownership transfer and relationship change.
+          if (member_name != nullptr)
+          {
+            static_cast<void>(child_record.member_name.emplace(std::move(*member_name)));
+            child_record.member_name_source_span = name_span;
+          }
+
+          child_record.parent = record_link{parent.position()};
+
+          if (previous_last == nullptr)
+          {
+            links.first = record_link{child.position()};
+          }
+          else
+          {
+            previous_last->next_sibling = record_link{child.position()};
+          }
+
+          links.last = record_link{child.position()};
+          links.count = count;
+        }
+
+        /**
+         * @brief Check that optional member-name metadata has a name and fits inside the input.
+         * @par Requirements
+         * P030; P036; J5-030; J5-031; J5-039; J5-040; J5-041.
+         * @par ID SWU-VALUE-199
+         */
+        status_result validate_member_span(const decoded_string* member_name, std::optional<source_span> name_span,
+                                           std::size_t input_size) noexcept
+        {
+          // Validate source metadata before transferring the name or attaching the child.
+          if (name_span.has_value())
+          {
+            if (member_name == nullptr)
+            {
+              return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
+            }
+
+            const auto span = *name_span;
+
+            // Subtraction avoids overflowing the end of the supplied source range.
+            if ((span.byte_offset > input_size) || (span.byte_length > (input_size - span.byte_offset)))
+            {
+              return status_result::failure(error::access_failure(access_error_reason::invalid_argument));
+            }
+          }
+          return status_result::success();
+        }
+      } // namespace
 
       /**
        * @brief Validate and link a child without any ancestor traversal.

@@ -33,7 +33,7 @@ library was checked to be byte-identical before and after.
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
-| LEXER | SWU-LEXER-073 | SWU-LEXER-074 |
+| LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
@@ -220,6 +220,7 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-071 | used | `string_body_state::read_escape(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/string/string_lexer.cpp` | — |
 | SWU-LEXER-072 | used | `string_body_state::read_character(const string_piece &, syntax_mode)` | `core/src/lexer/string/string_lexer.cpp` | — |
 | SWU-LEXER-073 | used | `is_boundary_space(std::uint32_t, syntax_mode)` | `core/src/lexer/token_boundary.cpp` | — |
+| SWU-LEXER-074 | used | `complete_line_terminator(std::uint32_t, cursor &)` | `core/src/lexer/line_terminator.cpp` | `core/includes/lexer/line_terminator.hpp` |
 
 ## MEMORY
 

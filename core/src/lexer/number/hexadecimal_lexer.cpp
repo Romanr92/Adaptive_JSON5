@@ -15,67 +15,72 @@
 
 namespace adaptive_json5
 {
-  /**
-   * @brief Consume the hexadecimal digits and leave the terminating character on the cursor.
-   * @par Requirements
-   * P026; J5-009; J5-021; J5-022; J5-041.
-   * @par ID SWU-LEXER-061
-   */
-  static status_result scan_hex_digits(cursor& candidate) noexcept
+  namespace
   {
-    bool has_digits = false;
-
-    while (true)
+    /**
+     * @brief Consume the hexadecimal digits and leave the terminating character on the cursor.
+     * @par Requirements
+     * P026; J5-009; J5-021; J5-022; J5-041.
+     * @par ID SWU-LEXER-061
+     */
+    status_result scan_hex_digits(cursor& candidate) noexcept
     {
-      // Decode through a copy so an admitted terminator remains unconsumed.
-      cursor lookahead = candidate;
-      const auto decoded = decode_utf8(lookahead);
+      bool has_digits = false;
 
-      if (!decoded.has_value())
+      while (true)
       {
-        return status_result::failure(*decoded.error_if());
-      }
+        // Decode through a copy so an admitted terminator remains unconsumed.
+        cursor lookahead = candidate;
+        const auto decoded = decode_utf8(lookahead);
 
-      const auto& character = *decoded.value_if();
-
-      if (!character.has_value())
-      {
-        if (!has_digits)
+        if (!decoded.has_value())
         {
-          return status_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end));
+          return status_result::failure(*decoded.error_if());
         }
 
-        break;
-      }
+        const auto& character = *decoded.value_if();
 
-      const auto digit = hex_digit_value(character->value);
-
-      if (digit.has_value())
-      {
-        // Recognize spelling without accumulating a potentially overflowing value.
-        candidate = lookahead;
-        has_digits = true;
-      }
-      else
-      {
-        if (!has_digits)
+        if (!character.has_value())
         {
-          return status_result::failure(error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
+          if (!has_digits)
+          {
+            return status_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end));
+          }
+
+          break;
         }
 
-        const std::uint32_t scalar = character->value;
+        const auto digit = hex_digit_value(character->value);
 
-        // These suffixes cannot turn a hexadecimal prefix into a valid number.
-        if (is_identifier_part(scalar) || (scalar == 0x5CU) || (scalar == 0x2EU)) // '\\', '.'
+        if (digit.has_value())
         {
-          return status_result::failure(error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
+          // Recognize spelling without accumulating a potentially overflowing value.
+          candidate = lookahead;
+          has_digits = true;
         }
+        else
+        {
+          if (!has_digits)
+          {
+            return status_result::failure(
+              error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
+          }
 
-        break;
+          const std::uint32_t scalar = character->value;
+
+          // These suffixes cannot turn a hexadecimal prefix into a valid number.
+          if (is_identifier_part(scalar) || (scalar == 0x5CU) || (scalar == 0x2EU)) // '\\', '.'
+          {
+            return status_result::failure(
+              error::syntax_at(character->byte_offset, syntax_error_reason::invalid_number));
+          }
+
+          break;
+        }
       }
+      return status_result::success();
     }
-    return status_result::success();
-  }
+  } // namespace
 
   /**
    * @brief Recognize a hexadecimal numeric spelling without conversion.

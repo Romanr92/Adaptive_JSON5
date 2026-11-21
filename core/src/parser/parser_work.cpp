@@ -164,37 +164,40 @@ namespace adaptive_json5
       return status_result::success();
     }
 
-    /**
-     * @brief Attach the token offset to a token-local limit failure while preserving document-wide errors.
-     * @par Requirements
-     * J5-043; J5-044; J5-047; J5-048; J5-049; issue #125.
-     * @par ID SWU-PARSER-069
-     */
-    static error locate_resource_failure(resource_limit_reason named, const error& named_failure,
-                                         std::size_t token_offset) noexcept
+    namespace
     {
-      switch (named)
+      /**
+       * @brief Attach the token offset to a token-local limit failure while preserving document-wide errors.
+       * @par Requirements
+       * J5-043; J5-044; J5-047; J5-048; J5-049; issue #125.
+       * @par ID SWU-PARSER-069
+       */
+      error locate_resource_failure(resource_limit_reason named, const error& named_failure,
+                                    std::size_t token_offset) noexcept
       {
-      case adaptive_json5::resource_limit_reason::input:
-      case resource_limit_reason::owned_bytes:
-      case resource_limit_reason::output_capacity:
-      case resource_limit_reason::conversion_size:
-        // Not tied to one token: the whole input, memory, or a read after parsing.
-        return named_failure;
-      case resource_limit_reason::depth:
-      case resource_limit_reason::nodes:
-      case resource_limit_reason::members:
-      case resource_limit_reason::string:
-      case resource_limit_reason::total_string:
-      case resource_limit_reason::number_bytes:
-      case resource_limit_reason::exponent_digits:
-      case resource_limit_reason::diagnostics:
-      case resource_limit_reason::work:
-        return named_failure.relocated(token_offset);
-      }
+        switch (named)
+        {
+        case adaptive_json5::resource_limit_reason::input:
+        case resource_limit_reason::owned_bytes:
+        case resource_limit_reason::output_capacity:
+        case resource_limit_reason::conversion_size:
+          // Not tied to one token: the whole input, memory, or a read after parsing.
+          return named_failure;
+        case resource_limit_reason::depth:
+        case resource_limit_reason::nodes:
+        case resource_limit_reason::members:
+        case resource_limit_reason::string:
+        case resource_limit_reason::total_string:
+        case resource_limit_reason::number_bytes:
+        case resource_limit_reason::exponent_digits:
+        case resource_limit_reason::diagnostics:
+        case resource_limit_reason::work:
+          return named_failure.relocated(token_offset);
+        }
 
-      return named_failure;
-    }
+        return named_failure;
+      }
+    } // namespace
 
     /**
      * @brief Name the binding string limit and locate a token-bound limit failure.

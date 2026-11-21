@@ -54,147 +54,150 @@ namespace adaptive_json5
     }
   } // namespace detail
 
-  /**
-   * @brief Consume an optional exponent and enforce the exponent-digit limit at the first excess digit.
-   * @par Requirements
-   * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
-   * @par ID SWU-LEXER-058
-   */
-  static status_result scan_decimal_exponent(cursor& candidate, std::size_t max_exponent_digits) noexcept
+  namespace
   {
-    constexpr std::size_t c_ascii_byte_count = 1;
-    const auto exponent = candidate.peek();
-    if ((exponent == std::optional<char>{'e'}) || (exponent == std::optional<char>{'E'}))
+    /**
+     * @brief Consume an optional exponent and enforce the exponent-digit limit at the first excess digit.
+     * @par Requirements
+     * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
+     * @par ID SWU-LEXER-058
+     */
+    status_result scan_decimal_exponent(cursor& candidate, std::size_t max_exponent_digits) noexcept
     {
-      candidate.advance(c_ascii_byte_count);
-
-      const auto sign = candidate.peek();
-      if ((sign == std::optional<char>{'+'}) || (sign == std::optional<char>{'-'}))
+      constexpr std::size_t c_ascii_byte_count = 1;
+      const auto exponent = candidate.peek();
+      if ((exponent == std::optional<char>{'e'}) || (exponent == std::optional<char>{'E'}))
       {
         candidate.advance(c_ascii_byte_count);
+
+        const auto sign = candidate.peek();
+        if ((sign == std::optional<char>{'+'}) || (sign == std::optional<char>{'-'}))
+        {
+          candidate.advance(c_ascii_byte_count);
+        }
+
+        const std::size_t exponent_start = candidate.offset();
+
+        while (detail::is_decimal_digit(candidate.peek()))
+        {
+          // Reject the first excess digit before consuming it.
+          if ((candidate.offset() - exponent_start) >= max_exponent_digits)
+          {
+            return status_result::failure(error::limit_at(candidate.offset(), resource_limit_reason::exponent_digits));
+          }
+
+          candidate.advance(c_ascii_byte_count);
+        }
+
+        if (candidate.offset() == exponent_start)
+        {
+          return status_result::failure(detail::decimal_expected_error(candidate));
+        }
+      }
+      return status_result::success();
+    }
+
+    /**
+     * @brief Consume the integer and fraction according to the selected syntax mode.
+     * @par Requirements
+     * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
+     * @par ID SWU-LEXER-059
+     */
+    status_result scan_decimal_significand(cursor& candidate, syntax_mode mode) noexcept
+    {
+      constexpr std::size_t c_ascii_byte_count = 1;
+      const auto first = candidate.peek();
+      bool has_integer = false;
+
+      if (detail::is_decimal_digit(first))
+      {
+        has_integer = true;
+
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+        // between two character operands does not use the numeric value; the tool reports the implicit promotion
+        // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+        // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.62)
+        if (*first == '0')
+        {
+          candidate.advance(c_ascii_byte_count);
+
+          if (detail::is_decimal_digit(candidate.peek()))
+          {
+            return status_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::invalid_number));
+          }
+        }
+        else
+        {
+          detail::consume_decimal_digits(candidate);
+        }
       }
 
-      const std::size_t exponent_start = candidate.offset();
-
-      while (detail::is_decimal_digit(candidate.peek()))
+      if (candidate.peek() == std::optional<char>{'.'})
       {
-        // Reject the first excess digit before consuming it.
-        if ((candidate.offset() - exponent_start) >= max_exponent_digits)
+        if (!has_integer && (mode == syntax_mode::strict_json))
         {
-          return status_result::failure(error::limit_at(candidate.offset(), resource_limit_reason::exponent_digits));
+          return status_result::failure(
+            error::syntax_at(candidate.offset(), syntax_error_reason::not_allowed_in_strict_json));
         }
 
         candidate.advance(c_ascii_byte_count);
-      }
+        const std::size_t fraction_start = candidate.offset();
+        detail::consume_decimal_digits(candidate);
 
-      if (candidate.offset() == exponent_start)
+        // A leading point always needs digits; strict JSON also requires them after an integer part.
+        if ((candidate.offset() == fraction_start) && (!has_integer || (mode == syntax_mode::strict_json)))
+        {
+          return status_result::failure(detail::decimal_expected_error(candidate));
+        }
+      }
+      else if (!has_integer)
       {
         return status_result::failure(detail::decimal_expected_error(candidate));
-      }
-    }
-    return status_result::success();
-  }
-
-  /**
-   * @brief Consume the integer and fraction according to the selected syntax mode.
-   * @par Requirements
-   * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
-   * @par ID SWU-LEXER-059
-   */
-  static status_result scan_decimal_significand(cursor& candidate, syntax_mode mode) noexcept
-  {
-    constexpr std::size_t c_ascii_byte_count = 1;
-    const auto first = candidate.peek();
-    bool has_integer = false;
-
-    if (detail::is_decimal_digit(first))
-    {
-      has_integer = true;
-
-      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
-      // between two character operands does not use the numeric value; the tool reports the implicit promotion
-      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
-      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
-      // codeql::misra_deviation_next_line(DEV-015.62)
-      if (*first == '0')
-      {
-        candidate.advance(c_ascii_byte_count);
-
-        if (detail::is_decimal_digit(candidate.peek()))
-        {
-          return status_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::invalid_number));
-        }
       }
       else
       {
-        detail::consume_decimal_digits(candidate);
+        // An integer part without a fraction needs no further checks here.
       }
+      return status_result::success();
     }
 
-    if (candidate.peek() == std::optional<char>{'.'})
+    /**
+     * @brief Recognize prefixes handled by the hexadecimal and non-finite scanners.
+     * @par Requirements
+     * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
+     * @par ID SWU-LEXER-060
+     */
+    bool has_other_number_prefix(cursor candidate) noexcept
     {
-      if (!has_integer && (mode == syntax_mode::strict_json))
-      {
-        return status_result::failure(
-          error::syntax_at(candidate.offset(), syntax_error_reason::not_allowed_in_strict_json));
-      }
+      constexpr std::size_t c_ascii_byte_count = 1;
+      const auto first = candidate.peek();
 
-      candidate.advance(c_ascii_byte_count);
-      const std::size_t fraction_start = candidate.offset();
-      detail::consume_decimal_digits(candidate);
-
-      // A leading point always needs digits; strict JSON also requires them after an integer part.
-      if ((candidate.offset() == fraction_start) && (!has_integer || (mode == syntax_mode::strict_json)))
-      {
-        return status_result::failure(detail::decimal_expected_error(candidate));
-      }
-    }
-    else if (!has_integer)
-    {
-      return status_result::failure(detail::decimal_expected_error(candidate));
-    }
-    else
-    {
-      // An integer part without a fraction needs no further checks here.
-    }
-    return status_result::success();
-  }
-
-  /**
-   * @brief Recognize prefixes handled by the hexadecimal and non-finite scanners.
-   * @par Requirements
-   * P025; P032; J5-021; J5-022; J5-041; J5-047; J5-048.
-   * @par ID SWU-LEXER-060
-   */
-  static bool has_other_number_prefix(cursor candidate) noexcept
-  {
-    constexpr std::size_t c_ascii_byte_count = 1;
-    const auto first = candidate.peek();
-
-    // Let the non-finite recognizer inspect the complete original spelling.
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
-    // two character operands does not use the numeric value; the tool reports the implicit promotion of both
-    // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
-    // compatible execution character set, where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.63)
-    if (first.has_value() && ((*first == 'I') || (*first == 'N')))
-    {
-      return true;
-    }
-
-    // A hexadecimal prefix must not be consumed as the decimal token zero.
-    if (first == std::optional<char>{'0'})
-    {
-      const auto next = candidate.peek(c_ascii_byte_count);
-      if ((next == std::optional<char>{'x'}) || (next == std::optional<char>{'X'}))
+      // Let the non-finite recognizer inspect the complete original spelling.
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison between
+      // two character operands does not use the numeric value; the tool reports the implicit promotion of both
+      // operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on an ASCII-
+      // compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.63)
+      if (first.has_value() && ((*first == 'I') || (*first == 'N')))
       {
         return true;
       }
+
+      // A hexadecimal prefix must not be consumed as the decimal token zero.
+      if (first == std::optional<char>{'0'})
+      {
+        const auto next = candidate.peek(c_ascii_byte_count);
+        if ((next == std::optional<char>{'x'}) || (next == std::optional<char>{'X'}))
+        {
+          return true;
+        }
+      }
+      return false;
     }
-    return false;
-  }
+  } // namespace
 
   /**
    * @brief Recognize a decimal numeric spelling without numeric conversion.

@@ -54,6 +54,11 @@ namespace adaptive_json5
         std::optional<string_warning> excess_warning{}; // First warning past warning_allowance, if any.
     };
 
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.60)
     struct string_body_state
     {
         std::size_t max_units;
@@ -303,6 +308,10 @@ namespace adaptive_json5
     {
       using walk_result = result<string_walk>;
 
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization value-initializes the members it does not list and contains
+      // no integer literal. The tool reports that implicit zero as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.25)
       string_body_state state{max_units, warning_allowance, output, sink, checks};
 
       while (true)
@@ -338,7 +347,7 @@ namespace adaptive_json5
           return walk_result::success(state.walk);
         }
 
-        const auto consumed = piece.value_if()->kind == string_piece_kind::escape_start
+        const auto consumed = (piece.value_if()->kind == string_piece_kind::escape_start)
                                 ? state.read_escape(source, mode, piece_offset)
                                 : state.read_character(*piece.value_if(), mode);
         if (!consumed.has_value())

@@ -660,7 +660,6 @@ namespace adaptive_json5
 
       // Equal leading exponents bound the scale difference by the digit counts, so scaling stays cheap.
       const bool left_larger_scale = left_parts.scale > right_parts.scale;
-      detail::big_unsigned& scaled = left_larger_scale ? left_digits : right_digits;
       const std::ptrdiff_t difference =
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
         // MISRA justification: Equal leading exponents bound the scale difference by the two digit counts,
@@ -668,7 +667,10 @@ namespace adaptive_json5
         // codeql::misra_deviation_next_line(DEV-005.16)
         left_larger_scale ? (left_parts.scale - right_parts.scale) : (right_parts.scale - left_parts.scale);
 
-      const auto multiplied = scale_by_power_of_ten(scaled, static_cast<std::size_t>(difference), work);
+      // Pass the operand directly so both parameters are visibly modified here.
+      const auto multiplied = left_larger_scale
+                                ? scale_by_power_of_ten(left_digits, static_cast<std::size_t>(difference), work)
+                                : scale_by_power_of_ten(right_digits, static_cast<std::size_t>(difference), work);
 
       if (!multiplied.has_value())
       {

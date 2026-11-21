@@ -212,11 +212,20 @@ namespace adaptive_json5
      */
     std::string_view describe(syntax_error_reason reason) noexcept
     {
+      // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+      // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+      // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+      // implicit members that are never odr-used are not in its database.
+      // codeql::misra_deviation_next_line(DEV-020.59)
       struct description
       {
           syntax_error_reason reason;
           std::string_view text;
       };
+      // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+      // MISRA justification: messages is a function-local static constexpr variable, not a static data member,
+      // and it is declared only once.
+      // codeql::misra_deviation_next_line(DEV-009.02)
       static constexpr std::array<description, 20U> messages{
         {{syntax_error_reason::unexpected_end, "unexpected end of input"},
          {syntax_error_reason::unexpected_character, "unexpected character"},

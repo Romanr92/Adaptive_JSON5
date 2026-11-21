@@ -462,7 +462,11 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
-      if ((action == parser_action::consume_colon) != frame->pending_name.has_value())
+      const bool expects_name = (action == parser_action::consume_colon);
+      const bool has_name = frame->pending_name.has_value();
+
+      // Exactly one of the two must hold: a colon needs a pending name, other actions need none.
+      if (expects_name ? (!has_name) : has_name)
       {
         return status_result::failure(error::internal_fault());
       }
@@ -1109,7 +1113,7 @@ namespace adaptive_json5
          */
         static const parser_frame* top(parser_engine& engine) noexcept
         {
-          return engine.m_count_depth == 0 ? nullptr : &engine.m_count_top;
+          return (engine.m_count_depth == 0) ? nullptr : &engine.m_count_top;
         }
     };
 
@@ -1164,15 +1168,19 @@ namespace adaptive_json5
       const auto* parent = Policy::top(*this);
       if (parent != nullptr)
       {
-        member = parent->state == parser_state::object_value;
-        if (!member && parent->state != parser_state::array_first_or_end &&
-            parent->state != parser_state::array_value_after_comma)
+        member = (parent->state == parser_state::object_value);
+        if ((!member) && (parent->state != parser_state::array_first_or_end) &&
+            (parent->state != parser_state::array_value_after_comma))
         {
           return status_result::failure(error::internal_fault());
         }
-        if (Policy::builds_tree && (member != parent->pending_name.has_value()))
+        // The policy is fixed per instantiation, so decide at compile time.
+        if constexpr (Policy::builds_tree)
         {
-          return status_result::failure(error::internal_fault());
+          if (member != parent->pending_name.has_value())
+          {
+            return status_result::failure(error::internal_fault());
+          }
         }
       }
 

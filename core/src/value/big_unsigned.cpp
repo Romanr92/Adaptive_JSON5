@@ -444,45 +444,49 @@ namespace adaptive_json5::detail
     return comparison_result::success(magnitude_order::equal);
   }
 
-  /**
-   * @brief Account for shifting the source limbs into the full destination width.
-   * @par Requirements
-   * P038; J5-003; J5-037; J5-046; J5-048.
-   * @par ID SWU-VALUE-192
-   */
-  static status_result charge_shift(std::size_t size, std::size_t destination_count, work_budget& work) noexcept
+  namespace
   {
-    const auto traversal_units = checked_add(size, destination_count, resource_limit_reason::work);
-
-    if (!traversal_units.has_value())
+    /**
+     * @brief Account for shifting the source limbs into the full destination width.
+     * @par Requirements
+     * P038; J5-003; J5-037; J5-046; J5-048.
+     * @par ID SWU-VALUE-192
+     */
+    status_result charge_shift(std::size_t size, std::size_t destination_count, work_budget& work) noexcept
     {
-      return status_result::failure(*traversal_units.error_if());
+      const auto traversal_units = checked_add(size, destination_count, resource_limit_reason::work);
+
+      if (!traversal_units.has_value())
+      {
+        return status_result::failure(*traversal_units.error_if());
+      }
+
+      const auto units =
+        checked_add(*traversal_units.value_if(), c_shift_setup_work_units, resource_limit_reason::work);
+
+      if (!units.has_value())
+      {
+        return status_result::failure(*units.error_if());
+      }
+
+      return work.charge(*units.value_if());
     }
 
-    const auto units = checked_add(*traversal_units.value_if(), c_shift_setup_work_units, resource_limit_reason::work);
-
-    if (!units.has_value())
+    /**
+     * @brief Include room for a possible carry when a shift crosses a limb boundary.
+     * @par Requirements
+     * P038; J5-003; J5-037; J5-046; J5-048.
+     * @par ID SWU-VALUE-193
+     */
+    result<std::size_t> shifted_capacity(std::size_t destination_count, std::uint32_t partial_bits) noexcept
     {
-      return status_result::failure(*units.error_if());
+      if (partial_bits != 0)
+      {
+        return checked_add(destination_count, c_additional_limb, resource_limit_reason::conversion_size);
+      }
+      return result<std::size_t>::success(destination_count);
     }
-
-    return work.charge(*units.value_if());
-  }
-
-  /**
-   * @brief Include room for a possible carry when a shift crosses a limb boundary.
-   * @par Requirements
-   * P038; J5-003; J5-037; J5-046; J5-048.
-   * @par ID SWU-VALUE-193
-   */
-  static result<std::size_t> shifted_capacity(std::size_t destination_count, std::uint32_t partial_bits) noexcept
-  {
-    if (partial_bits != 0)
-    {
-      return checked_add(destination_count, c_additional_limb, resource_limit_reason::conversion_size);
-    }
-    return result<std::size_t>::success(destination_count);
-  }
+  } // namespace
 
   /**
    * @brief Shift limbs from most to least significant within the prevalidated destination capacity.
@@ -626,32 +630,35 @@ namespace adaptive_json5::detail
     return status_result::success();
   }
 
-  /**
-   * @brief Charge both subtraction passes and their setup before changing any limbs.
-   * @par Requirements
-   * P038; J5-003; J5-037; J5-048.
-   * @par ID SWU-VALUE-195
-   */
-  static status_result charge_subtraction(std::size_t size, work_budget& work) noexcept
+  namespace
   {
-    constexpr std::size_t c_subtraction_passes = 2;
-    constexpr std::size_t c_subtraction_setup_units = 1;
-    const auto passes = checked_multiply(size, c_subtraction_passes, resource_limit_reason::work);
-
-    if (!passes.has_value())
+    /**
+     * @brief Charge both subtraction passes and their setup before changing any limbs.
+     * @par Requirements
+     * P038; J5-003; J5-037; J5-048.
+     * @par ID SWU-VALUE-195
+     */
+    status_result charge_subtraction(std::size_t size, work_budget& work) noexcept
     {
-      return status_result::failure(*passes.error_if());
+      constexpr std::size_t c_subtraction_passes = 2;
+      constexpr std::size_t c_subtraction_setup_units = 1;
+      const auto passes = checked_multiply(size, c_subtraction_passes, resource_limit_reason::work);
+
+      if (!passes.has_value())
+      {
+        return status_result::failure(*passes.error_if());
+      }
+
+      const auto units = checked_add(*passes.value_if(), c_subtraction_setup_units, resource_limit_reason::work);
+
+      if (!units.has_value())
+      {
+        return status_result::failure(*units.error_if());
+      }
+
+      return work.charge(*units.value_if());
     }
-
-    const auto units = checked_add(*passes.value_if(), c_subtraction_setup_units, resource_limit_reason::work);
-
-    if (!units.has_value())
-    {
-      return status_result::failure(*units.error_if());
-    }
-
-    return work.charge(*units.value_if());
-  }
+  } // namespace
 
   /**
    * @brief Subtract with borrow after validating ordering and reserving work.

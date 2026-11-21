@@ -724,6 +724,11 @@ namespace adaptive_json5
           checked_add(parts.digit_count, c_underflow_scale, resource_limit_reason::conversion_size);
         if (threshold.has_value() && (parts.scale_magnitude >= *threshold.value_if()))
         {
+          // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+          // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+          // every path assigns the real value before use. For constants and results, the value is read later in the
+          // same function or template instantiation, which the tool does not track.
+          // codeql::misra_deviation_next_line(DEV-007.27)
           const auto zero = finish_underflow<T>(parts.negative, options);
 
           return zero.has_value() ? scale_result::success(std::optional<T>{*zero.value_if()})
@@ -1267,6 +1272,11 @@ namespace adaptive_json5
       detail::big_unsigned denominator{provider};
 
       const auto reserved =
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in the
+        // same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.28)
         reserve_operands(parts, static_cast<std::size_t>(c_quotient_bits), numerator, denominator, work);
 
       if (!reserved.has_value())
@@ -1348,6 +1358,11 @@ namespace adaptive_json5
       // Analysis already collected these properties during its existing scan.
       const detail::number_analysis& parts = *analysis.value_if();
 
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.29)
       const auto by_scale = reject_by_scale<T>(parts, options);
 
       if (!by_scale.has_value())

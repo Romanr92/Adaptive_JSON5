@@ -11,140 +11,143 @@
 
 namespace adaptive_json5
 {
-  /**
-   * @brief Decode a single ASCII escape and flag spellings specific to JSON5.
-   * @par Requirements
-   * P015; J5-015; J5-016.
-   * @par ID SWU-LEXER-065
-   */
-  static bool match_simple_escape(char current, std::uint16_t& unit, bool& json5_only) noexcept
+  namespace
   {
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.60)
-    switch (current)
+    /**
+     * @brief Decode a single ASCII escape and flag spellings specific to JSON5.
+     * @par Requirements
+     * P015; J5-015; J5-016.
+     * @par ID SWU-LEXER-065
+     */
+    bool match_simple_escape(char current, std::uint16_t& unit, bool& json5_only) noexcept
     {
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.59)
-    case '"':
-      unit = 0x22U; // '"'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.60)
+      switch (current)
+      {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.59)
+      case '"':
+        unit = 0x22U; // '"'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.58)
-    case '\'':
-      unit = 0x27U; // '\''
-      json5_only = true;
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.58)
+      case '\'':
+        unit = 0x27U; // '\''
+        json5_only = true;
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.57)
-    case '\\':
-      unit = 0x5CU; // '\\'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.57)
+      case '\\':
+        unit = 0x5CU; // '\\'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.56)
-    case '/':
-      unit = 0x2FU; // '/'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.56)
+      case '/':
+        unit = 0x2FU; // '/'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.55)
-    case 'b':
-      unit = 0x08U; // '\b'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.55)
+      case 'b':
+        unit = 0x08U; // '\b'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.54)
-    case 'f':
-      unit = 0x0CU; // '\f'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.54)
+      case 'f':
+        unit = 0x0CU; // '\f'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.53)
-    case 'n':
-      unit = 0x0AU; // '\n'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.53)
+      case 'n':
+        unit = 0x0AU; // '\n'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.52)
-    case 'r':
-      unit = 0x0DU; // '\r'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.52)
+      case 'r':
+        unit = 0x0DU; // '\r'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.51)
-    case 't':
-      unit = 0x09U; // '\t'
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.51)
+      case 't':
+        unit = 0x09U; // '\t'
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.50)
-    case 'v':
-      unit = 0x0BU; // '\v'
-      json5_only = true;
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.50)
+      case 'v':
+        unit = 0x0BU; // '\v'
+        json5_only = true;
+        break;
 
-    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-    // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
-    // character value. The tool reports the integral promotion of the condition and labels. The parser compares
-    // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
-    // where these characters are contiguous ranges.
-    // codeql::misra_deviation_next_line(DEV-015.49)
-    case '0':
-      json5_only = true;
-      break;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
+      // character value. The tool reports the integral promotion of the condition and labels. The parser compares
+      // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
+      // where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.49)
+      case '0':
+        json5_only = true;
+        break;
 
-    default:
-      // Other escape recognizers must see their original input.
-      return false;
+      default:
+        // Other escape recognizers must see their original input.
+        return false;
+      }
+      return true;
     }
-    return true;
-  }
+  } // namespace
 
   /**
    * @brief Decode one simple escape after its backslash.
