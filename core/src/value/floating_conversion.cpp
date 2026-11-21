@@ -832,7 +832,13 @@ namespace adaptive_json5
       // Round to nearest; an exact tie (no sticky bits) chooses the even significand.
       if ((remainder > half) || ((remainder == half) && (sticky || ((significand & 1U) != 0))))
       {
-        significand = static_cast<std::uint_least64_t>(static_cast<std::int_least64_t>(significand) + 1U);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: significand is quotient >> drop, and the quotient holds at
+        // most c_quotient_bits + 1 (56) bits, so significand is below 2^56. Adding one
+        // cannot wrap a 64-bit unsigned value. A carry into a new bit is handled below
+        // as an exponent adjustment.
+        // codeql::misra_deviation_next_line(DEV-004.03)
+        significand += 1U;
       }
 
       if (significand == 0)
