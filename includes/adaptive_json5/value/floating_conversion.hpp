@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_FLOATING_CONVERSION_HPP_
-#define ADAPTIVE_JSON5_FLOATING_CONVERSION_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_FLOATING_CONVERSION_HPP_
+#define ADAPTIVE_JSON5_VALUE_FLOATING_CONVERSION_HPP_
 
 #include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -92,4 +92,4 @@ namespace adaptive_json5
                                          const floating_conversion_options& options = {}) noexcept;
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_FLOATING_CONVERSION_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_FLOATING_CONVERSION_HPP_ */

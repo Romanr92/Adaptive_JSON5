@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_INTERNAL_MEMBER_LOOKUP_HPP_
-#define ADAPTIVE_JSON5_INTERNAL_MEMBER_LOOKUP_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_MEMBER_LOOKUP_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_MEMBER_LOOKUP_HPP_
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/member_lookup.hpp"
 namespace adaptive_json5

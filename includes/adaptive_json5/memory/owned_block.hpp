@@ -1,5 +1,5 @@
-#ifndef OWNED_BLOCK_HPP_
-#define OWNED_BLOCK_HPP_
+#ifndef ADAPTIVE_JSON5_MEMORY_OWNED_BLOCK_HPP_
+#define ADAPTIVE_JSON5_MEMORY_OWNED_BLOCK_HPP_
 
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
@@ -151,4 +151,4 @@ namespace adaptive_json5
                                                    std::size_t element_size, std::size_t alignment) noexcept;
 } // namespace adaptive_json5
 
-#endif /* OWNED_BLOCK_HPP_ */
+#endif /* ADAPTIVE_JSON5_MEMORY_OWNED_BLOCK_HPP_ */

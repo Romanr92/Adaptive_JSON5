@@ -1,5 +1,5 @@
-#ifndef STRING_CHECKS_HPP_
-#define STRING_CHECKS_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_CHECKS_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_CHECKS_HPP_
 
 #include "adaptive_json5/options.hpp"
 
@@ -57,4 +57,4 @@ namespace adaptive_json5
   }
 } // namespace adaptive_json5
 
-#endif /* STRING_CHECKS_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_CHECKS_HPP_ */

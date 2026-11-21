@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_STRING_WARNING_TYPES_HPP_
-#define ADAPTIVE_JSON5_STRING_WARNING_TYPES_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_STRING_WARNING_HPP_
+#define ADAPTIVE_JSON5_VALUE_STRING_WARNING_HPP_
 #include <cstddef>
 #include <cstdint>
 namespace adaptive_json5

@@ -1,5 +1,5 @@
-#ifndef UNICODE_HPP_
-#define UNICODE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_HPP_
 
 #include "unicode/unicode_range.hpp"
 #include "unicode/unicode_tables.hpp"
@@ -134,13 +134,13 @@ namespace adaptive_json5
     constexpr std::uint32_t c_zero_width_non_joiner = 0x200C;
     constexpr std::uint32_t c_zero_width_joiner = 0x200D;
 
-    // Any character valid at the start is also valid afterword.
+    // Any character valid at the start is also valid afterwards.
     if (is_identifier_start(value))
     {
       return true;
     }
 
-    // ES5 explicitely permits these format characters after the first character.
+    // ES5 explicitly permits these format characters after the first character.
     if ((value == c_zero_width_non_joiner) || (value == c_zero_width_joiner))
     {
       return true;
@@ -152,4 +152,4 @@ namespace adaptive_json5
   }
 } // namespace adaptive_json5
 
-#endif /* UNICODE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_HPP_ */

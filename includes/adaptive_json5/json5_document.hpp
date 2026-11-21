@@ -1,5 +1,5 @@
-#ifndef JSON5_DOCUMENT_HPP_
-#define JSON5_DOCUMENT_HPP_
+#ifndef ADAPTIVE_JSON5_JSON5_DOCUMENT_HPP_
+#define ADAPTIVE_JSON5_JSON5_DOCUMENT_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/json5_value.hpp"
@@ -267,4 +267,4 @@ namespace adaptive_json5
   }
 } // namespace adaptive_json5
 
-#endif /* JSON5_DOCUMENT_HPP_ */
+#endif /* ADAPTIVE_JSON5_JSON5_DOCUMENT_HPP_ */

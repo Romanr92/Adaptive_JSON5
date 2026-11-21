@@ -125,7 +125,7 @@ or device/integration-test gate to the repository.
 | Functions and parameters | Lowercase snake_case | `has_value`, `byte_offset` |
 | Public aggregate struct fields | Current style uses snake_case without a member prefix | `byte_offset`, `byte_length` |
 | Enum values | Lowercase snake_case | `allocation_failure` |
-| Header guards | `ADAPTIVE_JSON5_` followed by the uppercase path below `adaptive_json5/` (private headers: below the include root), punctuation replaced by underscores, trailing underscore | `ADAPTIVE_JSON5_ERROR_HPP_`, `ADAPTIVE_JSON5_MEMORY_STORAGE_HPP_` |
+| Header guards | Public: `ADAPTIVE_JSON5_` followed by the uppercase path below `includes/adaptive_json5/`; private: `ADAPTIVE_JSON5_INTERNAL_` followed by the path below `core/includes/`; punctuation replaced by underscores, trailing underscore. The umbrella header uses `ADAPTIVE_JSON5_HPP_` | `ADAPTIVE_JSON5_MEMORY_STORAGE_HPP_`, `ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_STACK_HPP_` |
 
 The new member rule replaces names such as `error_` with `m_error`. Do not use
 `m_error_`. The project prefix keeps installed guards from colliding with a

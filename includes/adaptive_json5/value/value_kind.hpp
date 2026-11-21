@@ -1,5 +1,5 @@
-#ifndef VALUE_KIND_HPP_
-#define VALUE_KIND_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_VALUE_KIND_HPP_
+#define ADAPTIVE_JSON5_VALUE_VALUE_KIND_HPP_
 
 #include <cstdint>
 
@@ -25,4 +25,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* VALUE_KIND_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_VALUE_KIND_HPP_ */

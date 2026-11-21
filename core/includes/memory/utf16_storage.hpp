@@ -1,5 +1,5 @@
-#ifndef UTF16_STORAGE_HPP_
-#define UTF16_STORAGE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_MEMORY_UTF16_STORAGE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_MEMORY_UTF16_STORAGE_HPP_
 
 #include <cstddef>
 #include <cstdint>
@@ -65,4 +65,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* UTF16_STORAGE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_MEMORY_UTF16_STORAGE_HPP_ */

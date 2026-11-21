@@ -1,5 +1,5 @@
-#ifndef LINE_TERMINATOR_HPP_
-#define LINE_TERMINATOR_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_LINE_TERMINATOR_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_LINE_TERMINATOR_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
@@ -45,4 +45,4 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<line_terminator_span>> consume_line_terminator(cursor& source) noexcept;
 } // namespace adaptive_json5
 
-#endif /* LINE_TERMINATOR_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_LINE_TERMINATOR_HPP_ */

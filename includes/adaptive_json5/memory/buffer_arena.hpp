@@ -1,5 +1,5 @@
-#ifndef BUFFER_ARENA_HPP_
-#define BUFFER_ARENA_HPP_
+#ifndef ADAPTIVE_JSON5_MEMORY_BUFFER_ARENA_HPP_
+#define ADAPTIVE_JSON5_MEMORY_BUFFER_ARENA_HPP_
 
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
@@ -147,4 +147,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* BUFFER_ARENA_HPP_ */
+#endif /* ADAPTIVE_JSON5_MEMORY_BUFFER_ARENA_HPP_ */

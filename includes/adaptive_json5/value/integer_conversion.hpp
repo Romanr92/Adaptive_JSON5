@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_INTEGER_CONVERSION_HPP_
-#define ADAPTIVE_JSON5_INTEGER_CONVERSION_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_INTEGER_CONVERSION_HPP_
+#define ADAPTIVE_JSON5_VALUE_INTEGER_CONVERSION_HPP_
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
@@ -123,4 +123,4 @@ namespace adaptive_json5
   }
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_INTEGER_CONVERSION_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_INTEGER_CONVERSION_HPP_ */

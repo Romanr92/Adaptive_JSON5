@@ -1,5 +1,5 @@
-#ifndef STRING_TOKEN_HPP_
-#define STRING_TOKEN_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_TOKEN_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_TOKEN_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
@@ -136,4 +136,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* STRING_TOKEN_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_TOKEN_HPP_ */

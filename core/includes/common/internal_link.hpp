@@ -1,5 +1,5 @@
-#ifndef INTERNAL_LINK_HPP_
-#define INTERNAL_LINK_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_COMMON_INTERNAL_LINK_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_COMMON_INTERNAL_LINK_HPP_
 
 #include "adaptive_json5/error.hpp"
 
@@ -27,4 +27,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* INTERNAL_LINK_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_COMMON_INTERNAL_LINK_HPP_ */

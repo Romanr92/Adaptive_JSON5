@@ -1,5 +1,5 @@
-#ifndef VALUE_INDEX_HPP_
-#define VALUE_INDEX_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_VALUE_INDEX_HPP_
+#define ADAPTIVE_JSON5_VALUE_VALUE_INDEX_HPP_
 
 #include <cstddef>
 #include <limits>
@@ -72,4 +72,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* VALUE_INDEX_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_VALUE_INDEX_HPP_ */

@@ -1,5 +1,5 @@
-#ifndef UTF8_HPP_
-#define UTF8_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF8_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF8_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
@@ -38,4 +38,4 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept;
 } // namespace adaptive_json5
 
-#endif /* UTF8_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF8_HPP_ */

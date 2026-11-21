@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_NUMERIC_CONVERSION_HPP_
-#define ADAPTIVE_JSON5_NUMERIC_CONVERSION_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_NUMERIC_CONVERSION_HPP_
+#define ADAPTIVE_JSON5_VALUE_NUMERIC_CONVERSION_HPP_
 
 #include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/result.hpp"
@@ -106,4 +106,4 @@ namespace adaptive_json5
                                                 const numeric_conversion_options& options = {}) noexcept;
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_NUMERIC_CONVERSION_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_NUMERIC_CONVERSION_HPP_ */

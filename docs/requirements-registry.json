@@ -2337,7 +2337,8 @@
           "file": "tests/api/hosted_parse_tests.cpp",
           "names": [
             "J5_040_HostedParse.MoveKeepsDocumentAndStorage",
-            "J5_040_HostedParse.EachCallOwnsIndependentStorage",
+            "J5_040_HostedParse.EachCallOwnsIndependentStorage"
+,
             "J5_040_HostedParse.ReleaseFreesValuesWithoutStorageFault"
           ]
         },
@@ -2351,7 +2352,8 @@
           "file": "tests/api/json5_document_tests.cpp",
           "names": [
             "J5_040_Json5Document.MoveKeepsDocumentAndStorage",
-            "J5_040_Json5Document.BufferIsReusableAfterDestructionAndFailure",
+            "J5_040_Json5Document.BufferIsReusableAfterDestructionAndFailure"
+,
             "J5_040_Json5Document.ReleaseFreesValuesAndKeepsAccounting",
             "J5_040_Json5Document.CleanDocumentReportsNoStorageFault",
             "J5_040_Json5Document.MovedFromDocumentReportsNoStorageFault"
@@ -2977,7 +2979,8 @@
           "names": [
             "P003/J5_046_BufferDocumentAlignment.FitsWithinCallerSlice",
             "J5_046_BufferDocumentStorage.RejectsNullEmptyAndUndersizedBuffers",
-            "J5_046_BufferDocumentStorage.PhysicalExhaustionAllowsRetry",
+            "J5_046_BufferDocumentStorage.PhysicalExhaustionAllowsRetry"
+,
             "J5_046_Json5DocumentStorageFault.RefusedReleaseIsVisibleBeforeAndAfterRelease"
           ]
         },
@@ -4279,6 +4282,12 @@
           "names": [
             "J5_092_UmbrellaCoverage.IncludesEveryPublicHeaderExceptHosted",
             "J5_092_UmbrellaCoverage.IncludesNoHostedOrPrivateHeader"
+          ]
+        },
+        {
+          "file": "tests/api/include_guard_tests.cpp",
+          "names": [
+            "J5_092_IncludeGuards.ConsumerGuardNamesDoNotHideHeaders"
           ]
         }
       ]

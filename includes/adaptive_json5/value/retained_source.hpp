@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_RETAINED_SOURCE_HPP_
-#define ADAPTIVE_JSON5_RETAINED_SOURCE_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_RETAINED_SOURCE_HPP_
+#define ADAPTIVE_JSON5_VALUE_RETAINED_SOURCE_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
@@ -107,4 +107,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_RETAINED_SOURCE_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_RETAINED_SOURCE_HPP_ */

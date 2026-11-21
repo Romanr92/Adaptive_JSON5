@@ -1,5 +1,5 @@
-#ifndef SIMPLE_ESCAPE_HPP_
-#define SIMPLE_ESCAPE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_SIMPLE_ESCAPE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_SIMPLE_ESCAPE_HPP_
 
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -28,4 +28,4 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<std::uint16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
-#endif /* SIMPLE_ESCAPE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_SIMPLE_ESCAPE_HPP_ */

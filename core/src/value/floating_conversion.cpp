@@ -479,7 +479,8 @@ namespace adaptive_json5
       }
 
       // mantissa now includes the implicit leading bit and is below 2^digits, so ldexp is exact.
-      // Plain int on purpose: the standard declares std::ldexp(T, int).
+      // Plain int on purpose: the standard declares std::ldexp(T, int). The exponent stays within a few
+      // thousand, inside the 16-bit minimum range of int.
       const T magnitude =
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
         // MISRA justification: power2 is between 1 and c_infinite_power - 1 here (checked above), so adding
@@ -687,7 +688,7 @@ namespace adaptive_json5
       // same function or template instantiation, which the tool does not track. Compile-time constant: the
       // maximum of std::ptrdiff_t is converted to std::size_t and divided by four, which cannot overflow.
       // codeql::misra_deviation_next_line(DEV-007.15)
-      constexpr auto c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max()) / 4U;
+      constexpr std::size_t c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max()) / 4U;
       work_budget work{options.max_work_units};
 
       const auto analysis = detail::analyse_number(number, work);
@@ -1126,7 +1127,8 @@ namespace adaptive_json5
 
       // The significand fits in T's precision and the exponent is in range, so scaling is exact.
       // Plain int on purpose: the standard declares std::ldexp(T, int), so the exponent must be
-      // exactly int. std::int32_t would be long on 16-bit-int targets and narrow silently here.
+      // exactly int. std::int32_t would be long on 16-bit-int targets and narrow silently here. The range
+      // checks above keep the exponent within a few thousand, inside the 16-bit minimum range of int.
       const T magnitude = std::ldexp(static_cast<T>(significand), static_cast<int>(scale_exponent));
 
       return float_result::success(negative ? -magnitude : magnitude);

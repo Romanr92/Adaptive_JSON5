@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace
@@ -53,6 +54,8 @@ namespace
   /* =================================== Test_J5_043 =================================== */
   // The compact layout keeps every result<T> small (issue #125, decision D3).
   static_assert((sizeof(void*) != 8U) || (sizeof(error) <= 48U));
+  // An error only comes from a named factory, so no error with indeterminate fields can exist (#126).
+  static_assert(!std::is_default_constructible_v<error>);
   // A reason is only readable under its own code.
   static_assert(error::limit_at(3U, resource_limit_reason::depth).limit_reason() == resource_limit_reason::depth);
   static_assert(!error::limit_at(3U, resource_limit_reason::depth).access_reason().has_value());
@@ -260,7 +263,7 @@ namespace
    * @par Requirements
    * J5-047; issue #125.
    */
-  resource_limits with(std::size_t resource_limits::*field, std::size_t value)
+  resource_limits with(std::size_t resource_limits::* field, std::size_t value)
   {
     resource_limits limits{};
     limits.*field = value;

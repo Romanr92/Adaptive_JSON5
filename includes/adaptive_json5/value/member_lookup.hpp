@@ -1,5 +1,5 @@
-#ifndef MEMBER_LOOKUP_HPP_
-#define MEMBER_LOOKUP_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_MEMBER_LOOKUP_HPP_
+#define ADAPTIVE_JSON5_VALUE_MEMBER_LOOKUP_HPP_
 
 #include "adaptive_json5/value/value_view.hpp"
 

@@ -1,5 +1,5 @@
-#ifndef DOCUMENT_LINKS_HPP_
-#define DOCUMENT_LINKS_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_DOCUMENT_LINKS_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_DOCUMENT_LINKS_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
@@ -71,4 +71,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* DOCUMENT_LINKS_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_DOCUMENT_LINKS_HPP_ */

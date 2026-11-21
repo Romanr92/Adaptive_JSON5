@@ -1,5 +1,5 @@
-#ifndef LINE_CONTINUATION_HPP_
-#define LINE_CONTINUATION_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_LINE_CONTINUATION_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_LINE_CONTINUATION_HPP_
 
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -30,4 +30,4 @@ namespace adaptive_json5
                                                                                       syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
-#endif /* LINE_CONTINUATION_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_LINE_CONTINUATION_HPP_ */

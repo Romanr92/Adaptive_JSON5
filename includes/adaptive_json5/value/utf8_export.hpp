@@ -1,5 +1,5 @@
-#ifndef UTF8_EXPORT_HPP_
-#define UTF8_EXPORT_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_UTF8_EXPORT_HPP_
+#define ADAPTIVE_JSON5_VALUE_UTF8_EXPORT_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
@@ -38,4 +38,4 @@ namespace adaptive_json5
                                                 std::size_t capacity) noexcept;
 } // namespace adaptive_json5
 
-#endif /* UTF8_EXPORT_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_UTF8_EXPORT_HPP_ */

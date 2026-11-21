@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_NUMBER_COMPARISON_HPP_
-#define ADAPTIVE_JSON5_NUMBER_COMPARISON_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_NUMBER_COMPARISON_HPP_
+#define ADAPTIVE_JSON5_VALUE_NUMBER_COMPARISON_HPP_
 
 #include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -74,4 +74,4 @@ namespace adaptive_json5
 
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_NUMBER_COMPARISON_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_NUMBER_COMPARISON_HPP_ */

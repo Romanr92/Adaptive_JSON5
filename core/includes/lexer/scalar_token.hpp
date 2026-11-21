@@ -1,5 +1,5 @@
-#ifndef SCALAR_TOKEN_HPP_
-#define SCALAR_TOKEN_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_SCALAR_TOKEN_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_SCALAR_TOKEN_HPP_
 
 #include "lexer/number/number_token.hpp"
 #include "lexer/string/string_token.hpp"
@@ -72,4 +72,4 @@ namespace adaptive_json5
 
 } // namespace adaptive_json5
 
-#endif /* SCALAR_TOKEN_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_SCALAR_TOKEN_HPP_ */

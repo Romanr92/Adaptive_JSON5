@@ -1,5 +1,5 @@
-#ifndef DECIMAL_LEXER_HPP_
-#define DECIMAL_LEXER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_DECIMAL_LEXER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_DECIMAL_LEXER_HPP_
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/options.hpp"
@@ -78,4 +78,4 @@ namespace adaptive_json5
                   std::size_t max_exponent_digits = std::numeric_limits<std::size_t>::max()) noexcept;
 } // namespace adaptive_json5
 
-#endif /* DECIMAL_LEXER_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_DECIMAL_LEXER_HPP_ */

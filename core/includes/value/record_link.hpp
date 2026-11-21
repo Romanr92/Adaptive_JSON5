@@ -1,5 +1,5 @@
-#ifndef RECORD_LINK_HPP_
-#define RECORD_LINK_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_RECORD_LINK_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_RECORD_LINK_HPP_
 
 #include <cstddef>
 #include <limits>
@@ -90,4 +90,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* RECORD_LINK_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_RECORD_LINK_HPP_ */

@@ -76,7 +76,8 @@ namespace adaptive_json5
     constexpr auto c_positive_limit = static_cast<std::uintmax_t>(c_signed_maximum);
 
     // Move inside the signed range before negation; finish in unsigned arithmetic.
-    constexpr auto c_negative_limit = static_cast<std::uintmax_t>(-(c_signed_minimum + c_one)) + c_unsigned_one;
+    constexpr std::uintmax_t c_negative_limit =
+      static_cast<std::uintmax_t>(-(c_signed_minimum + c_one)) + c_unsigned_one;
 
     work_budget work{options.max_work_units};
 

@@ -1,5 +1,5 @@
-#ifndef STRING_LEXER_HPP_
-#define STRING_LEXER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_LEXER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_LEXER_HPP_
 
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
@@ -95,4 +95,4 @@ namespace adaptive_json5
                  string_checks checks = {}) noexcept;
 } // namespace adaptive_json5
 
-#endif /* STRING_LEXER_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_LEXER_HPP_ */

@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_WARNING_LIST_HPP_
-#define ADAPTIVE_JSON5_WARNING_LIST_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_WARNING_LIST_HPP_
+#define ADAPTIVE_JSON5_VALUE_WARNING_LIST_HPP_
 
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -161,4 +161,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_WARNING_LIST_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_WARNING_LIST_HPP_ */

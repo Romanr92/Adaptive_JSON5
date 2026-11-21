@@ -178,7 +178,7 @@ namespace adaptive_json5
 
       if (has_exponent)
       {
-        // Validated exponent syntax guarantees a byte after it's introducer.
+        // Validated exponent syntax guarantees a byte after its introducer.
         const char first_exponent = spelling.data[position];
 
         if ((first_exponent == '+') || (first_exponent == '-'))

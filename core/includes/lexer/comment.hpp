@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_COMMENT_HPP_
-#define ADAPTIVE_JSON5_COMMENT_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_COMMENT_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_COMMENT_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
@@ -64,4 +64,4 @@ namespace adaptive_json5
 
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_COMMENT_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_COMMENT_HPP_ */

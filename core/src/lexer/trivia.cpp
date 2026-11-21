@@ -91,7 +91,7 @@ namespace adaptive_json5
 
     const std::size_t start = source.offset();
 
-    // Whitespace and comments from one run whose advancement succeeds togather.
+    // Whitespace and comments from one run whose advancement succeeds together.
     cursor candidate = source;
 
     while (true)
@@ -118,7 +118,7 @@ namespace adaptive_json5
       const auto first = candidate.peek();
       const auto second = candidate.peek(1);
 
-      // Leave a lone slash or another tojen for the token recognizer.
+      // Leave a lone slash or another token for the token recognizer.
       // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
       // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
       // between two character operands does not use the numeric value; the tool reports the implicit promotion

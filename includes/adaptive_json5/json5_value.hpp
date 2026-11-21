@@ -1,5 +1,5 @@
-#ifndef JSON5_VALUE_HPP_
-#define JSON5_VALUE_HPP_
+#ifndef ADAPTIVE_JSON5_JSON5_VALUE_HPP_
+#define ADAPTIVE_JSON5_JSON5_VALUE_HPP_
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -316,4 +316,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* JSON5_VALUE_HPP_ */
+#endif /* ADAPTIVE_JSON5_JSON5_VALUE_HPP_ */

@@ -1,5 +1,5 @@
-#ifndef CHECKED_SIZE_HPP_
-#define CHECKED_SIZE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_COMMON_CHECKED_SIZE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_COMMON_CHECKED_SIZE_HPP_
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/resource_limit_reason.hpp"
@@ -68,4 +68,4 @@ namespace adaptive_json5
     return result<std::size_t>::success(left * right);
   }
 } // namespace adaptive_json5
-#endif /* CHECKED_SIZE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_COMMON_CHECKED_SIZE_HPP_ */
