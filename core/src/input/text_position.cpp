@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 
 namespace adaptive_json5
 {
@@ -20,6 +21,7 @@ namespace adaptive_json5
     constexpr std::uint32_t c_paragraph_separator = 0x2029U; // '\u2029'
     constexpr std::size_t c_single_byte = 1;
     constexpr std::size_t c_first_column = 1;
+    constexpr std::size_t c_crlf_byte_count = 2;
 
     /**
      * @brief Report whether a decoded character ends a line.
@@ -45,6 +47,9 @@ namespace adaptive_json5
    */
   result<text_position> locate(input_view input, std::size_t byte_offset) noexcept
   {
+    constexpr auto maximum = std::numeric_limits<std::size_t>::max();
+    constexpr std::size_t step = 1U;
+
     using position_result = result<text_position>;
 
     if (byte_offset > input.size)
@@ -77,7 +82,7 @@ namespace adaptive_json5
 
       if (crlf)
       {
-        length += c_single_byte;
+        length = c_crlf_byte_count;
       }
 
       // An offset inside a character or CRLF belongs to the position where that sequence starts.
@@ -90,12 +95,20 @@ namespace adaptive_json5
 
       if (is_line_break(value))
       {
-        ++position.line;
+        if (step > (maximum - position.line))
+        {
+          return position_result::failure(error::access_failure(access_error_reason::invalid_argument));
+        }
+        position.line = position.line + step;
         position.column = c_first_column;
       }
       else
       {
-        ++position.column;
+        if (step > (maximum - position.column))
+        {
+          return position_result::failure(error::access_failure(access_error_reason::invalid_argument));
+        }
+        position.column = position.column + step;
       }
     }
 

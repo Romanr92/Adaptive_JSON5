@@ -55,19 +55,26 @@ namespace adaptive_json5
       while (begin < end)
       {
         // This midpoint calculation avoids overflow from begin + end.
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The loop requires begin < end, so end - begin fits.
+        // Adding half that distance to begin gives a midpoint strictly below end.
+        // codeql::misra_deviation_next_line(DEV-004.01)
         const std::size_t middle = begin + (end - begin) / 2;
         const unicode_range& range = ranges[middle];
 
         if (value < range.first)
         {
           // Sorted ranges before middle also end too early.
-          // Contine searching only the later half.
+          // Continue searching only the later half.
           end = middle;
         }
         else if (value > range.last)
         {
           // Sorted ranges before middle also start too early.
           // Continue searching only the later half.
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: middle < end, so advancing by one reaches at most end.
+          // codeql::misra_deviation_next_line(DEV-004.02)
           begin = middle + 1;
         }
         else

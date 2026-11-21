@@ -502,9 +502,9 @@ namespace adaptive_json5
       // Two extra quotient bits guarantee a rounding bit below the significand.
       constexpr std::ptrdiff_t c_quotient_bits = c_precision + 2;
       constexpr std::ptrdiff_t c_min_normal_exponent = limits::min_exponent - 1;
-      constexpr auto c_overflow_scale = static_cast<std::size_t>(limits::max_exponent10) + 1;
+      constexpr auto c_overflow_scale = static_cast<std::size_t>(limits::max_exponent10 + 1);
       // 10^-c is below half the smallest subnormal, so such values always round to zero.
-      constexpr auto c_underflow_scale = static_cast<std::size_t>(limits::digits10 - limits::min_exponent10) + 3;
+      constexpr auto c_underflow_scale = static_cast<std::size_t>(limits::digits10 - limits::min_exponent10 + 3);
       constexpr auto c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max() / 4);
 
       work_budget work{options.max_work_units};
@@ -539,10 +539,14 @@ namespace adaptive_json5
       }
 
       // The value is below 10^(digit_count - scale), so this gap guarantees zero.
-      if (parts.scale_negative && (parts.scale_magnitude >= parts.digit_count) &&
-          ((parts.scale_magnitude - parts.digit_count) >= c_underflow_scale))
+      if (parts.scale_negative)
       {
-        return finish_underflow<T>(negative, options);
+        const auto threshold =
+          checked_add(parts.digit_count, c_underflow_scale, resource_limit_reason::conversion_size);
+        if (threshold.has_value() && (parts.scale_magnitude >= *threshold.value_if()))
+        {
+          return finish_underflow<T>(negative, options);
+        }
       }
 
       // The fast steps assume IEEE binary32 or binary64, and their constants do not compile for
@@ -684,10 +688,10 @@ namespace adaptive_json5
 
       detail::big_unsigned& scaled = parts.scale_negative ? denominator : numerator;
 
-      std::size_t remaining_scale = parts.scale_magnitude;
+      const std::size_t full_chunks = parts.scale_magnitude / c_decimal_chunk_digits;
+      const std::size_t remaining_scale = parts.scale_magnitude % c_decimal_chunk_digits;
 
-      // Each full chunk applies four decimal positions in one limb operation.
-      while (remaining_scale >= c_decimal_chunk_digits)
+      for (std::size_t chunk{}; chunk < full_chunks; ++chunk)
       {
         const auto multiplied = scaled.append_digit(0, c_decimal_chunk_radix, work);
 
@@ -695,21 +699,13 @@ namespace adaptive_json5
         {
           return float_result::failure(*multiplied.error_if());
         }
-
-        remaining_scale -= c_decimal_chunk_digits;
       }
 
       if (remaining_scale != 0)
       {
-        std::uint32_t radix = 1;
 
-        // At most three positions remain, so radix never exceeds 1000.
-        for (std::size_t index{}; index < remaining_scale; ++index)
-        {
-          radix *= c_decimal_radix;
-        }
-
-        const auto multiplied = scaled.append_digit(0, radix, work);
+        static constexpr std::array<std::uint32_t, c_decimal_chunk_digits> c_tail_radix{1U, 10U, 100U, 1000U};
+        const auto multiplied = scaled.append_digit(0, c_tail_radix[remaining_scale], work);
 
         if (!multiplied.has_value())
         {
@@ -775,8 +771,6 @@ namespace adaptive_json5
 
       for (std::ptrdiff_t bit = c_quotient_bits; bit >= 0; --bit)
       {
-        quotient <<= 1U;
-
         const auto order = numerator.compare(denominator, work);
 
         if (!order.has_value())
@@ -793,7 +787,7 @@ namespace adaptive_json5
             return float_result::failure(*reduced.error_if());
           }
 
-          quotient |= 1U;
+          quotient |= (std::uint_least64_t{1} << bit);
         }
 
         if (bit != 0)
@@ -830,14 +824,15 @@ namespace adaptive_json5
       }
 
       const auto drop = static_cast<std::uint32_t>(dropped_bits);
-      const std::uint_least64_t half = std::uint_least64_t{1} << (drop - 1U);
-      const std::uint_least64_t remainder = quotient & ((std::uint_least64_t{1} << drop) - 1U);
+      const std::uint_least64_t rounding_unit = std::uint_least64_t{1} << drop;
+      const std::uint_least64_t half = rounding_unit >> 1U;
+      const std::uint_least64_t remainder = quotient % rounding_unit;
       std::uint_least64_t significand = quotient >> drop;
 
       // Round to nearest; an exact tie (no sticky bits) chooses the even significand.
       if ((remainder > half) || ((remainder == half) && (sticky || ((significand & 1U) != 0))))
       {
-        ++significand;
+        significand = static_cast<std::uint_least64_t>(static_cast<std::int_least64_t>(significand) + 1U);
       }
 
       if (significand == 0)

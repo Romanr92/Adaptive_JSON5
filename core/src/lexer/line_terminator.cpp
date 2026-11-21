@@ -1,5 +1,6 @@
 #include "lexer/line_terminator.hpp"
 
+#include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
 #include "unicode/utf8.hpp"
@@ -74,11 +75,17 @@ namespace adaptive_json5
       }
     }
 
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return terminator_result::failure(error::internal_fault());
+    }
+
     // Offsets measure original bytes, so Unicode separators span three bytes
     // and CRLF spans two bytes without counting as two terminator sequences.
-    const std::size_t length = candidate.offset() - start;
+    const std::size_t length = end - start;
 
-    // Recognition succeded: comit the complete sequence in one operation.
+    // Recognition succeeded: commit the complete sequence in one operation.
     source = candidate;
 
     return terminator_result::success(std::optional<line_terminator_span>{line_terminator_span{start, length}});
