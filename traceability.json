@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "751 tests"
+      "detail": "752 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "751 tests"
+      "detail": "752 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "751 tests"
+      "detail": "752 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "751 tests"
+      "detail": "752 tests"
     }
   },
   "metrics": {
@@ -13420,6 +13420,17 @@
         {
           "id": "J5_092_UmbrellaCoverage.IncludesNoHostedOrPrivateHeader",
           "file": "tests/api/umbrella_coverage_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_092_IncludeGuards.ConsumerGuardNamesDoNotHideHeaders",
+          "file": "tests/api/include_guard_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
