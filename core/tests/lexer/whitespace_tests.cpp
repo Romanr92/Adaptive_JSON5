@@ -127,9 +127,9 @@ namespace
                     whitespace_case{"SubscriptZero", std::string_view{"\xe2\x82\x80", 3}, 0x2080, false, 0, 0},
                     whitespace_case{"Joiner", std::string_view{"\xe2\x80\x8d", 3}, 0x200D, false, 0, 0},
                     whitespace_case{"Emoji", std::string_view{"\xf0\x9f\x98\x80", 4}, 0x1F600, false, 0, 0}),
-    [](const testing::TestParamInfo<whitespace_case>& info)
+    [](const testing::TestParamInfo<whitespace_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

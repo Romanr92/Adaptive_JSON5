@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_TRIVIA_HPP_
-#define ADAPTIVE_JSON5_TRIVIA_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_TRIVIA_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_TRIVIA_HPP_
 
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -63,4 +63,4 @@ namespace adaptive_json5
   [[nodiscard]] result<trivia_span> skip_trivia(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
-#endif /* ADAPTIVE_JSON5_TRIVIA_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_TRIVIA_HPP_ */

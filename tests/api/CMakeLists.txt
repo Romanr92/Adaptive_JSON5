@@ -127,6 +127,7 @@ adaptive_json5_add_unit(adaptive_json5_json5_value_unit_tests json5_value_units
 # One translation unit includes only the umbrella header; the coverage scan reads includes/.
 adaptive_json5_add_unit(adaptive_json5_umbrella_header_unit_tests umbrella_header_units
     umbrella_header_tests.cpp
-    umbrella_coverage_tests.cpp)
+    umbrella_coverage_tests.cpp
+    include_guard_tests.cpp)
 target_compile_definitions(adaptive_json5_umbrella_header_unit_tests PRIVATE
     "ADAPTIVE_JSON5_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")

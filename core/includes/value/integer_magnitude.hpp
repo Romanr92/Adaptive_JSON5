@@ -1,5 +1,5 @@
-#ifndef INTEGER_MAGNITUDE_HPP_
-#define INTEGER_MAGNITUDE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_INTEGER_MAGNITUDE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_INTEGER_MAGNITUDE_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -71,4 +71,4 @@ namespace adaptive_json5::detail
                                                                  work_budget& work) noexcept;
 } // namespace adaptive_json5::detail
 
-#endif /* INTEGER_MAGNITUDE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_INTEGER_MAGNITUDE_HPP_ */

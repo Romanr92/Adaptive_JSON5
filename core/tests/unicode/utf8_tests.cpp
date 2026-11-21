@@ -388,20 +388,20 @@ namespace
   }
 
   INSTANTIATE_TEST_SUITE_P(ValidEncodings, J5_009_Utf8Valid, testing::ValuesIn(c_valid_cases),
-                           [](const testing::TestParamInfo<valid_case>& info)
+                           [](const testing::TestParamInfo<valid_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
   INSTANTIATE_TEST_SUITE_P(TruncatedEncodings, J5_009_Utf8Truncated,
                            testing::ValuesIn(c_valid_cases + 2, c_valid_cases + 12),
-                           [](const testing::TestParamInfo<valid_case>& info)
+                           [](const testing::TestParamInfo<valid_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
   INSTANTIATE_TEST_SUITE_P(InvalidEncodings, J5_009_Utf8Invalid, testing::ValuesIn(c_invalid_cases),
-                           [](const testing::TestParamInfo<invalid_case>& info)
+                           [](const testing::TestParamInfo<invalid_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ================================= End Test_J5_009 ================================= */

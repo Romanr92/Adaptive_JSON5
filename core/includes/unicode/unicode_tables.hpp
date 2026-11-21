@@ -43,8 +43,8 @@ dealings in these Data Files or Software without prior written
 authorization of the copyright holder.
 */
 
-#ifndef UNICODE_TABLES_HPP_
-#define UNICODE_TABLES_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_TABLES_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_TABLES_HPP_
 
 #include "unicode/unicode_range.hpp"
 
@@ -1209,4 +1209,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* UNICODE_TABLES_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_TABLES_HPP_ */

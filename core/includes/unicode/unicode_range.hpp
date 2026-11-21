@@ -1,5 +1,5 @@
-#ifndef UNICODE_RANGE_HPP_
-#define UNICODE_RANGE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_RANGE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_RANGE_HPP_
 
 #include <cstdint>
 
@@ -17,4 +17,4 @@ namespace adaptive_json5
       std::uint32_t last;
   };
 } // namespace adaptive_json5
-#endif /* UNICODE_RANGE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_UNICODE_UNICODE_RANGE_HPP_ */

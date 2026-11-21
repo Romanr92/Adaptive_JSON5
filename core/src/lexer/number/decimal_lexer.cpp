@@ -188,7 +188,7 @@ namespace adaptive_json5
       const std::size_t fraction_start = candidate.offset();
       detail::consume_decimal_digits(candidate);
 
-      // A leading point always needs digits; strict JSON also requires digits the after an integer.
+      // A leading point always needs digits; strict JSON also requires them after an integer part.
       if ((candidate.offset() == fraction_start) && (!has_integer || (mode == syntax_mode::strict_json)))
       {
         return decimal_result::failure(detail::decimal_expected_error(candidate));

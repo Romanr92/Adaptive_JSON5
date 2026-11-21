@@ -464,12 +464,12 @@ namespace
                            testing::Combine(testing::ValuesIn(code_cases),
                                             testing::Values(std::size_t{0}, std::size_t{17},
                                                             std::numeric_limits<std::size_t>::max())),
-                           [](const testing::TestParamInfo<J5_043_LocatedResult::ParamType>& info)
+                           [](const testing::TestParamInfo<J5_043_LocatedResult::ParamType>& param_info)
                            {
-                             const auto offset = std::get<1>(info.param);
+                             const auto offset = std::get<1>(param_info.param);
                              const auto suffix =
                                offset == 0 ? "ByteZero" : (offset == 17 ? "ByteSeventeen" : "MaximumOffset");
-                             return std::string(std::get<0>(info.param).name) + suffix;
+                             return std::string(std::get<0>(param_info.param).name) + suffix;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -508,9 +508,9 @@ namespace
   }
 
   INSTANTIATE_TEST_SUITE_P(Categories, J5_043_UnlocatedResult, testing::ValuesIn(code_cases),
-                           [](const testing::TestParamInfo<code_case>& info)
+                           [](const testing::TestParamInfo<code_case>& param_info)
                            {
-                             return std::string(info.param.name);
+                             return std::string(param_info.param.name);
                            });
 
   /* ================================= End Test_J5_043 ================================= */

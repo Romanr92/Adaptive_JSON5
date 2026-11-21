@@ -1,5 +1,5 @@
-#ifndef WHITESPACE_HPP_
-#define WHITESPACE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_WHITESPACE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_WHITESPACE_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
@@ -93,4 +93,4 @@ namespace adaptive_json5
   [[nodiscard]] result<whitespace_span> skip_json5_whitespace(cursor& source) noexcept;
 } // namespace adaptive_json5
 
-#endif /* WHITESPACE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_WHITESPACE_HPP_ */

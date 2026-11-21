@@ -1,5 +1,5 @@
-#ifndef PARSER_HPP_
-#define PARSER_HPP_
+#ifndef ADAPTIVE_JSON5_PARSER_HPP_
+#define ADAPTIVE_JSON5_PARSER_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
@@ -62,4 +62,4 @@ namespace adaptive_json5
                                                        accounted_storage& accounting) noexcept;
 } // namespace adaptive_json5
 
-#endif /* PARSER_HPP_ */
+#endif /* ADAPTIVE_JSON5_PARSER_HPP_ */

@@ -1,5 +1,5 @@
-#ifndef MEMBER_NAME_LEXER_HPP_
-#define MEMBER_NAME_LEXER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_MEMBER_NAME_LEXER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_MEMBER_NAME_LEXER_HPP_
 
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
@@ -123,4 +123,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* MEMBER_NAME_LEXER_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_MEMBER_NAME_LEXER_HPP_ */

@@ -1,5 +1,5 @@
-#ifndef STRING_BOUNDARY_HPP_
-#define STRING_BOUNDARY_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_BOUNDARY_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_BOUNDARY_HPP_
 
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -80,4 +80,4 @@ namespace adaptive_json5
                                                           syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
-#endif /* STRING_BOUNDARY_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_STRING_BOUNDARY_HPP_ */

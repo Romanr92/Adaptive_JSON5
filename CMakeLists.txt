@@ -57,7 +57,10 @@ set_target_properties(adaptive_json5_build_options PROPERTIES EXPORT_NAME
 target_compile_features(adaptive_json5_build_options INTERFACE cxx_std_17)
 
 # Apply flags only to explicitly selected project targets, never parent flags.
+# THIRD_PARTY keeps the language, exception, RTTI and sanitizer settings but skips
+# the project warning set, which third-party sources such as GoogleTest do not meet.
 function(adaptive_json5_configure_target target)
+    cmake_parse_arguments(PARSE_ARGV 1 ARG "THIRD_PARTY" "" "")
     set_target_properties(${target} PROPERTIES
         CXX_EXTENSIONS OFF CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
     target_compile_features(${target} PRIVATE cxx_std_17)
@@ -85,7 +88,13 @@ function(adaptive_json5_configure_target target)
             target_compile_options(${target} PRIVATE /GR-)
         endif()
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
-        target_compile_options(${target} PRIVATE -Wparentheses -Werror)
+        # Extended warning set from #126; -Wswitch-enum requires every enumerator
+        # to be listed even when a default label exists.
+        if(NOT ARG_THIRD_PARTY)
+            target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic
+                -Wconversion -Wsign-conversion -Wshadow -Wold-style-cast
+                -Wswitch-enum -Wparentheses -Werror)
+        endif()
         if(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS)
             target_compile_options(${target} PRIVATE -fexceptions)
         else()

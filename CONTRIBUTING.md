@@ -20,7 +20,7 @@ For each implementation change:
 
 1. State the behavior and requirement IDs it implements.
 2. Add meaningful unit cases for normal behavior, boundaries and explicit errors.
-3. Run the unit suite with exceptions OFF and RTTI OFF, then check clang-format 18.
+3. Run the unit suite with exceptions OFF and RTTI OFF, then check clang-format 23.
 4. Retain named unit mappings/results and update essential API/ownership/error/limit,
    provenance and usage contracts where behavior changes. No per-issue documentation
    report or implementation narrative is required.

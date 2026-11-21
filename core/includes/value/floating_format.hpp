@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_DETAIL_FLOATING_FORMAT_HPP_
-#define ADAPTIVE_JSON5_DETAIL_FLOATING_FORMAT_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_FLOATING_FORMAT_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_FLOATING_FORMAT_HPP_
 
 #include <cstdint>
 #include <limits>
@@ -137,4 +137,4 @@ namespace adaptive_json5::detail
   }
 } // namespace adaptive_json5::detail
 
-#endif /* ADAPTIVE_JSON5_DETAIL_FLOATING_FORMAT_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_FLOATING_FORMAT_HPP_ */

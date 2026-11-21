@@ -1,5 +1,5 @@
-#ifndef BUFFER_DOCUMENT_STORAGE_HPP_
-#define BUFFER_DOCUMENT_STORAGE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_MEMORY_BUFFER_DOCUMENT_STORAGE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_MEMORY_BUFFER_DOCUMENT_STORAGE_HPP_
 
 #include "adaptive_json5/memory/document_storage_owner.hpp"
 #include "adaptive_json5/result.hpp"
@@ -30,4 +30,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* BUFFER_DOCUMENT_STORAGE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_MEMORY_BUFFER_DOCUMENT_STORAGE_HPP_ */

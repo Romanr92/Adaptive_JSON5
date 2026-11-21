@@ -1,5 +1,5 @@
-#ifndef HEXADECIMAL_LEXER_HPP_
-#define HEXADECIMAL_LEXER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_HEXADECIMAL_LEXER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_HEXADECIMAL_LEXER_HPP_
 
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -31,4 +31,4 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<number_token>> consume_hexadecimal(cursor& source, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
-#endif /* HEXADECIMAL_LEXER_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_HEXADECIMAL_LEXER_HPP_ */

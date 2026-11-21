@@ -137,9 +137,9 @@ namespace
                                              hex_case{"Quote", "x22", 0x22}, hex_case{"Backslash", "x5C", 0x5C},
                                              hex_case{"Upper", "xAF", 0xAF}, hex_case{"Lower", "xaf", 0xAF},
                                              hex_case{"Mixed", "xaF", 0xAF}, hex_case{"Max", "xFF", 0xFF}),
-                           [](const ::testing::TestParamInfo<hex_case>& info)
+                           [](const ::testing::TestParamInfo<hex_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -202,9 +202,9 @@ namespace
                       invalid_hex_case{"Surrogate", "x\xED\xA0\x80", error_code::encoding, 1},
                       invalid_hex_case{"OutOfRange", "x4\xF4\x90\x80\x80", error_code::encoding, 2},
                       invalid_hex_case{"TruncatedUtf8", "x4\xE2\x82", error_code::encoding, 2}),
-    [](const ::testing::TestParamInfo<invalid_hex_case>& info)
+    [](const ::testing::TestParamInfo<invalid_hex_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

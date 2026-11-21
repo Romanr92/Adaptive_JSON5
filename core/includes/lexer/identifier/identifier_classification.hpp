@@ -1,5 +1,5 @@
-#ifndef IDENTIFIER_CLASSIFICATION_HPP_
-#define IDENTIFIER_CLASSIFICATION_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_IDENTIFIER_IDENTIFIER_CLASSIFICATION_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_IDENTIFIER_IDENTIFIER_CLASSIFICATION_HPP_
 
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
@@ -75,4 +75,4 @@ namespace adaptive_json5
   classify_identifier(const identifier_token& token, identifier_context context, syntax_mode mode) noexcept;
 } // namespace adaptive_json5
 
-#endif /* IDENTIFIER_CLASSIFICATION_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_IDENTIFIER_IDENTIFIER_CLASSIFICATION_HPP_ */

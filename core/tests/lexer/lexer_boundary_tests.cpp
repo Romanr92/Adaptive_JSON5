@@ -105,7 +105,7 @@ namespace
   TEST(J5_046_StringEscapeStorage, FailsEachEscapedUnitAllocationAtomically)
   {
     /* Arrange */
-    for (const std::string input : {std::string{"\"\\u0041\\u0042\""}, std::string{u8"\"\\\U0001F600\""}})
+    for (const std::string& input : {std::string{"\"\\u0041\\u0042\""}, std::string{u8"\"\\\U0001F600\""}})
     {
       SCOPED_TRACE(input);
       document_provider baseline;

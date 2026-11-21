@@ -1,5 +1,5 @@
-#ifndef NUMBER_TOKEN_HPP_
-#define NUMBER_TOKEN_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_NUMBER_TOKEN_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_NUMBER_TOKEN_HPP_
 
 #include "adaptive_json5/value/number_kind.hpp"
 
@@ -31,4 +31,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* NUMBER_TOKEN_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_NUMBER_NUMBER_TOKEN_HPP_ */

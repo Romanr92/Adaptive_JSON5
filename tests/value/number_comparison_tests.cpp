@@ -75,7 +75,7 @@ namespace
    * @par Requirements
    * P038; J5-036.
    */
-  std::ostream& operator<<(std::ostream& stream, number_order value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, number_order value)
   {
     switch (value)
     {
@@ -181,9 +181,9 @@ namespace
       comparison_case{"NaNWithNaN", "NaN", "NaN", c_unordered},
       comparison_case{"NaNWithFinite", "1", "NaN", c_unordered},
       comparison_case{"NaNWithInfinity", "-NaN", "Infinity", c_unordered}),
-    [](const ::testing::TestParamInfo<comparison_case>& info)
+    [](const ::testing::TestParamInfo<comparison_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   // Chunk boundaries of the 10^4 steps (ADR 0003, decisions 1b and 10): digit runs of 3, 4, 5, 8 and 9
@@ -205,9 +205,9 @@ namespace
                                              comparison_case{"HexNineDigits", "0x5F5E100", "1e8", c_equal},
                                              comparison_case{"HexNineteenDigits", "0xDE0B6B3A7640000", "1e18", c_equal},
                                              comparison_case{"HexJustBelowPower", "0xDE0B6B3A763FFFF", "1e18", c_less}),
-                           [](const ::testing::TestParamInfo<comparison_case>& info)
+                           [](const ::testing::TestParamInfo<comparison_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

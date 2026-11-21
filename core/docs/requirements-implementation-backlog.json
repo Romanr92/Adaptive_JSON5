@@ -3,7 +3,7 @@
   "version": 3,
   "scope": "Prepare a generic independently developed OS-agnostic C++17 JSON5/strict-JSON library for compatible hosted and embedded projects. Errors are explicit results, never thrown. Schema/CLI/editor remain optional. Agents may prepare CMake, GoogleTest, docs, requirements and skills; no production C++.",
   "requirement_status": "Draft; creating issues does not promote proposal requirements to Agreed or establish implementation evidence.",
-  "quality_scope": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge.",
+  "quality_scope": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge.",
   "license": "Retain the existing Apache-2.0 repository license. MIT in the source proposal is a proposed choice, not authorization to change the current license. Preserve third-party notices and pinned provenance.",
   "adaptations": [
     "The latest user scope replaces WSL/AdaptivePi SDK/runtime/deployment obligations with a generic portable C++17 library for compatible projects.",
@@ -912,7 +912,7 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P029",
@@ -938,7 +938,7 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P020",
@@ -965,7 +965,7 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P001",
@@ -1025,7 +1025,7 @@
       "acceptance": [
         "Owned implementation contracts complete",
         "Specified GoogleTest unit cases implemented and passing",
-        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
+        "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge."
       ],
       "depends_on": [
         "P040"
@@ -1807,7 +1807,7 @@
     "production_cpp": "Romanr92 only; includes public C++ headers",
     "unit_tests": "AI creates independent GoogleTest cases; developer reviews and fixes production failures",
     "documentation": "No per-issue reports; essential public API/ownership/error/limit/accounting/version/provenance/usage docs only",
-    "quality": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge."
+    "quality": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge."
   },
   "retained_delivery_scope": [
     "P001–P042 full JSON5 and strict JSON",

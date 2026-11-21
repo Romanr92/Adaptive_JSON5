@@ -1,5 +1,5 @@
-#ifndef POINTER_ALIGNMENT_HPP_
-#define POINTER_ALIGNMENT_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_MEMORY_POINTER_ALIGNMENT_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_MEMORY_POINTER_ALIGNMENT_HPP_
 
 #include <cstddef>
 
@@ -26,4 +26,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* POINTER_ALIGNMENT_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_MEMORY_POINTER_ALIGNMENT_HPP_ */

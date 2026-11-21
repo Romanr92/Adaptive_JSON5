@@ -1,5 +1,5 @@
-#ifndef SCALAR_LEXER_HPP_
-#define SCALAR_LEXER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_SCALAR_LEXER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_SCALAR_LEXER_HPP_
 
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/options.hpp"
@@ -110,4 +110,4 @@ namespace adaptive_json5
 
 } // namespace adaptive_json5
 
-#endif /* SCALAR_LEXER_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_SCALAR_LEXER_HPP_ */

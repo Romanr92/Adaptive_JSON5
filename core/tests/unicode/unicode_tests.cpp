@@ -58,9 +58,9 @@ namespace
                                            lookup_case{"LastEnd", 0x34, true}, lookup_case{"AboveAll", 0x35, false},
                                            lookup_case{"Surrogate", 0xD800, false},
                                            lookup_case{"BeyondUnicode", 0x110000, false}),
-                           [](const testing::TestParamInfo<lookup_case>& info)
+                           [](const testing::TestParamInfo<lookup_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ================================= End Test_J5_006 ================================= */
@@ -126,9 +126,9 @@ namespace
       classifier_case{"OtherIdStart", 0x2118, false, false, false},
       classifier_case{"Surrogate", 0xD800, false, false, false},
       classifier_case{"OutOfRange", 0x110000, false, false, false}),
-    [](const testing::TestParamInfo<classifier_case>& info)
+    [](const testing::TestParamInfo<classifier_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ================================= End Test_J5_019 ================================= */

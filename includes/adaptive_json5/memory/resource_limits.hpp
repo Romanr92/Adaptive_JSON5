@@ -1,5 +1,5 @@
-#ifndef RESOURCE_LIMITS_HPP_
-#define RESOURCE_LIMITS_HPP_
+#ifndef ADAPTIVE_JSON5_MEMORY_RESOURCE_LIMITS_HPP_
+#define ADAPTIVE_JSON5_MEMORY_RESOURCE_LIMITS_HPP_
 
 #include <cstddef>
 
@@ -59,4 +59,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* RESOURCE_LIMITS_HPP_ */
+#endif /* ADAPTIVE_JSON5_MEMORY_RESOURCE_LIMITS_HPP_ */

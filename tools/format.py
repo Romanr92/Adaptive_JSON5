@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check or apply the repository's C++ formatting with clang-format 18."""
+"""Check or apply the repository's C++ formatting with clang-format 23.1.6."""
 
 import argparse
 import os
@@ -11,6 +11,8 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
+# Keep in step with LLVM_VERSION in .github/workflows/formatting.yml.
+REQUIRED_VERSION = "23.1.6"
 EXCLUDED = {".git", "build", "out", "install", "generated", "vendor", "third_party", "gtest", "node_modules"}
 SUFFIXES = {".h", ".hpp", ".c", ".cpp", ".cc", ".cxx"}
 
@@ -31,22 +33,22 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Report files needing formatting")
     parser.add_argument("--fix", action="store_true", help="Format source files in place")
-    parser.add_argument("--clang-format", help="Path to a clang-format 18 executable")
+    parser.add_argument("--clang-format", help="Path to a clang-format 23.1.6 executable")
     arguments = parser.parse_args()
     if arguments.check and arguments.fix:
         parser.error("choose only one of --check and --fix")
 
     requested = arguments.clang_format or os.environ.get("CLANG_FORMAT")
-    executable = requested or shutil.which("clang-format-18") or shutil.which("clang-format")
+    executable = requested or shutil.which("clang-format-23") or shutil.which("clang-format")
     if not executable:
-        parser.error("clang-format 18 was not found; install it or use --clang-format PATH")
+        parser.error("clang-format 23.1.6 was not found; install it or use --clang-format PATH")
 
     try:
         version = subprocess.run(
             [executable, "--version"], check=True, capture_output=True, text=True
         ).stdout
-        if not re.search(r"\bversion 18\.", version):
-            parser.error("clang-format major version 18 is required: " + version.strip())
+        if not re.search(r"\bversion " + re.escape(REQUIRED_VERSION) + r"\b", version):
+            parser.error("clang-format " + REQUIRED_VERSION + " is required: " + version.strip())
 
         files = list(source_files())
         if not files:

@@ -77,7 +77,7 @@ namespace adaptive_json5
         break;
       }
 
-      // The scalar is whitespace; accept it's validated byte advancement.
+      // The scalar is whitespace; accept its validated byte advancement.
       candidate = next;
     }
 
@@ -88,7 +88,7 @@ namespace adaptive_json5
     // codeql::misra_deviation_next_line(DEV-004.119)
     const std::size_t length = candidate.offset() - start;
 
-    // The entire run succeded, so publish it's advancement togather.
+    // The entire run succeeded, so publish its advancement together.
     source = candidate;
 
     return whitespace_result::success(whitespace_span{start, length, line_break_count});

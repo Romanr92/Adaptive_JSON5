@@ -123,9 +123,9 @@ namespace
                     object_case{"SingleQuotedStrict", "{'a':1}", false, 1, syntax_mode::strict_json},
                     object_case{"CommentBeforeCloseJson5", "{\"a\":1,/*x*/}", true, 1, syntax_mode::json5},
                     object_case{"CommentBeforeCloseStrict", "{\"a\":1,/*x*/}", false, 7, syntax_mode::strict_json}),
-    [](const testing::TestParamInfo<object_case>& info)
+    [](const testing::TestParamInfo<object_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
   /* ================================= End Test_J5_013 ================================== */
 
@@ -195,9 +195,9 @@ namespace
                                            name_case{"Empty", "{\"\":1}", u"", syntax_mode::strict_json},
                                            name_case{"EmbeddedZero", "{\"a\\u0000b\":1}", std::u16string{u'a', 0, u'b'},
                                                      syntax_mode::strict_json}),
-                           [](const testing::TestParamInfo<name_case>& info)
+                           [](const testing::TestParamInfo<name_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
   /* ================================= End Test_J5_020 ================================== */
 
@@ -294,9 +294,9 @@ namespace
   }
   INSTANTIATE_TEST_SUITE_P(P035, J5_031_ParsedObjectMembers,
                            testing::Values(syntax_mode::json5, syntax_mode::strict_json),
-                           [](const testing::TestParamInfo<syntax_mode>& info)
+                           [](const testing::TestParamInfo<syntax_mode>& param_info)
                            {
-                             return info.param == syntax_mode::json5 ? "Json5" : "StrictJson";
+                             return param_info.param == syntax_mode::json5 ? "Json5" : "StrictJson";
                            });
   /* ================================= End Test_J5_031 ================================== */
 } // namespace

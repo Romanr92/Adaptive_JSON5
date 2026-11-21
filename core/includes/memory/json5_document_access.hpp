@@ -1,5 +1,5 @@
-#ifndef JSON5_DOCUMENT_ACCESS_HPP_
-#define JSON5_DOCUMENT_ACCESS_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_MEMORY_JSON5_DOCUMENT_ACCESS_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_MEMORY_JSON5_DOCUMENT_ACCESS_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/json5_document.hpp"
@@ -37,4 +37,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* JSON5_DOCUMENT_ACCESS_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_MEMORY_JSON5_DOCUMENT_ACCESS_HPP_ */

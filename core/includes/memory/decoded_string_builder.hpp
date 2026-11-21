@@ -1,5 +1,5 @@
-#ifndef DECODED_STRING_BUILDER_HPP_
-#define DECODED_STRING_BUILDER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_MEMORY_DECODED_STRING_BUILDER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_MEMORY_DECODED_STRING_BUILDER_HPP_
 
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -146,4 +146,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif // DECODED_STRING_BUILDER_HPP_
+#endif // ADAPTIVE_JSON5_INTERNAL_MEMORY_DECODED_STRING_BUILDER_HPP_

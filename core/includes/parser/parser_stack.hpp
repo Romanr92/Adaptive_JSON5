@@ -1,5 +1,5 @@
-#ifndef PARSER_STACK_HPP_
-#define PARSER_STACK_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_STACK_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_STACK_HPP_
 
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -179,7 +179,7 @@ namespace adaptive_json5
          * @note Performs no allocation or work charge.
          * @par ID SWU-PARSER-037
          */
-        bool pop() noexcept;
+        [[nodiscard]] bool pop() noexcept;
 
         /**
          * @brief Destroy all frames while retaining reusable raw storage.
@@ -201,4 +201,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* PARSER_STACK_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_STACK_HPP_ */

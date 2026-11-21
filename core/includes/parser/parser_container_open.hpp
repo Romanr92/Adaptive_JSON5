@@ -1,5 +1,5 @@
-#ifndef PARSER_CONTAINER_OPEN_HPP_
-#define PARSER_CONTAINER_OPEN_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_CONTAINER_OPEN_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_CONTAINER_OPEN_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/document.hpp"
@@ -38,4 +38,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* PARSER_CONTAINER_OPEN_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_CONTAINER_OPEN_HPP_ */

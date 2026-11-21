@@ -308,9 +308,9 @@ namespace
   INSTANTIATE_TEST_SUITE_P(J5_046_OwnedBlock, OwnedBlockAllocationPointUnits,
                            ::testing::Values(budget_case{"FailsFirst", 0, 0}, budget_case{"FailsSecond", 1, 1},
                                              budget_case{"FailsThird", 2, 2}, budget_case{"NeverFails", 3, 3}),
-                           [](const ::testing::TestParamInfo<budget_case>& info)
+                           [](const ::testing::TestParamInfo<budget_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ------------------------------------------------------------------------------- */

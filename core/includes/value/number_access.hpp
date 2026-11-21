@@ -1,5 +1,5 @@
-#ifndef NUMBER_ACCESS_HPP_
-#define NUMBER_ACCESS_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_NUMBER_ACCESS_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_NUMBER_ACCESS_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -43,4 +43,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* NUMBER_ACCESS_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_NUMBER_ACCESS_HPP_ */

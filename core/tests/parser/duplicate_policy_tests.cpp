@@ -165,9 +165,9 @@ namespace
         duplicate_case{"ReservedWord", "{true:1,\"true\":2}", syntax_mode::json5, true, {1, 4}, {8, 6}, 3, 2},
         duplicate_case{"TriviaOffsets", "{/*x*/ a:1, /*y*/ \"a\":2}", syntax_mode::json5, true, {7, 1}, {18, 3}, 3, 2}),
       testing::Bool()),
-    [](const testing::TestParamInfo<std::tuple<duplicate_case, bool>>& info)
+    [](const testing::TestParamInfo<std::tuple<duplicate_case, bool>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) + (std::get<1>(info.param) ? "Reject" : "Preserve");
+      return std::string(std::get<0>(param_info.param).name) + (std::get<1>(param_info.param) ? "Reject" : "Preserve");
     });
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -252,9 +252,9 @@ namespace
     }
   }
   INSTANTIATE_TEST_SUITE_P(P036, J5_049_DuplicateWork, testing::Values(0u, 1u, 2u, 5u, 6u, 7u),
-                           [](const testing::TestParamInfo<std::size_t>& info)
+                           [](const testing::TestParamInfo<std::size_t>& param_info)
                            {
-                             return "Units" + std::to_string(info.param);
+                             return "Units" + std::to_string(param_info.param);
                            });
   /* ================================= End Test_J5_049 ================================== */
 

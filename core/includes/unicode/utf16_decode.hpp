@@ -1,5 +1,5 @@
-#ifndef UTF16_DECODE_HPP_
-#define UTF16_DECODE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF16_DECODE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF16_DECODE_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
@@ -39,4 +39,4 @@ namespace adaptive_json5
   [[nodiscard]] result<decoded_utf16> decode_utf16(const decoded_string& source, std::size_t index) noexcept;
 } // namespace adaptive_json5
 
-#endif // UTF16_DECODE_HPP_
+#endif // ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF16_DECODE_HPP_

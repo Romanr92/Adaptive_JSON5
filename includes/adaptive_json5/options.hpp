@@ -1,5 +1,5 @@
-#ifndef OPTIONS_HPP_
-#define OPTIONS_HPP_
+#ifndef ADAPTIVE_JSON5_OPTIONS_HPP_
+#define ADAPTIVE_JSON5_OPTIONS_HPP_
 
 #include "adaptive_json5/memory/resource_limits.hpp"
 
@@ -240,4 +240,4 @@ namespace adaptive_json5
   }
 
 } // namespace adaptive_json5
-#endif /* OPTIONS_HPP_ */
+#endif /* ADAPTIVE_JSON5_OPTIONS_HPP_ */

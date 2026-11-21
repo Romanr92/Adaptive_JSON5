@@ -1,5 +1,5 @@
-#ifndef HOSTED_PARSE_HPP_
-#define HOSTED_PARSE_HPP_
+#ifndef ADAPTIVE_JSON5_HOSTED_PARSE_HPP_
+#define ADAPTIVE_JSON5_HOSTED_PARSE_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/json5_document.hpp"
@@ -28,4 +28,4 @@ namespace adaptive_json5
   } // namespace hosted
 } // namespace adaptive_json5
 
-#endif /* HOSTED_PARSE_HPP_ */
+#endif /* ADAPTIVE_JSON5_HOSTED_PARSE_HPP_ */

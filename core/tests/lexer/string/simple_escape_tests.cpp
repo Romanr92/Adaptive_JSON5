@@ -76,9 +76,9 @@ namespace
                       escape_case{"LineFeed", 'n', 0x000A, false}, escape_case{"CarriageReturn", 'r', 0x000D, false},
                       escape_case{"Tab", 't', 0x0009, false}, escape_case{"VerticalTab", 'v', 0x000B, true},
                       escape_case{"Nul", '0', 0x0000, true}),
-    [](const ::testing::TestParamInfo<escape_case>& info)
+    [](const ::testing::TestParamInfo<escape_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

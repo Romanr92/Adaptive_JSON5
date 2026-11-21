@@ -103,9 +103,9 @@ namespace
                       scalar_case{"SupplementaryMin", 0x10000, {0xD800, 0xDC00}, {0xF0, 0x90, 0x80, 0x80}},
                       scalar_case{"MusicalScore", 0x1F3BC, {0xD83C, 0xDFBC}, {0xF0, 0x9F, 0x8E, 0xBC}},
                       scalar_case{"ScalarMax", 0x10FFFF, {0xDBFF, 0xDFFF}, {0xF4, 0x8F, 0xBF, 0xBF}}),
-    [](const ::testing::TestParamInfo<scalar_case>& info)
+    [](const ::testing::TestParamInfo<scalar_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

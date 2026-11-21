@@ -225,9 +225,9 @@ namespace
                                              baseline_case{"WarningStrings", &warning_strings, 17, 65011},
                                              baseline_case{"Numbers", &numbers, 1024, 53231},
                                              baseline_case{"SmallNodes", &small_nodes, 1024, 41978}),
-                           [](const ::testing::TestParamInfo<baseline_case>& info)
+                           [](const ::testing::TestParamInfo<baseline_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
   /* ================================= End Test_J5_049 ================================= */
 } // namespace

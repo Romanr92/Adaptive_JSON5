@@ -1,5 +1,5 @@
-#ifndef IDENTIFIER_LEXER_HPP_
-#define IDENTIFIER_LEXER_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_IDENTIFIER_IDENTIFIER_LEXER_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_IDENTIFIER_IDENTIFIER_LEXER_HPP_
 
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
@@ -51,4 +51,4 @@ namespace adaptive_json5
   consume_identifier(cursor& source, const storage_callbacks& storage, std::size_t max_units) noexcept;
 } // namespace adaptive_json5
 
-#endif /* IDENTIFIER_LEXER_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_IDENTIFIER_IDENTIFIER_LEXER_HPP_ */

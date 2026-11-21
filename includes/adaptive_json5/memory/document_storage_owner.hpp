@@ -1,5 +1,5 @@
-#ifndef DOCUMENT_STORAGE_OWNER_HPP_
-#define DOCUMENT_STORAGE_OWNER_HPP_
+#ifndef ADAPTIVE_JSON5_MEMORY_DOCUMENT_STORAGE_OWNER_HPP_
+#define ADAPTIVE_JSON5_MEMORY_DOCUMENT_STORAGE_OWNER_HPP_
 
 namespace adaptive_json5
 {
@@ -85,4 +85,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* DOCUMENT_STORAGE_OWNER_HPP_ */
+#endif /* ADAPTIVE_JSON5_MEMORY_DOCUMENT_STORAGE_OWNER_HPP_ */

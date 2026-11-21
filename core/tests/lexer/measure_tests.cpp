@@ -168,9 +168,9 @@ namespace
                       measure_case{"UnknownWordOverIdentifierLimit", "abcdefg", syntax_mode::json5},
                       measure_case{"InvalidIdentifierEscape", "a\\x", syntax_mode::json5},
                       measure_case{"UnexpectedCharacter", "@", syntax_mode::json5}),
-    [](const ::testing::TestParamInfo<measure_case>& info)
+    [](const ::testing::TestParamInfo<measure_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -229,9 +229,9 @@ namespace
                                              measure_case{"ColonIsNoName", ":", syntax_mode::json5},
                                              measure_case{"InvalidIdentifierEscape", "\\u0031:", syntax_mode::json5},
                                              measure_case{"UnterminatedName", "\"ab", syntax_mode::json5}),
-                           [](const ::testing::TestParamInfo<measure_case>& info)
+                           [](const ::testing::TestParamInfo<measure_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

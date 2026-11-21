@@ -225,9 +225,9 @@ namespace
                       prepass_failure_case{"DepthOverLimit", "[[[1]]]", 2, false, error_code::resource_limit, 2},
                       prepass_failure_case{"TrailingContent", R"({"a":1} x)", 512, true, error_code::syntax, 8},
                       prepass_failure_case{"UnknownWordLate", R"([1,2,foo])", 512, false, error_code::syntax, 5}),
-    [](const ::testing::TestParamInfo<prepass_failure_case>& info)
+    [](const ::testing::TestParamInfo<prepass_failure_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

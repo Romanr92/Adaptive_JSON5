@@ -39,7 +39,7 @@ namespace adaptive_json5
     constexpr std::size_t c_power_headroom_bits = 4;
 
     // Leaves headroom so exponent sums and differences cannot overflow ptrdiff_t.
-    constexpr auto c_max_exponent = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max() / 4);
+    constexpr std::size_t c_max_exponent = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max() / 4);
 
     /**
      * @brief Describe a finite nonzero value as digits times an exact power of ten.

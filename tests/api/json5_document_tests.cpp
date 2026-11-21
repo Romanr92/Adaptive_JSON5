@@ -195,9 +195,9 @@ namespace
                                              failure_case{"Unterminated", "[1, ", syntax_mode::json5},
                                              failure_case{"TrailingContent", "1 x", syntax_mode::json5},
                                              failure_case{"StrictIdentifierName", "{a: 1}", syntax_mode::strict_json}),
-                           [](const ::testing::TestParamInfo<failure_case>& info)
+                           [](const ::testing::TestParamInfo<failure_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

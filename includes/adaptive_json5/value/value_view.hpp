@@ -1,5 +1,5 @@
-#ifndef VALUE_VIEW_HPP_
-#define VALUE_VIEW_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_VALUE_VIEW_HPP_
+#define ADAPTIVE_JSON5_VALUE_VALUE_VIEW_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
@@ -237,4 +237,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* VALUE_VIEW_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_VALUE_VIEW_HPP_ */

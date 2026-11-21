@@ -119,9 +119,9 @@ namespace
       analysis_case{"Infinity", "Infinity", number_kind::infinity, false, false, false},
       analysis_case{"NegativeInfinity", "-Infinity", number_kind::infinity, true, false, false},
       analysis_case{"NegativeNaN", "-NaN", number_kind::nan, true, false, false}),
-    [](const ::testing::TestParamInfo<analysis_case>& info)
+    [](const ::testing::TestParamInfo<analysis_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -183,9 +183,9 @@ namespace
       scale_case{"SaturatedPositive", "1e99999999999999999999999", 1U, false, 2073U},
       scale_case{"SaturatedNegative", "1.5e-99999999999999999999999", 2U, true, 2077U},
       scale_case{"HexadecimalDigits", "-0x00FF", 4U, false, 0U}, scale_case{"NonFinite", "-Infinity", 0U, false, 0U}),
-    [](const ::testing::TestParamInfo<scale_case>& info)
+    [](const ::testing::TestParamInfo<scale_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -335,9 +335,9 @@ namespace
       digit_case{"DigitAboveBound", 0U, 5U, 10U, 4U, false, 0U, error_code::numeric_conversion},
       digit_case{"DigitEqualsRadix", 0U, 10U, 10U, c_uintmax_max, false, 0U, error_code::internal_error},
       digit_case{"UnsupportedRadix", 0U, 1U, 8U, c_uintmax_max, false, 0U, error_code::internal_error}),
-    [](const ::testing::TestParamInfo<digit_case>& info)
+    [](const ::testing::TestParamInfo<digit_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -398,9 +398,9 @@ namespace
                       magnitude_case{"NegativeExponentFraction", "1e-1", 255U, false, 0U, false, c_non_integral},
                       magnitude_case{"Infinity", "Infinity", 255U, false, 0U, false, c_non_finite},
                       magnitude_case{"NaN", "NaN", 255U, false, 0U, false, c_non_finite}),
-    [](const ::testing::TestParamInfo<magnitude_case>& info)
+    [](const ::testing::TestParamInfo<magnitude_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

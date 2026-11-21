@@ -107,7 +107,7 @@ namespace
       for (; appended < c_digits; ++appended)
       {
         // A nonzero leading digit forces every later digit to extend the magnitude.
-        if (!value.append_digit((appended % 9U) + 1U, 10U, work).has_value())
+        if (!value.append_digit(static_cast<std::uint32_t>((appended % 9U) + 1U), 10U, work).has_value())
         {
           break;
         }
@@ -172,7 +172,7 @@ namespace
     {
       for (const literal_case& item : c_cases)
       {
-        for (const std::string suffix : {std::string{}, std::string{"]"}, std::string{" "}})
+        for (const std::string& suffix : {std::string{}, std::string{"]"}, std::string{" "}})
         {
           /* Arrange */
           const std::string input = std::string{item.spelling} + suffix;
@@ -354,7 +354,7 @@ namespace
   TEST(J5_049_ParserWork, ChargesScanBeforeLexing)
   {
     const std::string body(1000, 'a');
-    for (const std::string prefix : {std::string{"\""}, std::string{"[\""}, std::string{"{\""}})
+    for (const std::string& prefix : {std::string{"\""}, std::string{"[\""}, std::string{"{\""}})
     {
       /* Arrange */
       const std::string input = prefix + body;
@@ -480,9 +480,9 @@ namespace
                     cut_case{"MemberName", "{name:\"value\"}"},       // Identifier name, then a quoted value.
                     cut_case{"WarningString", "[\"a\xE2\x80\xA8\"]"}, // Multi-byte character and warning re-scan.
                     cut_case{"Literal", "[true,false,null]"}),        // Literals followed by separators.
-    [](const testing::TestParamInfo<cut_case>& info)
+    [](const testing::TestParamInfo<cut_case>& param_info)
     {
-      return std::string(info.param.name);
+      return std::string(param_info.param.name);
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -533,9 +533,9 @@ namespace
                                            early_error_case{"NumberSuffix", "[1x", 2},       // Invalid number boundary.
                                            early_error_case{"UnknownLiteral", "[nul,", 1}, // Unknown identifier value.
                                            early_error_case{"MissingSeparator", "[1 2", 3}), // Element without a comma.
-                           [](const testing::TestParamInfo<early_error_case>& info)
+                           [](const testing::TestParamInfo<early_error_case>& param_info)
                            {
-                             return std::string(info.param.name);
+                             return std::string(param_info.param.name);
                            });
   /* ================================= End Test_J5_049 ================================= */
 } // namespace

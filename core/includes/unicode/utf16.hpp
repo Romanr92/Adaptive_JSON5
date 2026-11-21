@@ -1,5 +1,5 @@
-#ifndef UTF16_HPP_
-#define UTF16_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF16_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF16_HPP_
 
 #include "adaptive_json5/result.hpp"
 
@@ -44,4 +44,4 @@ namespace adaptive_json5
   [[nodiscard]] result<encoded_utf16> encode_utf16(std::uint32_t scalar) noexcept;
 } // namespace adaptive_json5
 
-#endif // UTF16_HPP_
+#endif // ADAPTIVE_JSON5_INTERNAL_UNICODE_UTF16_HPP_

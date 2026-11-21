@@ -155,9 +155,9 @@ namespace
                                              failure_case{"DepthLimit", "[[1]]", syntax_mode::json5, 1},
                                              failure_case{"StrictTrailingComma", "[1,]", syntax_mode::strict_json,
                                                           512}),
-                           [](const ::testing::TestParamInfo<failure_case>& info)
+                           [](const ::testing::TestParamInfo<failure_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
   /* ================================= End Test_J5_026 ================================= */
   /* =================================== Test_J5_037 =================================== */

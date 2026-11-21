@@ -1,5 +1,5 @@
-#ifndef UNICODE_ESCAPE_HPP_
-#define UNICODE_ESCAPE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_UNICODE_ESCAPE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_UNICODE_ESCAPE_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "input/cursor.hpp"
@@ -26,4 +26,4 @@ namespace adaptive_json5
   [[nodiscard]] result<std::optional<std::uint16_t>> consume_unicode_escape(cursor& source) noexcept;
 } // namespace adaptive_json5
 
-#endif /* UNICODE_ESCAPE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_STRING_UNICODE_ESCAPE_HPP_ */

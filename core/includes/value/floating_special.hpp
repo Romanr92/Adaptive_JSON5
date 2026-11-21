@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_DETAIL_FLOATING_SPECIAL_HPP_
-#define ADAPTIVE_JSON5_DETAIL_FLOATING_SPECIAL_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_FLOATING_SPECIAL_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_FLOATING_SPECIAL_HPP_
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/result.hpp"
@@ -99,4 +99,4 @@ namespace adaptive_json5::detail
   }
 } // namespace adaptive_json5::detail
 
-#endif /* ADAPTIVE_JSON5_DETAIL_FLOATING_SPECIAL_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_FLOATING_SPECIAL_HPP_ */

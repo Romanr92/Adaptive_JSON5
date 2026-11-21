@@ -1,5 +1,5 @@
-#ifndef PARSER_DUPLICATE_HPP_
-#define PARSER_DUPLICATE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_DUPLICATE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_DUPLICATE_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/result.hpp"
@@ -38,4 +38,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* PARSER_DUPLICATE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_DUPLICATE_HPP_ */

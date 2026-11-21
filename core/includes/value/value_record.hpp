@@ -1,5 +1,5 @@
-#ifndef VALUE_RECORD_HPP_
-#define VALUE_RECORD_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_VALUE_RECORD_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_VALUE_RECORD_HPP_
 
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
@@ -58,4 +58,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* VALUE_RECORD_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_VALUE_RECORD_HPP_ */

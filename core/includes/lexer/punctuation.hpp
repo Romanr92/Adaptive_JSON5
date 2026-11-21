@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_PUNCTUATION_HPP_
-#define ADAPTIVE_JSON5_PUNCTUATION_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_LEXER_PUNCTUATION_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_LEXER_PUNCTUATION_HPP_
 
 #include "input/cursor.hpp"
 
@@ -52,4 +52,4 @@ namespace adaptive_json5
   [[nodiscard]] std::optional<punctuation_token> consume_punctuation(cursor& source) noexcept;
 } // namespace adaptive_json5
 
-#endif // ADAPTIVE_JSON5_PUNCTUATION_HPP_
+#endif // ADAPTIVE_JSON5_INTERNAL_LEXER_PUNCTUATION_HPP_

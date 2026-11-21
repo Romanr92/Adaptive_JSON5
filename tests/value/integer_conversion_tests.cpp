@@ -289,9 +289,9 @@ namespace
                       fails("Infinity", "Infinity", destination::int32, c_non_finite),
                       fails("NegativeInfinityUnsigned", "-Infinity", destination::uint32, c_non_finite),
                       fails("NaN", "NaN", destination::int64, c_non_finite)),
-    [](const ::testing::TestParamInfo<integer_case>& info)
+    [](const ::testing::TestParamInfo<integer_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -472,9 +472,9 @@ namespace
                       integral_case{"CloseFraction", "1.0000000000000000000001", false},
                       integral_case{"TinyMagnitude", "1e-400", false}, integral_case{"Infinity", "Infinity", false},
                       integral_case{"NaN", "NaN", false}),
-    [](const ::testing::TestParamInfo<integral_case>& info)
+    [](const ::testing::TestParamInfo<integral_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -557,9 +557,9 @@ namespace
                       view_case{"Fraction", 3U, false, 0, error_code::numeric_conversion, true, false},
                       view_case{"Null", 4U, false, 0, error_code::wrong_type_or_access, false, false},
                       view_case{"BeyondRange", 5U, false, 0, error_code::numeric_conversion, true, true}),
-    [](const ::testing::TestParamInfo<view_case>& info)
+    [](const ::testing::TestParamInfo<view_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

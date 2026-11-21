@@ -146,9 +146,9 @@ namespace
                           1, 6},
       checked_string_case{"SurrogateBeforeLaterZero", R"("\uDC00\0")", false, security_reason::unpaired_surrogate, 1,
                           6}),
-    [](const testing::TestParamInfo<checked_string_case>& info)
+    [](const testing::TestParamInfo<checked_string_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
-#ifndef ACCOUNTED_STORAGE_HPP_
-#define ACCOUNTED_STORAGE_HPP_
+#ifndef ADAPTIVE_JSON5_MEMORY_ACCOUNTED_STORAGE_HPP_
+#define ADAPTIVE_JSON5_MEMORY_ACCOUNTED_STORAGE_HPP_
 
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -201,4 +201,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* ACCOUNTED_STORAGE_HPP_ */
+#endif /* ADAPTIVE_JSON5_MEMORY_ACCOUNTED_STORAGE_HPP_ */

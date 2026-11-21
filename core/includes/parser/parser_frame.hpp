@@ -1,5 +1,5 @@
-#ifndef PARSER_FRAME_HPP_
-#define PARSER_FRAME_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_FRAME_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_FRAME_HPP_
 
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/value_index.hpp"
@@ -57,4 +57,4 @@ namespace adaptive_json5
   } // namespace detail
 } // namespace adaptive_json5
 
-#endif /* PARSER_FRAME_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_PARSER_PARSER_FRAME_HPP_ */

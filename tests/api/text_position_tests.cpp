@@ -92,9 +92,9 @@ namespace
                                              position_case{"TruncatedSequenceBytesAreColumns", "\xE2\x80x", 2U, 1U, 3U},
                                              position_case{"OverlongSequenceBytesAreColumns", "\xC0\x80x", 2U, 1U, 3U},
                                              position_case{"TabIsOneColumn", "\tx", 1U, 1U, 2U}),
-                           [](const ::testing::TestParamInfo<position_case>& info)
+                           [](const ::testing::TestParamInfo<position_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

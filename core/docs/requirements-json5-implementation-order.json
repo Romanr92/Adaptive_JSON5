@@ -1466,6 +1466,6 @@
     "ADAPTER": 71,
     "RELEASE": 72
   },
-  "quality_scope": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 18; all required jobs must pass before merge.",
+  "quality_scope": "GoogleTest host units and pinned-fixture validation tests in separate PR jobs, exceptions OFF and ON with RTTI OFF, plus clang-format 23.1.6; all required jobs must pass before merge.",
   "issue_consolidation_plan": "json5-implementation-order.md#delivery-scope-and-issue-tracking"
 }

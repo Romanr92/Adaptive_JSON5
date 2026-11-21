@@ -330,7 +330,7 @@ namespace adaptive_json5::detail
       // MISRA justification: The limb is below 2^16, radix and carry are at most 10000, so the result is below
       // 2^32 and fits wide_type.
       // codeql::misra_deviation_next_line(DEV-004.33)
-      const auto expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
+      const wide_type expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
 
       carry = expanded / c_limb_radix;
     }
@@ -357,7 +357,7 @@ namespace adaptive_json5::detail
       // MISRA justification: The limb is below 2^16, radix and carry are at most 10000, so the result is below
       // 2^32 and fits wide_type.
       // codeql::misra_deviation_next_line(DEV-004.32)
-      const auto expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
+      const wide_type expanded = (static_cast<wide_type>(read_limb(m_storage, index)) * radix) + carry;
 
       write_limb(m_storage, index, static_cast<limb_type>(expanded % c_limb_radix));
 

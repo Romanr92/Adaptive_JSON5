@@ -1,5 +1,5 @@
-#ifndef STORAGE_HPP_
-#define STORAGE_HPP_
+#ifndef ADAPTIVE_JSON5_MEMORY_STORAGE_HPP_
+#define ADAPTIVE_JSON5_MEMORY_STORAGE_HPP_
 
 #include "adaptive_json5/result.hpp"
 
@@ -58,4 +58,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* STORAGE_HPP_ */
+#endif /* ADAPTIVE_JSON5_MEMORY_STORAGE_HPP_ */

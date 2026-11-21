@@ -1,5 +1,5 @@
-#ifndef WORK_BUDGET_HPP_
-#define WORK_BUDGET_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_MEMORY_WORK_BUDGET_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_MEMORY_WORK_BUDGET_HPP_
 
 #include "adaptive_json5/result.hpp"
 
@@ -72,4 +72,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* WORK_BUDGET_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_MEMORY_WORK_BUDGET_HPP_ */

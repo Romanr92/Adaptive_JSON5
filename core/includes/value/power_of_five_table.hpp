@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_DETAIL_POWER_OF_FIVE_TABLE_HPP_
-#define ADAPTIVE_JSON5_DETAIL_POWER_OF_FIVE_TABLE_HPP_
+#ifndef ADAPTIVE_JSON5_INTERNAL_VALUE_POWER_OF_FIVE_TABLE_HPP_
+#define ADAPTIVE_JSON5_INTERNAL_VALUE_POWER_OF_FIVE_TABLE_HPP_
 
 #include <array>
 #include <cstddef>
@@ -36,4 +36,4 @@ namespace adaptive_json5::detail
   extern const std::array<power_of_five_128, c_power_of_five_count> c_power_of_five_table;
 } // namespace adaptive_json5::detail
 
-#endif /* ADAPTIVE_JSON5_DETAIL_POWER_OF_FIVE_TABLE_HPP_ */
+#endif /* ADAPTIVE_JSON5_INTERNAL_VALUE_POWER_OF_FIVE_TABLE_HPP_ */

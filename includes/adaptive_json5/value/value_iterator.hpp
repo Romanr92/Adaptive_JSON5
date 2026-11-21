@@ -1,5 +1,5 @@
-#ifndef VALUE_ITERATOR_HPP_
-#define VALUE_ITERATOR_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_VALUE_ITERATOR_HPP_
+#define ADAPTIVE_JSON5_VALUE_VALUE_ITERATOR_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/value_index.hpp"
@@ -82,4 +82,4 @@ namespace adaptive_json5
   };
 } // namespace adaptive_json5
 
-#endif /* VALUE_ITERATOR_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_VALUE_ITERATOR_HPP_ */

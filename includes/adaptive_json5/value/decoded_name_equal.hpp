@@ -1,5 +1,5 @@
-#ifndef DECODED_NAME_EQUAL_HPP_
-#define DECODED_NAME_EQUAL_HPP_
+#ifndef ADAPTIVE_JSON5_VALUE_DECODED_NAME_EQUAL_HPP_
+#define ADAPTIVE_JSON5_VALUE_DECODED_NAME_EQUAL_HPP_
 
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
@@ -21,4 +21,4 @@ namespace adaptive_json5
   [[nodiscard]] result<bool> decoded_name_equal(const decoded_string& left, const decoded_string& right) noexcept;
 } // namespace adaptive_json5
 
-#endif /* DECODED_NAME_EQUAL_HPP_ */
+#endif /* ADAPTIVE_JSON5_VALUE_DECODED_NAME_EQUAL_HPP_ */
