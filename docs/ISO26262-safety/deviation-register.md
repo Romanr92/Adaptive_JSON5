@@ -586,7 +586,7 @@ Code review.
 | --- | --- | --- | --- | --- |
 | DEV-009.01 | `core/src/lexer/scalar_lexer.cpp:53` | `constexpr std::array<literal_spelling, 3> c_literal_spelling{{{"null", literal_kind::nu...` | c_literal_spelling is a namespace-scope constexpr variable, not a static data member, and it is declared only once. | Proposed |
 | DEV-009.02 | `core/includes/value/record_link.hpp:27` | `class [[nodiscard]] record_link` | The copy constructor and copy assignment are explicitly declared in the class (= default or = delete), so nothing relies on a deprecated implicit declaration. | Proposed |
-| DEV-009.02 | `core/includes/value/record_link.hpp:27` | `class [[nodiscard]] record_link` | The copy constructor and copy assignment are explicitly declared in the class (= default or = delete), so nothing relies on a deprecated implicit declaration. | Proposed |
+| DEV-009.03 | `core/src/diagnostics/diagnostic_format.cpp:229` | `static constexpr std::array<description, 20U> messages{` | messages is a function-local static constexpr variable, not a static data member, and it is declared only once. | Proposed |
 
 ---
 
