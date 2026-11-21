@@ -38,6 +38,7 @@ namespace adaptive_json5
     constexpr std::size_t c_hexadecimal_prefix_bytes = 2;
     constexpr std::uint32_t c_decimal_chunk_radix = 10000;
     constexpr std::size_t c_decimal_chunk_digits = 4;
+    constexpr std::array<std::uint32_t, 6> c_hexadecimal_letter_values{10U, 11U, 12U, 13U, 14U, 15U};
 
 #if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
     // 10^k = 2^k * 5^k is exact while 5^k fits the significand: k <= 22 for double, k <= 10 for float.
@@ -112,10 +113,10 @@ namespace adaptive_json5
 
       if ((digit >= 'a') && (digit <= 'f'))
       {
-        return static_cast<std::uint32_t>(digit - 'a') + c_hexadecimal_letter_offset;
+        return c_hexadecimal_letter_values[static_cast<std::size_t>(digit - 'a')];
       }
 
-      return static_cast<std::uint32_t>(digit - 'A') + c_hexadecimal_letter_offset;
+      return c_hexadecimal_letter_values[static_cast<std::size_t>(digit - 'A')];
     }
 
     /**
@@ -132,6 +133,10 @@ namespace adaptive_json5
 
       while (value != 0)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Each iteration shifts a 64-bit value right by one bit, so
+        // the loop runs at most 64 times and bits never exceeds 64.
+        // codeql::misra_deviation_next_line(DEV-004.17)
         ++bits;
         value >>= 1U;
       }
@@ -168,6 +173,11 @@ namespace adaptive_json5
       {
         position += c_hexadecimal_prefix_bytes;
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: position is incremented only after the loop condition
+        // position < spelling.size holds, so position + 1 is at most spelling.size and
+        // cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.16)
         for (; position < spelling.size; ++position)
         {
           const auto appended =
@@ -188,6 +198,10 @@ namespace adaptive_json5
       while (position < spelling.size)
       {
         const char current = spelling.data[position];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: The loop condition position < spelling.size holds here, so
+        // position + 1 is at most spelling.size and cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.15)
         ++position;
 
         if ((current == 'e') || (current == 'E'))
@@ -204,7 +218,16 @@ namespace adaptive_json5
         const auto digit = static_cast<std::uint32_t>(current - '0');
 
         // At most four decimal digits are accumulated, including leading zeros.
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: At most three digits are held before this step, so chunk is
+        // at most 999, and number analysis guarantees digit is 0 to 9. The result is at
+        // most 9999 and cannot wrap std::uint32_t.
+        // codeql::misra_deviation_next_line(DEV-004.14)
         chunk = (chunk * c_decimal_radix) + digit;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: chunk_radix is reset to 1 when it reaches
+        // c_decimal_chunk_radix (10000), so it is at most 1000 before this multiply.
+        // codeql::misra_deviation_next_line(DEV-004.13)
         chunk_radix *= c_decimal_radix;
 
         if (chunk_radix == c_decimal_chunk_radix)
@@ -280,7 +303,18 @@ namespace adaptive_json5
       constexpr std::int32_t c_round_even_max = (limits::digits == 53) ? 23 : 10;
       constexpr std::int32_t c_safe_power_min = -27;
       constexpr std::int32_t c_safe_power_max = 55;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Compile-time constant: c_explicit_bits is 52 for double and
+      // 23 for float, giving 9 or 38. The static_assert below rejects any type for which
+      // the subtraction would wrap.
+      // codeql::misra_deviation_next_line(DEV-004.12)
       constexpr std::uint32_t c_shift = 64U - static_cast<std::uint32_t>(c_explicit_bits) - 3U;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Compile-time constant: c_shift is 9 for double and 38 for
+      // float, so adding one gives 10 or 39. The static_assert below rejects any type for
+      // which the addition would wrap or the shift would leave 64 bits.
+      // codeql::misra_deviation_next_line(DEV-004.18)
+      constexpr std::uint32_t c_shift_upper = c_shift + 1U;
       constexpr std::uint64_t c_all_ones = ~std::uint64_t{0};
       constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_bits + 3);
       // floor(power * log2(10)) is (power * 217706) / 2^16 for every table exponent.
@@ -294,6 +328,10 @@ namespace adaptive_json5
       }
 
       // Normalize so the significand's top bit is set.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: significand is nonzero (checked above), so bit_length_of()
+      // returns 1 to 64 and the subtraction yields 0 to 63 without wrapping.
+      // codeql::misra_deviation_next_line(DEV-004.11)
       const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
       const std::uint64_t normalized = significand << leading_zeros;
       const detail::power_of_five_128& entry =
@@ -306,9 +344,18 @@ namespace adaptive_json5
       {
         const detail::product_128 second = detail::multiply_64x64_to_128(normalized, entry.low);
 
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: This is the low word of a 128-bit addition and is meant to
+        // wrap modulo 2^64. The next statement detects the wrap (second.high > product.low)
+        // and carries it into product.high, so no value is lost.
+        // codeql::misra_deviation_next_line(DEV-004.10)
         product.low += second.high;
         if (second.high > product.low)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: product.high is the high word of a 64x64-bit product, so
+          // it is at most 2^64 - 2. Adding the carry cannot wrap std::uint64_t.
+          // codeql::misra_deviation_next_line(DEV-004.09)
           ++product.high;
         }
 
@@ -318,8 +365,10 @@ namespace adaptive_json5
         }
       }
 
-      const auto upper_bit = static_cast<std::uint32_t>(product.high >> 63U);
-      std::uint64_t mantissa = product.high >> (upper_bit + c_shift);
+      // The product's top bit selects one extra shift; a choice, not an addition, keeps it in range.
+      const bool upper_bit = (product.high >> 63U) != 0U;
+      const std::uint32_t mantissa_shift = upper_bit ? c_shift_upper : c_shift;
+      std::uint64_t mantissa = product.high >> mantissa_shift;
 
       // Floor division written out: right-shifting a negative value is implementation-defined in C++17.
       const std::int64_t scaled = c_log2_ten_scaled * power;
@@ -335,11 +384,17 @@ namespace adaptive_json5
 
       // An exact halfway product rounds to even instead of up.
       if ((product.low <= 1U) && (power >= c_round_even_min) && (power <= c_round_even_max) &&
-          ((mantissa & 3U) == 1U) && ((mantissa << (upper_bit + c_shift)) == product.high))
+          ((mantissa & 3U) == 1U) && ((mantissa << mantissa_shift) == product.high))
+
       {
         mantissa &= ~std::uint64_t{1};
       }
 
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: mantissa is product.high shifted right by at least
+      // c_shift (9 for double, 38 for float) bits, so it is below 2^55. Adding its
+      // lowest bit cannot wrap std::uint64_t.
+      // codeql::misra_deviation_next_line(DEV-004.08)
       mantissa += mantissa & 1U;
       mantissa >>= 1U;
 
@@ -397,23 +452,36 @@ namespace adaptive_json5
 
       // Accumulate significand digits; skip sign, 0x prefix and '.', stop at the exponent.
       std::uint64_t significand{};
-      std::size_t position{};
 
-      if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
-      {
-        ++position;
-      }
+      // Skip an optional sign; analysis guarantees at least one character.
+      std::size_t position = ((spelling.data[0] == '+') || (spelling.data[0] == '-')) ? 1U : 0U;
 
       // Hexadecimal 'e' and 'E' are digits, so keep this path separate.
       if (hexadecimal)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: number analysis has already accepted the optional sign and
+        // the 0x prefix, so position + c_hexadecimal_prefix_bytes is at most spelling.size.
+        // The increment runs only while position < spelling.size. Neither can wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.07)
         for (position += c_hexadecimal_prefix_bytes; position < spelling.size; ++position)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: try_fast_path() returns before this loop when
+          // parts.digit_count exceeds 16, and number analysis only accepts hexadecimal
+          // digits here. The accumulated value is at most 16^16 - 1 = 2^64 - 1, so
+          // neither the multiply nor the add can wrap.
+          // codeql::misra_deviation_next_line(DEV-004.06)
           significand = (significand * c_hexadecimal_radix) + hexadecimal_digit_value(spelling.data[position]);
         }
       }
       else
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: position is incremented only after the loop condition
+        // position < spelling.size holds, so position + 1 is at most spelling.size and
+        // cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.05)
         for (; position < spelling.size; ++position)
         {
           const char current = spelling.data[position];
@@ -426,6 +494,12 @@ namespace adaptive_json5
           // Analysis already accounts for the point in the decimal scale.
           if (current != '.')
           {
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: try_fast_path() returns before this loop when
+            // parts.digit_count exceeds 19, and number analysis only accepts '0'-'9' here
+            // besides '.' and the exponent marker. The accumulated value is at most
+            // 10^19 - 1, which is below 2^64 - 1, so neither the multiply nor the add can wrap.
+            // codeql::misra_deviation_next_line(DEV-004.04)
             significand = (significand * c_decimal_radix) + static_cast<std::uint32_t>(current - '0');
           }
         }

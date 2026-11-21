@@ -106,6 +106,34 @@ def accepted_justifications(result):
             if item.get("status") == "accepted" and item.get("justification")]
 
 
+def result_file(result):
+    """Return the first location's repository-relative path, or an empty string."""
+    for location in result.get("locations", []):
+        uri = location.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
+        return uri.removeprefix("./")
+    return ""
+
+
+def print_file_findings(data, pattern):
+    """Print open findings whose path contains pattern, ordered by file, line and column."""
+    needle = pattern.replace("\\", "/").lower()
+    rows = []
+    for run_data in data.get("runs", []):
+        for result in run_data.get("results", []):
+            path = result_file(result)
+            if accepted_justifications(result) or needle not in path.lower():
+                continue
+            region = result["locations"][0].get("physicalLocation", {}).get("region", {})
+            message = result.get("message", {})
+            text = message.get("text", message.get("markdown", "")).replace("\n", " ")
+            rows.append((path, region.get("startLine", 0), region.get("startColumn", 0),
+                         result.get("ruleId", "Unknown rule"), text))
+    rows.sort()
+    for number, (path, line, column, rule_id, text) in enumerate(rows, 1):
+        print(f"{number:>4}  {path}:{line}:{column}  {rule_id}  {text}")
+    print(f"{len(rows)} open findings in files matching '{pattern}'.")
+
+
 def misra_rule_ids(rule):
     return sorted(tag.removeprefix(MISRA_RULE_TAG).upper()
                   for tag in rule.get("properties", {}).get("tags", [])
@@ -188,6 +216,7 @@ def write_html(data, destination):
     justified_rows = []
     summary = {}
     open_levels = Counter()
+    file_counts = Counter()
     for run_data in data.get("runs", []):
         tool = run_data.get("tool", {})
         components = [tool.get("driver", {}), *tool.get("extensions", [])]
@@ -218,9 +247,11 @@ def write_html(data, destination):
             entry["levels"][level] += 1
             entry["misra_rules"].update(specific_rules)
             open_levels[level] += 1
+            source = result_file(result) or "Unknown file"
+            file_counts[source] += 1
             cells = (level, rule_id, "; ".join(locations),
                      message.get("text", message.get("markdown", "")), description)
-            rows.append("<tr><td>" + level_badge(level) + "</td>" +
+            rows.append(f"<tr data-file='{escape(source)}'><td>" + level_badge(level) + "</td>" +
                         "".join(f"<td>{escape(str(cell))}</td>" for cell in cells[1:]) + "</tr>")
     summary_rows = []
     severity_order = {"error": 0, "warning": 1, "note": 2, "none": 3}
@@ -247,6 +278,8 @@ def write_html(data, destination):
         numbers = ", ".join(sorted(entry["misra_rules"]))
         label = f"{numbers} — {query_id}" if numbers else query_id
         rule_options.append(f"<option value='{escape(query_id)}'>{escape(label)}</option>")
+    file_options = "".join(f"<option value='{escape(path)}'>{escape(path)} ({count})</option>"
+                           for path, count in sorted(file_counts.items()))
     justified = destination.with_name(f"{destination.stem}-justified.html")
     destination.write_text(
         html_start("MISRA and security findings") +
@@ -263,7 +296,9 @@ def write_html(data, destination):
         "<p><label>Level <select id='level'><option value=''>All levels</option>"
         "</select></label> &nbsp; <label>Rule <select id='rule'>"
         "<option value=''>All rules</option>" + "".join(rule_options) + "</select></label> "
-        "&nbsp; <label>File <input id='file' type='search' "
+        "&nbsp; <label>File <select id='source'><option value=''>All files</option>" +
+        file_options + "</select></label> "
+        "&nbsp; <label>Path contains <input id='file' type='search' "
         "placeholder='Part of a file path'></label> "
         "<button id='reset' type='button'>Reset filters</button></p>"
         "<p id='count' role='status' aria-live='polite'></p>"
@@ -276,6 +311,7 @@ def write_html(data, destination):
         "const level=document.getElementById('level');"
         "const rule=document.getElementById('rule');"
         "const file=document.getElementById('file');"
+        "const source=document.getElementById('source');"
         "const count=document.getElementById('count');"
         "Array.from(new Set(rows.map(r=>r.cells[0].textContent))).sort().forEach(v=>{"
         "const option=document.createElement('option');option.value=v;option.textContent=v;"
@@ -283,13 +319,14 @@ def write_html(data, destination):
         "function filter(){let visible=0;const query=file.value.trim().toLowerCase();"
         "rows.forEach(r=>{const match=(!level.value||r.cells[0].textContent===level.value)"
         "&&(!rule.value||r.cells[1].textContent===rule.value)"
+        "&&(!source.value||r.dataset.file===source.value)"
         "&&r.cells[2].textContent.toLowerCase().includes(query);"
         "r.hidden=!match;if(match)visible++;});"
         "count.textContent=visible+' of '+rows.length+' findings shown';}"
         "level.addEventListener('change',filter);rule.addEventListener('change',filter);"
-        "file.addEventListener('input',filter);"
+        "file.addEventListener('input',filter);source.addEventListener('change',filter);"
         "document.getElementById('reset').addEventListener('click',()=>{"
-        "level.value='';rule.value='';file.value='';filter();});filter();"
+        "level.value='';rule.value='';source.value='';file.value='';filter();});filter();"
         "</script></html>", encoding="utf-8",
     )
     justified.write_text(
@@ -304,12 +341,14 @@ def write_html(data, destination):
     return justified
 
 
-def open_report(report, open_browser=True):
+def open_report(report, open_browser=True, file_pattern=None):
     data = json.loads(report.read_text(encoding="utf-8-sig"))
     html = report.with_suffix(".html")
     justified = write_html(data, html)
     print(f"HTML report: {html}")
     print(f"Justified findings: {justified}")
+    if file_pattern:
+        print_file_findings(data, file_pattern)
     if open_browser and not webbrowser.open(html.resolve().as_uri()):
         print("Could not open a browser automatically; open the HTML report manually.")
 
@@ -325,6 +364,8 @@ def main():
     parser.add_argument("--upload-sarif", type=Path,
                         help="With --prepare-sarif, write a separate SARIF containing open results")
     parser.add_argument("--no-open", action="store_true", help="Generate HTML without opening a browser")
+    parser.add_argument("--file", metavar="PATTERN",
+                        help="Also print open findings whose path contains PATTERN, sorted by line")
     args = parser.parse_args()
     if args.upload_sarif and not args.prepare_sarif:
         parser.error("--upload-sarif requires --prepare-sarif")
@@ -333,7 +374,7 @@ def main():
             parser.error("The upload path must differ from the audit SARIF path.")
         try:
             apply_deviations(args.prepare_sarif, args.upload_sarif)
-            open_report(args.prepare_sarif, open_browser=not args.no_open)
+            open_report(args.prepare_sarif, open_browser=not args.no_open, file_pattern=args.file)
         except (OSError, ValueError) as error:
             parser.error(str(error))
         return 0
@@ -354,7 +395,7 @@ def main():
         else:
             report = Path(args.report).resolve()
         try:
-            open_report(report, open_browser=not args.no_open)
+            open_report(report, open_browser=not args.no_open, file_pattern=args.file)
         except (OSError, ValueError) as error:
             parser.error(f"Cannot open report: {error}. Use --report latest or an existing SARIF path.")
         return 0
@@ -391,7 +432,7 @@ def main():
     findings = sum(not accepted_justifications(result) for item in data.get("runs", [])
                    for result in item.get("results", []))
     print(f"Analysis complete: {findings} open findings. Report: {ROOT / report}")
-    open_report(ROOT / report, open_browser=not args.no_open)
+    open_report(ROOT / report, open_browser=not args.no_open, file_pattern=args.file)
     print("Review findings; successful execution is not MISRA compliance.")
     return 0
 
