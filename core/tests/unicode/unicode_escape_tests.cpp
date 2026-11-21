@@ -119,9 +119,9 @@ namespace
                       unicode_case{"HighMin", "uD800", 0xD800}, unicode_case{"HighMax", "uDBFF", 0xDBFF},
                       unicode_case{"LowMin", "uDC00", 0xDC00}, unicode_case{"LowMax", "uDFFF", 0xDFFF},
                       unicode_case{"AfterSurrogates", "uE000", 0xE000}, unicode_case{"Max", "uFFFF", 0xFFFF}),
-    [](const ::testing::TestParamInfo<unicode_case>& info)
+    [](const ::testing::TestParamInfo<unicode_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -213,9 +213,9 @@ namespace
                                              invalid_case{"Overlong", "\xC0\xAF", error_code::encoding},
                                              invalid_case{"SurrogateUtf8", "\xED\xA0\x80", error_code::encoding},
                                              invalid_case{"OutOfRange", "\xF4\x90\x80\x80", error_code::encoding}),
-                           [](const ::testing::TestParamInfo<invalid_case>& info)
+                           [](const ::testing::TestParamInfo<invalid_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -374,9 +374,9 @@ namespace
                       pair_case{"TwoHigh", "uD800", "uDBFF", 0xD800, 0xDBFF, false, 0, {}},
                       pair_case{"TwoLow", "uDC00", "uDFFF", 0xDC00, 0xDFFF, false, 0, {}},
                       pair_case{"HighThenAscii", "uD800", "u0041", 0xD800, 0x0041, false, 0, {}}),
-    [](const ::testing::TestParamInfo<pair_case>& info)
+    [](const ::testing::TestParamInfo<pair_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

@@ -87,9 +87,9 @@ namespace
                                            terminator_case{"NextLine", std::string_view{"\xc2\x85", 2}, 0},
                                            terminator_case{"Bom", std::string_view{"\xef\xbb\xbf", 3}, 0},
                                            terminator_case{"Emoji", std::string_view{"\xf0\x9f\x98\x80", 4}, 0}),
-                           [](const testing::TestParamInfo<terminator_case>& info)
+                           [](const testing::TestParamInfo<terminator_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -235,9 +235,9 @@ namespace
                                            encoding_case{"Overlong", std::string_view{"\xc0\x80", 2}},
                                            encoding_case{"Surrogate", std::string_view{"\xed\xa0\x80", 3}},
                                            encoding_case{"AboveMaximum", std::string_view{"\xf4\x90\x80\x80", 4}}),
-                           [](const testing::TestParamInfo<encoding_case>& info)
+                           [](const testing::TestParamInfo<encoding_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

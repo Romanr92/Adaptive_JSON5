@@ -62,7 +62,7 @@ namespace
   TEST(J5_009_ContainerTrivia, RejectsMalformedEncodingBeforeDispatch)
   {
     /* Arrange */
-    for (const std::string prefix : {std::string{}, std::string{"[ "}, std::string{"[/*"}})
+    for (const std::string& prefix : {std::string{}, std::string{"[ "}, std::string{"[/*"}})
     {
       document_provider provider;
       parse_options options;

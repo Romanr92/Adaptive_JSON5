@@ -205,7 +205,9 @@ namespace
     /* Act */
     *destination.value_if() = std::move(*source.value_if());
     auto& owner = *destination.value_if();
-    owner = std::move(owner);
+    // Move through a pointer so the deliberate self-move does not trigger -Wself-move.
+    auto* const self = &owner;
+    owner = std::move(*self);
     /* Expect */
     EXPECT_EQ(old_provider.m_releases, 1u);
     EXPECT_EQ(new_provider.m_releases, 0u);

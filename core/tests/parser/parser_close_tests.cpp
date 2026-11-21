@@ -90,7 +90,9 @@ namespace
     case close_fault::invalid_container:
       frame.container = value_index{};
       break;
-    default:
+    case close_fault::empty_stack:
+    case close_fault::exhausted_work:
+      // Set up after the switch: no frame is pushed, or the work budget is empty.
       break;
     }
     if (fault != close_fault::empty_stack)
@@ -123,12 +125,12 @@ namespace
                     close_fault::awaiting_value, close_fault::strict_array_comma, close_fault::strict_object_comma,
                     close_fault::pending_name, close_fault::exhausted_work, close_fault::invalid_container),
     (
-      [](const testing::TestParamInfo<close_fault>& info)
+      [](const testing::TestParamInfo<close_fault>& param_info)
       {
         const char* names[] = {"EmptyStack",        "WrongLength",   "WrongKind",     "OutsideInput",
                                "ReversedSpan",      "AwaitingColon", "AwaitingValue", "StrictArrayComma",
                                "StrictObjectComma", "PendingName",   "ExhaustedWork", "InvalidContainer"};
-        return names[static_cast<std::size_t>(info.param)];
+        return names[static_cast<std::size_t>(param_info.param)];
       }));
   /* ================================= End Test_J5_048 ================================== */
 } // namespace

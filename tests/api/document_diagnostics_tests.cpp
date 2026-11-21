@@ -183,9 +183,9 @@ namespace
                       ranged("UnterminatedCommentAfterRoot", "1 /* x", 6U, source_span{2U, 4U}, 1U, 7U),
                       ranged("UnterminatedCommentInArray", "[1, /* x", 8U, source_span{4U, 4U}, 1U, 9U),
                       ranged("UnterminatedCommentOnSecondLine", "[1,\r\n/* x", 9U, source_span{5U, 4U}, 2U, 5U)),
-    [](const ::testing::TestParamInfo<location_case>& info)
+    [](const ::testing::TestParamInfo<location_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

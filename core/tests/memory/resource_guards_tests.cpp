@@ -482,9 +482,9 @@ namespace
                                            allowance_case{"FullDomain", std::numeric_limits<std::size_t>::max(),
                                                           std::numeric_limits<std::size_t>::max(), 0,
                                                           std::numeric_limits<std::size_t>::max()}),
-                           [](const testing::TestParamInfo<allowance_case>& info)
+                           [](const testing::TestParamInfo<allowance_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

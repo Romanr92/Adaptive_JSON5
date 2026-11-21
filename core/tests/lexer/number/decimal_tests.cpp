@@ -103,10 +103,10 @@ namespace
         decimal_case{"ExponentSpace", "1e 2", false, 2, false, 2},
         decimal_case{"TrailingPointMissingExponent", "1.e", false, 3, false, 2}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<decimal_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<decimal_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ----------------------------------------------------------------------------------- */
   /* Respect explicit buffer length at every prefix of a decimal spelling.
@@ -248,7 +248,7 @@ namespace
     const std::string invalid[] = {"\x80", "\xC0\xAF", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2\x82"};
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (const std::string prefix :
+      for (const std::string& prefix :
            {std::string{"-"}, std::string{"1e"}, std::string{"1e+"}, std::string{"."}, std::string{"1."}})
       {
         if ((prefix == "." && mode == syntax_mode::strict_json) || (prefix == "1." && mode == syntax_mode::json5))

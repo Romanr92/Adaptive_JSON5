@@ -119,9 +119,9 @@ namespace
       root_case{"NumberStrict", " -1.25e+2\t", syntax_mode::strict_json, value_kind::number, {1, 8}, 1, 0},
       root_case{"ArrayStrict", " [1,true] ", syntax_mode::strict_json, value_kind::array, {1, 8}, 3, 2},
       root_case{"ObjectStrict", " {\"a\":[{}]} ", syntax_mode::strict_json, value_kind::object, {1, 10}, 3, 1}),
-    [](const testing::TestParamInfo<root_case>& info)
+    [](const testing::TestParamInfo<root_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
   /* ----------------------------------------------------------------------------------- */
   /**
@@ -198,9 +198,9 @@ namespace
                      error_code::encoding, 3},
       rejection_case{"EmbeddedNul", std::string("{}\0", 3), syntax_mode::json5, error_code::syntax, 2},
       rejection_case{"NulHidesSecondRoot", std::string("{}\0[]", 5), syntax_mode::strict_json, error_code::syntax, 2}),
-    [](const testing::TestParamInfo<rejection_case>& info)
+    [](const testing::TestParamInfo<rejection_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
   /* ----------------------------------------------------------------------------------- */
   /*
@@ -358,10 +358,10 @@ namespace
    */
   struct limit_case
   {
-      const char* name;                    // Input case identifier.
-      const char* input;                   // Input complete source.
-      std::size_t resource_limits::*field; // Input limit selected for the operation.
-      std::size_t exact;                   // Expected minimum successful allowance in that limit's units.
+      const char* name;                     // Input case identifier.
+      const char* input;                    // Input complete source.
+      std::size_t resource_limits::* field; // Input limit selected for the operation.
+      std::size_t exact;                    // Expected minimum successful allowance in that limit's units.
   };
   class J5_047_CompleteLimit : public testing::TestWithParam<limit_case>
   {
@@ -414,9 +414,9 @@ namespace
                     limit_case{"ExponentDigits", "1e002", &resource_limits::max_exponent_digits, 3},
                     limit_case{"Diagnostics", "\"\xe2\x80\xa8\"", &resource_limits::max_diagnostics, 1},
                     limit_case{"WorkIncludesTrailingScan", "null  ", &resource_limits::max_work_units, 19}),
-    [](const testing::TestParamInfo<limit_case>& info)
+    [](const testing::TestParamInfo<limit_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
   /* ----------------------------------------------------------------------------------- */
   /*

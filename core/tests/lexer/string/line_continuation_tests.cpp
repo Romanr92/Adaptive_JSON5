@@ -174,9 +174,9 @@ namespace
                                              continuation_case{"CrLf", "\r\n", 2},
                                              continuation_case{"LineSeparator", "\xE2\x80\xA8", 3},
                                              continuation_case{"ParagraphSeparator", "\xE2\x80\xA9", 3}),
-                           [](const ::testing::TestParamInfo<continuation_case>& info)
+                           [](const ::testing::TestParamInfo<continuation_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -217,7 +217,7 @@ namespace
   TEST(J5_017_ContinuationBoundary, LeavesAdditionalTerminatorsUnread)
   {
     /* Arrange */
-    for (const std::string first : {std::string("\n"), std::string("\r\n"), std::string("\xE2\x80\xA8")})
+    for (const std::string& first : {std::string("\n"), std::string("\r\n"), std::string("\xE2\x80\xA8")})
     {
       const std::string input = std::string("\\") + first + "\n";
       cursor source({input.data(), input.size()});
@@ -261,7 +261,7 @@ namespace
         EXPECT_FALSE(actual.value_if()->has_value()) << byte;
         EXPECT_EQ(source.offset(), 1u);
       }
-      for (const std::string input : {std::string("\xC2\xA0"), std::string("\xF0\x9F\x8E\xBC")})
+      for (const std::string& input : {std::string("\xC2\xA0"), std::string("\xF0\x9F\x8E\xBC")})
       {
         cursor source({input.data(), input.size()});
         const auto actual = consume_line_continuation(source, mode);
@@ -318,7 +318,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (const std::string separator : {std::string("\xE2\x80\xA8"), std::string("\xE2\x80\xA9")})
+      for (const std::string& separator : {std::string("\xE2\x80\xA8"), std::string("\xE2\x80\xA9")})
       {
         const std::string input = std::string("X\\") + separator;
         for (std::size_t length = 0; length < separator.size(); ++length)

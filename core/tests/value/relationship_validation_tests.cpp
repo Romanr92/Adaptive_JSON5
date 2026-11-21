@@ -276,12 +276,12 @@ namespace
                                            relationship_fault::unexpected_name, relationship_fault::extra_sibling,
                                            relationship_fault::missing_sibling),
                            (
-                             [](const testing::TestParamInfo<relationship_fault>& info)
+                             [](const testing::TestParamInfo<relationship_fault>& param_info)
                              {
                                const char* names[] = {"CountTooLarge",  "EmptyFirst",   "EmptyLast",     "MissingFirst",
                                                       "MissingLast",    "InvalidFirst", "NoParent",      "WrongParent",
                                                       "UnexpectedName", "ExtraSibling", "MissingSibling"};
-                               return names[static_cast<std::size_t>(info.param)];
+                               return names[static_cast<std::size_t>(param_info.param)];
                              }));
 
   /* ----------------------------------------------------------------------------------- */

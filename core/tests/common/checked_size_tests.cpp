@@ -75,9 +75,9 @@ namespace
                       size_case{"MaxMinusOnePlusOne", c_max - 1, 1, true, c_max},
                       size_case{"MaxPlusOne", c_max, 1, false, 0}, size_case{"OnePlusMax", 1, c_max, false, 0},
                       size_case{"MaxPlusMax", c_max, c_max, false, 0}),
-    [](const ::testing::TestParamInfo<size_case>& info)
+    [](const ::testing::TestParamInfo<size_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* Verify checked multiplication returns exact products or an allocation-free resource limit.
@@ -118,9 +118,9 @@ namespace
                       size_case{"MaxTimesTwo", c_max, 2, false, 0}, size_case{"TwoTimesMax", 2, c_max, false, 0},
                       size_case{"HalfPlusOneTimesTwo", c_max / 2 + 1, 2, false, 0},
                       size_case{"MaxTimesMax", c_max, c_max, false, 0}),
-    [](const ::testing::TestParamInfo<size_case>& info)
+    [](const ::testing::TestParamInfo<size_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ================================= End Test_J5_046 ================================== */

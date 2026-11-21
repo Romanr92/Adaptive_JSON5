@@ -102,10 +102,10 @@ namespace
                       hexadecimal_case{"UnicodeFirstDigit", u8"0x\uFF11", false, error_code::syntax, 2},
                       hexadecimal_case{"NulBeforeDigit", std::string("0x\0", 3), false, error_code::syntax, 2}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<hexadecimal_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<hexadecimal_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ----------------------------------------------------------------------------------- */
   /* Check every bounded prefix without reading complete backing bytes beyond the view.
@@ -223,7 +223,7 @@ namespace
     /* Arrange */
     const std::string invalid[] = {"\x80", "\xC0\xAF", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2x",       "\xC2",
                                    "\xE2", "\xE2\x82", "\xF0",         "\xF0\x90",         "\xF0\x90\x90"};
-    for (const std::string prefix : {std::string{"0x"}, std::string{"-0X1a"}})
+    for (const std::string& prefix : {std::string{"0x"}, std::string{"-0X1a"}})
     {
       for (const auto& bytes : invalid)
       {

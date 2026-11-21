@@ -75,9 +75,9 @@ namespace
                       opening_case{"Json5Double", '"', syntax_mode::json5, true, string_quote::double_quote},
                       opening_case{"StrictDouble", '"', syntax_mode::strict_json, true, string_quote::double_quote},
                       opening_case{"StrictSingle", '\'', syntax_mode::strict_json, false, string_quote::single}),
-    [](const ::testing::TestParamInfo<opening_case>& info)
+    [](const ::testing::TestParamInfo<opening_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -184,9 +184,9 @@ namespace
                                              character_case{"Supplementary", "\xF0\x9F\x8E\xBC", 0x1F3BC},
                                              character_case{"LineSeparator", "\xE2\x80\xA8", 0x2028},
                                              character_case{"ParagraphSeparator", "\xE2\x80\xA9", 0x2029}),
-                           [](const ::testing::TestParamInfo<character_case>& info)
+                           [](const ::testing::TestParamInfo<character_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */

@@ -107,9 +107,9 @@ namespace
                     membership_case{"Emoji", 0x1F600, false, false, false, false},
                     membership_case{"Surrogate", 0xD800, false, false, false, false},
                     membership_case{"BeyondUnicode", 0x110000, false, false, false, false}),
-    [](const testing::TestParamInfo<membership_case>& info)
+    [](const testing::TestParamInfo<membership_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

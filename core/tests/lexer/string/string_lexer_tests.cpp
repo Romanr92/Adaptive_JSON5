@@ -297,9 +297,9 @@ namespace
                   "E\\\xE2\x80\xA9"
                   "F\"",
                   u"ABCDEF", syntax_mode::json5}),
-    [](const ::testing::TestParamInfo<string_case>& info)
+    [](const ::testing::TestParamInfo<string_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -376,9 +376,9 @@ namespace
       failure_case{"EscapedInvalidUtf8", "\"\\\x80\"", syntax_mode::json5, error_code::encoding, 2},
       failure_case{"HexInvalidUtf8", "\"\\x\xED\xA0\x80\"", syntax_mode::json5, error_code::encoding, 3},
       failure_case{"UnicodeInvalidUtf8", "\"\\u0\xC0\xAF\"", syntax_mode::json5, error_code::encoding, 4}),
-    [](const ::testing::TestParamInfo<failure_case>& info)
+    [](const ::testing::TestParamInfo<failure_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -573,7 +573,8 @@ namespace
   TEST(J5_017_StringLexer, SuppressesWarningsWhenLaterLexingFails)
   {
     /* Arrange */
-    for (const std::string suffix : {std::string{}, std::string("\\xG1\""), std::string("\n\""), std::string("\x80\"")})
+    for (const std::string& suffix :
+         {std::string{}, std::string("\\xG1\""), std::string("\n\""), std::string("\x80\"")})
     {
       lexer_provider provider;
       warning_log log;
@@ -738,7 +739,7 @@ namespace
   TEST(J5_046_StringLexer, HandlesEmptyContentWithoutProvider)
   {
     /* Arrange */
-    for (const std::string input : {std::string("\"\""), std::string("''"), std::string("\"\\\r\n\"")})
+    for (const std::string& input : {std::string("\"\""), std::string("''"), std::string("\"\\\r\n\"")})
     {
       cursor source({input.data(), input.size()});
       /* Act */
@@ -772,7 +773,7 @@ namespace
     /* Arrange */
     for (const auto mode : {syntax_mode::strict_json, syntax_mode::json5})
     {
-      for (const std::string input :
+      for (const std::string& input :
            {std::string{R"("\uDC00\u12")"}, std::string{R"("\uDC00)"}, std::string{R"("\uDC00\q")"}})
       {
         // A non-escape letter is valid JSON5, so use the malformed Unicode cases there.

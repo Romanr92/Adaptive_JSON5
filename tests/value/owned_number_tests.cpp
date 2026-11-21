@@ -209,10 +209,10 @@ namespace
                       owned_case{"PlusNaN", "+NaN", number_kind::nan, false, 0},
                       owned_case{"MinusNaN", "-NaN", number_kind::nan, false, 0}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<owned_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<owned_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ----------------------------------------------------------------------------------- */
   /* Preserve long integer, fraction, exponent and hexadecimal text without conversion.
@@ -295,10 +295,10 @@ namespace
                                      invalid_case{"Nul", std::string("1\0", 2), error_code::syntax, 1},
                                      invalid_case{"Encoding", std::string("1") + "\x80", error_code::encoding, 1}),
                      testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<invalid_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<invalid_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ================================== End Test_J5_034 ================================== */
   /* ==================================== Test_J5_040 ==================================== */

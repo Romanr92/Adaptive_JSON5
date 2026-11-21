@@ -275,7 +275,7 @@ namespace
                                      "\xE2", "\xE2\x82", "\xF0",         "\xF0\x90",         "\xF0\x90\x90"};
     for (const auto& bytes : malformed)
     {
-      for (const std::string prefix : {std::string{}, std::string{"ab"}})
+      for (const std::string& prefix : {std::string{}, std::string{"ab"}})
       {
         lexer_provider provider;
         const auto input = std::string("!") + prefix + bytes;
@@ -527,7 +527,7 @@ namespace
   TEST(J5_020_IdentifierBoundary, RejectsEveryTruncatedEscapePrefix)
   {
     /* Arrange */
-    for (const std::string prefix : {std::string{}, std::string{"ab"}})
+    for (const std::string& prefix : {std::string{}, std::string{"ab"}})
     {
       const std::string input = "!!" + prefix + R"(\u0061)";
       for (std::size_t length = 1; length < 6; ++length)
@@ -683,7 +683,7 @@ namespace
       ASSERT_TRUE(actual.value_if()->has_value());
       expect_units((**actual.value_if()).value, expected[index]);
     }
-    for (const std::string input : {std::string{R"("ab")"}, std::string{R"("a\u0062")"}, std::string{R"('ab')"}})
+    for (const std::string& input : {std::string{R"("ab")"}, std::string{R"("a\u0062")"}, std::string{R"('ab')"}})
     {
       cursor source({input.data(), input.size()});
       auto actual = consume_string(source, syntax_mode::json5, provider.callbacks(), 2);
@@ -812,10 +812,10 @@ namespace
                             false},
         classification_case{"NaNDeferred", "NaN", u"NaN", identifier_classification::unrecognized_value, false}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<classification_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<classification_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ================================== End Test_J5_023 ================================== */
 

@@ -104,9 +104,9 @@ namespace
                     array_case{"NestedHoleStrict", "[[,]]", false, 2, syntax_mode::strict_json},
                     array_case{"MismatchedCloseJson5", "[1,}", false, 3, syntax_mode::json5},
                     array_case{"MismatchedCloseStrict", "[1,}", false, 3, syntax_mode::strict_json}),
-    [](const testing::TestParamInfo<array_case>& info)
+    [](const testing::TestParamInfo<array_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
   /* ================================= End Test_J5_013 ================================== */
 
@@ -179,9 +179,9 @@ namespace
     }
   }
   INSTANTIATE_TEST_SUITE_P(P034, J5_030_ParsedArrayOrder, testing::Values(syntax_mode::json5, syntax_mode::strict_json),
-                           [](const testing::TestParamInfo<syntax_mode>& info)
+                           [](const testing::TestParamInfo<syntax_mode>& param_info)
                            {
-                             return info.param == syntax_mode::json5 ? "Json5" : "StrictJson";
+                             return param_info.param == syntax_mode::json5 ? "Json5" : "StrictJson";
                            });
   /* ================================= End Test_J5_030 ================================== */
 } // namespace

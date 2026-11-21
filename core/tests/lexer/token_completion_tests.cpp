@@ -212,10 +212,10 @@ namespace
                       boundary_case{"Backslash", "\\", false, false},
                       boundary_case{"Nul", std::string(1, '\0'), false, false}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<boundary_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<boundary_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ----------------------------------------------------------------------------------- */
   /**
@@ -292,10 +292,10 @@ namespace
         rejection_case{"LiteralUnicodePart", "true\xC3\xA9", 0, 0, false},
         rejection_case{"TruncatedNull", "nul", 0, 0, false}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<rejection_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<rejection_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ----------------------------------------------------------------------------------- */
   /* Report an unknown value identifier with the range of the whole identifier.
@@ -308,7 +308,7 @@ namespace
   {
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (const std::string text :
+      for (const std::string& text :
            {std::string{"nul"}, std::string{"trueish"}, std::string{R"(\u0074rue)"}, std::string{"foo"}})
       {
         /* Arrange */
@@ -439,7 +439,7 @@ namespace
     const std::string invalid[] = {"\x80", "\xC0\xAF", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2\x82"};
     for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
     {
-      for (const std::string prefix : {std::string{"1"}, std::string{"true"}, std::string{R"("a")"}})
+      for (const std::string& prefix : {std::string{"1"}, std::string{"true"}, std::string{R"("a")"}})
       {
         for (const auto& bytes : invalid)
         {
@@ -518,9 +518,9 @@ namespace
   TEST(J5_024_Scalar, AppliesModeSpecificBoundariesToEveryAlternative)
   {
     /* Arrange */
-    for (const std::string spelling : {std::string{"1"}, std::string{"true"}, std::string{R"("a")"}})
+    for (const std::string& spelling : {std::string{"1"}, std::string{"true"}, std::string{R"("a")"}})
     {
-      for (const std::string ending : {std::string{"/*x*/"}, std::string{"//x"}, std::string{u8"\u00A0"}})
+      for (const std::string& ending : {std::string{"/*x*/"}, std::string{"//x"}, std::string{u8"\u00A0"}})
       {
         for (const auto mode : {syntax_mode::json5, syntax_mode::strict_json})
         {
@@ -589,7 +589,7 @@ namespace
   {
     /* Arrange */
     // Literals make no requests (ADR 0003, decision 3), so only strings have failure points.
-    for (const std::string input : {std::string{R"("abcdefghijklmnopq")"}})
+    for (const std::string& input : {std::string{R"("abcdefghijklmnopq")"}})
     {
       std::size_t attempts{};
       {
@@ -636,7 +636,7 @@ namespace
   {
     /* Arrange */
     // falsex is rejected through the identifier path, which still applies the unit limit.
-    for (const std::string input : {std::string{"falsex"}, std::string{R"("abcde")"}})
+    for (const std::string& input : {std::string{"falsex"}, std::string{R"("abcde")"}})
     {
       lexer_provider provider;
       cursor source({input.data(), input.size()});

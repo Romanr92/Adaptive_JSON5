@@ -185,9 +185,9 @@ namespace
       rejected_case{"HighThenRaw", R"("\uD800a")", false, security_reason::unpaired_surrogate, 1, 6, 1},
       rejected_case{"SurrogateInName", R"({"\uDBFF": 1})", false, security_reason::unpaired_surrogate, 2, 6, 1},
       rejected_case{"SurrogateBeforeZero", R"("\uD800\u0000")", false, security_reason::unpaired_surrogate, 1, 6, 1}),
-    [](const testing::TestParamInfo<rejected_case>& info)
+    [](const testing::TestParamInfo<rejected_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -243,9 +243,9 @@ namespace
                                                          false},
                                            accepted_case{"SameNameInSiblingObjects", R"([{"a": 1}, {"a": 2}])", false},
                                            accepted_case{"IdentifierName", "{abc: 1}", true}),
-                           [](const testing::TestParamInfo<accepted_case>& info)
+                           [](const testing::TestParamInfo<accepted_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -344,9 +344,9 @@ namespace
                                            switch_off_case{"ZeroBytes", secure_option::zero_bytes},
                                            switch_off_case{"NameControls", secure_option::name_controls},
                                            switch_off_case{"UnpairedSurrogates", secure_option::unpaired_surrogates}),
-                           [](const testing::TestParamInfo<switch_off_case>& info)
+                           [](const testing::TestParamInfo<switch_off_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -428,9 +428,9 @@ namespace
       order_case{"SyntaxErrorBeforeViolation", R"([@, "\u0000"])", syntax_mode::json5, error_code::syntax, 1},
       order_case{"ViolationBeforeDuplicate", R"({"a": "\u0000", "a": 2})", syntax_mode::json5,
                  error_code::security_policy, 7}),
-    [](const testing::TestParamInfo<order_case>& info)
+    [](const testing::TestParamInfo<order_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

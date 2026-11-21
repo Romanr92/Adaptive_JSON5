@@ -118,9 +118,9 @@ namespace
                     surrogate_case{"CrLfPair", "\"\\uD800\\\r\n\\uDC00\"", u"\xD800\xDC00", {}, 0, true},
                     surrogate_case{"ContinuedHigh", "'\\uD800\\\n'", u"\xD800", {1}, 1, true},
                     surrogate_case{"EscapedBackslash", R"("\\uD800")", u"\\uD800", {}, 0, false}),
-    [](const testing::TestParamInfo<surrogate_case>& info)
+    [](const testing::TestParamInfo<surrogate_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

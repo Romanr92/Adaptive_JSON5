@@ -225,9 +225,9 @@ namespace
       converts_permissive("AllowedNegativeInfinity", "-Infinity", -c_infinity),
       converts_permissive("AllowedNaN", "+NaN", c_nan),
       rejects_permissive("FiniteOverflowIgnoresNonFinitePolicy", "1e309", c_out_of_range)),
-    [](const ::testing::TestParamInfo<floating_case>& info)
+    [](const ::testing::TestParamInfo<floating_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -288,9 +288,9 @@ namespace
         0.0),
       converts_permissive("NegativeUnderflowToZero", "-7e-46", -0.0),
       converts_permissive("AllowedInfinity", "Infinity", c_infinity), converts_permissive("AllowedNaN", "NaN", c_nan)),
-    [](const ::testing::TestParamInfo<floating_case>& info)
+    [](const ::testing::TestParamInfo<floating_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -511,9 +511,9 @@ namespace
       fast_path_case{"LeadingZerosCount", "0.00000000000000000001", 1e-20, fast_step::none},
       fast_path_case{"Subnormal", "4.9406564584124654e-324", 0x1p-1074, fast_step::none},
       fast_path_case{"SeventeenHexDigits", "0x10000000000000000", 0x1p64, fast_step::none}),
-    [](const ::testing::TestParamInfo<fast_path_case>& info)
+    [](const ::testing::TestParamInfo<fast_path_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -563,9 +563,9 @@ namespace
                       fast_path_case{"Maximum", "3.4028235e38", 0x1.fffffep127, fast_step::eisel_lemire},
                       fast_path_case{"Subnormal", "1.40129846e-45", 0x1p-149, fast_step::none},
                       fast_path_case{"TwentyDigits", "16777217.000000000000", 16777216.0, fast_step::none}),
-    [](const ::testing::TestParamInfo<fast_path_case>& info)
+    [](const ::testing::TestParamInfo<fast_path_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

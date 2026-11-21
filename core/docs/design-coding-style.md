@@ -67,7 +67,10 @@ dereferencing it. Avoid assignments inside conditions; compute the value first
 and then test it.
 
 Treat compiler warnings as errors for all configured project C++ targets,
-including unit tests. GCC, Clang and AppleClang use `-Wparentheses -Werror`.
+including unit tests. GCC, Clang and AppleClang use `-Wall -Wextra -Wpedantic
+-Wconversion -Wsign-conversion -Wshadow -Wold-style-cast -Wswitch-enum
+-Wparentheses -Werror` (#126). `-Wswitch-enum` requires every enumerator to be
+listed in a switch over an enumeration, even when a `default` label exists.
 MSVC-compatible builds use `/W4 /WX /w14706`, explicitly enabling assignment-in-
 condition warning C4706 at level 1. These diagnostics supplement source review;
 they do not detect every accidental assignment or establish MISRA/CERT compliance.
@@ -76,7 +79,9 @@ The shared `adaptive_json5_configure_target()` CMake function applies these
 options privately to project targets. New project C++ targets must use it.
 The policy does not modify parent-project flags or exported consumer options.
 The pinned host GoogleTest targets also receive the helper in the dependency
-setup; this does not establish dependency standards compliance. It also applies when compiler exceptions are
+setup with its `THIRD_PARTY` option, which keeps the language, exception, RTTI
+and sanitizer settings but not the project warning set; this does not establish
+dependency standards compliance. It also applies when compiler exceptions are
 enabled. Automated quality checks remain unit tests and formatting.
 
 ## Real-time profiles and freedom from interference
@@ -120,11 +125,12 @@ or device/integration-test gate to the repository.
 | Functions and parameters | Lowercase snake_case | `has_value`, `byte_offset` |
 | Public aggregate struct fields | Current style uses snake_case without a member prefix | `byte_offset`, `byte_length` |
 | Enum values | Lowercase snake_case | `allocation_failure` |
-| Header guards | Uppercase filename, punctuation replaced by underscores, trailing underscore | `ERROR_HPP_` |
+| Header guards | `ADAPTIVE_JSON5_` followed by the uppercase path below `adaptive_json5/` (private headers: below the include root), punctuation replaced by underscores, trailing underscore | `ADAPTIVE_JSON5_ERROR_HPP_`, `ADAPTIVE_JSON5_MEMORY_STORAGE_HPP_` |
 
 The new member rule replaces names such as `error_` with `m_error`. Do not use
-`m_error_`. Existing project-prefixed guards such as `ADAPTIVE_JSON5_ERROR_HPP_`
-retain the trailing underscore. The prohibition on trailing underscores applies
+`m_error_`. The project prefix keeps installed guards from colliding with a
+consumer's own macros such as `INPUT_HPP_` (#126); guards keep the trailing
+underscore. The prohibition on trailing underscores applies
 to class data members, not header guards.
 
 The `m_` rule does not prescribe camelCase for the remainder of the name;

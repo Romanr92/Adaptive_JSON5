@@ -198,13 +198,13 @@ namespace
                     attachment_fault::last_with_sibling, attachment_fault::child_with_sibling,
                     attachment_fault::child_with_name),
     (
-      [](const testing::TestParamInfo<attachment_fault>& info)
+      [](const testing::TestParamInfo<attachment_fault>& param_info)
       {
         const char* names[] = {
           "AncestorOutsideStorage", "AncestorCycle",    "CountOverflow", "EmptyFirst",        "EmptyLast",
           "MissingFirst",           "MissingLast",      "InvalidLast",   "LastWithoutParent", "LastForeignParent",
           "LastWithSibling",        "ChildWithSibling", "ChildWithName"};
-        return names[static_cast<std::size_t>(info.param)];
+        return names[static_cast<std::size_t>(param_info.param)];
       }));
   /* ----------------------------------------------------------------------------------- */
   /*

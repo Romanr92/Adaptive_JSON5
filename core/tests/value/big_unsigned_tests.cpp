@@ -93,7 +93,7 @@ namespace
    * @par Requirements
    * P038; J5-037.
    */
-  std::ostream& operator<<(std::ostream& stream, magnitude_order value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, magnitude_order value)
   {
     switch (value)
     {
@@ -254,9 +254,9 @@ namespace
                                              bit_length_case{"HexTwoToSixtyFour", "10000000000000000", 16U, 65U},
                                              bit_length_case{"HexFiveFullLimbs", "FFFFFFFFFFFFFFFFFFFF", 16U, 80U},
                                              bit_length_case{"HexLeadingZeros", "0001", 16U, 1U}),
-                           [](const ::testing::TestParamInfo<bit_length_case>& info)
+                           [](const ::testing::TestParamInfo<bit_length_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -292,9 +292,9 @@ namespace
                                              invalid_digit_case{"ZeroRadix", 0U, 0U},
                                              invalid_digit_case{"ChunkEqualsRadix", 10000U, 10000U},
                                              invalid_digit_case{"FiveDigitChunk", 1U, 100000U}),
-                           [](const ::testing::TestParamInfo<invalid_digit_case>& info)
+                           [](const ::testing::TestParamInfo<invalid_digit_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -330,9 +330,9 @@ namespace
                                                           magnitude_order::greater},
                                              compare_case{"LargeEqual", "18446744073709551616", "18446744073709551616",
                                                           magnitude_order::equal}),
-                           [](const ::testing::TestParamInfo<compare_case>& info)
+                           [](const ::testing::TestParamInfo<compare_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -371,9 +371,9 @@ namespace
                                              shift_case{"PartialWithoutCarry", "1", 15U, "32768", 16U},
                                              shift_case{"WholeLimbs", "1", 64U, "18446744073709551616", 65U},
                                              shift_case{"MultiLimbPartial", "65537", 20U, "68720525312", 37U}),
-                           [](const ::testing::TestParamInfo<shift_case>& info)
+                           [](const ::testing::TestParamInfo<shift_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -823,9 +823,9 @@ namespace
       special_case{
         "AllowNegativeInfinity", {number_kind::infinity, true, false, false}, c_allow, false, true, -c_infinity},
       special_case{"AllowNaN", {number_kind::nan, true, false, false}, c_allow, false, true, c_nan}),
-    [](const ::testing::TestParamInfo<special_case>& info)
+    [](const ::testing::TestParamInfo<special_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
   /* ================================= End Test_J5_038 ================================= */
 } // namespace

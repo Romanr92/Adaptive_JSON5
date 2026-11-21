@@ -199,9 +199,9 @@ namespace
                                                             string_warning_code::raw_line_separator, 0xA8},
                                              separator_case{"Paragraph", "\xE2\x80\xA9", "u2029", 0x2029,
                                                             string_warning_code::raw_paragraph_separator, 0xA9}),
-                           [](const ::testing::TestParamInfo<separator_case>& info)
+                           [](const ::testing::TestParamInfo<separator_case>& param_info)
                            {
-                             return info.param.name;
+                             return param_info.param.name;
                            });
 
   /* ----------------------------------------------------------------------------------- */
@@ -234,7 +234,7 @@ namespace
         /* Expect */
         EXPECT_FALSE(warning.has_value()) << byte;
       }
-      for (const std::string bytes :
+      for (const std::string& bytes :
            {std::string("\xE2\x80\xA7"), std::string("\xE2\x80\xAA"), std::string("\xF0\x9F\x8E\xBC")})
       {
         const std::string input = std::string("\"") + bytes + "\"";

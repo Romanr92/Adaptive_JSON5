@@ -92,9 +92,9 @@ namespace
       comment_case{"NulBlock", std::string_view{"/*\0*/", 5}, true, 5}, comment_case{"LineIsNotBlock", "//x", true, 0},
       comment_case{"QuoteIsNotBlock", "'/*x*/'", true, 0}, comment_case{"EmptyBlockInput", "", true, 0},
       comment_case{"LoneBlockSlash", "/", true, 0}),
-    [](const testing::TestParamInfo<comment_case>& info)
+    [](const testing::TestParamInfo<comment_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -227,9 +227,9 @@ namespace
                     encoding_case{"AboveMaximum", "\xF4\x90\x80\x80"}, encoding_case{"TruncatedTwo", "\xC2"},
                     encoding_case{"TruncatedThree", "\xE2\x82"}, encoding_case{"TruncatedFour", "\xF0\x9F\x98"},
                     encoding_case{"BadContinuation", "\xE2X"}),
-    [](const testing::TestParamInfo<encoding_case>& info)
+    [](const testing::TestParamInfo<encoding_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -343,9 +343,9 @@ namespace
       trivia_case{"LoneSlash", " /", syntax_mode::json5, 1, false, error_code::syntax, 0},
       trivia_case{"OtherSlash", " /x", syntax_mode::strict_json, 1, false, error_code::syntax, 0},
       trivia_case{"NulBoundary", std::string_view{" \0X", 3}, syntax_mode::json5, 1, false, error_code::syntax, 0}),
-    [](const testing::TestParamInfo<trivia_case>& info)
+    [](const testing::TestParamInfo<trivia_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */

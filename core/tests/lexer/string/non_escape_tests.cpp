@@ -88,9 +88,9 @@ namespace
                       non_escape_case{"Nul", std::string(1, '\0'), 0}, non_escape_case{"TwoBytes", "\xC2\xA0", 0xA0},
                       non_escape_case{"ThreeBytes", "\xE2\x82\xAC", 0x20AC},
                       non_escape_case{"Supplementary", "\xF0\x9F\x8E\xBC", 0x1F3BC}),
-    [](const ::testing::TestParamInfo<non_escape_case>& info)
+    [](const ::testing::TestParamInfo<non_escape_case>& param_info)
     {
-      return info.param.name;
+      return param_info.param.name;
     });
 
   /* ----------------------------------------------------------------------------------- */
@@ -240,7 +240,7 @@ namespace
   TEST(J5_016_NonEscapeHandoff, CannotAcceptMalformedHexOrUnicodeAsLetters)
   {
     /* Arrange */
-    for (const auto spelling : {std::string("x"), std::string("xG1"), std::string("u"), std::string("u12G4")})
+    for (const auto& spelling : {std::string("x"), std::string("xG1"), std::string("u"), std::string("u12G4")})
     {
       const std::string input = std::string("X\\") + spelling;
       cursor source({input.data(), input.size()});

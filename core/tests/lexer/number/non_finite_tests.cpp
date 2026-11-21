@@ -122,10 +122,10 @@ namespace
         non_finite_case{"UnicodeLookalike", u8"N\u0430N", non_finite_outcome::no_match, number_kind::nan, 1},
         non_finite_case{"NulWithin", std::string("Na\0N", 4), non_finite_outcome::no_match, number_kind::nan, 2}),
       testing::Values(syntax_mode::json5, syntax_mode::strict_json)),
-    [](const testing::TestParamInfo<std::tuple<non_finite_case, syntax_mode>>& info)
+    [](const testing::TestParamInfo<std::tuple<non_finite_case, syntax_mode>>& param_info)
     {
-      return std::string(std::get<0>(info.param).name) +
-             (std::get<1>(info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
+      return std::string(std::get<0>(param_info.param).name) +
+             (std::get<1>(param_info.param) == syntax_mode::json5 ? "Json5" : "StrictJson");
     });
   /* ----------------------------------------------------------------------------------- */
   /* Respect every exact-length prefix of all six permitted spellings.
@@ -286,7 +286,7 @@ namespace
     /* Arrange */
     const std::string invalid[] = {"\x80", "\xC0\xAF", "\xED\xA0\x80", "\xF4\x90\x80\x80", "\xE2x",       "\xC2",
                                    "\xE2", "\xE2\x82", "\xF0",         "\xF0\x90",         "\xF0\x90\x90"};
-    for (const std::string prefix :
+    for (const std::string& prefix :
          {std::string{"I"}, std::string{"-Inf"}, std::string{"+Na"}, std::string{"Infinity"}, std::string{"-NaN"}})
     {
       for (const auto& bytes : invalid)
