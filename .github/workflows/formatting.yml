@@ -43,7 +43,9 @@ jobs:
           curl --fail --location --retry 3 --output "$work/$LLVM_ARCHIVE" \
             "https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/$LLVM_ARCHIVE"
           echo "$LLVM_SHA256  $work/$LLVM_ARCHIVE" | sha256sum --check
-          tar --zstd -xf "$work/$LLVM_ARCHIVE" -C "$work" --wildcards '*/bin/clang-format' '*/lib/*.so*'
+          # The release uses a 1 GiB zstd window; zstd needs --long to accept more than 128 MiB.
+          tar --use-compress-program='zstd -d --long=31' -xf "$work/$LLVM_ARCHIVE" -C "$work" \
+            --wildcards '*/bin/clang-format' '*/lib/*.so*'
           root="$(find "$work" -mindepth 1 -maxdepth 1 -type d -name 'LLVM-*')"
           cp "$root/bin/clang-format" ~/clang-format/bin/
           # Copy only the release libraries clang-format resolves, if it links any dynamically.
