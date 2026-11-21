@@ -17,6 +17,41 @@ namespace adaptive_json5
 {
   namespace detail
   {
+    namespace
+    {
+      /**
+       * @brief Attach child to the frame's container as a member or as an element.
+       * @par Requirements
+       * P034; P035; J5-030; J5-031; J5-041.
+       * @param destination Document owning both frame.container and child.
+       * @param frame Parent frame; for a member it holds the pending decoded name.
+       * @param child Detached completed value belonging to destination.
+       * @param object_member True when child becomes an object member.
+       * @param name_span Source span of the member name.
+       * @param input_size Size of the parsed input, for span validation.
+       * @return Success or an explicit attachment failure.
+       * @note Moves the pending name into the member; the caller resets it after success.
+       * @par ID SWU-PARSER-049
+       */
+      [[nodiscard]] status_result attach_child(document& destination, parser_frame& frame, value_index child,
+                                               bool object_member, source_span name_span,
+                                               std::size_t input_size) noexcept
+      {
+        if (!object_member)
+        {
+          return document_access::attach_parsed_element(destination, frame.container, child);
+        }
+
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The pending name is moved exactly once into the new member and is
+        // reset after a successful attach; on failure the parse is abandoned, so the moved-from
+        // name is never read.
+        // codeql::misra_deviation_next_line(DEV-024.14)
+        return document_access::attach_parsed_member(destination, frame.container, std::move(*frame.pending_name),
+                                                     child, name_span, input_size);
+      }
+    } // namespace
+
     /**
      * @brief Attach a completed value and retain its pending member-name span.
      * @par Requirements
@@ -89,20 +124,7 @@ namespace adaptive_json5
 
       // P034: append elements in source order; P035: retain every member with its decoded name.
       // Open containers stay detached until they close, so the loop-free attach applies.
-      // The deviation comment sits inside this expression, so keep clang-format from reflowing it.
-      // clang-format off
-      const auto attached =
-        object_member
-          ? document_access::attach_parsed_member(
-              destination, frame.container,
-              // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
-              // MISRA justification: The pending name is moved exactly once into the new member and is
-              // reset after a successful attach; on failure the parse is abandoned, so the moved-from
-              // name is never read.
-              // codeql::misra_deviation_next_line(DEV-024.14)
-              std::move(*frame.pending_name), child, name_span, input_size)
-          : document_access::attach_parsed_element(destination, frame.container, child);
-      // clang-format on
+      const auto attached = attach_child(destination, frame, child, object_member, name_span, input_size);
 
       if (!attached.has_value())
       {
