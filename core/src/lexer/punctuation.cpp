@@ -30,7 +30,7 @@ namespace adaptive_json5
       return std::nullopt;
     }
 
-    punctuation_kind kind;
+    punctuation_kind kind{};
 
     // An explicit list prevents admitting operators or other punctuation.
     switch (*current)

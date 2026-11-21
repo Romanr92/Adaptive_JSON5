@@ -30,6 +30,10 @@ namespace adaptive_json5
      */
     void* value_storage::slot_address(const owned_block& storage, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Compute the record slot as a byte offset within the allocated block before
+      // requiring a live value_record at that address.
+      // codeql::misra_deviation_next_line(DEV-002.20)
       auto* bytes = static_cast<std::byte*>(storage.data());
       return bytes + index * sizeof(value_record);
     }
@@ -43,6 +47,10 @@ namespace adaptive_json5
      */
     value_record* value_storage::live_record(std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The caller supplies a slot that contains a constructed record. Launder the
+      // typed pointer to access the current object at that address.
+      // codeql::misra_deviation_next_line(DEV-002.21)
       return std::launder(static_cast<value_record*>(slot_address(m_storage, index)));
     }
 
@@ -55,6 +63,10 @@ namespace adaptive_json5
      */
     const value_record* value_storage::live_record(std::size_t index) const noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The caller supplies a slot that contains a constructed record. Launder the
+      // typed pointer for read-only access to the current object at that address.
+      // codeql::misra_deviation_next_line(DEV-002.22)
       return std::launder(static_cast<const value_record*>(slot_address(m_storage, index)));
     }
 
@@ -70,6 +82,10 @@ namespace adaptive_json5
       while (m_size != c_empty_size)
       {
         --m_size;
+        // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+        // MISRA justification: Destroy each live record in reverse order so its owned blocks are released
+        // before the record storage is released.
+        // codeql::misra_deviation_next_line(DEV-001.07)
         live_record(m_size)->~value_record();
       }
     }
@@ -140,7 +156,10 @@ namespace adaptive_json5
 
       for (std::size_t index{}; index < m_size; ++index)
       {
-        // Start each new object's lifetime by transferring its owned payload.
+        // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+        // MISRA justification: Transfer each record's owned payload into a new object in the aligned block.
+        // The moved-from records are destroyed before the old block is released.
+        // codeql::misra_deviation_next_line(DEV-001.06)
         ::new (slot_address(*allocation.value_if(), index)) value_record(std::move(*live_record(index)));
       }
 
@@ -274,6 +293,10 @@ namespace adaptive_json5
 
       const value_index index{identity(), m_size};
 
+      // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+      // MISRA justification: Start the record's lifetime in accounted storage after checking the record limit
+      // and reserving enough capacity for the new slot.
+      // codeql::misra_deviation_next_line(DEV-001.05)
       ::new (slot_address(m_storage, m_size)) value_record(std::move(record));
       m_size = required;
 

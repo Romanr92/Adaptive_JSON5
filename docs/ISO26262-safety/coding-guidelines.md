@@ -75,9 +75,10 @@ that departure.
 
 ## 5. Deviations
 
-Every deviation from these standards is recorded in the deviation register planned
-in #137, with the rule, edition, affected code, technical reason and compensating
-measures. The owner approves each deviation.
+For MISRA, record the rule, query, technical reason and compensating measures
+in the source comment and review the deviation in the pull request. The
+[deviation register](deviation-register.md) is an optional audit index for MISRA.
+For the other coding standards, record deviations in the register for owner review.
 
 ## 6. Open items
 
@@ -86,3 +87,5 @@ measures. The owner approves each deviation.
   which already holds the fail-fast text on another branch.
 - Agree complexity limits (STD-07).
 - Start the deviation register (#137).
+- Fix the baseline MISRA C++:2023 findings in the order of
+  [misra-baseline-findings.md](misra-baseline-findings.md) (#166).

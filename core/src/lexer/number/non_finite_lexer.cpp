@@ -149,7 +149,13 @@ namespace adaptive_json5
       return non_finite_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
     }
 
-    const number_token token{kind, start, candidate.offset() - start};
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return non_finite_result::failure(error::internal_fault());
+    }
+
+    const number_token token{kind, start, end - start};
     auto completed = non_finite_result::success(std::optional<number_token>{token});
 
     source = candidate;

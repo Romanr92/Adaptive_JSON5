@@ -69,8 +69,14 @@ namespace adaptive_json5
       }
     }
 
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return comment_result::failure(error::internal_fault());
+    }
+
     // Position counts bytes, so this also works for multibyte characters.
-    const std::size_t length = candidate.offset() - start;
+    const std::size_t length = end - start;
     source = candidate;
 
     return comment_result::success(std::optional<comment_span>{comment_span{start, length}});
@@ -123,7 +129,13 @@ namespace adaptive_json5
       {
         candidate.advance(c_delimiter_byte_count);
 
-        const std::size_t length = candidate.offset() - start;
+        const std::size_t end = candidate.offset();
+        if (end < start)
+        {
+          return comment_result::failure(error::internal_fault());
+        }
+
+        const std::size_t length = end - start;
         source = candidate;
 
         return comment_result::success(std::optional<comment_span>{comment_span{start, length}});
@@ -138,8 +150,14 @@ namespace adaptive_json5
       }
     }
 
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return comment_result::failure(error::internal_fault());
+    }
+
     // Report where the closer was expected, and cover the open comment so tools can highlight it.
-    const source_span open_comment{start, candidate.offset() - start};
+    const source_span open_comment{start, end - start};
 
     return comment_result::failure(
       error::syntax_at_range(candidate.offset(), open_comment, syntax_error_reason::unterminated_comment));

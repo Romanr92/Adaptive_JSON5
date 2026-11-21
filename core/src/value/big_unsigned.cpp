@@ -45,6 +45,10 @@ namespace adaptive_json5::detail
     [[nodiscard]] limb_type read_limb(const owned_block& storage, std::size_t index) noexcept
     {
       limb_type value{};
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Limbs are stored as bytes. Copy the chosen limb into a live local value
+      // without assuming that the block contains an aligned limb object.
+      // codeql::misra_deviation_next_line(DEV-002.15)
       const auto* bytes = static_cast<const std::byte*>(storage.data());
 
       std::memcpy(&value, bytes + (index * sizeof(limb_type)), sizeof(value));
@@ -64,6 +68,10 @@ namespace adaptive_json5::detail
      */
     void write_limb(owned_block& storage, std::size_t index, limb_type value) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Store the limb's object representation in the reserved byte slot with memcpy,
+      // so writing it does not require an aligned limb object in the block.
+      // codeql::misra_deviation_next_line(DEV-002.16)
       auto* bytes = static_cast<std::byte*>(storage.data());
 
       std::memcpy(bytes + (index * sizeof(limb_type)), &value, sizeof(value));

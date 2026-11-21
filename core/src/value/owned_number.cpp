@@ -105,6 +105,10 @@ namespace adaptive_json5
    */
   input_view owned_number::spelling() const noexcept
   {
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: The block contains the original number spelling copied from char input.
+    // Return a char view bounded by the size of that owned copy.
+    // codeql::misra_deviation_next_line(DEV-002.18)
     return input_view{static_cast<const char*>(m_storage.data()), m_storage.size()};
   }
 

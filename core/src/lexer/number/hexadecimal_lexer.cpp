@@ -124,7 +124,13 @@ namespace adaptive_json5
       }
     }
 
-    const number_token token{number_kind::hexadecimal, start, candidate.offset() - start};
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return hexadecimal_result::failure(error::internal_fault());
+    }
+
+    const number_token token{number_kind::hexadecimal, start, end - start};
     auto completed = hexadecimal_result::success(std::optional<number_token>{token});
 
     source = candidate;

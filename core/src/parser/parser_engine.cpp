@@ -64,6 +64,10 @@ namespace adaptive_json5
           return false;
         }
 
+        // MISRA rule: RULE-8-2-5 cpp/misra/reinterpret-cast-shall-not-be-used
+        // MISRA justification: Compare the BOM as raw bytes so char signedness does not affect the result.
+        // The preceding guard ensures that all three bytes can be read.
+        // codeql::misra_deviation_next_line(DEV-003.05)
         const auto* bytes = reinterpret_cast<const std::byte*>(input.data);
 
         return (bytes[0] == std::byte{0xEF}) && (bytes[1] == std::byte{0xBB}) && (bytes[2] == std::byte{0xBF});
@@ -238,7 +242,8 @@ namespace adaptive_json5
       }
 
       // Every string reached the sink's reserve hook; anything else here means the lexer skipped it.
-      if ((string_length != 0) != m_string_reserved)
+      const bool has_string_bytes = string_length != std::size_t{0};
+      if ((has_string_bytes && !m_string_reserved) || (!has_string_bytes && m_string_reserved))
       {
         return status_result::failure(error::internal_fault());
       }
@@ -591,6 +596,10 @@ namespace adaptive_json5
      */
     status_result parser_engine::reserve_string(void* context, std::size_t units, std::size_t warning_count) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The string warning sink registers the current parser_engine as its context.
+      // Restore that type to charge the reservation to the current parse.
+      // codeql::misra_deviation_next_line(DEV-002.12)
       auto& self = *static_cast<parser_engine*>(context);
 
       const auto reserved_units = self.m_resources.reserve_string_units(0, units);
@@ -636,6 +645,10 @@ namespace adaptive_json5
      */
     void parser_engine::record_warning(void* context, const string_warning& warning) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The string warning sink registers the current parser_engine as its context.
+      // Restore that type to record the warning in the current parse's reserved storage.
+      // codeql::misra_deviation_next_line(DEV-002.13)
       auto& self = *static_cast<parser_engine*>(context);
 
       if (!self.m_warnings.append_reserved(warning).has_value())
@@ -669,6 +682,10 @@ namespace adaptive_json5
      */
     std::byte* parser_engine::nesting_kinds() noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: The overflow block stores the same byte-packed flags as the inline array.
+      // Use a byte view when the overflow block is present.
+      // codeql::misra_deviation_next_line(DEV-002.14)
       return (m_extra_kinds.data() != nullptr) ? static_cast<std::byte*>(m_extra_kinds.data()) : m_inline_kinds;
     }
 
