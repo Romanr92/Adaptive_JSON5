@@ -33,7 +33,7 @@ namespace adaptive_json5
       return opening_result::success(std::nullopt);
     }
 
-    string_quote quote;
+    string_quote quote{};
     if (*current == '"')
     {
       quote = string_quote::double_quote;

@@ -136,7 +136,7 @@ namespace adaptive_json5
       return std::nullopt;
     }
 
-    string_warning_code code;
+    string_warning_code code{};
 
     if (piece.scalar == c_line_separator)
     {
