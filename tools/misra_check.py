@@ -187,6 +187,7 @@ def write_html(data, destination):
     rows = []
     justified_rows = []
     summary = {}
+    open_levels = Counter()
     for run_data in data.get("runs", []):
         tool = run_data.get("tool", {})
         components = [tool.get("driver", {}), *tool.get("extensions", [])]
@@ -204,15 +205,19 @@ def write_html(data, destination):
                 uri = physical.get("artifactLocation", {}).get("uri", "Unknown file")
                 line = physical.get("region", {}).get("startLine")
                 locations.append(f"{uri}:{line}" if line else uri)
+            specific_rules = misra_rule_ids(result_rule(run_data, result) or rule)
             if justifications := accepted_justifications(result):
-                specific_rule = ", ".join(misra_rule_ids(result_rule(run_data, result) or rule)) or "—"
-                cells = (specific_rule, rule_id, "; ".join(locations), "; ".join(justifications))
+                cells = (", ".join(specific_rules) or "—", rule_id,
+                         "; ".join(locations), "; ".join(justifications))
                 justified_rows.append("<tr><td>" + level_badge(level) +
                                       "<br><span class='level justified'>Justified</span></td>" +
                                       "".join(f"<td>{escape(str(cell))}</td>" for cell in cells) + "</tr>")
                 continue
-            entry = summary.setdefault(rule_id, {"description": description, "levels": Counter()})
+            entry = summary.setdefault(rule_id, {"description": description, "levels": Counter(),
+                                                 "misra_rules": set()})
             entry["levels"][level] += 1
+            entry["misra_rules"].update(specific_rules)
+            open_levels[level] += 1
             cells = (level, rule_id, "; ".join(locations),
                      message.get("text", message.get("markdown", "")), description)
             rows.append("<tr><td>" + level_badge(level) + "</td>" +
@@ -235,6 +240,13 @@ def write_html(data, destination):
         summary_rows.append(f"<tr><td>{escape(str(rule_id))}</td>"
                             f"<td>{escape(str(entry['description']))}</td><td>{levels}</td>"
                             f"<td>{sum(entry['levels'].values())}</td></tr>")
+    severity_totals = " &nbsp; ".join(level_badge(level) + f" ({open_levels[level]})"
+                                     for level in ("error", "warning", "note"))
+    rule_options = []
+    for query_id, entry in sorted(summary.items()):
+        numbers = ", ".join(sorted(entry["misra_rules"]))
+        label = f"{numbers} — {query_id}" if numbers else query_id
+        rule_options.append(f"<option value='{escape(query_id)}'>{escape(label)}</option>")
     justified = destination.with_name(f"{destination.stem}-justified.html")
     destination.write_text(
         html_start("MISRA and security findings") +
@@ -246,10 +258,11 @@ def write_html(data, destination):
         "<table><thead><tr><th>Rule</th><th>Description</th><th>Levels</th>"
         "<th>Findings</th></tr></thead><tbody>" + "".join(summary_rows) +
         "</tbody></table><h2>Individual findings</h2>"
+        f"<p>Open findings by severity: {severity_totals}</p>"
         "<p>The accompanying SARIF file preserves full analysis details.</p>"
         "<p><label>Level <select id='level'><option value=''>All levels</option>"
         "</select></label> &nbsp; <label>Rule <select id='rule'>"
-        "<option value=''>All rules</option></select></label> "
+        "<option value=''>All rules</option>" + "".join(rule_options) + "</select></label> "
         "&nbsp; <label>File <input id='file' type='search' "
         "placeholder='Part of a file path'></label> "
         "<button id='reset' type='button'>Reset filters</button></p>"
@@ -267,9 +280,6 @@ def write_html(data, destination):
         "Array.from(new Set(rows.map(r=>r.cells[0].textContent))).sort().forEach(v=>{"
         "const option=document.createElement('option');option.value=v;option.textContent=v;"
         "level.appendChild(option);});"
-        "Array.from(new Set(rows.map(r=>r.cells[1].textContent))).sort().forEach(v=>{"
-        "const option=document.createElement('option');option.value=v;option.textContent=v;"
-        "rule.appendChild(option);});"
         "function filter(){let visible=0;const query=file.value.trim().toLowerCase();"
         "rows.forEach(r=>{const match=(!level.value||r.cells[0].textContent===level.value)"
         "&&(!rule.value||r.cells[1].textContent===rule.value)"

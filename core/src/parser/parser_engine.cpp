@@ -242,7 +242,8 @@ namespace adaptive_json5
       }
 
       // Every string reached the sink's reserve hook; anything else here means the lexer skipped it.
-      if ((string_length != 0) != m_string_reserved)
+      const bool has_string_bytes = string_length != std::size_t{0};
+      if ((has_string_bytes && !m_string_reserved) || (!has_string_bytes && m_string_reserved))
       {
         return status_result::failure(error::internal_fault());
       }
