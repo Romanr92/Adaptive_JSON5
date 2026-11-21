@@ -76,135 +76,13 @@ namespace adaptive_json5
     } // namespace
 
     /**
-     * @brief Start a container or construct and accept a scalar value.
+     * @brief Recognize a scalar within the remaining work budget and account for its decoded string bytes.
      * @par Requirements
      * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
-     * @note Reserve node/member resources before construction and depth
-     * before growing container frames.
-     * Scalar decoding uses the remaining aggregate string allowance.
-     * Failure preserves the source cursor but may change private state;
-     * the failed engine must be abandoned.
-     * Failed container opening releases its matching reservations.
-     * Successful work charges are not refunded.
-     * @par ID SWU-PARSER-010
+     * @par ID SWU-PARSER-055
      */
-    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
-    // MISRA justification: The declaration and the definition use the same alias (status_result for
-    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
-    // alias across translation units and reports it as different.
-    // codeql::misra_deviation_next_line(DEV-013.12)
-    status_result parser_engine::read_value() noexcept
+    status_result parser_engine::read_scalar_value() noexcept
     {
-      if (m_root.is_set())
-      {
-        return status_result::failure(error::internal_fault());
-      }
-
-      bool member = false;
-
-      // Inspect the parent only before any operation that can grow frames.
-      if (const auto* parent = m_frames.top(); parent != nullptr)
-      {
-        switch (parent->state)
-        {
-        case parser_state::array_first_or_end:
-        case parser_state::array_value_after_comma:
-          if (parent->pending_name.has_value())
-          {
-            return status_result::failure(error::internal_fault());
-          }
-          break;
-
-        case parser_state::object_value:
-          if (!parent->pending_name.has_value())
-          {
-            return status_result::failure(error::internal_fault());
-          }
-
-          member = true;
-          break;
-
-        case parser_state::array_comma_or_end:
-        case parser_state::object_first_name_or_end:
-        case parser_state::object_name_after_comma:
-        case parser_state::object_colon:
-        case parser_state::object_comma_or_end:
-        default:
-          return status_result::failure(error::internal_fault());
-        }
-      }
-
-      const auto current = m_source.peek();
-
-      if (!current.has_value())
-      {
-        // Without an open container no root value was started, so the document itself is empty.
-        return status_result::failure(error::syntax_at(m_source.offset(), (m_frames.top() == nullptr)
-                                                                            ? syntax_error_reason::empty_input
-                                                                            : syntax_error_reason::unexpected_end));
-      }
-
-      const auto reserved_value = m_resources.reserve_value(member);
-
-      if (!reserved_value.has_value())
-      {
-        return status_result::failure(*reserved_value.error_if());
-      }
-
-      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
-      // between two character operands does not use the numeric value; the tool reports the implicit promotion
-      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
-      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
-      // codeql::misra_deviation_next_line(DEV-015.11)
-      if ((*current == '[') || (*current == '{'))
-      {
-        const auto entered = m_resources.enter_container();
-
-        if (!entered.has_value())
-        {
-          // No record was created, so undo the value/member reservation.
-          const auto released = m_resources.release_value(member);
-
-          if (!released.has_value())
-          {
-            return status_result::failure(*released.error_if());
-          }
-
-          return status_result::failure(*entered.error_if());
-        }
-
-        cursor candidate = m_source;
-
-        // The byte check above guarantees a recognized opening token.
-        const auto opening = consume_punctuation(candidate);
-
-        const auto opened = open_container(m_document, m_frames, *opening, m_work);
-
-        if (!opened.has_value())
-        {
-          // open container already removed any provisional frame.
-          const auto depth_released = m_resources.leave_container();
-          const auto value_released = m_resources.release_value(member);
-
-          if (!depth_released.has_value())
-          {
-            return status_result::failure(*depth_released.error_if());
-          }
-
-          if (!value_released.has_value())
-          {
-            return status_result::failure(*value_released.error_if());
-          }
-
-          return status_result::failure(*opened.error_if());
-        }
-
-        // The new container remains detached until finish_container().
-        m_source = candidate;
-        return status_result::success();
-      }
-
       const auto& limits = m_options.limits;
 
       // The budget owns the aggregate counter, so it alone derives the next string's limit.
@@ -284,7 +162,17 @@ namespace adaptive_json5
       // it started from, and the difference is the number of bytes consumed.
       // codeql::misra_deviation_next_line(DEV-004.46)
       const source_span span{m_source.offset(), scan.source.offset() - m_source.offset()};
+      return append_scanned_scalar(token, span);
+    }
 
+    /**
+     * @brief Charge construction work, append the scalar and publish its source span and cursor.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+     * @par ID SWU-PARSER-056
+     */
+    status_result parser_engine::append_scanned_scalar(scalar_token& token, source_span span) noexcept
+    {
       const auto construction_units =
         checked_add(span.byte_length, c_record_construction_work, resource_limit_reason::work);
 
@@ -325,6 +213,147 @@ namespace adaptive_json5
 
       // Move the long-lived cursor; copying scan.source would keep its shortened view.
       m_source.advance(span.byte_length);
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Enter and open a container, restoring the value reservation if construction fails.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+     * @par ID SWU-PARSER-057
+     */
+    status_result parser_engine::open_value_container(bool member) noexcept
+    {
+      const auto entered = m_resources.enter_container();
+
+      if (!entered.has_value())
+      {
+        // No record was created, so undo the value/member reservation.
+        const auto released = m_resources.release_value(member);
+
+        if (!released.has_value())
+        {
+          return status_result::failure(*released.error_if());
+        }
+
+        return status_result::failure(*entered.error_if());
+      }
+
+      cursor candidate = m_source;
+
+      // The byte check above guarantees a recognized opening token.
+      const auto opening = consume_punctuation(candidate);
+
+      const auto opened = open_container(m_document, m_frames, *opening, m_work);
+
+      if (!opened.has_value())
+      {
+        // open container already removed any provisional frame.
+        const auto depth_released = m_resources.leave_container();
+        const auto value_released = m_resources.release_value(member);
+
+        if (!depth_released.has_value())
+        {
+          return status_result::failure(*depth_released.error_if());
+        }
+
+        if (!value_released.has_value())
+        {
+          return status_result::failure(*value_released.error_if());
+        }
+
+        return status_result::failure(*opened.error_if());
+      }
+
+      // The new container remains detached until finish_container().
+      m_source = candidate;
+      return status_result::success();
+    }
+
+    /**
+     * @brief Start a container or construct and accept a scalar value.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+     * @note Reserve node/member resources before construction and depth
+     * before growing container frames.
+     * Scalar decoding uses the remaining aggregate string allowance.
+     * Failure preserves the source cursor but may change private state;
+     * the failed engine must be abandoned.
+     * Failed container opening releases its matching reservations.
+     * Successful work charges are not refunded.
+     * @par ID SWU-PARSER-010
+     */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.12)
+    status_result parser_engine::read_value() noexcept
+    {
+      return walk_value<building_policy>();
+    }
+
+    /**
+     * @brief Apply name policies and store the pending name before advancing the input cursor.
+     * @par Requirements
+     * P033; P035; P036; J5-032; J5-033; J5-049; J5-017; J5-019; J5-020; J5-048.
+     * @par ID SWU-PARSER-058
+     */
+    status_result parser_engine::accept_scanned_name(parser_frame& frame, member_name_token& name,
+                                                     std::size_t end) noexcept
+    {
+      // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
+      if (m_warning_record_failed)
+      {
+        return status_result::failure(error::internal_fault());
+      }
+
+      // Quoted and identifier names are both walked twice, counting then decoding.
+      const auto decode_charge = m_work.charge(name.byte_length);
+
+      if (!decode_charge.has_value())
+      {
+        return status_result::failure(*decode_charge.error_if());
+      }
+
+      // Reject decoded collisions before committing the name, cursor or retained metadata.
+      if (m_options.duplicate_names == duplicate_name_policy::reject_duplicates)
+      {
+        const source_span repeated_span{name.byte_offset, name.byte_length};
+
+        const auto unique = reject_duplicate_name(m_document, frame.container, name.value, repeated_span, m_work);
+
+        if (!unique.has_value())
+        {
+          return status_result::failure(*unique.error_if());
+        }
+      }
+
+      // Quoted names reserved their units in the sink; identifier names never reach it.
+      if (!m_string_reserved)
+      {
+        const auto reserved = m_resources.reserve_string_units(0, name.value.size());
+
+        if (!reserved.has_value())
+        {
+          return status_result::failure(*reserved.error_if());
+        }
+      }
+
+      // P035: own the decoded name until its scalar or nested container value is attached.
+      // Construct the optional's value directly: decoded_string cannot be assigned
+      static_cast<void>(frame.pending_name.emplace(std::move(name.value)));
+      frame.name_offset = name.byte_offset;
+      frame.name_length = name.byte_length;
+      frame.state = parser_state::object_colon;
+
+      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.45)
+      m_source.advance(end - m_source.offset());
 
       return status_result::success();
     }
@@ -406,59 +435,7 @@ namespace adaptive_json5
 
       auto& name = **recognized.value_if();
 
-      // Exactly the counted warnings were reserved, so a failed append means the two walks disagree.
-      if (m_warning_record_failed)
-      {
-        return status_result::failure(error::internal_fault());
-      }
-
-      // Quoted and identifier names are both walked twice, counting then decoding.
-      const auto decode_charge = m_work.charge(name.byte_length);
-
-      if (!decode_charge.has_value())
-      {
-        return status_result::failure(*decode_charge.error_if());
-      }
-
-      // Reject decoded collisions before committing the name, cursor or retained metadata.
-      if (m_options.duplicate_names == duplicate_name_policy::reject_duplicates)
-      {
-        const source_span repeated_span{name.byte_offset, name.byte_length};
-
-        const auto unique = reject_duplicate_name(m_document, frame->container, name.value, repeated_span, m_work);
-
-        if (!unique.has_value())
-        {
-          return status_result::failure(*unique.error_if());
-        }
-      }
-
-      // Quoted names reserved their units in the sink; identifier names never reach it.
-      if (!m_string_reserved)
-      {
-        const auto reserved = m_resources.reserve_string_units(0, name.value.size());
-
-        if (!reserved.has_value())
-        {
-          return status_result::failure(*reserved.error_if());
-        }
-      }
-
-      // P035: own the decoded name until its scalar or nested container value is attached.
-      // Construct the optional's value directly: decoded_string cannot be assigned
-      static_cast<void>(frame->pending_name.emplace(std::move(name.value)));
-      frame->name_offset = name.byte_offset;
-      frame->name_length = name.byte_length;
-      frame->state = parser_state::object_colon;
-
-      // Move the long-lived cursor; copying scan.source would keep its shortened view.
-      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
-      // it started from, and the difference is the number of bytes consumed.
-      // codeql::misra_deviation_next_line(DEV-004.45)
-      m_source.advance(scan.source.offset() - m_source.offset());
-
-      return status_result::success();
+      return accept_scanned_name(*frame, name, scan.source.offset());
     }
 
     /**
@@ -485,70 +462,11 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
-      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-      // every path assigns the real value before use. For constants and results, the value is read later in the
-      // same function or template instantiation, which the tool does not track.
-      // codeql::misra_deviation_next_line(DEV-007.21)
-      parser_state next_state = frame->state;
-      punctuation_kind expected = punctuation_kind::comma;
-
-      if (action == parser_action::consume_colon)
-      {
-        if ((frame->state != parser_state::object_colon) || (!frame->pending_name.has_value()))
-        {
-          return status_result::failure(error::internal_fault());
-        }
-
-        expected = punctuation_kind::colon;
-        next_state = parser_state::object_value;
-      }
-      else if (action == parser_action::consume_comma)
-      {
-        // P034/P035: a completed element or member must precede every comma.
-        if (frame->pending_name.has_value())
-        {
-          return status_result::failure(error::internal_fault());
-        }
-
-        switch (frame->state)
-        {
-        case parser_state::array_comma_or_end:
-          next_state = parser_state::array_value_after_comma;
-          break;
-
-        case parser_state::object_comma_or_end:
-          next_state = parser_state::object_name_after_comma;
-          break;
-
-        case parser_state::array_first_or_end:
-        case parser_state::array_value_after_comma:
-        case parser_state::object_first_name_or_end:
-        case parser_state::object_name_after_comma:
-        case parser_state::object_colon:
-        case parser_state::object_value:
-        default:
-          return status_result::failure(error::internal_fault());
-        }
-      }
-      else
+      if ((action == parser_action::consume_colon) != frame->pending_name.has_value())
       {
         return status_result::failure(error::internal_fault());
       }
-
-      // Validate the actual byte before publishing the grammar transition.
-      cursor candidate = m_source;
-      const auto punctuation = consume_punctuation(candidate);
-
-      if ((!punctuation.has_value()) || (punctuation->kind != expected))
-      {
-        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
-      }
-
-      frame->state = next_state;
-      m_source = candidate;
-
-      return status_result::success();
+      return advance_separator(frame->state, action);
     }
 
     /**
@@ -756,107 +674,13 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Count one value without building it: reserve its resources and validate it.
+     * @brief Measure the scalar and reserve its resources before completing the counting transition.
      * @par Requirements
      * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
-     * @note Mirrors read_value step by step so both report the same errors.
-     * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
-     * @par ID SWU-PARSER-018
+     * @par ID SWU-PARSER-059
      */
-    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
-    // MISRA justification: The declaration and the definition use the same alias (status_result for
-    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
-    // alias across translation units and reports it as different.
-    // codeql::misra_deviation_next_line(DEV-013.06)
-    status_result parser_engine::count_value() noexcept
+    status_result parser_engine::count_scalar_value() noexcept
     {
-      if (m_count_root_done)
-      {
-        return status_result::failure(error::internal_fault());
-      }
-
-      bool member = false;
-
-      if (m_count_depth != 0)
-      {
-        switch (m_count_top.state)
-        {
-        case parser_state::array_first_or_end:
-        case parser_state::array_value_after_comma:
-          break;
-
-        case parser_state::object_value:
-          member = true;
-          break;
-
-        case parser_state::array_comma_or_end:
-        case parser_state::object_first_name_or_end:
-        case parser_state::object_name_after_comma:
-        case parser_state::object_colon:
-        case parser_state::object_comma_or_end:
-        default:
-          return status_result::failure(error::internal_fault());
-        }
-      }
-
-      const auto current = m_source.peek();
-
-      if (!current.has_value())
-      {
-        // Without an open container no root value was started, so the document itself is empty.
-        return status_result::failure(error::syntax_at(m_source.offset(), (m_count_depth == 0)
-                                                                            ? syntax_error_reason::empty_input
-                                                                            : syntax_error_reason::unexpected_end));
-      }
-
-      const auto reserved_value = m_resources.reserve_value(member);
-
-      if (!reserved_value.has_value())
-      {
-        return status_result::failure(*reserved_value.error_if());
-      }
-
-      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
-      // between two character operands does not use the numeric value; the tool reports the implicit promotion
-      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
-      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
-      // codeql::misra_deviation_next_line(DEV-015.10)
-      if ((*current == '[') || (*current == '{'))
-      {
-        const auto entered = m_resources.enter_container();
-
-        if (!entered.has_value())
-        {
-          return status_result::failure(*entered.error_if());
-        }
-
-        // enter_container() succeeded, so m_count_depth is below max_depth and the bit exists.
-        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-        // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
-        // between two character operands does not use the numeric value; the tool reports the implicit
-        // promotion of both operands to int. The parser compares UTF-8 input bytes with character literals, so
-        // it relies on an ASCII-compatible execution character set, where these characters are contiguous
-        // ranges.
-        // codeql::misra_deviation_next_line(DEV-015.09)
-        const bool object = (*current == '{');
-        const std::size_t byte = m_count_depth / c_bits_per_byte;
-        const std::byte mask = static_cast<std::byte>(1U) << (m_count_depth % c_bits_per_byte);
-        std::byte* kinds = nesting_kinds();
-
-        kinds[byte] = object ? (kinds[byte] | mask) : (kinds[byte] & ~mask);
-
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: The nesting depth was checked against max_depth before this frame was counted,
-        // so m_count_depth stays at most max_depth.
-        // codeql::misra_deviation_next_line(DEV-004.44)
-        ++m_count_depth;
-        m_count_top.state = object ? parser_state::object_first_name_or_end : parser_state::array_first_or_end;
-        m_source.advance(1);
-
-        return status_result::success();
-      }
-
       const auto& limits = m_options.limits;
       const std::size_t string_limit = m_resources.string_unit_allowance();
 
@@ -894,6 +718,36 @@ namespace adaptive_json5
 
       const scalar_measure& value = **measured.value_if();
 
+      const auto reserved = reserve_measured_scalar(value);
+      if (!reserved.has_value())
+      {
+        return status_result::failure(*reserved.error_if());
+      }
+      const auto completed = count_completed_value();
+
+      if (!completed.has_value())
+      {
+        return status_result::failure(*completed.error_if());
+      }
+
+      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
+      // it started from, and the difference is the number of bytes consumed.
+      // codeql::misra_deviation_next_line(DEV-004.43)
+      m_source.advance(scan.source.offset() - m_source.offset());
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Reserve decoded string units and diagnostics or enforce the number spelling limit.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
+     * @par ID SWU-PARSER-060
+     */
+    status_result parser_engine::reserve_measured_scalar(const scalar_measure& value) noexcept
+    {
       if (const auto* string = std::get_if<string_measure>(&value); string != nullptr)
       {
         const auto reserved_string = m_resources.reserve_string_units(0, string->units);
@@ -929,7 +783,7 @@ namespace adaptive_json5
       else if (const auto* number = std::get_if<number_token>(&value); number != nullptr)
       {
         // Same check and location as owned_number::copy_spelling in the build pass.
-        if (number->byte_length > limits.max_number_bytes)
+        if (number->byte_length > m_options.limits.max_number_bytes)
         {
           return status_result::failure(error::limit_at(number->byte_offset, resource_limit_reason::number_bytes));
         }
@@ -938,22 +792,66 @@ namespace adaptive_json5
       {
         // Literal tokens own no extra storage to account for.
       }
+      return status_result::success();
+    }
 
-      const auto completed = count_completed_value();
+    /**
+     * @brief Reserve a nesting level and record its container kind in the counting stack.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
+     * @par ID SWU-PARSER-061
+     */
+    status_result parser_engine::count_open_container(char opening) noexcept
+    {
+      const auto entered = m_resources.enter_container();
 
-      if (!completed.has_value())
+      if (!entered.has_value())
       {
-        return status_result::failure(*completed.error_if());
+        return status_result::failure(*entered.error_if());
       }
 
-      // Move the long-lived cursor; copying scan.source would keep its shortened view.
+      // enter_container() succeeded, so m_count_depth is below max_depth and the bit exists.
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit
+      // promotion of both operands to int. The parser compares UTF-8 input bytes with character literals, so
+      // it relies on an ASCII-compatible execution character set, where these characters are contiguous
+      // ranges.
+      // codeql::misra_deviation_next_line(DEV-015.09)
+      const bool object = (opening == '{');
+      const std::size_t byte = m_count_depth / c_bits_per_byte;
+      const std::byte mask = static_cast<std::byte>(1U) << (m_count_depth % c_bits_per_byte);
+      std::byte* kinds = nesting_kinds();
+
+      kinds[byte] = object ? (kinds[byte] | mask) : (kinds[byte] & ~mask);
+
       // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: A cursor only moves forward, so the later offset is never below the earlier offset
-      // it started from, and the difference is the number of bytes consumed.
-      // codeql::misra_deviation_next_line(DEV-004.43)
-      m_source.advance(scan.source.offset() - m_source.offset());
+      // MISRA justification: The nesting depth was checked against max_depth before this frame was counted,
+      // so m_count_depth stays at most max_depth.
+      // codeql::misra_deviation_next_line(DEV-004.44)
+      ++m_count_depth;
+      m_count_top.state = object ? parser_state::object_first_name_or_end : parser_state::array_first_or_end;
+      m_source.advance(1);
 
       return status_result::success();
+    }
+
+    /**
+     * @brief Count one value without building it: reserve its resources and validate it.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
+     * @note Mirrors read_value step by step so both report the same errors.
+     * Too many warnings report resource_limit (diagnostics) at the first warning that does not fit.
+     * @par ID SWU-PARSER-018
+     */
+    // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+    // MISRA justification: The declaration and the definition use the same alias (status_result for
+    // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+    // alias across translation units and reports it as different.
+    // codeql::misra_deviation_next_line(DEV-013.06)
+    status_result parser_engine::count_value() noexcept
+    {
+      return walk_value<counting_policy>();
     }
 
     /**
@@ -1070,44 +968,7 @@ namespace adaptive_json5
         return status_result::failure(error::internal_fault());
       }
 
-      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-      // every path assigns the real value before use. For constants and results, the value is read later in the
-      // same function or template instantiation, which the tool does not track.
-      // codeql::misra_deviation_next_line(DEV-007.20)
-      parser_state next_state = m_count_top.state;
-      punctuation_kind expected = punctuation_kind::comma;
-
-      if ((action == parser_action::consume_colon) && (m_count_top.state == parser_state::object_colon))
-      {
-        expected = punctuation_kind::colon;
-        next_state = parser_state::object_value;
-      }
-      else if ((action == parser_action::consume_comma) && (m_count_top.state == parser_state::array_comma_or_end))
-      {
-        next_state = parser_state::array_value_after_comma;
-      }
-      else if ((action == parser_action::consume_comma) && (m_count_top.state == parser_state::object_comma_or_end))
-      {
-        next_state = parser_state::object_name_after_comma;
-      }
-      else
-      {
-        return status_result::failure(error::internal_fault());
-      }
-
-      cursor candidate = m_source;
-      const auto punctuation = consume_punctuation(candidate);
-
-      if ((!punctuation.has_value()) || (punctuation->kind != expected))
-      {
-        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
-      }
-
-      m_count_top.state = next_state;
-      m_source = candidate;
-
-      return status_result::success();
+      return advance_separator(m_count_top.state, action);
     }
 
     /**
@@ -1221,6 +1082,284 @@ namespace adaptive_json5
       }
     }
 
+    struct parser_engine::counting_policy
+    {
+        static constexpr bool builds_tree = false;
+        static constexpr auto value = &parser_engine::count_value;
+        static constexpr auto name = &parser_engine::count_name;
+        static constexpr auto separator = &parser_engine::count_separator;
+        static constexpr auto close = &parser_engine::count_close;
+
+        /**
+         * @brief Report whether this pass has completed its root value.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-062
+         */
+        static bool complete(const parser_engine& engine) noexcept
+        {
+          return engine.m_count_root_done;
+        }
+
+        /**
+         * @brief Return this pass's innermost open frame, or null at the root.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-063
+         */
+        static const parser_frame* top(parser_engine& engine) noexcept
+        {
+          return engine.m_count_depth == 0 ? nullptr : &engine.m_count_top;
+        }
+    };
+
+    struct parser_engine::building_policy
+    {
+        static constexpr bool builds_tree = true;
+        static constexpr auto value = &parser_engine::read_value;
+        static constexpr auto name = &parser_engine::read_name;
+        static constexpr auto separator = &parser_engine::consume_separator;
+        static constexpr auto close = &parser_engine::finish_container;
+
+        /**
+         * @brief Report whether this pass has completed its root value.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-064
+         */
+        static bool complete(const parser_engine& engine) noexcept
+        {
+          return engine.m_root.is_set();
+        }
+
+        /**
+         * @brief Return this pass's innermost open frame, or null at the root.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-065
+         */
+        static const parser_frame* top(parser_engine& engine) noexcept
+        {
+          return engine.m_frames.top();
+        }
+    };
+
+    /**
+     * @brief Reserve a value and select the container or scalar action for the current pass.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-048.
+     * @par ID SWU-PARSER-072
+     */
+    template <typename Policy>
+    status_result parser_engine::walk_value() noexcept
+    {
+      if (Policy::complete(*this))
+      {
+        return status_result::failure(error::internal_fault());
+      }
+
+      bool member = false;
+
+      // Inspect the parent only before any operation that can grow frames.
+      const auto* parent = Policy::top(*this);
+      if (parent != nullptr)
+      {
+        member = parent->state == parser_state::object_value;
+        if (!member && parent->state != parser_state::array_first_or_end &&
+            parent->state != parser_state::array_value_after_comma)
+        {
+          return status_result::failure(error::internal_fault());
+        }
+        if (Policy::builds_tree && (member != parent->pending_name.has_value()))
+        {
+          return status_result::failure(error::internal_fault());
+        }
+      }
+
+      const auto current = m_source.peek();
+
+      if (!current.has_value())
+      {
+        // Without an open container no root value was started, so the document itself is empty.
+        return status_result::failure(error::syntax_at(m_source.offset(), (parent == nullptr)
+                                                                            ? syntax_error_reason::empty_input
+                                                                            : syntax_error_reason::unexpected_end));
+      }
+
+      const auto reserved_value = m_resources.reserve_value(member);
+
+      if (!reserved_value.has_value())
+      {
+        return status_result::failure(*reserved_value.error_if());
+      }
+
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.11)
+      if ((*current == '[') || (*current == '{'))
+      {
+        if constexpr (Policy::builds_tree)
+        {
+          return open_value_container(member);
+        }
+        else
+        {
+          return count_open_container(*current);
+        }
+      }
+
+      if constexpr (Policy::builds_tree)
+      {
+        return read_scalar_value();
+      }
+      else
+      {
+        return count_scalar_value();
+      }
+    }
+
+    /**
+     * @brief Validate a colon or comma and advance the common grammar state and cursor together.
+     * @par Requirements
+     * P033; P034; P035; J5-013; J5-027; J5-048.
+     * @par ID SWU-PARSER-073
+     */
+    status_result parser_engine::advance_separator(parser_state& state, parser_action action) noexcept
+    {
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.20)
+      parser_state next_state = state;
+      punctuation_kind expected = punctuation_kind::comma;
+
+      if ((action == parser_action::consume_colon) && (state == parser_state::object_colon))
+      {
+        expected = punctuation_kind::colon;
+        next_state = parser_state::object_value;
+      }
+      else if ((action == parser_action::consume_comma) && (state == parser_state::array_comma_or_end))
+      {
+        next_state = parser_state::array_value_after_comma;
+      }
+      else if ((action == parser_action::consume_comma) && (state == parser_state::object_comma_or_end))
+      {
+        next_state = parser_state::object_name_after_comma;
+      }
+      else
+      {
+        return status_result::failure(error::internal_fault());
+      }
+
+      cursor candidate = m_source;
+      const auto punctuation = consume_punctuation(candidate);
+
+      if ((!punctuation.has_value()) || (punctuation->kind != expected))
+      {
+        return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::unexpected_character));
+      }
+
+      state = next_state;
+      m_source = candidate;
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Dispatch a selected grammar action to the counting or building policy.
+     * @par Requirements
+     * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+     * @par ID SWU-PARSER-066
+     */
+    template <typename Policy>
+    status_result parser_engine::apply_action(parser_action action) noexcept
+    {
+      switch (action)
+      {
+      case parser_action::read_value:
+        return (this->*Policy::value)();
+      case parser_action::read_name:
+        return (this->*Policy::name)();
+      case parser_action::consume_colon:
+      case parser_action::consume_comma:
+        return (this->*Policy::separator)(action);
+      case parser_action::close_container:
+        return (this->*Policy::close)();
+      default:
+        return status_result::failure(error::internal_fault());
+      }
+    }
+
+    /**
+     * @brief Charge each dispatch, skip trivia and advance the selected pass until its root is complete.
+     * @par Requirements
+     * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+     * @par ID SWU-PARSER-067
+     */
+    template <typename Policy>
+    status_result parser_engine::walk_document() noexcept
+    {
+      while (!Policy::complete(*this))
+      {
+        const auto charged = m_work.charge(1);
+        if (!charged.has_value())
+        {
+          return charged;
+        }
+        const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
+        if (!trivia.has_value())
+        {
+          return trivia;
+        }
+        const parser_frame* frame = Policy::top(*this);
+        parser_action action = parser_action::read_value;
+        if (frame != nullptr)
+        {
+          const auto selected = next_container_action(*frame, m_source.peek(), m_source.offset(), m_options.syntax);
+          if (!selected.has_value())
+          {
+            return status_result::failure(*selected.error_if());
+          }
+          action = *selected.value_if();
+        }
+        const auto step = apply_action<Policy>(action);
+        if (!step.has_value())
+        {
+          return step;
+        }
+      }
+      return status_result::success();
+    }
+
+    /**
+     * @brief Consume trailing trivia and require end of input when parsing a complete document.
+     * @par Requirements
+     * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+     * @par ID SWU-PARSER-068
+     */
+    status_result parser_engine::finish_input(bool complete) noexcept
+    {
+      if (complete)
+      {
+        const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
+
+        if (!trivia.has_value())
+        {
+          return status_result::failure(*trivia.error_if());
+        }
+
+        if (!m_source.is_at_end())
+        {
+          return status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
+        }
+      }
+      return status_result::success();
+    }
+
     /**
      * @brief Run the counting pre-pass over the whole document.
      * @par Requirements
@@ -1259,74 +1398,11 @@ namespace adaptive_json5
         m_extra_kinds = std::move(*allocation.value_if());
       }
 
-      status_result counted = status_result::success();
-
-      while (counted.has_value() && !m_count_root_done)
+      auto counted = walk_document<counting_policy>();
+      if (counted.has_value())
       {
-        // Charge dispatch even when no lexical scanner is needed, as the build pass does.
-        counted = m_work.charge(1);
-
-        if (counted.has_value())
-        {
-          counted = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
-        }
-
-        if (!counted.has_value())
-        {
-          break;
-        }
-
-        parser_action action = parser_action::read_value;
-
-        if (m_count_depth != 0)
-        {
-          const auto selected =
-            next_container_action(m_count_top, m_source.peek(), m_source.offset(), m_options.syntax);
-
-          if (!selected.has_value())
-          {
-            counted = status_result::failure(*selected.error_if());
-            break;
-          }
-
-          action = *selected.value_if();
-        }
-
-        switch (action)
-        {
-        case parser_action::read_value:
-          counted = count_value();
-          break;
-
-        case parser_action::read_name:
-          counted = count_name();
-          break;
-
-        case parser_action::consume_colon:
-        case parser_action::consume_comma:
-          counted = count_separator(action);
-          break;
-
-        case parser_action::close_container:
-          counted = count_close();
-          break;
-
-        default:
-          counted = status_result::failure(error::internal_fault());
-          break;
-        }
+        counted = finish_input(complete);
       }
-
-      if (counted.has_value() && complete)
-      {
-        counted = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
-
-        if (counted.has_value() && !m_source.is_at_end())
-        {
-          counted = status_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
-        }
-      }
-
       // The bits are only needed while counting, so the build pass never holds them.
       m_extra_kinds = owned_block{};
 
@@ -1420,90 +1496,10 @@ namespace adaptive_json5
         return tree_result::failure(*frames_reserved.error_if());
       }
 
-      while (!m_root.is_set())
+      const auto built = walk_document<building_policy>();
+      if (!built.has_value())
       {
-        // Charge dispatch even when no lexical scanner is needed.
-        const auto step_charged = m_work.charge(1);
-
-        if (!step_charged.has_value())
-        {
-          return tree_result::failure(*step_charged.error_if());
-        }
-
-        const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
-
-        if (!trivia.has_value())
-        {
-          return tree_result::failure(*trivia.error_if());
-        }
-
-        parser_action action = parser_action::read_value;
-
-        // An empty stack means the root value has not started yet.
-        if (m_frames.top() != nullptr)
-        {
-          const auto selected =
-            next_container_action(*m_frames.top(), m_source.peek(), m_source.offset(), m_options.syntax);
-
-          if (!selected.has_value())
-          {
-            return tree_result::failure(*selected.error_if());
-          }
-
-          action = *selected.value_if();
-        }
-
-        // Keep action-specific ownership and reservations in their methods.
-        switch (action)
-        {
-        case parser_action::read_value:
-        {
-          const auto read = read_value();
-
-          if (!read.has_value())
-          {
-            return tree_result::failure(*read.error_if());
-          }
-          break;
-        }
-
-        case parser_action::read_name:
-        {
-          const auto read = read_name();
-
-          if (!read.has_value())
-          {
-            return tree_result::failure(*read.error_if());
-          }
-          break;
-        }
-
-        case parser_action::consume_colon:
-        case parser_action::consume_comma:
-        {
-          const auto consumed = consume_separator(action);
-
-          if (!consumed.has_value())
-          {
-            return tree_result::failure(*consumed.error_if());
-          }
-          break;
-        }
-
-        case parser_action::close_container:
-        {
-          const auto finished = finish_container();
-
-          if (!finished.has_value())
-          {
-            return tree_result::failure(*finished.error_if());
-          }
-          break;
-        }
-
-        default:
-          return tree_result::failure(error::internal_fault());
-        }
+        return tree_result::failure(*built.error_if());
       }
 
       // Establish the root only after the entire value was completed.
@@ -1514,20 +1510,10 @@ namespace adaptive_json5
         return tree_result::failure(*rooted.error_if());
       }
 
-      if (complete)
+      const auto finished = finish_input(complete);
+      if (!finished.has_value())
       {
-        const auto trivia = skip_trivia_within_budget(m_source, m_input, m_options.syntax, m_work);
-
-        if (!trivia.has_value())
-        {
-          return tree_result::failure(*trivia.error_if());
-        }
-
-        // The pre-pass already required complete consumption, so this only guards a disagreement.
-        if (!m_source.is_at_end())
-        {
-          return tree_result::failure(error::syntax_at(m_source.offset(), syntax_error_reason::trailing_content));
-        }
+        return tree_result::failure(*finished.error_if());
       }
 
       return tree_result::success(parsed_value_tree{std::move(m_document), m_source.offset(), std::move(m_warnings)});

@@ -13,6 +13,20 @@
 namespace adaptive_json5
 {
   /**
+   * @brief Test whether a decoded scalar separates tokens in the selected syntax mode.
+   * @par Requirements
+   * P028; J5-009; J5-010; J5-011; J5-012; J5-024.
+   * @par ID SWU-LEXER-073
+   */
+  static bool is_boundary_space(std::uint32_t scalar, syntax_mode mode) noexcept
+  {
+    const bool json_whitespace =
+      (scalar == 0x20U) || (scalar == 0x09U) || (scalar == 0x0DU) || (scalar == 0x0AU); // ' ', '\t', '\r', '\n'
+    return json_whitespace ||
+           (mode == syntax_mode::json5 && (is_json5_space(scalar) || scalar == 0x2028U || scalar == 0x2029U));
+  }
+
+  /**
    * @brief Check the immediate boundary after an unquoted token.
    * @par Requirements
    * P028; J5-009; J5-010; J5-011; J5-012; J5-024.
@@ -45,23 +59,9 @@ namespace adaptive_json5
 
     const std::uint32_t scalar = character->value;
 
-    const bool json_whitespace =
-      (scalar == 0x20U) || (scalar == 0x09U) || (scalar == 0x0DU) || (scalar == 0x0AU); // ' ', '\t', '\r', '\n'
-
-    if (json_whitespace)
+    if (is_boundary_space(scalar, mode))
     {
       return status_result::success();
-    }
-
-    if (mode == syntax_mode::json5)
-    {
-      const bool additional_whitespace =
-        is_json5_space(scalar) || (scalar == 0x2028U) || (scalar == 0x2029U); // '\u2028', '\u2029'
-
-      if (additional_whitespace)
-      {
-        return status_result::success();
-      }
     }
 
     // A lexical boundary does not decide whether this punctuation fits the container.

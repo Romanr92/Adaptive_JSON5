@@ -312,22 +312,17 @@ namespace adaptive_json5
     }
 
 #if ADAPTIVE_JSON5_EISEL_LEMIRE
+
     /**
-     * @brief Convert w * 10^power to T without scratch using the Eisel-Lemire algorithm.
+     * @brief Round a scaled product to a normal floating-point value or defer to exact conversion.
      * @par Requirements
      * J5-037; J5-039.
-     * @param significand Nonzero decimal significand of at most 19 digits.
-     * @param power Decimal exponent.
-     * @param negative Sign of the result.
-     * @return The correctly rounded normal value, or an empty optional when the exact path
-     * must decide: exponent outside the table, subnormal or zero result, overflow, or an
-     * undecidable approximation.
-     * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
-     * @par ID SWU-VALUE-152
+     * @pre The exponent is inside the power-of-five table range and the product has passed the ambiguity check.
+     * @par ID SWU-VALUE-200
      */
     template <typename T>
-    [[nodiscard]] std::optional<T> try_eisel_lemire(std::uint64_t significand, std::int32_t power,
-                                                    bool negative) noexcept
+    [[nodiscard]] std::optional<T> round_eisel_product(const detail::product_128& product, std::int32_t power,
+                                                       std::int32_t leading_zeros, bool negative) noexcept
     {
       using limits = std::numeric_limits<T>;
 
@@ -348,8 +343,6 @@ namespace adaptive_json5
       // constant for one instantiation but differs between the supported types, so it is needed.
       // codeql::misra_deviation_next_line(DEV-006.11)
       constexpr std::int32_t c_round_even_max = (limits::digits == 53) ? 23 : 10;
-      constexpr std::int32_t c_safe_power_min = -27;
-      constexpr std::int32_t c_safe_power_max = 55;
       // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
       // MISRA justification: Compile-time constant: c_explicit_bits is 52 for double and
       // 23 for float, giving 9 or 38. The static_assert below rejects any type for which
@@ -362,64 +355,10 @@ namespace adaptive_json5
       // which the addition would wrap or the shift would leave 64 bits.
       // codeql::misra_deviation_next_line(DEV-004.18)
       constexpr std::uint32_t c_shift_upper = c_shift + 1U;
-      constexpr std::uint64_t c_all_ones = std::numeric_limits<std::uint64_t>::max();
       constexpr auto c_explicit_shift = static_cast<std::uint32_t>(c_explicit_bits);
-      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: Compile-time constant: c_explicit_shift is 52 or 23, so the shift is 55 or 26.
-      // codeql::misra_deviation_next_line(DEV-004.19)
-      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_shift + 3U);
       // floor(power * log2(10)) is (power * 217706) / 2^16 for every table exponent.
       constexpr std::int64_t c_log2_ten_scaled = 217706;
       constexpr std::int64_t c_log2_ten_scale = 65536;
-
-      if ((significand == 0U) || (power < detail::c_smallest_power_of_five) ||
-          (power > detail::c_largest_power_of_five))
-      {
-        return std::nullopt;
-      }
-
-      // Normalize so the significand's top bit is set.
-      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: significand is nonzero (checked above), so bit_length_of()
-      // returns 1 to 64 and the subtraction yields 0 to 63 without wrapping.
-      // codeql::misra_deviation_next_line(DEV-004.11)
-      const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
-      const std::uint64_t normalized = significand << static_cast<std::uint32_t>(leading_zeros);
-      const detail::power_of_five_128& entry =
-        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: power is between c_smallest_power_of_five and c_largest_power_of_five (checked
-        // above), so the difference is a table index from 0 to the table size minus one.
-        // codeql::misra_deviation_next_line(DEV-005.14)
-        detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
-
-      detail::product_128 product = detail::multiply_64x64_to_128(normalized, entry.high);
-
-      // Only when the bits below the rounding position are all ones can the low table word matter.
-      if ((product.high & c_precision_mask) == c_precision_mask)
-      {
-        const detail::product_128 second = detail::multiply_64x64_to_128(normalized, entry.low);
-
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: This is the low word of a 128-bit addition and is meant to
-        // wrap modulo 2^64. The next statement detects the wrap (second.high > product.low)
-        // and carries it into product.high, so no value is lost.
-        // codeql::misra_deviation_next_line(DEV-004.10)
-        product.low += second.high;
-        if (second.high > product.low)
-        {
-          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-          // MISRA justification: product.high is the high word of a 64x64-bit product, so
-          // it is at most 2^64 - 2. Adding the carry cannot wrap std::uint64_t.
-          // codeql::misra_deviation_next_line(DEV-004.09)
-          ++product.high;
-        }
-
-        if ((product.low == c_all_ones) && ((power < c_safe_power_min) || (power > c_safe_power_max)))
-        {
-          return std::nullopt;
-        }
-      }
-
       // The product's top bit selects one extra shift; a choice, not an addition, keeps it in range.
       const bool upper_bit = (product.high >> 63U) != 0U;
       const std::uint32_t mantissa_shift = upper_bit ? c_shift_upper : c_shift;
@@ -429,7 +368,7 @@ namespace adaptive_json5
       const std::int64_t scaled = c_log2_ten_scaled * power;
       const std::int64_t floor_log2 =
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: power lies in the power-of-five table range (checked above), so |scaled| =
+        // MISRA justification: the caller bounds power to the power-of-five table range, so |scaled| =
         // |217706 * power| is below 10^8; negating it, adding the scale and dividing by 65536 cannot overflow
         // std::int64_t.
         // codeql::misra_deviation_next_line(DEV-005.13)
@@ -483,46 +422,103 @@ namespace adaptive_json5
       // thousand, inside the 16-bit minimum range of int.
       const T magnitude =
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: power2 is between 1 and c_infinite_power - 1 here (checked above), so adding
+        // MISRA justification: power2 is positive and below c_infinite_power after the range checks, so adding
         // c_minimum_exponent and subtracting c_explicit_bits stays within a few thousand.
         // codeql::misra_deviation_next_line(DEV-005.10)
         std::ldexp(static_cast<T>(mantissa), static_cast<int>(power2 + c_minimum_exponent - c_explicit_bits));
 
       return negative ? -magnitude : magnitude;
     }
+
+    /**
+     * @brief Convert w * 10^power to T without scratch using the Eisel-Lemire algorithm.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @param significand Nonzero decimal significand of at most 19 digits.
+     * @param power Decimal exponent.
+     * @param negative Sign of the result.
+     * @return The correctly rounded normal value, or an empty optional when the exact path
+     * must decide: exponent outside the table, subnormal or zero result, overflow, or an
+     * undecidable approximation.
+     * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
+     * @par ID SWU-VALUE-152
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> try_eisel_lemire(std::uint64_t significand, std::int32_t power,
+                                                    bool negative) noexcept
+    {
+      using limits = std::numeric_limits<T>;
+
+      constexpr std::int32_t c_explicit_bits = limits::digits - 1; // 52 or 23
+      constexpr std::int32_t c_safe_power_min = -27;
+      constexpr std::int32_t c_safe_power_max = 55;
+      constexpr std::uint64_t c_all_ones = std::numeric_limits<std::uint64_t>::max();
+      constexpr auto c_explicit_shift = static_cast<std::uint32_t>(c_explicit_bits);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Compile-time constant: c_explicit_shift is 52 or 23, so the shift is 55 or 26.
+      // codeql::misra_deviation_next_line(DEV-004.19)
+      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_shift + 3U);
+
+      if ((significand == 0U) || (power < detail::c_smallest_power_of_five) ||
+          (power > detail::c_largest_power_of_five))
+      {
+        return std::nullopt;
+      }
+
+      // Normalize so the significand's top bit is set.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: significand is nonzero (checked above), so bit_length_of()
+      // returns 1 to 64 and the subtraction yields 0 to 63 without wrapping.
+      // codeql::misra_deviation_next_line(DEV-004.11)
+      const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
+      const std::uint64_t normalized = significand << static_cast<std::uint32_t>(leading_zeros);
+      const detail::power_of_five_128& entry =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power is between c_smallest_power_of_five and c_largest_power_of_five (checked
+        // above), so the difference is a table index from 0 to the table size minus one.
+        // codeql::misra_deviation_next_line(DEV-005.14)
+        detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
+
+      detail::product_128 product = detail::multiply_64x64_to_128(normalized, entry.high);
+
+      // Only when the bits below the rounding position are all ones can the low table word matter.
+      if ((product.high & c_precision_mask) == c_precision_mask)
+      {
+        const detail::product_128 second = detail::multiply_64x64_to_128(normalized, entry.low);
+
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: This is the low word of a 128-bit addition and is meant to
+        // wrap modulo 2^64. The next statement detects the wrap (second.high > product.low)
+        // and carries it into product.high, so no value is lost.
+        // codeql::misra_deviation_next_line(DEV-004.10)
+        product.low += second.high;
+        if (second.high > product.low)
+        {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: product.high is the high word of a 64x64-bit product, so
+          // it is at most 2^64 - 2. Adding the carry cannot wrap std::uint64_t.
+          // codeql::misra_deviation_next_line(DEV-004.09)
+          ++product.high;
+        }
+
+        if ((product.low == c_all_ones) && ((power < c_safe_power_min) || (power > c_safe_power_max)))
+        {
+          return std::nullopt;
+        }
+      }
+
+      return round_eisel_product<T>(product, power, leading_zeros, negative);
+    }
 #endif // ADAPTIVE_JSON5_EISEL_LEMIRE
 
     /**
-     * @brief Convert without scratch: Clinger for exact cases, then Eisel-Lemire.
+     * @brief Accumulate a validated significand whose digit count fits the fast-path integer.
      * @par Requirements
      * J5-037; J5-039.
-     * @return The correctly rounded value, an empty optional when the exact path is needed,
-     * or resource_limit (work) when work is exhausted.
-     * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
-     * round-to-nearest, so it runs only when the caller's rounding mode is to nearest;
-     * disabled when intermediate precision is wider than T.
-     * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
-     * @par ID SWU-VALUE-153
+     * @par ID SWU-VALUE-201
      */
-    template <typename T>
-    [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,
-                                                         work_budget& work) noexcept
+    [[nodiscard]] std::uint64_t read_fast_significand(input_view spelling, bool hexadecimal) noexcept
     {
-      using fast_result = result<std::optional<T>>;
-
-      // A uint64_t holds 19 decimal or 16 hexadecimal digits; leading zeros only make this conservative.
-      const bool hexadecimal = (parts.kind == number_kind::hexadecimal);
-      if (parts.digit_count > (hexadecimal ? 16U : 19U))
-      {
-        return fast_result::success(std::nullopt);
-      }
-
-      const auto charged = work.charge(parts.digit_count);
-      if (!charged.has_value())
-      {
-        return fast_result::failure(*charged.error_if());
-      }
-
       // Accumulate significand digits; skip sign, 0x prefix and '.', stop at the exponent.
       std::uint64_t significand{};
 
@@ -587,8 +583,19 @@ namespace adaptive_json5
           ++position;
         }
       }
-
+      return significand;
+    }
 #if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
+
+    /**
+     * @brief Convert an exactly representable significand and power of ten under the supported rounding mode.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @par ID SWU-VALUE-202
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> try_clinger(std::uint64_t significand, const detail::number_analysis& parts) noexcept
+    {
       {
         using limits = std::numeric_limits<T>;
 
@@ -603,7 +610,7 @@ namespace adaptive_json5
 
           if (parts.scale_magnitude == 0)
           {
-            return fast_result::success(parts.negative ? -exact : exact);
+            return parts.negative ? -exact : exact;
           }
 
           const std::optional<T> power = exact_power_of_ten<T>(parts.scale_magnitude);
@@ -612,9 +619,51 @@ namespace adaptive_json5
           if (power.has_value() && rounds_to_nearest())
           {
             const T value = parts.scale_negative ? (exact / *power) : (exact * *power);
-            return fast_result::success(parts.negative ? -value : value);
+            return parts.negative ? -value : value;
           }
         }
+      }
+      return std::nullopt;
+    }
+#endif
+    /**
+     * @brief Convert without scratch: Clinger for exact cases, then Eisel-Lemire.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @return The correctly rounded value, an empty optional when the exact path is needed,
+     * or resource_limit (work) when work is exhausted.
+     * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
+     * round-to-nearest, so it runs only when the caller's rounding mode is to nearest;
+     * disabled when intermediate precision is wider than T.
+     * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
+     * @par ID SWU-VALUE-153
+     */
+    template <typename T>
+    [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,
+                                                         work_budget& work) noexcept
+    {
+      using fast_result = result<std::optional<T>>;
+
+      // A uint64_t holds 19 decimal or 16 hexadecimal digits; leading zeros only make this conservative.
+      const bool hexadecimal = (parts.kind == number_kind::hexadecimal);
+      if (parts.digit_count > (hexadecimal ? 16U : 19U))
+      {
+        return fast_result::success(std::nullopt);
+      }
+
+      const auto charged = work.charge(parts.digit_count);
+      if (!charged.has_value())
+      {
+        return fast_result::failure(*charged.error_if());
+      }
+
+      const auto significand = read_fast_significand(spelling, hexadecimal);
+
+#if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
+      const auto exact = try_clinger<T>(significand, parts);
+      if (exact.has_value())
+      {
+        return fast_result::success(exact);
       }
 #endif // FLT_EVAL_METHOD == 0: x87-style excess precision would round Clinger's operation twice.
 
@@ -648,7 +697,7 @@ namespace adaptive_json5
      * @param parts Analysis of the validated number.
      * @param options Conversion policies.
      * @return The overflow failure or the underflow result, or no value when conversion must continue.
-     * @note Runs before any scratch is reserved or work is charged.
+     * @note Runs after spelling analysis and before scratch reservation.
      * @par ID SWU-VALUE-186
      */
     template <typename T>
@@ -686,21 +735,13 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Reserve scratch for the exact numerator and denominator before any digit arithmetic.
+     * @brief Compute a checked limb bound for both aligned operands and the temporary remainder.
      * @par Requirements
      * P038; J5-037; J5-048; J5-049.
-     * @param parts Analysis of the validated number.
-     * @param quotient_bits Quotient bits the division produces (precision plus two).
-     * @param numerator Empty integer that receives the significand.
-     * @param denominator Empty integer that receives the power of ten.
-     * @param work Work budget; charged one unit for the bound calculation.
-     * @return Success, or the size, work or scratch failure.
-     * @note Reserves room for alignment and the remainder doubling, so later steps do not grow.
-     * @par ID SWU-VALUE-187
+     * @par ID SWU-VALUE-203
      */
-    [[nodiscard]] status_result reserve_operands(const detail::number_analysis& parts, std::size_t quotient_bits,
-                                                 detail::big_unsigned& numerator, detail::big_unsigned& denominator,
-                                                 work_budget& work) noexcept
+    [[nodiscard]] result<std::size_t> operand_capacity(const detail::number_analysis& parts,
+                                                       std::size_t quotient_bits) noexcept
     {
       // Bound the significand without scanning its spelling again.
       const auto digit_bits =
@@ -710,14 +751,14 @@ namespace adaptive_json5
 
       if (!digit_bits.has_value())
       {
-        return status_result::failure(*digit_bits.error_if());
+        return result<std::size_t>::failure(*digit_bits.error_if());
       }
 
       const auto scale_bits = detail::decimal_digit_bits(parts.scale_magnitude);
 
       if (!scale_bits.has_value())
       {
-        return status_result::failure(*scale_bits.error_if());
+        return result<std::size_t>::failure(*scale_bits.error_if());
       }
 
       // Before scaling, the numerator holds the significand and the denominator holds one.
@@ -732,7 +773,7 @@ namespace adaptive_json5
 
         if (!scaled_bound.has_value())
         {
-          return status_result::failure(*scaled_bound.error_if());
+          return result<std::size_t>::failure(*scaled_bound.error_if());
         }
 
         denominator_bound = *scaled_bound.value_if();
@@ -744,7 +785,7 @@ namespace adaptive_json5
 
         if (!scaled_bound.has_value())
         {
-          return status_result::failure(*scaled_bound.error_if());
+          return result<std::size_t>::failure(*scaled_bound.error_if());
         }
 
         numerator_bound = *scaled_bound.value_if();
@@ -763,7 +804,7 @@ namespace adaptive_json5
 
       if (!aligned_bound.has_value())
       {
-        return status_result::failure(*aligned_bound.error_if());
+        return result<std::size_t>::failure(*aligned_bound.error_if());
       }
 
       // A remainder can temporarily double before the next subtraction.
@@ -777,10 +818,31 @@ namespace adaptive_json5
 
       if (!capacity_bits.has_value())
       {
-        return status_result::failure(*capacity_bits.error_if());
+        return result<std::size_t>::failure(*capacity_bits.error_if());
       }
 
       const auto capacity_limbs = detail::limbs_for_bits(*capacity_bits.value_if());
+      return capacity_limbs;
+    }
+
+    /**
+     * @brief Reserve scratch for the exact numerator and denominator before any digit arithmetic.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @param parts Analysis of the validated number.
+     * @param quotient_bits Index of the highest quotient bit (precision plus two).
+     * @param numerator Empty integer that receives the significand.
+     * @param denominator Empty integer that receives the power of ten.
+     * @param work Work budget; charged one unit for the bound calculation.
+     * @return Success, or the size, work or scratch failure.
+     * @note Reserves room for alignment and the remainder doubling, so later steps do not grow.
+     * @par ID SWU-VALUE-187
+     */
+    [[nodiscard]] status_result reserve_operands(const detail::number_analysis& parts, std::size_t quotient_bits,
+                                                 detail::big_unsigned& numerator, detail::big_unsigned& denominator,
+                                                 work_budget& work) noexcept
+    {
+      const auto capacity_limbs = operand_capacity(parts, quotient_bits);
 
       if (!capacity_limbs.has_value())
       {
@@ -866,7 +928,6 @@ namespace adaptive_json5
 
       if (remaining_scale != 0)
       {
-
         static constexpr std::array<std::uint32_t, c_decimal_chunk_digits> c_tail_radix{1U, 10U, 100U, 1000U};
         const auto multiplied = scaled.append_digit(0, c_tail_radix[remaining_scale], work);
 
@@ -1172,21 +1233,15 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Convert an exact number to a correctly rounded float or double.
+     * @brief Own conversion scratch through ratio construction, division and final rounding.
      * @par Requirements
      * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
-     * @tparam T Destination type: float or double.
-     * @param number Borrowed validated number.
-     * @param scratch Caller-owned fallible temporary storage.
-     * @param options Work, scratch and special-value policies.
-     * @return Correctly rounded value or an explicit error.
-     * @note Rounds once, directly to T, with ties to an even significand.
-     * All scratch storage is released before returning.
-     * @par ID SWU-VALUE-053
+     * @par ID SWU-VALUE-204
      */
     template <typename T>
-    [[nodiscard]] result<T> convert_to_floating(const owned_number& number, const storage_callbacks& scratch,
-                                                const floating_conversion_options& options) noexcept
+    [[nodiscard]] result<T> convert_exact_ratio(input_view spelling, const detail::number_analysis& parts,
+                                                const storage_callbacks& scratch,
+                                                const floating_conversion_options& options, work_budget& work) noexcept
     {
       using float_result = result<T>;
       using limits = std::numeric_limits<T>;
@@ -1204,6 +1259,66 @@ namespace adaptive_json5
       // codeql::misra_deviation_next_line(DEV-005.08)
       constexpr std::ptrdiff_t c_quotient_bits = c_precision + 2;
       static_assert(c_quotient_bits < 64, "The quotient must fit std::uint_least64_t.");
+      // Declared before integers so it outlives every allocation it accounts for.
+      accounted_storage arena{scratch, options.max_scratch_bytes};
+      const storage_callbacks provider = arena.callbacks();
+
+      detail::big_unsigned numerator{provider};
+      detail::big_unsigned denominator{provider};
+
+      const auto reserved =
+        reserve_operands(parts, static_cast<std::size_t>(c_quotient_bits), numerator, denominator, work);
+
+      if (!reserved.has_value())
+      {
+        return float_result::failure(*reserved.error_if());
+      }
+
+      const auto loaded = load_ratio(spelling, parts, numerator, denominator, work);
+
+      if (!loaded.has_value())
+      {
+        return float_result::failure(*loaded.error_if());
+      }
+
+      const auto shift = align_ratio(c_quotient_bits, numerator, denominator, work);
+
+      if (!shift.has_value())
+      {
+        return float_result::failure(*shift.error_if());
+      }
+
+      const auto quotient = divide_ratio(c_quotient_bits, numerator, denominator, work);
+
+      if (!quotient.has_value())
+      {
+        return float_result::failure(*quotient.error_if());
+      }
+
+      // Any remainder means the exact value lies strictly above the truncated quotient.
+      const bool sticky = !numerator.is_zero();
+
+      return round_quotient<T>(*quotient.value_if(), sticky, *shift.value_if(), parts.negative, options);
+    }
+
+    /**
+     * @brief Convert an exact number to a correctly rounded float or double.
+     * @par Requirements
+     * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
+     * @tparam T Destination type: float or double.
+     * @param number Borrowed validated number.
+     * @param scratch Caller-owned fallible temporary storage.
+     * @param options Work, scratch and special-value policies.
+     * @return Correctly rounded value or an explicit error.
+     * @note Rounds once, directly to T, with ties to an even significand.
+     * All scratch storage is released before returning.
+     * @par ID SWU-VALUE-053
+     */
+    template <typename T>
+    [[nodiscard]] result<T> convert_to_floating(const owned_number& number, const storage_callbacks& scratch,
+                                                const floating_conversion_options& options) noexcept
+    {
+      using float_result = result<T>;
       work_budget work{options.max_work_units};
 
       const auto analysis = detail::analyse_number(number, work);
@@ -1232,7 +1347,6 @@ namespace adaptive_json5
 
       // Analysis already collected these properties during its existing scan.
       const detail::number_analysis& parts = *analysis.value_if();
-      const bool negative = parts.negative;
 
       const auto by_scale = reject_by_scale<T>(parts, options);
 
@@ -1269,46 +1383,7 @@ namespace adaptive_json5
         }
       }
 
-      // Declared before integers so it outlives every allocation it accounts for.
-      accounted_storage arena{scratch, options.max_scratch_bytes};
-      const storage_callbacks provider = arena.callbacks();
-
-      detail::big_unsigned numerator{provider};
-      detail::big_unsigned denominator{provider};
-
-      const auto reserved =
-        reserve_operands(parts, static_cast<std::size_t>(c_quotient_bits), numerator, denominator, work);
-
-      if (!reserved.has_value())
-      {
-        return float_result::failure(*reserved.error_if());
-      }
-
-      const auto loaded = load_ratio(number.spelling(), parts, numerator, denominator, work);
-
-      if (!loaded.has_value())
-      {
-        return float_result::failure(*loaded.error_if());
-      }
-
-      const auto shift = align_ratio(c_quotient_bits, numerator, denominator, work);
-
-      if (!shift.has_value())
-      {
-        return float_result::failure(*shift.error_if());
-      }
-
-      const auto quotient = divide_ratio(c_quotient_bits, numerator, denominator, work);
-
-      if (!quotient.has_value())
-      {
-        return float_result::failure(*quotient.error_if());
-      }
-
-      // Any remainder means the exact value lies strictly above the truncated quotient.
-      const bool sticky = !numerator.is_zero();
-
-      return round_quotient<T>(*quotient.value_if(), sticky, *shift.value_if(), negative, options);
+      return convert_exact_ratio<T>(number.spelling(), parts, scratch, options, work);
     }
   } // namespace
 

@@ -17,6 +17,99 @@
 namespace adaptive_json5
 {
   /**
+   * @brief Check the keyword boundary and syntax mode before publishing the token and cursor.
+   * @par Requirements
+   * P027; J5-009; J5-021; J5-022; J5-041; J5-043; issue #125; issue #155.
+   * @par ID SWU-LEXER-062
+   */
+  static result<std::optional<number_token>> finish_non_finite(cursor& source, cursor candidate, syntax_mode mode,
+                                                               number_kind kind, std::size_t start) noexcept
+  {
+    using non_finite_result = result<std::optional<number_token>>;
+    // Inspect the following scalar without consuming a valid terminator.
+    cursor lookahead = candidate;
+    const auto following = decode_utf8(lookahead);
+    if (!following.has_value())
+    {
+      return non_finite_result::failure(*following.error_if());
+    }
+
+    const auto& suffix = *following.value_if();
+    if (suffix.has_value())
+    {
+      const std::uint32_t scalar = suffix->value;
+
+      // Reject extended names and escaped suffixes as unknown words; a decimal point is not part of a word.
+      if (is_identifier_part(scalar) || (scalar == 0x5CU)) // '\\'
+      {
+        return non_finite_result::success(std::nullopt);
+      }
+
+      if (scalar == 0x2EU) // '.'
+      {
+        return non_finite_result::failure(error::syntax_at(suffix->byte_offset, syntax_error_reason::unknown_literal));
+      }
+    }
+
+    // Only a complete Infinity or NaN is a strict-JSON violation; other words are unknown in both modes.
+    if (mode == syntax_mode::strict_json)
+    {
+      return non_finite_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
+    }
+
+    const std::size_t end = candidate.offset();
+    if (end < start)
+    {
+      return non_finite_result::failure(error::internal_fault());
+    }
+
+    const number_token token{kind, start, end - start};
+    auto completed = non_finite_result::success(std::optional<number_token>{token});
+
+    source = candidate;
+    return completed;
+  }
+
+  /**
+   * @brief Match the selected non-finite keyword, distinguishing an unsigned mismatch from a truncated signed word.
+   * @par Requirements
+   * P027; J5-009; J5-021; J5-022; J5-041; J5-043; issue #125; issue #155.
+   * @par ID SWU-LEXER-063
+   */
+  static result<bool> match_non_finite(cursor& candidate, const std::array<std::uint32_t, 8U>& spelling,
+                                       std::size_t remaining, bool signed_word) noexcept
+  {
+    for (const std::uint32_t expected : spelling)
+    {
+      if (remaining == std::size_t{})
+      {
+        break;
+      }
+
+      --remaining;
+      const auto decoded = decode_utf8(candidate);
+      if (!decoded.has_value())
+      {
+        return result<bool>::failure(*decoded.error_if());
+      }
+
+      const auto& character = *decoded.value_if();
+      if (!character.has_value())
+      {
+        return signed_word
+                 ? result<bool>::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end))
+                 : result<bool>::success(false);
+      }
+
+      if (character->value != expected)
+      {
+        return result<bool>::success(false);
+      }
+    }
+    return result<bool>::success(true);
+  }
+
+  /**
    * @brief Recognize an exact Infinity or NaN numeric spelling.
    * @par Requirements
    * P027; J5-009; J5-021; J5-022; J5-041; J5-043; issue #125; issue #155.
@@ -96,75 +189,16 @@ namespace adaptive_json5
     const number_kind kind = infinity ? number_kind::infinity : number_kind::nan;
     std::size_t remaining = infinity ? c_infinity_spelling.size() : c_nan_length;
 
-    for (const std::uint32_t expected : spelling)
+    const auto matched = match_non_finite(candidate, spelling, remaining, signed_word);
+    if (!matched.has_value())
     {
-      if (remaining == std::size_t{})
-      {
-        break;
-      }
-
-      --remaining;
-      const auto decoded = decode_utf8(candidate);
-      if (!decoded.has_value())
-      {
-        return non_finite_result::failure(*decoded.error_if());
-      }
-
-      const auto& character = *decoded.value_if();
-      if (!character.has_value())
-      {
-        return signed_word
-                 ? non_finite_result::failure(error::syntax_at(candidate.offset(), syntax_error_reason::unexpected_end))
-                 : non_finite_result::success(std::nullopt);
-      }
-
-      if (character->value != expected)
-      {
-        return non_finite_result::success(std::nullopt);
-      }
+      return non_finite_result::failure(*matched.error_if());
+    }
+    if (!*matched.value_if())
+    {
+      return non_finite_result::success(std::nullopt);
     }
 
-    // Inspect the following scalar without consuming a valid terminator.
-    cursor lookahead = candidate;
-    const auto following = decode_utf8(lookahead);
-    if (!following.has_value())
-    {
-      return non_finite_result::failure(*following.error_if());
-    }
-
-    const auto& suffix = *following.value_if();
-    if (suffix.has_value())
-    {
-      const std::uint32_t scalar = suffix->value;
-
-      // Reject extended names and escaped suffixes as unknown words; a decimal point is not part of a word.
-      if (is_identifier_part(scalar) || (scalar == 0x5CU)) // '\\'
-      {
-        return non_finite_result::success(std::nullopt);
-      }
-
-      if (scalar == 0x2EU) // '.'
-      {
-        return non_finite_result::failure(error::syntax_at(suffix->byte_offset, syntax_error_reason::unknown_literal));
-      }
-    }
-
-    // Only a complete Infinity or NaN is a strict-JSON violation; other words are unknown in both modes.
-    if (mode == syntax_mode::strict_json)
-    {
-      return non_finite_result::failure(error::syntax_at(start, syntax_error_reason::not_allowed_in_strict_json));
-    }
-
-    const std::size_t end = candidate.offset();
-    if (end < start)
-    {
-      return non_finite_result::failure(error::internal_fault());
-    }
-
-    const number_token token{kind, start, end - start};
-    auto completed = non_finite_result::success(std::optional<number_token>{token});
-
-    source = candidate;
-    return completed;
+    return finish_non_finite(source, candidate, mode, kind, start);
   }
 } // namespace adaptive_json5

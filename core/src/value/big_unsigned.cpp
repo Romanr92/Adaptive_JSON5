@@ -445,48 +445,14 @@ namespace adaptive_json5::detail
   }
 
   /**
-   * @brief Shift through replacement storage before publishing the new magnitude.
+   * @brief Account for shifting the source limbs into the full destination width.
    * @par Requirements
    * P038; J5-003; J5-037; J5-046; J5-048.
-   * @param bit_count Exact power-of-two scaling exponent.
-   * @param work Shared budget charged before limb processing.
-   * @return Success or an explicit failure preserving the original value.
-   * @note Allocation and size checks precede all writes to replacement storage.
-   * @par ID SWU-VALUE-013
+   * @par ID SWU-VALUE-192
    */
-  status_result big_unsigned::shift_left(std::size_t bit_count, work_budget& work) noexcept
+  static status_result charge_shift(std::size_t size, std::size_t destination_count, work_budget& work) noexcept
   {
-    if ((bit_count == 0) || (m_size == 0))
-    {
-      return status_result::success();
-    }
-
-    const std::size_t whole_limbs = bit_count / c_limb_bits;
-
-    const auto partial_bits = static_cast<std::uint32_t>(bit_count % c_limb_bits);
-
-    const auto base_count = checked_add(m_size, whole_limbs, resource_limit_reason::conversion_size);
-
-    if (!base_count.has_value())
-    {
-      return status_result::failure(*base_count.error_if());
-    }
-
-    std::size_t destination_count = *base_count.value_if();
-
-    if (partial_bits != 0)
-    {
-      const auto extended = checked_add(destination_count, c_additional_limb, resource_limit_reason::conversion_size);
-
-      if (!extended.has_value())
-      {
-        return status_result::failure(*extended.error_if());
-      }
-
-      destination_count = *extended.value_if();
-    }
-
-    const auto traversal_units = checked_add(m_size, destination_count, resource_limit_reason::work);
+    const auto traversal_units = checked_add(size, destination_count, resource_limit_reason::work);
 
     if (!traversal_units.has_value())
     {
@@ -500,20 +466,33 @@ namespace adaptive_json5::detail
       return status_result::failure(*units.error_if());
     }
 
-    const auto charged = work.charge(*units.value_if());
+    return work.charge(*units.value_if());
+  }
 
-    if (!charged.has_value())
+  /**
+   * @brief Include room for a possible carry when a shift crosses a limb boundary.
+   * @par Requirements
+   * P038; J5-003; J5-037; J5-046; J5-048.
+   * @par ID SWU-VALUE-193
+   */
+  static result<std::size_t> shifted_capacity(std::size_t destination_count, std::uint32_t partial_bits) noexcept
+  {
+    if (partial_bits != 0)
     {
-      return status_result::failure(*charged.error_if());
+      return checked_add(destination_count, c_additional_limb, resource_limit_reason::conversion_size);
     }
+    return result<std::size_t>::success(destination_count);
+  }
 
-    if (destination_count > m_capacity)
-    {
-      return status_result::failure(error::internal_fault());
-    }
-
-    std::size_t significant_count = *base_count.value_if();
-
+  /**
+   * @brief Shift limbs from most to least significant within the prevalidated destination capacity.
+   * @par Requirements
+   * P038; J5-003; J5-037; J5-046; J5-048.
+   * @par ID SWU-VALUE-194
+   */
+  void big_unsigned::shift_reserved_limbs(std::size_t whole_limbs, std::uint32_t partial_bits,
+                                          std::size_t significant_count) noexcept
+  {
     if (partial_bits == 0)
     {
       // Move limbs upwards starting at the top, so no source limb is overwritten before it is read.
@@ -594,8 +573,84 @@ namespace adaptive_json5::detail
     }
 
     m_size = significant_count;
+  }
+
+  /**
+   * @brief Shift through replacement storage before publishing the new magnitude.
+   * @par Requirements
+   * P038; J5-003; J5-037; J5-046; J5-048.
+   * @param bit_count Exact power-of-two scaling exponent.
+   * @param work Shared budget charged before limb processing.
+   * @return Success or an explicit failure preserving the original value.
+   * @note Allocation and size checks precede all writes to replacement storage.
+   * @par ID SWU-VALUE-013
+   */
+  status_result big_unsigned::shift_left(std::size_t bit_count, work_budget& work) noexcept
+  {
+    if ((bit_count == 0) || (m_size == 0))
+    {
+      return status_result::success();
+    }
+
+    const std::size_t whole_limbs = bit_count / c_limb_bits;
+
+    const auto partial_bits = static_cast<std::uint32_t>(bit_count % c_limb_bits);
+
+    const auto base_count = checked_add(m_size, whole_limbs, resource_limit_reason::conversion_size);
+
+    if (!base_count.has_value())
+    {
+      return status_result::failure(*base_count.error_if());
+    }
+
+    const auto capacity = shifted_capacity(*base_count.value_if(), partial_bits);
+    if (!capacity.has_value())
+    {
+      return status_result::failure(*capacity.error_if());
+    }
+    const std::size_t destination_count = *capacity.value_if();
+
+    const auto charged = charge_shift(m_size, destination_count, work);
+    if (!charged.has_value())
+    {
+      return status_result::failure(*charged.error_if());
+    }
+
+    if (destination_count > m_capacity)
+    {
+      return status_result::failure(error::internal_fault());
+    }
+
+    shift_reserved_limbs(whole_limbs, partial_bits, *base_count.value_if());
 
     return status_result::success();
+  }
+
+  /**
+   * @brief Charge both subtraction passes and their setup before changing any limbs.
+   * @par Requirements
+   * P038; J5-003; J5-037; J5-048.
+   * @par ID SWU-VALUE-195
+   */
+  static status_result charge_subtraction(std::size_t size, work_budget& work) noexcept
+  {
+    constexpr std::size_t c_subtraction_passes = 2;
+    constexpr std::size_t c_subtraction_setup_units = 1;
+    const auto passes = checked_multiply(size, c_subtraction_passes, resource_limit_reason::work);
+
+    if (!passes.has_value())
+    {
+      return status_result::failure(*passes.error_if());
+    }
+
+    const auto units = checked_add(*passes.value_if(), c_subtraction_setup_units, resource_limit_reason::work);
+
+    if (!units.has_value())
+    {
+      return status_result::failure(*units.error_if());
+    }
+
+    return work.charge(*units.value_if());
   }
 
   /**
@@ -610,8 +665,6 @@ namespace adaptive_json5::detail
    */
   status_result big_unsigned::subtract(const big_unsigned& other, work_budget& work) noexcept
   {
-    constexpr std::size_t c_subtraction_passes = 2;
-    constexpr std::size_t c_subtraction_setup_units = 1;
     constexpr wide_type c_borrow_units = 1;
 
     const auto ordering = compare(other, work);
@@ -631,22 +684,7 @@ namespace adaptive_json5::detail
       return status_result::success();
     }
 
-    const auto passes = checked_multiply(m_size, c_subtraction_passes, resource_limit_reason::work);
-
-    if (!passes.has_value())
-    {
-      return status_result::failure(*passes.error_if());
-    }
-
-    const auto units = checked_add(*passes.value_if(), c_subtraction_setup_units, resource_limit_reason::work);
-
-    if (!units.has_value())
-    {
-      return status_result::failure(*units.error_if());
-    }
-
-    const auto charged = work.charge(*units.value_if());
-
+    const auto charged = charge_subtraction(m_size, work);
     if (!charged.has_value())
     {
       return status_result::failure(*charged.error_if());

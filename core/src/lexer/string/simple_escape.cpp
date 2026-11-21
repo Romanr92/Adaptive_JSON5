@@ -12,45 +12,20 @@
 namespace adaptive_json5
 {
   /**
-   * @brief Decode one simple escape after its backslash.
+   * @brief Decode a single ASCII escape and flag spellings specific to JSON5.
    * @par Requirements
    * P015; J5-015; J5-016.
-   * @param source Cursor immediately after an escape-introducing backslash.
-   * @return One UTF-16 unit, successful nullopt for another escape form,
-   * or a located syntax error.
-   * @note Success with a unit consumes one ASCII byte.
-   * No-match and failure leave source unchanged.
-   * Does not validate or consume bytes belonging to other escape forms.
-   * A JSON5 zero escape fails if followed by any decimal digit.
-   * EOF after an accepted zero still requires the enclosing string to close.
-   * No allocation is performed.
-   * @par ID SWU-LEXER-033
+   * @par ID SWU-LEXER-065
    */
-  result<std::optional<std::uint16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept
+  static bool match_simple_escape(char current, std::uint16_t& unit, bool& json5_only) noexcept
   {
-    using escape_result = result<std::optional<std::uint16_t>>;
-
-    constexpr std::size_t c_escape_byte_count = 1;
-    constexpr char c_decimal_digits_min = '0';
-    constexpr char c_decimal_digits_max = '9';
-
-    const auto current = source.peek();
-    if (!current.has_value())
-    {
-      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
-    }
-
-    // The NUL escape (backslash zero) keeps this initial value; every other case assigns its unit.
-    std::uint16_t unit{};
-    bool json5_only = false;
-
     // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
     // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
     // character value. The tool reports the integral promotion of the condition and labels. The parser compares
     // UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution character set,
     // where these characters are contiguous ranges.
     // codeql::misra_deviation_next_line(DEV-015.60)
-    switch (*current)
+    switch (current)
     {
     // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
     // MISRA justification: Selects on the exact character with character case labels; no arithmetic uses the
@@ -166,6 +141,46 @@ namespace adaptive_json5
 
     default:
       // Other escape recognizers must see their original input.
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * @brief Decode one simple escape after its backslash.
+   * @par Requirements
+   * P015; J5-015; J5-016.
+   * @param source Cursor immediately after an escape-introducing backslash.
+   * @return One UTF-16 unit, successful nullopt for another escape form,
+   * or a located syntax error.
+   * @note Success with a unit consumes one ASCII byte.
+   * No-match and failure leave source unchanged.
+   * Does not validate or consume bytes belonging to other escape forms.
+   * A JSON5 zero escape fails if followed by any decimal digit.
+   * EOF after an accepted zero still requires the enclosing string to close.
+   * No allocation is performed.
+   * @par ID SWU-LEXER-033
+   */
+  result<std::optional<std::uint16_t>> consume_simple_escape(cursor& source, syntax_mode mode) noexcept
+  {
+    using escape_result = result<std::optional<std::uint16_t>>;
+
+    constexpr std::size_t c_escape_byte_count = 1;
+    constexpr char c_decimal_digits_min = '0';
+    constexpr char c_decimal_digits_max = '9';
+
+    const auto current = source.peek();
+    if (!current.has_value())
+    {
+      return escape_result::failure(error::syntax_at(source.offset(), syntax_error_reason::unexpected_end));
+    }
+
+    // The NUL escape (backslash zero) keeps this initial value; every other case assigns its unit.
+    std::uint16_t unit{};
+    bool json5_only = false;
+
+    if (!match_simple_escape(*current, unit, json5_only))
+    {
       return escape_result::success(std::nullopt);
     }
 

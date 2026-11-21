@@ -33,11 +33,11 @@ library was checked to be byte-identical before and after.
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
 | INPUT | SWU-INPUT-011 | SWU-INPUT-012 |
-| LEXER | SWU-LEXER-057 | SWU-LEXER-058 |
+| LEXER | SWU-LEXER-073 | SWU-LEXER-074 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
-| PARSER | SWU-PARSER-049 | SWU-PARSER-050 |
-| UNICODE | SWU-UNICODE-008 | SWU-UNICODE-009 |
-| VALUE | SWU-VALUE-184 | SWU-VALUE-185 |
+| PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
+| UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
+| VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
 ## API
 
@@ -204,6 +204,22 @@ library was checked to be byte-identical before and after.
 | SWU-LEXER-055 | used | `(anonymous)::starts_signed_name(const cursor &)` | `core/src/lexer/number/number_lexer.cpp` | — |
 | SWU-LEXER-056 | used | `(anonymous)::measure_unknown_word(const cursor &, std::size_t)` | `core/src/lexer/scalar_lexer.cpp` | — |
 | SWU-LEXER-057 | used | `(anonymous)::next_identifier_scalar(cursor &, bool, std::size_t)` | `core/src/lexer/identifier/identifier_lexer.cpp` | — |
+| SWU-LEXER-058 | used | `scan_decimal_exponent(cursor &, std::size_t)` | `core/src/lexer/number/decimal_lexer.cpp` | — |
+| SWU-LEXER-059 | used | `scan_decimal_significand(cursor &, syntax_mode)` | `core/src/lexer/number/decimal_lexer.cpp` | — |
+| SWU-LEXER-060 | used | `has_other_number_prefix(cursor)` | `core/src/lexer/number/decimal_lexer.cpp` | — |
+| SWU-LEXER-061 | used | `scan_hex_digits(cursor &)` | `core/src/lexer/number/hexadecimal_lexer.cpp` | — |
+| SWU-LEXER-062 | used | `finish_non_finite(cursor &, cursor, syntax_mode, number_kind, std::size_t)` | `core/src/lexer/number/non_finite_lexer.cpp` | — |
+| SWU-LEXER-063 | used | `match_non_finite(cursor &, const std::array<std::, 8U> &, std::size_t, bool)` | `core/src/lexer/number/non_finite_lexer.cpp` | — |
+| SWU-LEXER-064 | used | `is_recognized_escape(std::uint32_t)` | `core/src/lexer/string/non_escape.cpp` | — |
+| SWU-LEXER-065 | used | `match_simple_escape(char, std::uint16_t &, bool &)` | `core/src/lexer/string/simple_escape.cpp` | — |
+| SWU-LEXER-066 | used | `string_body_state::record(const string_warning &)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-067 | used | `string_body_state::reject(security_reason, source_span)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-068 | used | `string_body_state::handle_pairing(const detail::surrogate_warnings &)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-069 | used | `string_body_state::check_units(const encoded_utf16 &, source_span)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-070 | used | `string_body_state::emit(const encoded_utf16 &, std::size_t)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-071 | used | `string_body_state::read_escape(cursor &, syntax_mode, std::size_t)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-072 | used | `string_body_state::read_character(const string_piece &, syntax_mode)` | `core/src/lexer/string/string_lexer.cpp` | — |
+| SWU-LEXER-073 | used | `is_boundary_space(std::uint32_t, syntax_mode)` | `core/src/lexer/token_boundary.cpp` | — |
 
 ## MEMORY
 
@@ -344,6 +360,30 @@ library was checked to be byte-identical before and after.
 | SWU-PARSER-047 | used | `detail::locate_limit(const error &, std::size_t, bool)` | `core/src/parser/parser_work.cpp` | `core/includes/parser/parser_work.hpp` |
 | SWU-PARSER-048 | used | `detail::parser_engine::located_failure(const error &)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
 | SWU-PARSER-049 | used | `detail::attach_child(document &, parser_frame &, value_index, bool, source_span, std::size_t)` | `core/src/parser/parser_attachment.cpp` | — |
+| SWU-PARSER-050 | used | `select_name_after_comma(char, syntax_mode, std::size_t)` | `core/src/parser/parser_dispatch.cpp` | — |
+| SWU-PARSER-051 | used | `select_separator(char, char, std::size_t)` | `core/src/parser/parser_dispatch.cpp` | — |
+| SWU-PARSER-052 | used | `select_value_action(parser_state, char, std::size_t)` | `core/src/parser/parser_dispatch.cpp` | — |
+| SWU-PARSER-053 | used | `matches_member_name(const value_view &, const decoded_string &, work_budget &)` | `core/src/parser/parser_duplicate.cpp` | — |
+| SWU-PARSER-054 | used | `check_duplicate_parent(const document &, value_index, work_budget &)` | `core/src/parser/parser_duplicate.cpp` | — |
+| SWU-PARSER-055 | used | `parser_engine::read_scalar_value()` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-056 | used | `parser_engine::append_scanned_scalar(scalar_token &, source_span)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-057 | used | `parser_engine::open_value_container(bool)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-058 | used | `parser_engine::accept_scanned_name(parser_frame &, member_name_token &, std::size_t)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-059 | used | `parser_engine::count_scalar_value()` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-060 | used | `parser_engine::reserve_measured_scalar(const scalar_measure &)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-061 | used | `parser_engine::count_open_container(char)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-062 | used | `parser_engine::counting_policy::complete(const parser_engine &)` | `core/src/parser/parser_engine.cpp` | — |
+| SWU-PARSER-063 | used | `parser_engine::counting_policy::top(parser_engine &)` | `core/src/parser/parser_engine.cpp` | — |
+| SWU-PARSER-064 | used | `parser_engine::building_policy::complete(const parser_engine &)` | `core/src/parser/parser_engine.cpp` | — |
+| SWU-PARSER-065 | used | `parser_engine::building_policy::top(parser_engine &)` | `core/src/parser/parser_engine.cpp` | — |
+| SWU-PARSER-066 | used | `parser_engine::apply_action(parser_action)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-067 | used | `parser_engine::walk_document()` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-068 | used | `parser_engine::finish_input(bool)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-069 | used | `locate_resource_failure(resource_limit_reason, const error &, std::size_t)` | `core/src/parser/parser_work.cpp` | — |
+| SWU-PARSER-070 | used | `append_scanned_primitive(document &, cursor &, input_view, const parse_options &, const storage_callbacks &, work_budget &, scalar_token &, primitive_value)` | `core/src/parser/primitive_parser.cpp` | — |
+| SWU-PARSER-071 | used | `establish_primitive_root(document &, primitive_value, std::size_t)` | `core/src/parser/primitive_parser.cpp` | — |
+| SWU-PARSER-072 | used | `detail::parser_engine::walk_value()` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+| SWU-PARSER-073 | used | `detail::parser_engine::advance_separator(parser_state&, parser_action)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
 
 ## UNICODE
 
@@ -357,6 +397,8 @@ library was checked to be byte-identical before and after.
 | SWU-UNICODE-006 | used | `encode_utf16(std::uint32_t)` | `core/src/unicode/utf16.cpp` | `core/includes/unicode/utf16.hpp` |
 | SWU-UNICODE-007 | used | `decode_utf16(const decoded_string &, std::size_t)` | `core/src/unicode/utf16_decode.cpp` | `core/includes/unicode/utf16_decode.hpp` |
 | SWU-UNICODE-008 | used | `decode_utf8(cursor &)` | `core/src/unicode/utf8.cpp` | `core/includes/unicode/utf8.hpp` |
+| SWU-UNICODE-009 | used | `invalid_second_byte(std::byte, std::byte)` | `core/src/unicode/utf8.cpp` | — |
+| SWU-UNICODE-010 | used | `decode_continuations(cursor &, std::size_t, std::byte, std::size_t, std::uint32_t)` | `core/src/unicode/utf8.cpp` | — |
 
 ## VALUE
 
@@ -545,3 +587,39 @@ library was checked to be byte-identical before and after.
 | SWU-VALUE-182 | used | `json5_value::children()` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-183 | used | `json5_value::name(char *, std::size_t)` | `core/src/value/json5_value.cpp` | `includes/adaptive_json5/json5_value.hpp` |
 | SWU-VALUE-184 | used | `(anonymous)::utf8_char(std::uint32_t)` | `core/src/value/utf8_export.cpp` | — |
+| SWU-VALUE-186 | used | `reject_by_scale(const detail::number_analysis &, const floating_conversion_options &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-187 | used | `reserve_operands(const detail::number_analysis &, std::size_t, detail::big_unsigned &, detail::big_unsigned &, work_budget &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-188 | used | `load_ratio(input_view, const detail::number_analysis &, detail::big_unsigned &, detail::big_unsigned &, work_budget &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-189 | used | `align_ratio(std::ptrdiff_t, detail::big_unsigned &, detail::big_unsigned &, work_budget &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-190 | used | `divide_ratio(std::ptrdiff_t, detail::big_unsigned &, const detail::big_unsigned &, work_budget &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-191 | used | `round_quotient(std::uint_least64_t, bool, std::ptrdiff_t, bool, const floating_conversion_options &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-192 | used | `charge_shift(std::size_t, std::size_t, work_budget &)` | `core/src/value/big_unsigned.cpp` | — |
+| SWU-VALUE-193 | used | `shifted_capacity(std::size_t, std::uint32_t)` | `core/src/value/big_unsigned.cpp` | — |
+| SWU-VALUE-194 | used | `big_unsigned::shift_reserved_limbs(std::size_t, std::uint32_t, std::size_t)` | `core/src/value/big_unsigned.cpp` | `core/includes/value/big_unsigned.hpp` |
+| SWU-VALUE-195 | used | `charge_subtraction(std::size_t, work_budget &)` | `core/src/value/big_unsigned.cpp` | — |
+| SWU-VALUE-196 | used | `child_links(value_record &, const decoded_string *)` | `core/src/value/document_links.cpp` | — |
+| SWU-VALUE-197 | used | `find_last_child(value_storage &, value_index, const container_links &)` | `core/src/value/document_links.cpp` | — |
+| SWU-VALUE-198 | used | `publish_child_links(value_record &, value_record *, container_links &, value_index, value_index, decoded_string *, std::optional<source_span>, std::size_t)` | `core/src/value/document_links.cpp` | — |
+| SWU-VALUE-199 | used | `validate_member_span(const decoded_string *, std::optional<source_span>, std::size_t)` | `core/src/value/document_links.cpp` | — |
+| SWU-VALUE-200 | used | `round_eisel_product(const detail::product_128 &, std::int32_t, std::int32_t, bool)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-201 | used | `read_fast_significand(input_view, bool)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-202 | used | `try_clinger(std::uint64_t, const detail::number_analysis &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-203 | used | `operand_capacity(const detail::number_analysis &, std::size_t)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-204 | used | `convert_exact_ratio(input_view, const detail::number_analysis &, const storage_callbacks &, const floating_conversion_options &, work_budget &)` | `core/src/value/floating_conversion.cpp` | — |
+| SWU-VALUE-205 | used | `accumulate_decimal_magnitude(input_view, std::size_t, std::size_t, std::size_t, std::uintmax_t, integer_magnitude, std::uintmax_t, work_budget &)` | `core/src/value/integer_magnitude.cpp` | — |
+| SWU-VALUE-206 | used | `scan_integer_exponent(input_view, std::size_t, bool &, std::uintmax_t &)` | `core/src/value/integer_magnitude.cpp` | — |
+| SWU-VALUE-207 | used | `scan_integer_significand(input_view, std::size_t &, std::size_t &, std::size_t &, std::size_t &)` | `core/src/value/integer_magnitude.cpp` | — |
+| SWU-VALUE-208 | used | `read_hex_magnitude(input_view, std::size_t, integer_magnitude, std::uintmax_t)` | `core/src/value/integer_magnitude.cpp` | — |
+| SWU-VALUE-209 | used | `read_decimal_magnitude(input_view, std::size_t, integer_magnitude, std::uintmax_t, work_budget &)` | `core/src/value/integer_magnitude.cpp` | — |
+| SWU-VALUE-210 | used | `finish_number_analysis(number_analysis, const decimal_exponent &, std::size_t, bool, std::size_t)` | `core/src/value/number_analysis.cpp` | — |
+| SWU-VALUE-211 | used | `scan_scale_exponent(input_view, std::size_t, std::size_t, std::size_t, decimal_exponent &)` | `core/src/value/number_analysis.cpp` | — |
+| SWU-VALUE-212 | used | `scan_decimal_digits(input_view, std::size_t &, number_analysis &, std::size_t &, std::size_t &)` | `core/src/value/number_analysis.cpp` | — |
+| SWU-VALUE-213 | used | `analyse_hexadecimal(input_view, std::size_t, number_analysis)` | `core/src/value/number_analysis.cpp` | — |
+| SWU-VALUE-214 | used | `count_remaining_digits(const detail::big_unsigned &, detail::big_unsigned &, std::size_t, work_budget &)` | `core/src/value/number_comparison.cpp` | — |
+| SWU-VALUE-215 | used | `read_decimal_scale(input_view, std::size_t, std::size_t, std::size_t)` | `core/src/value/number_comparison.cpp` | — |
+| SWU-VALUE-216 | used | `read_hex_form(input_view, std::size_t, detail::big_unsigned &, const storage_callbacks &, work_budget &)` | `core/src/value/number_comparison.cpp` | — |
+| SWU-VALUE-217 | used | `read_decimal_significand(input_view, std::size_t, detail::big_unsigned &, work_budget &)` | `core/src/value/number_comparison.cpp` | — |
+| SWU-VALUE-218 | used | `compare_decimal_forms(const decimal_form &, const decimal_form &, detail::big_unsigned &, detail::big_unsigned &, work_budget &)` | `core/src/value/number_comparison.cpp` | — |
+| SWU-VALUE-219 | used | `write_utf8_scalar(char * &, std::uint32_t)` | `core/src/value/utf8_export.cpp` | — |
+| SWU-VALUE-220 | used | `validate_member_links(const container_links &, std::size_t)` | `core/src/value/value_view.cpp` | — |
+| SWU-VALUE-221 | used | `validate_member_record(const detail::value_record &, value_index, value_index, const container_links &, std::size_t)` | `core/src/value/value_view.cpp` | — |

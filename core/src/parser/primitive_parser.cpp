@@ -128,6 +128,58 @@ namespace adaptive_json5
   } // namespace detail
 
   /**
+   * @brief Charge record construction and publish the primitive and cursor only after insertion succeeds.
+   * @par Requirements
+   * P032; J5-017; J5-023; J5-028; J5-040; J5-041; J5-047; J5-049.
+   * @par ID SWU-PARSER-070
+   */
+  static result<std::optional<primitive_value>> append_scanned_primitive(document& destination, cursor& source,
+                                                                         input_view input, const parse_options& options,
+                                                                         const storage_callbacks& storage,
+                                                                         work_budget& work, scalar_token& token,
+                                                                         primitive_value value) noexcept
+  {
+    using primitive_result = result<std::optional<primitive_value>>;
+    const auto construction_units =
+      checked_add(value.byte_length, detail::c_record_construction_work, resource_limit_reason::work);
+
+    if (!construction_units.has_value())
+    {
+      return primitive_result::failure(*construction_units.error_if());
+    }
+
+    // Admit copying and possible record growth before changing the document.
+    const auto construction = work.charge(*construction_units.value_if());
+
+    if (!construction.has_value())
+    {
+      return primitive_result::failure(*construction.error_if());
+    }
+
+    const auto appended =
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The object is moved exactly once in this expression and is not read again
+      // afterwards; the reported accesses are the operand expressions that form this same move (for example
+      // value_if() on a result that still holds its value).
+      // codeql::misra_deviation_next_line(DEV-024.17)
+      detail::append_primitive_token(destination, std::move(token), input, options, storage);
+
+    if (!appended.has_value())
+    {
+      return primitive_result::failure(*appended.error_if());
+    }
+
+    value.index = *appended.value_if();
+
+    auto completed = primitive_result::success(std::optional<primitive_value>{value});
+
+    // Publish cursor advancement only after construction of the success result.
+    source.advance(value.byte_length);
+
+    return completed;
+  }
+
+  /**
    * @brief Recognize and construct one detached primitive using shared work accounting.
    * @par Requirements
    * P032; J5-017; J5-023; J5-028; J5-040; J5-041; J5-047; J5-049.
@@ -243,43 +295,36 @@ namespace adaptive_json5
       value.first_warning = string->first_warning;
     }
 
-    const auto construction_units =
-      checked_add(value.byte_length, detail::c_record_construction_work, resource_limit_reason::work);
+    return append_scanned_primitive(destination, source, input, options, storage, work, **token.value_if(), value);
+  }
 
-    if (!construction_units.has_value())
+  /**
+   * @brief Record the root span and establish the root before transferring the document.
+   * @par Requirements
+   * P032; J5-009; J5-023; J5-027; J5-028; J5-040; J5-041; J5-046; J5-047; J5-049.
+   * @par ID SWU-PARSER-071
+   */
+  static result<primitive_document> establish_primitive_root(document& candidate, primitive_value root,
+                                                             std::size_t input_size) noexcept
+  {
+    using document_result = result<primitive_document>;
+    // Retain the root location before publishing the owned document.
+    const auto recorded = detail::document_access::set_source_span(
+      candidate, root.index, adaptive_json5::source_span{root.byte_offset, root.byte_length}, input_size);
+
+    if (!recorded.has_value())
     {
-      return primitive_result::failure(*construction_units.error_if());
+      return document_result::failure(*recorded.error_if());
     }
 
-    // Admit copying and possible record growth before changing the document.
-    const auto construction = work.charge(*construction_units.value_if());
+    const auto established = detail::document_access::set_root(candidate, root.index);
 
-    if (!construction.has_value())
+    if (!established.has_value())
     {
-      return primitive_result::failure(*construction.error_if());
+      return document_result::failure(*established.error_if());
     }
 
-    const auto appended =
-      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
-      // MISRA justification: The object is moved exactly once in this expression and is not read again
-      // afterwards; the reported accesses are the operand expressions that form this same move (for example
-      // value_if() on a result that still holds its value).
-      // codeql::misra_deviation_next_line(DEV-024.17)
-      detail::append_primitive_token(destination, std::move(**token.value_if()), input, options, storage);
-
-    if (!appended.has_value())
-    {
-      return primitive_result::failure(*appended.error_if());
-    }
-
-    value.index = *appended.value_if();
-
-    auto completed = primitive_result::success(std::optional<primitive_value>{value});
-
-    // Publish cursor advancement only after construction of the success result.
-    source.advance(value.byte_length);
-
-    return completed;
+    return document_result::success(primitive_document{std::move(candidate), root});
   }
 
   /**
@@ -382,22 +427,6 @@ namespace adaptive_json5
 
     const primitive_value root = **parsed.value_if();
 
-    // Retain the root location before publishing the owned document.
-    const auto recorded = detail::document_access::set_source_span(
-      candidate, root.index, adaptive_json5::source_span{root.byte_offset, root.byte_length}, input.size);
-
-    if (!recorded.has_value())
-    {
-      return document_result::failure(*recorded.error_if());
-    }
-
-    const auto established = detail::document_access::set_root(candidate, root.index);
-
-    if (!established.has_value())
-    {
-      return document_result::failure(*established.error_if());
-    }
-
-    return document_result::success(primitive_document{std::move(candidate), root});
+    return establish_primitive_root(candidate, root, input.size);
   }
 } // namespace adaptive_json5

@@ -124,6 +124,54 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Encode one validated scalar into the caller's prechecked UTF-8 output range.
+   * @par Requirements
+   * P013; J5-018; J5-029.
+   * @par ID SWU-VALUE-219
+   */
+  static void write_utf8_scalar(char*& next, std::uint32_t scalar) noexcept
+  {
+    constexpr std::uint32_t c_ascii_max = 0x7F;
+    constexpr std::uint32_t c_two_byte_max = 0x7FF;
+    constexpr std::uint32_t c_three_byte_max = 0xFFFF;
+    constexpr std::uint32_t c_two_byte_prefix = 0xC0;
+    constexpr std::uint32_t c_three_byte_prefix = 0xE0;
+    constexpr std::uint32_t c_four_byte_prefix = 0xF0;
+    constexpr std::uint32_t c_continuation_prefix = 0x80;
+    constexpr std::uint32_t c_continuation_mask = 0x3F;
+    constexpr std::uint32_t c_one_payload_shift = 6;
+    constexpr std::uint32_t c_two_payload_shift = 12;
+    constexpr std::uint32_t c_three_payload_shift = 18;
+    if (scalar <= c_ascii_max)
+    {
+      *next++ = utf8_char(scalar);
+    }
+    else
+    {
+      if (scalar <= c_two_byte_max)
+      {
+        *next++ = utf8_char(c_two_byte_prefix | (scalar >> c_one_payload_shift));
+      }
+      else
+      {
+        if (scalar <= c_three_byte_max)
+        {
+          *next++ = utf8_char(c_three_byte_prefix | (scalar >> c_two_payload_shift));
+        }
+        else
+        {
+          *next++ = utf8_char(c_four_byte_prefix | (scalar >> c_three_payload_shift));
+          *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_two_payload_shift) & c_continuation_mask));
+        }
+
+        *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_one_payload_shift) & c_continuation_mask));
+      }
+
+      *next++ = utf8_char(c_continuation_prefix | (scalar & c_continuation_mask));
+    }
+  }
+
+  /**
    * @brief Export a decoded string into caller-provided UTF-8 storage.
    * @par Requirements
    * P013; J5-018; J5-029.
@@ -140,18 +188,6 @@ namespace adaptive_json5
    */
   result<std::size_t> export_utf8(const decoded_string& source, char* destination, std::size_t capacity) noexcept
   {
-    constexpr std::uint32_t c_ascii_max = 0x7F;
-    constexpr std::uint32_t c_two_byte_max = 0x7FF;
-    constexpr std::uint32_t c_three_byte_max = 0xFFFF;
-    constexpr std::uint32_t c_two_byte_prefix = 0xC0;
-    constexpr std::uint32_t c_three_byte_prefix = 0xE0;
-    constexpr std::uint32_t c_four_byte_prefix = 0xF0;
-    constexpr std::uint32_t c_continuation_prefix = 0x80;
-    constexpr std::uint32_t c_continuation_mask = 0x3F;
-    constexpr std::uint32_t c_one_payload_shift = 6;
-    constexpr std::uint32_t c_two_payload_shift = 12;
-    constexpr std::uint32_t c_three_payload_shift = 18;
-
     // Validate all units before exposing any partially written output.
     const auto required = utf8_size(source);
     if (!required.has_value())
@@ -187,33 +223,7 @@ namespace adaptive_json5
 
       const std::uint32_t scalar = decoded.value_if()->value;
 
-      if (scalar <= c_ascii_max)
-      {
-        *next++ = utf8_char(scalar);
-      }
-      else
-      {
-        if (scalar <= c_two_byte_max)
-        {
-          *next++ = utf8_char(c_two_byte_prefix | (scalar >> c_one_payload_shift));
-        }
-        else
-        {
-          if (scalar <= c_three_byte_max)
-          {
-            *next++ = utf8_char(c_three_byte_prefix | (scalar >> c_two_payload_shift));
-          }
-          else
-          {
-            *next++ = utf8_char(c_four_byte_prefix | (scalar >> c_three_payload_shift));
-            *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_two_payload_shift) & c_continuation_mask));
-          }
-
-          *next++ = utf8_char(c_continuation_prefix | ((scalar >> c_one_payload_shift) & c_continuation_mask));
-        }
-
-        *next++ = utf8_char(c_continuation_prefix | (scalar & c_continuation_mask));
-      }
+      write_utf8_scalar(next, scalar);
 
       // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
       // MISRA justification: unit_count comes from decoding a sequence that lies inside the remaining units, so

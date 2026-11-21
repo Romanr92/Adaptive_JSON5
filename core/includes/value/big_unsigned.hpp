@@ -65,6 +65,14 @@ namespace adaptive_json5::detail
   class [[nodiscard]] big_unsigned
   {
     private:
+      /**
+       * @brief Shift limbs from most to least significant within the prevalidated destination capacity.
+       * @par Requirements
+       * P038; J5-003; J5-037; J5-046; J5-048.
+       * @par ID SWU-VALUE-194
+       */
+      void shift_reserved_limbs(std::size_t whole_limbs, std::uint32_t partial_bits,
+                                std::size_t significant_count) noexcept;
       storage_callbacks m_provider;
       owned_block m_storage{};
       std::size_t m_size{};
