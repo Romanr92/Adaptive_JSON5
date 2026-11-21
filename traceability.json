@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "752 tests"
+      "detail": "756 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "752 tests"
+      "detail": "756 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "752 tests"
+      "detail": "756 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "752 tests"
+      "detail": "756 tests"
     }
   },
   "metrics": {
@@ -386,6 +386,7 @@
             "core/src/lexer/line_terminator.cpp"
           ],
           "symbols": [
+            "complete_line_terminator",
             "consume_line_terminator"
           ],
           "note": "",
@@ -691,6 +692,7 @@
             "core/src/lexer/line_terminator.cpp"
           ],
           "symbols": [
+            "complete_line_terminator",
             "consume_line_terminator"
           ],
           "note": "",
@@ -745,6 +747,17 @@
         },
         {
           "id": "J5_011_LineTerminatorGrouping.ConsumesAdjacentSequencesSeparately",
+          "file": "core/tests/lexer/line_terminator_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_011_DecodedTerminator.ClassifiesAndCompletesCrLf",
           "file": "core/tests/lexer/line_terminator_tests.cpp",
           "problem": "",
           "results": {
@@ -11250,6 +11263,17 @@
         {
           "id": "J5_049_WorkBaseline/WorkBaselineUnits.FitsDefaultAndFailsJustBelowMeasuredRequirement",
           "file": "core/tests/parser/work_baseline_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_049_ConversionWorkBaseline/J5_049_ConversionWork.NeedsExactlyTheMeasuredWork",
+          "file": "tests/value/floating_conversion_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
