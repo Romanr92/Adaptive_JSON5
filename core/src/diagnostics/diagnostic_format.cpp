@@ -225,7 +225,7 @@ namespace adaptive_json5
       // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
       // MISRA justification: messages is a function-local static constexpr variable, not a static data member,
       // and it is declared only once.
-      // codeql::misra_deviation_next_line(DEV-009.02)
+      // codeql::misra_deviation_next_line(DEV-009.03)
       static constexpr std::array<description, 20U> messages{
         {{syntax_error_reason::unexpected_end, "unexpected end of input"},
          {syntax_error_reason::unexpected_character, "unexpected character"},
