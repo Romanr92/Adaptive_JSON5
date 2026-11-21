@@ -312,22 +312,17 @@ namespace adaptive_json5
     }
 
 #if ADAPTIVE_JSON5_EISEL_LEMIRE
+
     /**
-     * @brief Convert w * 10^power to T without scratch using the Eisel-Lemire algorithm.
+     * @brief Round a scaled product to a normal floating-point value or defer to exact conversion.
      * @par Requirements
      * J5-037; J5-039.
-     * @param significand Nonzero decimal significand of at most 19 digits.
-     * @param power Decimal exponent.
-     * @param negative Sign of the result.
-     * @return The correctly rounded normal value, or an empty optional when the exact path
-     * must decide: exponent outside the table, subnormal or zero result, overflow, or an
-     * undecidable approximation.
-     * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
-     * @par ID SWU-VALUE-152
+     * @pre The exponent is inside the power-of-five table range and the product has passed the ambiguity check.
+     * @par ID SWU-VALUE-200
      */
     template <typename T>
-    [[nodiscard]] std::optional<T> try_eisel_lemire(std::uint64_t significand, std::int32_t power,
-                                                    bool negative) noexcept
+    [[nodiscard]] std::optional<T> round_eisel_product(const detail::product_128& product, std::int32_t power,
+                                                       std::int32_t leading_zeros, bool negative) noexcept
     {
       using limits = std::numeric_limits<T>;
 
@@ -348,8 +343,6 @@ namespace adaptive_json5
       // constant for one instantiation but differs between the supported types, so it is needed.
       // codeql::misra_deviation_next_line(DEV-006.11)
       constexpr std::int32_t c_round_even_max = (limits::digits == 53) ? 23 : 10;
-      constexpr std::int32_t c_safe_power_min = -27;
-      constexpr std::int32_t c_safe_power_max = 55;
       // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
       // MISRA justification: Compile-time constant: c_explicit_bits is 52 for double and
       // 23 for float, giving 9 or 38. The static_assert below rejects any type for which
@@ -362,64 +355,10 @@ namespace adaptive_json5
       // which the addition would wrap or the shift would leave 64 bits.
       // codeql::misra_deviation_next_line(DEV-004.18)
       constexpr std::uint32_t c_shift_upper = c_shift + 1U;
-      constexpr std::uint64_t c_all_ones = std::numeric_limits<std::uint64_t>::max();
       constexpr auto c_explicit_shift = static_cast<std::uint32_t>(c_explicit_bits);
-      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: Compile-time constant: c_explicit_shift is 52 or 23, so the shift is 55 or 26.
-      // codeql::misra_deviation_next_line(DEV-004.19)
-      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_shift + 3U);
       // floor(power * log2(10)) is (power * 217706) / 2^16 for every table exponent.
       constexpr std::int64_t c_log2_ten_scaled = 217706;
       constexpr std::int64_t c_log2_ten_scale = 65536;
-
-      if ((significand == 0U) || (power < detail::c_smallest_power_of_five) ||
-          (power > detail::c_largest_power_of_five))
-      {
-        return std::nullopt;
-      }
-
-      // Normalize so the significand's top bit is set.
-      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: significand is nonzero (checked above), so bit_length_of()
-      // returns 1 to 64 and the subtraction yields 0 to 63 without wrapping.
-      // codeql::misra_deviation_next_line(DEV-004.11)
-      const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
-      const std::uint64_t normalized = significand << static_cast<std::uint32_t>(leading_zeros);
-      const detail::power_of_five_128& entry =
-        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: power is between c_smallest_power_of_five and c_largest_power_of_five (checked
-        // above), so the difference is a table index from 0 to the table size minus one.
-        // codeql::misra_deviation_next_line(DEV-005.14)
-        detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
-
-      detail::product_128 product = detail::multiply_64x64_to_128(normalized, entry.high);
-
-      // Only when the bits below the rounding position are all ones can the low table word matter.
-      if ((product.high & c_precision_mask) == c_precision_mask)
-      {
-        const detail::product_128 second = detail::multiply_64x64_to_128(normalized, entry.low);
-
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: This is the low word of a 128-bit addition and is meant to
-        // wrap modulo 2^64. The next statement detects the wrap (second.high > product.low)
-        // and carries it into product.high, so no value is lost.
-        // codeql::misra_deviation_next_line(DEV-004.10)
-        product.low += second.high;
-        if (second.high > product.low)
-        {
-          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-          // MISRA justification: product.high is the high word of a 64x64-bit product, so
-          // it is at most 2^64 - 2. Adding the carry cannot wrap std::uint64_t.
-          // codeql::misra_deviation_next_line(DEV-004.09)
-          ++product.high;
-        }
-
-        if ((product.low == c_all_ones) && ((power < c_safe_power_min) || (power > c_safe_power_max)))
-        {
-          return std::nullopt;
-        }
-      }
-
       // The product's top bit selects one extra shift; a choice, not an addition, keeps it in range.
       const bool upper_bit = (product.high >> 63U) != 0U;
       const std::uint32_t mantissa_shift = upper_bit ? c_shift_upper : c_shift;
@@ -429,7 +368,7 @@ namespace adaptive_json5
       const std::int64_t scaled = c_log2_ten_scaled * power;
       const std::int64_t floor_log2 =
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: power lies in the power-of-five table range (checked above), so |scaled| =
+        // MISRA justification: the caller bounds power to the power-of-five table range, so |scaled| =
         // |217706 * power| is below 10^8; negating it, adding the scale and dividing by 65536 cannot overflow
         // std::int64_t.
         // codeql::misra_deviation_next_line(DEV-005.13)
@@ -483,46 +422,103 @@ namespace adaptive_json5
       // thousand, inside the 16-bit minimum range of int.
       const T magnitude =
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: power2 is between 1 and c_infinite_power - 1 here (checked above), so adding
+        // MISRA justification: power2 is positive and below c_infinite_power after the range checks, so adding
         // c_minimum_exponent and subtracting c_explicit_bits stays within a few thousand.
         // codeql::misra_deviation_next_line(DEV-005.10)
         std::ldexp(static_cast<T>(mantissa), static_cast<int>(power2 + c_minimum_exponent - c_explicit_bits));
 
       return negative ? -magnitude : magnitude;
     }
+
+    /**
+     * @brief Convert w * 10^power to T without scratch using the Eisel-Lemire algorithm.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @param significand Nonzero decimal significand of at most 19 digits.
+     * @param power Decimal exponent.
+     * @param negative Sign of the result.
+     * @return The correctly rounded normal value, or an empty optional when the exact path
+     * must decide: exponent outside the table, subnormal or zero result, overflow, or an
+     * undecidable approximation.
+     * @note Lemire (2021). Integer arithmetic only, so it needs no FLT_EVAL_METHOD guard.
+     * @par ID SWU-VALUE-152
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> try_eisel_lemire(std::uint64_t significand, std::int32_t power,
+                                                    bool negative) noexcept
+    {
+      using limits = std::numeric_limits<T>;
+
+      constexpr std::int32_t c_explicit_bits = limits::digits - 1; // 52 or 23
+      constexpr std::int32_t c_safe_power_min = -27;
+      constexpr std::int32_t c_safe_power_max = 55;
+      constexpr std::uint64_t c_all_ones = std::numeric_limits<std::uint64_t>::max();
+      constexpr auto c_explicit_shift = static_cast<std::uint32_t>(c_explicit_bits);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Compile-time constant: c_explicit_shift is 52 or 23, so the shift is 55 or 26.
+      // codeql::misra_deviation_next_line(DEV-004.19)
+      constexpr std::uint64_t c_precision_mask = c_all_ones >> (c_explicit_shift + 3U);
+
+      if ((significand == 0U) || (power < detail::c_smallest_power_of_five) ||
+          (power > detail::c_largest_power_of_five))
+      {
+        return std::nullopt;
+      }
+
+      // Normalize so the significand's top bit is set.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: significand is nonzero (checked above), so bit_length_of()
+      // returns 1 to 64 and the subtraction yields 0 to 63 without wrapping.
+      // codeql::misra_deviation_next_line(DEV-004.11)
+      const auto leading_zeros = static_cast<std::int32_t>(64U - bit_length_of(significand));
+      const std::uint64_t normalized = significand << static_cast<std::uint32_t>(leading_zeros);
+      const detail::power_of_five_128& entry =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: power is between c_smallest_power_of_five and c_largest_power_of_five (checked
+        // above), so the difference is a table index from 0 to the table size minus one.
+        // codeql::misra_deviation_next_line(DEV-005.14)
+        detail::c_power_of_five_table[static_cast<std::size_t>(power - detail::c_smallest_power_of_five)];
+
+      detail::product_128 product = detail::multiply_64x64_to_128(normalized, entry.high);
+
+      // Only when the bits below the rounding position are all ones can the low table word matter.
+      if ((product.high & c_precision_mask) == c_precision_mask)
+      {
+        const detail::product_128 second = detail::multiply_64x64_to_128(normalized, entry.low);
+
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: This is the low word of a 128-bit addition and is meant to
+        // wrap modulo 2^64. The next statement detects the wrap (second.high > product.low)
+        // and carries it into product.high, so no value is lost.
+        // codeql::misra_deviation_next_line(DEV-004.10)
+        product.low += second.high;
+        if (second.high > product.low)
+        {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: product.high is the high word of a 64x64-bit product, so
+          // it is at most 2^64 - 2. Adding the carry cannot wrap std::uint64_t.
+          // codeql::misra_deviation_next_line(DEV-004.09)
+          ++product.high;
+        }
+
+        if ((product.low == c_all_ones) && ((power < c_safe_power_min) || (power > c_safe_power_max)))
+        {
+          return std::nullopt;
+        }
+      }
+
+      return round_eisel_product<T>(product, power, leading_zeros, negative);
+    }
 #endif // ADAPTIVE_JSON5_EISEL_LEMIRE
 
     /**
-     * @brief Convert without scratch: Clinger for exact cases, then Eisel-Lemire.
+     * @brief Accumulate a validated significand whose digit count fits the fast-path integer.
      * @par Requirements
      * J5-037; J5-039.
-     * @return The correctly rounded value, an empty optional when the exact path is needed,
-     * or resource_limit (work) when work is exhausted.
-     * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
-     * round-to-nearest, so it runs only when the caller's rounding mode is to nearest;
-     * disabled when intermediate precision is wider than T.
-     * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
-     * @par ID SWU-VALUE-153
+     * @par ID SWU-VALUE-201
      */
-    template <typename T>
-    [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,
-                                                         work_budget& work) noexcept
+    [[nodiscard]] std::uint64_t read_fast_significand(input_view spelling, bool hexadecimal) noexcept
     {
-      using fast_result = result<std::optional<T>>;
-
-      // A uint64_t holds 19 decimal or 16 hexadecimal digits; leading zeros only make this conservative.
-      const bool hexadecimal = (parts.kind == number_kind::hexadecimal);
-      if (parts.digit_count > (hexadecimal ? 16U : 19U))
-      {
-        return fast_result::success(std::nullopt);
-      }
-
-      const auto charged = work.charge(parts.digit_count);
-      if (!charged.has_value())
-      {
-        return fast_result::failure(*charged.error_if());
-      }
-
       // Accumulate significand digits; skip sign, 0x prefix and '.', stop at the exponent.
       std::uint64_t significand{};
 
@@ -587,8 +583,19 @@ namespace adaptive_json5
           ++position;
         }
       }
-
+      return significand;
+    }
 #if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
+
+    /**
+     * @brief Convert an exactly representable significand and power of ten under the supported rounding mode.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @par ID SWU-VALUE-202
+     */
+    template <typename T>
+    [[nodiscard]] std::optional<T> try_clinger(std::uint64_t significand, const detail::number_analysis& parts) noexcept
+    {
       {
         using limits = std::numeric_limits<T>;
 
@@ -603,7 +610,7 @@ namespace adaptive_json5
 
           if (parts.scale_magnitude == 0)
           {
-            return fast_result::success(parts.negative ? -exact : exact);
+            return parts.negative ? -exact : exact;
           }
 
           const std::optional<T> power = exact_power_of_ten<T>(parts.scale_magnitude);
@@ -612,9 +619,51 @@ namespace adaptive_json5
           if (power.has_value() && rounds_to_nearest())
           {
             const T value = parts.scale_negative ? (exact / *power) : (exact * *power);
-            return fast_result::success(parts.negative ? -value : value);
+            return parts.negative ? -value : value;
           }
         }
+      }
+      return std::nullopt;
+    }
+#endif
+    /**
+     * @brief Convert without scratch: Clinger for exact cases, then Eisel-Lemire.
+     * @par Requirements
+     * J5-037; J5-039.
+     * @return The correctly rounded value, an empty optional when the exact path is needed,
+     * or resource_limit (work) when work is exhausted.
+     * @note Clinger (1990): one exact multiply or divide is correctly rounded under IEEE
+     * round-to-nearest, so it runs only when the caller's rounding mode is to nearest;
+     * disabled when intermediate precision is wider than T.
+     * Eisel-Lemire (Lemire 2021) uses integers only and runs when ADAPTIVE_JSON5_EISEL_LEMIRE is ON.
+     * @par ID SWU-VALUE-153
+     */
+    template <typename T>
+    [[nodiscard]] result<std::optional<T>> try_fast_path(input_view spelling, const detail::number_analysis& parts,
+                                                         work_budget& work) noexcept
+    {
+      using fast_result = result<std::optional<T>>;
+
+      // A uint64_t holds 19 decimal or 16 hexadecimal digits; leading zeros only make this conservative.
+      const bool hexadecimal = (parts.kind == number_kind::hexadecimal);
+      if (parts.digit_count > (hexadecimal ? 16U : 19U))
+      {
+        return fast_result::success(std::nullopt);
+      }
+
+      const auto charged = work.charge(parts.digit_count);
+      if (!charged.has_value())
+      {
+        return fast_result::failure(*charged.error_if());
+      }
+
+      const auto significand = read_fast_significand(spelling, hexadecimal);
+
+#if defined(FLT_EVAL_METHOD) && (FLT_EVAL_METHOD == 0)
+      const auto exact = try_clinger<T>(significand, parts);
+      if (exact.has_value())
+      {
+        return fast_result::success(exact);
       }
 #endif // FLT_EVAL_METHOD == 0: x87-style excess precision would round Clinger's operation twice.
 
@@ -641,88 +690,31 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Convert an exact number to a correctly rounded float or double.
+     * @brief Settle values whose decimal scale alone proves overflow or a zero result.
      * @par Requirements
-     * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
+     * P038; J5-037; J5-048; J5-049.
      * @tparam T Destination type: float or double.
-     * @param number Borrowed validated number.
-     * @param scratch Caller-owned fallible temporary storage.
-     * @param options Work, scratch and special-value policies.
-     * @return Correctly rounded value or an explicit error.
-     * @note Rounds once, directly to T, with ties to an even significand.
-     * All scratch storage is released before returning.
-     * @par ID SWU-VALUE-053
+     * @param parts Analysis of the validated number.
+     * @param options Conversion policies.
+     * @return The overflow failure or the underflow result, or no value when conversion must continue.
+     * @note Runs after spelling analysis and before scratch reservation.
+     * @par ID SWU-VALUE-186
      */
     template <typename T>
-    [[nodiscard]] result<T> convert_to_floating(const owned_number& number, const storage_callbacks& scratch,
-                                                const floating_conversion_options& options) noexcept
+    [[nodiscard]] result<std::optional<T>> reject_by_scale(const detail::number_analysis& parts,
+                                                           const floating_conversion_options& options) noexcept
     {
-      using float_result = result<T>;
+      using scale_result = result<std::optional<T>>;
       using limits = std::numeric_limits<T>;
 
-      constexpr auto c_precision = static_cast<std::ptrdiff_t>(limits::digits);
-      // Two extra quotient bits guarantee a rounding bit below the significand.
-      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-      // MISRA justification: Compile-time constant: c_precision is 53 for double and 24
-      // for float, so the result is 55 or 26. The static_assert below rejects any other
-      // value that would leave the 64-bit quotient.
-      // Initialized at the declaration so that no path can read an indeterminate value; every path assigns the
-      // real value before use. For constants and results, the value is read later in the same function or
-      // template instantiation, which the tool does not track.
-      // codeql::misra_deviation_next_line(DEV-005.08)
-      constexpr std::ptrdiff_t c_quotient_bits = c_precision + 2;
-      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-      // every path assigns the real value before use. For constants and results, the value is read later in the
-      // same function or template instantiation, which the tool does not track.
-      // codeql::misra_deviation_next_line(DEV-007.16)
-      constexpr std::ptrdiff_t c_min_normal_exponent = limits::min_exponent - 1;
       constexpr auto c_overflow_scale = static_cast<std::size_t>(limits::max_exponent10 + 1);
       // 10^-c is below half the smallest subnormal, so such values always round to zero.
       constexpr auto c_underflow_scale = static_cast<std::size_t>(limits::digits10 - limits::min_exponent10 + 3);
-      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-      // every path assigns the real value before use. For constants and results, the value is read later in the
-      // same function or template instantiation, which the tool does not track. Compile-time constant: the
-      // maximum of std::ptrdiff_t is converted to std::size_t and divided by four, which cannot overflow.
-      // codeql::misra_deviation_next_line(DEV-007.15)
-      constexpr std::size_t c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max()) / 4U;
-      work_budget work{options.max_work_units};
-
-      const auto analysis = detail::analyse_number(number, work);
-
-      if (!analysis.has_value())
-      {
-        return float_result::failure(*analysis.error_if());
-      }
-
-      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-      // every path assigns the real value before use. For constants and results, the value is read later in the
-      // same function or template instantiation, which the tool does not track.
-      // codeql::misra_deviation_next_line(DEV-007.14)
-      const auto special = detail::convert_special_floating<T>(*analysis.value_if(), options);
-
-      if (!special.has_value())
-      {
-        return float_result::failure(*special.error_if());
-      }
-
-      if (special.value_if()->has_value())
-      {
-        return float_result::success(**special.value_if());
-      }
-
-      // Analysis already collected these properties during its existing scan.
-      const detail::number_analysis& parts = *analysis.value_if();
-      const bool negative = parts.negative;
 
       // Reject certain overflow before reserving scratch or loading digits.
       if (!parts.scale_negative && (parts.scale_magnitude > c_overflow_scale))
       {
-        return float_result::failure(error::numeric_failure(numeric_conversion_reason::out_of_range));
+        return scale_result::failure(error::numeric_failure(numeric_conversion_reason::out_of_range));
       }
 
       // The value is below 10^(digit_count - scale), so this gap guarantees zero.
@@ -732,40 +724,30 @@ namespace adaptive_json5
           checked_add(parts.digit_count, c_underflow_scale, resource_limit_reason::conversion_size);
         if (threshold.has_value() && (parts.scale_magnitude >= *threshold.value_if()))
         {
-          return finish_underflow<T>(negative, options);
+          // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+          // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+          // every path assigns the real value before use. For constants and results, the value is read later in the
+          // same function or template instantiation, which the tool does not track.
+          // codeql::misra_deviation_next_line(DEV-007.27)
+          const auto zero = finish_underflow<T>(parts.negative, options);
+
+          return zero.has_value() ? scale_result::success(std::optional<T>{*zero.value_if()})
+                                  : scale_result::failure(*zero.error_if());
         }
       }
 
-      // The fast steps assume IEEE binary32 or binary64, and their constants do not compile for
-      // other formats. convert_special_floating() rejects those at run time, so drop the
-      // call at compile time too.
-      if constexpr (detail::supports_floating_conversion<T>())
-      {
-        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
-        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
-        // every path assigns the real value before use. For constants and results, the value is read later in
-        // the same function or template instantiation, which the tool does not track.
-        // codeql::misra_deviation_next_line(DEV-007.13)
-        const auto fast = try_fast_path<T>(number.spelling(), parts, work);
+      return scale_result::success(std::nullopt);
+    }
 
-        if (!fast.has_value())
-        {
-          return float_result::failure(*fast.error_if());
-        }
-
-        if (fast.value_if()->has_value())
-        {
-          return float_result::success(**fast.value_if());
-        }
-      }
-
-      // Declared before integers so it outlives every allocation it accounts for.
-      accounted_storage arena{scratch, options.max_scratch_bytes};
-      const storage_callbacks provider = arena.callbacks();
-
-      detail::big_unsigned numerator{provider};
-      detail::big_unsigned denominator{provider};
-
+    /**
+     * @brief Compute a checked limb bound for both aligned operands and the temporary remainder.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @par ID SWU-VALUE-203
+     */
+    [[nodiscard]] result<std::size_t> operand_capacity(const detail::number_analysis& parts,
+                                                       std::size_t quotient_bits) noexcept
+    {
       // Bound the significand without scanning its spelling again.
       const auto digit_bits =
         (parts.kind == number_kind::hexadecimal)
@@ -774,14 +756,14 @@ namespace adaptive_json5
 
       if (!digit_bits.has_value())
       {
-        return float_result::failure(*digit_bits.error_if());
+        return result<std::size_t>::failure(*digit_bits.error_if());
       }
 
       const auto scale_bits = detail::decimal_digit_bits(parts.scale_magnitude);
 
       if (!scale_bits.has_value())
       {
-        return float_result::failure(*scale_bits.error_if());
+        return result<std::size_t>::failure(*scale_bits.error_if());
       }
 
       // Before scaling, the numerator holds the significand and the denominator holds one.
@@ -796,7 +778,7 @@ namespace adaptive_json5
 
         if (!scaled_bound.has_value())
         {
-          return float_result::failure(*scaled_bound.error_if());
+          return result<std::size_t>::failure(*scaled_bound.error_if());
         }
 
         denominator_bound = *scaled_bound.value_if();
@@ -808,7 +790,7 @@ namespace adaptive_json5
 
         if (!scaled_bound.has_value())
         {
-          return float_result::failure(*scaled_bound.error_if());
+          return result<std::size_t>::failure(*scaled_bound.error_if());
         }
 
         numerator_bound = *scaled_bound.value_if();
@@ -823,11 +805,11 @@ namespace adaptive_json5
         // every path assigns the real value before use. For constants and results, the value is read later in
         // the same function or template instantiation, which the tool does not track.
         // codeql::misra_deviation_next_line(DEV-007.12)
-        checked_add(larger_bound, static_cast<std::size_t>(c_quotient_bits), resource_limit_reason::conversion_size);
+        checked_add(larger_bound, quotient_bits, resource_limit_reason::conversion_size);
 
       if (!aligned_bound.has_value())
       {
-        return float_result::failure(*aligned_bound.error_if());
+        return result<std::size_t>::failure(*aligned_bound.error_if());
       }
 
       // A remainder can temporarily double before the next subtraction.
@@ -841,14 +823,35 @@ namespace adaptive_json5
 
       if (!capacity_bits.has_value())
       {
-        return float_result::failure(*capacity_bits.error_if());
+        return result<std::size_t>::failure(*capacity_bits.error_if());
       }
 
       const auto capacity_limbs = detail::limbs_for_bits(*capacity_bits.value_if());
+      return capacity_limbs;
+    }
+
+    /**
+     * @brief Reserve scratch for the exact numerator and denominator before any digit arithmetic.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @param parts Analysis of the validated number.
+     * @param quotient_bits Index of the highest quotient bit (precision plus two).
+     * @param numerator Empty integer that receives the significand.
+     * @param denominator Empty integer that receives the power of ten.
+     * @param work Work budget; charged one unit for the bound calculation.
+     * @return Success, or the size, work or scratch failure.
+     * @note Reserves room for alignment and the remainder doubling, so later steps do not grow.
+     * @par ID SWU-VALUE-187
+     */
+    [[nodiscard]] status_result reserve_operands(const detail::number_analysis& parts, std::size_t quotient_bits,
+                                                 detail::big_unsigned& numerator, detail::big_unsigned& denominator,
+                                                 work_budget& work) noexcept
+    {
+      const auto capacity_limbs = operand_capacity(parts, quotient_bits);
 
       if (!capacity_limbs.has_value())
       {
-        return float_result::failure(*capacity_limbs.error_if());
+        return status_result::failure(*capacity_limbs.error_if());
       }
 
       // The bound calculation has constant cost; reservation does not initialize limbs.
@@ -856,36 +859,56 @@ namespace adaptive_json5
 
       if (!bound_charged.has_value())
       {
-        return float_result::failure(*bound_charged.error_if());
+        return status_result::failure(*bound_charged.error_if());
       }
 
       const auto numerator_reserved = numerator.reserve(*capacity_limbs.value_if());
 
       if (!numerator_reserved.has_value())
       {
-        return float_result::failure(*numerator_reserved.error_if());
+        return status_result::failure(*numerator_reserved.error_if());
       }
 
       const auto denominator_reserved = denominator.reserve(*capacity_limbs.value_if());
 
       if (!denominator_reserved.has_value())
       {
-        return float_result::failure(*denominator_reserved.error_if());
+        return status_result::failure(*denominator_reserved.error_if());
       }
 
+      return status_result::success();
+    }
+
+    /**
+     * @brief Load the significand and scale numerator or denominator by the decimal exponent.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @param spelling Number spelling.
+     * @param parts Analysis of the spelling.
+     * @param numerator Reserved integer for the significand.
+     * @param denominator Reserved integer, set to one and then scaled for a negative exponent.
+     * @param work Work budget.
+     * @return Success, or the work or size failure.
+     * @note Afterwards the exact value is numerator / denominator.
+     * @par ID SWU-VALUE-188
+     */
+    [[nodiscard]] status_result load_ratio(input_view spelling, const detail::number_analysis& parts,
+                                           detail::big_unsigned& numerator, detail::big_unsigned& denominator,
+                                           work_budget& work) noexcept
+    {
       // Start digit arithmetic only after both scratch reservations succeed.
-      const auto loaded = load_significand(number.spelling(), parts.kind, numerator, work);
+      const auto loaded = load_significand(spelling, parts.kind, numerator, work);
 
       if (!loaded.has_value())
       {
-        return float_result::failure(*loaded.error_if());
+        return status_result::failure(*loaded.error_if());
       }
 
       const auto one = denominator.append_digit(1, c_decimal_radix, work);
 
       if (!one.has_value())
       {
-        return float_result::failure(*one.error_if());
+        return status_result::failure(*one.error_if());
       }
 
       detail::big_unsigned& scaled = parts.scale_negative ? denominator : numerator;
@@ -904,34 +927,63 @@ namespace adaptive_json5
 
         if (!multiplied.has_value())
         {
-          return float_result::failure(*multiplied.error_if());
+          return status_result::failure(*multiplied.error_if());
         }
       }
 
       if (remaining_scale != 0)
       {
-
         static constexpr std::array<std::uint32_t, c_decimal_chunk_digits> c_tail_radix{1U, 10U, 100U, 1000U};
         const auto multiplied = scaled.append_digit(0, c_tail_radix[remaining_scale], work);
 
         if (!multiplied.has_value())
         {
-          return float_result::failure(*multiplied.error_if());
+          return status_result::failure(*multiplied.error_if());
         }
       }
+
+      return status_result::success();
+    }
+
+    /**
+     * @brief Shift the ratio so the quotient has quotient_bits + 1 bits, then align the divisor.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @param quotient_bits Index of the highest quotient bit; at most 63.
+     * @param numerator Loaded numerator.
+     * @param denominator Loaded denominator.
+     * @param work Work budget.
+     * @return The binary shift applied to the ratio, or the work or size failure.
+     * @note Rejects operands longer than PTRDIFF_MAX / 4 bits, so the returned shift is within
+     * +/- (PTRDIFF_MAX / 4 + quotient_bits); round_quotient() relies on that bound.
+     * @par ID SWU-VALUE-189
+     */
+    [[nodiscard]] result<std::ptrdiff_t> align_ratio(std::ptrdiff_t quotient_bits, detail::big_unsigned& numerator,
+                                                     detail::big_unsigned& denominator, work_budget& work) noexcept
+    {
+      using shift_result = result<std::ptrdiff_t>;
+
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track. Compile-time constant: the
+      // maximum of std::ptrdiff_t is converted to std::size_t and divided by four, which cannot overflow.
+      // codeql::misra_deviation_next_line(DEV-007.15)
+      constexpr std::size_t c_max_bits = static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max()) / 4U;
 
       const auto numerator_length = numerator.bit_length();
 
       if (!numerator_length.has_value())
       {
-        return float_result::failure(*numerator_length.error_if());
+        return shift_result::failure(*numerator_length.error_if());
       }
 
       const auto denominator_length = denominator.bit_length();
 
       if (!denominator_length.has_value())
       {
-        return float_result::failure(*denominator_length.error_if());
+        return shift_result::failure(*denominator_length.error_if());
       }
 
       const std::size_t numerator_bits = *numerator_length.value_if();
@@ -940,7 +992,7 @@ namespace adaptive_json5
       // Keeps the signed exponent arithmetic below far from overflow.
       if ((numerator_bits > c_max_bits) || (denominator_bits > c_max_bits))
       {
-        return float_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
+        return shift_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
       }
 
       // After shifting, the quotient lies in [2^(P+1), 2^(P+3)): enough bits to round once.
@@ -948,9 +1000,9 @@ namespace adaptive_json5
         // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
         // MISRA justification: Both bit counts are at most c_max_bits (PTRDIFF_MAX / 4),
         // checked above, so their difference is within +/- PTRDIFF_MAX / 4 and subtracting
-        // it from c_quotient_bits cannot overflow std::ptrdiff_t.
+        // it from quotient_bits cannot overflow std::ptrdiff_t.
         // codeql::misra_deviation_next_line(DEV-005.07)
-        c_quotient_bits - (static_cast<std::ptrdiff_t>(numerator_bits) - static_cast<std::ptrdiff_t>(denominator_bits));
+        quotient_bits - (static_cast<std::ptrdiff_t>(numerator_bits) - static_cast<std::ptrdiff_t>(denominator_bits));
 
       if (shift > 0)
       {
@@ -963,7 +1015,7 @@ namespace adaptive_json5
 
         if (!widened.has_value())
         {
-          return float_result::failure(*widened.error_if());
+          return shift_result::failure(*widened.error_if());
         }
       }
       else if (shift < 0)
@@ -977,7 +1029,7 @@ namespace adaptive_json5
 
         if (!widened.has_value())
         {
-          return float_result::failure(*widened.error_if());
+          return shift_result::failure(*widened.error_if());
         }
       }
       else
@@ -991,12 +1043,33 @@ namespace adaptive_json5
       // every path assigns the real value before use. For constants and results, the value is read later in the
       // same function or template instantiation, which the tool does not track.
       // codeql::misra_deviation_next_line(DEV-007.08)
-      const auto aligned = denominator.shift_left(static_cast<std::size_t>(c_quotient_bits), work);
+      const auto aligned = denominator.shift_left(static_cast<std::size_t>(quotient_bits), work);
 
       if (!aligned.has_value())
       {
-        return float_result::failure(*aligned.error_if());
+        return shift_result::failure(*aligned.error_if());
       }
+
+      return shift_result::success(shift);
+    }
+
+    /**
+     * @brief Divide by compare and subtract, producing quotient_bits + 1 quotient bits.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @param quotient_bits Index of the highest quotient bit; at most 63.
+     * @param numerator Aligned numerator; holds the remainder afterwards.
+     * @param denominator Aligned denominator.
+     * @param work Work budget.
+     * @return The truncated quotient, or the work failure.
+     * @par ID SWU-VALUE-190
+     */
+    [[nodiscard]] result<std::uint_least64_t> divide_ratio(std::ptrdiff_t quotient_bits,
+                                                           detail::big_unsigned& numerator,
+                                                           const detail::big_unsigned& denominator,
+                                                           work_budget& work) noexcept
+    {
+      using quotient_result = result<std::uint_least64_t>;
 
       std::uint_least64_t quotient{};
 
@@ -1005,13 +1078,13 @@ namespace adaptive_json5
       // bound that the body does not modify, and changed only in the increment expression. The counter is
       // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
       // codeql::misra_deviation_next_line(DEV-017.01)
-      for (std::ptrdiff_t bit = c_quotient_bits; bit >= 0; --bit)
+      for (std::ptrdiff_t bit = quotient_bits; bit >= 0; --bit)
       {
         const auto order = numerator.compare(denominator, work);
 
         if (!order.has_value())
         {
-          return float_result::failure(*order.error_if());
+          return quotient_result::failure(*order.error_if());
         }
 
         if (*order.value_if() != detail::magnitude_order::less)
@@ -1020,7 +1093,7 @@ namespace adaptive_json5
 
           if (!reduced.has_value())
           {
-            return float_result::failure(*reduced.error_if());
+            return quotient_result::failure(*reduced.error_if());
           }
 
           quotient |= (static_cast<std::uint_least64_t>(1U) << static_cast<std::uint32_t>(bit));
@@ -1032,13 +1105,43 @@ namespace adaptive_json5
 
           if (!doubled.has_value())
           {
-            return float_result::failure(*doubled.error_if());
+            return quotient_result::failure(*doubled.error_if());
           }
         }
       }
 
-      // Any remainder means the exact value lies strictly above the truncated quotient.
-      const bool sticky = !numerator.is_zero();
+      return quotient_result::success(quotient);
+    }
+
+    /**
+     * @brief Round the quotient once, to nearest with ties to even, and scale it to T.
+     * @par Requirements
+     * P038; J5-037; J5-048; J5-049.
+     * @tparam T Destination type: float or double.
+     * @param quotient Truncated quotient from divide_ratio().
+     * @param sticky Whether a nonzero remainder lies below the quotient.
+     * @param shift Shift returned by align_ratio().
+     * @param negative Sign of the original value.
+     * @param options Conversion policies.
+     * @return The correctly rounded value, the underflow result or an out_of_range failure.
+     * @pre |shift| is at most PTRDIFF_MAX / 4 + 55, as align_ratio() guarantees; the MISRA
+     * justifications below rely on this bound.
+     * @par ID SWU-VALUE-191
+     */
+    template <typename T>
+    [[nodiscard]] result<T> round_quotient(std::uint_least64_t quotient, bool sticky, std::ptrdiff_t shift,
+                                           bool negative, const floating_conversion_options& options) noexcept
+    {
+      using float_result = result<T>;
+      using limits = std::numeric_limits<T>;
+
+      constexpr auto c_precision = static_cast<std::ptrdiff_t>(limits::digits);
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.16)
+      constexpr std::ptrdiff_t c_min_normal_exponent = limits::min_exponent - 1;
 
       const auto quotient_bits = static_cast<std::ptrdiff_t>(bit_length_of(quotient));
       // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
@@ -1132,6 +1235,170 @@ namespace adaptive_json5
       const T magnitude = std::ldexp(static_cast<T>(significand), static_cast<int>(scale_exponent));
 
       return float_result::success(negative ? -magnitude : magnitude);
+    }
+
+    /**
+     * @brief Own conversion scratch through ratio construction, division and final rounding.
+     * @par Requirements
+     * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
+     * @par ID SWU-VALUE-204
+     */
+    template <typename T>
+    [[nodiscard]] result<T> convert_exact_ratio(input_view spelling, const detail::number_analysis& parts,
+                                                const storage_callbacks& scratch,
+                                                const floating_conversion_options& options, work_budget& work) noexcept
+    {
+      using float_result = result<T>;
+      using limits = std::numeric_limits<T>;
+
+      constexpr auto c_precision = static_cast<std::ptrdiff_t>(limits::digits);
+      // Two extra quotient bits guarantee a rounding bit below the significand.
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Compile-time constant: c_precision is 53 for double and 24
+      // for float, so the result is 55 or 26. The static_assert below rejects any other
+      // value that would leave the 64-bit quotient.
+      // Initialized at the declaration so that no path can read an indeterminate value; every path assigns the
+      // real value before use. For constants and results, the value is read later in the same function or
+      // template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-005.08)
+      constexpr std::ptrdiff_t c_quotient_bits = c_precision + 2;
+      static_assert(c_quotient_bits < 64, "The quotient must fit std::uint_least64_t.");
+      // Declared before integers so it outlives every allocation it accounts for.
+      accounted_storage arena{scratch, options.max_scratch_bytes};
+      const storage_callbacks provider = arena.callbacks();
+
+      detail::big_unsigned numerator{provider};
+      detail::big_unsigned denominator{provider};
+
+      const auto reserved =
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in the
+        // same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.28)
+        reserve_operands(parts, static_cast<std::size_t>(c_quotient_bits), numerator, denominator, work);
+
+      if (!reserved.has_value())
+      {
+        return float_result::failure(*reserved.error_if());
+      }
+
+      const auto loaded = load_ratio(spelling, parts, numerator, denominator, work);
+
+      if (!loaded.has_value())
+      {
+        return float_result::failure(*loaded.error_if());
+      }
+
+      const auto shift = align_ratio(c_quotient_bits, numerator, denominator, work);
+
+      if (!shift.has_value())
+      {
+        return float_result::failure(*shift.error_if());
+      }
+
+      const auto quotient = divide_ratio(c_quotient_bits, numerator, denominator, work);
+
+      if (!quotient.has_value())
+      {
+        return float_result::failure(*quotient.error_if());
+      }
+
+      // Any remainder means the exact value lies strictly above the truncated quotient.
+      const bool sticky = !numerator.is_zero();
+
+      return round_quotient<T>(*quotient.value_if(), sticky, *shift.value_if(), parts.negative, options);
+    }
+
+    /**
+     * @brief Convert an exact number to a correctly rounded float or double.
+     * @par Requirements
+     * P038; J5-003; J5-037; J5-038; J5-046; J5-048; J5-052.
+     * @tparam T Destination type: float or double.
+     * @param number Borrowed validated number.
+     * @param scratch Caller-owned fallible temporary storage.
+     * @param options Work, scratch and special-value policies.
+     * @return Correctly rounded value or an explicit error.
+     * @note Rounds once, directly to T, with ties to an even significand.
+     * All scratch storage is released before returning.
+     * @par ID SWU-VALUE-053
+     */
+    template <typename T>
+    [[nodiscard]] result<T> convert_to_floating(const owned_number& number, const storage_callbacks& scratch,
+                                                const floating_conversion_options& options) noexcept
+    {
+      using float_result = result<T>;
+      work_budget work{options.max_work_units};
+
+      const auto analysis = detail::analyse_number(number, work);
+
+      if (!analysis.has_value())
+      {
+        return float_result::failure(*analysis.error_if());
+      }
+
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.14)
+      const auto special = detail::convert_special_floating<T>(*analysis.value_if(), options);
+
+      if (!special.has_value())
+      {
+        return float_result::failure(*special.error_if());
+      }
+
+      if (special.value_if()->has_value())
+      {
+        return float_result::success(**special.value_if());
+      }
+
+      // Analysis already collected these properties during its existing scan.
+      const detail::number_analysis& parts = *analysis.value_if();
+
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+      // every path assigns the real value before use. For constants and results, the value is read later in the
+      // same function or template instantiation, which the tool does not track.
+      // codeql::misra_deviation_next_line(DEV-007.29)
+      const auto by_scale = reject_by_scale<T>(parts, options);
+
+      if (!by_scale.has_value())
+      {
+        return float_result::failure(*by_scale.error_if());
+      }
+
+      if (by_scale.value_if()->has_value())
+      {
+        return float_result::success(**by_scale.value_if());
+      }
+
+      // The fast steps assume IEEE binary32 or binary64, and their constants do not compile for
+      // other formats. convert_special_floating() rejects those at run time, so drop the
+      // call at compile time too.
+      if constexpr (detail::supports_floating_conversion<T>())
+      {
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value;
+        // every path assigns the real value before use. For constants and results, the value is read later in
+        // the same function or template instantiation, which the tool does not track.
+        // codeql::misra_deviation_next_line(DEV-007.13)
+        const auto fast = try_fast_path<T>(number.spelling(), parts, work);
+
+        if (!fast.has_value())
+        {
+          return float_result::failure(*fast.error_if());
+        }
+
+        if (fast.value_if()->has_value())
+        {
+          return float_result::success(**fast.value_if());
+        }
+      }
+
+      return convert_exact_ratio<T>(number.spelling(), parts, scratch, options, work);
     }
   } // namespace
 

@@ -71,6 +71,89 @@ namespace adaptive_json5
 
   namespace detail
   {
+    namespace
+    {
+      /**
+       * @brief Select a member name or accept the closing brace after a JSON5 trailing comma.
+       * @par Requirements
+       * P033; P034; P035; J5-013; J5-027.
+       * @par ID SWU-PARSER-050
+       */
+      result<parser_action> select_name_after_comma(char byte, syntax_mode mode, std::size_t byte_offset) noexcept
+      {
+        using action_result = result<parser_action>;
+        if (byte == '}')
+        {
+          if (mode == syntax_mode::json5)
+          {
+            return action_result::success(parser_action::close_container);
+          }
+
+          return action_result::failure(error::syntax_at(byte_offset, syntax_error_reason::not_allowed_in_strict_json));
+        }
+
+        return action_result::success(parser_action::read_name);
+      }
+
+      /**
+       * @brief Select a comma or the matching closer after a completed container entry.
+       * @par Requirements
+       * P033; P034; P035; J5-013; J5-027.
+       * @par ID SWU-PARSER-051
+       */
+      result<parser_action> select_separator(char byte, char closing, std::size_t byte_offset) noexcept
+      {
+        using action_result = result<parser_action>;
+        if (byte == ',')
+        {
+          return action_result::success(parser_action::consume_comma);
+        }
+
+        if (byte == closing)
+        {
+          return action_result::success(parser_action::close_container);
+        }
+
+        return action_result::failure(
+          error::syntax_at(byte_offset, separator_reason(byte, syntax_error_reason::missing_comma)));
+      }
+
+      /**
+       * @brief Reject misplaced punctuation or request a value from the lexer.
+       * @par Requirements
+       * P033; P034; P035; J5-013; J5-027.
+       * @par ID SWU-PARSER-052
+       */
+      result<parser_action> select_value_action(parser_state state, char byte, std::size_t byte_offset) noexcept
+      {
+        using action_result = result<parser_action>;
+        // P034/P035: separators cannot create array holes or replace member values.
+        if ((byte == ',') || (byte == ':') || (byte == ']') || (byte == '}'))
+        {
+          auto reason = separator_reason(byte, syntax_error_reason::unexpected_character);
+
+          // A member colon promises a value, so any punctuation here means the value is missing.
+          if (state == parser_state::object_value)
+          {
+            reason = syntax_error_reason::missing_value;
+          }
+          // JSON5 accepted this trailing comma above; only strict mode reaches here with it.
+          else if ((state == parser_state::array_value_after_comma) && (byte == ']'))
+          {
+            reason = syntax_error_reason::not_allowed_in_strict_json;
+          }
+          else
+          {
+            // Other states keep the separator-based reason.
+          }
+
+          return action_result::failure(error::syntax_at(byte_offset, reason));
+        }
+
+        return action_result::success(parser_action::read_value);
+      }
+    } // namespace
+
     /**
      * @brief Select the next action for the innermost open container.
      * @par Requirements
@@ -116,18 +199,7 @@ namespace adaptive_json5
         break;
 
       case parser_state::array_comma_or_end:
-        if (byte == ',')
-        {
-          return action_result::success(parser_action::consume_comma);
-        }
-
-        if (byte == ']')
-        {
-          return action_result::success(parser_action::close_container);
-        }
-
-        return action_result::failure(
-          error::syntax_at(byte_offset, separator_reason(byte, syntax_error_reason::missing_comma)));
+        return select_separator(byte, ']', byte_offset);
 
       // P035: require each name, colon and value before allowing a member separator.
       case parser_state::object_first_name_or_end:
@@ -139,17 +211,7 @@ namespace adaptive_json5
         return action_result::success(parser_action::read_name);
 
       case parser_state::object_name_after_comma:
-        if (byte == '}')
-        {
-          if (mode == syntax_mode::json5)
-          {
-            return action_result::success(parser_action::close_container);
-          }
-
-          return action_result::failure(error::syntax_at(byte_offset, syntax_error_reason::not_allowed_in_strict_json));
-        }
-
-        return action_result::success(parser_action::read_name);
+        return select_name_after_comma(byte, mode, byte_offset);
 
       case parser_state::object_colon:
         if (byte == ':')
@@ -163,47 +225,13 @@ namespace adaptive_json5
         break;
 
       case parser_state::object_comma_or_end:
-        if (byte == ',')
-        {
-          return action_result::success(parser_action::consume_comma);
-        }
-
-        if (byte == '}')
-        {
-          return action_result::success(parser_action::close_container);
-        }
-
-        return action_result::failure(
-          error::syntax_at(byte_offset, separator_reason(byte, syntax_error_reason::missing_comma)));
+        return select_separator(byte, '}', byte_offset);
 
       default:
         return action_result::failure(error::internal_fault());
       }
 
-      // P034/P035: separators cannot create array holes or replace member values.
-      if ((byte == ',') || (byte == ':') || (byte == ']') || (byte == '}'))
-      {
-        auto reason = separator_reason(byte, syntax_error_reason::unexpected_character);
-
-        // A member colon promises a value, so any punctuation here means the value is missing.
-        if (frame.state == parser_state::object_value)
-        {
-          reason = syntax_error_reason::missing_value;
-        }
-        // JSON5 accepted this trailing comma above; only strict mode reaches here with it.
-        else if ((frame.state == parser_state::array_value_after_comma) && (byte == ']'))
-        {
-          reason = syntax_error_reason::not_allowed_in_strict_json;
-        }
-        else
-        {
-          // Other states keep the separator-based reason.
-        }
-
-        return action_result::failure(error::syntax_at(byte_offset, reason));
-      }
-
-      return action_result::success(parser_action::read_value);
+      return select_value_action(frame.state, byte, byte_offset);
     }
   } // namespace detail
 } // namespace adaptive_json5

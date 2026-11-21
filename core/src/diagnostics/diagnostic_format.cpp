@@ -212,50 +212,48 @@ namespace adaptive_json5
      */
     std::string_view describe(syntax_error_reason reason) noexcept
     {
-      switch (reason)
+      // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+      // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+      // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+      // implicit members that are never odr-used are not in its database.
+      // codeql::misra_deviation_next_line(DEV-020.59)
+      struct description
       {
-      case syntax_error_reason::unexpected_end:
-        return "unexpected end of input";
-      case syntax_error_reason::unexpected_character:
-        return "unexpected character";
-      case syntax_error_reason::unexpected_comma:
-        return "unexpected comma";
-      case syntax_error_reason::unexpected_colon:
-        return "unexpected colon";
-      case syntax_error_reason::unexpected_closing_bracket:
-        return "unexpected closing bracket";
-      case syntax_error_reason::missing_colon:
-        return "missing colon";
-      case syntax_error_reason::missing_comma:
-        return "missing comma";
-      case syntax_error_reason::missing_value:
-        return "missing value";
-      case syntax_error_reason::expected_member_name:
-        return "expected member name";
-      case syntax_error_reason::unterminated_string:
-        return "unterminated string";
-      case syntax_error_reason::unterminated_comment:
-        return "unterminated comment";
-      case syntax_error_reason::line_terminator_in_string:
-        return "line terminator in string";
-      case syntax_error_reason::control_character_in_string:
-        return "control character in string";
-      case syntax_error_reason::invalid_escape:
-        return "invalid escape sequence";
-      case syntax_error_reason::invalid_number:
-        return "invalid number";
-      case syntax_error_reason::invalid_identifier:
-        return "invalid identifier";
-      case syntax_error_reason::unknown_literal:
-        return "unknown literal";
-      case syntax_error_reason::not_allowed_in_strict_json:
-        return "not allowed in strict JSON";
-      case syntax_error_reason::empty_input:
-        return "empty input";
-      case syntax_error_reason::trailing_content:
-        return "unexpected content after value";
+          syntax_error_reason reason;
+          std::string_view text;
+      };
+      // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+      // MISRA justification: messages is a function-local static constexpr variable, not a static data member,
+      // and it is declared only once.
+      // codeql::misra_deviation_next_line(DEV-009.03)
+      static constexpr std::array<description, 20U> messages{
+        {{syntax_error_reason::unexpected_end, "unexpected end of input"},
+         {syntax_error_reason::unexpected_character, "unexpected character"},
+         {syntax_error_reason::unexpected_comma, "unexpected comma"},
+         {syntax_error_reason::unexpected_colon, "unexpected colon"},
+         {syntax_error_reason::unexpected_closing_bracket, "unexpected closing bracket"},
+         {syntax_error_reason::missing_colon, "missing colon"},
+         {syntax_error_reason::missing_comma, "missing comma"},
+         {syntax_error_reason::missing_value, "missing value"},
+         {syntax_error_reason::expected_member_name, "expected member name"},
+         {syntax_error_reason::unterminated_string, "unterminated string"},
+         {syntax_error_reason::unterminated_comment, "unterminated comment"},
+         {syntax_error_reason::line_terminator_in_string, "line terminator in string"},
+         {syntax_error_reason::control_character_in_string, "control character in string"},
+         {syntax_error_reason::invalid_escape, "invalid escape sequence"},
+         {syntax_error_reason::invalid_number, "invalid number"},
+         {syntax_error_reason::invalid_identifier, "invalid identifier"},
+         {syntax_error_reason::unknown_literal, "unknown literal"},
+         {syntax_error_reason::not_allowed_in_strict_json, "not allowed in strict JSON"},
+         {syntax_error_reason::empty_input, "empty input"},
+         {syntax_error_reason::trailing_content, "unexpected content after value"}}};
+      for (const auto& message : messages)
+      {
+        if (reason == message.reason)
+        {
+          return message.text;
+        }
       }
-
       return "syntax error";
     }
 

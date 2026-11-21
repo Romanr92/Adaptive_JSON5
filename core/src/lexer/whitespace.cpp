@@ -34,27 +34,7 @@ namespace adaptive_json5
 
     while (!candidate.is_at_end())
     {
-      // Reuse P007 so CRLF remains one sequence and Unicode separators
-      // retain their original three-byte spans.
-      const auto terminator = consume_line_terminator(candidate);
-
-      if (!terminator.has_value())
-      {
-        return whitespace_result::failure(*terminator.error_if());
-      }
-
-      if (terminator.value_if()->has_value())
-      {
-        // The recognizer already advanced candidate over the complete sequence.
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
-        // count is at most its length and cannot wrap std::size_t.
-        // codeql::misra_deviation_next_line(DEV-004.120)
-        ++line_break_count;
-        continue;
-      }
-
-      // Decode through another copy: a valid nonspace must remain unread.
+      // Decode each character once, through a copy: a valid nonspace must remain unread.
       cursor next = candidate;
       const auto decoded = decode_utf8(next);
 
@@ -69,6 +49,19 @@ namespace adaptive_json5
       {
         // No more input remains to classify.
         break;
+      }
+
+      // Reuse P007's classification so CRLF remains one sequence and Unicode separators
+      // retain their original three-byte spans.
+      if (complete_line_terminator(character->value, next))
+      {
+        candidate = next;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Counts characters or sequences of the spelling or input being scanned, so the
+        // count is at most its length and cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.120)
+        ++line_break_count;
+        continue;
       }
 
       if (!is_json5_space(character->value))

@@ -1,7 +1,9 @@
 #include "lexer/line_terminator.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <ostream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -176,6 +178,71 @@ namespace
     }
     EXPECT_TRUE(source.is_at_end());
   }
+
+  /* ----------------------------------------------------------------------------------- */
+
+  static_assert(noexcept(adaptive_json5::complete_line_terminator(0U, std::declval<cursor&>())));
+
+  /**
+   * @brief An already decoded scalar, the byte after it and the expected classification.
+   * @par Requirements
+   * P007; J5-011; J5-044.
+   */
+  struct decoded_terminator_case
+  {
+      const char* name;        // Fixture description.
+      std::uint32_t scalar;    // Input: scalar value the caller has already decoded.
+      int following;           // Input: byte after the scalar, or -1 for end of input.
+      bool terminator;         // Expected: whether scalar is a line terminator.
+      std::size_t extra_bytes; // Expected: bytes the cursor advances past the scalar (1 for CRLF).
+  };
+
+  std::ostream& operator<<(std::ostream& stream, const decoded_terminator_case& value)
+  {
+    return stream << value.name;
+  }
+
+  using J5_011_DecodedTerminator = testing::TestWithParam<decoded_terminator_case>;
+
+  /* Verify classification of a decoded scalar and CRLF completion without decoding again.
+   * Arrange: A cursor over the byte that follows the scalar (empty at end of input).
+   * Act: Classify the scalar with that cursor.
+   * Expect: The classification, and the cursor advanced only over the LF of a CRLF pair.
+   */
+  TEST_P(J5_011_DecodedTerminator, ClassifiesAndCompletesCrLf)
+  {
+    /* Arrange */
+    const decoded_terminator_case& param = GetParam();
+    std::string bytes;
+    if (param.following >= 0)
+    {
+      bytes.push_back(static_cast<char>(param.following));
+    }
+    cursor after{input_view{bytes.data(), bytes.size()}};
+    /* Act */
+    const bool terminator = adaptive_json5::complete_line_terminator(param.scalar, after);
+    /* Expect */
+    EXPECT_EQ(terminator, param.terminator);
+    EXPECT_EQ(after.offset(), param.extra_bytes);
+  }
+
+  INSTANTIATE_TEST_SUITE_P(ScalarFixtures, J5_011_DecodedTerminator,
+                           testing::Values(decoded_terminator_case{"Lf", 0x0AU, 0x0A, true, 0},
+                                           decoded_terminator_case{"CrAtEnd", 0x0DU, -1, true, 0},
+                                           decoded_terminator_case{"CrLf", 0x0DU, 0x0A, true, 1},
+                                           decoded_terminator_case{"CrCr", 0x0DU, 0x0D, true, 0},
+                                           decoded_terminator_case{"CrLetter", 0x0DU, 0x41, true, 0},
+                                           decoded_terminator_case{"LfLf", 0x0AU, 0x0A, true, 0},
+                                           decoded_terminator_case{"LineSeparatorLf", 0x2028U, 0x0A, true, 0},
+                                           decoded_terminator_case{"ParagraphSeparator", 0x2029U, -1, true, 0},
+                                           decoded_terminator_case{"NextLine", 0x85U, 0x0A, false, 0},
+                                           decoded_terminator_case{"Space", 0x20U, 0x0A, false, 0},
+                                           decoded_terminator_case{"BeforeLineSeparator", 0x2027U, -1, false, 0},
+                                           decoded_terminator_case{"AfterParagraphSeparator", 0x202AU, -1, false, 0}),
+                           [](const testing::TestParamInfo<decoded_terminator_case>& param_info)
+                           {
+                             return std::string{param_info.param.name};
+                           });
 
   /* ================================= End Test_J5_011 ================================= */
 

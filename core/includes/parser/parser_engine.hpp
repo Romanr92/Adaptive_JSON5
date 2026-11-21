@@ -13,6 +13,8 @@
 #include "adaptive_json5/value/value_index.hpp"
 #include "adaptive_json5/value/warning_list.hpp"
 #include "input/cursor.hpp"
+#include "lexer/member_name_lexer.hpp"
+#include "lexer/scalar_token.hpp"
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 #include "parser/parser_dispatch.hpp"
@@ -68,6 +70,167 @@ namespace adaptive_json5
     class [[nodiscard]] parser_engine
     {
       private:
+        /**
+         * @brief Enter and open a container, restoring the value reservation if construction fails.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+         * @par ID SWU-PARSER-057
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.42)
+        [[nodiscard]] status_result open_value_container(bool member) noexcept;
+
+        /**
+         * @brief Charge construction work, append the scalar and publish its source span and cursor.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+         * @par ID SWU-PARSER-056
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.43)
+        [[nodiscard]] status_result append_scanned_scalar(scalar_token& token, source_span span) noexcept;
+
+        /**
+         * @brief Recognize a scalar within the remaining work budget and account for its decoded string bytes.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-028; J5-048.
+         * @par ID SWU-PARSER-055
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.44)
+        [[nodiscard]] status_result read_scalar_value() noexcept;
+
+        /**
+         * @brief Apply name policies and store the pending name before advancing the input cursor.
+         * @par Requirements
+         * P033; P035; P036; J5-032; J5-033; J5-049; J5-017; J5-019; J5-020; J5-048.
+         * @par ID SWU-PARSER-058
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.45)
+        [[nodiscard]] status_result accept_scanned_name(parser_frame& frame, member_name_token& name,
+                                                        std::size_t end) noexcept;
+
+        /**
+         * @brief Reserve a nesting level and record its container kind in the counting stack.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
+         * @par ID SWU-PARSER-061
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.46)
+        [[nodiscard]] status_result count_open_container(char opening) noexcept;
+
+        /**
+         * @brief Reserve decoded string units and diagnostics or enforce the number spelling limit.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
+         * @par ID SWU-PARSER-060
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.47)
+        [[nodiscard]] status_result reserve_measured_scalar(const scalar_measure& value) noexcept;
+
+        /**
+         * @brief Measure the scalar and reserve its resources before completing the counting transition.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-017; J5-027; J5-046; J5-047; J5-048; issue #125.
+         * @par ID SWU-PARSER-059
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.48)
+        [[nodiscard]] status_result count_scalar_value() noexcept;
+        struct counting_policy;
+        struct building_policy;
+
+        /**
+         * @brief Charge each dispatch, skip trivia and advance the selected pass until its root is complete.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-067
+         */
+        template <typename Policy>
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.49)
+        [[nodiscard]] status_result walk_document() noexcept;
+
+        /**
+         * @brief Dispatch a selected grammar action to the counting or building policy.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-066
+         */
+        template <typename Policy>
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.50)
+        [[nodiscard]] status_result apply_action(parser_action action) noexcept;
+
+        /**
+         * @brief Consume trailing trivia and require end of input when parsing a complete document.
+         * @par Requirements
+         * P033; P037; J5-026; J5-046; J5-047; J5-048; J5-049.
+         * @par ID SWU-PARSER-068
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.51)
+        [[nodiscard]] status_result finish_input(bool complete) noexcept;
+        /**
+         * @brief Reserve a value and select the container or scalar action for the current pass.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-048.
+         * @par ID SWU-PARSER-072
+         */
+        template <typename Policy>
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.52)
+        [[nodiscard]] status_result walk_value() noexcept;
+
+        /**
+         * @brief Validate a colon or comma and advance the common grammar state and cursor together.
+         * @par Requirements
+         * P033; P034; P035; J5-013; J5-027; J5-048.
+         * @par ID SWU-PARSER-073
+         */
+        // MISRA rule: RULE-6-9-1 cpp/misra/type-aliases-declaration
+        // MISRA justification: The declaration and the definition use the same alias (status_result for
+        // result<void>, or the same callback alias). There is only one alias declaration; the tool compares the
+        // alias across translation units and reports it as different.
+        // codeql::misra_deviation_next_line(DEV-013.53)
+        [[nodiscard]] status_result advance_separator(parser_state& state, parser_action action) noexcept;
+
         input_view m_input;
         parse_options m_options;
         storage_callbacks m_storage;

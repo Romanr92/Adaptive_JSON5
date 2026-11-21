@@ -783,7 +783,103 @@ namespace
     EXPECT_TRUE(succeeded);
     EXPECT_GT(failures, 1U);
   }
+
   /* ================================= End Test_J5_048 ================================= */
+  /* =================================== Test_J5_049 =================================== */
+
+  /**
+   * @brief One conversion and the exact work it needs on each library configuration.
+   * @par Requirements
+   * J5-049; #127.
+   */
+  struct conversion_work_case
+  {
+      const char* name;
+      const char* spelling;      // Input JSON5 numeric spelling.
+      bool to_float_target;      // Converts with to_float when true, otherwise with to_double.
+      std::size_t eisel_lemire;  // Measured minimum max_work_units with ADAPTIVE_JSON5_EISEL_LEMIRE ON.
+      std::size_t without_eisel; // Measured minimum max_work_units with it OFF.
+  };
+
+  std::ostream& operator<<(std::ostream& stream, const conversion_work_case& value)
+  {
+    return stream << value.name;
+  }
+
+  class J5_049_ConversionWork : public ::testing::TestWithParam<conversion_work_case>
+  {
+  };
+
+  /**
+   * @brief Convert with the given work ceiling and ample scratch.
+   * @par Requirements
+   * J5-049.
+   * @return Whether the conversion succeeded.
+   */
+  bool converts_within(const owned_number& number, bool to_float_target, std::size_t work)
+  {
+    guard_provider scratch;
+    floating_conversion_options options{};
+    options.max_work_units = work;
+    options.max_scratch_bytes = c_ample_scratch;
+    return to_float_target ? to_float(number, scratch.callbacks(), options).has_value()
+                           : to_double(number, scratch.callbacks(), options).has_value();
+  }
+
+  /* Verify each conversion path needs exactly its measured work, so a refactor of the
+   * conversion code that changes the charged work fails here (#127).
+   * Arrange: Own the spelling; pick the measured work for this build's Eisel-Lemire setting.
+   * Act: Convert with exactly that work and with one unit less.
+   * Expect: Success at the measured work and failure one unit below it (none below zero).
+   */
+  TEST_P(J5_049_ConversionWork, NeedsExactlyTheMeasuredWork)
+  {
+    /* Arrange */
+    if (!adaptive_json5_test::c_clinger_enabled)
+    {
+      GTEST_SKIP() << "Measured with Clinger's fast path; this host evaluates floats with extra precision.";
+    }
+    const conversion_work_case& param = GetParam();
+    guard_provider number_storage;
+    const auto number = make_number(number_storage, param.spelling);
+    ASSERT_TRUE(number.has_value());
+    const std::size_t required = adaptive_json5_test::c_eisel_lemire_enabled ? param.eisel_lemire : param.without_eisel;
+    /* Act */
+    const bool at_requirement = converts_within(*number.value_if(), param.to_float_target, required);
+    const bool below_requirement =
+      (required > 0U) && converts_within(*number.value_if(), param.to_float_target, required - 1U);
+    /* Expect */
+    EXPECT_TRUE(at_requirement);
+    EXPECT_FALSE(below_requirement);
+  }
+
+  INSTANTIATE_TEST_SUITE_P(
+    J5_049_ConversionWorkBaseline, J5_049_ConversionWork,
+    ::testing::Values(conversion_work_case{"DoubleShortDecimal", "1.5", false, 5, 5},
+                      conversion_work_case{"DoubleNegativeZero", "-0.0", false, 4, 4},
+                      conversion_work_case{"DoubleLargeExponent", "1.2345678901234567e300", false, 39, 21791},
+                      conversion_work_case{"DoubleAboveTwoPow53", "9007199254740993", false, 32, 537},
+                      conversion_work_case{"DoubleLongFraction", "0.100000000000000000000000001", false, 2657, 2657},
+                      conversion_work_case{"DoubleSmallestSubnormal", "4.9406564584124654e-324", false, 31492, 31492},
+                      conversion_work_case{"DoubleMaximum", "1.7976931348623157e308", false, 39, 26724},
+                      conversion_work_case{"DoubleLongMantissa", "123456789012345678901234567890e-10", false, 1812,
+                                           1812},
+                      conversion_work_case{"DoubleHexadecimal", "0x1FFFFFFFFFFFFF", false, 30, 30},
+                      conversion_work_case{"DoubleFloatMaximum", "3.4028234663852886e38", false, 38, 2060},
+                      conversion_work_case{"DoubleFloatSubnormal", "1.401298464324817e-45", false, 37, 5833},
+                      conversion_work_case{"FloatShortDecimal", "1.5", true, 5, 5},
+                      conversion_work_case{"FloatNegativeZero", "-0.0", true, 4, 4},
+                      conversion_work_case{"FloatAboveTwoPow53", "9007199254740993", true, 32, 231},
+                      conversion_work_case{"FloatLongFraction", "0.100000000000000000000000001", true, 1228, 1228},
+                      conversion_work_case{"FloatLongMantissa", "123456789012345678901234567890e-10", true, 909, 909},
+                      conversion_work_case{"FloatHexadecimal", "0x1FFFFFFFFFFFFF", true, 887, 887},
+                      conversion_work_case{"FloatMaximum", "3.4028234663852886e38", true, 38, 1469},
+                      conversion_work_case{"FloatSmallestSubnormal", "1.401298464324817e-45", true, 2793, 2793}),
+    [](const ::testing::TestParamInfo<conversion_work_case>& param_info)
+    {
+      return std::string{param_info.param.name};
+    });
+  /* ================================= End Test_J5_049 ================================= */
   /* =================================== Test_J5_052 =================================== */
   /**
    * @brief One rounding mode the host supports, with its name for diagnostics.

@@ -399,6 +399,63 @@ namespace adaptive_json5
     return span_result::success(member.member_name_source_span);
   }
 
+  namespace
+  {
+    /**
+     * @brief Check the object member count and endpoints before beginning a name lookup.
+     * @par Requirements
+     * P030; J5-030; J5-031; J5-033; J5-039; #124.
+     * @par ID SWU-VALUE-220
+     */
+    status_result validate_member_links(const container_links& links, std::size_t storage_size) noexcept
+    {
+      // A count larger than the storage can only come from a corrupted record.
+      if (links.count > storage_size)
+      {
+        return status_result::failure(error::internal_fault());
+      }
+
+      // The start and end of the member list must match the count, as value_iterator::create() checks.
+      const bool endpoints_valid = (links.count == 0U) ? (!links.first.is_set() && !links.last.is_set())
+                                                       : (links.first.is_set() && links.last.is_set());
+
+      if (!endpoints_valid)
+      {
+        return status_result::failure(error::internal_fault());
+      }
+      return status_result::success();
+    }
+
+    /**
+     * @brief Check parent identity, member-name presence and agreement with the recorded tail.
+     * @par Requirements
+     * P030; J5-030; J5-031; J5-033; J5-039; #124.
+     * @par ID SWU-VALUE-221
+     */
+    status_result validate_member_record(const detail::value_record& member, value_index parent, value_index current,
+                                         const container_links& links, std::size_t ordinal) noexcept
+    {
+      // record() and at() validated this container and member; its parent link is internal to that storage.
+      if ((!member.parent.is_set()) || (member.parent.position() != parent.position()) ||
+          (!member.member_name.has_value()))
+      {
+        return status_result::failure(error::internal_fault());
+      }
+
+      // The count and the end of the chain must agree, as value_iterator::next() checks;
+      // the last member must also be the one the object records as last.
+      // at() validated current above; links.last is retained within the same validated container.
+      const bool last_member = ((ordinal + 1U) == links.count);
+
+      if ((last_member == member.next_sibling.is_set()) ||
+          (last_member && (current.position() != links.last.position())))
+      {
+        return status_result::failure(error::internal_fault());
+      }
+      return status_result::success();
+    }
+  } // namespace
+
   /**
    * @brief Find the unique object member with the given UTF-8 name in one pass.
    * @par Requirements
@@ -425,22 +482,12 @@ namespace adaptive_json5
       return result<value_view>::failure(error::access_failure(access_error_reason::wrong_type));
     }
 
-    // A count larger than the storage can only come from a corrupted record.
-    if (data->members.count > m_storage->size())
+    const auto checked = validate_member_links(data->members, m_storage->size());
+    if (!checked.has_value())
     {
-      return result<value_view>::failure(error::internal_fault());
+      return result<value_view>::failure(*checked.error_if());
     }
-
     const container_links& links = data->members;
-
-    // The start and end of the member list must match the count, as value_iterator::create() checks.
-    const bool endpoints_valid = (links.count == 0U) ? (!links.first.is_set() && !links.last.is_set())
-                                                     : (links.first.is_set() && links.last.is_set());
-
-    if (!endpoints_valid)
-    {
-      return result<value_view>::failure(error::internal_fault());
-    }
 
     // utf8_name_equal() stops at the first difference, so check the whole name once here.
     const auto valid = detail::validate_utf8_name(name);
@@ -470,22 +517,10 @@ namespace adaptive_json5
 
       const auto& member = **child.value_if();
 
-      // record() and at() validated this container and member; its parent link is internal to that storage.
-      if ((!member.parent.is_set()) || (member.parent.position() != m_index.position()) ||
-          (!member.member_name.has_value()))
+      const auto valid_member = validate_member_record(member, m_index, current, links, ordinal);
+      if (!valid_member.has_value())
       {
-        return result<value_view>::failure(error::internal_fault());
-      }
-
-      // The count and the end of the chain must agree, as value_iterator::next() checks;
-      // the last member must also be the one the object records as last.
-      // at() validated current above; links.last is retained within the same validated container.
-      const bool last_member = ((ordinal + 1U) == links.count);
-
-      if ((last_member == member.next_sibling.is_set()) ||
-          (last_member && (current.position() != links.last.position())))
-      {
-        return result<value_view>::failure(error::internal_fault());
+        return result<value_view>::failure(*valid_member.error_if());
       }
 
       const auto equal = detail::utf8_name_equal(*member.member_name, name);

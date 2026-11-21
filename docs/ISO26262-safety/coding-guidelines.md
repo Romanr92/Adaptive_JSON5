@@ -63,7 +63,7 @@ that departure.
 
 | Topic (ISO 26262-6, Table 1) | Where it is covered |
 | --- | --- |
-| Low complexity | BARR-C:2018 function length; complexity limits are still to be agreed (review finding STD-07). |
+| Low complexity | Cyclomatic complexity at most 15 and at most 60 code lines per function, with justified exceptions; see [Function size and complexity](../../core/docs/design-coding-style.md#function-size-and-complexity) (#127, STD-07). |
 | Language subset | MISRA C++:2023. |
 | Strong typing | MISRA C++:2023 type rules and BARR-C fixed-width types. |
 | Defensive implementation | Checked results everywhere, explicit limits and the non-throwing error API. |
@@ -85,7 +85,6 @@ For the other coding standards, record deviations in the register for owner revi
 - Bring the [C++ coding style](../../core/docs/design-coding-style.md) in line with
   this document, adding BARR-C:2018 and the fail-fast principle. This belongs to #137,
   which already holds the fail-fast text on another branch.
-- Agree complexity limits (STD-07).
 - Start the deviation register (#137).
 - Fix the baseline MISRA C++:2023 findings in the order of
   [misra-baseline-findings.md](misra-baseline-findings.md) (#166).

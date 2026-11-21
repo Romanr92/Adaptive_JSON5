@@ -1,0 +1,7 @@
+# Pinned tools for tools/complexity_report.py; install with --require-hashes.
+lizard==1.26.1 \
+    --hash=sha256:344e2bfb1b41d31207223ba844fac1f84da80053edf901b3df4ee051b152d0f5
+pathspec==1.1.1 \
+    --hash=sha256:a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189
+pygments==2.21.0 \
+    --hash=sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9

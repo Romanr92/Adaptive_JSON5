@@ -126,7 +126,8 @@
         },
         {
           "files": ["core/includes/lexer/line_terminator.hpp", "core/src/lexer/line_terminator.cpp"],
-          "symbols": ["consume_line_terminator"]
+          "symbols": ["complete_line_terminator",
+            "consume_line_terminator"]
         },
         {
           "files": ["core/includes/lexer/whitespace.hpp", "core/src/lexer/whitespace.cpp"],
@@ -233,7 +234,8 @@
       "implementation": [
         {
           "files": ["core/includes/lexer/line_terminator.hpp", "core/src/lexer/line_terminator.cpp"],
-          "symbols": ["consume_line_terminator"]
+          "symbols": ["complete_line_terminator",
+            "consume_line_terminator"]
         },
         {
           "files": ["core/includes/lexer/whitespace.hpp", "core/src/lexer/whitespace.cpp"],
@@ -247,7 +249,8 @@
             "J5_011_LineTerminator.RecognizesExactSpanOrLeavesInput",
             "J5_011_LineTerminatorEof.CrDoesNotReadPastView",
             "J5_011_LineTerminatorEof.ReturnsNoSequenceAtEnd",
-            "J5_011_LineTerminatorGrouping.ConsumesAdjacentSequencesSeparately"
+            "J5_011_LineTerminatorGrouping.ConsumesAdjacentSequencesSeparately",
+            "J5_011_DecodedTerminator.ClassifiesAndCompletesCrLf"
           ]
         },
         {
@@ -3385,6 +3388,12 @@
           "file": "core/tests/parser/work_baseline_tests.cpp",
           "names": [
             "J5_049_WorkBaseline/WorkBaselineUnits.FitsDefaultAndFailsJustBelowMeasuredRequirement"
+          ]
+        },
+        {
+          "file": "tests/value/floating_conversion_tests.cpp",
+          "names": [
+            "J5_049_ConversionWorkBaseline/J5_049_ConversionWork.NeedsExactlyTheMeasuredWork"
           ]
         }
       ]

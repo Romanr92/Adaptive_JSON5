@@ -54,6 +54,231 @@ namespace adaptive_json5
         std::optional<string_warning> excess_warning{}; // First warning past warning_allowance, if any.
     };
 
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Audit result only: the class declares no special members of the listed kind, so the
+    // compiler provides them implicitly and consistently (rule of zero). CodeQL cannot analyse them because
+    // implicit members that are never odr-used are not in its database.
+    // codeql::misra_deviation_next_line(DEV-020.60)
+    struct string_body_state
+    {
+        std::size_t max_units;
+        std::size_t warning_allowance;
+        decoded_string_builder* output;
+        const string_warning_sink* sink;
+        string_checks checks;
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
+        // implicit zero of the initialization as an unsuffixed octal literal.
+        // codeql::misra_deviation_next_line(DEV-010.14)
+        string_walk walk{};
+        detail::surrogate_pairing pairing{};
+        std::optional<error> violation{};
+
+        /**
+         * @brief Count a warning, retain the first and first excess warning, and notify the supplied sink.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-066
+         */
+        void record(const string_warning& warning) noexcept
+        {
+          if (!walk.first_warning.has_value())
+          {
+            walk.first_warning = warning;
+          }
+
+          // warning_count is still this warning's zero-based index, so it equals the allowance exactly once.
+          if (walk.warning_count == warning_allowance)
+          {
+            walk.excess_warning = warning;
+          }
+
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Counts warnings of one string, at most one per character of the input, so it
+          // cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.76)
+          ++walk.warning_count;
+
+          // Recording during this walk replaces a separate re-scan of the string (ADR 0003, decision 10, D).
+          if (sink != nullptr)
+          {
+            sink->record(sink->context, warning);
+          }
+        }
+
+        /**
+         * @brief Retain the first security violation for reporting when the string closes.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-067
+         */
+        void reject(security_reason reason, source_span span) noexcept
+        {
+          if (!violation.has_value())
+          {
+            violation = error::security_at_range(span, reason);
+          }
+        }
+
+        /**
+         * @brief Report unpaired surrogates as warnings or security violations according to the string policy.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-068
+         */
+        void handle_pairing(const detail::surrogate_warnings& found) noexcept
+        {
+          // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+          // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+          // bound that the body does not modify, and changed only in the increment expression. The counter is
+          // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+          // codeql::misra_deviation_next_line(DEV-017.19)
+          for (std::size_t index{}; index < found.size; ++index)
+          {
+            const string_warning& warning = found.items[index];
+            if (checks.reject_unpaired_surrogate)
+            {
+              reject(security_reason::unpaired_surrogate, source_span{warning.byte_offset, warning.byte_length});
+            }
+            else
+            {
+              record(warning);
+            }
+          }
+        }
+
+        /**
+         * @brief Check the first decoded unit against the secure string and member-name policies.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-069
+         */
+        void check_units(const encoded_utf16& units, source_span span) noexcept
+        {
+          if (units.size == std::size_t{})
+          {
+            return;
+          }
+
+          // Compare as std::uint32_t, like string_boundary, so no character is used as a number.
+          const auto unit = static_cast<std::uint32_t>(units.units[encoded_utf16::c_first_unit_index]);
+          if (checks.reject_zero_bytes && (unit == c_zero_unit))
+          {
+            reject(security_reason::zero_byte, span);
+          }
+          else if (checks.reject_control_characters && (unit <= c_control_max))
+          {
+            reject(security_reason::name_control_character, span);
+          }
+          else
+          {
+            // Any other unit is allowed.
+          }
+        }
+
+        /**
+         * @brief Account for decoded units and append them when a destination builder is present.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-070
+         */
+        status_result emit(const encoded_utf16& units, std::size_t offset) noexcept
+        {
+          const auto total = checked_add(walk.units, units.size, resource_limit_reason::string);
+          if ((!total.has_value()) || (*total.value_if() > max_units))
+          {
+            return status_result::failure(error::limit_at(offset, resource_limit_reason::string));
+          }
+
+          if (output != nullptr)
+          {
+            // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+            // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with
+            // a bound that the body does not modify, and changed only in the increment expression. The counter is
+            // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+            // codeql::misra_deviation_next_line(DEV-017.18)
+            for (std::size_t index{}; index < units.size; ++index)
+            {
+              const auto appended = output->append_unit(units.units[index]);
+              if (!appended.has_value())
+              {
+                // Keep the builder's code and reason, located at the character being appended.
+                return status_result::failure(appended.error_if()->relocated(offset));
+              }
+            }
+          }
+
+          walk.units = *total.value_if();
+          return status_result::success();
+        }
+
+        /**
+         * @brief Decode an escape, emit its units and apply surrogate and security checks to its source span.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-071
+         */
+        status_result read_escape(cursor& source, syntax_mode mode, std::size_t piece_offset) noexcept
+        {
+          const auto escaped = consume_string_escape(source, mode);
+          if (!escaped.has_value())
+          {
+            return status_result::failure(*escaped.error_if());
+          }
+
+          const auto emitted = emit(*escaped.value_if(), piece_offset);
+          if (!emitted.has_value())
+          {
+            return status_result::failure(*emitted.error_if());
+          }
+
+          // The cursor only moves forward, so the escape's end is never before its backslash.
+          const std::size_t escape_end = source.offset();
+          if (escape_end < piece_offset)
+          {
+            return status_result::failure(error::internal_fault());
+          }
+          const std::size_t escape_length = escape_end - piece_offset;
+
+          handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, escape_length));
+          check_units(*escaped.value_if(), source_span{piece_offset, escape_length});
+          return status_result::success();
+        }
+
+        /**
+         * @brief Emit a raw character and report surrogate, security and separator findings in source order.
+         * @par Requirements
+         * P021; J5-014; J5-015; J5-016; J5-017; J5-018; J5-029; J5-046.
+         * @par ID SWU-LEXER-072
+         */
+        status_result read_character(const string_piece& piece, syntax_mode mode) noexcept
+        {
+          const auto piece_offset = piece.byte_offset;
+          // An invalid scalar keeps the encoder's code and reason, relocated to its character.
+          const auto encoded = encode_utf16(piece.scalar);
+          if (!encoded.has_value())
+          {
+            return status_result::failure(encoded.error_if()->relocated(piece_offset));
+          }
+
+          const auto emitted = emit(*encoded.value_if(), piece_offset);
+          if (!emitted.has_value())
+          {
+            return status_result::failure(*emitted.error_if());
+          }
+
+          handle_pairing(pairing.character());
+          check_units(*encoded.value_if(), source_span{piece_offset, piece.byte_length});
+
+          const auto warning = raw_separator_warning_for(piece, mode);
+          if (warning.has_value())
+          {
+            record(*warning);
+          }
+          return status_result::success();
+        }
+    };
+
     /**
      * @brief Walk a string body from after its opening quote through its closing quote.
      * @par Requirements
@@ -84,126 +309,10 @@ namespace adaptive_json5
       using walk_result = result<string_walk>;
 
       // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
-      // MISRA justification: Empty-brace value-initialization contains no integer literal. The tool reports the
-      // implicit zero of the initialization as an unsuffixed octal literal.
-      // codeql::misra_deviation_next_line(DEV-010.14)
-      string_walk walk{};
-      detail::surrogate_pairing pairing{};
-      std::optional<error> violation{};
-
-      // Each warning covers distinct source bytes, so the count cannot exceed input size.
-      const auto record = [&walk, sink, warning_allowance](const string_warning& warning) noexcept
-      {
-        if (!walk.first_warning.has_value())
-        {
-          walk.first_warning = warning;
-        }
-
-        // warning_count is still this warning's zero-based index, so it equals the allowance exactly once.
-        if (walk.warning_count == warning_allowance)
-        {
-          walk.excess_warning = warning;
-        }
-
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: Counts warnings of one string, at most one per character of the input, so it
-        // cannot wrap std::size_t.
-        // codeql::misra_deviation_next_line(DEV-004.76)
-        ++walk.warning_count;
-
-        // Recording during this walk replaces a separate re-scan of the string (ADR 0003, decision 10, D).
-        if (sink != nullptr)
-        {
-          sink->record(sink->context, warning);
-        }
-      };
-
-      // Keep only the first violation, so the reported one is the earliest in source order.
-      const auto reject = [&violation](security_reason reason, source_span span) noexcept
-      {
-        if (!violation.has_value())
-        {
-          violation = error::security_at_range(span, reason);
-        }
-      };
-
-      // Surrogate findings are warnings by default and violations under secure mode.
-      const auto handle_pairing = [&record, &reject, checks](const detail::surrogate_warnings& found) noexcept
-      {
-        // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
-        // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
-        // bound that the body does not modify, and changed only in the increment expression. The counter is
-        // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
-        // codeql::misra_deviation_next_line(DEV-017.19)
-        for (std::size_t index{}; index < found.size; ++index)
-        {
-          const string_warning& warning = found.items[index];
-          if (checks.reject_unpaired_surrogate)
-          {
-            reject(security_reason::unpaired_surrogate, source_span{warning.byte_offset, warning.byte_length});
-          }
-          else
-          {
-            record(warning);
-          }
-        }
-      };
-
-      // A decoded unit is checked against the zero-byte rule first, then the name-control rule.
-      const auto check_units = [&reject, checks](const encoded_utf16& units, source_span span) noexcept
-      {
-        if (units.size == std::size_t{})
-        {
-          return;
-        }
-
-        // Compare as std::uint32_t, like string_boundary, so no character is used as a number.
-        const auto unit = static_cast<std::uint32_t>(units.units[encoded_utf16::c_first_unit_index]);
-        if (checks.reject_zero_bytes && (unit == c_zero_unit))
-        {
-          reject(security_reason::zero_byte, span);
-        }
-        else if (checks.reject_control_characters && (unit <= c_control_max))
-        {
-          reject(security_reason::name_control_character, span);
-        }
-        else
-        {
-          // Any other unit is allowed.
-        }
-      };
-
-      // Count one piece's units against the limit, and write them when decoding.
-      const auto emit = [&walk, max_units, output](const encoded_utf16& units,
-                                                   std::size_t offset) noexcept -> status_result
-      {
-        const auto total = checked_add(walk.units, units.size, resource_limit_reason::string);
-        if ((!total.has_value()) || (*total.value_if() > max_units))
-        {
-          return status_result::failure(error::limit_at(offset, resource_limit_reason::string));
-        }
-
-        if (output != nullptr)
-        {
-          // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
-          // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with
-          // a bound that the body does not modify, and changed only in the increment expression. The counter is
-          // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
-          // codeql::misra_deviation_next_line(DEV-017.18)
-          for (std::size_t index{}; index < units.size; ++index)
-          {
-            const auto appended = output->append_unit(units.units[index]);
-            if (!appended.has_value())
-            {
-              // Keep the builder's code and reason, located at the character being appended.
-              return status_result::failure(appended.error_if()->relocated(offset));
-            }
-          }
-        }
-
-        walk.units = *total.value_if();
-        return status_result::success();
-      };
+      // MISRA justification: Aggregate initialization value-initializes the members it does not list and contains
+      // no integer literal. The tool reports that implicit zero as an unsuffixed octal literal.
+      // codeql::misra_deviation_next_line(DEV-010.25)
+      string_body_state state{max_units, warning_allowance, output, sink, checks};
 
       while (true)
       {
@@ -230,62 +339,20 @@ namespace adaptive_json5
 
         if (piece.value_if()->kind == string_piece_kind::closing_quote)
         {
-          handle_pairing(pairing.finish());
-          if (violation.has_value())
+          state.handle_pairing(state.pairing.finish());
+          if (state.violation.has_value())
           {
-            return walk_result::failure(*violation);
+            return walk_result::failure(*state.violation);
           }
-          return walk_result::success(walk);
+          return walk_result::success(state.walk);
         }
 
-        if (piece.value_if()->kind == string_piece_kind::escape_start)
+        const auto consumed = (piece.value_if()->kind == string_piece_kind::escape_start)
+                                ? state.read_escape(source, mode, piece_offset)
+                                : state.read_character(*piece.value_if(), mode);
+        if (!consumed.has_value())
         {
-          const auto escaped = consume_string_escape(source, mode);
-          if (!escaped.has_value())
-          {
-            return walk_result::failure(*escaped.error_if());
-          }
-
-          const auto emitted = emit(*escaped.value_if(), piece_offset);
-          if (!emitted.has_value())
-          {
-            return walk_result::failure(*emitted.error_if());
-          }
-
-          // The cursor only moves forward, so the escape's end is never before its backslash.
-          const std::size_t escape_end = source.offset();
-          if (escape_end < piece_offset)
-          {
-            return walk_result::failure(error::internal_fault());
-          }
-          const std::size_t escape_length = escape_end - piece_offset;
-
-          handle_pairing(pairing.escape(*escaped.value_if(), piece_offset, escape_length));
-          check_units(*escaped.value_if(), source_span{piece_offset, escape_length});
-        }
-        else
-        {
-          // An invalid scalar keeps the encoder's code and reason, relocated to its character.
-          const auto encoded = encode_utf16(piece.value_if()->scalar);
-          if (!encoded.has_value())
-          {
-            return walk_result::failure(encoded.error_if()->relocated(piece_offset));
-          }
-
-          const auto emitted = emit(*encoded.value_if(), piece_offset);
-          if (!emitted.has_value())
-          {
-            return walk_result::failure(*emitted.error_if());
-          }
-
-          handle_pairing(pairing.character());
-          check_units(*encoded.value_if(), source_span{piece_offset, piece.value_if()->byte_length});
-
-          const auto warning = raw_separator_warning_for(*piece.value_if(), mode);
-          if (warning.has_value())
-          {
-            record(*warning);
-          }
+          return walk_result::failure(*consumed.error_if());
         }
       }
     }

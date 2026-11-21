@@ -216,6 +216,47 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Advance decimal powers one digit at a time to finish the exact digit count.
+     * @par Requirements
+     * P038; J5-036; J5-048.
+     * @par ID SWU-VALUE-214
+     */
+    [[nodiscard]] result<std::size_t> count_remaining_digits(const detail::big_unsigned& value,
+                                                             detail::big_unsigned& power, std::size_t count,
+                                                             work_budget& work) noexcept
+    {
+      using counter_result = result<std::size_t>;
+      // 10^count <= value means value still has more than count digits.
+      while (true)
+      {
+        const auto order = power.compare(value, work);
+
+        if (!order.has_value())
+        {
+          return counter_result::failure(*order.error_if());
+        }
+
+        if (*order.value_if() == detail::magnitude_order::greater)
+        {
+          return counter_result::success(count);
+        }
+
+        const auto multiplied = power.append_digit(0, c_decimal_radix, work);
+
+        if (!multiplied.has_value())
+        {
+          return counter_result::failure(*multiplied.error_if());
+        }
+
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: count is the number of decimal digits found so far, which is bounded by the bit
+        // length of the value, so it cannot wrap.
+        // codeql::misra_deviation_next_line(DEV-004.87)
+        ++count;
+      }
+    }
+
+    /**
      * @brief Count the decimal digits of a nonzero exact integer.
      * @par Requirements
      * P038; J5-036; J5-048.
@@ -301,107 +342,140 @@ namespace adaptive_json5
         count += c_chunk_digits;
       }
 
-      // 10^count <= value means value still has more than count digits.
-      while (true)
-      {
-        const auto order = power.compare(value, work);
-
-        if (!order.has_value())
-        {
-          return counter_result::failure(*order.error_if());
-        }
-
-        if (*order.value_if() == detail::magnitude_order::greater)
-        {
-          return counter_result::success(count);
-        }
-
-        const auto multiplied = power.append_digit(0, c_decimal_radix, work);
-
-        if (!multiplied.has_value())
-        {
-          return counter_result::failure(*multiplied.error_if());
-        }
-
-        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-        // MISRA justification: count is the number of decimal digits found so far, which is bounded by the bit
-        // length of the value, so it cannot wrap.
-        // codeql::misra_deviation_next_line(DEV-004.87)
-        ++count;
-      }
+      return count_remaining_digits(value, power, count, work);
     }
 
     /**
-     * @brief Read a finite nonzero spelling into digits and exact decimal exponents.
+     * @brief Combine the explicit exponent and fractional width into an exact decimal scale.
      * @par Requirements
      * P038; J5-003; J5-036; J5-048.
-     * @param spelling Validated finite nonzero numeric spelling.
-     * @param kind Decimal or hexadecimal spelling family.
-     * @param digits Exact zero receiving every significand digit.
-     * @param provider Scratch storage for hexadecimal digit counting.
-     * @param work Shared comparison work budget.
-     * @return Exact scale and leading exponent, or an explicit failure.
-     * @note Exponents above c_max_exponent return resource_limit (conversion_size) instead of saturating,
-     * because saturation would make different values compare equal.
-     * @par ID SWU-VALUE-086
+     * @par ID SWU-VALUE-215
      */
-    [[nodiscard]] result<decimal_form> read_decimal_form(input_view spelling, number_kind kind,
-                                                         detail::big_unsigned& digits,
-                                                         const storage_callbacks& provider, work_budget& work) noexcept
+    [[nodiscard]] result<decimal_form> read_decimal_scale(input_view spelling, std::size_t position,
+                                                          std::size_t fractional_digits,
+                                                          std::size_t significant_digits) noexcept
     {
       using form_result = result<decimal_form>;
-
-      // Digit counts below are bounded by the spelling, so bound it like the exponent.
-      if (spelling.size > c_max_exponent)
-      {
-        return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
-      }
-
       decimal_form form{};
-      std::size_t position{};
+      bool exponent_negative{};
+      std::size_t exponent{};
 
-      if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
+      if (position < spelling.size)
       {
-        ++position;
-      }
-
-      if (kind == number_kind::hexadecimal)
-      {
-        position += c_hexadecimal_prefix_bytes;
-
-        while (position < spelling.size)
+        if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
         {
-          const auto appended =
-            digits.append_digit(hexadecimal_digit_value(spelling.data[position]), c_hexadecimal_radix, work);
-
-          if (!appended.has_value())
-          {
-            return form_result::failure(*appended.error_if());
-          }
-
+          exponent_negative = (spelling.data[position] == '-');
           // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
           // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
           // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
-          // codeql::misra_deviation_next_line(DEV-004.86)
+          // codeql::misra_deviation_next_line(DEV-004.80)
           ++position;
         }
 
-        // Hexadecimal digits do not reveal the decimal leading exponent, so count it exactly.
-        const auto count = count_decimal_digits(digits, provider, work);
-
-        if (!count.has_value())
+        while (position < spelling.size)
         {
-          return form_result::failure(*count.error_if());
-        }
+          // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+          // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
+          // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser
+          // compares UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution
+          // character set, where these characters are contiguous ranges.
+          // codeql::misra_deviation_next_line(DEV-015.31)
+          const auto digit = static_cast<std::size_t>(spelling.data[position] - '0');
 
-        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: count is the number of decimal digits of a nonzero value, at least one and far
-        // below PTRDIFF_MAX, so subtracting one cannot overflow.
-        // codeql::misra_deviation_next_line(DEV-005.19)
-        form.leading_exponent = static_cast<std::ptrdiff_t>(*count.value_if()) - 1;
-        return form_result::success(form);
+          // Comparison must stay exact, so an oversized exponent is a limit failure, not a saturation.
+          if (exponent > ((c_max_exponent - digit) / c_decimal_radix))
+          {
+            return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
+          }
+
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: The check above returns a limit failure before exponent could exceed
+          // c_max_exponent.
+          // codeql::misra_deviation_next_line(DEV-004.79)
+          exponent = (exponent * c_decimal_radix) + digit;
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+          // codeql::misra_deviation_next_line(DEV-004.78)
+          ++position;
+        }
       }
 
+      const auto signed_exponent = static_cast<std::ptrdiff_t>(exponent);
+
+      form.scale =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: |exponent| is at most c_max_exponent (PTRDIFF_MAX / 4, checked while parsing)
+        // and fractional_digits is at most the spelling length, limited by max_number_bytes. The result stays
+        // within std::ptrdiff_t while the spelling is shorter than 3/4 of PTRDIFF_MAX.
+        // codeql::misra_deviation_next_line(DEV-005.18)
+        (exponent_negative ? -signed_exponent : signed_exponent) - static_cast<std::ptrdiff_t>(fractional_digits);
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: form.scale is bounded as above and significant_digits is at most the spelling
+      // length, so the sum stays within std::ptrdiff_t for spellings shorter than 3/4 of PTRDIFF_MAX.
+      // codeql::misra_deviation_next_line(DEV-005.17)
+      form.leading_exponent = form.scale + static_cast<std::ptrdiff_t>(significant_digits) - 1;
+
+      return form_result::success(form);
+    }
+
+    /**
+     * @brief Load a hexadecimal significand and determine its leading decimal exponent.
+     * @par Requirements
+     * P038; J5-003; J5-036; J5-048.
+     * @par ID SWU-VALUE-216
+     */
+    [[nodiscard]] result<decimal_form> read_hex_form(input_view spelling, std::size_t position,
+                                                     detail::big_unsigned& digits, const storage_callbacks& provider,
+                                                     work_budget& work) noexcept
+    {
+      using form_result = result<decimal_form>;
+      decimal_form form{};
+
+      while (position < spelling.size)
+      {
+        const auto appended =
+          digits.append_digit(hexadecimal_digit_value(spelling.data[position]), c_hexadecimal_radix, work);
+
+        if (!appended.has_value())
+        {
+          return form_result::failure(*appended.error_if());
+        }
+
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
+        // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
+        // codeql::misra_deviation_next_line(DEV-004.86)
+        ++position;
+      }
+
+      // Hexadecimal digits do not reveal the decimal leading exponent, so count it exactly.
+      const auto count = count_decimal_digits(digits, provider, work);
+
+      if (!count.has_value())
+      {
+        return form_result::failure(*count.error_if());
+      }
+
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: count is the number of decimal digits of a nonzero value, at least one and far
+      // below PTRDIFF_MAX, so subtracting one cannot overflow.
+      // codeql::misra_deviation_next_line(DEV-005.19)
+      form.leading_exponent = static_cast<std::ptrdiff_t>(*count.value_if()) - 1;
+      return form_result::success(form);
+    }
+
+    /**
+     * @brief Append decimal digit chunks and count significant and fractional digits.
+     * @par Requirements
+     * P038; J5-003; J5-036; J5-048.
+     * @par ID SWU-VALUE-217
+     */
+    [[nodiscard]] result<decimal_form> read_decimal_significand(input_view spelling, std::size_t position,
+                                                                detail::big_unsigned& digits,
+                                                                work_budget& work) noexcept
+    {
+      using form_result = result<decimal_form>;
       bool after_point{};
       bool seen_nonzero{};
       std::size_t fractional_digits{};
@@ -497,66 +571,49 @@ namespace adaptive_json5
         }
       }
 
-      bool exponent_negative{};
-      std::size_t exponent{};
+      return read_decimal_scale(spelling, position, fractional_digits, significant_digits);
+    }
 
-      if (position < spelling.size)
+    /**
+     * @brief Read a finite nonzero spelling into digits and exact decimal exponents.
+     * @par Requirements
+     * P038; J5-003; J5-036; J5-048.
+     * @param spelling Validated finite nonzero numeric spelling.
+     * @param kind Decimal or hexadecimal spelling family.
+     * @param digits Exact zero receiving every significand digit.
+     * @param provider Scratch storage for hexadecimal digit counting.
+     * @param work Shared comparison work budget.
+     * @return Exact scale and leading exponent, or an explicit failure.
+     * @note Exponents above c_max_exponent return resource_limit (conversion_size) instead of saturating,
+     * because saturation would make different values compare equal.
+     * @par ID SWU-VALUE-086
+     */
+    [[nodiscard]] result<decimal_form> read_decimal_form(input_view spelling, number_kind kind,
+                                                         detail::big_unsigned& digits,
+                                                         const storage_callbacks& provider, work_budget& work) noexcept
+    {
+      using form_result = result<decimal_form>;
+
+      // Digit counts below are bounded by the spelling, so bound it like the exponent.
+      if (spelling.size > c_max_exponent)
       {
-        if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
-        {
-          exponent_negative = (spelling.data[position] == '-');
-          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
-          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
-          // codeql::misra_deviation_next_line(DEV-004.80)
-          ++position;
-        }
-
-        while (position < spelling.size)
-        {
-          // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-          // MISRA justification: Converts an already validated digit or hexadecimal letter to its value, or a
-          // value 0-9 back to its digit. The C++ standard guarantees '0'-'9' are contiguous. The parser
-          // compares UTF-8 input bytes with character literals, so it relies on an ASCII-compatible execution
-          // character set, where these characters are contiguous ranges.
-          // codeql::misra_deviation_next_line(DEV-015.31)
-          const auto digit = static_cast<std::size_t>(spelling.data[position] - '0');
-
-          // Comparison must stay exact, so an oversized exponent is a limit failure, not a saturation.
-          if (exponent > ((c_max_exponent - digit) / c_decimal_radix))
-          {
-            return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
-          }
-
-          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-          // MISRA justification: The check above returns a limit failure before exponent could exceed
-          // c_max_exponent.
-          // codeql::misra_deviation_next_line(DEV-004.79)
-          exponent = (exponent * c_decimal_radix) + digit;
-          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-          // MISRA justification: position indexes a byte of the spelling or input that was just read, so it is
-          // below the size and the increment reaches at most the size; it cannot wrap std::size_t.
-          // codeql::misra_deviation_next_line(DEV-004.78)
-          ++position;
-        }
+        return form_result::failure(error::limit_without_location(resource_limit_reason::conversion_size));
       }
 
-      const auto signed_exponent = static_cast<std::ptrdiff_t>(exponent);
+      std::size_t position{};
 
-      form.scale =
-        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: |exponent| is at most c_max_exponent (PTRDIFF_MAX / 4, checked while parsing)
-        // and fractional_digits is at most the spelling length, limited by max_number_bytes. The result stays
-        // within std::ptrdiff_t while the spelling is shorter than 3/4 of PTRDIFF_MAX.
-        // codeql::misra_deviation_next_line(DEV-005.18)
-        (exponent_negative ? -signed_exponent : signed_exponent) - static_cast<std::ptrdiff_t>(fractional_digits);
-      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-      // MISRA justification: form.scale is bounded as above and significant_digits is at most the spelling
-      // length, so the sum stays within std::ptrdiff_t for spellings shorter than 3/4 of PTRDIFF_MAX.
-      // codeql::misra_deviation_next_line(DEV-005.17)
-      form.leading_exponent = form.scale + static_cast<std::ptrdiff_t>(significant_digits) - 1;
+      if ((spelling.data[position] == '+') || (spelling.data[position] == '-'))
+      {
+        ++position;
+      }
 
-      return form_result::success(form);
+      if (kind == number_kind::hexadecimal)
+      {
+        position += c_hexadecimal_prefix_bytes;
+        return read_hex_form(spelling, position, digits, provider, work);
+      }
+
+      return read_decimal_significand(spelling, position, digits, work);
     }
 
     /**
@@ -578,6 +635,56 @@ namespace adaptive_json5
       }
 
       return number_order::unordered;
+    }
+
+    /**
+     * @brief Compare leading exponents, then align and compare the magnitudes when necessary.
+     * @par Requirements
+     * P038; J5-003; J5-036; J5-046; J5-048.
+     * @par ID SWU-VALUE-218
+     */
+    [[nodiscard]] result<number_order> compare_decimal_forms(const decimal_form& left_parts,
+                                                             const decimal_form& right_parts,
+                                                             detail::big_unsigned& left_digits,
+                                                             detail::big_unsigned& right_digits,
+                                                             work_budget& work) noexcept
+    {
+      using order_result = result<number_order>;
+
+      // Different leading exponents decide the order without building any power of ten.
+      if (left_parts.leading_exponent != right_parts.leading_exponent)
+      {
+        return order_result::success(
+          (left_parts.leading_exponent < right_parts.leading_exponent) ? number_order::less : number_order::greater);
+      }
+
+      // Equal leading exponents bound the scale difference by the digit counts, so scaling stays cheap.
+      const bool left_larger_scale = left_parts.scale > right_parts.scale;
+      const std::ptrdiff_t difference =
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: Equal leading exponents bound the scale difference by the two digit counts,
+        // which are at most the spelling lengths, so the difference is far below PTRDIFF_MAX.
+        // codeql::misra_deviation_next_line(DEV-005.16)
+        left_larger_scale ? (left_parts.scale - right_parts.scale) : (right_parts.scale - left_parts.scale);
+
+      // Pass the operand directly so both parameters are visibly modified here.
+      const auto multiplied = left_larger_scale
+                                ? scale_by_power_of_ten(left_digits, static_cast<std::size_t>(difference), work)
+                                : scale_by_power_of_ten(right_digits, static_cast<std::size_t>(difference), work);
+
+      if (!multiplied.has_value())
+      {
+        return order_result::failure(*multiplied.error_if());
+      }
+
+      const auto order = left_digits.compare(right_digits, work);
+
+      if (!order.has_value())
+      {
+        return order_result::failure(*order.error_if());
+      }
+
+      return order_result::success(to_number_order(*order.value_if()));
     }
 
     /**
@@ -663,39 +770,7 @@ namespace adaptive_json5
 
       const decimal_form& left_parts = *left_form.value_if();
       const decimal_form& right_parts = *right_form.value_if();
-
-      // Different leading exponents decide the order without building any power of ten.
-      if (left_parts.leading_exponent != right_parts.leading_exponent)
-      {
-        return order_result::success(
-          (left_parts.leading_exponent < right_parts.leading_exponent) ? number_order::less : number_order::greater);
-      }
-
-      // Equal leading exponents bound the scale difference by the digit counts, so scaling stays cheap.
-      const bool left_larger_scale = left_parts.scale > right_parts.scale;
-      detail::big_unsigned& scaled = left_larger_scale ? left_digits : right_digits;
-      const std::ptrdiff_t difference =
-        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-        // MISRA justification: Equal leading exponents bound the scale difference by the two digit counts,
-        // which are at most the spelling lengths, so the difference is far below PTRDIFF_MAX.
-        // codeql::misra_deviation_next_line(DEV-005.16)
-        left_larger_scale ? (left_parts.scale - right_parts.scale) : (right_parts.scale - left_parts.scale);
-
-      const auto multiplied = scale_by_power_of_ten(scaled, static_cast<std::size_t>(difference), work);
-
-      if (!multiplied.has_value())
-      {
-        return order_result::failure(*multiplied.error_if());
-      }
-
-      const auto order = left_digits.compare(right_digits, work);
-
-      if (!order.has_value())
-      {
-        return order_result::failure(*order.error_if());
-      }
-
-      return order_result::success(to_number_order(*order.value_if()));
+      return compare_decimal_forms(left_parts, right_parts, left_digits, right_digits, work);
     }
 
     /**

@@ -4,6 +4,7 @@
 #include "adaptive_json5/result.hpp"
 #include "parser/parser_engine.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdlib>
 #include <gtest/gtest.h>
@@ -164,9 +165,92 @@ namespace
     }
     return padded(text + "}", c_input);
   }
+
+  /**
+   * @brief Build the deepest nesting the default depth limit allows.
+   * @par Requirements
+   * J5-048; J5-049.
+   */
+  std::string deep_nesting()
+  {
+    // 511 nested arrays, one below max_depth, so open and close each run at full depth.
+    return padded(std::string(511, '[') + std::string(511, ']'), c_input);
+  }
+
+  /**
+   * @brief Build many small mixed containers that switch between array and object states.
+   * @par Requirements
+   * J5-047; J5-049.
+   */
+  std::string mixed_containers()
+  {
+    // 140 groups of seven values each, with empty and one-member containers of both kinds.
+    std::string text = "[";
+    for (std::size_t index{}; index < 140; ++index)
+    {
+      text += (index == 0) ? "" : ",";
+      text += "{\"k\": [[{}], {x: [0]}]}";
+    }
+    return padded(text + "]", c_input);
+  }
+
+  /**
+   * @brief Build members whose names and strings use every escape form.
+   * @par Requirements
+   * J5-016; J5-049.
+   */
+  std::string escaped_strings()
+  {
+    // 100 members, each with escapes in its name and in its string value.
+    std::string text = "{";
+    for (std::size_t index{}; index < 100; ++index)
+    {
+      text += (index == 0) ? "" : ",";
+      // '~' stands for a backslash: a Unicode escape in the name, and Unicode, hex, single-character,
+      // quote and backslash escapes in the string, ending with a line continuation.
+      std::string member = "ab~u0063d" + std::to_string(index) + ": 'x~u00e9~x41~n~t~'~~~\ny'";
+      std::replace(member.begin(), member.end(), '~', '\x5C');
+      text += member;
+    }
+    return padded(text + "}", c_input);
+  }
+
+  /**
+   * @brief Build every JSON5 number form: hexadecimal, non-finite, signed and bare points.
+   * @par Requirements
+   * J5-019; J5-049.
+   */
+  std::string mixed_numbers()
+  {
+    // 100 rounds of eight number spellings.
+    std::string text = "[";
+    for (std::size_t index{}; index < 100; ++index)
+    {
+      text += (index == 0) ? "" : ",";
+      text += "0x1F,-Infinity,+NaN,.5,5.,-0,1e-7,+0XaB";
+    }
+    return padded(text + "]", c_input);
+  }
+
+  /**
+   * @brief Build values separated by line and block comments.
+   * @par Requirements
+   * J5-012; J5-049.
+   */
+  std::string commented_values()
+  {
+    // 300 numbers, each preceded by a block comment and followed by a line comment.
+    std::string text = "/* head */ [";
+    for (std::size_t index{}; index < 300; ++index)
+    {
+      text += (index == 0) ? "" : ",";
+      text += " /* v */ 1 // n\n";
+    }
+    return padded(text + "] // tail\n", c_input);
+  }
   /* ================================== End Fixtures =================================== */
   /**
-   * @brief Describe one maximum-size worst-case document and its measured work requirement.
+   * @brief Describe one maximum-size document and its measured work requirement.
    * @par Requirements
    * P037; J5-047; J5-049.
    */
@@ -189,8 +273,10 @@ namespace
 
   /* =================================== Test_J5_049 =================================== */
 
-  /* Verify each worst-case document parses within the default work budget, exactly at its
-   * measured requirement, and not one unit below it.
+  /* Verify each maximum-size document parses within the default work budget, exactly at its
+   * measured requirement, and not one unit below it. The first four are the worst cases; the
+   * others cover nesting, escapes, number forms and comments, so a refactor that changes the
+   * work charged on any of these paths fails here (#127).
    * Arrange: The case document, exactly max_input_bytes long, and otherwise default limits.
    * Act: Parse completely with the default budget, the measured requirement and one less.
    * Expect: Success, success and resource_limit; the requirement stays below the default
@@ -224,10 +310,16 @@ namespace
                            ::testing::Values(baseline_case{"PlainStrings", &plain_strings, 5, 65527},
                                              baseline_case{"WarningStrings", &warning_strings, 17, 65011},
                                              baseline_case{"Numbers", &numbers, 1024, 53231},
-                                             baseline_case{"SmallNodes", &small_nodes, 1024, 41978}),
+                                             baseline_case{"SmallNodes", &small_nodes, 1024, 41978},
+                                             baseline_case{"DeepNesting", &deep_nesting, 511, 35321},
+                                             baseline_case{"MixedContainers", &mixed_containers, 981, 38931},
+                                             baseline_case{"EscapedStrings", &escaped_strings, 101, 39361},
+                                             baseline_case{"MixedNumbers", &mixed_numbers, 801, 39971},
+                                             baseline_case{"CommentedValues", &commented_values, 301, 34571}),
                            [](const ::testing::TestParamInfo<baseline_case>& param_info)
                            {
                              return param_info.param.name;
                            });
+
   /* ================================= End Test_J5_049 ================================= */
 } // namespace

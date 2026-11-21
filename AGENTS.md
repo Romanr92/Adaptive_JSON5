@@ -54,6 +54,9 @@ restriction, and never include `core/tests/` in production source lists.
   `docs/requirements-registry.json` and reports requirement → code → tests → result;
   it is not a merge requirement. Edit the registry, not the generated tables in
   `docs/traceability.md`, and run `python tools/traceability.py --write-docs`.
+  Also user-approved (#127), the informative `complexity-report` workflow lists
+  production functions above the complexity limits of
+  `core/docs/design-coding-style.md`; it is not a merge requirement.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
   must pass all host unit-test jobs, validation-test jobs, formatting, the
   sanitizer and fuzz jobs, the Clang job and the static-analysis jobs before merging

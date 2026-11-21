@@ -26,14 +26,6 @@ namespace adaptive_json5
   {
     using terminator_result = result<std::optional<line_terminator_span>>;
 
-    constexpr std::uint32_t c_line_feed = 0x000A;
-    constexpr std::uint32_t c_carriage_return = 0x000D;
-    constexpr std::uint32_t c_line_separator = 0x2028;
-    constexpr std::uint32_t c_paragraph_separator = 0x2029;
-
-    constexpr char c_line_feed_byte = '\n';
-    constexpr std::size_t c_line_feed_byte_count = 1;
-
     const std::size_t start = source.offset();
 
     // Decode through a copy so unsuccesful recognition consumes nothing.
@@ -53,32 +45,11 @@ namespace adaptive_json5
       return terminator_result::success(std::nullopt);
     }
 
-    const std::uint32_t scalar = character->value;
-
-    if ((scalar != c_line_feed) && (scalar != c_carriage_return) && (scalar != c_line_separator) &&
-        (scalar != c_paragraph_separator))
+    if (!complete_line_terminator(character->value, candidate))
     {
       // The decoded character belongs to the next token or another trivia rule.
       // Discard the temporary advancement and leave source unchanged.
       return terminator_result::success(std::nullopt);
-    }
-
-    if (scalar == c_carriage_return)
-    {
-      // CR optionally absorbs an immediately following ASCII LF.
-      // Inspect only that byte; other following input remains for the next operation.
-      const auto following = candidate.peek();
-
-      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
-      // between two character operands does not use the numeric value; the tool reports the implicit promotion
-      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
-      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
-      // codeql::misra_deviation_next_line(DEV-015.45)
-      if ((following.has_value()) && (*following == c_line_feed_byte))
-      {
-        candidate.advance(c_line_feed_byte_count);
-      }
     }
 
     const std::size_t end = candidate.offset();
@@ -95,5 +66,51 @@ namespace adaptive_json5
     source = candidate;
 
     return terminator_result::success(std::optional<line_terminator_span>{line_terminator_span{start, length}});
+  }
+
+  /**
+   * @brief Classify an already decoded scalar as a line terminator and complete a CRLF pair.
+   * @par Requirements
+   * P007; J5-011; J5-017; J5-044.
+   * @param scalar Scalar value decoded from the input.
+   * @param after Cursor just past that scalar; advanced over the LF of a CRLF pair.
+   * @return Whether scalar is LF, CR, U+2028 or U+2029. When false, after is unchanged.
+   * @par ID SWU-LEXER-074
+   */
+  bool complete_line_terminator(std::uint32_t scalar, cursor& after) noexcept
+  {
+    constexpr std::uint32_t c_line_feed = 0x000A;
+    constexpr std::uint32_t c_carriage_return = 0x000D;
+    constexpr std::uint32_t c_line_separator = 0x2028;
+    constexpr std::uint32_t c_paragraph_separator = 0x2029;
+
+    constexpr char c_line_feed_byte = '\n';
+    constexpr std::size_t c_line_feed_byte_count = 1;
+
+    if ((scalar != c_line_feed) && (scalar != c_carriage_return) && (scalar != c_line_separator) &&
+        (scalar != c_paragraph_separator))
+    {
+      return false;
+    }
+
+    if (scalar == c_carriage_return)
+    {
+      // CR optionally absorbs an immediately following ASCII LF.
+      // Inspect only that byte; other following input remains for the next operation.
+      const auto following = after.peek();
+
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+      // between two character operands does not use the numeric value; the tool reports the implicit promotion
+      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+      // codeql::misra_deviation_next_line(DEV-015.45)
+      if ((following.has_value()) && (*following == c_line_feed_byte))
+      {
+        after.advance(c_line_feed_byte_count);
+      }
+    }
+
+    return true;
   }
 } // namespace adaptive_json5

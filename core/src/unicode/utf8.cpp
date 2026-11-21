@@ -10,22 +10,8 @@
 
 namespace adaptive_json5
 {
-  /**
-   * @brief Decode one UTF-8 scalar from the current cursor position.
-   * @par Requirements
-   * P005; J5-009.
-   * @param source Cursor over valid borrowed input storage.
-   * @return A decoded character, successful std::nullopt at EOF,
-   * or an explicit encoding error.
-   * @note Requires no allocation. Encoding failure reports the sequence's
-   * starting byte offset and leaves the cursor unchanged.
-   * BOM, NUL and noncharacters are decoded without applying grammar policy.
-   * @par ID SWU-UNICODE-008
-   */
-  result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept
+  namespace
   {
-    using decode_result = result<std::optional<decoded_character>>;
-
     /**
      * @brief UTF-8 leading-byte boundaries and payload masks.
      * @par Requirements
@@ -63,6 +49,105 @@ namespace adaptive_json5
     constexpr std::size_t c_three_byte_count = 3;
     constexpr std::size_t c_four_byte_count = 4;
     constexpr std::size_t c_first_continuation_index = 1;
+
+  } // namespace
+
+  namespace
+  {
+    /**
+     * @brief Check the lead-specific continuation bounds that exclude overlong sequences and invalid scalars.
+     * @par Requirements
+     * P005; J5-009.
+     * @par ID SWU-UNICODE-009
+     */
+    bool invalid_second_byte(std::byte lead, std::byte byte) noexcept
+    {
+      // E0/F0 need a lower bound to prevent longer-than-necessary encodings.
+      // ED needs an upper bound to exclude surrogate values U+D800–U+DFFF.
+      // F4 needs an upper bound to prevent values above U+10FFFF.
+      return (((lead == c_three_byte_lead_min) && (byte < c_e0_second_min)) ||
+              ((lead == c_surrogate_sensitive_lead) && (byte > c_ed_second_max)) ||
+              ((lead == c_four_byte_lead_min) && (byte < c_f0_second_min)) ||
+              ((lead == c_four_byte_lead_max) && (byte > c_f4_second_max)));
+    }
+
+    /**
+     * @brief Validate the remaining bytes and advance the cursor only after the scalar is complete.
+     * @par Requirements
+     * P005; J5-009.
+     * @par ID SWU-UNICODE-010
+     */
+    result<std::optional<decoded_character>> decode_continuations(cursor& source, std::size_t start, std::byte lead,
+                                                                  std::size_t byte_count, std::uint32_t scalar) noexcept
+    {
+      using decode_result = result<std::optional<decoded_character>>;
+      // Use lookahead so incomplete or malformed input never partially advances.
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
+      // bound that the body does not modify, and changed only in the increment expression. The counter is
+      // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
+      // codeql::misra_deviation_next_line(DEV-017.24)
+      for (std::size_t index = c_first_continuation_index; index < byte_count; ++index)
+      {
+        const auto next = source.peek(index);
+
+        if (!next.has_value())
+        {
+          // The leading byte promised more bytes than remain in the input.
+          return decode_result::failure(error::at_offset(error_code::encoding, start));
+        }
+
+        // Interpret the byte as an octet, even when plain char is signed (see lead above).
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
+        // between two character operands does not use the numeric value; the tool reports the implicit promotion
+        // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
+        // an ASCII-compatible execution character set, where these characters are contiguous ranges.
+        // codeql::misra_deviation_next_line(DEV-015.80)
+        const auto byte = static_cast<std::byte>(static_cast<std::uint8_t>(*next));
+
+        if ((byte < c_continuation_min) || (byte > c_continuation_max))
+        {
+          // A continuation must have the bit pattern 10xxxxxx (80–BF).
+          return decode_result::failure(error::at_offset(error_code::encoding, start));
+        }
+
+        if (index == c_first_continuation_index)
+        {
+          if (invalid_second_byte(lead, byte))
+          {
+            // The byte has the continuation pattern, but this combination is invalid.
+            return decode_result::failure(error::at_offset(error_code::encoding, start));
+          }
+        }
+
+        // Make room for six more bits, remove the byte's 10 prefix, and append its payload.
+        scalar =
+          ((scalar << c_continuation_payload_bits) | static_cast<std::uint32_t>(byte & c_continuation_payload_mask));
+      }
+
+      // Commit cursor advancement only after the complete sequence validates.
+      source.advance(byte_count);
+
+      return decode_result::success(std::optional<decoded_character>{decoded_character{scalar, start, byte_count}});
+    }
+  } // namespace
+
+  /**
+   * @brief Decode one UTF-8 scalar from the current cursor position.
+   * @par Requirements
+   * P005; J5-009.
+   * @param source Cursor over valid borrowed input storage.
+   * @return A decoded character, successful std::nullopt at EOF,
+   * or an explicit encoding error.
+   * @note Requires no allocation. Encoding failure reports the sequence's
+   * starting byte offset and leaves the cursor unchanged.
+   * BOM, NUL and noncharacters are decoded without applying grammar policy.
+   * @par ID SWU-UNICODE-008
+   */
+  result<std::optional<decoded_character>> decode_utf8(cursor& source) noexcept
+  {
+    using decode_result = result<std::optional<decoded_character>>;
 
     const std::size_t start = source.offset();
     const auto first = source.peek();
@@ -106,62 +191,6 @@ namespace adaptive_json5
       two_byte ? c_two_byte_payload_mask : (three_byte ? c_three_byte_payload_mask : c_four_byte_payload_mask);
     std::uint32_t scalar = static_cast<std::uint32_t>(lead & payload_mask);
 
-    // Use lookahead so incomplete or malformed input never partially advances.
-    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
-    // MISRA justification: The loop is simple: one counter declared in the init-statement, compared with a
-    // bound that the body does not modify, and changed only in the increment expression. The counter is
-    // std::size_t or std::ptrdiff_t, which are integer types; the tool does not resolve the typedef.
-    // codeql::misra_deviation_next_line(DEV-017.24)
-    for (std::size_t index = c_first_continuation_index; index < byte_count; ++index)
-    {
-      const auto next = source.peek(index);
-
-      if (!next.has_value())
-      {
-        // The leading byte promised more bytes than remain in the input.
-        return decode_result::failure(error::at_offset(error_code::encoding, start));
-      }
-
-      // Interpret the byte as an octet, even when plain char is signed (see lead above).
-      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
-      // MISRA justification: Tests whether the byte equals one specific character. An equality comparison
-      // between two character operands does not use the numeric value; the tool reports the implicit promotion
-      // of both operands to int. The parser compares UTF-8 input bytes with character literals, so it relies on
-      // an ASCII-compatible execution character set, where these characters are contiguous ranges.
-      // codeql::misra_deviation_next_line(DEV-015.80)
-      const auto byte = static_cast<std::byte>(static_cast<std::uint8_t>(*next));
-
-      if ((byte < c_continuation_min) || (byte > c_continuation_max))
-      {
-        // A continuation must have the bit pattern 10xxxxxx (80–BF).
-        return decode_result::failure(error::at_offset(error_code::encoding, start));
-      }
-
-      if (index == c_first_continuation_index)
-      {
-        // E0/F0 need a lower bound to prevent longer-than-necessary encodings.
-        // ED needs an upper bound to exclude surrogate values U+D800–U+DFFF.
-        // F4 needs an upper bound to prevent values above U+10FFFF.
-        const bool invalid_second_byte = (((lead == c_three_byte_lead_min) && (byte < c_e0_second_min)) ||
-                                          ((lead == c_surrogate_sensitive_lead) && (byte > c_ed_second_max)) ||
-                                          ((lead == c_four_byte_lead_min) && (byte < c_f0_second_min)) ||
-                                          ((lead == c_four_byte_lead_max) && (byte > c_f4_second_max)));
-
-        if (invalid_second_byte)
-        {
-          // The byte has the continuation pattern, but this combination is invalid.
-          return decode_result::failure(error::at_offset(error_code::encoding, start));
-        }
-      }
-
-      // Make room for six more bits, remove the byte's 10 prefix, and append its payload.
-      scalar =
-        ((scalar << c_continuation_payload_bits) | static_cast<std::uint32_t>(byte & c_continuation_payload_mask));
-    }
-
-    // Commit cursor advancement only after the complete sequence validates.
-    source.advance(byte_count);
-
-    return decode_result::success(std::optional<decoded_character>{decoded_character{scalar, start, byte_count}});
+    return decode_continuations(source, start, lead, byte_count, scalar);
   }
 } // namespace adaptive_json5

@@ -53,26 +53,28 @@ namespace adaptive_json5
     while (!candidate.is_at_end())
     {
 
-      cursor lookahead = candidate;
-      const auto terminator = consume_line_terminator(lookahead);
-
-      if (!terminator.has_value())
-      {
-        return comment_result::failure(*terminator.error_if());
-      }
-
-      if (terminator.value_if()->has_value())
-      {
-        break;
-      }
-
-      // Validate ignored contents so malformed UTF-8 cannot pass unnoticed.
-      const auto decoded = decode_utf8(candidate);
+      // Decode each character once; validating ignored contents keeps malformed UTF-8 from
+      // passing unnoticed.
+      cursor next = candidate;
+      const auto decoded = decode_utf8(next);
 
       if (!decoded.has_value())
       {
         return comment_result::failure(*decoded.error_if());
       }
+
+      const auto& character = *decoded.value_if();
+
+      // The terminator ends the comment but is not part of it; test it on a copy so
+      // candidate stays before the whole sequence.
+      cursor terminator_end = next;
+
+      if ((!character.has_value()) || complete_line_terminator(character->value, terminator_end))
+      {
+        break;
+      }
+
+      candidate = next;
     }
 
     const std::size_t end = candidate.offset();

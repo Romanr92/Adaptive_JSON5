@@ -43,6 +43,20 @@ namespace adaptive_json5
    * @par ID SWU-LEXER-010
    */
   [[nodiscard]] result<std::optional<line_terminator_span>> consume_line_terminator(cursor& source) noexcept;
+
+  /**
+   * @brief Classify an already decoded scalar as a line terminator and complete a CRLF pair.
+   * @par Requirements
+   * P007; J5-011; J5-017; J5-044.
+   * @param scalar Scalar value decoded from the input.
+   * @param after Cursor just past that scalar. For CR followed by an ASCII LF it is advanced
+   * over the LF, so CRLF stays one sequence.
+   * @return Whether scalar is LF, CR, U+2028 or U+2029. When false, after is unchanged.
+   * @note Lets a caller that has already decoded a character avoid decoding it again.
+   * Requires no allocation.
+   * @par ID SWU-LEXER-074
+   */
+  [[nodiscard]] bool complete_line_terminator(std::uint32_t scalar, cursor& after) noexcept;
 } // namespace adaptive_json5
 
 #endif /* ADAPTIVE_JSON5_INTERNAL_LEXER_LINE_TERMINATOR_HPP_ */
