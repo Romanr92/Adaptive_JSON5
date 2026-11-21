@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-034 | SWU-SCHEMA-035 |
+| SCHEMA | SWU-SCHEMA-036 | SWU-SCHEMA-037 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -425,6 +425,8 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-032 | used | `(anonymous)::frame_stack::size()` | `core/src/schema/instance_domain.cpp` | — |
 | SWU-SCHEMA-033 | used | `(anonymous)::enter(const value_view &, frame_stack &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
 | SWU-SCHEMA-034 | used | `(anonymous)::is_container(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-035 | used | `schema_error::registration_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-036 | used | `schema_error::registration(registration_reason)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
 
 ## UNICODE
 

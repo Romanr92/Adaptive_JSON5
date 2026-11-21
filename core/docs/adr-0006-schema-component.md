@@ -1,7 +1,7 @@
 # ADR 0006: Schema component decisions (P043–P046)
 
-Status: In progress, started 2026-11-13. Decisions are recorded one at a time as the
-user makes them; implementation starts only after the whole list is decided.
+Status: Decided, 2026-11-22. Started 2026-11-13; the open points of the 2026-11-14
+review (O1–O10) were settled by the user on 2026-11-22 (last section).
 Production C++ is written by the human developer; this record does not claim
 implementation or verification. All requirement rows stay Draft.
 
@@ -133,6 +133,11 @@ by phase, using the existing non-throwing `result` type:
 | `resource_limit` | yes | yes | Sub-reason names the exceeded limit (decision 5) |
 | `allocation_failure` | yes | yes | |
 | `internal_error` | yes | yes | A violated library invariant (J5-043) |
+| `invalid_registration` | no | no | Registration phase only; sub-reasons duplicate URI, relative URI (O3) |
+
+A third phase, registration, covers adding resources to the registry (O3). It can
+return `invalid_registration`, `invalid_schema` (syntax and domain sub-reasons),
+`resource_limit`, `allocation_failure` and `internal_error`.
 
 ### Rejected alternatives
 
@@ -446,3 +451,25 @@ into the decisions above:
 | R5 | J5-064 | Schema location for diagnostics was undefined | Each node stores its parent index and the step leading to it (decision 10) |
 
 Registration details for P044 (agreed 2026-11-13) are recorded in decision 9.
+
+## Open points settled (2026-11-22)
+
+The 2026-11-14 review of decisions 1–13 found these gaps. The user adopted every
+suggested resolution:
+
+| ID | Topic | Decision |
+| --- | --- | --- |
+| O1 | Plain-name `$id` (decisions 8, 10) | A `$id` that is only a fragment (`#foo`) registers an extra lookup key, the current base URI with that fragment, for its node; `$ref: "#foo"` finds it. |
+| O2 | `$id` beside `$ref` (decisions 8, 12) | A `$id` beside `$ref` is ignored at compile time, like every other sibling; it neither changes the base URI nor registers a key. |
+| O3 | Registration errors (decisions 3, 9) | New registration phase and reason `invalid_registration` with sub-reasons `duplicate_uri` and `relative_uri`. |
+| O4 | Root base URI (decision 8) | Text registered without a URI gets the fixed, documented default base URI `adaptive-json5:/root.json`. |
+| O5 | Unpaired surrogates in schema text (decisions 6, 9) | Registration fails with `invalid_schema` and the `domain` sub-reason. |
+| O6 | Diagnostic lifetime (decision 13) | Diagnostic source ranges refer to the registered schema text and the parsed instance document; they stay meaningful only while the caller keeps those texts. Node and value indices need no source. |
+| O7 | Compile storage (decision 4) | Compile takes two storages: result storage owned by the compiled schema, and scratch storage released before compile returns. |
+| O8 | Pre-pass budget (decision 6) | The instance pre-pass is charged to `max_work_steps` (and `max_depth` for nesting). |
+| O9 | ADR status | Status set to Decided. |
+| O10 | Issue #44 checklist | The completion checklist names every AGENTS.md gate: unit, validation, formatting, sanitizer, fuzz, Clang and static-analysis jobs. |
+
+`$ref` fragments that are JSON Pointers are decoded per RFC 6901 §6: `%XX` escapes and
+then `~1`/`~0` are decoded in pointer tokens only. Decision 8's "no percent-decoding"
+applies to URI comparison, not to pointer tokens.

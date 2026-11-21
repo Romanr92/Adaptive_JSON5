@@ -34,23 +34,26 @@ namespace
     struct row
     {
         schema_error_code code;
+        bool registration;
         bool compile;
         bool validate;
     };
-    constexpr std::array<row, 10> c_rows{{
-      {schema_error_code::invalid_schema, true, false},
-      {schema_error_code::unresolved_reference, true, false},
-      {schema_error_code::unsupported_dialect, true, false},
-      {schema_error_code::unsupported_option, true, false},
-      {schema_error_code::unsupported_instance, false, true},
-      {schema_error_code::nonprogressing_reference, true, true},
-      {schema_error_code::cancelled, false, true},
-      {schema_error_code::resource_limit, true, true},
-      {schema_error_code::allocation_failure, true, true},
-      {schema_error_code::internal_error, true, true},
+    constexpr std::array<row, 11> c_rows{{
+      {schema_error_code::invalid_registration, true, false, false},
+      {schema_error_code::invalid_schema, true, true, false},
+      {schema_error_code::unresolved_reference, false, true, false},
+      {schema_error_code::unsupported_dialect, false, true, false},
+      {schema_error_code::unsupported_option, false, true, false},
+      {schema_error_code::unsupported_instance, false, false, true},
+      {schema_error_code::nonprogressing_reference, false, true, true},
+      {schema_error_code::cancelled, false, false, true},
+      {schema_error_code::resource_limit, true, true, true},
+      {schema_error_code::allocation_failure, true, true, true},
+      {schema_error_code::internal_error, true, true, true},
     }};
     for (const auto& entry : c_rows)
     {
+      EXPECT_EQ(occurs_in(entry.code, schema_phase::registration), entry.registration) << static_cast<int>(entry.code);
       EXPECT_EQ(occurs_in(entry.code, schema_phase::compile), entry.compile) << static_cast<int>(entry.code);
       EXPECT_EQ(occurs_in(entry.code, schema_phase::validate), entry.validate) << static_cast<int>(entry.code);
     }
@@ -68,6 +71,14 @@ namespace
     const auto instance = schema_error::unsupported(unsupported_instance_reason::duplicate_name, std::nullopt);
     const auto limit = schema_error::limit(schema_limit_reason::max_branch_evaluations);
     const auto plain = schema_error::of(schema_error_code::unresolved_reference);
+    const auto registration = schema_error::registration(registration_reason::relative_uri);
+    const auto domain = schema_error::invalid(invalid_schema_reason::domain);
+
+    EXPECT_EQ(registration.code(), schema_error_code::invalid_registration);
+    EXPECT_EQ(registration.registration_reason(), registration_reason::relative_uri);
+    EXPECT_FALSE(registration.invalid_schema_reason().has_value());
+    EXPECT_FALSE(invalid.registration_reason().has_value());
+    EXPECT_EQ(domain.invalid_schema_reason(), invalid_schema_reason::domain);
 
     EXPECT_EQ(invalid.code(), schema_error_code::invalid_schema);
     EXPECT_EQ(invalid.invalid_schema_reason(), invalid_schema_reason::keyword_shape);

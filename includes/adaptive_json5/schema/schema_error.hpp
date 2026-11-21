@@ -28,7 +28,8 @@ namespace adaptive_json5
     cancelled = 7,                // Validate: the cancellation callback asked to stop.
     resource_limit = 8,           // Both: see limit_reason() or parser_error().
     allocation_failure = 9,       // Both: the storage provider could not supply memory.
-    internal_error = 10           // Both: a library invariant failed.
+    internal_error = 10,          // All phases: a library invariant failed.
+    invalid_registration = 11     // Registration: see registration_reason().
   };
 
   /**
@@ -38,6 +39,7 @@ namespace adaptive_json5
    */
   enum class schema_phase : std::uint8_t
   {
+    registration, // Adding a schema resource to a registry.
     compile,
     validate
   };
@@ -49,10 +51,22 @@ namespace adaptive_json5
    */
   enum class invalid_schema_reason : std::uint8_t
   {
-    syntax = 1,             // The schema text failed strict JSON parsing; see parser_error().
-    keyword_shape = 2,      // A keyword value has the wrong type or shape.
-    invalid_pattern = 3,    // A regular expression is malformed.
-    unsupported_pattern = 4 // A regular expression uses an unsupported construct.
+    syntax = 1,              // The schema text failed strict JSON parsing; see parser_error().
+    keyword_shape = 2,       // A keyword value has the wrong type or shape.
+    invalid_pattern = 3,     // A regular expression is malformed.
+    unsupported_pattern = 4, // A regular expression uses an unsupported construct.
+    domain = 5               // Schema text holds a value outside the JSON domain (an unpaired surrogate).
+  };
+
+  /**
+   * @brief Sub-reason of schema_error_code::invalid_registration.
+   * @par Requirements
+   * P044; J5-055; ADR 0006 decision 9.
+   */
+  enum class registration_reason : std::uint8_t
+  {
+    duplicate_uri = 1, // The normalized base URI is already registered.
+    relative_uri = 2   // The base URI is not absolute.
   };
 
   /**
@@ -94,7 +108,10 @@ namespace adaptive_json5
   {
     switch (code)
     {
+    case schema_error_code::invalid_registration:
+      return phase == schema_phase::registration;
     case schema_error_code::invalid_schema:
+      return phase != schema_phase::validate;
     case schema_error_code::unresolved_reference:
     case schema_error_code::unsupported_dialect:
     case schema_error_code::unsupported_option:
@@ -103,6 +120,7 @@ namespace adaptive_json5
     case schema_error_code::cancelled:
       return phase == schema_phase::validate;
     case schema_error_code::nonprogressing_reference:
+      return phase != schema_phase::registration;
     case schema_error_code::resource_limit:
     case schema_error_code::allocation_failure:
     case schema_error_code::internal_error:
@@ -200,6 +218,22 @@ namespace adaptive_json5
       }
 
       /**
+       * @brief Return the invalid_registration sub-reason, or nullopt for any other code.
+       * @par Requirements
+       * P044; J5-055.
+       * @par ID SWU-SCHEMA-035
+       */
+      [[nodiscard]] constexpr std::optional<adaptive_json5::registration_reason> registration_reason() const noexcept
+      {
+        const auto reason = reason_for(schema_error_code::invalid_registration);
+        if (!reason.has_value())
+        {
+          return std::nullopt;
+        }
+        return static_cast<adaptive_json5::registration_reason>(*reason);
+      }
+
+      /**
        * @brief Return the exceeded schema budget field, or nullopt.
        * @par Requirements
        * P043; J5-047; J5-065.
@@ -294,6 +328,18 @@ namespace adaptive_json5
                                                               std::optional<source_span> range) noexcept
       {
         return schema_error{schema_error_code::unsupported_instance, static_cast<std::uint8_t>(reason), range,
+                            std::nullopt};
+      }
+
+      /**
+       * @brief Build an invalid_registration failure.
+       * @par Requirements
+       * P044; J5-055; ADR 0006 decision 9.
+       * @par ID SWU-SCHEMA-036
+       */
+      [[nodiscard]] static constexpr schema_error registration(adaptive_json5::registration_reason reason) noexcept
+      {
+        return schema_error{schema_error_code::invalid_registration, static_cast<std::uint8_t>(reason), std::nullopt,
                             std::nullopt};
       }
 
