@@ -3386,6 +3386,12 @@
           "names": [
             "J5_049_WorkBaseline/WorkBaselineUnits.FitsDefaultAndFailsJustBelowMeasuredRequirement"
           ]
+        },
+        {
+          "file": "tests/value/floating_conversion_tests.cpp",
+          "names": [
+            "J5_049_ConversionWorkBaseline/J5_049_ConversionWork.NeedsExactlyTheMeasuredWork"
+          ]
         }
       ]
     },

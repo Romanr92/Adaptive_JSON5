@@ -56,6 +56,36 @@ MISRA/CERT compliance assessment. Existing implementation requires review before
 any such claim. Automated quality checks remain GoogleTest units and formatting;
 this decision adds no static-analysis, certification or other automated gate.
 
+## Function size and complexity
+
+ISO 26262-6 Table 1 asks for low complexity (required at ASIL A to D, see
+`docs/ISO26262-safety/seooc-assumptions.md`) but sets no number, and MISRA
+C++:2023 has no complexity rule. This project's limits (#127, review finding
+STD-07) apply to production functions in `core/src/`, `core/includes/` and
+`includes/`:
+
+| Metric | Limit | Measured as |
+| --- | --- | --- |
+| Cyclomatic complexity | at most 15 | lizard `CCN` |
+| Function length | at most 60 lines | lizard `NLOC`: code lines without comments or blank lines |
+
+The complexity limit is above the common HIS value of 10 on purpose. Grammar
+dispatch and the parser state machine are written as flat `switch` statements,
+which add one path per case without adding nesting or hidden state; splitting
+them only to reach 10 would scatter one decision over several functions. The
+length limit counts code lines only, because the MISRA justification comments
+required next to deviations would otherwise decide a function's length.
+
+Split a function above a limit along its natural phases. When a split would make
+the code harder to follow, record the function, its measured values and the
+reason in the table below; review the entry with the change. The
+`complexity-report` workflow lists functions above the limits on every pull
+request. It is informative and does not block merging.
+
+| Function | CCN | NLOC | Reason for the exception |
+| --- | --- | --- | --- |
+| none yet | | | |
+
 ## Conditions and compiler warnings
 
 Use natural operand order, such as `count == 0`, `pointer != nullptr` and

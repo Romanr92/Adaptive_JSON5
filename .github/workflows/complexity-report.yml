@@ -1,0 +1,34 @@
+name: complexity-report
+
+# Production functions above the complexity limits of core/docs/design-coding-style.md
+# ("Function size and complexity"). Informative, not a merge requirement: the list
+# appears in the job summary and the check does not fail on it (#127).
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: complexity-report-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  complexity:
+    name: complexity report
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install pinned lizard
+        run: python -m pip install --require-hashes -r tools/complexity-requirements.txt
+      - name: Report functions above the limits
+        run: python tools/complexity_report.py --summary "$GITHUB_STEP_SUMMARY"
