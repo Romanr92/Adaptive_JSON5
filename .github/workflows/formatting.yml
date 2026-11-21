@@ -10,6 +10,12 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Official LLVM release; tools/format.py requires exactly this clang-format version.
+  LLVM_VERSION: 23.1.6
+  LLVM_ARCHIVE: LLVM-23.1.6-Linux-X64.tar.zst
+  LLVM_SHA256: 59e14234f145927f982b50627e8bafaf2fca50151b7d973d6a0b40796ddcfe9a
+
 jobs:
   formatting:
     name: formatting
@@ -21,7 +27,31 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
-      - name: Install formatter
-        run: python -m pip install clang-format==18.1.8
+      # Keep only clang-format and the shared libraries it links, not the whole release.
+      - name: Restore clang-format
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/clang-format
+          key: clang-format-${{ env.LLVM_SHA256 }}
+      - name: Install clang-format from the LLVM release
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/llvm"
+          mkdir -p "$work" ~/clang-format/bin ~/clang-format/lib
+          curl --fail --location --retry 3 --output "$work/$LLVM_ARCHIVE" \
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/$LLVM_ARCHIVE"
+          echo "$LLVM_SHA256  $work/$LLVM_ARCHIVE" | sha256sum --check
+          tar --zstd -xf "$work/$LLVM_ARCHIVE" -C "$work" --wildcards '*/bin/clang-format' '*/lib/*.so*'
+          root="$(find "$work" -mindepth 1 -maxdepth 1 -type d -name 'LLVM-*')"
+          cp "$root/bin/clang-format" ~/clang-format/bin/
+          # Copy only the release libraries clang-format resolves, if it links any dynamically.
+          LD_LIBRARY_PATH="$root/lib" ldd ~/clang-format/bin/clang-format \
+            | awk -v lib="$root/lib/" 'index($3, lib) == 1 { print $3 }' \
+            | xargs -r cp -L -t ~/clang-format/lib/
+          rm -rf "$work"
       - name: Check C++ formatting
-        run: python tools/format.py --check
+        run: |
+          export LD_LIBRARY_PATH="$HOME/clang-format/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          python tools/format.py --check --clang-format "$HOME/clang-format/bin/clang-format"

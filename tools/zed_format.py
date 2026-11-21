@@ -2,7 +2,6 @@
 """Format Zed's stdin buffer with this checkout's pinned clang-format rules."""
 
 # SPDX-License-Identifier: Apache-2.0
-import os
 from pathlib import Path
 import re
 import shutil
@@ -18,10 +17,7 @@ def main():
         print("Expected the edited buffer path.", file=sys.stderr)
         return 2
 
-    suffix = ".exe" if os.name == "nt" else ""
-    local = ROOT / "build/format-tools/clang_format/data/bin" / ("clang-format" + suffix)
-    candidates = [str(local)] if local.is_file() else []
-    candidates.extend(filter(None, (shutil.which("clang-format-18"), shutil.which("clang-format"))))
+    candidates = list(filter(None, (shutil.which("clang-format-23"), shutil.which("clang-format"))))
 
     for executable in candidates:
         try:
@@ -30,12 +26,12 @@ def main():
             ).stdout.strip()
         except (OSError, subprocess.CalledProcessError):
             continue
-        if re.search(r"\bversion 18\.1\.8(?:\s|$)", version):
+        if re.search(r"\bversion 23\.1\.6(?:\s|$)", version):
             break
     else:
         print(
-            "clang-format 18.1.8 is required. From the repository root, run: "
-            "python -m pip install --target build/format-tools clang-format==18.1.8",
+            "clang-format 23.1.6 is required on PATH: on Windows run 'scoop install llvm@23.1.6'; "
+            "on Linux use the official LLVM 23.1.6 release (see core/docs/design-development.md).",
             file=sys.stderr,
         )
         return 2

@@ -95,7 +95,7 @@ must be mapped before the change is complete. Keep planned verification in
 `docs/requirements.md`; test existence is not a pass or complete coverage.
 
 Record executed configuration/result separately. Run the affected GoogleTest
-suite with exceptions OFF and ON when available, and run clang-format 18.
+suite with exceptions OFF and ON when available, and run clang-format 23.
 Report a missing compiler/dependency/CI result honestly. Do not infer parser,
 schema, editor-host or embedded target support from configuration units.
 

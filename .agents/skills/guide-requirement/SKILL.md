@@ -164,7 +164,7 @@ reviewing C++ examples. Class data members use `m_<varName>` with no trailing
 underscore, for example `m_error` rather than `error_` or `m_error_`. Preserve
 snake_case for the remainder of the name and the existing public aggregate
 field convention. Header guards still end in an underscore. Follow the tracked
-clang-format 18 layout. Explain production naming changes to the developer;
+clang-format 23.1.6 layout. Explain production naming changes to the developer;
 do not edit production files to apply them.
 
 Use the guide's Doxygen comment convention in future C++ examples: `@brief`,

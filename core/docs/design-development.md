@@ -81,10 +81,15 @@ Keep personal toolchain paths in user settings or `CMakeUserPresets.json`.
 
 ## Formatting commands
 
-Use Python 3.9+ and clang-format 18:
+Use Python 3.9+ and exactly clang-format 23.1.6 on PATH (`tools/format.py`
+rejects other versions):
+
+- Windows: `scoop install llvm@23.1.6`.
+- Linux: the official release archive `LLVM-23.1.6-Linux-X64.tar.zst` from
+  <https://github.com/llvm/llvm-project/releases/tag/llvmorg-23.1.6>, checked against
+  the SHA-256 pinned in `.github/workflows/formatting.yml`, which CI also uses.
 
 ```sh
-python -m pip install clang-format==18.1.8
 python tools/format.py --check
 python tools/format.py --fix
 ```
@@ -154,7 +159,7 @@ its older in-progress runs:
 - `unit-tests`: host GoogleTest on Ubuntu, exceptions OFF and ON, RTTI OFF.
 - `GCC units`: the same units with GCC on Linux aarch64 and Windows MinGW.
 - Validation tests over the pinned fixtures, exceptions OFF and ON.
-- `formatting`: clang-format 18.1.8.
+- `formatting`: clang-format 23.1.6 from the official LLVM Linux release.
 - `examples`: builds the example programs and checks their output. It is non-blocking.
 
 `unit-tests`, `formatting` and both validation jobs are required by the branch protection

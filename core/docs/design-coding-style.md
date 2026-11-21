@@ -189,7 +189,7 @@ casting to `long long`.
 
 ## Layout and formatting
 
-Use clang-format **18.1.8** with the tracked `.clang-format` as the authority for
+Use clang-format **23.1.6** with the tracked `.clang-format` as the authority for
 mechanical formatting. Its current rules include:
 
 - LLVM-based formatting with two-space indentation and continuation indentation.

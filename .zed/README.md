@@ -65,21 +65,15 @@ C and C++ buffers are formatted on save using `tools/zed_format.py`. The project
 settings launch Python and locate the helper from the edited buffer's absolute
 path, so the checkout can move and Zed's working directory does not matter.
 The helper selects the repository's `.clang-format` and finds clang-format
-18.1.8 in local build storage or on PATH. Windows, Linux and macOS executable
+23.1.6 on PATH. Windows, Linux and macOS executable
 names are handled automatically. No machine-specific formatter paths are tracked.
 
 Python 3.9+ must be available to Zed as `python`. If your system provides only
 `python3`, install/configure a `python` launcher or change the formatter command
-to `python3` in your local editor settings. Prepare the pinned local formatter
-from the repository root on each machine:
-
-```sh
-python -m pip install --target build/format-tools clang-format==18.1.8
-```
-
-Deleting the build directory removes this local tool; repeat the install command.
-Alternatively, install clang-format 18.1.8 on PATH. An unsupported formatter
-version produces an explicit error instead of silently changing the style.
+to `python3` in your local editor settings. Install clang-format 23.1.6 on PATH
+as described in `core/docs/design-development.md` (Windows: `scoop install
+llvm@23.1.6`). An unsupported formatter version produces an explicit error
+instead of silently changing the style.
 
 The helper receives the unsaved buffer on stdin and returns formatted text on
 stdout. It neither reads nor rewrites the edited file. `{buffer_path}` identifies
