@@ -699,6 +699,29 @@ Define an optional Draft-07 schema target/API with owned compilation/evaluation 
 - Existing contracts: J5-053, J5-063, J5-065, J5-066, J5-068.
 - Unit acceptance: API/storage units and unsupported-instance versus invalid-instance/error categories; no complete validator assumed yet.
 
+Implementation: the separate `adaptive_json5_schema` target (`AdaptiveJSON5::schema`,
+`ADAPTIVE_JSON5_BUILD_SCHEMA`, OFF by default; own package component) holds the
+P043 building blocks of ADR 0006 decisions 1–3, 5–7: public headers
+`adaptive_json5/schema.hpp` and `schema/` (`schema_dialect`, allocation-free
+`schema_error` with code/phase table and sub-reasons, `validation_budget`,
+`schema_compile_limits`, `validation_options` with fail-fast/collect-all and the
+cancellation callback) and internal `schema_work` (step cap and per-step
+cancellation poll) and `check_instance_domain` (iterative pre-pass rejecting
+duplicate decoded names, NaN/Infinity and unpaired surrogates in document order,
+explicit stack in caller work storage). The parser umbrella header stays
+parser-only. Compile, validate, `compiled_schema` and `validation_report` follow
+with P044–P046 and P052. Units: `core/tests/schema/` (`P043_SchemaWork`,
+`P043_InstanceDomain*`) and `tests/schema/` (`P043_SchemaError`,
+`P043_SchemaDialect`, `P043_SchemaBudget`, `P043_ParserOnly`, per-header
+compilation); CI adds schema ON to the unit-test matrix. Finding: in
+`preserve_all` mode the stored member-name source span of an escaped quoted name
+has the wrong length (`"\u0061"` reports length 3, not 8; offsets are right);
+the P043 decoded-name case checks only the offset until the parser is fixed.
+Local P043 results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet
+committed): schema ON 2826/2826 units with exceptions OFF and ON; schema OFF
+3708/3708 (units and validation cases); clang-format 18.1.8 passed the changed
+C++ files. CI and developer review/merge are pending. Requirement rows remain Draft.
+
 ### P044 — Schema locations and offline reference registry
 
 Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #45).

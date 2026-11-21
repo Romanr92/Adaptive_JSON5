@@ -118,8 +118,11 @@ find_package(AdaptiveJSON5 0.2.0 EXACT CONFIG REQUIRED COMPONENTS parser hosted)
 target_link_libraries(my_tool PRIVATE AdaptiveJSON5::hosted)
 ```
 
-Required `schema`/unknown components fail. `ADAPTIVE_JSON5_BUILD_SCHEMA=ON`
-also fails explicitly; schema and the real host CLI remain future work.
+The optional `schema` component (ADR 0006) exists only in source builds with
+`ADAPTIVE_JSON5_BUILD_SCHEMA=ON`; release packages do not contain it yet, so a
+required `schema` component fails there, as do unknown components. Its P043
+building blocks (outcome, budget and option types) are not a validator yet. The
+real host CLI remains future work.
 
 For future AdaptivePi use, vendor `cmake/ImportAdaptiveJSON5.cmake` from a pinned
 repository revision into that consumer. This task changes only Adaptive_JSON5;

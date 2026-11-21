@@ -10,7 +10,7 @@ option(ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS
     "Build the Official JSON & JSON5 Validation Tests" OFF)
 option(ADAPTIVE_JSON5_BUILD_LIBRARY "Build/export the library component" ON)
 option(ADAPTIVE_JSON5_BUILD_SCHEMA
-    "Build the optional schema component when implemented" OFF)
+    "Build the optional Draft-07 schema component (ADR 0006)" OFF)
 option(ADAPTIVE_JSON5_BUILD_EXECUTABLE
     "Build the host example executable when implemented" OFF)
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project targets"
@@ -33,11 +33,6 @@ option(ADAPTIVE_JSON5_BUILD_HOSTED
 option(ADAPTIVE_JSON5_EISEL_LEMIRE
     "Convert up to 19-digit decimals to floating point without scratch (about 10 KB read-only table)"
     ON)
-if(ADAPTIVE_JSON5_BUILD_SCHEMA)
-    message(FATAL_ERROR
-        "The optional schema implementation is not available yet; build the "
-        "parser component only")
-endif()
 set(ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR "${CMAKE_INSTALL_LIBDIR}" CACHE STRING
     "Static archive install directory; release bundles use . beside include/")
 include(cmake/PackageMetadata.cmake)
@@ -164,6 +159,14 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY)
         else()
         # Without the hosted library its header would only produce link errors.
             set(adaptive_json5_header_excludes PATTERN "hosted" EXCLUDE)
+        endif()
+        if(ADAPTIVE_JSON5_BUILD_SCHEMA)
+            install(TARGETS adaptive_json5_schema EXPORT AdaptiveJSON5Targets
+                ARCHIVE DESTINATION ${ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR})
+        else()
+            # Without the schema library its headers would only produce link errors.
+            list(APPEND adaptive_json5_header_excludes
+                PATTERN "schema" EXCLUDE PATTERN "schema.hpp" EXCLUDE)
         endif()
         install(DIRECTORY includes/adaptive_json5 DESTINATION
             ${CMAKE_INSTALL_INCLUDEDIR}

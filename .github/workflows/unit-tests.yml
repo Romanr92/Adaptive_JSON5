@@ -32,6 +32,18 @@ jobs:
         run: cmake --build --preset debug-unit-tests-exceptions --parallel "$(nproc)"
       - name: Run exceptions-enabled unit tests
         run: ctest --preset debug-unit-tests-exceptions --parallel "$(nproc)" --output-on-failure
+      # Schema component ON in both exception modes (ADR 0006 decision 1, J5-091); the
+      # parser-only builds above keep checking that no schema code is needed (J5-068).
+      - name: Build and run schema-enabled unit tests in both exception modes
+        run: |
+          for mode in OFF ON; do
+            cmake -S . -B "build/schema-$mode" -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+              -DADAPTIVE_JSON5_BUILD_SCHEMA=ON \
+              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+            cmake --build "build/schema-$mode" --config Debug --parallel "$(nproc)"
+            ctest --test-dir "build/schema-$mode" --build-config Debug --parallel "$(nproc)" --output-on-failure --no-tests=error
+          done
 
   gcc-portability:
     name: GCC units (${{ matrix.profile }})
@@ -44,7 +56,7 @@ jobs:
           - runner: windows-2022
             profile: windows-mingw
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -68,22 +80,30 @@ jobs:
         name: Run ARM64 host GoogleTest units in both exception modes
         run: |
           for mode in OFF ON; do
-            cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++-13 \
-              -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
-              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
-              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
-            cmake --build "build/gcc-$mode" --parallel
-            ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
+            for schema in OFF ON; do
+              dir="build/gcc-$mode-schema-$schema"
+              cmake -S . -B "$dir" -G Ninja -DCMAKE_CXX_COMPILER=g++-13 \
+                -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+                -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+                -DADAPTIVE_JSON5_BUILD_SCHEMA="$schema" \
+                -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+              cmake --build "$dir" --parallel
+              ctest --test-dir "$dir" --parallel --output-on-failure --no-tests=error
+            done
           done
       - if: runner.os == 'Windows'
         name: Run MinGW GoogleTest units in both exception modes
         shell: msys2 {0}
         run: |
           for mode in OFF ON; do
-            cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++ \
-              -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
-              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
-              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
-            cmake --build "build/gcc-$mode" --parallel
-            ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
+            for schema in OFF ON; do
+              dir="build/gcc-$mode-schema-$schema"
+              cmake -S . -B "$dir" -G Ninja -DCMAKE_CXX_COMPILER=g++ \
+                -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+                -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+                -DADAPTIVE_JSON5_BUILD_SCHEMA="$schema" \
+                -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+              cmake --build "$dir" --parallel
+              ctest --test-dir "$dir" --parallel --output-on-failure --no-tests=error
+            done
           done

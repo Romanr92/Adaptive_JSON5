@@ -36,6 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
+| SCHEMA | SWU-SCHEMA-034 | SWU-SCHEMA-035 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -385,6 +386,45 @@ library was checked to be byte-identical before and after.
 | SWU-PARSER-071 | used | `establish_primitive_root(document &, primitive_value, std::size_t)` | `core/src/parser/primitive_parser.cpp` | — |
 | SWU-PARSER-072 | used | `detail::parser_engine::walk_value()` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
 | SWU-PARSER-073 | used | `detail::parser_engine::advance_separator(parser_state&, parser_action)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+
+## SCHEMA
+
+| ID | Status | Function | Defined in | Also documented in |
+| --- | --- | --- | --- | --- |
+| SWU-SCHEMA-001 | used | `matches_dialect_uri(schema_dialect, std::string_view)` | `includes/adaptive_json5/schema/schema_dialect.hpp` | — |
+| SWU-SCHEMA-002 | used | `occurs_in(schema_error_code, schema_phase)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-003 | used | `schema_error::reason_for(schema_error_code)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-004 | used | `schema_error::code()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-005 | used | `schema_error::invalid_schema_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-006 | used | `schema_error::instance_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-007 | used | `schema_error::limit_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-008 | used | `schema_error::source_range()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-009 | used | `schema_error::parser_error()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-010 | used | `schema_error::of(schema_error_code, std::optional<source_span>)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-011 | used | `schema_error::invalid(invalid_schema_reason, std::optional<source_span>)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-012 | used | `schema_error::syntax(const error &)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-013 | used | `schema_error::unsupported(unsupported_instance_reason, std::optional<source_span>)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-014 | used | `schema_error::limit(schema_limit_reason)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-015 | used | `schema_error::from_storage(const error &)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-016 | used | `detail::schema_work::schema_work(const validation_budget &, const cancellation_callback &)` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-017 | used | `detail::schema_work::step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-018 | used | `detail::schema_work::work_steps()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-019 | used | `detail::schema_work::budget()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-020 | used | `detail::check_instance_domain(const document &, schema_work &, const storage_callbacks &)` | `core/src/schema/instance_domain.cpp` | `core/includes/schema/instance_domain.hpp` |
+| SWU-SCHEMA-021 | used | `(anonymous)::access_failure(const error *)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-022 | used | `(anonymous)::has_unpaired_surrogate(const decoded_string &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-023 | used | `(anonymous)::value_span(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-024 | used | `(anonymous)::name_span(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-025 | used | `(anonymous)::check_text(const decoded_string &, std::optional<source_span>)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-026 | used | `(anonymous)::check_value(const value_view &, bool, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-027 | used | `(anonymous)::check_unique_names(const value_view &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-028 | used | `(anonymous)::frame_stack::reserve(const storage_callbacks &, std::size_t)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-029 | used | `(anonymous)::frame_stack::push(const stack_frame &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-030 | used | `(anonymous)::frame_stack::top()` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-031 | used | `(anonymous)::frame_stack::pop()` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-032 | used | `(anonymous)::frame_stack::size()` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-033 | used | `(anonymous)::enter(const value_view &, frame_stack &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-034 | used | `(anonymous)::is_container(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
 
 ## UNICODE
 
