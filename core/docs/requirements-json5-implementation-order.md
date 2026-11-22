@@ -796,7 +796,7 @@ schema fuzzer is `tests/fuzz/schema_fuzzer.cpp` with seeds in `tests/fuzz/schema
 MISRA deviations of the schema are in `docs/schema-deviation-register.md`; no schema
 function exceeds the complexity limits.
 
-Local results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet in CI): schema ON 2982/2982 units with exceptions OFF and ON; schema OFF 3708/3708 with exceptions OFF and ON; 921/921 validation cases; Clang (LLVM, MinGW target) schema ON 2982/2982 with exceptions OFF; clang-format 18.1.8 passed the changed C++ files; `tools/traceability.py` reports no problems and no unmapped tests. CI and developer review/merge are pending. Requirement rows remain Draft.
+Local results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet in CI): schema ON 2982/2982 units with exceptions OFF and ON; schema OFF 3708/3708 with exceptions OFF and ON; 921/921 validation cases; Clang (LLVM, MinGW target) schema ON 2982/2982 with exceptions OFF; clang-format 18.1.8 passed the changed C++ files; `tools/traceability.py` reports no problems and no unmapped tests. Requirement status (2026-11-22, at Romanr92's request): J5-068 and J5-091 Implemented, J5-053 Accepted; the other schema rows remain Draft.
 
 ### P047 — Type and equality assertions
 

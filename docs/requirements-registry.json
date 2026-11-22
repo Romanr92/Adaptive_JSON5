@@ -3900,7 +3900,7 @@
     {
       "id": "J5-053",
       "title": "Schema dialect",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4460,7 +4460,7 @@
     {
       "id": "J5-068",
       "title": "Component independence",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4684,7 +4684,7 @@
     {
       "id": "J5-091",
       "title": "Native portability",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 68,
       "section": "api",
       "implementation": [
