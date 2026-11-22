@@ -538,4 +538,114 @@ namespace
       EXPECT_EQ(verdicts[index], ((index % 2U) == 0U) ? 1 : 0) << index;
     }
   }
+  /* =================================== Test_P046_InstanceLocation ==================================== */
+  struct location_case
+  {
+      const char* name;
+      const char* schema;
+      const char* instance;
+      const char* pointer;
+  };
+
+  class P046_InstanceLocation : public testing::TestWithParam<location_case>
+  {
+  };
+
+  /*
+   * Arrange: Failures at the root, in nested arrays and under names with '/', '~', an empty
+   *          name and non-ASCII characters.
+   * Act: Validate fail-fast and format the instance location.
+   * Expect: The RFC 6901 pointer of the failing value (J5-064); scratch storage is released.
+   */
+  TEST_P(P046_InstanceLocation, FormatsThePointer)
+  {
+    const auto& fixture = GetParam();
+    const schema_fixture schema{fixture.schema};
+    const instance_fixture instance{fixture.instance};
+    run_fixture run;
+    const auto outcome = check(schema, instance, run);
+    ASSERT_TRUE(outcome.has_value());
+    ASSERT_EQ(outcome.value_if()->diagnostic_count(), 1U);
+    schema_test_storage scratch;
+    char buffer[64] = {};
+    const auto size = format_instance_location(instance.parsed->values, *outcome.value_if()->diagnostic(0U), buffer,
+                                               sizeof(buffer), scratch.callbacks());
+    ASSERT_TRUE(size.has_value());
+    EXPECT_EQ(std::string(buffer, *size.value_if()), fixture.pointer);
+  }
+
+  INSTANTIATE_TEST_SUITE_P(
+    Cases, P046_InstanceLocation,
+    testing::Values(location_case{"root", "false", "1", ""},
+                    location_case{"nested_arrays", R"({"items": {"items": [true, false]}})", "[[1], [2, 3]]", "/1/1"},
+                    location_case{"slash_and_tilde", R"({"properties": {"a/b~c": false}})", R"({"x": 1, "a/b~c": 2})",
+                                  "/a~1b~0c"},
+                    location_case{"empty_name", R"({"properties": {"": {"items": false}}})", R"({"": [0]})", "//0"},
+                    location_case{"unicode_name", R"({"properties": {"é😀": false}})", R"({"é😀": null})", "/é😀"}),
+    [](const testing::TestParamInfo<location_case>& param_info)
+    {
+      return std::string{param_info.param.name};
+    });
+
+  /*
+   * Arrange: A diagnostic and a too-small buffer, and a diagnostic from another document.
+   * Act: Format the instance location.
+   * Expect: The full size is reported without writing past capacity; a position that names no
+   *         value of the document returns internal_error.
+   */
+  TEST(P046_InstanceLocation, ReportsSizeAndForeignPositions)
+  {
+    const schema_fixture schema{R"({"properties": {"long-name": {"items": false}}})"};
+    const instance_fixture instance{R"({"long-name": [1]})"};
+    const instance_fixture other{"[]"};
+    run_fixture run;
+    const auto outcome = check(schema, instance, run);
+    ASSERT_TRUE(outcome.has_value());
+    const auto& diagnostic = *outcome.value_if()->diagnostic(0U);
+    schema_test_storage scratch;
+    char small[4] = {'.', '.', '.', '.'};
+    const auto size = format_instance_location(instance.parsed->values, diagnostic, small, 3U, scratch.callbacks());
+    ASSERT_TRUE(size.has_value());
+    EXPECT_EQ(*size.value_if(), 12U); // "/long-name/0"
+    EXPECT_EQ(std::string(small, 4U), "/lo.");
+    const auto foreign = format_instance_location(other.parsed->values, diagnostic, small, 3U, scratch.callbacks());
+    ASSERT_FALSE(foreign.has_value());
+    EXPECT_EQ(foreign.error_if()->code(), schema_error_code::internal_error);
+  }
+
+  /* =================================== Test_P046_MovedFrom ==================================== */
+  /*
+   * Arrange: A compiled schema and a report with diagnostics.
+   * Act: Move both, then use the moved-from objects.
+   * Expect: The moved-from schema reports no nodes and validate() rejects it with internal_error;
+   *         the moved-from report is an empty valid report; the moved-to objects keep the data.
+   */
+  TEST(P046_MovedFrom, ObjectsAreEmptyAfterMove)
+  {
+    schema_fixture schema{R"({"items": false})"};
+    const instance_fixture instance{"[1, 2]"};
+    run_fixture run;
+    run.options.mode = evaluation_mode::collect_all;
+    auto outcome = check(schema, instance, run);
+    ASSERT_TRUE(outcome.has_value());
+
+    validation_report moved_report{std::move(*outcome.value_if())};
+    EXPECT_EQ(moved_report.diagnostic_count(), 2U);
+    EXPECT_FALSE(moved_report.valid());
+    EXPECT_EQ(outcome.value_if()->diagnostic_count(), 0U);
+    EXPECT_EQ(outcome.value_if()->diagnostic(0U), nullptr);
+    EXPECT_TRUE(outcome.value_if()->valid());
+
+    compiled_schema moved_schema{std::move(*schema.compiled)};
+    EXPECT_EQ(moved_schema.node_count(), 2U);
+    EXPECT_EQ(schema.compiled->node_count(), 0U);
+    EXPECT_EQ(schema.compiled->unknown_keyword_count(), 0U);
+    run_fixture again;
+    const auto rejected = validate(*schema.compiled, instance.parsed->values, again.options);
+    ASSERT_FALSE(rejected.has_value());
+    EXPECT_EQ(rejected.error_if()->code(), schema_error_code::internal_error);
+    const auto still_works = validate(moved_schema, instance.parsed->values, again.options);
+    ASSERT_TRUE(still_works.has_value());
+    EXPECT_FALSE(still_works.value_if()->valid());
+  }
 } // namespace

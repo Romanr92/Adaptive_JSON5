@@ -75,8 +75,21 @@ namespace adaptive_json5::detail
        */
       explicit pod_vector(const storage_callbacks& storage) noexcept : m_storage(storage) {}
 
-      pod_vector(pod_vector&&) noexcept = default;
-      pod_vector& operator=(pod_vector&&) noexcept = default;
+      /**
+       * @brief Take over another vector's elements; other becomes empty.
+       * @par Requirements
+       * P044; J5-046.
+       * @par ID SWU-SCHEMA-163
+       */
+      pod_vector(pod_vector&& other) noexcept
+          : m_storage(other.m_storage), m_block(std::move(other.m_block)), m_size(other.m_size),
+            m_capacity(other.m_capacity)
+      {
+        other.m_size = 0U;
+        other.m_capacity = 0U;
+      }
+
+      pod_vector& operator=(pod_vector&&) = delete;
       pod_vector(const pod_vector&) = delete;
       pod_vector& operator=(const pod_vector&) = delete;
       ~pod_vector() noexcept = default;

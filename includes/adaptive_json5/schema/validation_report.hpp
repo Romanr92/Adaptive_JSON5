@@ -60,11 +60,12 @@ namespace adaptive_json5
 
     public:
       /**
-       * @brief Take over another report.
+       * @brief Take over another report; other becomes an empty valid report.
        * @par Requirements
        * P046.
+       * @par ID SWU-SCHEMA-162
        */
-      validation_report(validation_report&& other) noexcept = default;
+      validation_report(validation_report&& other) noexcept;
 
       /**
        * @brief Release the diagnostics through the report storage.

@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-160 | SWU-SCHEMA-161 |
+| SCHEMA | SWU-SCHEMA-167 | SWU-SCHEMA-168 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -551,6 +551,13 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-158 | used | `(anonymous)::put(std::string_view, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-159 | used | `(anonymous)::put_name(const compiled_schema &, node_range, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-160 | used | `(anonymous)::put_index(std::size_t, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-161 | used | `compiled_schema::compiled_schema(compiled_schema &&)` | `core/src/schema/schema_compiler.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-162 | used | `validation_report::validation_report(validation_report &&)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-163 | used | `detail::pod_vector<T>::pod_vector(pod_vector &&)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-164 | used | `format_instance_location(const document &, const schema_diagnostic &, char *, std::size_t, const storage_callbacks &)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-165 | used | `(anonymous)::put_step(const path_frame &, pod_vector<char> &, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-166 | used | `(anonymous)::position_of(const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-167 | used | `(anonymous)::open_container(const value_view &, pod_vector<path_frame> &)` | `core/src/schema/evaluator.cpp` | — |
 
 ## UNICODE
 

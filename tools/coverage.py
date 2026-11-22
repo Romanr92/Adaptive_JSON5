@@ -136,6 +136,8 @@ def main():
             "-DADAPTIVE_JSON5_BUILD_TESTS=ON",
             # Validation tests are a separate gate and never contribute to coverage.
             "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF",
+            # Include the optional schema component and its units (ADR 0006).
+            "-DADAPTIVE_JSON5_BUILD_SCHEMA=ON",
             "-DADAPTIVE_JSON5_BUILD_LIBRARY=OFF",
             "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
             "-DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF",

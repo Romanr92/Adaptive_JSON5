@@ -41,6 +41,7 @@ jobs:
           -DADAPTIVE_JSON5_BUILD_LIBRARY=ON
           -DADAPTIVE_JSON5_BUILD_TESTS=ON
           -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=ON
+          -DADAPTIVE_JSON5_BUILD_SCHEMA=ON
           -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }}
           -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       - name: Compile units and validation

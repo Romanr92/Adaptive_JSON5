@@ -79,6 +79,8 @@ def main():
                      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON", "-DADAPTIVE_JSON5_BUILD_LIBRARY=OFF",
                      "-DADAPTIVE_JSON5_BUILD_TESTS=" + units,
                      "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=" + units,
+                     # The optional schema component is checked by the same runs (ADR 0006).
+                     "-DADAPTIVE_JSON5_BUILD_SCHEMA=ON",
                      "-DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=" + args.exceptions,
                      "-DADAPTIVE_JSON5_ENABLE_RTTI=OFF", "-DADAPTIVE_JSON5_ENABLE_SANITIZERS=ON",
                      "-DADAPTIVE_JSON5_BUILD_FUZZER=" + ("ON" if args.kind == "fuzz" else "OFF")]

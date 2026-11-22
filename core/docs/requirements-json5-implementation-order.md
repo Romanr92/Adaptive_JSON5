@@ -782,13 +782,17 @@ on the active `$ref` chain returns `nonprogressing_reference`. Failures inside
 anyOf/oneOf/not/if branches are not diagnostics; the combinator reports one.
 Fail-fast keeps one diagnostic; collect-all keeps `max_errors` and sets
 `truncated()`. Operational failures win and return no report. Diagnostics are
-fixed-size records in `report_storage`; `format_schema_location()` writes the
-RFC 6901 schema location. Formatting the instance location as a pointer is not
-implemented (P053). Units: `tests/schema/validate_tests.cpp` (`P046_Applicators`,
-`P046_Diagnostics`, `P046_Outcomes`, `P046_Budgets`, including concurrent
-validations).
+fixed-size records in `report_storage`; `format_schema_location()` and
+`format_instance_location()` write the RFC 6901 schema and instance pointers.
+Moved-from compiled schemas and reports are empty. Units:
+`tests/schema/validate_tests.cpp` (`P046_Applicators`, `P046_Diagnostics`,
+`P046_InstanceLocation`, `P046_Outcomes`, `P046_Budgets` including concurrent
+validations, `P046_MovedFrom`) and `tests/schema/pure_evaluation_tests.cpp`
+(`P046_PureEvaluation`: no global heap use, J5-067). CI builds the schema
+component in the unit-test, Clang/compiler, sanitizer, fuzz, coverage, MISRA/CodeQL
+and test-evidence jobs.
 
-Local results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet in CI): schema ON 2974/2974 units with exceptions OFF and ON; schema OFF 3708/3708 with exceptions OFF and ON; 921/921 validation cases; Clang (LLVM, MinGW target) schema ON 2974/2974 with exceptions OFF; clang-format 18.1.8 passed the changed C++ files; `tools/traceability.py` reports no problems and no unmapped tests. CI and developer review/merge are pending. Requirement rows remain Draft.
+Local results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet in CI): schema ON 2982/2982 units with exceptions OFF and ON; schema OFF 3708/3708 with exceptions OFF and ON; 921/921 validation cases; Clang (LLVM, MinGW target) schema ON 2982/2982 with exceptions OFF; clang-format 18.1.8 passed the changed C++ files; `tools/traceability.py` reports no problems and no unmapped tests. CI and developer review/merge are pending. Requirement rows remain Draft.
 
 ### P047 — Type and equality assertions
 

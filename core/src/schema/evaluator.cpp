@@ -10,6 +10,7 @@
 #include "adaptive_json5/schema/validation_report.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
@@ -903,6 +904,203 @@ namespace adaptive_json5
       }
     }
     return offset;
+  }
+
+  namespace
+  {
+    /**
+     * @brief One open container on the instance-location search path.
+     * @par Requirements
+     * P046; J5-064.
+     */
+    struct path_frame
+    {
+        value_iterator children{};
+        value_view current{};
+        std::size_t index{};
+        bool object{};
+    };
+
+    /**
+     * @brief Write one path step: the member name (escaped UTF-8) or the array index.
+     * @par Requirements
+     * P046; J5-064; RFC 6901.
+     * @par ID SWU-SCHEMA-165
+     */
+    result<std::size_t, schema_error> put_step(const path_frame& step, pod_vector<char>& text, char* buffer,
+                                               std::size_t capacity, std::size_t offset) noexcept
+    {
+      using size_result = result<std::size_t, schema_error>;
+      offset = put("/", buffer, capacity, offset);
+      if (!step.object)
+      {
+        return size_result::success(put_index(step.index - 1U, buffer, capacity, offset));
+      }
+      const auto name = step.current.member_name();
+      if (!name.has_value())
+      {
+        return size_result::failure(*access_failure(name.error_if()).error_if());
+      }
+      const auto size = utf8_size(**name.value_if());
+      if (!size.has_value())
+      {
+        return size_result::failure(*access_failure(size.error_if()).error_if());
+      }
+      text.truncate(0U);
+      for (std::size_t index = 0U; index < *size.value_if(); ++index)
+      {
+        const auto pushed = text.push_back('\0');
+        if (!pushed.has_value())
+        {
+          return size_result::failure(*pushed.error_if());
+        }
+      }
+      if (*size.value_if() != 0U)
+      {
+        const auto written = export_utf8(**name.value_if(), text.writable(), text.size());
+        if (!written.has_value())
+        {
+          return size_result::failure(*access_failure(written.error_if()).error_if());
+        }
+      }
+      const std::size_t room = (offset < capacity) ? (capacity - offset) : 0U;
+      const std::string_view token =
+        (text.size() == 0U) ? std::string_view{} : std::string_view{text.writable(), text.size()};
+      return size_result::success(
+        offset + detail::escape_pointer_token(token, buffer + ((offset < capacity) ? offset : 0U), room));
+    }
+
+    /**
+     * @brief Return a value's document position.
+     * @par Requirements
+     * P046; J5-064.
+     * @par ID SWU-SCHEMA-166
+     */
+    result<std::size_t, schema_error> position_of(const value_view& value) noexcept
+    {
+      const auto index = value.index();
+      if (!index.has_value())
+      {
+        return result<std::size_t, schema_error>::failure(*access_failure(index.error_if()).error_if());
+      }
+      return result<std::size_t, schema_error>::success(index.value_if()->position());
+    }
+
+    /**
+     * @brief Open a container on the search path, or do nothing for a scalar.
+     * @par Requirements
+     * P046; J5-064.
+     * @par ID SWU-SCHEMA-167
+     */
+    status open_container(const value_view& value, pod_vector<path_frame>& path) noexcept
+    {
+      const auto kind = kind_of(value);
+      if ((kind != value_kind::array) && (kind != value_kind::object))
+      {
+        return status::success();
+      }
+      auto children = value.children();
+      if (!children.has_value())
+      {
+        return access_failure(children.error_if());
+      }
+      path_frame frame{};
+      frame.children = *children.value_if();
+      frame.object = kind == value_kind::object;
+      return path.push_back(frame);
+    }
+  } // namespace
+
+  /**
+   * @brief Write a diagnostic's instance location as an RFC 6901 JSON Pointer.
+   * @par Requirements
+   * P046; J5-064; RFC 6901; ADR 0006 decision 13.
+   * @par ID SWU-SCHEMA-164
+   */
+  result<std::size_t, schema_error> format_instance_location(const document& instance,
+                                                             const schema_diagnostic& diagnostic, char* buffer,
+                                                             std::size_t capacity,
+                                                             const storage_callbacks& scratch) noexcept
+  {
+    using size_result = result<std::size_t, schema_error>;
+    const auto root = instance.root();
+    if (!root.has_value())
+    {
+      return size_result::failure(*access_failure(root.error_if()).error_if());
+    }
+    const auto root_position = position_of(*root.value_if());
+    if (!root_position.has_value())
+    {
+      return size_result::failure(*root_position.error_if());
+    }
+    if (*root_position.value_if() == diagnostic.instance_position)
+    {
+      return size_result::success(0U);
+    }
+    pod_vector<path_frame> path{scratch};
+    pod_vector<char> text{scratch};
+    const auto opened = open_container(*root.value_if(), path);
+    if (!opened.has_value())
+    {
+      return size_result::failure(*opened.error_if());
+    }
+    while (path.size() != 0U)
+    {
+      path_frame top = path.get(path.size() - 1U);
+      const auto next = top.children.next();
+      if (!next.has_value())
+      {
+        return size_result::failure(*access_failure(next.error_if()).error_if());
+      }
+      if (!next.value_if()->has_value())
+      {
+        path.pop_back();
+        continue;
+      }
+      top.current = **next.value_if();
+      ++top.index;
+      path.set(path.size() - 1U, top);
+      const auto position = position_of(top.current);
+      if (!position.has_value())
+      {
+        return size_result::failure(*position.error_if());
+      }
+      if (*position.value_if() == diagnostic.instance_position)
+      {
+        std::size_t offset = 0U;
+        for (std::size_t level = 0U; level < path.size(); ++level)
+        {
+          const auto written = put_step(path.get(level), text, buffer, capacity, offset);
+          if (!written.has_value())
+          {
+            return written;
+          }
+          offset = *written.value_if();
+        }
+        return size_result::success(offset);
+      }
+      const auto child = open_container(top.current, path);
+      if (!child.has_value())
+      {
+        return size_result::failure(*child.error_if());
+      }
+    }
+    return size_result::failure(schema_error::of(schema_error_code::internal_error));
+  }
+
+  /**
+   * @brief Take over another report; other becomes an empty valid report.
+   * @par Requirements
+   * P046.
+   * @par ID SWU-SCHEMA-162
+   */
+  validation_report::validation_report(validation_report&& other) noexcept
+      : m_diagnostics(std::move(other.m_diagnostics)), m_count(other.m_count), m_valid(other.m_valid),
+        m_truncated(other.m_truncated)
+  {
+    other.m_count = 0U;
+    other.m_valid = true;
+    other.m_truncated = false;
   }
 
   /**

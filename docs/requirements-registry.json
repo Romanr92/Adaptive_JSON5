@@ -4232,7 +4232,7 @@
         },
         {
           "files": ["includes/adaptive_json5/schema/validate.hpp", "core/src/schema/evaluator.cpp"],
-          "symbols": ["format_schema_location"]
+          "symbols": ["format_schema_location", "format_instance_location"]
         },
         {
           "files": ["core/includes/schema/json_pointer.hpp", "core/src/schema/json_pointer.cpp"],
@@ -4250,6 +4250,13 @@
           "file": "core/tests/schema/uri_pointer_tests.cpp",
           "names": [
             "P044_JsonPointer.EscapesTokens"
+          ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_InstanceLocation.FormatsThePointer",
+            "P046_InstanceLocation.ReportsSizeAndForeignPositions"
           ]
         }
       ]
@@ -4365,6 +4372,12 @@
           "names": [
             "P046_Budgets.ConcurrentValidationsShareTheSchema"
           ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_MovedFrom.ObjectsAreEmptyAfterMove"
+          ]
         }
       ]
     },
@@ -4386,6 +4399,12 @@
           "file": "core/tests/schema/schema_compiler_tests.cpp",
           "names": [
             "P044_References.ResolvesRegisteredResource"
+          ]
+        },
+        {
+          "file": "tests/schema/pure_evaluation_tests.cpp",
+          "names": [
+            "P046_PureEvaluation.UsesOnlyCallerStorage"
           ]
         }
       ]

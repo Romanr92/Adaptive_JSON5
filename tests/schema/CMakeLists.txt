@@ -22,3 +22,10 @@ find_package(Threads REQUIRED)
 adaptive_json5_add_unit(adaptive_json5_schema_validate_unit_tests schema_validate_units
     validate_tests.cpp)
 target_link_libraries(adaptive_json5_schema_validate_unit_tests PRIVATE AdaptiveJSON5::schema Threads::Threads)
+
+# J5-067: compile and validate use only caller storage (no global heap); the
+# allocation probe replaces global operator new, so it gets its own executable.
+adaptive_json5_add_unit(adaptive_json5_schema_pure_unit_tests schema_pure_units
+    pure_evaluation_tests.cpp
+    ../shared_infrastructure/global_allocation_probe.cpp)
+target_link_libraries(adaptive_json5_schema_pure_unit_tests PRIVATE AdaptiveJSON5::schema)

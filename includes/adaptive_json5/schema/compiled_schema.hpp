@@ -66,8 +66,11 @@ namespace adaptive_json5
        * @brief Take over another compiled schema; other becomes empty.
        * @par Requirements
        * P044; J5-066.
+       * @note The moved-from schema reports zero nodes; validate() rejects it with
+       * internal_error instead of reading released tables.
+       * @par ID SWU-SCHEMA-161
        */
-      compiled_schema(compiled_schema&& other) noexcept = default;
+      compiled_schema(compiled_schema&& other) noexcept;
 
       /**
        * @brief Release the graph through its result storage.

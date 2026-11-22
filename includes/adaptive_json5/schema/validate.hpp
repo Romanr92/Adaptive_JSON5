@@ -45,6 +45,25 @@ namespace adaptive_json5
    */
   [[nodiscard]] std::size_t format_schema_location(const compiled_schema& schema, const schema_diagnostic& diagnostic,
                                                    char* buffer, std::size_t capacity) noexcept;
+
+  /**
+   * @brief Write a diagnostic's instance location as an RFC 6901 JSON Pointer.
+   * @par Requirements
+   * P046; J5-064; RFC 6901; ADR 0006 decision 13.
+   * @param instance The document that was validated; it must be the same, unchanged document.
+   * @param buffer Destination; nothing past capacity is written and no terminator is added.
+   * @param scratch Storage for the search stack and name conversion, released before returning.
+   * @return The number of bytes the full pointer needs ("" for the root, for example
+   * `/a~1b/0`), internal_error when instance_position names no value of instance, or a
+   * storage failure.
+   * @note Searches the document from the root (linear in its size) and writes member names
+   * as UTF-8 with `~` and `/` escaped.
+   * @par ID SWU-SCHEMA-164
+   */
+  [[nodiscard]] result<std::size_t, schema_error> format_instance_location(const document& instance,
+                                                                           const schema_diagnostic& diagnostic,
+                                                                           char* buffer, std::size_t capacity,
+                                                                           const storage_callbacks& scratch) noexcept;
 } // namespace adaptive_json5
 
 #endif /* ADAPTIVE_JSON5_SCHEMA_VALIDATE_HPP_ */

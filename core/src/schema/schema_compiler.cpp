@@ -1304,6 +1304,26 @@ namespace adaptive_json5
   }
 
   /**
+   * @brief Take over another compiled schema; other becomes empty.
+   * @par Requirements
+   * P044; J5-066.
+   * @par ID SWU-SCHEMA-161
+   */
+  compiled_schema::compiled_schema(compiled_schema&& other) noexcept
+      : m_nodes(std::move(other.m_nodes)), m_edges(std::move(other.m_edges)),
+        m_properties(std::move(other.m_properties)), m_units(std::move(other.m_units)),
+        m_node_count(other.m_node_count), m_edge_count(other.m_edge_count), m_property_count(other.m_property_count),
+        m_unit_count(other.m_unit_count), m_resource_count(other.m_resource_count), m_root(other.m_root)
+  {
+    other.m_node_count = 0U;
+    other.m_edge_count = 0U;
+    other.m_property_count = 0U;
+    other.m_unit_count = 0U;
+    other.m_resource_count = 0U;
+    other.m_root = 0U;
+  }
+
+  /**
    * @brief Return the number of compiled schema nodes.
    * @par Requirements
    * P044; J5-047.
