@@ -106,6 +106,12 @@ namespace adaptive_json5
         schema_dialect dialect;
         std::size_t steps{};
 
+        /**
+         * @brief Bind every table to its storage; no allocation.
+         * @par Requirements
+         * P044; ADR 0006 O7.
+         * @par ID SWU-SCHEMA-122
+         */
         compile_state(const compile_options& options, schema_dialect selected) noexcept
             : nodes(options.result_storage), edges(options.result_storage), properties(options.result_storage),
               units(options.result_storage), pending(options.scratch_storage), bases(options.scratch_storage),

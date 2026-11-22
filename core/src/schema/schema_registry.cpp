@@ -46,15 +46,16 @@ namespace adaptive_json5
      * @brief Translate a strict schema parse failure.
      * @par Requirements
      * P044; J5-043; J5-054; ADR 0006 decision 9.
-     * @return Operational parser failures keep their category; all others are
-     * invalid_schema (syntax) carrying the parser error.
+     * @return Operational parser failures keep their category (an access failure, a
+     * misconfigured call, becomes internal_error); all others are invalid_schema (syntax)
+     * carrying the parser error.
      * @par ID SWU-SCHEMA-076
      */
     schema_error parse_failure(const error& failure) noexcept
     {
       const error_code code = failure.code();
       if ((code == error_code::allocation_failure) || (code == error_code::resource_limit) ||
-          (code == error_code::internal_error))
+          (code == error_code::internal_error) || (code == error_code::wrong_type_or_access))
       {
         return schema_error::from_storage(failure);
       }
@@ -93,6 +94,7 @@ namespace adaptive_json5
    * @brief Store the borrowed storage and the empty entry table.
    * @par Requirements
    * P044.
+   * @par ID SWU-SCHEMA-121
    */
   schema_registry::schema_registry(accounted_storage& storage, owned_block&& entries, std::size_t capacity) noexcept
       : m_storage(&storage), m_entries(std::move(entries)), m_capacity(capacity), m_size(0U)
@@ -181,6 +183,8 @@ namespace adaptive_json5
     parse_options options{};
     options.syntax = syntax_mode::strict_json;
     options.duplicate_names = duplicate_name_policy::reject_duplicates;
+    // parse_document() requires the accounting ceiling to equal the configured byte limit.
+    options.limits.max_owned_bytes = m_storage->byte_limit();
     auto parsed = parse_document(text, options, *m_storage);
     if (!parsed.has_value())
     {

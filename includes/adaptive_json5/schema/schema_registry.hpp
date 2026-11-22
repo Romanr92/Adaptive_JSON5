@@ -42,6 +42,12 @@ namespace adaptive_json5
       std::size_t m_capacity;
       std::size_t m_size;
 
+      /**
+       * @brief Store the borrowed storage and the empty entry table.
+       * @par Requirements
+       * P044.
+       * @par ID SWU-SCHEMA-121
+       */
       schema_registry(accounted_storage& storage, owned_block&& entries, std::size_t capacity) noexcept;
 
       friend struct detail::schema_registry_access;
