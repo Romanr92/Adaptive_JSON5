@@ -420,6 +420,43 @@ namespace
   }
 
   /*
+   * Arrange: Collect-all over ten failing items, cancelled after some diagnostics were recorded.
+   * Act: Validate with cancellation at every later step.
+   * Expect: cancelled, never a partial invalid report; report storage is released
+   *         (J5-063, ADR 0006 decision 3).
+   */
+  TEST(P046_Outcomes, CancellationAfterAssertionFailureWins)
+  {
+    const schema_fixture schema{R"({"items": false})"};
+    const instance_fixture instance{"[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"};
+    std::size_t total_polls = 0U;
+    {
+      cancel_after count{0U, 1000000U};
+      run_fixture run;
+      run.options.mode = evaluation_mode::collect_all;
+      run.options.cancellation = cancellation_callback{&cancel_after::poll, &count};
+      const auto outcome = check(schema, instance, run);
+      ASSERT_TRUE(outcome.has_value());
+      ASSERT_EQ(outcome.value_if()->diagnostic_count(), 10U);
+      total_polls = count.polls;
+    }
+    std::size_t cancelled_after_failure = 0U;
+    for (std::size_t limit = total_polls / 2U; limit < total_polls; ++limit)
+    {
+      cancel_after cancel{0U, limit};
+      run_fixture run;
+      run.options.mode = evaluation_mode::collect_all;
+      run.options.cancellation = cancellation_callback{&cancel_after::poll, &cancel};
+      const auto outcome = check(schema, instance, run);
+      ASSERT_FALSE(outcome.has_value()) << limit;
+      EXPECT_EQ(outcome.error_if()->code(), schema_error_code::cancelled) << limit;
+      EXPECT_EQ(run.report_provider.live_bytes, 0U) << limit;
+      cancelled_after_failure += (run.report_provider.allocations != 0U) ? 1U : 0U;
+    }
+    EXPECT_GT(cancelled_after_failure, 0U);
+  }
+
+  /*
    * Arrange: A schema and work-storage failures injected at every allocation.
    * Act: Validate with failure n = 1, 2, ... until it succeeds.
    * Expect: Each failure is allocation_failure and leaves nothing allocated.

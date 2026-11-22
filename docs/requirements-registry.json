@@ -3816,7 +3816,7 @@
     {
       "id": "J5-050",
       "title": "Concurrency",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "design": ["docs/adr/0005-allocation-free-number-reads.md"],
@@ -3847,7 +3847,7 @@
     {
       "id": "J5-052",
       "title": "Deterministic semantics",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "implementation": [
@@ -3942,7 +3942,7 @@
     {
       "id": "J5-054",
       "title": "Schema compilation",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -3981,7 +3981,7 @@
     {
       "id": "J5-055",
       "title": "Identifiers and references",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 44,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4050,7 +4050,7 @@
     {
       "id": "J5-056",
       "title": "Reference semantics",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 44,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4101,7 +4101,7 @@
     {
       "id": "J5-059",
       "title": "Exact numeric validation",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 48,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4142,7 +4142,7 @@
     {
       "id": "J5-061",
       "title": "Structural equality",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 48,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4187,7 +4187,7 @@
     {
       "id": "J5-062",
       "title": "Extension keywords",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4213,7 +4213,7 @@
     {
       "id": "J5-063",
       "title": "Validation outcomes",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4246,13 +4246,19 @@
             "P046_Diagnostics.ValidInstanceNeedsNoReportStorage",
             "P046_Outcomes.OperationalFailureWins"
           ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Outcomes.CancellationAfterAssertionFailureWins"
+          ]
         }
       ]
     },
     {
       "id": "J5-064",
       "title": "Schema diagnostics",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4303,7 +4309,7 @@
     {
       "id": "J5-065",
       "title": "Evaluation budgets",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4387,7 +4393,7 @@
     {
       "id": "J5-066",
       "title": "Compiled-schema lifetime",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
@@ -4432,7 +4438,7 @@
     {
       "id": "J5-067",
       "title": "Pure evaluation",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "design": ["core/docs/adr-0006-schema-component.md"],
