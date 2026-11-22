@@ -34,7 +34,10 @@ The VS Code workspace settings and snippet are adapted from AdaptivePi’s
 Native GoogleTest tasks/debugging replace its QEMU/Yocto configuration; formatter
 paths, presets, exclusions and the header-guard prefix match this repository.
 
-Before adding further Unicode data, grammar/schema fixtures, a schema engine or editor
+The optional schema component (`AdaptiveJSON5::schema`, ADR 0006) depends only on
+the parser library and the C++17 standard library; it adds no third-party code.
+
+Before adding further Unicode data, grammar/schema fixtures, a regex engine or editor
 dependencies, record its source, immutable version, license, notices and any
 regeneration procedure. These future dependencies are not selected by this setup.
 

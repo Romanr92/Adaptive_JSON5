@@ -121,8 +121,9 @@ target_link_libraries(my_tool PRIVATE AdaptiveJSON5::hosted)
 The optional `schema` component (ADR 0006) exists only in source builds with
 `ADAPTIVE_JSON5_BUILD_SCHEMA=ON`; release packages do not contain it yet, so a
 required `schema` component fails there, as do unknown components. Its P043
-building blocks (outcome, budget and option types) are not a validator yet. The
-real host CLI remains future work.
+implementation provides compilation and validation of the P046 keyword subset;
+the other Draft-07 assertions follow in P047–P051. The real host CLI remains future
+work.
 
 For future AdaptivePi use, vendor `cmake/ImportAdaptiveJSON5.cmake` from a pinned
 repository revision into that consumer. This task changes only Adaptive_JSON5;

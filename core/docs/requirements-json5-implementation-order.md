@@ -732,6 +732,21 @@ Implement URI base identities, pointer escaping and caller-registered local/exte
 - Existing contracts: J5-055, J5-064, J5-066, J5-067.
 - Unit acceptance: Nested $id, relative/absolute references, fragment and ~0/~1 pointers, input/registry destruction.
 
+Implementation: `schema_registry` (fixed capacity, strict JSON with
+`reject_duplicates`, `invalid_registration` and schema-text domain errors, default
+base URI `adaptive-json5:/root.json`), an internal RFC 3986 section 5 resolver and
+RFC 6901 token decoding, and `compile_schema()`/`compiled_schema`: a flat node
+graph in result storage, scratch storage released on return, `$id` scopes and
+plain names, `$ref` siblings (including `$id`) ignored, every `$ref` resolved to a
+node index, pure `$ref` cycles rejected, `max_schema_nodes`/`max_compile_steps`,
+the Draft-07 dialect check and unknown-keyword counts. All Draft-07 subschema
+keywords are compiled so pointers into them resolve; standard annotations are not
+copied yet (P053). Units: `core/tests/schema/uri_pointer_tests.cpp`
+(`P044_UriResolution`, `P044_UriNormalization`, `P044_JsonPointer`),
+`schema_compiler_tests.cpp` (`P044_References`, `P044_CompileErrors`,
+`P044_CompileDialect`, `P044_CompileLimits`, `P044_CompileGraph`) and
+`tests/schema/schema_registry_tests.cpp` (`P044_Registration`).
+
 ### P045 — Exact schema equality
 
 Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #46).
@@ -742,6 +757,13 @@ Provide type-aware deep equality using exact numeric equivalence, ordered arrays
 - Existing contracts: J5-059, J5-061.
 - Unit acceptance: Equivalent decimal/hex/exponent values; bool versus number; nested/reordered containers.
 
+Implementation: internal `values_equal()` with an explicit stack in scratch
+storage, exact `compare_numbers()`, ordered arrays and order-free objects matched
+by decoded name; `max_equality_steps` per visited pair and `max_work_steps` per
+name comparison. Used by `const`, `enum` and `uniqueItems` from P047. Units:
+`core/tests/schema/value_equality_tests.cpp` (`P045_ExactEquality`,
+`P045_EqualityBudget`).
+
 ### P046 — Bounded schema evaluation engine
 
 Tracking: [#44](https://github.com/Romanr92/Adaptive_JSON5/issues/44) (original step issue #47).
@@ -751,6 +773,22 @@ Evaluate boolean schemas and object schemas with per-type applicability; track b
 - Prerequisites: P044, P045.
 - Existing contracts: J5-053, J5-056, J5-063, J5-065.
 - Unit acceptance: True/false schemas, recursive instance progress, cyclic references, cleanup/cancellation and minimal errors.
+
+Implementation: `validate()` and `validation_report`. The instance pre-pass runs
+first; an explicit frame stack in work storage (bounded by `max_depth`) evaluates
+boolean schemas, `$ref` (siblings ignored), allOf, anyOf, oneOf, not,
+if/then/else, properties and items. A repeated (schema node, instance value) pair
+on the active `$ref` chain returns `nonprogressing_reference`. Failures inside
+anyOf/oneOf/not/if branches are not diagnostics; the combinator reports one.
+Fail-fast keeps one diagnostic; collect-all keeps `max_errors` and sets
+`truncated()`. Operational failures win and return no report. Diagnostics are
+fixed-size records in `report_storage`; `format_schema_location()` writes the
+RFC 6901 schema location. Formatting the instance location as a pointer is not
+implemented (P053). Units: `tests/schema/validate_tests.cpp` (`P046_Applicators`,
+`P046_Diagnostics`, `P046_Outcomes`, `P046_Budgets`, including concurrent
+validations).
+
+Local results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet in CI): schema ON 2974/2974 units with exceptions OFF and ON; schema OFF 3708/3708 with exceptions OFF and ON; 921/921 validation cases; Clang (LLVM, MinGW target) schema ON 2974/2974 with exceptions OFF; clang-format 18.1.8 passed the changed C++ files; `tools/traceability.py` reports no problems and no unmapped tests. CI and developer review/merge are pending. Requirement rows remain Draft.
 
 ### P047 — Type and equality assertions
 

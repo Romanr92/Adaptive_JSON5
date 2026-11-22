@@ -3903,8 +3903,41 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/schema_dialect.hpp"],
+          "symbols": ["schema_dialect", "matches_dialect_uri"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/compiled_schema.hpp", "core/src/schema/schema_compiler.cpp"],
+          "symbols": ["compile_schema", "check_dialect"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/validate.hpp", "core/src/schema/evaluator.cpp"],
+          "symbols": ["validate"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/schema_api_tests.cpp",
+          "names": [
+            "P043_SchemaDialect.MatchesOnlyExactDraft07Uris"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_CompileDialect.AcceptsDraft07AndIgnoresSubschemaSchema"
+          ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Applicators.MatchesDraft07"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-054",
@@ -3912,8 +3945,32 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/schema_registry.hpp", "core/src/schema/schema_registry.cpp"],
+          "symbols": ["add", "parse_failure", "check_schema_domain"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["process", "shape_error"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_CompileErrors.ReportsTheError"
+          ]
+        },
+        {
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "names": [
+            "P044_Registration.ReportsStrictSyntaxErrors",
+            "P044_Registration.RejectsUnpairedSurrogates"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-055",
@@ -3921,8 +3978,56 @@
       "status": "Draft",
       "issue": 44,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/includes/schema/uri.hpp", "core/src/schema/uri.cpp"],
+          "symbols": ["split_uri", "resolve_uri"]
+        },
+        {
+          "files": ["core/includes/schema/json_pointer.hpp", "core/src/schema/json_pointer.cpp"],
+          "symbols": ["next_pointer_token", "pointer_index"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/schema_registry.hpp", "core/src/schema/schema_registry.cpp"],
+          "symbols": ["schema_registry", "add"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["apply_id", "resolve_refs", "resolve_target", "walk_pointer"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "names": [
+            "P044_UriResolution.MatchesRfc3986Examples",
+            "P044_UriNormalization.LowercasesSchemeAndHostOnly",
+            "P044_UriNormalization.SplitsComponents",
+            "P044_JsonPointer.DecodesTokens",
+            "P044_JsonPointer.ParsesArrayIndexes"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_References.ResolvesLocalPointer",
+            "P044_References.DecodesEscapedPointerTokens",
+            "P044_References.ResolvesNestedId",
+            "P044_References.ResolvesPlainName",
+            "P044_References.IgnoresIdBesideRef",
+            "P044_References.SelectsRootByFragment",
+            "P044_CompileDialect.RejectsUnknownRoot"
+          ]
+        },
+        {
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "names": [
+            "P044_Registration.RejectsRelativeAndDuplicateUris",
+            "P044_Registration.EnforcesCapacityAndDefaultUri"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-056",
@@ -3930,8 +4035,26 @@
       "status": "Draft",
       "issue": 44,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["reject_pure_cycles"]
+        },
+        {
+          "files": ["core/src/schema/evaluator.cpp"],
+          "symbols": ["push_child", "advance"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Outcomes.DetectsNonprogressingReference",
+            "P046_Outcomes.RecursionWithInstanceProgress"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-057",
@@ -3957,8 +4080,31 @@
       "status": "Draft",
       "issue": 48,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/includes/schema/value_equality.hpp", "core/src/schema/value_equality.cpp"],
+          "symbols": ["values_equal"]
+        },
+        {
+          "files": ["core/includes/schema/instance_domain.hpp", "core/src/schema/instance_domain.cpp"],
+          "symbols": ["check_instance_domain"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "names": [
+            "P045_ExactEquality.ComparesByValue"
+          ]
+        },
+        {
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "names": [
+            "P043_InstanceDomain.RejectsOnlyNonJsonValues"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-060",
@@ -3975,8 +4121,37 @@
       "status": "Draft",
       "issue": 48,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/includes/schema/value_equality.hpp", "core/src/schema/value_equality.cpp"],
+          "symbols": ["values_equal"]
+        },
+        {
+          "files": ["core/includes/schema/instance_domain.hpp", "core/src/schema/instance_domain.cpp"],
+          "symbols": ["check_instance_domain", "check_unique_names"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "names": [
+            "P045_EqualityBudget.HandlesDeepNestingIteratively"
+          ]
+        },
+        {
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "names": [
+            "P043_InstanceDomainNames.ComparesDecodedNames"
+          ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Outcomes.UnsupportedInstanceComesBeforeAssertions"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-062",
@@ -3984,8 +4159,25 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["classify", "collect_keywords"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/compiled_schema.hpp"],
+          "symbols": ["unknown_keyword_count"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_CompileGraph.CountsUnknownKeywords"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-063",
@@ -3993,8 +4185,38 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/schema_error.hpp"],
+          "symbols": ["schema_error", "schema_error_code", "occurs_in"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/validation_report.hpp", "core/src/schema/evaluator.cpp"],
+          "symbols": ["validation_report", "record"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/schema_api_tests.cpp",
+          "names": [
+            "P043_SchemaError.PhaseTableMatchesTheOutcomeModel",
+            "P043_SchemaError.SubReasonsBelongToTheirCode",
+            "P043_SchemaError.SyntaxKeepsTheParserError",
+            "P043_SchemaError.StorageFailuresReuseParserNames",
+            "P043_SchemaError.TravelsInTheLibraryResult"
+          ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Diagnostics.FailFastAndBoundedCollectAll",
+            "P046_Diagnostics.ReportsCombinatorsNotTheirBranches",
+            "P046_Diagnostics.ValidInstanceNeedsNoReportStorage",
+            "P046_Outcomes.OperationalFailureWins"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-064",
@@ -4002,8 +4224,35 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/validation_report.hpp"],
+          "symbols": ["schema_diagnostic"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/validate.hpp", "core/src/schema/evaluator.cpp"],
+          "symbols": ["format_schema_location"]
+        },
+        {
+          "files": ["core/includes/schema/json_pointer.hpp", "core/src/schema/json_pointer.cpp"],
+          "symbols": ["escape_pointer_token"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Diagnostics.LocatesTheFailure"
+          ]
+        },
+        {
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "names": [
+            "P044_JsonPointer.EscapesTokens"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-065",
@@ -4011,8 +4260,74 @@
       "status": "Draft",
       "issue": 69,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/schema_budget.hpp"],
+          "symbols": ["validation_budget", "schema_compile_limits"]
+        },
+        {
+          "files": ["core/includes/schema/schema_work.hpp", "core/src/schema/schema_work.cpp"],
+          "symbols": ["schema_work", "step", "equality_step", "reference_step", "branch_step"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["charge", "add_node"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/schema_work_tests.cpp",
+          "names": [
+            "P043_SchemaWork.WorkStepCapIsInclusive",
+            "P043_SchemaWork.PollsCancellationOncePerStep",
+            "P043_SchemaWork.CancellationIsCheckedBeforeTheCap",
+            "P043_SchemaWork.KeepsItsOwnBudgetCopy"
+          ]
+        },
+        {
+          "file": "tests/schema/schema_api_tests.cpp",
+          "names": [
+            "P043_SchemaBudget.DefaultsMatchTheDecisions"
+          ]
+        },
+        {
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "names": [
+            "P043_InstanceDomainStorage.ScalarRootNeedsNoWorkStorage",
+            "P043_InstanceDomainStorage.ReportsWorkAllocationFailure",
+            "P043_InstanceDomainStorage.ReportsWorkByteCeiling",
+            "P043_InstanceDomainBudget.DepthLimitIsInclusive",
+            "P043_InstanceDomainBudget.ScalarRootPassesZeroDepth",
+            "P043_InstanceDomainBudget.WorkStepLimitIsInclusive",
+            "P043_InstanceDomainBudget.CancellationStopsAndReleasesWorkStorage"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_CompileLimits.NodeLimitIsInclusive",
+            "P044_CompileLimits.StepLimitFailsCleanlyUntilEnough",
+            "P044_CompileLimits.AllocationFailureSweep"
+          ]
+        },
+        {
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "names": [
+            "P045_EqualityBudget.EqualityStepLimitIsInclusive",
+            "P045_EqualityBudget.ChargesWorkSteps",
+            "P045_EqualityBudget.ReportsScratchAllocationFailure"
+          ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Budgets.LimitsAreInclusive",
+            "P046_Outcomes.CancellationReleasesStorage",
+            "P046_Outcomes.WorkAllocationFailureSweep"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-066",
@@ -4020,8 +4335,38 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/compiled_schema.hpp", "core/src/schema/schema_compiler.cpp"],
+          "symbols": ["compiled_schema", "compile_options"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/validation_options.hpp"],
+          "symbols": ["validation_options"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "names": [
+            "P044_Registration.CompiledSchemaOutlivesRegistry",
+            "P044_Registration.MovesAndReleases"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_CompileGraph.MovesAndReleases"
+          ]
+        },
+        {
+          "file": "tests/schema/validate_tests.cpp",
+          "names": [
+            "P046_Budgets.ConcurrentValidationsShareTheSchema"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-067",
@@ -4029,8 +4374,21 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/schema_registry.hpp", "core/src/schema/schema_registry.cpp"],
+          "symbols": ["schema_registry"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "names": [
+            "P044_References.ResolvesRegisteredResource"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-068",
@@ -4038,8 +4396,25 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/CMakeLists.txt"],
+          "symbols": ["adaptive_json5_schema"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema.hpp"],
+          "symbols": ["ADAPTIVE_JSON5_SCHEMA_HPP_"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/parser_only_tests.cpp",
+          "names": [
+            "P043_ParserOnly.UmbrellaHeaderIncludesNoSchemaHeader"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-069",
