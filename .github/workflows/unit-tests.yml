@@ -15,10 +15,19 @@ jobs:
   unit-tests:
     name: unit-tests
     runs-on: ubuntu-latest
+    env:
+      ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE: '1'
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      # J5-052: a comma-decimal locale, so the locale-independence unit test runs instead of skipping.
+      - if: runner.os == 'Linux'
+        name: Generate a comma-decimal locale
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes locales
+          sudo locale-gen de_DE.UTF-8
       - name: Configure
         # Parser-only build: proves the parser needs no schema code (J5-068).
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_BUILD_SCHEMA=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
@@ -57,11 +66,20 @@ jobs:
           - runner: windows-2022
             profile: windows-mingw
     runs-on: ${{ matrix.runner }}
+    env:
+      ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE: '1'
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      # J5-052: a comma-decimal locale, so the locale-independence unit test runs instead of skipping.
+      - if: runner.os == 'Linux'
+        name: Generate a comma-decimal locale
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes locales
+          sudo locale-gen de_DE.UTF-8
       - if: runner.os == 'Linux'
         name: Install GNU compiler and Ninja
         run: |

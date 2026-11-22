@@ -10,6 +10,7 @@
 #include <array>
 #include <clocale>
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <gtest/gtest.h>
 #include <string>
@@ -171,6 +172,12 @@ namespace
     ASSERT_TRUE(reference.valid);
     if (!activate_comma_locale())
     {
+      // CI installs a comma locale and sets this variable, so the check cannot silently be skipped there.
+      if (std::getenv("ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE") != nullptr)
+      {
+        FAIL()
+          << "ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE is set but no locale with a comma decimal separator is installed";
+      }
       GTEST_SKIP() << "No locale with a comma decimal separator is installed; locale independence not exercised";
     }
     /* Act */
