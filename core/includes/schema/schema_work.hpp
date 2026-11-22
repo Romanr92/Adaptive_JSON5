@@ -23,6 +23,20 @@ namespace adaptive_json5::detail
       validation_budget m_budget;
       cancellation_callback m_cancellation;
       std::size_t m_work_steps{};
+      std::size_t m_equality_steps{};
+      std::size_t m_reference_steps{};
+      std::size_t m_branch_evaluations{};
+
+      /**
+       * @brief Charge one work step, then one unit of a category counter.
+       * @par Requirements
+       * P045; P046; J5-065; ADR 0006 decision 5.
+       * @return The step() failure, or resource_limit (reason) when the category cap is
+       * exceeded. A failed category charge keeps the work step charged.
+       * @par ID SWU-SCHEMA-123
+       */
+      [[nodiscard]] result<void, schema_error> charge(std::size_t& counter, std::size_t limit,
+                                                      schema_limit_reason reason) noexcept;
 
     public:
       /**
@@ -43,6 +57,33 @@ namespace adaptive_json5::detail
        * @par ID SWU-SCHEMA-017
        */
       [[nodiscard]] result<void, schema_error> step() noexcept;
+
+      /**
+       * @brief Charge one node visited by deep equality (const, enum, uniqueItems).
+       * @par Requirements
+       * P045; J5-061; J5-065.
+       * @return As step(), or resource_limit (max_equality_steps).
+       * @par ID SWU-SCHEMA-124
+       */
+      [[nodiscard]] result<void, schema_error> equality_step() noexcept;
+
+      /**
+       * @brief Charge one `$ref` traversal.
+       * @par Requirements
+       * P046; J5-056; J5-065.
+       * @return As step(), or resource_limit (max_reference_steps).
+       * @par ID SWU-SCHEMA-125
+       */
+      [[nodiscard]] result<void, schema_error> reference_step() noexcept;
+
+      /**
+       * @brief Charge one subschema evaluation under anyOf, oneOf, allOf, not or if.
+       * @par Requirements
+       * P046; J5-065.
+       * @return As step(), or resource_limit (max_branch_evaluations).
+       * @par ID SWU-SCHEMA-126
+       */
+      [[nodiscard]] result<void, schema_error> branch_step() noexcept;
 
       /**
        * @brief Return the number of steps charged so far.

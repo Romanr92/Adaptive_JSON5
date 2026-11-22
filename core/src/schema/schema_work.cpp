@@ -43,6 +43,61 @@ namespace adaptive_json5::detail
   }
 
   /**
+   * @brief Charge one work step, then one unit of a category counter.
+   * @par Requirements
+   * P045; P046; J5-065; ADR 0006 decision 5.
+   * @par ID SWU-SCHEMA-123
+   */
+  result<void, schema_error> schema_work::charge(std::size_t& counter, std::size_t limit,
+                                                 schema_limit_reason reason) noexcept
+  {
+    const auto stepped = step();
+    if (!stepped.has_value())
+    {
+      return stepped;
+    }
+    if (counter >= limit)
+    {
+      return result<void, schema_error>::failure(schema_error::limit(reason));
+    }
+    ++counter;
+    return result<void, schema_error>::success();
+  }
+
+  /**
+   * @brief Charge one node visited by deep equality (const, enum, uniqueItems).
+   * @par Requirements
+   * P045; J5-061; J5-065.
+   * @par ID SWU-SCHEMA-124
+   */
+  result<void, schema_error> schema_work::equality_step() noexcept
+  {
+    return charge(m_equality_steps, m_budget.max_equality_steps, schema_limit_reason::max_equality_steps);
+  }
+
+  /**
+   * @brief Charge one `$ref` traversal.
+   * @par Requirements
+   * P046; J5-056; J5-065.
+   * @par ID SWU-SCHEMA-125
+   */
+  result<void, schema_error> schema_work::reference_step() noexcept
+  {
+    return charge(m_reference_steps, m_budget.max_reference_steps, schema_limit_reason::max_reference_steps);
+  }
+
+  /**
+   * @brief Charge one subschema evaluation under anyOf, oneOf, allOf, not or if.
+   * @par Requirements
+   * P046; J5-065.
+   * @par ID SWU-SCHEMA-126
+   */
+  result<void, schema_error> schema_work::branch_step() noexcept
+  {
+    return charge(m_branch_evaluations, m_budget.max_branch_evaluations, schema_limit_reason::max_branch_evaluations);
+  }
+
+  /**
    * @brief Return the number of steps charged so far.
    * @par Requirements
    * P043; J5-065.

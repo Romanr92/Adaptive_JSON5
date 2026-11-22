@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-122 | SWU-SCHEMA-123 |
+| SCHEMA | SWU-SCHEMA-134 | SWU-SCHEMA-135 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -513,6 +513,18 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-120 | used | `(anonymous)::find_root(compile_state&, std::string_view)` | `core/src/schema/schema_compiler.cpp` | — |
 | SWU-SCHEMA-121 | used | `schema_registry::schema_registry(accounted_storage&, owned_block&&, std::size_t)` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
 | SWU-SCHEMA-122 | used | `(anonymous)::compile_state::compile_state(const compile_options&, schema_dialect)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-123 | used | `detail::schema_work::charge(std::size_t &, std::size_t, schema_limit_reason)` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-124 | used | `detail::schema_work::equality_step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-125 | used | `detail::schema_work::reference_step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-126 | used | `detail::schema_work::branch_step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-127 | used | `detail::values_equal(const value_view &, const value_view &, schema_work &, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | `core/includes/schema/value_equality.hpp` |
+| SWU-SCHEMA-128 | used | `(anonymous)::failed(const error *)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-129 | used | `(anonymous)::strings_equal(const decoded_string &, const decoded_string &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-130 | used | `(anonymous)::scalars_equal(const value_pair &, value_kind, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-131 | used | `(anonymous)::find_by_name(const value_view &, const decoded_string &, schema_work &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-132 | used | `(anonymous)::push_elements(const value_pair &, pod_vector<value_pair> &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-133 | used | `(anonymous)::push_members(const value_pair &, pod_vector<value_pair> &, schema_work &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-134 | used | `(anonymous)::compare_pair(const value_pair &, pod_vector<value_pair> &, schema_work &, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | — |
 
 ## UNICODE
 
