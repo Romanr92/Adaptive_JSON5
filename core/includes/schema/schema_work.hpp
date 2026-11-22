@@ -17,6 +17,10 @@ namespace adaptive_json5::detail
    * @note One object per validation; it is not shared between threads. Holds copies of the
    * budget and callback, so the caller's options may go away after construction.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.6)
   class [[nodiscard]] schema_work
   {
     private:

@@ -26,6 +26,10 @@ namespace adaptive_json5::detail
      * @par Requirements
      * P045; J5-061.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.18)
     struct value_pair
     {
         value_view left{};
@@ -56,6 +60,10 @@ namespace adaptive_json5::detail
       {
         return verdict::success(false);
       }
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.21)
       for (std::size_t index = 0U; index < left.size(); ++index)
       {
         const auto a = left.unit_at(index);
@@ -68,6 +76,10 @@ namespace adaptive_json5::detail
         {
           return failed(b.error_if());
         }
+        // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.21)
         if (*a.value_if() != *b.value_if())
         {
           return verdict::success(false);
@@ -314,6 +326,10 @@ namespace adaptive_json5::detail
     }
     while (stack.size() != 0U)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.78)
       const value_pair pair = stack.get(stack.size() - 1U);
       stack.pop_back();
       const auto compared = compare_pair(pair, stack, work, scratch);

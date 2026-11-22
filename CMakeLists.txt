@@ -9,8 +9,6 @@ option(ADAPTIVE_JSON5_BUILD_TESTS "Build host GoogleTest unit tests"
 option(ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS
     "Build the Official JSON & JSON5 Validation Tests" OFF)
 option(ADAPTIVE_JSON5_BUILD_LIBRARY "Build/export the library component" ON)
-option(ADAPTIVE_JSON5_BUILD_SCHEMA
-    "Build the optional Draft-07 schema component (ADR 0006)" OFF)
 option(ADAPTIVE_JSON5_BUILD_EXECUTABLE
     "Build the host example executable when implemented" OFF)
 option(ADAPTIVE_JSON5_ENABLE_EXCEPTIONS "Enable exceptions in project targets"
@@ -28,6 +26,15 @@ if(ADAPTIVE_JSON5_BUILD_FUZZER AND
         (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR NOT ADAPTIVE_JSON5_ENABLE_SANITIZERS))
     message(FATAL_ERROR "libFuzzer requires Clang and ADAPTIVE_JSON5_ENABLE_SANITIZERS=ON")
 endif()
+# The schema component is checked by every test, validation and fuzz build; library-only
+# and release package builds leave it OFF unless it is requested (ADR 0006 decision 1).
+if(ADAPTIVE_JSON5_BUILD_TESTS OR ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS OR ADAPTIVE_JSON5_BUILD_FUZZER)
+    set(adaptive_json5_schema_default ON)
+else()
+    set(adaptive_json5_schema_default OFF)
+endif()
+option(ADAPTIVE_JSON5_BUILD_SCHEMA "Build the optional Draft-07 schema component (ADR 0006)"
+    ${adaptive_json5_schema_default})
 option(ADAPTIVE_JSON5_BUILD_HOSTED
     "Build the optional hosted one-call parse API (uses the global heap)" OFF)
 option(ADAPTIVE_JSON5_EISEL_LEMIRE

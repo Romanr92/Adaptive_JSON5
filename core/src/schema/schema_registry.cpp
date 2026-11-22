@@ -38,7 +38,18 @@ namespace adaptive_json5
      */
     registry_entry* slot(const owned_block& entries, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds. Address
+      // computation inside an owned block from caller storage, as in the parser storage layer (DEV-002/DEV-003); the
+      // offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-101.68)
       void* const address = static_cast<unsigned char*>(entries.data()) + (index * sizeof(registry_entry));
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.10)
       return std::launder(static_cast<registry_entry*>(address));
     }
 
@@ -116,6 +127,10 @@ namespace adaptive_json5
       return result<schema_registry, schema_error>::failure(schema_error::from_storage(*entries.error_if()));
     }
     return result<schema_registry, schema_error>::success(
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+      // once.
+      // codeql::misra_deviation_next_line(DEV-108.5)
       schema_registry{storage, std::move(*entries.value_if()), capacity});
   }
 
@@ -125,6 +140,11 @@ namespace adaptive_json5
    * P044; J5-066.
    * @par ID SWU-SCHEMA-067
    */
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA justification: Move construction and accessors are noexcept and leave the source empty; members have
+  // default member initializers, so none is read before it is set.
+  // codeql::misra_deviation_next_line(DEV-109.5)
   schema_registry::schema_registry(schema_registry&& other) noexcept
       : m_storage(other.m_storage), m_entries(std::move(other.m_entries)), m_capacity(other.m_capacity),
         m_size(other.m_size)
@@ -143,7 +163,15 @@ namespace adaptive_json5
   {
     while (m_size != 0U)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.67)
       --m_size;
+      // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+      // MISRA justification: Placement new constructs trivially destructible or explicitly destroyed objects in owned
+      // blocks from caller storage, as in the parser (DEV-001).
+      // codeql::misra_deviation_next_line(DEV-112.3)
       slot(m_entries, m_size)->~registry_entry();
     }
   }
@@ -171,7 +199,15 @@ namespace adaptive_json5
     {
       return resolved;
     }
+    // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+    // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing the
+    // value; the operands are unsigned values below 0x110000 and the results are used as such.
+    // codeql::misra_deviation_next_line(DEV-106.19)
     const std::string_view uri = detail::text_of(normalized, 0U, normalized.size());
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+    // call; the counter is only incremented by the loop statement.
+    // codeql::misra_deviation_next_line(DEV-105.20)
     for (std::size_t index = 0U; index < m_size; ++index)
     {
       if (detail::schema_registry_access::uri(*slot(m_entries, index)) == uri)
@@ -196,10 +232,26 @@ namespace adaptive_json5
       return domain;
     }
 
+    // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+    // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value (as
+    // DEV-007).
+    // codeql::misra_deviation_next_line(DEV-111.2)
     const std::size_t uri_size = normalized.size();
     owned_block uri_block = normalized.release();
+    // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+    // MISRA justification: Placement new constructs trivially destructible or explicitly destroyed objects in owned
+    // blocks from caller storage, as in the parser (DEV-001).
+    // codeql::misra_deviation_next_line(DEV-112.2)
     static_cast<void>(::new (static_cast<void*>(slot(m_entries, m_size)))
-                        registry_entry{std::move(uri_block), uri_size, std::move(*parsed.value_if())});
+                      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+                      // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result
+                      // is moved out of once.
+                      // codeql::misra_deviation_next_line(DEV-108.4)
+                      registry_entry{std::move(uri_block), uri_size, std::move(*parsed.value_if())});
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+    // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+    // codeql::misra_deviation_next_line(DEV-101.66)
     ++m_size;
     return status::success();
   }
@@ -262,6 +314,10 @@ namespace adaptive_json5
       {
         return std::string_view{};
       }
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.9)
       return std::string_view{static_cast<const char*>(entry.uri.data()), entry.uri_size};
     }
   } // namespace detail

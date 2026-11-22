@@ -12,7 +12,7 @@ J5-059, J5-061, J5-063–J5-068.
 
 | # | Topic | Status |
 | --- | --- | --- |
-| 1 | Layout and build target | Decided: separate `adaptive_json5_schema` target; own package component; option OFF by default; QM |
+| 1 | Layout and build target | Decided: separate `adaptive_json5_schema` target; own package component; ON in test/validation/fuzz builds, OFF for library-only and release builds; QM |
 | 2 | Dialect API | Decided: explicit `schema_dialect::draft_07`; Draft-07 URI with or without trailing `#`, exact match; subschema `$schema` ignored |
 | 3 | Outcome model | Decided: compile → `result<compiled_schema, schema_error>`, validate → `result<validation_report, schema_error>`; assertion failure is a report, not an error |
 | 4 | Storage ownership | Decided: compiled schema owns a copied, immutable, move-only graph in caller storage; separate work storage per validation |
@@ -36,7 +36,10 @@ A separate library target `adaptive_json5_schema` that links `adaptive_json5`.
   `adaptive_json5/schema.hpp`. The umbrella `adaptive_json5.hpp` stays parser-only.
 - Private headers: `core/includes/schema/`; sources: `core/src/schema/`.
 - Internal units: `core/tests/schema/`; public-interface units: `tests/schema/`.
-- `ADAPTIVE_JSON5_BUILD_SCHEMA` stays OFF by default. When OFF, no schema source,
+- `ADAPTIVE_JSON5_BUILD_SCHEMA` defaults ON when unit, validation or fuzz tests are built,
+  so every CI check covers the schema to the repository's standards, and OFF otherwise;
+  the release `.a` packages are built with it OFF (owner decision, 2026-11-22). One
+  unit-test job builds explicitly with it OFF to check J5-068. When OFF, no schema source,
   header or link dependency is built or installed (J5-068).
 - The installed package exposes the schema as its own component
   (`find_package(AdaptiveJSON5 COMPONENTS schema)`) with a separate archive in the

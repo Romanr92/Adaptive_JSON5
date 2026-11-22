@@ -15,6 +15,10 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P044; J5-055.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.5)
   struct registry_entry
   {
       owned_block uri;

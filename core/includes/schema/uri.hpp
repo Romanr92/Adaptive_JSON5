@@ -16,6 +16,10 @@ namespace adaptive_json5::detail
    * @note Views into the split text; the has_ flags tell an empty component from an
    * absent one.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.7)
   struct uri_parts
   {
       std::string_view scheme{};

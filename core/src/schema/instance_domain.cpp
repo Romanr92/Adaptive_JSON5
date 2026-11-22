@@ -34,6 +34,10 @@ namespace adaptive_json5::detail
      * @par Requirements
      * P043; J5-048.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.13)
     struct stack_frame
     {
         value_iterator children;
@@ -81,30 +85,54 @@ namespace adaptive_json5::detail
           return result<bool>::failure(*unit.error_if());
         }
         const std::uint16_t value = *unit.value_if();
+        // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.6)
         if ((value >= c_low_surrogate_first) && (value <= c_low_surrogate_last))
         {
           return result<bool>::success(true);
         }
+        // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.5)
         if ((value >= c_high_surrogate_first) && (value <= c_high_surrogate_last))
         {
           if ((position + 1U) >= text.size())
           {
             return result<bool>::success(true);
           }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.41)
           const auto next = text.unit_at(position + 1U);
           if (!next.has_value())
           {
             return result<bool>::failure(*next.error_if());
           }
           const std::uint16_t low = *next.value_if();
+          // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+          // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without
+          // changing the value; the operands are unsigned values below 0x110000 and the results are used as such.
+          // codeql::misra_deviation_next_line(DEV-106.4)
           if ((low < c_low_surrogate_first) || (low > c_low_surrogate_last))
           {
             return result<bool>::success(true);
           }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.40)
           position += 2U;
         }
         else
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.39)
           ++position;
         }
       }
@@ -156,6 +184,44 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief Reject a member name holding an unpaired surrogate.
+     * @par Requirements
+     * P043; J5-061; ADR 0006 decision 6.
+     * @par ID SWU-SCHEMA-180
+     */
+    status check_member_name(const value_view& member) noexcept
+    {
+      const auto name = member.member_name();
+      if (!name.has_value())
+      {
+        return access_failure(name.error_if());
+      }
+      return check_text(**name.value_if(), name_span(member));
+    }
+
+    /**
+     * @brief Reject a NaN or Infinity number.
+     * @par Requirements
+     * P043; J5-059; ADR 0006 decision 6.
+     * @par ID SWU-SCHEMA-181
+     */
+    status check_number(const value_view& value) noexcept
+    {
+      const auto number = value.as_number();
+      if (!number.has_value())
+      {
+        return access_failure(number.error_if());
+      }
+      const number_kind spelling = (*number.value_if())->kind();
+      if ((spelling == number_kind::infinity) || (spelling == number_kind::nan))
+      {
+        return status::failure(
+          schema_error::unsupported(unsupported_instance_reason::non_finite_number, value_span(value)));
+      }
+      return status::success();
+    }
+
+    /**
      * @brief Charge one step and check one value's own content (not its children).
      * @par Requirements
      * P043; J5-059; J5-061; ADR 0006 decision 6.
@@ -175,12 +241,7 @@ namespace adaptive_json5::detail
 
       if (in_object)
       {
-        const auto name = value.member_name();
-        if (!name.has_value())
-        {
-          return access_failure(name.error_if());
-        }
-        const auto name_checked = check_text(**name.value_if(), name_span(value));
+        const auto name_checked = check_member_name(value);
         if (!name_checked.has_value())
         {
           return name_checked;
@@ -192,10 +253,7 @@ namespace adaptive_json5::detail
       {
         return access_failure(kind.error_if());
       }
-
-      switch (*kind.value_if())
-      {
-      case value_kind::string:
+      if (*kind.value_if() == value_kind::string)
       {
         const auto text = value.as_string();
         if (!text.has_value())
@@ -204,29 +262,7 @@ namespace adaptive_json5::detail
         }
         return check_text(**text.value_if(), value_span(value));
       }
-      case value_kind::number:
-      {
-        const auto number = value.as_number();
-        if (!number.has_value())
-        {
-          return access_failure(number.error_if());
-        }
-        const number_kind spelling = (*number.value_if())->kind();
-        if ((spelling == number_kind::infinity) || (spelling == number_kind::nan))
-        {
-          return status::failure(
-            schema_error::unsupported(unsupported_instance_reason::non_finite_number, value_span(value)));
-        }
-        return status::success();
-      }
-      case value_kind::null:
-      case value_kind::boolean:
-      case value_kind::array:
-      case value_kind::object:
-        return status::success();
-      default:
-        return status::failure(schema_error::of(schema_error_code::internal_error));
-      }
+      return (*kind.value_if() == value_kind::number) ? check_number(value) : status::success();
     }
 
     /**
@@ -326,6 +362,10 @@ namespace adaptive_json5::detail
           {
             return status::failure(schema_error::from_storage(*block.error_if()));
           }
+          // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+          // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out
+          // of once.
+          // codeql::misra_deviation_next_line(DEV-108.3)
           m_block = std::move(*block.value_if());
           m_capacity = capacity;
           return status::success();
@@ -343,8 +383,23 @@ namespace adaptive_json5::detail
           {
             return status::failure(schema_error::of(schema_error_code::internal_error));
           }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // Address computation inside an owned block from caller storage, as in the parser storage layer
+          // (DEV-002/DEV-003); the offset is within the block size that was allocated.
+          // codeql::misra_deviation_next_line(DEV-101.38)
           void* const slot = static_cast<unsigned char*>(m_block.data()) + (m_size * sizeof(stack_frame));
+          // MISRA rule: RULE-21-6-3 cpp/misra/advanced-memory-management-used
+          // MISRA justification: Placement new constructs trivially destructible or explicitly destroyed objects in
+          // owned blocks from caller storage, as in the parser (DEV-001).
+          // codeql::misra_deviation_next_line(DEV-112.1)
           static_cast<void>(::new (slot) stack_frame(frame));
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.37)
           ++m_size;
           return status::success();
         }
@@ -357,7 +412,18 @@ namespace adaptive_json5::detail
          */
         [[nodiscard]] stack_frame& top() noexcept
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // Address computation inside an owned block from caller storage, as in the parser storage layer
+          // (DEV-002/DEV-003); the offset is within the block size that was allocated.
+          // codeql::misra_deviation_next_line(DEV-101.36)
           void* const slot = static_cast<unsigned char*>(m_block.data()) + ((m_size - 1U) * sizeof(stack_frame));
+          // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+          // MISRA justification: Address computation inside an owned block from caller storage, as in the parser
+          // storage layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+          // codeql::misra_deviation_next_line(DEV-107.4)
           return *std::launder(static_cast<stack_frame*>(slot));
         }
 
@@ -369,6 +435,10 @@ namespace adaptive_json5::detail
          */
         void pop() noexcept
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.35)
           --m_size;
         }
 
@@ -439,6 +509,42 @@ namespace adaptive_json5::detail
       }
       return result<bool>::success((*kind.value_if() == value_kind::array) || (*kind.value_if() == value_kind::object));
     }
+    /**
+     * @brief Check every value below the containers on the stack, depth first.
+     * @par Requirements
+     * P043; J5-048; J5-059; J5-061.
+     * @par ID SWU-SCHEMA-182
+     */
+    status walk_containers(frame_stack& stack, schema_work& work) noexcept
+    {
+      while (stack.size() != 0U)
+      {
+        stack_frame& frame = stack.top();
+        const bool in_object = frame.object;
+        const auto next = frame.children.next();
+        if (!next.has_value())
+        {
+          return access_failure(next.error_if());
+        }
+        if (!next.value_if()->has_value())
+        {
+          stack.pop();
+          continue;
+        }
+        const value_view& child = **next.value_if();
+        const auto checked = check_value(child, in_object, work);
+        if (!checked.has_value())
+        {
+          return checked;
+        }
+        const auto child_entered = enter(child, stack, work);
+        if (!child_entered.has_value())
+        {
+          return child_entered;
+        }
+      }
+      return status::success();
+    }
   } // namespace
 
   /**
@@ -488,32 +594,6 @@ namespace adaptive_json5::detail
       return entered;
     }
 
-    while (stack.size() != 0U)
-    {
-      stack_frame& frame = stack.top();
-      const bool in_object = frame.object;
-      const auto next = frame.children.next();
-      if (!next.has_value())
-      {
-        return access_failure(next.error_if());
-      }
-      if (!next.value_if()->has_value())
-      {
-        stack.pop();
-        continue;
-      }
-      const value_view& child = **next.value_if();
-      const auto checked = check_value(child, in_object, work);
-      if (!checked.has_value())
-      {
-        return checked;
-      }
-      const auto child_entered = enter(child, stack, work);
-      if (!child_entered.has_value())
-      {
-        return child_entered;
-      }
-    }
-    return status::success();
+    return walk_containers(stack, work);
   }
 } // namespace adaptive_json5::detail

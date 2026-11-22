@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-167 | SWU-SCHEMA-168 |
+| SCHEMA | SWU-SCHEMA-190 | SWU-SCHEMA-191 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -558,6 +558,29 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-165 | used | `(anonymous)::put_step(const path_frame &, pod_vector<char> &, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-166 | used | `(anonymous)::position_of(const value_view &)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-167 | used | `(anonymous)::open_container(const value_view &, pod_vector<path_frame> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-168 | used | `(anonymous)::next_char(std::string_view, std::size_t &)` | `core/src/schema/json_pointer.cpp` | — |
+| SWU-SCHEMA-169 | used | `(anonymous)::edge_at(const evaluator &, node_range, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-170 | used | `(anonymous)::fail_keyword(evaluator &, frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-171 | used | `(anonymous)::step_all_of(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-172 | used | `(anonymous)::step_any_of(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-173 | used | `(anonymous)::step_one_of(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-174 | used | `(anonymous)::step_not(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-175 | used | `(anonymous)::step_if(frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-176 | used | `(anonymous)::step_then_else(frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-177 | used | `(anonymous)::target_for(evaluator &, const frame &, const schema_node &, const value_view &, bool)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-178 | used | `(anonymous)::put_path(const pod_vector<path_frame> &, pod_vector<char> &, char *, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-179 | used | `(anonymous)::step_phase(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-180 | used | `(anonymous)::check_member_name(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-181 | used | `(anonymous)::check_number(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-182 | used | `(anonymous)::walk_containers(frame_stack &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-183 | used | `(anonymous)::compile_boolean(compile_state &, const pending_item &, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-184 | used | `(anonymous)::record_ref(compile_state &, const pending_item &, const value_view &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-185 | used | `(anonymous)::add_items_children(compile_state &, const pending_item &, const value_view &, bool, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-186 | used | `(anonymous)::add_combinator_children(compile_state &, const pending_item &, const std::array<std::optional<value_view>, c_keyword_count> &, bool, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-187 | used | `(anonymous)::relative_target(const uri_parts &, const uri_parts &, pod_vector<char> &, uri_parts &, std::string_view &)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-188 | used | `(anonymous)::apply_identity(compile_state &, const pending_item &, const std::array<std::optional<value_view>, c_keyword_count> &, pending_item &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-189 | used | `detail::next_capacity(std::size_t, std::size_t)` | `core/src/schema/pod_vector.cpp` | `core/includes/schema/pod_vector.hpp` |
+| SWU-SCHEMA-190 | used | `detail::copy_bytes(void *, const void *, std::size_t)` | `core/src/schema/pod_vector.cpp` | `core/includes/schema/pod_vector.hpp` |
 
 ## UNICODE
 

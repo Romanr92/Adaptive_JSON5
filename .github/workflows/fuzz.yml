@@ -19,7 +19,8 @@ jobs:
   fuzz:
     name: fuzz (exceptions ${{ matrix.exceptions }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    # Two fuzz targets (parser and schema) each run for --seconds.
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:

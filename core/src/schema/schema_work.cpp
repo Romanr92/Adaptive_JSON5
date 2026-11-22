@@ -38,6 +38,10 @@ namespace adaptive_json5::detail
       return result<void, schema_error>::failure(schema_error::limit(schema_limit_reason::max_work_steps));
     }
 
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+    // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+    // codeql::misra_deviation_next_line(DEV-101.70)
     ++m_work_steps;
     return result<void, schema_error>::success();
   }
@@ -60,6 +64,10 @@ namespace adaptive_json5::detail
     {
       return result<void, schema_error>::failure(schema_error::limit(reason));
     }
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+    // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+    // codeql::misra_deviation_next_line(DEV-101.69)
     ++counter;
     return result<void, schema_error>::success();
   }
@@ -114,6 +122,10 @@ namespace adaptive_json5::detail
    * P043; J5-065.
    * @par ID SWU-SCHEMA-019
    */
+  // MISRA rule: RULE-6-8-4 cpp/misra/member-functions-refqualified
+  // MISRA justification: Move construction and accessors are noexcept and leave the source empty; members have
+  // default member initializers, so none is read before it is set.
+  // codeql::misra_deviation_next_line(DEV-109.6)
   const validation_budget& schema_work::budget() const noexcept
   {
     return m_budget;

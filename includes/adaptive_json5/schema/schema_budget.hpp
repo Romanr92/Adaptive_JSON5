@@ -16,6 +16,10 @@ namespace adaptive_json5
    * truncates the diagnostic list (ADR 0006 decision 12). The regex budget is added with P048.
    * Construction performs no allocation.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.22)
   struct [[nodiscard]] validation_budget
   {
       std::size_t max_depth = resource_limits{}.max_depth; // Nested instance/schema evaluation depth.
@@ -33,6 +37,10 @@ namespace adaptive_json5
    * @note Exceeding a limit returns schema_error_code::resource_limit with the matching
    * schema_limit_reason. Compilation has no cancellation callback.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.21)
   struct [[nodiscard]] schema_compile_limits
   {
       std::size_t max_schema_nodes = 100'000;    // Compiled nodes across all registered resources.

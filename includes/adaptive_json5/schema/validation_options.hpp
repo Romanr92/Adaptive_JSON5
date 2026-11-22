@@ -37,6 +37,10 @@ namespace adaptive_json5
    * P043; J5-049; ADR 0006 decision 7.
    * @note A null poll means no cancellation polling; budgets still bound the work.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.25)
   struct [[nodiscard]] cancellation_callback
   {
       cancellation_poll poll = nullptr;
@@ -51,6 +55,10 @@ namespace adaptive_json5
    * Concurrent validations of one compiled schema are safe when each uses its own
    * work storage; sharing one between threads is unsupported.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.24)
   struct [[nodiscard]] validation_options
   {
       storage_callbacks work_storage{};   // Frame stack and pre-pass; released before validate() returns.

@@ -140,6 +140,10 @@ namespace adaptive_json5
    * come from the parser or storage, the parser error unchanged. Construction never
    * allocates.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.23)
   class [[nodiscard]] schema_error
   {
     private:
@@ -152,8 +156,12 @@ namespace adaptive_json5
 
       constexpr schema_error(schema_error_code code, std::optional<std::uint8_t> reason,
                              std::optional<source_span> range, std::optional<error> parser_error) noexcept
+          // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+          // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+          // context; the value is zero or the stated constant and no conversion changes it.
+          // codeql::misra_deviation_next_line(DEV-103.36)
           : m_parser_error(parser_error), m_range(range.value_or(source_span{})), m_code(code),
-            m_reason(reason.value_or(std::uint8_t{0U})), m_has_reason(reason.has_value()),
+            m_reason(reason.value_or(static_cast<std::uint8_t>(0U))), m_has_reason(reason.has_value()),
             m_has_range(range.has_value())
       {
       }
@@ -275,6 +283,10 @@ namespace adaptive_json5
        * P043; J5-043; J5-044.
        * @par ID SWU-SCHEMA-009
        */
+      // MISRA rule: RULE-6-8-4 cpp/misra/member-functions-refqualified
+      // MISRA justification: Move construction and accessors are noexcept and leave the source empty; members have
+      // default member initializers, so none is read before it is set.
+      // codeql::misra_deviation_next_line(DEV-109.7)
       [[nodiscard]] constexpr const std::optional<error>& parser_error() const noexcept
       {
         return m_parser_error;
@@ -366,6 +378,10 @@ namespace adaptive_json5
        */
       [[nodiscard]] static constexpr schema_error from_storage(const error& storage_failure) noexcept
       {
+        // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+        // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value (as
+        // DEV-007).
+        // codeql::misra_deviation_next_line(DEV-111.3)
         schema_error_code code = schema_error_code::internal_error;
         if (storage_failure.code() == error_code::allocation_failure)
         {

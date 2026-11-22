@@ -3969,6 +3969,12 @@
             "P044_Registration.ReportsStrictSyntaxErrors",
             "P044_Registration.RejectsUnpairedSurrogates"
           ]
+        },
+        {
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "names": [
+            "P044_EdgeCases.RegistrationStorageFailures"
+          ]
         }
       ]
     },
@@ -4026,6 +4032,18 @@
             "P044_Registration.RejectsRelativeAndDuplicateUris",
             "P044_Registration.EnforcesCapacityAndDefaultUri"
           ]
+        },
+        {
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "names": [
+            "P044_EdgeCases.UriCornerCases",
+            "P044_EdgeCases.PointerEscapes",
+            "P044_EdgeCases.CharacterRanges",
+            "P044_EdgeCases.IdForms",
+            "P044_EdgeCases.IdAndKeywordForms",
+            "P044_EdgeCases.PointerTargets",
+            "P044_EdgeCases.EmptyReferencesAndShortNames"
+          ]
         }
       ]
     },
@@ -4052,6 +4070,12 @@
           "names": [
             "P046_Outcomes.DetectsNonprogressingReference",
             "P046_Outcomes.RecursionWithInstanceProgress"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "names": [
+            "P044_EdgeCases.CycleNotContainingTheStart"
           ]
         }
       ]
@@ -4149,6 +4173,13 @@
           "file": "tests/schema/validate_tests.cpp",
           "names": [
             "P046_Outcomes.UnsupportedInstanceComesBeforeAssertions"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "names": [
+            "P043_EdgeCases.SurrogateBoundaries",
+            "P045_EdgeCases.EqualityOnInvalidViews"
           ]
         }
       ]
@@ -4258,6 +4289,14 @@
             "P046_InstanceLocation.FormatsThePointer",
             "P046_InstanceLocation.ReportsSizeAndForeignPositions"
           ]
+        },
+        {
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "names": [
+            "P046_EdgeCases.SchemaLocationNames",
+            "P046_EdgeCases.LocationForms",
+            "P046_EdgeCases.ZeroCapacityFormatting"
+          ]
         }
       ]
     },
@@ -4332,6 +4371,15 @@
             "P046_Budgets.LimitsAreInclusive",
             "P046_Outcomes.CancellationReleasesStorage",
             "P046_Outcomes.WorkAllocationFailureSweep"
+          ]
+        },
+        {
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "names": [
+            "P044_EdgeCases.VectorGrowthBounds",
+            "P044_EdgeCases.UriAllocationSweep",
+            "P044_EdgeCases.UriComponentBoundaryFailures",
+            "P046_EdgeCases.ReportAndFormatterAllocationSweeps"
           ]
         }
       ]

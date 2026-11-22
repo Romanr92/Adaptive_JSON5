@@ -27,6 +27,10 @@ namespace adaptive_json5
    * is used during compilation only and fully released before compile_schema() returns.
    * Both must be usable providers.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.20)
   struct [[nodiscard]] compile_options
   {
       schema_compile_limits limits{};
@@ -43,6 +47,10 @@ namespace adaptive_json5
    * It keeps no reference to the registry or the schema texts. Concurrent read-only use
    * (for example validations with separate work storage) is safe.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.19)
   class [[nodiscard]] compiled_schema
   {
     private:

@@ -46,8 +46,16 @@ namespace adaptive_json5
      * @par Requirements
      * P044; J5-055; ADR 0006 O1.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.17)
     struct key_entry
     {
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.33)
         node_range text{};
         std::size_t node{};
     };
@@ -57,11 +65,27 @@ namespace adaptive_json5
      * @par Requirements
      * P044; J5-055.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.16)
     struct ref_entry
     {
         std::size_t node{};
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.32)
         node_range text{};
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.31)
         node_range base{};
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.30)
         source_span span{};
         bool has_span{};
     };
@@ -71,10 +95,18 @@ namespace adaptive_json5
      * @par Requirements
      * P044; J5-048.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.15)
     struct pending_item
     {
         value_view value{};
         std::size_t node{};
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.29)
         node_range base{};
         bool resource_root{};
     };
@@ -86,6 +118,10 @@ namespace adaptive_json5
      * @note nodes, edges, properties and units use result storage; everything else uses
      * scratch storage and is released when the state is destroyed.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.14)
     struct compile_state
     {
         pod_vector<schema_node> nodes;
@@ -135,6 +171,10 @@ namespace adaptive_json5
       {
         return status::failure(schema_error::limit(schema_limit_reason::max_compile_steps));
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.65)
       state.steps += amount;
       return status::success();
     }
@@ -198,9 +238,20 @@ namespace adaptive_json5
       {
         return false;
       }
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.19)
       for (std::size_t index = 0U; index < keyword.size(); ++index)
       {
         const auto unit = name.unit_at(index);
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such. URI, JSON
+        // Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and code units by value, as RFC
+        // 3986, RFC 6901 and Unicode define them.
+        // codeql::misra_deviation_next_line(DEV-102.27)
         if (!unit.has_value() || (*unit.value_if() != static_cast<std::uint16_t>(keyword[index])))
         {
           return false;
@@ -218,6 +269,10 @@ namespace adaptive_json5
      */
     std::optional<schema_keyword> classify(const decoded_string& name) noexcept
     {
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.18)
       for (std::size_t index = c_first_named_keyword; index < c_keyword_count; ++index)
       {
         const auto keyword = static_cast<schema_keyword>(index);
@@ -239,6 +294,10 @@ namespace adaptive_json5
     {
       out.first = state.units.size();
       out.count = name.size();
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.17)
       for (std::size_t index = 0U; index < name.size(); ++index)
       {
         const auto unit = name.unit_at(index);
@@ -274,6 +333,10 @@ namespace adaptive_json5
         return access_error(size.error_if());
       }
       out.truncate(0U);
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.16)
       for (std::size_t index = 0U; index < *size.value_if(); ++index)
       {
         const auto pushed = out.push_back('\0');
@@ -316,6 +379,10 @@ namespace adaptive_json5
      */
     status add_key(compile_state& state, std::string_view text, std::size_t node) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.28)
       key_entry entry{};
       entry.node = node;
       const auto stored = store_text(state.key_text, text, entry.text);
@@ -351,6 +418,10 @@ namespace adaptive_json5
     status add_child(compile_state& state, const pending_item& parent, schema_keyword keyword, step_kind step,
                      node_range name, std::size_t position, const value_view& value, std::size_t& index) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.27)
       schema_node child{};
       child.parent = parent.node;
       child.step_keyword = keyword;
@@ -360,6 +431,10 @@ namespace adaptive_json5
       child.resource = state.nodes.get(parent.node).resource;
       const auto span = span_of(value);
       child.has_span = span.has_value();
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.26)
       child.span = span.value_or(source_span{});
       const auto added = add_node(state, child, index);
       if (!added.has_value())
@@ -382,9 +457,18 @@ namespace adaptive_json5
       {
         return text;
       }
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.18)
       const std::string_view id_text = detail::text_of(state.text, 0U, state.text.size());
       const detail::uri_parts parts = detail::split_uri(id_text);
       const bool plain_name = !parts.has_scheme && !parts.has_authority && parts.path.empty() && !parts.has_query &&
+                              // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+                              // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and
+                              // computes ASCII characters and code units by value, as RFC 3986, RFC 6901 and Unicode
+                              // define them.
+                              // codeql::misra_deviation_next_line(DEV-102.26)
                               parts.has_fragment && !parts.fragment.empty() && (parts.fragment[0U] != '/');
 
       state.resolved.truncate(0U);
@@ -394,6 +478,10 @@ namespace adaptive_json5
       {
         return resolved;
       }
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.17)
       const std::string_view target = detail::text_of(state.resolved, 0U, state.resolved.size());
       if (plain_name)
       {
@@ -412,6 +500,10 @@ namespace adaptive_json5
         return keyed;
       }
       const std::size_t hash = target.find('#');
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.25)
       if ((hash != std::string_view::npos) && ((hash + 1U) < target.size()) && (target[hash + 1U] != '/'))
       {
         return add_key(state, target, node);
@@ -442,6 +534,13 @@ namespace adaptive_json5
       {
         return access_error(elements.error_if());
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds. A
+      // counting loop over a container or range whose bound is a size read through a member call; the counter is only
+      // incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-101.64)
       for (std::size_t position = 0U;; ++position)
       {
         const auto element = elements.value_if()->next();
@@ -455,6 +554,10 @@ namespace adaptive_json5
         }
         std::size_t child = 0U;
         const auto added =
+          // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+          // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+          // context; the value is zero or the stated constant and no conversion changes it.
+          // codeql::misra_deviation_next_line(DEV-103.25)
           add_child(state, parent, keyword, step_kind::index, node_range{}, position, **element.value_if(), child);
         if (!added.has_value())
         {
@@ -499,11 +602,15 @@ namespace adaptive_json5
         }
         if (!member.value_if()->has_value())
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.63)
           properties.count = state.properties.size() - properties.first;
           return status::success();
         }
         const value_view& entry = **member.value_if();
-        if (skip_arrays && (kind_of(entry) == value_kind::array))
+        if ((kind_of(entry) == value_kind::array) && skip_arrays)
         {
           continue;
         }
@@ -512,6 +619,10 @@ namespace adaptive_json5
         {
           return access_error(name.error_if());
         }
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.24)
         node_range units{};
         const auto copied = copy_units(state, **name.value_if(), units);
         if (!copied.has_value())
@@ -519,6 +630,10 @@ namespace adaptive_json5
           return copied;
         }
         std::size_t child = 0U;
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.16)
         const auto added = add_child(state, parent, keyword, step_kind::name, units, 0U, entry, child);
         if (!added.has_value())
         {
@@ -579,6 +694,10 @@ namespace adaptive_json5
         }
         else
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.62)
           ++unknown;
         }
       }
@@ -601,6 +720,10 @@ namespace adaptive_json5
       {
         return text;
       }
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.15)
       if (!matches_dialect_uri(state.dialect, detail::text_of(state.text, 0U, state.text.size())))
       {
         return status::failure(schema_error::of(schema_error_code::unsupported_dialect, span_of(value)));
@@ -631,6 +754,13 @@ namespace adaptive_json5
           continue;
         }
         std::size_t child = 0U;
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such. Empty-brace
+        // value-initialization (`{}`) or a literal whose type is fixed by its context; the value is zero or the
+        // stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.23)
         const auto added = add_child(state, item, keyword, step_kind::none, node_range{}, 0U, *value, child);
         if (!added.has_value())
         {
@@ -665,6 +795,140 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Compile a boolean schema into its node.
+     * @par Requirements
+     * P044; J5-054.
+     * @par ID SWU-SCHEMA-183
+     */
+    status compile_boolean(compile_state& state, const pending_item& item, schema_node& node) noexcept
+    {
+      const auto value = item.value.as_boolean();
+      if (!value.has_value())
+      {
+        return access_error(value.error_if());
+      }
+      node.is_boolean = true;
+      node.boolean_value = *value.value_if();
+      state.nodes.set(item.node, node);
+      return status::success();
+    }
+
+    /**
+     * @brief Record a `$ref` for resolution after every resource is compiled.
+     * @par Requirements
+     * P044; J5-055; J5-064.
+     * @par ID SWU-SCHEMA-184
+     */
+    status record_ref(compile_state& state, const pending_item& item, const value_view& ref) noexcept
+    {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.22)
+      ref_entry entry{};
+      entry.node = item.node;
+      entry.base = item.base;
+      const auto span = span_of(ref);
+      entry.has_span = span.has_value();
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.21)
+      entry.span = span.value_or(source_span{});
+      const auto text = string_utf8(ref, state.text);
+      if (!text.has_value())
+      {
+        return text;
+      }
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.14)
+      const auto stored = store_text(state.ref_text, detail::text_of(state.text, 0U, state.text.size()), entry.text);
+      if (!stored.has_value())
+      {
+        return stored;
+      }
+      return state.refs.push_back(entry);
+    }
+
+    /**
+     * @brief Queue items in its schema or array form.
+     * @par Requirements
+     * P044; P046; J5-054.
+     * @par ID SWU-SCHEMA-185
+     */
+    status add_items_children(compile_state& state, const pending_item& item, const value_view& items, bool evaluate,
+                              schema_node& node) noexcept
+    {
+      if (kind_of(items) == value_kind::array)
+      {
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.20)
+        node_range range{};
+        const auto added = add_array_children(state, item, schema_keyword::items, items, false, range);
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.19)
+        node.items_array = evaluate ? range : node_range{};
+        return added;
+      }
+      std::size_t child = 0U;
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such. Empty-brace
+      // value-initialization (`{}`) or a literal whose type is fixed by its context; the value is zero or the stated
+      // constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.18)
+      const auto added = add_child(state, item, schema_keyword::items, step_kind::none, node_range{}, 0U, items, child);
+      node.items_single = (evaluate && added.has_value()) ? child : c_no_node;
+      return added;
+    }
+
+    /**
+     * @brief Queue allOf, anyOf and oneOf.
+     * @par Requirements
+     * P044; P046; J5-054.
+     * @par ID SWU-SCHEMA-186
+     */
+    status add_combinator_children(compile_state& state, const pending_item& item,
+                                   const std::array<std::optional<value_view>, c_keyword_count>& found, bool evaluate,
+                                   schema_node& node) noexcept
+    {
+      const std::array<std::pair<schema_keyword, node_range*>, 3> c_arrays{{{schema_keyword::all_of, &node.all_of},
+                                                                            {schema_keyword::any_of, &node.any_of},
+                                                                            {schema_keyword::one_of, &node.one_of}}};
+      for (const auto& entry : c_arrays)
+      {
+        const auto& value = found[static_cast<std::size_t>(entry.first)];
+        if (!value.has_value())
+        {
+          continue;
+        }
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.17)
+        node_range range{};
+        const auto added = add_array_children(state, item, entry.first, *value, true, range);
+        if (!added.has_value())
+        {
+          return added;
+        }
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.16)
+        *entry.second = evaluate ? range : node_range{};
+      }
+      return status::success();
+    }
+
+    /**
      * @brief Queue array- and map-valued subschema keywords.
      * @par Requirements
      * P044; P046; J5-054.
@@ -677,51 +941,16 @@ namespace adaptive_json5
       const auto& items = found[static_cast<std::size_t>(schema_keyword::items)];
       if (items.has_value())
       {
-        if (kind_of(*items) == value_kind::array)
-        {
-          node_range range{};
-          const auto added = add_array_children(state, item, schema_keyword::items, *items, false, range);
-          if (!added.has_value())
-          {
-            return added;
-          }
-          node.items_array = evaluate ? range : node_range{};
-        }
-        else
-        {
-          std::size_t child = 0U;
-          const auto added =
-            add_child(state, item, schema_keyword::items, step_kind::none, node_range{}, 0U, *items, child);
-          if (!added.has_value())
-          {
-            return added;
-          }
-          node.items_single = evaluate ? child : c_no_node;
-        }
-      }
-
-      constexpr std::array<schema_keyword, 3> c_arrays{schema_keyword::all_of, schema_keyword::any_of,
-                                                       schema_keyword::one_of};
-      for (const schema_keyword keyword : c_arrays)
-      {
-        const auto& value = found[static_cast<std::size_t>(keyword)];
-        if (!value.has_value())
-        {
-          continue;
-        }
-        node_range range{};
-        const auto added = add_array_children(state, item, keyword, *value, true, range);
+        const auto added = add_items_children(state, item, *items, evaluate, node);
         if (!added.has_value())
         {
           return added;
         }
-        if (evaluate)
-        {
-          node_range& target = (keyword == schema_keyword::all_of)   ? node.all_of
-                               : (keyword == schema_keyword::any_of) ? node.any_of
-                                                                     : node.one_of;
-          target = range;
-        }
+      }
+      const auto combinators = add_combinator_children(state, item, found, evaluate, node);
+      if (!combinators.has_value())
+      {
+        return combinators;
       }
 
       constexpr std::array<schema_keyword, 4> c_maps{schema_keyword::definitions, schema_keyword::properties,
@@ -734,6 +963,10 @@ namespace adaptive_json5
           continue;
         }
         const bool property_table = evaluate && (keyword == schema_keyword::properties);
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+        // context; the value is zero or the stated constant and no conversion changes it.
+        // codeql::misra_deviation_next_line(DEV-103.15)
         node_range range{};
         const auto added = add_map_children(state, item, keyword, *value, property_table,
                                             keyword == schema_keyword::dependencies, range);
@@ -747,6 +980,35 @@ namespace adaptive_json5
         }
       }
       return status::success();
+    }
+
+    /**
+     * @brief Check a root `$schema`, then record `$ref` or apply `$id` (never both, O2).
+     * @par Requirements
+     * P044; J5-053; J5-055; ADR 0006 decision 2, O1 and O2.
+     * @param children Receives the base URI the node's subschemas inherit.
+     * @par ID SWU-SCHEMA-188
+     */
+    status apply_identity(compile_state& state, const pending_item& item,
+                          const std::array<std::optional<value_view>, c_keyword_count>& found,
+                          pending_item& children) noexcept
+    {
+      const auto& dialect = found[static_cast<std::size_t>(schema_keyword::schema)];
+      if (item.resource_root && dialect.has_value())
+      {
+        const auto checked = check_dialect(state, *dialect);
+        if (!checked.has_value())
+        {
+          return checked;
+        }
+      }
+      const auto& ref = found[static_cast<std::size_t>(schema_keyword::ref)];
+      if (ref.has_value())
+      {
+        return record_ref(state, item, *ref);
+      }
+      const auto& id = found[static_cast<std::size_t>(schema_keyword::id)];
+      return id.has_value() ? apply_id(state, *id, item.node, children.base) : status::success();
     }
 
     /**
@@ -766,15 +1028,7 @@ namespace adaptive_json5
       const auto kind = kind_of(item.value);
       if (kind == value_kind::boolean)
       {
-        const auto value = item.value.as_boolean();
-        if (!value.has_value())
-        {
-          return access_error(value.error_if());
-        }
-        node.is_boolean = true;
-        node.boolean_value = *value.value_if();
-        state.nodes.set(item.node, node);
-        return status::success();
+        return compile_boolean(state, item, node);
       }
       if (kind != value_kind::object)
       {
@@ -790,53 +1044,14 @@ namespace adaptive_json5
       }
       node.unknown_keywords = unknown;
 
-      const auto& dialect = found[static_cast<std::size_t>(schema_keyword::schema)];
-      if (item.resource_root && dialect.has_value())
-      {
-        const auto checked = check_dialect(state, *dialect);
-        if (!checked.has_value())
-        {
-          return checked;
-        }
-      }
-
       pending_item children = item;
-      const auto& ref = found[static_cast<std::size_t>(schema_keyword::ref)];
-      const auto& id = found[static_cast<std::size_t>(schema_keyword::id)];
-      if (ref.has_value())
+      const auto identity = apply_identity(state, item, found, children);
+      if (!identity.has_value())
       {
-        ref_entry entry{};
-        entry.node = item.node;
-        entry.base = item.base;
-        const auto span = span_of(*ref);
-        entry.has_span = span.has_value();
-        entry.span = span.value_or(source_span{});
-        const auto text = string_utf8(*ref, state.text);
-        if (!text.has_value())
-        {
-          return text;
-        }
-        const auto stored = store_text(state.ref_text, detail::text_of(state.text, 0U, state.text.size()), entry.text);
-        if (!stored.has_value())
-        {
-          return stored;
-        }
-        const auto pushed = state.refs.push_back(entry);
-        if (!pushed.has_value())
-        {
-          return pushed;
-        }
-      }
-      else if (id.has_value())
-      {
-        const auto applied = apply_id(state, *id, item.node, children.base);
-        if (!applied.has_value())
-        {
-          return applied;
-        }
+        return identity;
       }
 
-      const bool evaluate = !ref.has_value();
+      const bool evaluate = !found[static_cast<std::size_t>(schema_keyword::ref)].has_value();
       node.first_child = state.nodes.size();
       const auto single = add_single_children(state, children, found, evaluate, node);
       if (!single.has_value())
@@ -848,6 +1063,10 @@ namespace adaptive_json5
       {
         return collection;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.61)
       node.child_count = state.nodes.size() - node.first_child;
       state.nodes.set(item.node, node);
       return status::success();
@@ -861,6 +1080,10 @@ namespace adaptive_json5
      */
     result<std::size_t, schema_error> find_key(compile_state& state, std::string_view text) noexcept
     {
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.15)
       for (std::size_t index = 0U; index < state.keys.size(); ++index)
       {
         const auto charged = charge(state);
@@ -885,8 +1108,16 @@ namespace adaptive_json5
      */
     std::optional<std::uint32_t> next_code_point(std::string_view text, std::size_t& position) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.24)
       const auto lead = static_cast<unsigned char>(text[position]);
       std::size_t extra = 0U;
+      // MISRA rule: RULE-0-1-1 cpp/misra/unnecessary-write-to-local-object
+      // MISRA justification: Initialized at the declaration so that no path can read an indeterminate value (as
+      // DEV-007).
+      // codeql::misra_deviation_next_line(DEV-111.1)
       std::uint32_t value = 0U;
       if (lead < 0x80U)
       {
@@ -915,8 +1146,19 @@ namespace adaptive_json5
       {
         return std::nullopt;
       }
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.14)
       for (std::size_t index = 1U; index <= extra; ++index)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+        // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds. URI,
+        // JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and code units by value, as
+        // RFC 3986, RFC 6901 and Unicode define them.
+        // codeql::misra_deviation_next_line(DEV-101.60)
         const auto next = static_cast<unsigned char>(text[position + index]);
         if ((next & 0xC0U) != 0x80U)
         {
@@ -924,6 +1166,10 @@ namespace adaptive_json5
         }
         value = (value << 6U) | (next & 0x3FU);
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.59)
       position += extra + 1U;
       return value;
     }
@@ -951,18 +1197,38 @@ namespace adaptive_json5
           {
             return false;
           }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.58)
           ++unit;
         }
         else
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.57)
           const std::uint32_t offset = *code_point - 0x10000U;
           const auto high = static_cast<std::uint16_t>(0xD800U + (offset >> 10U));
           const auto low = static_cast<std::uint16_t>(0xDC00U + (offset & 0x3FFU));
+          // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+          // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without
+          // changing the value; the operands are unsigned values below 0x110000 and the results are used as such.
+          // codeql::misra_deviation_next_line(DEV-106.13)
           if (((unit + 1U) >= units.count) || (state.units.get(units.first + unit) != high) ||
+              // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+              // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without
+              // changing the value; the operands are unsigned values below 0x110000 and the results are used as such.
+              // codeql::misra_deviation_next_line(DEV-106.12)
               (state.units.get(units.first + unit + 1U) != low))
           {
             return false;
           }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.56)
           unit += 2U;
         }
       }
@@ -984,6 +1250,10 @@ namespace adaptive_json5
     {
       using found_result = result<std::size_t, schema_error>;
       const schema_node owner = state.nodes.get(parent);
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.13)
       for (std::size_t child = owner.first_child; child < (owner.first_child + owner.child_count); ++child)
       {
         const auto charged = charge(state);
@@ -1034,11 +1304,19 @@ namespace adaptive_json5
         }
         // The keyword token is copied: the second token reuses the token buffer.
         state.text.truncate(0U);
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.11)
         const auto copied = detail::append_text(state.text, detail::text_of(state.token, 0U, state.token.size()));
         if (!copied.has_value())
         {
           return found_result::failure(*copied.error_if());
         }
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.10)
         const std::string_view keyword = detail::text_of(state.text, 0U, state.text.size());
         step_kind kind = step_kind::none;
         const auto probe = find_child(state, current, keyword, std::nullopt, kind);
@@ -1065,6 +1343,10 @@ namespace adaptive_json5
           return found_result::failure(*second.error_if());
         }
         const auto child =
+          // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+          // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without
+          // changing the value; the operands are unsigned values below 0x110000 and the results are used as such.
+          // codeql::misra_deviation_next_line(DEV-106.9)
           find_child(state, current, keyword, detail::text_of(state.token, 0U, state.token.size()), kind);
         if (!child.has_value())
         {
@@ -1089,11 +1371,19 @@ namespace adaptive_json5
     result<std::size_t, schema_error> resolve_target(compile_state& state, std::string_view uri) noexcept
     {
       const std::size_t hash = uri.find('#');
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.55)
       const std::string_view fragment = (hash == std::string_view::npos) ? std::string_view{} : uri.substr(hash + 1U);
       if (fragment.empty())
       {
         return find_key(state, detail::without_fragment(uri));
       }
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.23)
       if (fragment[0U] != '/')
       {
         return find_key(state, uri);
@@ -1125,6 +1415,10 @@ namespace adaptive_json5
      */
     status resolve_refs(compile_state& state) noexcept
     {
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.12)
       for (std::size_t index = 0U; index < state.refs.size(); ++index)
       {
         const ref_entry entry = state.refs.get(index);
@@ -1136,6 +1430,10 @@ namespace adaptive_json5
         {
           return resolved;
         }
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+        // codeql::misra_deviation_next_line(DEV-106.8)
         const auto target = resolve_target(state, detail::text_of(state.resolved, 0U, state.resolved.size()));
         if (!target.has_value())
         {
@@ -1161,10 +1459,21 @@ namespace adaptive_json5
      */
     status reject_pure_cycles(compile_state& state) noexcept
     {
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.11)
       for (std::size_t index = 0U; index < state.refs.size(); ++index)
       {
         const ref_entry entry = state.refs.get(index);
         std::size_t target = state.nodes.get(entry.node).ref;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+        // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+        // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds. A
+        // counting loop over a container or range whose bound is a size read through a member call; the counter is
+        // only incremented by the loop statement.
+        // codeql::misra_deviation_next_line(DEV-101.54)
         for (std::size_t hops = 0U; (target != c_no_node) && (hops <= state.refs.size()); ++hops)
         {
           const auto charged = charge(state);
@@ -1196,10 +1505,18 @@ namespace adaptive_json5
       {
         return access_error(root.error_if());
       }
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.14)
       schema_node node{};
       node.resource = resource;
       const auto span = span_of(*root.value_if());
       node.has_span = span.has_value();
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.13)
       node.span = span.value_or(source_span{});
       std::size_t index = 0U;
       const auto added = add_node(state, node, index);
@@ -1208,6 +1525,10 @@ namespace adaptive_json5
         return added;
       }
       const std::string_view uri = detail::schema_registry_access::uri(entry);
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.12)
       node_range base{};
       auto stored = store_text(state.bases, uri, base);
       if (stored.has_value())
@@ -1224,6 +1545,10 @@ namespace adaptive_json5
       }
       while (state.pending.size() != 0U)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+        // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.53)
         const pending_item item = state.pending.get(state.pending.size() - 1U);
         state.pending.pop_back();
         const auto processed = process(state, item);
@@ -1253,6 +1578,10 @@ namespace adaptive_json5
       {
         return result<std::size_t, schema_error>::failure(*normalized.error_if());
       }
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.7)
       return resolve_target(state, detail::text_of(state.resolved, 0U, state.resolved.size()));
     }
   } // namespace
@@ -1270,6 +1599,10 @@ namespace adaptive_json5
     using compile_result = result<compiled_schema, schema_error>;
     compile_state state{options, dialect};
 
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+    // call; the counter is only incremented by the loop statement.
+    // codeql::misra_deviation_next_line(DEV-105.10)
     for (std::size_t resource = 0U; resource < registry.size(); ++resource)
     {
       const auto added = add_resource(state, registry, resource);
@@ -1309,6 +1642,11 @@ namespace adaptive_json5
    * P044; J5-066.
    * @par ID SWU-SCHEMA-161
    */
+  // MISRA rule: RULE-18-4-1 cpp/misra/exception-unfriendly-function-must-be-noexcept
+  // MISRA rule: RULE-15-0-2 cpp/misra/invalid-signature-for-special-member-function
+  // MISRA justification: Move construction and accessors are noexcept and leave the source empty; members have
+  // default member initializers, so none is read before it is set.
+  // codeql::misra_deviation_next_line(DEV-109.4)
   compiled_schema::compiled_schema(compiled_schema&& other) noexcept
       : m_nodes(std::move(other.m_nodes)), m_edges(std::move(other.m_edges)),
         m_properties(std::move(other.m_properties)), m_units(std::move(other.m_units)),
@@ -1354,8 +1692,16 @@ namespace adaptive_json5
   std::size_t compiled_schema::unknown_keyword_count() const noexcept
   {
     std::size_t total = 0U;
+    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+    // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+    // call; the counter is only incremented by the loop statement.
+    // codeql::misra_deviation_next_line(DEV-105.9)
     for (std::size_t index = 0U; index < m_node_count; ++index)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.52)
       total += detail::compiled_schema_access::node(*this, index).unknown_keywords;
     }
     return total;
@@ -1397,6 +1743,10 @@ namespace adaptive_json5
      */
     const schema_node& compiled_schema_access::node(const compiled_schema& schema, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.8)
       return static_cast<const schema_node*>(schema.m_nodes.data())[index];
     }
 
@@ -1408,6 +1758,10 @@ namespace adaptive_json5
      */
     std::size_t compiled_schema_access::edge(const compiled_schema& schema, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.7)
       return static_cast<const std::size_t*>(schema.m_edges.data())[index];
     }
 
@@ -1419,6 +1773,10 @@ namespace adaptive_json5
      */
     const property_edge& compiled_schema_access::property(const compiled_schema& schema, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.6)
       return static_cast<const property_edge*>(schema.m_properties.data())[index];
     }
 
@@ -1430,6 +1788,10 @@ namespace adaptive_json5
      */
     std::uint16_t compiled_schema_access::unit(const compiled_schema& schema, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.5)
       return static_cast<const std::uint16_t*>(schema.m_units.data())[index];
     }
 

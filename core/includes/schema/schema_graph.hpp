@@ -36,6 +36,10 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P044.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.4)
   struct node_range
   {
       std::size_t first{};
@@ -50,6 +54,10 @@ namespace adaptive_json5::detail
    * evaluation fields (ref, combinator ranges, ...) are left empty on a `$ref` node,
    * whose siblings are ignored. Names are UTF-16 ranges in the unit table.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.3)
   struct schema_node
   {
       std::size_t parent{c_no_node};
@@ -57,18 +65,46 @@ namespace adaptive_json5::detail
       std::size_t child_count{};
       schema_keyword step_keyword{schema_keyword::none};
       step_kind step{step_kind::none};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.8)
       node_range step_name{};
       std::size_t step_index{};
       std::size_t resource{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.7)
       source_span span{};
       bool has_span{};
       bool is_boolean{};
       bool boolean_value{};
       std::size_t ref{c_no_node};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.6)
       node_range all_of{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.5)
       node_range any_of{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.4)
       node_range one_of{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.3)
       node_range items_array{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.2)
       node_range properties{};
       std::size_t not_schema{c_no_node};
       std::size_t if_schema{c_no_node};
@@ -83,8 +119,16 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P046; J5-057.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.2)
   struct property_edge
   {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.1)
       node_range name{};
       std::size_t node{c_no_node};
   };

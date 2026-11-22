@@ -787,10 +787,14 @@ fixed-size records in `report_storage`; `format_schema_location()` and
 Moved-from compiled schemas and reports are empty. Units:
 `tests/schema/validate_tests.cpp` (`P046_Applicators`, `P046_Diagnostics`,
 `P046_InstanceLocation`, `P046_Outcomes`, `P046_Budgets` including concurrent
-validations, `P046_MovedFrom`) and `tests/schema/pure_evaluation_tests.cpp`
-(`P046_PureEvaluation`: no global heap use, J5-067). CI builds the schema
-component in the unit-test, Clang/compiler, sanitizer, fuzz, coverage, MISRA/CodeQL
-and test-evidence jobs.
+validations, `P046_MovedFrom`), `core/tests/schema/schema_edge_tests.cpp` (edge and
+failure cases: `P043_EdgeCases`, `P044_EdgeCases`, `P045_EdgeCases`, `P046_EdgeCases`)
+and `tests/schema/pure_evaluation_tests.cpp`
+(`P046_PureEvaluation`: no global heap use, J5-067). The schema is ON by
+default in every test, validation and fuzz build (OFF for release packages); the
+schema fuzzer is `tests/fuzz/schema_fuzzer.cpp` with seeds in `tests/fuzz/schema_seeds/`;
+MISRA deviations of the schema are in `docs/schema-deviation-register.md`; no schema
+function exceeds the complexity limits.
 
 Local results (2026-11-22, Windows GCC 15.2.0, Ninja, RTTI OFF, not yet in CI): schema ON 2982/2982 units with exceptions OFF and ON; schema OFF 3708/3708 with exceptions OFF and ON; 921/921 validation cases; Clang (LLVM, MinGW target) schema ON 2982/2982 with exceptions OFF; clang-format 18.1.8 passed the changed C++ files; `tools/traceability.py` reports no problems and no unmapped tests. CI and developer review/merge are pending. Requirement rows remain Draft.
 

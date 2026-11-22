@@ -22,6 +22,10 @@ namespace adaptive_json5::detail
      */
     bool is_scheme_char(char c) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.32)
       return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9')) || (c == '+') ||
              (c == '-') || (c == '.');
     }
@@ -34,6 +38,10 @@ namespace adaptive_json5::detail
      */
     char lower(char c) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.31)
       return ((c >= 'A') && (c <= 'Z')) ? static_cast<char>(c - 'A' + 'a') : c;
     }
 
@@ -65,6 +73,10 @@ namespace adaptive_json5::detail
     status append_authority(pod_vector<char>& out, std::string_view authority) noexcept
     {
       const std::size_t at = authority.rfind('@');
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.77)
       const std::size_t host_start = (at == std::string_view::npos) ? 0U : (at + 1U);
       std::size_t host_end = authority.size();
       const std::size_t colon = authority.rfind(':');
@@ -79,6 +91,10 @@ namespace adaptive_json5::detail
       {
         return userinfo;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.76)
       const auto host = append_lower(out, authority.substr(host_start, host_end - host_start));
       if (!host.has_value())
       {
@@ -186,6 +202,10 @@ namespace adaptive_json5::detail
         const std::size_t last = base.path.rfind('/');
         if (last != std::string_view::npos)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check,
+          // the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.75)
           const auto directory = append_text(merged, base.path.substr(0U, last + 1U));
           if (!directory.has_value())
           {
@@ -239,6 +259,47 @@ namespace adaptive_json5::detail
       }
       return written;
     }
+    /**
+     * @brief Build the target components of a reference without a scheme (RFC 3986 section 5.2.2).
+     * @par Requirements
+     * P044; J5-055.
+     * @param merged Receives a merged path when the reference path is relative; path may view it.
+     * @par ID SWU-SCHEMA-187
+     */
+    status relative_target(const uri_parts& b, const uri_parts& r, pod_vector<char>& merged, uri_parts& t,
+                           std::string_view& path) noexcept
+    {
+      t.has_scheme = true;
+      t.scheme = b.scheme;
+      t.has_fragment = r.has_fragment;
+      t.fragment = r.fragment;
+      t.has_authority = r.has_authority || b.has_authority;
+      t.authority = r.has_authority ? r.authority : b.authority;
+      const bool keep_base_query = !r.has_authority && r.path.empty() && !r.has_query;
+      t.has_query = keep_base_query ? b.has_query : r.has_query;
+      t.query = keep_base_query ? b.query : r.query;
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.30)
+      if (r.has_authority || (!r.path.empty() && (r.path[0U] == '/')))
+      {
+        path = r.path;
+        return status::success();
+      }
+      if (r.path.empty())
+      {
+        path = b.path;
+        return status::success();
+      }
+      const auto merged_ok = merge_paths(b, r.path, merged);
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.20)
+      path = text_of(merged, 0U, merged.size());
+      return merged_ok;
+    }
   } // namespace
 
   /**
@@ -249,6 +310,10 @@ namespace adaptive_json5::detail
    */
   uri_parts split_uri(std::string_view text) noexcept
   {
+    // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+    // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+    // the value is zero or the stated constant and no conversion changes it.
+    // codeql::misra_deviation_next_line(DEV-103.35)
     uri_parts parts{};
     std::string_view rest = text;
 
@@ -256,6 +321,10 @@ namespace adaptive_json5::detail
     if (hash != std::string_view::npos)
     {
       parts.has_fragment = true;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.74)
       parts.fragment = rest.substr(hash + 1U);
       rest = rest.substr(0U, hash);
     }
@@ -263,6 +332,10 @@ namespace adaptive_json5::detail
     if (question != std::string_view::npos)
     {
       parts.has_query = true;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.73)
       parts.query = rest.substr(question + 1U);
       rest = rest.substr(0U, question);
     }
@@ -270,14 +343,30 @@ namespace adaptive_json5::detail
     std::size_t scheme_end = 0U;
     while ((scheme_end < rest.size()) && is_scheme_char(rest[scheme_end]))
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.72)
       ++scheme_end;
     }
     const bool letter_first =
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+      // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+      // codeql::misra_deviation_next_line(DEV-102.29)
       !rest.empty() && (((rest[0U] >= 'a') && (rest[0U] <= 'z')) || ((rest[0U] >= 'A') && (rest[0U] <= 'Z')));
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+    // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+    // codeql::misra_deviation_next_line(DEV-102.28)
     if (letter_first && (scheme_end < rest.size()) && (rest[scheme_end] == ':'))
     {
       parts.has_scheme = true;
       parts.scheme = rest.substr(0U, scheme_end);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
+      // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.71)
       rest = rest.substr(scheme_end + 1U);
     }
 
@@ -309,57 +398,21 @@ namespace adaptive_json5::detail
       return status::failure(schema_error::of(schema_error_code::internal_error));
     }
 
-    uri_parts t{};
-    pod_vector<char> merged{scratch};
-    std::string_view path{};
     if (r.has_scheme)
     {
-      t = r;
-      path = r.path;
+      return compose(out, r, r.path);
     }
-    else
+    pod_vector<char> merged{scratch};
+    // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+    // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+    // the value is zero or the stated constant and no conversion changes it.
+    // codeql::misra_deviation_next_line(DEV-103.34)
+    uri_parts t{};
+    std::string_view path{};
+    const auto targeted = relative_target(b, r, merged, t, path);
+    if (!targeted.has_value())
     {
-      t.has_scheme = true;
-      t.scheme = b.scheme;
-      if (r.has_authority)
-      {
-        t.has_authority = true;
-        t.authority = r.authority;
-        t.has_query = r.has_query;
-        t.query = r.query;
-        path = r.path;
-      }
-      else
-      {
-        t.has_authority = b.has_authority;
-        t.authority = b.authority;
-        if (r.path.empty())
-        {
-          path = b.path;
-          t.has_query = r.has_query ? true : b.has_query;
-          t.query = r.has_query ? r.query : b.query;
-        }
-        else
-        {
-          t.has_query = r.has_query;
-          t.query = r.query;
-          if (r.path[0U] == '/')
-          {
-            path = r.path;
-          }
-          else
-          {
-            const auto merged_ok = merge_paths(b, r.path, merged);
-            if (!merged_ok.has_value())
-            {
-              return merged_ok;
-            }
-            path = text_of(merged, 0U, merged.size());
-          }
-        }
-      }
-      t.has_fragment = r.has_fragment;
-      t.fragment = r.fragment;
+      return targeted;
     }
     return compose(out, t, path);
   }
@@ -387,6 +440,10 @@ namespace adaptive_json5::detail
     {
       return std::string_view{};
     }
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+    // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+    // codeql::misra_deviation_next_line(DEV-107.11)
     return std::string_view{static_cast<const char*>(text.data()) + offset, length};
   }
 

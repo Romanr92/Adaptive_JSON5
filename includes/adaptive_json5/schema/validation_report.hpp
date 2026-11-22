@@ -24,14 +24,26 @@ namespace adaptive_json5
    * refer to the parsed instance text and the registered schema text; they stay meaningful
    * only while the caller keeps those texts. JSON Pointers are formatted on request.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.27)
   struct [[nodiscard]] schema_diagnostic
   {
       schema_keyword keyword{schema_keyword::none};
       std::size_t instance_position{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.38)
       source_span instance_span{};
       bool has_instance_span{};
       std::size_t schema_node{};
       std::size_t schema_resource{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.37)
       source_span schema_span{};
       bool has_schema_span{};
   };
@@ -46,6 +58,10 @@ namespace adaptive_json5
    * verdict is still invalid. Diagnostics live in validation_options::report_storage,
    * which must outlive the report. Move-only.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.26)
   class [[nodiscard]] validation_report
   {
     private:
