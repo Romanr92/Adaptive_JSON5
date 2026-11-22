@@ -32,6 +32,26 @@ if(ADAPTIVE_JSON5_BUILD_HOSTED OR ADAPTIVE_JSON5_BUILD_TESTS)
     adaptive_json5_configure_target(adaptive_json5_hosted)
 endif()
 
+# Optional Draft-07 schema component (ADR 0006 decision 1). A separate target, so
+# parser-only consumers build, link and install no schema code (J5-068).
+if(ADAPTIVE_JSON5_BUILD_SCHEMA)
+    add_library(adaptive_json5_schema STATIC
+        src/schema/evaluator.cpp
+        src/schema/instance_domain.cpp
+        src/schema/json_pointer.cpp
+        src/schema/pod_vector.cpp
+        src/schema/schema_compiler.cpp
+        src/schema/schema_registry.cpp
+        src/schema/schema_work.cpp
+        src/schema/uri.cpp
+        src/schema/value_equality.cpp)
+    add_library(AdaptiveJSON5::schema ALIAS adaptive_json5_schema)
+    set_target_properties(adaptive_json5_schema PROPERTIES EXPORT_NAME schema)
+    target_link_libraries(adaptive_json5_schema PUBLIC AdaptiveJSON5::parser)
+    target_include_directories(adaptive_json5_schema PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
+    adaptive_json5_configure_target(adaptive_json5_schema)
+endif()
+
 if(ADAPTIVE_JSON5_BUILD_TESTS)
     add_subdirectory(tests)
 endif()

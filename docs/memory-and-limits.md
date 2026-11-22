@@ -560,3 +560,28 @@ a separate, additive decision, and nothing in the current design prevents it.
    [embedded integration](embedded.md).
 
 See also [embedded integration](embedded.md).
+
+## Schema component limits (optional, ADR 0006)
+
+The optional schema component (`ADAPTIVE_JSON5_BUILD_SCHEMA=ON`) has its own
+limits. All are inclusive; exceeding one returns `schema_error_code::resource_limit`
+with the `schema_limit_reason` of the same name.
+
+| Field | Default | Counts |
+| --- | --- | --- |
+| `validation_budget::max_depth` | 512 | Evaluation frames on the explicit stack, and instance nesting in the pre-pass |
+| `validation_budget::max_reference_steps` | 10,000 | `$ref` traversals per validation |
+| `validation_budget::max_branch_evaluations` | 100,000 | Subschemas evaluated under allOf, anyOf, oneOf, not, if, then, else |
+| `validation_budget::max_equality_steps` | 100,000 | Value pairs visited by exact equality |
+| `validation_budget::max_errors` | 100 | Diagnostics kept in collect-all mode; reaching it sets `truncated()`, not an error |
+| `validation_budget::max_work_steps` | 1,000,000 | Every evaluation step, pre-pass value and name comparison |
+| `schema_compile_limits::max_schema_nodes` | 100,000 | Compiled nodes across all registered resources |
+| `schema_compile_limits::max_compile_steps` | 1,000,000 | Keywords, members, key lookups, pointer steps and cycle checks |
+| registry capacity | set by `schema_registry::create()` | Registered resources (`max_resources`) |
+
+Storage: the registry parses into the caller's `accounted_storage`. Compilation
+uses `compile_options::result_storage` for the compiled schema and
+`scratch_storage` only while it runs. Validation uses
+`validation_options::work_storage` for its stack (released before `validate()`
+returns) and `report_storage` for the diagnostics the report owns. The
+cancellation callback is polled once per evaluation step.

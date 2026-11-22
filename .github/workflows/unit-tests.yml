@@ -15,12 +15,22 @@ jobs:
   unit-tests:
     name: unit-tests
     runs-on: ubuntu-latest
+    env:
+      ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE: '1'
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      # J5-052: a comma-decimal locale, so the locale-independence unit test runs instead of skipping.
+      - if: runner.os == 'Linux'
+        name: Generate a comma-decimal locale
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes locales
+          sudo locale-gen de_DE.UTF-8
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+        # Parser-only build: proves the parser needs no schema code (J5-068).
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF -DADAPTIVE_JSON5_BUILD_SCHEMA=OFF -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       # Match concurrency to the runner CPU count; bare --parallel is unbounded with Make.
       - name: Build unit tests
         run: cmake --build build --config Debug --parallel "$(nproc)"
@@ -32,6 +42,18 @@ jobs:
         run: cmake --build --preset debug-unit-tests-exceptions --parallel "$(nproc)"
       - name: Run exceptions-enabled unit tests
         run: ctest --preset debug-unit-tests-exceptions --parallel "$(nproc)" --output-on-failure
+      # Schema component ON in both exception modes (ADR 0006 decision 1, J5-091); the
+      # parser-only builds above keep checking that no schema code is needed (J5-068).
+      - name: Build and run schema-enabled unit tests in both exception modes
+        run: |
+          for mode in OFF ON; do
+            cmake -S . -B "build/schema-$mode" -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+              -DADAPTIVE_JSON5_BUILD_SCHEMA=ON \
+              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+            cmake --build "build/schema-$mode" --config Debug --parallel "$(nproc)"
+            ctest --test-dir "build/schema-$mode" --build-config Debug --parallel "$(nproc)" --output-on-failure --no-tests=error
+          done
 
   gcc-portability:
     name: GCC units (${{ matrix.profile }})
@@ -44,11 +66,20 @@ jobs:
           - runner: windows-2022
             profile: windows-mingw
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
+    env:
+      ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE: '1'
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      # J5-052: a comma-decimal locale, so the locale-independence unit test runs instead of skipping.
+      - if: runner.os == 'Linux'
+        name: Generate a comma-decimal locale
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes locales
+          sudo locale-gen de_DE.UTF-8
       - if: runner.os == 'Linux'
         name: Install GNU compiler and Ninja
         run: |
@@ -68,22 +99,30 @@ jobs:
         name: Run ARM64 host GoogleTest units in both exception modes
         run: |
           for mode in OFF ON; do
-            cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++-13 \
-              -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
-              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
-              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
-            cmake --build "build/gcc-$mode" --parallel
-            ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
+            for schema in OFF ON; do
+              dir="build/gcc-$mode-schema-$schema"
+              cmake -S . -B "$dir" -G Ninja -DCMAKE_CXX_COMPILER=g++-13 \
+                -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+                -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+                -DADAPTIVE_JSON5_BUILD_SCHEMA="$schema" \
+                -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+              cmake --build "$dir" --parallel
+              ctest --test-dir "$dir" --parallel --output-on-failure --no-tests=error
+            done
           done
       - if: runner.os == 'Windows'
         name: Run MinGW GoogleTest units in both exception modes
         shell: msys2 {0}
         run: |
           for mode in OFF ON; do
-            cmake -S . -B "build/gcc-$mode" -G Ninja -DCMAKE_CXX_COMPILER=g++ \
-              -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
-              -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
-              -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
-            cmake --build "build/gcc-$mode" --parallel
-            ctest --test-dir "build/gcc-$mode" --parallel --output-on-failure --no-tests=error
+            for schema in OFF ON; do
+              dir="build/gcc-$mode-schema-$schema"
+              cmake -S . -B "$dir" -G Ninja -DCMAKE_CXX_COMPILER=g++ \
+                -DCMAKE_BUILD_TYPE=Debug -DADAPTIVE_JSON5_BUILD_LIBRARY=OFF \
+                -DADAPTIVE_JSON5_BUILD_TESTS=ON -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF \
+                -DADAPTIVE_JSON5_BUILD_SCHEMA="$schema" \
+                -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS="$mode" -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
+              cmake --build "$dir" --parallel
+              ctest --test-dir "$dir" --parallel --output-on-failure --no-tests=error
+            done
           done

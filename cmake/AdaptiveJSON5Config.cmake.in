@@ -88,5 +88,18 @@ else()
         return()
     endif()
 endif()
-# Unknown/unimplemented required components (including schema) must fail clearly.
+# The optional schema library (ADR 0006) follows the same rule as hosted.
+set(_adaptive_json5_schema_installed "@ADAPTIVE_JSON5_BUILD_SCHEMA@")
+if(_adaptive_json5_schema_installed)
+    set(AdaptiveJSON5_schema_FOUND TRUE)
+else()
+    set(AdaptiveJSON5_schema_FOUND FALSE)
+    if(AdaptiveJSON5_FIND_REQUIRED_schema)
+        set(AdaptiveJSON5_NOT_FOUND_MESSAGE
+            "AdaptiveJSON5 component schema is not installed: build from source with ADAPTIVE_JSON5_BUILD_SCHEMA=ON")
+        set(AdaptiveJSON5_FOUND FALSE)
+        return()
+    endif()
+endif()
+# Unknown required components must fail clearly.
 check_required_components(AdaptiveJSON5)

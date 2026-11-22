@@ -38,10 +38,11 @@ namespace
   /* ================================== End Fixtures =================================== */
   /* =================================== Test_J5_092 =================================== */
 
-  /* Verify the umbrella includes every public header except the optional hosted ones.
+  /* Verify the umbrella includes every public header except the optional hosted and schema ones.
    * Arrange: Every .hpp under includes/adaptive_json5/, as an include path.
    * Act: Read the quoted includes of the umbrella header.
-   * Expect: Each public header outside hosted/ is included, and the public tree is not empty.
+   * Expect: Each public header outside hosted/, schema/ and schema.hpp is included (ADR 0006
+   *         decision 1), and the public tree is not empty.
    */
   TEST(J5_092_UmbrellaCoverage, IncludesEveryPublicHeaderExceptHosted)
   {
@@ -64,7 +65,8 @@ namespace
     EXPECT_GT(public_headers.size(), 30U);
     for (const std::string& header : public_headers)
     {
-      if ((header == c_umbrella) || (header.rfind("adaptive_json5/hosted/", 0) == 0U))
+      if ((header == c_umbrella) || (header.rfind("adaptive_json5/hosted/", 0) == 0U) ||
+          (header.rfind("adaptive_json5/schema/", 0) == 0U) || (header == "adaptive_json5/schema.hpp"))
       {
         continue;
       }
@@ -74,10 +76,11 @@ namespace
 
   /* ----------------------------------------------------------------------------------- */
 
-  /* Verify the umbrella includes only existing public headers outside hosted/.
+  /* Verify the umbrella includes only existing public headers outside hosted/ and the schema.
    * Arrange: The quoted includes of the umbrella header.
    * Act: Resolve each one under includes/.
-   * Expect: Each starts with adaptive_json5/, is not under hosted/ and names an existing file.
+   * Expect: Each starts with adaptive_json5/, is not a hosted or schema header and names an
+   *         existing file.
    */
   TEST(J5_092_UmbrellaCoverage, IncludesNoHostedOrPrivateHeader)
   {
@@ -91,6 +94,8 @@ namespace
       /* Expect */
       EXPECT_EQ(header.rfind("adaptive_json5/", 0), 0U) << header;
       EXPECT_NE(header.rfind("adaptive_json5/hosted/", 0), 0U) << header;
+      EXPECT_NE(header.rfind("adaptive_json5/schema/", 0), 0U) << header;
+      EXPECT_NE(header, "adaptive_json5/schema.hpp");
       EXPECT_TRUE(fs::is_regular_file(root / header)) << header;
     }
   }

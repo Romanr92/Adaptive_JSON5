@@ -32,9 +32,10 @@ def main():
     report = build / "report"
     report.mkdir(parents=True, exist_ok=True)
     # Do not show stale reports or crash inputs as evidence for this run.
-    if (report / "artifacts").exists():
-        shutil.rmtree(report / "artifacts")
-    (report / "artifacts").mkdir()
+    for artifacts in ("artifacts", "schema-artifacts"):
+        if (report / artifacts).exists():
+            shutil.rmtree(report / artifacts)
+        (report / artifacts).mkdir()
     for stale in ("results.xml", "seed-manifest.json"):
         (report / stale).unlink(missing_ok=True)
     for stale in report.glob("step-*.log"):
@@ -79,6 +80,8 @@ def main():
                      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON", "-DADAPTIVE_JSON5_BUILD_LIBRARY=OFF",
                      "-DADAPTIVE_JSON5_BUILD_TESTS=" + units,
                      "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=" + units,
+                     # The optional schema component is checked by the same runs (ADR 0006).
+                     "-DADAPTIVE_JSON5_BUILD_SCHEMA=ON",
                      "-DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=" + args.exceptions,
                      "-DADAPTIVE_JSON5_ENABLE_RTTI=OFF", "-DADAPTIVE_JSON5_ENABLE_SANITIZERS=ON",
                      "-DADAPTIVE_JSON5_BUILD_FUZZER=" + ("ON" if args.kind == "fuzz" else "OFF")]
@@ -109,6 +112,15 @@ def main():
                  "-max_total_time=" + str(args.seconds), "-timeout=10", "-rss_limit_mb=2048",
                  "-max_len=16384", "-print_final_stats=1", "-seed=132",
                  "-artifact_prefix=" + str(report / "artifacts") + os.sep], timeout=args.seconds + 120)
+            # Schema component (ADR 0006): committed seeds; schema text, NUL, instance text.
+            schema_corpus = build / "schema-corpus"
+            schema_corpus.mkdir(exist_ok=True)
+            for path in sorted((ROOT / "tests" / "fuzz" / "schema_seeds").glob("*.bin")):
+                (schema_corpus / path.name).write_bytes(path.read_bytes())
+            run([build / "tests" / "fuzz" / "adaptive_json5_schema_fuzzer", schema_corpus,
+                 "-max_total_time=" + str(args.seconds), "-timeout=10", "-rss_limit_mb=2048",
+                 "-max_len=16384", "-print_final_stats=1", "-seed=132",
+                 "-artifact_prefix=" + str(report / "schema-artifacts") + os.sep], timeout=args.seconds + 120)
         status = 0
     except (OSError, RuntimeError, subprocess.SubprocessError) as error:
         metadata["error"] = str(error)

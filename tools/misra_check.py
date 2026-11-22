@@ -416,7 +416,9 @@ def main():
         "-DADAPTIVE_JSON5_BUILD_LIBRARY=ON",
         "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
         "-DADAPTIVE_JSON5_BUILD_TESTS=OFF",
-        "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF")
+        "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF",
+        # The optional schema component is analysed too, as in CI (ADR 0006).
+        "-DADAPTIVE_JSON5_BUILD_SCHEMA=ON")
     index_command = [sys.executable, "tools/misra_check.py", "--index-deviations"]
     quote_command = subprocess.list2cmdline if os.name == "nt" else shlex.join
     run("codeql", "database", "create", database, "--language=c-cpp",

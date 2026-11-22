@@ -1,0 +1,525 @@
+# Schema component MISRA C++:2023 deviation register
+
+Deviations of the optional schema component (`AdaptiveJSON5::schema`, ADR 0006). The
+component is QM and outside the ASIL B(D) scope of the
+[parser deviation register](ISO26262-safety/deviation-register.md), so its deviations
+are recorded here, with their own IDs (DEV-101 and up). Markers in the source use the same
+format and are read by `tools/misra_check.py`.
+
+Status: all entries are **Proposed** and need owner review. Line numbers are those at
+the time of writing; the marker ID in the source is authoritative.
+
+| ID | Category | Lines |
+| --- | --- | --- |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 79 |
+| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 32 |
+| DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 38 |
+| DEV-104 | Rule 15.0.1, special member functions | 27 |
+| DEV-105 | Rule 9.5.1, counting loops | 21 |
+| DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 21 |
+| DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 11 |
+| DEV-108 | Rule 28.6.3, objects after a move | 5 |
+| DEV-109 | Rules 15.0.2 and 18.4.1, noexcept special members | 7 |
+| DEV-110 | Rules 21.2.2 and 24.5.2, std::memcpy of trivially copyable elements | 1 |
+| DEV-111 | Rule 0.1.1, defensive initialization | 3 |
+| DEV-112 | Rule 21.6.3, construction in caller-provided storage | 3 |
+
+## DEV-101: Rule 8.20.1, unsigned arithmetic that cannot wrap
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
+| Lines | 78 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-101.1 | `core/includes/schema/pod_vector.hpp:151` | `--m_size;` | 8.20.1 | Proposed |
+| DEV-101.2 | `core/includes/schema/pod_vector.hpp:140` | `std::memcpy(static_cast<unsigned char*>(m_block.data()) + (index * sizeof(T)), &value, ...` | 8.20.1, 8.2.6, 24.5.2, 8.7.1 | Proposed |
+| DEV-101.3 | `core/includes/schema/pod_vector.hpp:127` | `std::memcpy(&value, static_cast<const unsigned char*>(m_block.data()) + (index * sizeof...` | 8.20.1, 8.2.6, 24.5.2 | Proposed |
+| DEV-101.4 | `core/includes/schema/pod_vector.hpp:113` | `++m_size;` | 8.20.1 | Proposed |
+| DEV-101.5 | `core/includes/schema/pod_vector.hpp:112` | `std::memcpy(static_cast<unsigned char*>(m_block.data()) + (m_size * sizeof(T)), &value,...` | 8.20.1, 8.2.6, 24.5.2, 8.7.1 | Proposed |
+| DEV-101.6 | `core/includes/schema/pod_vector.hpp:62` | `copy_bytes(block.value_if()->data(), m_block.data(), m_size * sizeof(T));` | 8.20.1, 24.5.2 | Proposed |
+| DEV-101.7 | `core/includes/schema/pod_vector.hpp:54` | `const std::size_t capacity = (m_capacity == 0U) ? c_first_capacity : (m_capacity * 2U);` | 8.20.1 | Removed (check moved to `next_capacity()` in `core/src/schema/pod_vector.cpp`) |
+| DEV-101.8 | `core/includes/schema/pod_vector.hpp:49` | `const std::size_t limit = std::numeric_limits<std::size_t>::max() / (2U * sizeof(T));` | 8.20.1 | Removed (check moved to `next_capacity()` in `core/src/schema/pod_vector.cpp`) |
+| DEV-101.9 | `core/src/schema/evaluator.cpp:1174` | `path.set(path.size() - 1U, top);` | 8.20.1 | Proposed |
+| DEV-101.10 | `core/src/schema/evaluator.cpp:1173` | `++top.index;` | 8.20.1 | Proposed |
+| DEV-101.11 | `core/src/schema/evaluator.cpp:1161` | `path_frame top = path.get(path.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.12 | `core/src/schema/evaluator.cpp:1064` | `offset + detail::escape_pointer_token(token, buffer + ((offset < capacity) ? offset : 0...` | 8.20.1 | Proposed |
+| DEV-101.13 | `core/src/schema/evaluator.cpp:1031` | `return size_result::success(put_index(step.index - 1U, buffer, capacity, offset));` | 8.20.1 | Proposed |
+| DEV-101.14 | `core/src/schema/evaluator.cpp:973` | `++depth;` | 8.20.1 | Proposed |
+| DEV-101.15 | `core/src/schema/evaluator.cpp:943` | `++count;` | 8.20.1 | Proposed |
+| DEV-101.16 | `core/src/schema/evaluator.cpp:924` | `offset += detail::escape_pointer_token(std::string_view{bytes.data(), length},` | 8.20.1 | Proposed |
+| DEV-101.17 | `core/src/schema/evaluator.cpp:893` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.18 | `core/src/schema/evaluator.cpp:892` | `code_point = 0x10000U + ((code_point - 0xD800U) << 10U) + (low - 0xDC00U);` | 8.20.1 | Proposed |
+| DEV-101.19 | `core/src/schema/evaluator.cpp:889` | `const std::uint32_t low = compiled_schema_access::unit(schema, units.first + index + 1U);` | 8.20.1, 7.0.6 | Proposed |
+| DEV-101.20 | `core/src/schema/evaluator.cpp:886` | `std::uint32_t code_point = compiled_schema_access::unit(schema, units.first + index);` | 8.20.1, 7.0.6 | Proposed |
+| DEV-101.21 | `core/src/schema/evaluator.cpp:870` | `++offset;` | 8.20.1 | Proposed |
+| DEV-101.22 | `core/src/schema/evaluator.cpp:801` | `run.frames.set(run.frames.size() - 1U, current);` | 8.20.1 | Proposed |
+| DEV-101.23 | `core/src/schema/evaluator.cpp:788` | `frame current = run.frames.get(run.frames.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.24 | `core/src/schema/evaluator.cpp:653` | `++owner.cursor;` | 8.20.1 | Proposed |
+| DEV-101.25 | `core/src/schema/evaluator.cpp:468` | `return request(edge_at(run, node.one_of, owner.cursor - 1U), owner.instance, true, true);` | 8.20.1 | Proposed |
+| DEV-101.26 | `core/src/schema/evaluator.cpp:467` | `++owner.cursor;` | 8.20.1 | Proposed |
+| DEV-101.27 | `core/src/schema/evaluator.cpp:462` | `owner.passes += *delivered ? 1U : 0U;` | 8.20.1 | Proposed |
+| DEV-101.28 | `core/src/schema/evaluator.cpp:442` | `return request(edge_at(run, node.any_of, owner.cursor - 1U), owner.instance, true, true);` | 8.20.1 | Proposed |
+| DEV-101.29 | `core/src/schema/evaluator.cpp:441` | `++owner.cursor;` | 8.20.1 | Proposed |
+| DEV-101.30 | `core/src/schema/evaluator.cpp:436` | `owner.passes += *delivered ? 1U : 0U;` | 8.20.1 | Proposed |
+| DEV-101.31 | `core/src/schema/evaluator.cpp:417` | `return request(edge_at(run, node.all_of, owner.cursor - 1U), owner.instance, owner.supp...` | 8.20.1 | Proposed |
+| DEV-101.32 | `core/src/schema/evaluator.cpp:416` | `++owner.cursor;` | 8.20.1 | Proposed |
+| DEV-101.33 | `core/src/schema/evaluator.cpp:385` | `return compiled_schema_access::edge(run.schema, range.first + index);` | 8.20.1 | Proposed |
+| DEV-101.34 | `core/src/schema/evaluator.cpp:348` | `const auto& edge = compiled_schema_access::property(run.schema, node.properties.first +...` | 8.20.1 | Proposed |
+| DEV-101.35 | `core/src/schema/instance_domain.cpp:380` | `--m_size;` | 8.20.1 | Proposed |
+| DEV-101.36 | `core/src/schema/instance_domain.cpp:368` | `void* const slot = static_cast<unsigned char*>(m_block.data()) + ((m_size - 1U) * sizeo...` | 8.20.1, 8.2.6 | Proposed |
+| DEV-101.37 | `core/src/schema/instance_domain.cpp:356` | `++m_size;` | 8.20.1 | Proposed |
+| DEV-101.38 | `core/src/schema/instance_domain.cpp:354` | `void* const slot = static_cast<unsigned char*>(m_block.data()) + (m_size * sizeof(stack...` | 8.20.1, 8.2.6 | Proposed |
+| DEV-101.39 | `core/src/schema/instance_domain.cpp:108` | `++position;` | 8.20.1 | Proposed |
+| DEV-101.40 | `core/src/schema/instance_domain.cpp:104` | `position += 2U;` | 8.20.1 | Proposed |
+| DEV-101.41 | `core/src/schema/instance_domain.cpp:94` | `const auto next = text.unit_at(position + 1U);` | 8.20.1 | Proposed |
+| DEV-101.42 | `core/src/schema/json_pointer.cpp:178` | `++needed;` | 8.20.1 | Proposed |
+| DEV-101.43 | `core/src/schema/json_pointer.cpp:171` | `++needed;` | 8.20.1 | Proposed |
+| DEV-101.44 | `core/src/schema/json_pointer.cpp:149` | `value = (value * 10U) + digit;` | 8.20.1 | Proposed |
+| DEV-101.45 | `core/src/schema/json_pointer.cpp:67` | `return static_cast<char>(static_cast<unsigned char>((*high * 16U) + *low));` | 8.20.1, 7.0.3 | Proposed |
+| DEV-101.46 | `core/src/schema/json_pointer.cpp:66` | `position += 3U;` | 8.20.1 | Proposed |
+| DEV-101.47 | `core/src/schema/json_pointer.cpp:61` | `const auto low = hex_value(raw[position + 2U]);` | 8.20.1 | Proposed |
+| DEV-101.48 | `core/src/schema/json_pointer.cpp:60` | `const auto high = hex_value(raw[position + 1U]);` | 8.20.1 | Proposed |
+| DEV-101.49 | `core/src/schema/json_pointer.cpp:53` | `++position;` | 8.20.1 | Proposed |
+| DEV-101.50 | `core/src/schema/json_pointer.cpp:36` | `return static_cast<unsigned>(c - 'A') + 10U;` | 8.20.1, 7.0.3 | Proposed |
+| DEV-101.51 | `core/src/schema/json_pointer.cpp:32` | `return static_cast<unsigned>(c - 'a') + 10U;` | 8.20.1, 7.0.3 | Proposed |
+| DEV-101.52 | `core/src/schema/schema_compiler.cpp:1405` | `total += detail::compiled_schema_access::node(*this, index).unknown_keywords;` | 8.20.1 | Proposed |
+| DEV-101.53 | `core/src/schema/schema_compiler.cpp:1273` | `const pending_item item = state.pending.get(state.pending.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.54 | `core/src/schema/schema_compiler.cpp:1214` | `for (std::size_t hops = 0U; (target != c_no_node) && (hops <= state.refs.size()); ++hops)` | 8.20.1, 9.5.1 | Proposed |
+| DEV-101.55 | `core/src/schema/schema_compiler.cpp:1138` | `const std::string_view fragment = (hash == std::string_view::npos) ? std::string_view{}...` | 8.20.1 | Proposed |
+| DEV-101.56 | `core/src/schema/schema_compiler.cpp:1012` | `unit += 2U;` | 8.20.1 | Proposed |
+| DEV-101.57 | `core/src/schema/schema_compiler.cpp:1004` | `const std::uint32_t offset = *code_point - 0x10000U;` | 8.20.1 | Proposed |
+| DEV-101.58 | `core/src/schema/schema_compiler.cpp:1000` | `++unit;` | 8.20.1 | Proposed |
+| DEV-101.59 | `core/src/schema/schema_compiler.cpp:973` | `position += extra + 1U;` | 8.20.1 | Proposed |
+| DEV-101.60 | `core/src/schema/schema_compiler.cpp:966` | `const auto next = static_cast<unsigned char>(text[position + index]);` | 8.20.1, 7.0.3 | Proposed |
+| DEV-101.61 | `core/src/schema/schema_compiler.cpp:897` | `node.child_count = state.nodes.size() - node.first_child;` | 8.20.1 | Proposed |
+| DEV-101.62 | `core/src/schema/schema_compiler.cpp:582` | `++unknown;` | 8.20.1 | Proposed |
+| DEV-101.63 | `core/src/schema/schema_compiler.cpp:502` | `properties.count = state.properties.size() - properties.first;` | 8.20.1 | Proposed |
+| DEV-101.64 | `core/src/schema/schema_compiler.cpp:445` | `for (std::size_t position = 0U;; ++position)` | 8.20.1, 9.5.1 | Proposed |
+| DEV-101.65 | `core/src/schema/schema_compiler.cpp:138` | `state.steps += amount;` | 8.20.1 | Proposed |
+| DEV-101.66 | `core/src/schema/schema_registry.cpp:203` | `++m_size;` | 8.20.1 | Proposed |
+| DEV-101.67 | `core/src/schema/schema_registry.cpp:146` | `--m_size;` | 8.20.1 | Proposed |
+| DEV-101.68 | `core/src/schema/schema_registry.cpp:41` | `void* const address = static_cast<unsigned char*>(entries.data()) + (index * sizeof(reg...` | 8.20.1, 8.2.6 | Proposed |
+| DEV-101.69 | `core/src/schema/schema_work.cpp:63` | `++counter;` | 8.20.1 | Proposed |
+| DEV-101.70 | `core/src/schema/schema_work.cpp:41` | `++m_work_steps;` | 8.20.1 | Proposed |
+| DEV-101.71 | `core/src/schema/uri.cpp:314` | `rest = rest.substr(scheme_end + 1U);` | 8.20.1 | Proposed |
+| DEV-101.72 | `core/src/schema/uri.cpp:306` | `++scheme_end;` | 8.20.1 | Proposed |
+| DEV-101.73 | `core/src/schema/uri.cpp:299` | `parts.query = rest.substr(question + 1U);` | 8.20.1 | Proposed |
+| DEV-101.74 | `core/src/schema/uri.cpp:292` | `parts.fragment = rest.substr(hash + 1U);` | 8.20.1 | Proposed |
+| DEV-101.75 | `core/src/schema/uri.cpp:189` | `const auto directory = append_text(merged, base.path.substr(0U, last + 1U));` | 8.20.1 | Proposed |
+| DEV-101.76 | `core/src/schema/uri.cpp:82` | `const auto host = append_lower(out, authority.substr(host_start, host_end - host_start));` | 8.20.1 | Proposed |
+| DEV-101.77 | `core/src/schema/uri.cpp:68` | `const std::size_t host_start = (at == std::string_view::npos) ? 0U : (at + 1U);` | 8.20.1 | Proposed |
+| DEV-101.78 | `core/src/schema/value_equality.cpp:317` | `const value_pair pair = stack.get(stack.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.79 | `core/src/schema/pod_vector.cpp:35` | `return current * 2U;` | 8.20.1 | Proposed |
+
+## DEV-102: Rule 7.0.3, character comparisons and code-unit values
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/no-character-numerical-value` |
+| Lines | 32 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-102.1 | `core/src/schema/evaluator.cpp:942` | `digits[count] = static_cast<char>('0' + static_cast<int>(value % 10U));` | 7.0.3 | Proposed |
+| DEV-102.2 | `core/src/schema/evaluator.cpp:920` | `bytes[3] = static_cast<char>(0x80U \| (code_point & 0x3FU));` | 7.0.3 | Proposed |
+| DEV-102.3 | `core/src/schema/evaluator.cpp:919` | `bytes[2] = static_cast<char>(0x80U \| ((code_point >> 6U) & 0x3FU));` | 7.0.3 | Proposed |
+| DEV-102.4 | `core/src/schema/evaluator.cpp:918` | `bytes[1] = static_cast<char>(0x80U \| ((code_point >> 12U) & 0x3FU));` | 7.0.3 | Proposed |
+| DEV-102.5 | `core/src/schema/evaluator.cpp:917` | `bytes[0] = static_cast<char>(0xF0U \| (code_point >> 18U));` | 7.0.3 | Proposed |
+| DEV-102.6 | `core/src/schema/evaluator.cpp:912` | `bytes[2] = static_cast<char>(0x80U \| (code_point & 0x3FU));` | 7.0.3 | Proposed |
+| DEV-102.7 | `core/src/schema/evaluator.cpp:911` | `bytes[1] = static_cast<char>(0x80U \| ((code_point >> 6U) & 0x3FU));` | 7.0.3 | Proposed |
+| DEV-102.8 | `core/src/schema/evaluator.cpp:910` | `bytes[0] = static_cast<char>(0xE0U \| (code_point >> 12U));` | 7.0.3 | Proposed |
+| DEV-102.9 | `core/src/schema/evaluator.cpp:905` | `bytes[1] = static_cast<char>(0x80U \| (code_point & 0x3FU));` | 7.0.3 | Proposed |
+| DEV-102.10 | `core/src/schema/evaluator.cpp:904` | `bytes[0] = static_cast<char>(0xC0U \| (code_point >> 6U));` | 7.0.3 | Proposed |
+| DEV-102.11 | `core/src/schema/evaluator.cpp:900` | `bytes[0] = static_cast<char>(code_point);` | 7.0.3 | Proposed |
+| DEV-102.12 | `core/src/schema/json_pointer.cpp:144` | `const auto digit = static_cast<std::size_t>(c - '0');` | 7.0.3 | Proposed |
+| DEV-102.13 | `core/src/schema/json_pointer.cpp:140` | `if ((c < '0') \|\| (c > '9'))` | 7.0.3 | Proposed |
+| DEV-102.14 | `core/src/schema/json_pointer.cpp:133` | `if (token.empty() \|\| ((token.size() > 1U) && (token[0U] == '0')))` | 7.0.3 | Proposed |
+| DEV-102.15 | `core/src/schema/json_pointer.cpp:114` | `const char decoded = tilde ? ((*c == '0') ? '~' : '/') : *c;` | 7.0.3 | Proposed |
+| DEV-102.16 | `core/src/schema/json_pointer.cpp:109` | `if (!tilde && (*c == '~'))` | 7.0.3 | Proposed |
+| DEV-102.17 | `core/src/schema/json_pointer.cpp:105` | `if (!c.has_value() \|\| (tilde && (*c != '0') && (*c != '1')))` | 7.0.3 | Proposed |
+| DEV-102.18 | `core/src/schema/json_pointer.cpp:91` | `if (rest.empty() \|\| (rest[0U] != '/'))` | 7.0.3 | Proposed |
+| DEV-102.19 | `core/src/schema/json_pointer.cpp:34` | `if ((c >= 'A') && (c <= 'F'))` | 7.0.3 | Proposed |
+| DEV-102.20 | `core/src/schema/json_pointer.cpp:30` | `if ((c >= 'a') && (c <= 'f'))` | 7.0.3 | Proposed |
+| DEV-102.21 | `core/src/schema/json_pointer.cpp:28` | `return static_cast<unsigned>(c - '0');` | 7.0.3 | Proposed |
+| DEV-102.22 | `core/src/schema/json_pointer.cpp:26` | `if ((c >= '0') && (c <= '9'))` | 7.0.3 | Proposed |
+| DEV-102.23 | `core/src/schema/schema_compiler.cpp:1143` | `if (fragment[0U] != '/')` | 7.0.3 | Proposed |
+| DEV-102.24 | `core/src/schema/schema_compiler.cpp:934` | `const auto lead = static_cast<unsigned char>(text[position]);` | 7.0.3 | Proposed |
+| DEV-102.25 | `core/src/schema/schema_compiler.cpp:415` | `if ((hash != std::string_view::npos) && ((hash + 1U) < target.size()) && (target[hash +...` | 7.0.3 | Proposed |
+| DEV-102.26 | `core/src/schema/schema_compiler.cpp:388` | `parts.has_fragment && !parts.fragment.empty() && (parts.fragment[0U] != '/');` | 7.0.3 | Proposed |
+| DEV-102.27 | `core/src/schema/schema_compiler.cpp:204` | `if (!unit.has_value() \|\| (*unit.value_if() != static_cast<std::uint16_t>(keyword[inde...` | 7.0.3, 7.0.5 | Proposed |
+| DEV-102.28 | `core/src/schema/uri.cpp:310` | `if (letter_first && (scheme_end < rest.size()) && (rest[scheme_end] == ':'))` | 7.0.3 | Proposed |
+| DEV-102.29 | `core/src/schema/uri.cpp:309` | `!rest.empty() && (((rest[0U] >= 'a') && (rest[0U] <= 'z')) \|\| ((rest[0U] >= 'A') && (...` | 7.0.3 | Proposed |
+| DEV-102.30 | `core/src/schema/uri.cpp:261` | `if (r.has_authority \|\| (!r.path.empty() && (r.path[0U] == '/')))` | 7.0.3 | Proposed |
+| DEV-102.31 | `core/src/schema/uri.cpp:37` | `return ((c >= 'A') && (c <= 'Z')) ? static_cast<char>(c - 'A' + 'a') : c;` | 7.0.3 | Proposed |
+| DEV-102.32 | `core/src/schema/uri.cpp:25` | `return ((c >= 'a') && (c <= 'z')) \|\| ((c >= 'A') && (c <= 'Z')) \|\| ((c >= '0') && (...` | 7.0.3 | Proposed |
+
+## DEV-103: Rule 5.13.4, empty-brace value-initialization and literals
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/unsigned-integer-literals-not-appropriately-suffixed` |
+| Lines | 38 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context; the value is zero or the stated constant and no conversion changes it.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-103.1 | `core/includes/schema/schema_graph.hpp:88` | `node_range name{};` | 5.13.4 | Proposed |
+| DEV-103.2 | `core/includes/schema/schema_graph.hpp:72` | `node_range properties{};` | 5.13.4 | Proposed |
+| DEV-103.3 | `core/includes/schema/schema_graph.hpp:71` | `node_range items_array{};` | 5.13.4 | Proposed |
+| DEV-103.4 | `core/includes/schema/schema_graph.hpp:70` | `node_range one_of{};` | 5.13.4 | Proposed |
+| DEV-103.5 | `core/includes/schema/schema_graph.hpp:69` | `node_range any_of{};` | 5.13.4 | Proposed |
+| DEV-103.6 | `core/includes/schema/schema_graph.hpp:68` | `node_range all_of{};` | 5.13.4 | Proposed |
+| DEV-103.7 | `core/includes/schema/schema_graph.hpp:63` | `source_span span{};` | 5.13.4 | Proposed |
+| DEV-103.8 | `core/includes/schema/schema_graph.hpp:60` | `node_range step_name{};` | 5.13.4 | Proposed |
+| DEV-103.9 | `core/src/schema/evaluator.cpp:1123` | `path_frame frame{};` | 5.13.4 | Proposed |
+| DEV-103.10 | `core/src/schema/evaluator.cpp:755` | `frame next{};` | 5.13.4 | Proposed |
+| DEV-103.11 | `core/src/schema/evaluator.cpp:200` | `schema_diagnostic entry{};` | 5.13.4 | Proposed |
+| DEV-103.12 | `core/src/schema/schema_compiler.cpp:1257` | `node_range base{};` | 5.13.4 | Proposed |
+| DEV-103.13 | `core/src/schema/schema_compiler.cpp:1249` | `node.span = span.value_or(source_span{});` | 5.13.4 | Proposed |
+| DEV-103.14 | `core/src/schema/schema_compiler.cpp:1245` | `schema_node node{};` | 5.13.4 | Proposed |
+| DEV-103.15 | `core/src/schema/schema_compiler.cpp:801` | `node_range range{};` | 5.13.4 | Proposed |
+| DEV-103.16 | `core/src/schema/schema_compiler.cpp:761` | `*entry.second = evaluate ? range : node_range{};` | 5.13.4 | Proposed |
+| DEV-103.17 | `core/src/schema/schema_compiler.cpp:755` | `node_range range{};` | 5.13.4 | Proposed |
+| DEV-103.18 | `core/src/schema/schema_compiler.cpp:730` | `const auto added = add_child(state, item, schema_keyword::items, step_kind::none, node_...` | 5.13.4, 7.0.6 | Proposed |
+| DEV-103.19 | `core/src/schema/schema_compiler.cpp:726` | `node.items_array = evaluate ? range : node_range{};` | 5.13.4 | Proposed |
+| DEV-103.20 | `core/src/schema/schema_compiler.cpp:724` | `node_range range{};` | 5.13.4 | Proposed |
+| DEV-103.21 | `core/src/schema/schema_compiler.cpp:699` | `entry.span = span.value_or(source_span{});` | 5.13.4 | Proposed |
+| DEV-103.22 | `core/src/schema/schema_compiler.cpp:694` | `ref_entry entry{};` | 5.13.4 | Proposed |
+| DEV-103.23 | `core/src/schema/schema_compiler.cpp:634` | `const auto added = add_child(state, item, keyword, step_kind::none, node_range{}, 0U, *...` | 5.13.4, 7.0.6 | Proposed |
+| DEV-103.24 | `core/src/schema/schema_compiler.cpp:515` | `node_range units{};` | 5.13.4 | Proposed |
+| DEV-103.25 | `core/src/schema/schema_compiler.cpp:458` | `add_child(state, parent, keyword, step_kind::index, node_range{}, position, **element.v...` | 5.13.4 | Proposed |
+| DEV-103.26 | `core/src/schema/schema_compiler.cpp:363` | `child.span = span.value_or(source_span{});` | 5.13.4 | Proposed |
+| DEV-103.27 | `core/src/schema/schema_compiler.cpp:354` | `schema_node child{};` | 5.13.4 | Proposed |
+| DEV-103.28 | `core/src/schema/schema_compiler.cpp:319` | `key_entry entry{};` | 5.13.4 | Proposed |
+| DEV-103.29 | `core/src/schema/schema_compiler.cpp:78` | `node_range base{};` | 5.13.4 | Proposed |
+| DEV-103.30 | `core/src/schema/schema_compiler.cpp:65` | `source_span span{};` | 5.13.4 | Proposed |
+| DEV-103.31 | `core/src/schema/schema_compiler.cpp:64` | `node_range base{};` | 5.13.4 | Proposed |
+| DEV-103.32 | `core/src/schema/schema_compiler.cpp:63` | `node_range text{};` | 5.13.4 | Proposed |
+| DEV-103.33 | `core/src/schema/schema_compiler.cpp:51` | `node_range text{};` | 5.13.4 | Proposed |
+| DEV-103.34 | `core/src/schema/uri.cpp:350` | `uri_parts t{};` | 5.13.4 | Proposed |
+| DEV-103.35 | `core/src/schema/uri.cpp:285` | `uri_parts parts{};` | 5.13.4 | Proposed |
+| DEV-103.36 | `includes/adaptive_json5/schema/schema_error.hpp:155` | `: m_parser_error(parser_error), m_range(range.value_or(source_span{})), m_code(code),` | 5.13.4 | Proposed |
+| DEV-103.37 | `includes/adaptive_json5/schema/validation_report.hpp:35` | `source_span schema_span{};` | 5.13.4 | Proposed |
+| DEV-103.38 | `includes/adaptive_json5/schema/validation_report.hpp:31` | `source_span instance_span{};` | 5.13.4 | Proposed |
+
+## DEV-104: Rule 15.0.1, special member functions
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/improperly-provided-special-member-functions-audit`, `cpp/misra/improperly-provided-special-member-functions`, `cpp/misra/implicit-declaration-of-copy-constructor-audit` |
+| Lines | 27 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Aggregates and owning types follow the rule of zero or declare exactly the move-only set they need; the implicitly provided members are the intended ones.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-104.1 | `core/includes/schema/pod_vector.hpp:25` | `class [[nodiscard]] pod_vector` | 15.0.1, 4.1.2 | Proposed |
+| DEV-104.2 | `core/includes/schema/schema_graph.hpp:86` | `struct property_edge` | 15.0.1 | Proposed |
+| DEV-104.3 | `core/includes/schema/schema_graph.hpp:53` | `struct schema_node` | 15.0.1 | Proposed |
+| DEV-104.4 | `core/includes/schema/schema_graph.hpp:39` | `struct node_range` | 15.0.1 | Proposed |
+| DEV-104.5 | `core/includes/schema/schema_registry_access.hpp:18` | `struct registry_entry` | 15.0.1 | Proposed |
+| DEV-104.6 | `core/includes/schema/schema_work.hpp:20` | `class [[nodiscard]] schema_work` | 15.0.1 | Proposed |
+| DEV-104.7 | `core/includes/schema/uri.hpp:19` | `struct uri_parts` | 15.0.1 | Proposed |
+| DEV-104.8 | `core/src/schema/evaluator.cpp:1010` | `struct path_frame` | 15.0.1 | Proposed |
+| DEV-104.9 | `core/src/schema/evaluator.cpp:280` | `struct advance_outcome` | 15.0.1 | Proposed |
+| DEV-104.10 | `core/src/schema/evaluator.cpp:130` | `struct evaluator` | 15.0.1 | Proposed |
+| DEV-104.11 | `core/src/schema/evaluator.cpp:116` | `struct child_request` | 15.0.1 | Proposed |
+| DEV-104.12 | `core/src/schema/evaluator.cpp:95` | `struct frame` | 15.0.1 | Proposed |
+| DEV-104.13 | `core/src/schema/instance_domain.cpp:37` | `struct stack_frame` | 15.0.1 | Proposed |
+| DEV-104.14 | `core/src/schema/schema_compiler.cpp:89` | `struct compile_state` | 15.0.1 | Proposed |
+| DEV-104.15 | `core/src/schema/schema_compiler.cpp:74` | `struct pending_item` | 15.0.1 | Proposed |
+| DEV-104.16 | `core/src/schema/schema_compiler.cpp:60` | `struct ref_entry` | 15.0.1 | Proposed |
+| DEV-104.17 | `core/src/schema/schema_compiler.cpp:49` | `struct key_entry` | 15.0.1 | Proposed |
+| DEV-104.18 | `core/src/schema/value_equality.cpp:29` | `struct value_pair` | 15.0.1 | Proposed |
+| DEV-104.19 | `includes/adaptive_json5/schema/compiled_schema.hpp:46` | `class [[nodiscard]] compiled_schema` | 15.0.1 | Proposed |
+| DEV-104.20 | `includes/adaptive_json5/schema/compiled_schema.hpp:30` | `struct [[nodiscard]] compile_options` | 15.0.1 | Proposed |
+| DEV-104.21 | `includes/adaptive_json5/schema/schema_budget.hpp:36` | `struct [[nodiscard]] schema_compile_limits` | 15.0.1 | Proposed |
+| DEV-104.22 | `includes/adaptive_json5/schema/schema_budget.hpp:19` | `struct [[nodiscard]] validation_budget` | 15.0.1 | Proposed |
+| DEV-104.23 | `includes/adaptive_json5/schema/schema_error.hpp:143` | `class [[nodiscard]] schema_error` | 15.0.1 | Proposed |
+| DEV-104.24 | `includes/adaptive_json5/schema/validation_options.hpp:54` | `struct [[nodiscard]] validation_options` | 15.0.1 | Proposed |
+| DEV-104.25 | `includes/adaptive_json5/schema/validation_options.hpp:40` | `struct [[nodiscard]] cancellation_callback` | 15.0.1 | Proposed |
+| DEV-104.26 | `includes/adaptive_json5/schema/validation_report.hpp:49` | `class [[nodiscard]] validation_report` | 15.0.1 | Proposed |
+| DEV-104.27 | `includes/adaptive_json5/schema/validation_report.hpp:27` | `struct [[nodiscard]] schema_diagnostic` | 15.0.1 | Proposed |
+
+## DEV-105: Rule 9.5.1, counting loops
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/legacy-for-statements-should-be-simple` |
+| Lines | 21 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+A counting loop over a container or range whose bound is a size read through a member call; the counter is only incremented by the loop statement.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-105.1 | `core/src/schema/evaluator.cpp:1077` | `for (std::size_t level = 0U; level < path.size(); ++level)` | 9.5.1 | Proposed |
+| DEV-105.2 | `core/src/schema/evaluator.cpp:1044` | `for (std::size_t index = 0U; index < *size.value_if(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.3 | `core/src/schema/evaluator.cpp:978` | `for (std::size_t up = 1U; up < depth; ++up)` | 9.5.1 | Proposed |
+| DEV-105.4 | `core/src/schema/evaluator.cpp:970` | `for (std::size_t node = diagnostic.schema_node; compiled_schema_access::node(schema, no...` | 9.5.1 | Proposed |
+| DEV-105.5 | `core/src/schema/evaluator.cpp:884` | `for (std::size_t index = 0U; index < units.count; ++index)` | 9.5.1 | Proposed |
+| DEV-105.6 | `core/src/schema/evaluator.cpp:742` | `for (std::size_t level = 0U; level < run.frames.size(); ++level)` | 9.5.1 | Proposed |
+| DEV-105.7 | `core/src/schema/evaluator.cpp:341` | `for (std::size_t index = 0U; index < node.properties.count; ++index)` | 9.5.1 | Proposed |
+| DEV-105.8 | `core/src/schema/evaluator.cpp:260` | `for (std::size_t index = 0U; index < units.count; ++index)` | 9.5.1 | Proposed |
+| DEV-105.9 | `core/src/schema/schema_compiler.cpp:1403` | `for (std::size_t index = 0U; index < m_node_count; ++index)` | 9.5.1 | Proposed |
+| DEV-105.10 | `core/src/schema/schema_compiler.cpp:1319` | `for (std::size_t resource = 0U; resource < registry.size(); ++resource)` | 9.5.1 | Proposed |
+| DEV-105.11 | `core/src/schema/schema_compiler.cpp:1210` | `for (std::size_t index = 0U; index < state.refs.size(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.12 | `core/src/schema/schema_compiler.cpp:1174` | `for (std::size_t index = 0U; index < state.refs.size(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.13 | `core/src/schema/schema_compiler.cpp:1033` | `for (std::size_t child = owner.first_child; child < (owner.first_child + owner.child_co...` | 9.5.1 | Proposed |
+| DEV-105.14 | `core/src/schema/schema_compiler.cpp:964` | `for (std::size_t index = 1U; index <= extra; ++index)` | 9.5.1 | Proposed |
+| DEV-105.15 | `core/src/schema/schema_compiler.cpp:910` | `for (std::size_t index = 0U; index < state.keys.size(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.16 | `core/src/schema/schema_compiler.cpp:277` | `for (std::size_t index = 0U; index < *size.value_if(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.17 | `core/src/schema/schema_compiler.cpp:242` | `for (std::size_t index = 0U; index < name.size(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.18 | `core/src/schema/schema_compiler.cpp:221` | `for (std::size_t index = c_first_named_keyword; index < c_keyword_count; ++index)` | 9.5.1 | Proposed |
+| DEV-105.19 | `core/src/schema/schema_compiler.cpp:201` | `for (std::size_t index = 0U; index < keyword.size(); ++index)` | 9.5.1 | Proposed |
+| DEV-105.20 | `core/src/schema/schema_registry.cpp:175` | `for (std::size_t index = 0U; index < m_size; ++index)` | 9.5.1 | Proposed |
+| DEV-105.21 | `core/src/schema/value_equality.cpp:59` | `for (std::size_t index = 0U; index < left.size(); ++index)` | 9.5.1 | Proposed |
+
+## DEV-106: Rules 7.0.5 and 7.0.6, integral promotion and assignment
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/no-signedness-change-from-promotion`, `cpp/misra/numeric-assignment-type-mismatch` |
+| Lines | 21 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Comparisons and arithmetic on std::uint16_t code units promote to int without changing the value; the operands are unsigned values below 0x110000 and the results are used as such.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-106.1 | `core/src/schema/evaluator.cpp:964` | `std::size_t offset = put("#", buffer, capacity, 0U);` | 7.0.6 | Proposed |
+| DEV-106.2 | `core/src/schema/evaluator.cpp:949` | `offset = put(std::string_view{&digits[count], 1U}, buffer, capacity, offset);` | 7.0.6 | Proposed |
+| DEV-106.3 | `core/src/schema/evaluator.cpp:267` | `if (*unit.value_if() != compiled_schema_access::unit(run.schema, units.first + index))` | 7.0.5 | Proposed |
+| DEV-106.4 | `core/src/schema/instance_domain.cpp:100` | `if ((low < c_low_surrogate_first) \|\| (low > c_low_surrogate_last))` | 7.0.5 | Proposed |
+| DEV-106.5 | `core/src/schema/instance_domain.cpp:88` | `if ((value >= c_high_surrogate_first) && (value <= c_high_surrogate_last))` | 7.0.5 | Proposed |
+| DEV-106.6 | `core/src/schema/instance_domain.cpp:84` | `if ((value >= c_low_surrogate_first) && (value <= c_low_surrogate_last))` | 7.0.5 | Proposed |
+| DEV-106.7 | `core/src/schema/schema_compiler.cpp:1302` | `return resolve_target(state, detail::text_of(state.resolved, 0U, state.resolved.size()));` | 7.0.6 | Proposed |
+| DEV-106.8 | `core/src/schema/schema_compiler.cpp:1185` | `const auto target = resolve_target(state, detail::text_of(state.resolved, 0U, state.res...` | 7.0.6 | Proposed |
+| DEV-106.9 | `core/src/schema/schema_compiler.cpp:1114` | `find_child(state, current, keyword, detail::text_of(state.token, 0U, state.token.size()...` | 7.0.6 | Proposed |
+| DEV-106.10 | `core/src/schema/schema_compiler.cpp:1088` | `const std::string_view keyword = detail::text_of(state.text, 0U, state.text.size());` | 7.0.6 | Proposed |
+| DEV-106.11 | `core/src/schema/schema_compiler.cpp:1083` | `const auto copied = detail::append_text(state.text, detail::text_of(state.token, 0U, st...` | 7.0.6 | Proposed |
+| DEV-106.12 | `core/src/schema/schema_compiler.cpp:1008` | `(state.units.get(units.first + unit + 1U) != low))` | 7.0.5 | Proposed |
+| DEV-106.13 | `core/src/schema/schema_compiler.cpp:1007` | `if (((unit + 1U) >= units.count) \|\| (state.units.get(units.first + unit) != high) \|\|` | 7.0.5 | Proposed |
+| DEV-106.14 | `core/src/schema/schema_compiler.cpp:705` | `const auto stored = store_text(state.ref_text, detail::text_of(state.text, 0U, state.te...` | 7.0.6 | Proposed |
+| DEV-106.15 | `core/src/schema/schema_compiler.cpp:604` | `if (!matches_dialect_uri(state.dialect, detail::text_of(state.text, 0U, state.text.size...` | 7.0.6 | Proposed |
+| DEV-106.16 | `core/src/schema/schema_compiler.cpp:522` | `const auto added = add_child(state, parent, keyword, step_kind::name, units, 0U, entry,...` | 7.0.6 | Proposed |
+| DEV-106.17 | `core/src/schema/schema_compiler.cpp:397` | `const std::string_view target = detail::text_of(state.resolved, 0U, state.resolved.size...` | 7.0.6 | Proposed |
+| DEV-106.18 | `core/src/schema/schema_compiler.cpp:385` | `const std::string_view id_text = detail::text_of(state.text, 0U, state.text.size());` | 7.0.6 | Proposed |
+| DEV-106.19 | `core/src/schema/schema_registry.cpp:174` | `const std::string_view uri = detail::text_of(normalized, 0U, normalized.size());` | 7.0.6 | Proposed |
+| DEV-106.20 | `core/src/schema/uri.cpp:272` | `path = text_of(merged, 0U, merged.size());` | 7.0.6 | Proposed |
+| DEV-106.21 | `core/src/schema/value_equality.cpp:71` | `if (*a.value_if() != *b.value_if())` | 7.0.5 | Proposed |
+
+## DEV-107: Rule 8.2.6 and related, object pointers in caller-provided storage
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/int-to-pointer-cast-prohibited`, `cpp/misra/function-pointer-conversion-context` |
+| Lines | 11 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Address computation inside an owned block from caller storage, as in the parser storage layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-107.1 | `core/includes/schema/pod_vector.hpp:196` | `return static_cast<T*>(m_block.data());` | 8.2.6 | Proposed |
+| DEV-107.2 | `core/includes/schema/pod_vector.hpp:106` | `const auto grown = grow();` | 7.11.3 | Proposed |
+| DEV-107.3 | `core/src/schema/evaluator.cpp:1253` | `return static_cast<const schema_diagnostic*>(m_diagnostics.data()) + index;` | 8.2.6 | Proposed |
+| DEV-107.4 | `core/src/schema/instance_domain.cpp:369` | `return *std::launder(static_cast<stack_frame*>(slot));` | 8.2.6 | Proposed |
+| DEV-107.5 | `core/src/schema/schema_compiler.cpp:1479` | `return static_cast<const std::uint16_t*>(schema.m_units.data())[index];` | 8.2.6 | Proposed |
+| DEV-107.6 | `core/src/schema/schema_compiler.cpp:1468` | `return static_cast<const property_edge*>(schema.m_properties.data())[index];` | 8.2.6 | Proposed |
+| DEV-107.7 | `core/src/schema/schema_compiler.cpp:1457` | `return static_cast<const std::size_t*>(schema.m_edges.data())[index];` | 8.2.6 | Proposed |
+| DEV-107.8 | `core/src/schema/schema_compiler.cpp:1446` | `return static_cast<const schema_node*>(schema.m_nodes.data())[index];` | 8.2.6 | Proposed |
+| DEV-107.9 | `core/src/schema/schema_registry.cpp:265` | `return std::string_view{static_cast<const char*>(entry.uri.data()), entry.uri_size};` | 8.2.6 | Proposed |
+| DEV-107.10 | `core/src/schema/schema_registry.cpp:42` | `return std::launder(static_cast<registry_entry*>(address));` | 8.2.6 | Proposed |
+| DEV-107.11 | `core/src/schema/uri.cpp:383` | `return std::string_view{static_cast<const char*>(text.data()) + offset, length};` | 8.2.6 | Proposed |
+
+## DEV-108: Rule 28.6.3, objects after a move
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/object-used-while-in-potentially-moved-from-state` |
+| Lines | 5 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+The moved-from object is reassigned, reset or only destroyed; a result is moved out of once.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-108.1 | `core/includes/schema/pod_vector.hpp:64` | `m_block = std::move(*block.value_if());` | 28.6.3 | Proposed |
+| DEV-108.2 | `core/src/schema/evaluator.cpp:586` | `return std::move(*outcome);` | 28.6.3 | Proposed |
+| DEV-108.3 | `core/src/schema/instance_domain.cpp:337` | `m_block = std::move(*block.value_if());` | 28.6.3 | Proposed |
+| DEV-108.4 | `core/src/schema/schema_registry.cpp:202` | `registry_entry{std::move(uri_block), uri_size, std::move(*parsed.value_if())});` | 28.6.3 | Proposed |
+| DEV-108.5 | `core/src/schema/schema_registry.cpp:119` | `schema_registry{storage, std::move(*entries.value_if()), capacity});` | 28.6.3 | Proposed |
+
+## DEV-109: Rules 15.0.2 and 18.4.1, noexcept special members
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/invalid-signature-for-special-member-function`, `cpp/misra/exception-unfriendly-function-must-be-noexcept`, `cpp/misra/member-functions-refqualified`, `cpp/misra/non-static-member-not-init-before-use` |
+| Lines | 7 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Move construction and accessors are noexcept and leave the source empty; members have default member initializers, so none is read before it is set.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-109.1 | `core/includes/schema/pod_vector.hpp:84` | `pod_vector(pod_vector&& other) noexcept` | 18.4.1, 15.0.2 | Proposed |
+| DEV-109.2 | `core/includes/schema/pod_vector.hpp:76` | `explicit pod_vector(const storage_callbacks& storage) noexcept : m_storage(storage) {}` | 15.1.4 | Proposed |
+| DEV-109.3 | `core/src/schema/evaluator.cpp:1199` | `validation_report::validation_report(validation_report&& other) noexcept` | 18.4.1, 15.0.2 | Proposed |
+| DEV-109.4 | `core/src/schema/schema_compiler.cpp:1358` | `compiled_schema::compiled_schema(compiled_schema&& other) noexcept` | 18.4.1, 15.0.2 | Proposed |
+| DEV-109.5 | `core/src/schema/schema_registry.cpp:128` | `schema_registry::schema_registry(schema_registry&& other) noexcept` | 18.4.1, 15.0.2 | Proposed |
+| DEV-109.6 | `core/src/schema/schema_work.cpp:117` | `const validation_budget& schema_work::budget() const noexcept` | 6.8.4 | Proposed |
+| DEV-109.7 | `includes/adaptive_json5/schema/schema_error.hpp:278` | `[[nodiscard]] constexpr const std::optional<error>& parser_error() const noexcept` | 6.8.4 | Proposed |
+
+## DEV-110: Rules 21.2.2 and 24.5.2, std::memcpy of trivially copyable elements
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/no-memory-functions-from-c-string`, `cpp/misra/pointer-argument-to-cstring-function-is-invalid` |
+| Lines | 1 (further memcpy lines in pod_vector.hpp are listed under DEV-107 with both rules) |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+pod_vector copies trivially copyable elements (static_assert) within allocated blocks whose sizes are element counts times sizeof(T), as in the parser (DEV-023).
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure tests exercise these lines.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-110.1 | `core/src/schema/pod_vector.cpp:52` | `static_cast<void>(std::memcpy(destination, source, bytes));` | 24.5.2 | Proposed |
+
+## DEV-111: Rule 0.1.1, defensive initialization
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/unnecessary-write-to-local-object` |
+| Lines | 3 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Initialized at the declaration so that no path can read an indeterminate value (as DEV-007).
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-111.1 | `core/src/schema/schema_compiler.cpp:936` | `std::uint32_t value = 0U;` | 0.1.1 | Proposed |
+| DEV-111.2 | `core/src/schema/schema_registry.cpp:199` | `const std::size_t uri_size = normalized.size();` | 0.1.1 | Proposed |
+| DEV-111.3 | `includes/adaptive_json5/schema/schema_error.hpp:369` | `schema_error_code code = schema_error_code::internal_error;` | 0.1.1 | Proposed |
+
+## DEV-112: Rule 21.6.3, construction in caller-provided storage
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/advanced-memory-management-used` |
+| Lines | 3 |
+| Status | Proposed (#44) |
+
+### Why this rule is deviated instead of fixed
+
+Placement new constructs trivially destructible or explicitly destroyed objects in owned blocks from caller storage, as in the parser (DEV-001).
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-112.1 | `core/src/schema/instance_domain.cpp:355` | `static_cast<void>(::new (slot) stack_frame(frame));` | 21.6.3 | Proposed |
+| DEV-112.2 | `core/src/schema/schema_registry.cpp:201` | `static_cast<void>(::new (static_cast<void*>(slot(m_entries, m_size)))` | 21.6.3 | Proposed |
+| DEV-112.3 | `core/src/schema/schema_registry.cpp:147` | `slot(m_entries, m_size)->~registry_entry();` | 21.6.3 | Proposed |

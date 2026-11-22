@@ -36,6 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
+| SCHEMA | SWU-SCHEMA-190 | SWU-SCHEMA-191 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -385,6 +386,201 @@ library was checked to be byte-identical before and after.
 | SWU-PARSER-071 | used | `establish_primitive_root(document &, primitive_value, std::size_t)` | `core/src/parser/primitive_parser.cpp` | — |
 | SWU-PARSER-072 | used | `detail::parser_engine::walk_value()` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
 | SWU-PARSER-073 | used | `detail::parser_engine::advance_separator(parser_state&, parser_action)` | `core/src/parser/parser_engine.cpp` | `core/includes/parser/parser_engine.hpp` |
+
+## SCHEMA
+
+| ID | Status | Function | Defined in | Also documented in |
+| --- | --- | --- | --- | --- |
+| SWU-SCHEMA-001 | used | `matches_dialect_uri(schema_dialect, std::string_view)` | `includes/adaptive_json5/schema/schema_dialect.hpp` | — |
+| SWU-SCHEMA-002 | used | `occurs_in(schema_error_code, schema_phase)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-003 | used | `schema_error::reason_for(schema_error_code)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-004 | used | `schema_error::code()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-005 | used | `schema_error::invalid_schema_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-006 | used | `schema_error::instance_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-007 | used | `schema_error::limit_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-008 | used | `schema_error::source_range()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-009 | used | `schema_error::parser_error()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-010 | used | `schema_error::of(schema_error_code, std::optional<source_span>)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-011 | used | `schema_error::invalid(invalid_schema_reason, std::optional<source_span>)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-012 | used | `schema_error::syntax(const error &)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-013 | used | `schema_error::unsupported(unsupported_instance_reason, std::optional<source_span>)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-014 | used | `schema_error::limit(schema_limit_reason)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-015 | used | `schema_error::from_storage(const error &)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-016 | used | `detail::schema_work::schema_work(const validation_budget &, const cancellation_callback &)` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-017 | used | `detail::schema_work::step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-018 | used | `detail::schema_work::work_steps()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-019 | used | `detail::schema_work::budget()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-020 | used | `detail::check_instance_domain(const document &, schema_work &, const storage_callbacks &)` | `core/src/schema/instance_domain.cpp` | `core/includes/schema/instance_domain.hpp` |
+| SWU-SCHEMA-021 | used | `(anonymous)::access_failure(const error *)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-022 | used | `(anonymous)::has_unpaired_surrogate(const decoded_string &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-023 | used | `(anonymous)::value_span(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-024 | used | `(anonymous)::name_span(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-025 | used | `(anonymous)::check_text(const decoded_string &, std::optional<source_span>)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-026 | used | `(anonymous)::check_value(const value_view &, bool, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-027 | used | `(anonymous)::check_unique_names(const value_view &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-028 | used | `(anonymous)::frame_stack::reserve(const storage_callbacks &, std::size_t)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-029 | used | `(anonymous)::frame_stack::push(const stack_frame &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-030 | used | `(anonymous)::frame_stack::top()` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-031 | used | `(anonymous)::frame_stack::pop()` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-032 | used | `(anonymous)::frame_stack::size()` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-033 | used | `(anonymous)::enter(const value_view &, frame_stack &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-034 | used | `(anonymous)::is_container(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-035 | used | `schema_error::registration_reason()` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-036 | used | `schema_error::registration(registration_reason)` | `includes/adaptive_json5/schema/schema_error.hpp` | — |
+| SWU-SCHEMA-037 | used | `detail::pod_vector<T>::grow()` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-038 | used | `detail::pod_vector<T>::pod_vector(const storage_callbacks&)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-039 | used | `detail::pod_vector<T>::push_back(const T&)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-040 | used | `detail::pod_vector<T>::get(std::size_t)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-041 | used | `detail::pod_vector<T>::set(std::size_t, const T&)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-042 | used | `detail::pod_vector<T>::pop_back()` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-043 | used | `detail::pod_vector<T>::truncate(std::size_t)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-044 | used | `detail::pod_vector<T>::size()` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-045 | used | `detail::pod_vector<T>::data()` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-046 | used | `detail::pod_vector<T>::release()` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-047 | used | `detail::split_uri(std::string_view)` | `core/src/schema/uri.cpp` | `core/includes/schema/uri.hpp` |
+| SWU-SCHEMA-048 | used | `detail::resolve_uri(std::string_view, std::string_view, pod_vector<char>&, const storage_callbacks&)` | `core/src/schema/uri.cpp` | `core/includes/schema/uri.hpp` |
+| SWU-SCHEMA-049 | used | `detail::without_fragment(std::string_view)` | `core/src/schema/uri.cpp` | `core/includes/schema/uri.hpp` |
+| SWU-SCHEMA-050 | used | `detail::text_of(const pod_vector<char>&, std::size_t, std::size_t)` | `core/src/schema/uri.cpp` | `core/includes/schema/uri.hpp` |
+| SWU-SCHEMA-051 | used | `detail::append_text(pod_vector<char>&, std::string_view)` | `core/src/schema/uri.cpp` | `core/includes/schema/uri.hpp` |
+| SWU-SCHEMA-052 | used | `(anonymous)::is_scheme_char(char)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-053 | used | `(anonymous)::lower(char)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-054 | used | `(anonymous)::append_lower(pod_vector<char>&, std::string_view)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-055 | used | `(anonymous)::append_authority(pod_vector<char>&, std::string_view)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-056 | used | `(anonymous)::pop_segment(pod_vector<char>&, std::size_t)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-057 | used | `(anonymous)::append_without_dots(pod_vector<char>&, std::string_view)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-058 | used | `(anonymous)::merge_paths(const uri_parts&, std::string_view, pod_vector<char>&)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-059 | used | `(anonymous)::compose(pod_vector<char>&, const uri_parts&, std::string_view)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-060 | used | `detail::next_pointer_token(std::string_view&, pod_vector<char>&)` | `core/src/schema/json_pointer.cpp` | `core/includes/schema/json_pointer.hpp` |
+| SWU-SCHEMA-061 | used | `detail::pointer_index(std::string_view)` | `core/src/schema/json_pointer.cpp` | `core/includes/schema/json_pointer.hpp` |
+| SWU-SCHEMA-062 | used | `detail::escape_pointer_token(std::string_view, char*, std::size_t)` | `core/src/schema/json_pointer.cpp` | `core/includes/schema/json_pointer.hpp` |
+| SWU-SCHEMA-063 | used | `(anonymous)::hex_value(char)` | `core/src/schema/json_pointer.cpp` | — |
+| SWU-SCHEMA-064 | used | `(anonymous)::malformed()` | `core/src/schema/json_pointer.cpp` | — |
+| SWU-SCHEMA-065 | used | `keyword_name(schema_keyword)` | `includes/adaptive_json5/schema/schema_keyword.hpp` | — |
+| SWU-SCHEMA-066 | used | `schema_registry::create(accounted_storage&, std::size_t)` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-067 | used | `schema_registry::schema_registry(schema_registry&&)` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-068 | used | `schema_registry::~schema_registry()` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-069 | used | `schema_registry::add(std::string_view, input_view)` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-070 | used | `schema_registry::add(input_view)` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-071 | used | `schema_registry::size()` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-072 | used | `schema_registry::capacity()` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-073 | used | `detail::schema_registry_access::entry(const schema_registry&, std::size_t)` | `core/src/schema/schema_registry.cpp` | `core/includes/schema/schema_registry_access.hpp` |
+| SWU-SCHEMA-074 | used | `detail::schema_registry_access::uri(const registry_entry&)` | `core/src/schema/schema_registry.cpp` | `core/includes/schema/schema_registry_access.hpp` |
+| SWU-SCHEMA-075 | used | `(anonymous)::slot(const owned_block&, std::size_t)` | `core/src/schema/schema_registry.cpp` | — |
+| SWU-SCHEMA-076 | used | `(anonymous)::parse_failure(const error&)` | `core/src/schema/schema_registry.cpp` | — |
+| SWU-SCHEMA-077 | used | `(anonymous)::check_schema_domain(const document&, accounted_storage&)` | `core/src/schema/schema_registry.cpp` | — |
+| SWU-SCHEMA-078 | used | `compiled_schema::node_count()` | `core/src/schema/schema_compiler.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-079 | used | `compiled_schema::resource_count()` | `core/src/schema/schema_compiler.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-080 | used | `compiled_schema::unknown_keyword_count()` | `core/src/schema/schema_compiler.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-081 | used | `detail::compile_schema(const schema_registry&, std::string_view, schema_dialect, const compile_options&)` | `core/src/schema/schema_compiler.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-082 | used | `detail::compiled_schema_access::make(owned_block&&, std::size_t, owned_block&&, std::size_t, owned_block&&, std::size_t, owned_block&&, std::size_t, std::size_t, std::size_t)` | `core/src/schema/schema_compiler.cpp` | `core/includes/schema/schema_graph.hpp` |
+| SWU-SCHEMA-083 | used | `detail::compiled_schema_access::node(const compiled_schema&, std::size_t)` | `core/src/schema/schema_compiler.cpp` | `core/includes/schema/schema_graph.hpp` |
+| SWU-SCHEMA-084 | used | `detail::compiled_schema_access::edge(const compiled_schema&, std::size_t)` | `core/src/schema/schema_compiler.cpp` | `core/includes/schema/schema_graph.hpp` |
+| SWU-SCHEMA-085 | used | `detail::compiled_schema_access::property(const compiled_schema&, std::size_t)` | `core/src/schema/schema_compiler.cpp` | `core/includes/schema/schema_graph.hpp` |
+| SWU-SCHEMA-086 | used | `detail::compiled_schema_access::unit(const compiled_schema&, std::size_t)` | `core/src/schema/schema_compiler.cpp` | `core/includes/schema/schema_graph.hpp` |
+| SWU-SCHEMA-087 | used | `detail::compiled_schema_access::root(const compiled_schema&)` | `core/src/schema/schema_compiler.cpp` | `core/includes/schema/schema_graph.hpp` |
+| SWU-SCHEMA-088 | used | `detail::pod_vector<T>::writable()` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-089 | used | `(anonymous)::charge(compile_state&, std::size_t)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-090 | used | `(anonymous)::span_of(const value_view&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-091 | used | `(anonymous)::shape_error(const value_view&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-092 | used | `(anonymous)::access_error(const error*)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-093 | used | `(anonymous)::kind_of(const value_view&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-094 | used | `(anonymous)::spells(const decoded_string&, std::string_view)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-095 | used | `(anonymous)::classify(const decoded_string&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-096 | used | `(anonymous)::copy_units(compile_state&, const decoded_string&, node_range&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-097 | used | `(anonymous)::string_utf8(const value_view&, pod_vector<char>&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-098 | used | `(anonymous)::store_text(pod_vector<char>&, std::string_view, node_range&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-099 | used | `(anonymous)::add_key(compile_state&, std::string_view, std::size_t)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-100 | used | `(anonymous)::add_node(compile_state&, const schema_node&, std::size_t&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-101 | used | `(anonymous)::add_child(compile_state&, const pending_item&, schema_keyword, step_kind, node_range, std::size_t, const value_view&, std::size_t&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-102 | used | `(anonymous)::apply_id(compile_state&, const value_view&, std::size_t, node_range&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-103 | used | `(anonymous)::add_array_children(compile_state&, const pending_item&, schema_keyword, const value_view&, bool, node_range&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-104 | used | `(anonymous)::add_map_children(compile_state&, const pending_item&, schema_keyword, const value_view&, bool, bool, node_range&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-105 | used | `(anonymous)::collect_keywords(compile_state&, const value_view&, std::array<std::optional<value_view>, c_keyword_count>&, std::size_t&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-106 | used | `(anonymous)::check_dialect(compile_state&, const value_view&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-107 | used | `(anonymous)::add_single_children(compile_state&, const pending_item&, const std::array<std::optional<value_view>, c_keyword_count>&, bool, schema_node&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-108 | used | `(anonymous)::add_collection_children(compile_state&, const pending_item&, const std::array<std::optional<value_view>, c_keyword_count>&, bool, schema_node&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-109 | used | `(anonymous)::process(compile_state&, const pending_item&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-110 | used | `(anonymous)::find_key(compile_state&, std::string_view)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-111 | used | `(anonymous)::next_code_point(std::string_view, std::size_t&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-112 | used | `(anonymous)::utf8_equals_units(const compile_state&, std::string_view, node_range)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-113 | used | `(anonymous)::find_child(compile_state&, std::size_t, std::string_view, std::optional<std::string_view>, step_kind&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-114 | used | `(anonymous)::walk_pointer(compile_state&, std::size_t, std::string_view)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-115 | used | `(anonymous)::resolve_target(compile_state&, std::string_view)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-116 | used | `(anonymous)::located(schema_error_code, const ref_entry&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-117 | used | `(anonymous)::resolve_refs(compile_state&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-118 | used | `(anonymous)::reject_pure_cycles(compile_state&)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-119 | used | `(anonymous)::add_resource(compile_state&, const schema_registry&, std::size_t)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-120 | used | `(anonymous)::find_root(compile_state&, std::string_view)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-121 | used | `schema_registry::schema_registry(accounted_storage&, owned_block&&, std::size_t)` | `core/src/schema/schema_registry.cpp` | `includes/adaptive_json5/schema/schema_registry.hpp` |
+| SWU-SCHEMA-122 | used | `(anonymous)::compile_state::compile_state(const compile_options&, schema_dialect)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-123 | used | `detail::schema_work::charge(std::size_t &, std::size_t, schema_limit_reason)` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-124 | used | `detail::schema_work::equality_step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-125 | used | `detail::schema_work::reference_step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-126 | used | `detail::schema_work::branch_step()` | `core/src/schema/schema_work.cpp` | `core/includes/schema/schema_work.hpp` |
+| SWU-SCHEMA-127 | used | `detail::values_equal(const value_view &, const value_view &, schema_work &, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | `core/includes/schema/value_equality.hpp` |
+| SWU-SCHEMA-128 | used | `(anonymous)::failed(const error *)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-129 | used | `(anonymous)::strings_equal(const decoded_string &, const decoded_string &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-130 | used | `(anonymous)::scalars_equal(const value_pair &, value_kind, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-131 | used | `(anonymous)::find_by_name(const value_view &, const decoded_string &, schema_work &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-132 | used | `(anonymous)::push_elements(const value_pair &, pod_vector<value_pair> &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-133 | used | `(anonymous)::push_members(const value_pair &, pod_vector<value_pair> &, schema_work &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-134 | used | `(anonymous)::compare_pair(const value_pair &, pod_vector<value_pair> &, schema_work &, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-135 | used | `validation_report::valid()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-136 | used | `validation_report::truncated()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-137 | used | `validation_report::diagnostic_count()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-138 | used | `validation_report::diagnostic(std::size_t)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-139 | used | `validate(const compiled_schema &, const document &, const validation_options &)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-140 | used | `format_schema_location(const compiled_schema &, const schema_diagnostic &, char *, std::size_t)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-141 | used | `detail::validation_report_access::make(bool, bool, owned_block &&, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-142 | used | `(anonymous)::evaluator::evaluator(const compiled_schema &, const validation_options &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-143 | used | `(anonymous)::access_failure(const error *)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-144 | used | `(anonymous)::kind_of(const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-145 | used | `(anonymous)::record(evaluator &, const frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-146 | used | `(anonymous)::may_stop(const evaluator &, const frame &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-147 | used | `(anonymous)::fail(evaluator &, frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-148 | used | `(anonymous)::name_matches(const evaluator &, const decoded_string &, node_range)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-149 | used | `(anonymous)::request(std::size_t, const value_view &, bool, bool, bool)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-150 | used | `(anonymous)::next_child(frame &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-151 | used | `(anonymous)::property_for(evaluator &, const schema_node &, const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-152 | used | `(anonymous)::absorb(frame &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-153 | used | `(anonymous)::advance_combinators(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-154 | used | `(anonymous)::advance_descending(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-155 | used | `(anonymous)::advance(evaluator &, frame &, std::optional<bool>)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-156 | used | `(anonymous)::push_child(evaluator &, const child_request &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-157 | used | `(anonymous)::run_frames(evaluator &, const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-158 | used | `(anonymous)::put(std::string_view, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-159 | used | `(anonymous)::put_name(const compiled_schema &, node_range, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-160 | used | `(anonymous)::put_index(std::size_t, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-161 | used | `compiled_schema::compiled_schema(compiled_schema &&)` | `core/src/schema/schema_compiler.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-162 | used | `validation_report::validation_report(validation_report &&)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-163 | used | `detail::pod_vector<T>::pod_vector(pod_vector &&)` | `core/includes/schema/pod_vector.hpp` | — |
+| SWU-SCHEMA-164 | used | `format_instance_location(const document &, const schema_diagnostic &, char *, std::size_t, const storage_callbacks &)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-165 | used | `(anonymous)::put_step(const path_frame &, pod_vector<char> &, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-166 | used | `(anonymous)::position_of(const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-167 | used | `(anonymous)::open_container(const value_view &, pod_vector<path_frame> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-168 | used | `(anonymous)::next_char(std::string_view, std::size_t &)` | `core/src/schema/json_pointer.cpp` | — |
+| SWU-SCHEMA-169 | used | `(anonymous)::edge_at(const evaluator &, node_range, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-170 | used | `(anonymous)::fail_keyword(evaluator &, frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-171 | used | `(anonymous)::step_all_of(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-172 | used | `(anonymous)::step_any_of(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-173 | used | `(anonymous)::step_one_of(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-174 | used | `(anonymous)::step_not(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-175 | used | `(anonymous)::step_if(frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-176 | used | `(anonymous)::step_then_else(frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-177 | used | `(anonymous)::target_for(evaluator &, const frame &, const schema_node &, const value_view &, bool)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-178 | used | `(anonymous)::put_path(const pod_vector<path_frame> &, pod_vector<char> &, char *, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-179 | used | `(anonymous)::step_phase(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-180 | used | `(anonymous)::check_member_name(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-181 | used | `(anonymous)::check_number(const value_view &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-182 | used | `(anonymous)::walk_containers(frame_stack &, schema_work &)` | `core/src/schema/instance_domain.cpp` | — |
+| SWU-SCHEMA-183 | used | `(anonymous)::compile_boolean(compile_state &, const pending_item &, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-184 | used | `(anonymous)::record_ref(compile_state &, const pending_item &, const value_view &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-185 | used | `(anonymous)::add_items_children(compile_state &, const pending_item &, const value_view &, bool, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-186 | used | `(anonymous)::add_combinator_children(compile_state &, const pending_item &, const std::array<std::optional<value_view>, c_keyword_count> &, bool, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-187 | used | `(anonymous)::relative_target(const uri_parts &, const uri_parts &, pod_vector<char> &, uri_parts &, std::string_view &)` | `core/src/schema/uri.cpp` | — |
+| SWU-SCHEMA-188 | used | `(anonymous)::apply_identity(compile_state &, const pending_item &, const std::array<std::optional<value_view>, c_keyword_count> &, pending_item &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-189 | used | `detail::next_capacity(std::size_t, std::size_t)` | `core/src/schema/pod_vector.cpp` | `core/includes/schema/pod_vector.hpp` |
+| SWU-SCHEMA-190 | used | `detail::copy_bytes(void *, const void *, std::size_t)` | `core/src/schema/pod_vector.cpp` | `core/includes/schema/pod_vector.hpp` |
 
 ## UNICODE
 

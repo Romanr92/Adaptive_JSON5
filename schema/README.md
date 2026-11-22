@@ -1,9 +1,20 @@
 # Optional schema component
 
-Reserved for the independently buildable JSON Schema Draft-07 validator described
-in the requirements. No validator is implemented yet. This directory is not a
-dependency of the parser target, and no schema target is advertised until its
-implementation and unit tests exist.
+The JSON Schema Draft-07 component is a separate library target,
+`AdaptiveJSON5::schema`, built only with `ADAPTIVE_JSON5_BUILD_SCHEMA=ON` (OFF by
+default). Its sources follow [ADR 0002](../core/docs/adr-0002-public-private-source-layout.md):
+public headers in `includes/adaptive_json5/schema/` (entry header
+`adaptive_json5/schema.hpp`), private headers in `core/includes/schema/`, sources in
+`core/src/schema/`. Decisions are recorded in
+[ADR 0006](../core/docs/adr-0006-schema-component.md). This directory holds no code
+and is not a dependency of the parser target.
+
+Status: P043–P046 are implemented: registry, compilation with `$ref` resolution,
+exact equality and validation of boolean schemas, `$ref`, allOf, anyOf, oneOf, not,
+if/then/else, properties and items. The remaining Draft-07 assertion keywords
+follow in P047–P051 and meta-schema checking in P052; until then other keywords
+are compiled but not evaluated. Limits and storage are described in
+[memory and limits](../docs/memory-and-limits.md#schema-component-limits-optional-adr-0006).
 
 Keep schema errors separate from syntax errors and consumer policies. Runtime
 schema resolution must remain explicitly controlled by the caller.

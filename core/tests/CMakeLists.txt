@@ -142,3 +142,16 @@ target_include_directories(adaptive_json5_allocation_audit_unit_tests PRIVATE "$
 adaptive_json5_add_unit(adaptive_json5_measure_unit_tests measure_units
     lexer/measure_tests.cpp)
 target_include_directories(adaptive_json5_measure_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
+
+# Internal schema units (ADR 0006 decision 1); built only with ADAPTIVE_JSON5_BUILD_SCHEMA.
+if(ADAPTIVE_JSON5_BUILD_SCHEMA)
+    adaptive_json5_add_unit(adaptive_json5_schema_core_unit_tests schema_core_units
+        schema/schema_work_tests.cpp
+        schema/instance_domain_tests.cpp
+        schema/uri_pointer_tests.cpp
+        schema/schema_compiler_tests.cpp
+        schema/value_equality_tests.cpp
+        schema/schema_edge_tests.cpp)
+    target_link_libraries(adaptive_json5_schema_core_unit_tests PRIVATE AdaptiveJSON5::schema)
+    target_include_directories(adaptive_json5_schema_core_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
+endif()

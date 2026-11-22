@@ -88,6 +88,19 @@ def extract_counters(gcov, inputs, destination, jobs):
         list(workers.map(extract, enumerate(inputs)))
 
 
+def check_thresholds(summary_path, minimum):
+    """Return 2 when any of line, function or branch coverage is below minimum percent."""
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    failed = False
+    for kind in ("line", "function", "branch"):
+        percent = float(summary[kind + "_percent"])
+        below = percent < minimum
+        failed = failed or below
+        print(f"{kind} coverage {percent:.1f}% ({summary[kind + '_covered']}/{summary[kind + '_total']}): "
+              + ("BELOW " if below else "meets ") + f"{minimum:.1f}%")
+    return 2 if failed else 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compiler", default="g++", help="GCC C++ compiler (default: g++)")
@@ -95,6 +108,9 @@ def main():
     parser.add_argument("--jobs", type=int, default=os.cpu_count() or 1,
                         help="Parallel build/test/gcov workers (default: all logical CPUs)")
     parser.add_argument("--gtest-source", type=Path, help="Existing GoogleTest 1.17.0 source checkout")
+    parser.add_argument("--fail-under", type=float, metavar="PERCENT",
+                        help="Exit 2 when line, function or branch coverage is below PERCENT "
+                             "(the report is still written)")
     args = parser.parse_args()
     if args.jobs < 1:
         parser.error("--jobs must be positive")
@@ -136,6 +152,8 @@ def main():
             "-DADAPTIVE_JSON5_BUILD_TESTS=ON",
             # Validation tests are a separate gate and never contribute to coverage.
             "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF",
+            # Include the optional schema component and its units (ADR 0006).
+            "-DADAPTIVE_JSON5_BUILD_SCHEMA=ON",
             "-DADAPTIVE_JSON5_BUILD_LIBRARY=OFF",
             "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
             "-DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=OFF",
@@ -208,6 +226,8 @@ def main():
             for stale in report.glob(pattern):
                 stale.unlink()
         print("Report: " + str(report / "index.html"))
+        if args.fail_under is not None:
+            return check_thresholds(report / "summary.json", args.fail_under)
         return 0
     except (OSError, subprocess.CalledProcessError) as error:
         print("Coverage report failed: " + str(error), file=sys.stderr)

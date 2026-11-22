@@ -21,6 +21,8 @@ jobs:
   test-evidence:
     name: test evidence (${{ matrix.compiler }}, exceptions ${{ matrix.exceptions }})
     runs-on: ubuntu-24.04
+    env:
+      ADAPTIVE_JSON5_REQUIRE_COMMA_LOCALE: '1'
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -31,6 +33,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+      # J5-052: a comma-decimal locale, so the locale-independence unit test runs instead of skipping.
+      - if: runner.os == 'Linux'
+        name: Generate a comma-decimal locale
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes locales
+          sudo locale-gen de_DE.UTF-8
       - name: Install compilers and build tool
         run: |
           sudo apt-get update
@@ -43,6 +52,7 @@ jobs:
           -DADAPTIVE_JSON5_BUILD_LIBRARY=ON
           -DADAPTIVE_JSON5_BUILD_TESTS=ON
           -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=ON
+          -DADAPTIVE_JSON5_BUILD_SCHEMA=ON
           -DADAPTIVE_JSON5_ENABLE_EXCEPTIONS=${{ matrix.exceptions }}
           -DADAPTIVE_JSON5_ENABLE_RTTI=OFF
       - name: Compile units and validation
