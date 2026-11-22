@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "756 tests"
+      "detail": "851 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "756 tests"
+      "detail": "851 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "756 tests"
+      "detail": "851 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "756 tests"
+      "detail": "851 tests"
     }
   },
   "metrics": {
@@ -26,16 +26,16 @@
     "stale_links": 0,
     "unmapped_tests": 0,
     "implementation": {
-      "count": 62,
-      "percent": 61.3
+      "count": 75,
+      "percent": 74.2
     },
     "tests": {
-      "count": 58,
-      "percent": 57.4
+      "count": 71,
+      "percent": 70.2
     },
     "passing": {
-      "count": 57,
-      "percent": 56.4
+      "count": 71,
+      "percent": 70.2
     }
   },
   "requirements": [
@@ -12397,7 +12397,7 @@
     {
       "id": "J5-050",
       "title": "Concurrency",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -12480,7 +12480,7 @@
     {
       "id": "J5-052",
       "title": "Deterministic semantics",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 69,
       "section": "api",
       "applicable": true,
@@ -12563,10 +12563,10 @@
           "file": "tests/value/numeric_locale_tests.cpp",
           "problem": "",
           "results": {
-            "g++-13-OFF": "skipped",
-            "g++-13-ON": "skipped",
-            "clang++-18-OFF": "skipped",
-            "clang++-18-ON": "skipped"
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
           }
         },
         {
@@ -12594,89 +12594,569 @@
       ],
       "code_mapped": true,
       "test_mapped": true,
-      "tests_passing": false,
-      "gaps": [
-        "J5_052_NumericLocale.ResultsIgnoreProcessLocale skipped with g++-13-OFF",
-        "J5_052_NumericLocale.ResultsIgnoreProcessLocale skipped with g++-13-ON",
-        "J5_052_NumericLocale.ResultsIgnoreProcessLocale skipped with clang++-18-OFF",
-        "J5_052_NumericLocale.ResultsIgnoreProcessLocale skipped with clang++-18-ON"
-      ]
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-053",
       "title": "Schema dialect",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/schema_dialect.hpp"
+          ],
+          "symbols": [
+            "schema_dialect",
+            "matches_dialect_uri"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/compiled_schema.hpp",
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "compile_schema",
+            "check_dialect"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/validate.hpp",
+            "core/src/schema/evaluator.cpp"
+          ],
+          "symbols": [
+            "validate"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P043_SchemaDialect.MatchesOnlyExactDraft07Uris",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_CompileDialect.AcceptsDraft07AndIgnoresSubschemaSchema",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Applicators.MatchesDraft07",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-054",
       "title": "Schema compilation",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/schema_registry.hpp",
+            "core/src/schema/schema_registry.cpp"
+          ],
+          "symbols": [
+            "add",
+            "parse_failure",
+            "check_schema_domain"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "process",
+            "shape_error"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P044_CompileErrors.ReportsTheError",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_Registration.ReportsStrictSyntaxErrors",
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_Registration.RejectsUnpairedSurrogates",
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.RegistrationStorageFailures",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-055",
       "title": "Identifiers and references",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 44,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "core/includes/schema/uri.hpp",
+            "core/src/schema/uri.cpp"
+          ],
+          "symbols": [
+            "split_uri",
+            "resolve_uri"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/schema/json_pointer.hpp",
+            "core/src/schema/json_pointer.cpp"
+          ],
+          "symbols": [
+            "next_pointer_token",
+            "pointer_index"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/schema_registry.hpp",
+            "core/src/schema/schema_registry.cpp"
+          ],
+          "symbols": [
+            "schema_registry",
+            "add"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "apply_id",
+            "resolve_refs",
+            "resolve_target",
+            "walk_pointer"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P044_UriResolution.MatchesRfc3986Examples",
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_UriNormalization.LowercasesSchemeAndHostOnly",
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_UriNormalization.SplitsComponents",
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_JsonPointer.DecodesTokens",
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_JsonPointer.ParsesArrayIndexes",
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_References.ResolvesLocalPointer",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_References.DecodesEscapedPointerTokens",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_References.ResolvesNestedId",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_References.ResolvesPlainName",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_References.IgnoresIdBesideRef",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_References.SelectsRootByFragment",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_CompileDialect.RejectsUnknownRoot",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_Registration.RejectsRelativeAndDuplicateUris",
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_Registration.EnforcesCapacityAndDefaultUri",
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.UriCornerCases",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.PointerEscapes",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.CharacterRanges",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.IdForms",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.IdAndKeywordForms",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.PointerTargets",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.EmptyReferencesAndShortNames",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-056",
       "title": "Reference semantics",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 44,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "reject_pure_cycles"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/src/schema/evaluator.cpp"
+          ],
+          "symbols": [
+            "push_child",
+            "advance"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P046_Outcomes.DetectsNonprogressingReference",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Outcomes.RecursionWithInstanceProgress",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.CycleNotContainingTheStart",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-057",
@@ -12719,21 +13199,69 @@
     {
       "id": "J5-059",
       "title": "Exact numeric validation",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 48,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "core/includes/schema/value_equality.hpp",
+            "core/src/schema/value_equality.cpp"
+          ],
+          "symbols": [
+            "values_equal"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/schema/instance_domain.hpp",
+            "core/src/schema/instance_domain.cpp"
+          ],
+          "symbols": [
+            "check_instance_domain"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P045_ExactEquality.ComparesByValue",
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomain.RejectsOnlyNonJsonValues",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-060",
@@ -12757,154 +13285,993 @@
     {
       "id": "J5-061",
       "title": "Structural equality",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 48,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "core/includes/schema/value_equality.hpp",
+            "core/src/schema/value_equality.cpp"
+          ],
+          "symbols": [
+            "values_equal"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/schema/instance_domain.hpp",
+            "core/src/schema/instance_domain.cpp"
+          ],
+          "symbols": [
+            "check_instance_domain",
+            "check_unique_names"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P045_EqualityBudget.HandlesDeepNestingIteratively",
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainNames.ComparesDecodedNames",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Outcomes.UnsupportedInstanceComesBeforeAssertions",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_EdgeCases.SurrogateBoundaries",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P045_EdgeCases.EqualityOnInvalidViews",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-062",
       "title": "Extension keywords",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "classify",
+            "collect_keywords"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/compiled_schema.hpp"
+          ],
+          "symbols": [
+            "unknown_keyword_count"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P044_CompileGraph.CountsUnknownKeywords",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-063",
       "title": "Validation outcomes",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/schema_error.hpp"
+          ],
+          "symbols": [
+            "schema_error",
+            "schema_error_code",
+            "occurs_in"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/validation_report.hpp",
+            "core/src/schema/evaluator.cpp"
+          ],
+          "symbols": [
+            "validation_report",
+            "record"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P043_SchemaError.PhaseTableMatchesTheOutcomeModel",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaError.SubReasonsBelongToTheirCode",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaError.SyntaxKeepsTheParserError",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaError.StorageFailuresReuseParserNames",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaError.TravelsInTheLibraryResult",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Diagnostics.FailFastAndBoundedCollectAll",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Diagnostics.ReportsCombinatorsNotTheirBranches",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Diagnostics.ValidInstanceNeedsNoReportStorage",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Outcomes.OperationalFailureWins",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Outcomes.CancellationAfterAssertionFailureWins",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-064",
       "title": "Schema diagnostics",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/validation_report.hpp"
+          ],
+          "symbols": [
+            "schema_diagnostic"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/validate.hpp",
+            "core/src/schema/evaluator.cpp"
+          ],
+          "symbols": [
+            "format_schema_location",
+            "format_instance_location"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/schema/json_pointer.hpp",
+            "core/src/schema/json_pointer.cpp"
+          ],
+          "symbols": [
+            "escape_pointer_token"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P046_Diagnostics.LocatesTheFailure",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_JsonPointer.EscapesTokens",
+          "file": "core/tests/schema/uri_pointer_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_InstanceLocation.FormatsThePointer",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_InstanceLocation.ReportsSizeAndForeignPositions",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_EdgeCases.SchemaLocationNames",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_EdgeCases.LocationForms",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_EdgeCases.ZeroCapacityFormatting",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-065",
       "title": "Evaluation budgets",
-      "status": "Draft",
+      "status": "Accepted",
       "issue": 69,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/schema_budget.hpp"
+          ],
+          "symbols": [
+            "validation_budget",
+            "schema_compile_limits"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/schema/schema_work.hpp",
+            "core/src/schema/schema_work.cpp"
+          ],
+          "symbols": [
+            "schema_work",
+            "step",
+            "equality_step",
+            "reference_step",
+            "branch_step"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "charge",
+            "add_node"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P043_SchemaWork.WorkStepCapIsInclusive",
+          "file": "core/tests/schema/schema_work_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaWork.PollsCancellationOncePerStep",
+          "file": "core/tests/schema/schema_work_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaWork.CancellationIsCheckedBeforeTheCap",
+          "file": "core/tests/schema/schema_work_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaWork.KeepsItsOwnBudgetCopy",
+          "file": "core/tests/schema/schema_work_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_SchemaBudget.DefaultsMatchTheDecisions",
+          "file": "tests/schema/schema_api_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainStorage.ScalarRootNeedsNoWorkStorage",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainStorage.ReportsWorkAllocationFailure",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainStorage.ReportsWorkByteCeiling",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainBudget.DepthLimitIsInclusive",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainBudget.ScalarRootPassesZeroDepth",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainBudget.WorkStepLimitIsInclusive",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P043_InstanceDomainBudget.CancellationStopsAndReleasesWorkStorage",
+          "file": "core/tests/schema/instance_domain_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_CompileLimits.NodeLimitIsInclusive",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_CompileLimits.StepLimitFailsCleanlyUntilEnough",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_CompileLimits.AllocationFailureSweep",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P045_EqualityBudget.EqualityStepLimitIsInclusive",
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P045_EqualityBudget.ChargesWorkSteps",
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P045_EqualityBudget.ReportsScratchAllocationFailure",
+          "file": "core/tests/schema/value_equality_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Budgets.LimitsAreInclusive",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Outcomes.CancellationReleasesStorage",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Outcomes.WorkAllocationFailureSweep",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.VectorGrowthBounds",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.UriAllocationSweep",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_EdgeCases.UriComponentBoundaryFailures",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_EdgeCases.ReportAndFormatterAllocationSweeps",
+          "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-066",
       "title": "Compiled-schema lifetime",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/compiled_schema.hpp",
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "compiled_schema",
+            "compile_options"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema/validation_options.hpp"
+          ],
+          "symbols": [
+            "validation_options"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P044_Registration.CompiledSchemaOutlivesRegistry",
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_Registration.MovesAndReleases",
+          "file": "tests/schema/schema_registry_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P044_CompileGraph.MovesAndReleases",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_Budgets.ConcurrentValidationsShareTheSchema",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_MovedFrom.ObjectsAreEmptyAfterMove",
+          "file": "tests/schema/validate_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-067",
       "title": "Pure evaluation",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/schema_registry.hpp",
+            "core/src/schema/schema_registry.cpp"
+          ],
+          "symbols": [
+            "schema_registry"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P044_References.ResolvesRegisteredResource",
+          "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P046_PureEvaluation.UsesOnlyCallerStorage",
+          "file": "tests/schema/pure_evaluation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-068",
       "title": "Component independence",
-      "status": "Draft",
+      "status": "Implemented",
       "issue": 53,
       "section": "api",
       "applicable": true,
       "reason": "",
-      "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "design": [
+        {
+          "file": "core/docs/adr-0006-schema-component.md",
+          "problem": ""
+        }
+      ],
+      "implementation": [
+        {
+          "files": [
+            "core/CMakeLists.txt"
+          ],
+          "symbols": [
+            "adaptive_json5_schema"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "includes/adaptive_json5/schema.hpp"
+          ],
+          "symbols": [
+            "ADAPTIVE_JSON5_SCHEMA_HPP_"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P043_ParserOnly.UmbrellaHeaderIncludesNoSchemaHeader",
+          "file": "tests/schema/parser_only_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-069",
@@ -13327,7 +14694,7 @@
     {
       "id": "J5-091",
       "title": "Native portability",
-      "status": "Accepted",
+      "status": "Implemented",
       "issue": 68,
       "section": "api",
       "applicable": true,
@@ -14060,7 +15427,7 @@
       "j5": [
         {
           "id": "J5-052",
-          "tests_passing": false
+          "tests_passing": true
         }
       ]
     },
