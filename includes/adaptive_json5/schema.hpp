@@ -9,6 +9,8 @@
 #include "adaptive_json5/schema/schema_error.hpp"
 #include "adaptive_json5/schema/schema_keyword.hpp"
 #include "adaptive_json5/schema/schema_registry.hpp"
+#include "adaptive_json5/schema/validate.hpp"
 #include "adaptive_json5/schema/validation_options.hpp"
+#include "adaptive_json5/schema/validation_report.hpp"
 
 #endif /* ADAPTIVE_JSON5_SCHEMA_HPP_ */

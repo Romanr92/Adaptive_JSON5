@@ -53,7 +53,8 @@ namespace adaptive_json5
    */
   struct [[nodiscard]] validation_options
   {
-      storage_callbacks work_storage{};
+      storage_callbacks work_storage{};   // Frame stack and pre-pass; released before validate() returns.
+      storage_callbacks report_storage{}; // Diagnostics; owned by the returned report.
       validation_budget budget{};
       evaluation_mode mode = evaluation_mode::fail_fast;
       cancellation_callback cancellation{};

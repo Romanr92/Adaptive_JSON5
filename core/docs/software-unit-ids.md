@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-134 | SWU-SCHEMA-135 |
+| SCHEMA | SWU-SCHEMA-160 | SWU-SCHEMA-161 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -525,6 +525,32 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-132 | used | `(anonymous)::push_elements(const value_pair &, pod_vector<value_pair> &)` | `core/src/schema/value_equality.cpp` | — |
 | SWU-SCHEMA-133 | used | `(anonymous)::push_members(const value_pair &, pod_vector<value_pair> &, schema_work &)` | `core/src/schema/value_equality.cpp` | — |
 | SWU-SCHEMA-134 | used | `(anonymous)::compare_pair(const value_pair &, pod_vector<value_pair> &, schema_work &, const storage_callbacks &)` | `core/src/schema/value_equality.cpp` | — |
+| SWU-SCHEMA-135 | used | `validation_report::valid()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-136 | used | `validation_report::truncated()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-137 | used | `validation_report::diagnostic_count()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-138 | used | `validation_report::diagnostic(std::size_t)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-139 | used | `validate(const compiled_schema &, const document &, const validation_options &)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-140 | used | `format_schema_location(const compiled_schema &, const schema_diagnostic &, char *, std::size_t)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-141 | used | `detail::validation_report_access::make(bool, bool, owned_block &&, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-142 | used | `(anonymous)::evaluator::evaluator(const compiled_schema &, const validation_options &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-143 | used | `(anonymous)::access_failure(const error *)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-144 | used | `(anonymous)::kind_of(const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-145 | used | `(anonymous)::record(evaluator &, const frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-146 | used | `(anonymous)::may_stop(const evaluator &, const frame &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-147 | used | `(anonymous)::fail(evaluator &, frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-148 | used | `(anonymous)::name_matches(const evaluator &, const decoded_string &, node_range)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-149 | used | `(anonymous)::request(std::size_t, const value_view &, bool, bool, bool)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-150 | used | `(anonymous)::next_child(frame &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-151 | used | `(anonymous)::property_for(evaluator &, const schema_node &, const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-152 | used | `(anonymous)::absorb(frame &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-153 | used | `(anonymous)::advance_combinators(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-154 | used | `(anonymous)::advance_descending(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-155 | used | `(anonymous)::advance(evaluator &, frame &, std::optional<bool>)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-156 | used | `(anonymous)::push_child(evaluator &, const child_request &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-157 | used | `(anonymous)::run_frames(evaluator &, const value_view &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-158 | used | `(anonymous)::put(std::string_view, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-159 | used | `(anonymous)::put_name(const compiled_schema &, node_range, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-160 | used | `(anonymous)::put_index(std::size_t, char *, std::size_t, std::size_t)` | `core/src/schema/evaluator.cpp` | — |
 
 ## UNICODE
 

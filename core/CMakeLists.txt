@@ -36,6 +36,7 @@ endif()
 # parser-only consumers build, link and install no schema code (J5-068).
 if(ADAPTIVE_JSON5_BUILD_SCHEMA)
     add_library(adaptive_json5_schema STATIC
+        src/schema/evaluator.cpp
         src/schema/instance_domain.cpp
         src/schema/json_pointer.cpp
         src/schema/schema_compiler.cpp
