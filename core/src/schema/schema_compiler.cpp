@@ -13,17 +13,21 @@
 #include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
+#include "schema/exact_number.hpp"
 #include "schema/json_pointer.hpp"
 #include "schema/pod_vector.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_registry_access.hpp"
+#include "schema/schema_values.hpp"
 #include "schema/uri.hpp"
+#include "value/document_access.hpp"
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 namespace adaptive_json5
@@ -138,6 +142,8 @@ namespace adaptive_json5
         pod_vector<char> resolved;
         pod_vector<char> token;
         storage_callbacks scratch;
+        storage_callbacks result_storage;
+        std::optional<document> values;
         schema_compile_limits limits;
         schema_dialect dialect;
         std::size_t steps{};
@@ -153,8 +159,9 @@ namespace adaptive_json5
               units(options.result_storage), pending(options.scratch_storage), bases(options.scratch_storage),
               keys(options.scratch_storage), key_text(options.scratch_storage), refs(options.scratch_storage),
               ref_text(options.scratch_storage), text(options.scratch_storage), resolved(options.scratch_storage),
-              token(options.scratch_storage), scratch(options.scratch_storage), limits(options.limits),
-              dialect(selected)
+              token(options.scratch_storage), scratch(options.scratch_storage), result_storage(options.result_storage),
+              values(detail::document_access::create(options.result_storage, options.limits.max_compile_steps)),
+              limits(options.limits), dialect(selected)
         {
         }
     };
@@ -1012,6 +1019,127 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Copy one numeric keyword value (P048), checking that it is a number (and > 0 for multipleOf).
+     * @par Requirements
+     * P048; J5-054; J5-057.
+     * @par ID SWU-SCHEMA-225
+     */
+    status compile_numeric_keyword(compile_state& state, const value_view& value, bool positive,
+                                   value_index& target) noexcept
+    {
+      const auto number = value.as_number();
+      if (!number.has_value())
+      {
+        return shape_error(value);
+      }
+      if (positive)
+      {
+        const auto above_zero = detail::is_positive(**number.value_if());
+        if (!above_zero.has_value() || !*above_zero.value_if())
+        {
+          return shape_error(value);
+        }
+      }
+      const auto copied =
+        detail::copy_value(value, *state.values, state.result_storage, state.steps, state.limits.max_compile_steps);
+      if (!copied.has_value())
+      {
+        return status::failure(*copied.error_if());
+      }
+      target = *copied.value_if();
+      return status::success();
+    }
+
+    /**
+     * @brief Compile minimum, maximum, exclusiveMinimum, exclusiveMaximum and multipleOf (P048).
+     * @par Requirements
+     * P048; J5-054; J5-057; J5-059.
+     * @par ID SWU-SCHEMA-226
+     */
+    status compile_numeric_keywords(compile_state& state,
+                                    const std::array<std::optional<value_view>, c_keyword_count>& found,
+                                    schema_node& node) noexcept
+    {
+      const std::array<std::tuple<schema_keyword, detail::numeric_bit, value_index*>, 5> c_numeric{
+        {{schema_keyword::minimum, detail::numeric_bit::minimum, &node.minimum},
+         {schema_keyword::maximum, detail::numeric_bit::maximum, &node.maximum},
+         {schema_keyword::exclusive_minimum, detail::numeric_bit::exclusive_minimum, &node.exclusive_minimum},
+         {schema_keyword::exclusive_maximum, detail::numeric_bit::exclusive_maximum, &node.exclusive_maximum},
+         {schema_keyword::multiple_of, detail::numeric_bit::multiple_of, &node.multiple_of}}};
+      for (const auto& entry : c_numeric)
+      {
+        const auto& value = found[static_cast<std::size_t>(std::get<0>(entry))];
+        if (!value.has_value())
+        {
+          continue;
+        }
+        const auto compiled = compile_numeric_keyword(state, *value, std::get<0>(entry) == schema_keyword::multiple_of,
+                                                      *std::get<2>(entry));
+        if (!compiled.has_value())
+        {
+          return compiled;
+        }
+        node.numeric_flags =
+          static_cast<std::uint8_t>(node.numeric_flags | static_cast<std::uint8_t>(std::get<1>(entry)));
+      }
+      return status::success();
+    }
+
+    /**
+     * @brief Compile type, const and enum of a non-`$ref` node (P047).
+     * @par Requirements
+     * P047; J5-054; J5-057; J5-061.
+     * @return success, invalid_schema (keyword_shape) for a malformed type or a non-array
+     * enum, or a copy failure (resource_limit or storage).
+     * @par ID SWU-SCHEMA-205
+     */
+    status compile_value_keywords(compile_state& state,
+                                  const std::array<std::optional<value_view>, c_keyword_count>& found,
+                                  schema_node& node) noexcept
+    {
+      const auto& type = found[static_cast<std::size_t>(schema_keyword::type)];
+      if (type.has_value())
+      {
+        const auto mask = detail::parse_type_keyword(*type);
+        if (!mask.has_value())
+        {
+          return status::failure(*mask.error_if());
+        }
+        node.type_mask = *mask.value_if();
+      }
+      const auto& constant = found[static_cast<std::size_t>(schema_keyword::const_value)];
+      if (constant.has_value())
+      {
+        const auto copied = detail::copy_value(*constant, *state.values, state.result_storage, state.steps,
+                                               state.limits.max_compile_steps);
+        if (!copied.has_value())
+        {
+          return status::failure(*copied.error_if());
+        }
+        node.const_value = *copied.value_if();
+        node.has_const = true;
+      }
+      const auto& values = found[static_cast<std::size_t>(schema_keyword::enum_values)];
+      if (!values.has_value())
+      {
+        return status::success();
+      }
+      if (kind_of(*values) != value_kind::array)
+      {
+        return shape_error(*values);
+      }
+      const auto copied =
+        detail::copy_value(*values, *state.values, state.result_storage, state.steps, state.limits.max_compile_steps);
+      if (!copied.has_value())
+      {
+        return status::failure(*copied.error_if());
+      }
+      node.enum_values = *copied.value_if();
+      node.has_enum = true;
+      return status::success();
+    }
+
+    /**
      * @brief Compile one queued schema value into its node.
      * @par Requirements
      * P044; J5-053; J5-054; J5-055; J5-062; ADR 0006 decisions 2, 10, O1 and O2.
@@ -1052,6 +1180,18 @@ namespace adaptive_json5
       }
 
       const bool evaluate = !found[static_cast<std::size_t>(schema_keyword::ref)].has_value();
+      if (evaluate)
+      {
+        auto values = compile_value_keywords(state, found, node);
+        if (values.has_value())
+        {
+          values = compile_numeric_keywords(state, found, node);
+        }
+        if (!values.has_value())
+        {
+          return values;
+        }
+      }
       node.first_child = state.nodes.size();
       const auto single = add_single_children(state, children, found, evaluate, node);
       if (!single.has_value())
@@ -1631,9 +1771,11 @@ namespace adaptive_json5
     const std::size_t edge_count = state.edges.size();
     const std::size_t property_count = state.properties.size();
     const std::size_t unit_count = state.units.size();
-    return compile_result::success(detail::compiled_schema_access::make(
+    compiled_schema schema = detail::compiled_schema_access::make(
       state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(), property_count,
-      state.units.release(), unit_count, registry.size(), *root.value_if()));
+      state.units.release(), unit_count, registry.size(), *root.value_if());
+    detail::compiled_schema_access::attach_values(schema, std::move(*state.values));
+    return compile_result::success(std::move(schema));
   }
 
   /**
@@ -1651,8 +1793,10 @@ namespace adaptive_json5
       : m_nodes(std::move(other.m_nodes)), m_edges(std::move(other.m_edges)),
         m_properties(std::move(other.m_properties)), m_units(std::move(other.m_units)),
         m_node_count(other.m_node_count), m_edge_count(other.m_edge_count), m_property_count(other.m_property_count),
-        m_unit_count(other.m_unit_count), m_resource_count(other.m_resource_count), m_root(other.m_root)
+        m_unit_count(other.m_unit_count), m_resource_count(other.m_resource_count), m_root(other.m_root),
+        m_values(std::move(other.m_values))
   {
+    other.m_values.reset();
     other.m_node_count = 0U;
     other.m_edge_count = 0U;
     other.m_property_count = 0U;
@@ -1804,6 +1948,28 @@ namespace adaptive_json5
     std::size_t compiled_schema_access::root(const compiled_schema& schema) noexcept
     {
       return schema.m_root;
+    }
+
+    /**
+     * @brief Give a compiled schema its copied const/enum values.
+     * @par Requirements
+     * P047; J5-061; J5-066.
+     * @par ID SWU-SCHEMA-191
+     */
+    void compiled_schema_access::attach_values(compiled_schema& schema, document&& values) noexcept
+    {
+      static_cast<void>(schema.m_values.emplace(std::move(values)));
+    }
+
+    /**
+     * @brief Borrow the copied const/enum values, or nullptr when the schema has none.
+     * @par Requirements
+     * P047; J5-061.
+     * @par ID SWU-SCHEMA-192
+     */
+    const document* compiled_schema_access::values(const compiled_schema& schema) noexcept
+    {
+      return schema.m_values.has_value() ? &*schema.m_values : nullptr;
     }
   } // namespace detail
 } // namespace adaptive_json5

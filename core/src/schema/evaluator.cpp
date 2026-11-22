@@ -14,6 +14,7 @@
 #include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
+#include "schema/assertions.hpp"
 #include "schema/instance_domain.hpp"
 #include "schema/json_pointer.hpp"
 #include "schema/pod_vector.hpp"
@@ -145,6 +146,7 @@ namespace adaptive_json5
         detail::schema_work work;
         pod_vector<frame> frames;
         pod_vector<schema_diagnostic> diagnostics;
+        storage_callbacks scratch;
         evaluation_mode mode;
         std::size_t diagnostic_limit;
         bool stop{};
@@ -158,7 +160,7 @@ namespace adaptive_json5
          */
         evaluator(const compiled_schema& compiled, const validation_options& options) noexcept
             : schema(compiled), work(options.budget, options.cancellation), frames(options.work_storage),
-              diagnostics(options.report_storage), mode(options.mode),
+              diagnostics(options.report_storage), scratch(options.work_storage), mode(options.mode),
               diagnostic_limit((options.mode == evaluation_mode::fail_fast) ? 1U : options.budget.max_errors)
         {
         }
@@ -743,6 +745,34 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Evaluate a node's assertion keywords and record each failed one.
+     * @par Requirements
+     * P047; J5-057; J5-063.
+     * @return success (also when keywords failed), or an operational failure.
+     * @par ID SWU-SCHEMA-215
+     */
+    status run_assertions(evaluator& run, frame& owner, const schema_node& node) noexcept
+    {
+      const auto failed = detail::check_assertions(run.schema, node, owner.instance, run.work, run.scratch);
+      if (!failed.has_value())
+      {
+        return status::failure(*failed.error_if());
+      }
+      for (std::size_t index = 0U; (index < 64U) && !run.stop; ++index)
+      {
+        if ((*failed.value_if() & (detail::keyword_mask{1U} << index)) != 0U)
+        {
+          const auto recorded = fail(run, owner, static_cast<schema_keyword>(index));
+          if (!recorded.has_value())
+          {
+            return recorded;
+          }
+        }
+      }
+      return status::success();
+    }
+
+    /**
      * @brief Advance one frame until it needs a child or finishes.
      * @par Requirements
      * P046; J5-053; J5-056; J5-057.
@@ -774,7 +804,12 @@ namespace adaptive_json5
             owner.stage = phase::ref;
             return request(node.ref, owner.instance, owner.suppressed, false, true);
           }
-          owner.stage = phase::all_of;
+          const auto asserted = run_assertions(run, owner, node);
+          if (!asserted.has_value())
+          {
+            return advance_result::failure(*asserted.error_if());
+          }
+          owner.stage = may_stop(run, owner) ? phase::finish : phase::all_of;
           owner.cursor = 0U;
           continue;
         }

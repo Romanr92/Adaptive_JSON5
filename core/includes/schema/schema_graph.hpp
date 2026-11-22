@@ -5,6 +5,8 @@
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/schema/compiled_schema.hpp"
 #include "adaptive_json5/schema/schema_keyword.hpp"
+#include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/value_index.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -112,6 +114,31 @@ namespace adaptive_json5::detail
       std::size_t else_schema{c_no_node};
       std::size_t items_single{c_no_node};
       std::size_t unknown_keywords{};
+      std::uint8_t type_mask{};     // P047: type_bit values; zero when the node has no type keyword.
+      bool has_const{};             // P047: const_value holds the copied const value.
+      bool has_enum{};              // P047: enum_values holds the copied enum array.
+      value_index const_value{};    // Index into compiled_schema_access::values().
+      value_index enum_values{};    // Index of the copied enum array.
+      std::uint8_t numeric_flags{}; // P048: numeric_bit values of the numeric keywords present.
+      value_index minimum{};        // Copied numbers of the P048 keywords, valid when flagged.
+      value_index maximum{};
+      value_index exclusive_minimum{};
+      value_index exclusive_maximum{};
+      value_index multiple_of{};
+  };
+
+  /**
+   * @brief Bits of schema_node::numeric_flags.
+   * @par Requirements
+   * P048; J5-057.
+   */
+  enum class numeric_bit : std::uint8_t
+  {
+    minimum = 1U,
+    maximum = 2U,
+    exclusive_minimum = 4U,
+    exclusive_maximum = 8U,
+    multiple_of = 16U
   };
 
   /**
@@ -182,6 +209,22 @@ namespace adaptive_json5::detail
        * @par ID SWU-SCHEMA-086
        */
       [[nodiscard]] static std::uint16_t unit(const compiled_schema& schema, std::size_t index) noexcept;
+
+      /**
+       * @brief Give a compiled schema its copied const/enum values.
+       * @par Requirements
+       * P047; J5-061; J5-066.
+       * @par ID SWU-SCHEMA-191
+       */
+      static void attach_values(compiled_schema& schema, document&& values) noexcept;
+
+      /**
+       * @brief Borrow the copied const/enum values, or nullptr when the schema has none.
+       * @par Requirements
+       * P047; J5-061.
+       * @par ID SWU-SCHEMA-192
+       */
+      [[nodiscard]] static const document* values(const compiled_schema& schema) noexcept;
 
       /**
        * @brief Return the root node index.

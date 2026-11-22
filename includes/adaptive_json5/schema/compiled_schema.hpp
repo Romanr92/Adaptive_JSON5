@@ -8,8 +8,10 @@
 #include "adaptive_json5/schema/schema_dialect.hpp"
 #include "adaptive_json5/schema/schema_error.hpp"
 #include "adaptive_json5/schema/schema_registry.hpp"
+#include "adaptive_json5/value/document.hpp"
 
 #include <cstddef>
+#include <optional>
 #include <string_view>
 
 namespace adaptive_json5
@@ -64,6 +66,7 @@ namespace adaptive_json5
       std::size_t m_unit_count{};
       std::size_t m_resource_count{};
       std::size_t m_root{};
+      std::optional<document> m_values{}; // Copied const/enum values (P047).
 
       compiled_schema() noexcept = default;
 
