@@ -126,8 +126,7 @@ namespace adaptive_json5
    * @par ID SWU-SCHEMA-081
    */
   [[nodiscard]] result<compiled_schema, schema_error> compile_schema(const schema_registry& registry,
-                                                                     std::string_view root_uri,
-                                                                     schema_dialect dialect,
+                                                                     std::string_view root_uri, schema_dialect dialect,
                                                                      const compile_options& options) noexcept;
 } // namespace adaptive_json5
 

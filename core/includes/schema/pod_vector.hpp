@@ -95,8 +95,8 @@ namespace adaptive_json5::detail
         {
           return grown;
         }
-        static_cast<void>(std::memcpy(static_cast<unsigned char*>(m_block.data()) + (m_size * sizeof(T)), &value,
-                                      sizeof(T)));
+        static_cast<void>(
+          std::memcpy(static_cast<unsigned char*>(m_block.data()) + (m_size * sizeof(T)), &value, sizeof(T)));
         ++m_size;
         return result<void, schema_error>::success();
       }
@@ -110,8 +110,8 @@ namespace adaptive_json5::detail
       [[nodiscard]] T get(std::size_t index) const noexcept
       {
         T value{};
-        static_cast<void>(std::memcpy(&value, static_cast<const unsigned char*>(m_block.data()) + (index * sizeof(T)),
-                                      sizeof(T)));
+        static_cast<void>(
+          std::memcpy(&value, static_cast<const unsigned char*>(m_block.data()) + (index * sizeof(T)), sizeof(T)));
         return value;
       }
 
@@ -123,8 +123,8 @@ namespace adaptive_json5::detail
        */
       void set(std::size_t index, const T& value) noexcept
       {
-        static_cast<void>(std::memcpy(static_cast<unsigned char*>(m_block.data()) + (index * sizeof(T)), &value,
-                                      sizeof(T)));
+        static_cast<void>(
+          std::memcpy(static_cast<unsigned char*>(m_block.data()) + (index * sizeof(T)), &value, sizeof(T)));
       }
 
       /**

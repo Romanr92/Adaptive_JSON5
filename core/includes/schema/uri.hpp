@@ -69,8 +69,7 @@ namespace adaptive_json5::detail
    * P044.
    * @par ID SWU-SCHEMA-050
    */
-  [[nodiscard]] std::string_view text_of(const pod_vector<char>& text, std::size_t offset,
-                                         std::size_t length) noexcept;
+  [[nodiscard]] std::string_view text_of(const pod_vector<char>& text, std::size_t offset, std::size_t length) noexcept;
 
   /**
    * @brief Append text to a pod_vector<char>.

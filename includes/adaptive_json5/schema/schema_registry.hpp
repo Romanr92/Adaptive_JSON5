@@ -55,7 +55,7 @@ namespace adaptive_json5
        * @par ID SWU-SCHEMA-066
        */
       [[nodiscard]] static result<schema_registry, schema_error> create(accounted_storage& storage,
-                                                                         std::size_t capacity) noexcept;
+                                                                        std::size_t capacity) noexcept;
 
       /**
        * @brief Take over another registry's resources; other becomes empty.

@@ -26,9 +26,9 @@ namespace adaptive_json5::detail
    */
   enum class step_kind : std::uint8_t
   {
-    none,  // Schema root, or a keyword holding one schema (not, items, ...).
-    name,  // Keyword holding a map of schemas (properties, definitions, ...).
-    index  // Keyword holding an array of schemas (allOf, items, ...).
+    none, // Schema root, or a keyword holding one schema (not, items, ...).
+    name, // Keyword holding a map of schemas (properties, definitions, ...).
+    index // Keyword holding an array of schemas (allOf, items, ...).
   };
 
   /**
@@ -104,9 +104,8 @@ namespace adaptive_json5::detail
        */
       [[nodiscard]] static compiled_schema make(owned_block&& nodes, std::size_t node_count, owned_block&& edges,
                                                 std::size_t edge_count, owned_block&& properties,
-                                                std::size_t property_count, owned_block&& units,
-                                                std::size_t unit_count, std::size_t resource_count,
-                                                std::size_t root) noexcept;
+                                                std::size_t property_count, owned_block&& units, std::size_t unit_count,
+                                                std::size_t resource_count, std::size_t root) noexcept;
 
       /**
        * @brief Borrow node index; requires index < node_count().

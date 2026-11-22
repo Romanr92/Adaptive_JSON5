@@ -273,7 +273,7 @@ namespace adaptive_json5::detail
       ++scheme_end;
     }
     const bool letter_first =
-        !rest.empty() && (((rest[0U] >= 'a') && (rest[0U] <= 'z')) || ((rest[0U] >= 'A') && (rest[0U] <= 'Z')));
+      !rest.empty() && (((rest[0U] >= 'a') && (rest[0U] <= 'z')) || ((rest[0U] >= 'A') && (rest[0U] <= 'Z')));
     if (letter_first && (scheme_end < rest.size()) && (rest[scheme_end] == ':'))
     {
       parts.has_scheme = true;

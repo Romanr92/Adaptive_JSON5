@@ -114,7 +114,7 @@ namespace adaptive_json5
       return result<schema_registry, schema_error>::failure(schema_error::from_storage(*entries.error_if()));
     }
     return result<schema_registry, schema_error>::success(
-        schema_registry{storage, std::move(*entries.value_if()), capacity});
+      schema_registry{storage, std::move(*entries.value_if()), capacity});
   }
 
   /**
@@ -195,7 +195,7 @@ namespace adaptive_json5
     const std::size_t uri_size = normalized.size();
     owned_block uri_block = normalized.release();
     static_cast<void>(::new (static_cast<void*>(slot(m_entries, m_size)))
-                          registry_entry{std::move(uri_block), uri_size, std::move(*parsed.value_if())});
+                        registry_entry{std::move(uri_block), uri_size, std::move(*parsed.value_if())});
     ++m_size;
     return status::success();
   }

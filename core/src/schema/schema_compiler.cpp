@@ -1,9 +1,8 @@
-#include "adaptive_json5/schema/compiled_schema.hpp"
-
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
+#include "adaptive_json5/schema/compiled_schema.hpp"
 #include "adaptive_json5/schema/schema_budget.hpp"
 #include "adaptive_json5/schema/schema_dialect.hpp"
 #include "adaptive_json5/schema/schema_error.hpp"
@@ -426,8 +425,7 @@ namespace adaptive_json5
                               const value_view& value, bool require_nonempty, node_range& edges) noexcept
     {
       const auto size = value.container_size();
-      if ((kind_of(value) != value_kind::array) || !size.has_value() ||
-          (require_nonempty && (*size.value_if() == 0U)))
+      if ((kind_of(value) != value_kind::array) || !size.has_value() || (require_nonempty && (*size.value_if() == 0U)))
       {
         return shape_error(value);
       }
@@ -451,7 +449,7 @@ namespace adaptive_json5
         }
         std::size_t child = 0U;
         const auto added =
-            add_child(state, parent, keyword, step_kind::index, node_range{}, position, **element.value_if(), child);
+          add_child(state, parent, keyword, step_kind::index, node_range{}, position, **element.value_if(), child);
         if (!added.has_value())
         {
           return added;
@@ -615,9 +613,10 @@ namespace adaptive_json5
                                schema_node& node) noexcept
     {
       constexpr std::array<schema_keyword, 8> c_single{
-          schema_keyword::additional_items, schema_keyword::additional_properties, schema_keyword::contains,
-          schema_keyword::property_names,   schema_keyword::if_schema,             schema_keyword::then_schema,
-          schema_keyword::else_schema,      schema_keyword::not_schema};
+        schema_keyword::additional_items, schema_keyword::additional_properties,
+        schema_keyword::contains,         schema_keyword::property_names,
+        schema_keyword::if_schema,        schema_keyword::then_schema,
+        schema_keyword::else_schema,      schema_keyword::not_schema};
       for (const schema_keyword keyword : c_single)
       {
         const auto& value = found[static_cast<std::size_t>(keyword)];
@@ -686,7 +685,7 @@ namespace adaptive_json5
         {
           std::size_t child = 0U;
           const auto added =
-              add_child(state, item, schema_keyword::items, step_kind::none, node_range{}, 0U, *items, child);
+            add_child(state, item, schema_keyword::items, step_kind::none, node_range{}, 0U, *items, child);
           if (!added.has_value())
           {
             return added;
@@ -811,8 +810,7 @@ namespace adaptive_json5
         {
           return text;
         }
-        const auto stored =
-            store_text(state.ref_text, detail::text_of(state.text, 0U, state.text.size()), entry.text);
+        const auto stored = store_text(state.ref_text, detail::text_of(state.text, 0U, state.text.size()), entry.text);
         if (!stored.has_value())
         {
           return stored;
@@ -965,7 +963,6 @@ namespace adaptive_json5
       return unit == units.count;
     }
 
-
     /**
      * @brief Find the child of parent reached by keyword (and name or index), or c_no_node.
      * @par Requirements
@@ -976,8 +973,8 @@ namespace adaptive_json5
      * @par ID SWU-SCHEMA-113
      */
     result<std::size_t, schema_error> find_child(compile_state& state, std::size_t parent,
-                                                 std::string_view keyword_token,
-                                                 std::optional<std::string_view> second, step_kind& kind) noexcept
+                                                 std::string_view keyword_token, std::optional<std::string_view> second,
+                                                 step_kind& kind) noexcept
     {
       using found_result = result<std::size_t, schema_error>;
       const schema_node owner = state.nodes.get(parent);
@@ -999,8 +996,8 @@ namespace adaptive_json5
           return found_result::success(child);
         }
         const bool matches = (candidate.step == step_kind::name)
-                                 ? utf8_equals_units(state, *second, candidate.step_name)
-                                 : (detail::pointer_index(*second) == std::optional<std::size_t>{candidate.step_index});
+                               ? utf8_equals_units(state, *second, candidate.step_name)
+                               : (detail::pointer_index(*second) == std::optional<std::size_t>{candidate.step_index});
         if (matches)
         {
           return found_result::success(child);
@@ -1062,7 +1059,7 @@ namespace adaptive_json5
           return found_result::failure(*second.error_if());
         }
         const auto child =
-            find_child(state, current, keyword, detail::text_of(state.token, 0U, state.token.size()), kind);
+          find_child(state, current, keyword, detail::text_of(state.token, 0U, state.token.size()), kind);
         if (!child.has_value())
         {
           return child;
@@ -1126,10 +1123,9 @@ namespace adaptive_json5
       {
         const ref_entry entry = state.refs.get(index);
         state.resolved.truncate(0U);
-        const auto resolved =
-            detail::resolve_uri(detail::text_of(state.bases, entry.base.first, entry.base.count),
-                                detail::text_of(state.ref_text, entry.text.first, entry.text.count), state.resolved,
-                                state.scratch);
+        const auto resolved = detail::resolve_uri(detail::text_of(state.bases, entry.base.first, entry.base.count),
+                                                  detail::text_of(state.ref_text, entry.text.first, entry.text.count),
+                                                  state.resolved, state.scratch);
         if (!resolved.has_value())
         {
           return resolved;
@@ -1263,8 +1259,7 @@ namespace adaptive_json5
    * @par ID SWU-SCHEMA-081
    */
   result<compiled_schema, schema_error> compile_schema(const schema_registry& registry, std::string_view root_uri,
-                                                       schema_dialect dialect,
-                                                       const compile_options& options) noexcept
+                                                       schema_dialect dialect, const compile_options& options) noexcept
   {
     using compile_result = result<compiled_schema, schema_error>;
     compile_state state{options, dialect};
@@ -1298,8 +1293,8 @@ namespace adaptive_json5
     const std::size_t property_count = state.properties.size();
     const std::size_t unit_count = state.units.size();
     return compile_result::success(detail::compiled_schema_access::make(
-        state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(),
-        property_count, state.units.release(), unit_count, registry.size(), *root.value_if()));
+      state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(), property_count,
+      state.units.release(), unit_count, registry.size(), *root.value_if()));
   }
 
   /**
