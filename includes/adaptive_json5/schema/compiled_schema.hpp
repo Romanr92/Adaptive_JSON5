@@ -67,6 +67,8 @@ namespace adaptive_json5
       std::size_t m_resource_count{};
       std::size_t m_root{};
       std::optional<document> m_values{}; // Copied const/enum values (P047).
+      owned_block m_regex_code{};         // Compiled patterns (P049).
+      owned_block m_regex_ranges{};
 
       compiled_schema() noexcept = default;
 

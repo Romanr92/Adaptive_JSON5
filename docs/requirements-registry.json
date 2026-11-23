@@ -3975,6 +3975,37 @@
           "names": [
             "P044_EdgeCases.RegistrationStorageFailures"
           ]
+        },
+        {
+          "file": "tests/schema/type_value_tests.cpp",
+          "names": [
+            "P047_TypeShape.RejectsMalformedTypes",
+            "P047_EnumConstShape.RejectsNonArrayEnum"
+          ]
+        },
+        {
+          "file": "tests/schema/numeric_tests.cpp",
+          "names": [
+            "P048_NumericShape.RejectsMalformedKeywords"
+          ]
+        },
+        {
+          "file": "tests/schema/string_pattern_tests.cpp",
+          "names": [
+            "P049_LengthShape.RejectsMalformedLengths"
+          ]
+        },
+        {
+          "file": "tests/schema/array_tests.cpp",
+          "names": [
+            "P050_ArrayShape.RejectsMalformedKeywords"
+          ]
+        },
+        {
+          "file": "tests/schema/object_tests.cpp",
+          "names": [
+            "P051_ObjectShape.RejectsMalformedKeywords"
+          ]
         }
       ]
     },
@@ -4086,8 +4117,60 @@
       "status": "Draft",
       "issue": 48,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/includes/schema/assertions.hpp", "core/src/schema/assertions.cpp"],
+          "symbols": ["check_assertions", "check_numeric", "check_string", "check_array", "check_object"]
+        },
+        {
+          "files": ["core/src/schema/evaluator.cpp"],
+          "symbols": ["advance_members", "advance_contains", "advance_dependencies", "advance_property_names"]
+        },
+        {
+          "files": ["core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
+          "symbols": ["parse_type_keyword", "copy_value"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/type_value_tests.cpp",
+          "names": [
+            "P047_Type.MatchesDraft07",
+            "P047_EnumConst.UsesExactEquality",
+            "P047_EnumConstShape.ReportsEachFailedKeyword"
+          ]
+        },
+        {
+          "file": "tests/schema/numeric_tests.cpp",
+          "names": [
+            "P048_Bounds.AreExact",
+            "P048_NumericShape.ReportsEachFailedKeyword"
+          ]
+        },
+        {
+          "file": "tests/schema/string_pattern_tests.cpp",
+          "names": [
+            "P049_Length.CountsCodePoints",
+            "P049_Pattern.MatchesEcma262",
+            "P049_PatternErrors.IgnoresNonStrings"
+          ]
+        },
+        {
+          "file": "tests/schema/array_tests.cpp",
+          "names": [
+            "P050_Arrays.MatchDraft07",
+            "P050_ArrayShape.ReportsArrayKeywords"
+          ]
+        },
+        {
+          "file": "tests/schema/object_tests.cpp",
+          "names": [
+            "P051_Objects.MatchDraft07",
+            "P051_ObjectShape.ReportsObjectKeywords"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-058",
@@ -4127,6 +4210,18 @@
           "names": [
             "P043_InstanceDomain.RejectsOnlyNonJsonValues"
           ]
+        },
+        {
+          "file": "tests/schema/type_value_tests.cpp",
+          "names": [
+            "P047_Type.MatchesDraft07"
+          ]
+        },
+        {
+          "file": "tests/schema/numeric_tests.cpp",
+          "names": [
+            "P048_MultipleOf.IsExact"
+          ]
         }
       ]
     },
@@ -4136,8 +4231,27 @@
       "status": "Draft",
       "issue": 48,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "design": ["core/docs/adr-0006-schema-component.md"],
+      "implementation": [
+        {
+          "files": ["core/includes/schema/regex.hpp", "core/src/schema/regex.cpp"],
+          "symbols": ["compile_regex", "regex_search"]
+        },
+        {
+          "files": ["core/src/schema/assertions.cpp"],
+          "symbols": ["code_points", "check_string"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/string_pattern_tests.cpp",
+          "names": [
+            "P049_Length.CountsCodePoints",
+            "P049_Pattern.MatchesEcma262",
+            "P049_PatternErrors.ReportsMalformedAndUnsupported"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-061",
@@ -4180,6 +4294,18 @@
           "names": [
             "P043_EdgeCases.SurrogateBoundaries",
             "P045_EdgeCases.EqualityOnInvalidViews"
+          ]
+        },
+        {
+          "file": "tests/schema/type_value_tests.cpp",
+          "names": [
+            "P047_EnumConstShape.CopiesLargeValues"
+          ]
+        },
+        {
+          "file": "tests/schema/array_tests.cpp",
+          "names": [
+            "P050_Arrays.MatchDraft07"
           ]
         }
       ]
@@ -4386,6 +4512,30 @@
             "P044_EdgeCases.UriAllocationSweep",
             "P044_EdgeCases.UriComponentBoundaryFailures",
             "P046_EdgeCases.ReportAndFormatterAllocationSweeps"
+          ]
+        },
+        {
+          "file": "tests/schema/numeric_tests.cpp",
+          "names": [
+            "P048_NumericShape.ReportsExpensiveDivisibilityAsResourceLimit"
+          ]
+        },
+        {
+          "file": "tests/schema/string_pattern_tests.cpp",
+          "names": [
+            "P049_PatternErrors.EnforcesTheRegexBudget"
+          ]
+        },
+        {
+          "file": "tests/schema/array_tests.cpp",
+          "names": [
+            "P050_ArrayShape.ChargesUniqueItemsToTheEqualityBudget"
+          ]
+        },
+        {
+          "file": "tests/schema/object_tests.cpp",
+          "names": [
+            "P051_ObjectShape.ChargesPatternPropertiesToTheRegexBudget"
           ]
         }
       ]

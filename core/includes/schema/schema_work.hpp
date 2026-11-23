@@ -30,6 +30,7 @@ namespace adaptive_json5::detail
       std::size_t m_equality_steps{};
       std::size_t m_reference_steps{};
       std::size_t m_branch_evaluations{};
+      std::size_t m_regex_steps{};
 
       /**
        * @brief Charge one work step, then one unit of a category counter.
@@ -88,6 +89,15 @@ namespace adaptive_json5::detail
        * @par ID SWU-SCHEMA-126
        */
       [[nodiscard]] result<void, schema_error> branch_step() noexcept;
+
+      /**
+       * @brief Charge units pattern-matcher thread steps (no work step, no cancellation poll).
+       * @par Requirements
+       * P049; J5-049; J5-065.
+       * @return success, or resource_limit (max_regex_steps) when the inclusive cap would be exceeded.
+       * @par ID SWU-SCHEMA-231
+       */
+      [[nodiscard]] result<void, schema_error> regex_steps(std::size_t units) noexcept;
 
       /**
        * @brief Return the number of steps charged so far.

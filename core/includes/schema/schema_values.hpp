@@ -55,6 +55,26 @@ namespace adaptive_json5::detail
   [[nodiscard]] result<value_index, schema_error> copy_value(const value_view& source, document& target,
                                                              const storage_callbacks& storage, std::size_t& steps,
                                                              std::size_t step_limit) noexcept;
+  /**
+   * @brief Copy the array-form entries of a `dependencies` object (name -> required names).
+   * @par Requirements
+   * P051; J5-054; J5-057; J5-066.
+   * @return The copied object (schema-form entries are left out), invalid_schema
+   * (keyword_shape) when an array entry holds a non-string, resource_limit or a storage failure.
+   * @par ID SWU-SCHEMA-292
+   */
+  [[nodiscard]] result<value_index, schema_error>
+  copy_dependency_arrays(const value_view& dependencies, document& target, const storage_callbacks& storage,
+                         std::size_t& steps, std::size_t step_limit) noexcept;
+
+  /**
+   * @brief Check that a value is an array of distinct strings (required, dependency lists).
+   * @par Requirements
+   * P051; J5-054.
+   * @return success, or invalid_schema (keyword_shape) at the offending value.
+   * @par ID SWU-SCHEMA-293
+   */
+  [[nodiscard]] result<void, schema_error> check_name_list(const value_view& value) noexcept;
 } // namespace adaptive_json5::detail
 
 #endif /* ADAPTIVE_JSON5_CORE_SCHEMA_SCHEMA_VALUES_HPP_ */

@@ -106,6 +106,22 @@ namespace adaptive_json5::detail
   }
 
   /**
+   * @brief Charge units pattern-matcher thread steps (no work step, no cancellation poll).
+   * @par Requirements
+   * P049; J5-049; J5-065.
+   * @par ID SWU-SCHEMA-231
+   */
+  result<void, schema_error> schema_work::regex_steps(std::size_t units) noexcept
+  {
+    if (units > (m_budget.max_regex_steps - m_regex_steps))
+    {
+      return result<void, schema_error>::failure(schema_error::limit(schema_limit_reason::max_regex_steps));
+    }
+    m_regex_steps += units;
+    return result<void, schema_error>::success();
+  }
+
+  /**
    * @brief Return the number of steps charged so far.
    * @par Requirements
    * P043; J5-065.

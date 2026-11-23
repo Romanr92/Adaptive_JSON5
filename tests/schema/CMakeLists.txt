@@ -33,5 +33,8 @@ target_link_libraries(adaptive_json5_schema_pure_unit_tests PRIVATE AdaptiveJSON
 # Assertion keywords (P047-P051), through the public API.
 adaptive_json5_add_unit(adaptive_json5_schema_assertion_unit_tests schema_assertion_units
     type_value_tests.cpp
-    numeric_tests.cpp)
+    numeric_tests.cpp
+    string_pattern_tests.cpp
+    array_tests.cpp
+    object_tests.cpp)
 target_link_libraries(adaptive_json5_schema_assertion_unit_tests PRIVATE AdaptiveJSON5::schema)

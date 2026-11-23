@@ -23,7 +23,9 @@ namespace adaptive_json5::detail
     using status = result<void, schema_error>;
 
     // Scales beyond this cannot be built within the parser's default work limit anyway.
-    constexpr std::int64_t c_scale_cap = std::int64_t{1} << 40U;
+    constexpr std::int64_t c_scale_cap = 1099511627776; // 2^40
+    constexpr std::string_view c_signs{"+-"};
+    constexpr std::size_t c_minus_index = 1U;
 
     /**
      * @brief A finite number as text: integer and fraction digits, radix and power of ten.
@@ -46,24 +48,13 @@ namespace adaptive_json5::detail
      */
     std::optional<std::uint32_t> digit_value(char c, std::uint32_t radix) noexcept
     {
-      std::uint32_t value = 16U;
-      if ((c >= '0') && (c <= '9'))
-      {
-        value = static_cast<std::uint32_t>(c - '0');
-      }
-      else if ((c >= 'a') && (c <= 'f'))
-      {
-        value = static_cast<std::uint32_t>(c - 'a') + 10U;
-      }
-      else if ((c >= 'A') && (c <= 'F'))
-      {
-        value = static_cast<std::uint32_t>(c - 'A') + 10U;
-      }
-      else
-      {
-        return std::nullopt;
-      }
-      return (value < radix) ? std::optional<std::uint32_t>{value} : std::nullopt;
+      constexpr std::string_view c_small_digits{"0123456789abcdef"};
+      constexpr std::string_view c_capital_digits{"0123456789ABCDEF"};
+      const std::size_t small = c_small_digits.find(c);
+      const std::size_t found = (small != std::string_view::npos) ? small : c_capital_digits.find(c);
+      return ((found != std::string_view::npos) && (found < radix))
+               ? std::optional<std::uint32_t>{static_cast<std::uint32_t>(found)}
+               : std::nullopt;
     }
 
     /**
@@ -76,17 +67,17 @@ namespace adaptive_json5::detail
     {
       bool negative = false;
       std::size_t position = 0U;
-      if ((position < text.size()) && ((text[position] == '+') || (text[position] == '-')))
+      if ((position < text.size()) && (c_signs.find(text[position]) != std::string_view::npos))
       {
-        negative = text[position] == '-';
+        negative = c_signs.find(text[position]) == c_minus_index;
         ++position;
       }
       std::int64_t value = 0;
-      for (; position < text.size(); ++position)
+      for (const char c : text.substr(position))
       {
         if (value < c_scale_cap)
         {
-          value = (value * 10) + static_cast<std::int64_t>(text[position] - '0');
+          value = (value * 10) + static_cast<std::int64_t>(digit_value(c, 10U).value_or(0U));
         }
       }
       return negative ? -value : value;
@@ -107,7 +98,7 @@ namespace adaptive_json5::detail
       }
       const input_view spelling = number.spelling();
       std::string_view text{spelling.data, spelling.size};
-      if (!text.empty() && ((text[0U] == '+') || (text[0U] == '-')))
+      if (!text.empty() && (c_signs.find(text[0U]) != std::string_view::npos))
       {
         text.remove_prefix(1U);
       }
@@ -220,10 +211,12 @@ namespace adaptive_json5::detail
       {
         built = append_digits(target, parts.fraction, parts.radix, work);
       }
-      for (std::int64_t count = 0; built.has_value() && (count < zeros); ++count)
+      std::int64_t count = 0;
+      while (built.has_value() && (count < zeros))
       {
         const auto appended = target.append_digit(0U, 10U, work);
         built = appended.has_value() ? status::success() : status::failure(failure_of(appended));
+        ++count;
       }
       return built;
     }
@@ -247,12 +240,14 @@ namespace adaptive_json5::detail
       {
         return status::success();
       }
-      for (std::size_t shift = (*value_bits.value_if() - *divisor_bits.value_if()) + 1U; shift != 0U; --shift)
+      std::size_t shift = (*value_bits.value_if() - *divisor_bits.value_if()) + 1U;
+      while (shift != 0U)
       {
+        --shift;
         auto step = shifted.assign(divisor, work);
         if (step.has_value())
         {
-          step = shifted.shift_left(shift - 1U, work);
+          step = shifted.shift_left(shift, work);
         }
         const auto order =
           step.has_value() ? value.compare(shifted, work) : result<magnitude_order>::failure(*step.error_if());
@@ -287,21 +282,13 @@ namespace adaptive_json5::detail
       return bool_result::failure(schema_error::of(schema_error_code::internal_error));
     }
     const input_view spelling = number.spelling();
-    if ((spelling.size != 0U) && (spelling.data[0U] == '-'))
+    if ((spelling.size != 0U) && (c_signs.find(spelling.data[0U]) == c_minus_index))
     {
       return bool_result::success(false);
     }
-    for (const std::string_view digits : {parts->integer, parts->fraction})
-    {
-      for (const char c : digits)
-      {
-        if (c != '0')
-        {
-          return bool_result::success(true);
-        }
-      }
-    }
-    return bool_result::success(false);
+    const bool nonzero_integer = parts->integer.find_first_not_of('0') != std::string_view::npos;
+    const bool nonzero_fraction = parts->fraction.find_first_not_of('0') != std::string_view::npos;
+    return bool_result::success(nonzero_integer || nonzero_fraction);
   }
 
   /**

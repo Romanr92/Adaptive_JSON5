@@ -42,6 +42,7 @@ if(ADAPTIVE_JSON5_BUILD_SCHEMA)
         src/schema/instance_domain.cpp
         src/schema/json_pointer.cpp
         src/schema/pod_vector.cpp
+        src/schema/regex.cpp
         src/schema/schema_compiler.cpp
         src/schema/schema_registry.cpp
         src/schema/schema_values.cpp

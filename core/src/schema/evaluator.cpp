@@ -18,8 +18,10 @@
 #include "schema/instance_domain.hpp"
 #include "schema/json_pointer.hpp"
 #include "schema/pod_vector.hpp"
+#include "schema/regex.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_work.hpp"
+#include "value/document_access.hpp"
 
 #include <array>
 #include <cstddef>
@@ -83,6 +85,9 @@ namespace adaptive_json5
       then_else,
       properties,
       items,
+      contains,
+      dependencies,
+      names,
       finish
     };
 
@@ -111,6 +116,11 @@ namespace adaptive_json5
         bool valid{true};
         bool started{};
         bool if_result{};
+        value_view member{};         // P051: member whose candidate schemas are being applied.
+        std::size_t member_target{}; // P051: next candidate (0 properties, 1..n patterns, n+1 additional).
+        bool member_open{};          // P051: member is set and has candidates left.
+        bool member_matched{};       // P051: properties or a pattern applied to member.
+        bool in_names{};             // P051: instance is a property name copy (propertyNames).
     };
 
     /**
@@ -129,6 +139,7 @@ namespace adaptive_json5
         bool suppressed{};
         bool branch{};
         bool via_ref{};
+        bool in_names{};
     };
 
     /**
@@ -147,6 +158,7 @@ namespace adaptive_json5
         pod_vector<frame> frames;
         pod_vector<schema_diagnostic> diagnostics;
         storage_callbacks scratch;
+        std::optional<document> names{}; // P051: copies of member names for propertyNames.
         evaluation_mode mode;
         std::size_t diagnostic_limit;
         bool stop{};
@@ -671,29 +683,24 @@ namespace adaptive_json5
     }
 
     /**
-     * @brief Choose the subschema for one instance child: its property or its items entry.
+     * @brief Choose the subschema for one array element: items, its tuple entry or additionalItems.
      * @par Requirements
-     * P046; J5-057.
-     * @return The node, c_no_node when no evaluated keyword applies, or a failure.
+     * P046; P050; J5-057.
+     * @return The node, or c_no_node when no keyword applies to the element.
      * @par ID SWU-SCHEMA-177
      */
-    result<std::size_t, schema_error> target_for(evaluator& run, const frame& owner, const schema_node& node,
-                                                 const value_view& child, bool properties) noexcept
+    std::size_t target_for(const evaluator& run, const frame& owner, const schema_node& node) noexcept
     {
-      if (properties)
-      {
-        return property_for(run, node, child);
-      }
       if (node.items_single != c_no_node)
       {
-        return result<std::size_t, schema_error>::success(node.items_single);
+        return node.items_single;
       }
       if (owner.cursor < node.items_array.count)
       {
-        return result<std::size_t, schema_error>::success(edge_at(run, node.items_array, owner.cursor));
+        return edge_at(run, node.items_array, owner.cursor);
       }
-      // additionalItems is evaluated from P047 on.
-      return result<std::size_t, schema_error>::success(c_no_node);
+      // additionalItems applies only after an items tuple (Draft-07 Validation section 6.4.2).
+      return node.items_is_array ? node.additional_items : c_no_node;
     }
 
     /**
@@ -702,15 +709,12 @@ namespace adaptive_json5
      * P046; J5-057; Draft-07 Validation sections 6.4.1 and 6.5.4.
      * @par ID SWU-SCHEMA-154
      */
-    advance_result advance_descending(evaluator& run, frame& owner, const schema_node& node,
+    advance_result advance_descending(const evaluator& run, frame& owner, const schema_node& node,
                                       std::optional<bool>& delivered) noexcept
     {
       absorb(owner, delivered);
       const auto kind = kind_of(owner.instance);
-      const bool properties = owner.stage == phase::properties;
-      const bool applies = properties ? ((kind == value_kind::object) && (node.properties.count != 0U))
-                                      : ((kind == value_kind::array) &&
-                                         ((node.items_single != c_no_node) || (node.items_array.count != 0U)));
+      const bool applies = (kind == value_kind::array) && ((node.items_single != c_no_node) || node.items_is_array);
       while (applies && !may_stop(run, owner))
       {
         const auto next = next_child(owner);
@@ -723,25 +727,337 @@ namespace adaptive_json5
           break;
         }
         const value_view child = **next.value_if();
-        const auto target = target_for(run, owner, node, child, properties);
-        if (!target.has_value())
-        {
-          return advance_result::failure(*target.error_if());
-        }
+        const std::size_t target = target_for(run, owner, node);
         // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
         // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
         // loop condition or a container size, so it cannot wrap; CodeQL does not follow these run-time bounds.
         // codeql::misra_deviation_next_line(DEV-101.24)
         ++owner.cursor;
-        if (*target.value_if() != c_no_node)
+        if (target != c_no_node)
         {
-          return request(*target.value_if(), child, owner.suppressed, false);
+          return request(target, child, owner.suppressed, false);
         }
       }
       owner.started = false;
       owner.cursor = 0U;
-      owner.stage = (properties && !may_stop(run, owner)) ? phase::items : phase::finish;
+      owner.passes = 0U;
+      owner.stage = may_stop(run, owner) ? phase::finish : phase::contains;
       return advance_result::success(advance_outcome{});
+    }
+
+    /**
+     * @brief contains: evaluate elements without diagnostics until one matches (P050).
+     * @par Requirements
+     * P050; J5-057; Draft-07 Validation section 6.4.6.
+     * @return A child request, an empty outcome when the phase is finished, or a failure.
+     * @par ID SWU-SCHEMA-290
+     */
+    advance_result advance_contains(evaluator& run, frame& owner, const schema_node& node,
+                                    std::optional<bool>& delivered) noexcept
+    {
+      if (delivered.has_value())
+      {
+        owner.passes += *delivered ? 1U : 0U;
+        delivered.reset();
+      }
+      const auto kind = kind_of(owner.instance);
+      const bool applies = (node.contains != c_no_node) && (kind == value_kind::array);
+      if (applies && (owner.passes == 0U))
+      {
+        const auto next = next_child(owner);
+        if (!next.has_value())
+        {
+          return advance_result::failure(*next.error_if());
+        }
+        if (next.value_if()->has_value())
+        {
+          return request(node.contains, **next.value_if(), true, true);
+        }
+        const auto failed = fail(run, owner, schema_keyword::contains);
+        if (!failed.has_value())
+        {
+          return advance_result::failure(*failed.error_if());
+        }
+      }
+      owner.started = false;
+      owner.cursor = 0U;
+      owner.stage = may_stop(run, owner) ? phase::finish : phase::dependencies;
+      return advance_result::success(advance_outcome{});
+    }
+
+    /**
+     * @brief Report whether an object instance has a member whose name equals a unit-table name.
+     * @par Requirements
+     * P051; J5-057.
+     * @par ID SWU-SCHEMA-300
+     */
+    result<bool, schema_error> instance_has_name(evaluator& run, const value_view& object, node_range name) noexcept
+    {
+      auto members = object.children();
+      if (!members.has_value())
+      {
+        return result<bool, schema_error>::failure(*access_failure(members.error_if()).error_if());
+      }
+      for (;;)
+      {
+        const auto member = members.value_if()->next();
+        if (!member.has_value() || !member.value_if()->has_value())
+        {
+          return member.has_value()
+                   ? result<bool, schema_error>::success(false)
+                   : result<bool, schema_error>::failure(*access_failure(member.error_if()).error_if());
+        }
+        const auto stepped = run.work.step();
+        const auto member_name = (*member.value_if())->member_name();
+        if (!stepped.has_value() || !member_name.has_value())
+        {
+          return stepped.has_value()
+                   ? result<bool, schema_error>::failure(*access_failure(member_name.error_if()).error_if())
+                   : result<bool, schema_error>::failure(*stepped.error_if());
+        }
+        const auto matches = name_matches(run, **member_name.value_if(), name);
+        if (!matches.has_value() || *matches.value_if())
+        {
+          return matches;
+        }
+      }
+    }
+
+    /**
+     * @brief Return the next candidate schema for the open member: its properties entry, each
+     * matching patternProperties entry, then additionalProperties when none matched.
+     * @par Requirements
+     * P051; J5-057; Draft-07 Validation sections 6.5.4 to 6.5.6.
+     * @return The node, c_no_node when the member has no candidate left, or a failure.
+     * @par ID SWU-SCHEMA-301
+     */
+    result<std::size_t, schema_error> next_member_target(evaluator& run, frame& owner, const schema_node& node) noexcept
+    {
+      using target_result = result<std::size_t, schema_error>;
+      const std::size_t patterns = node.pattern_properties.count;
+      while (owner.member_target <= (patterns + 1U))
+      {
+        const std::size_t candidate = owner.member_target;
+        ++owner.member_target;
+        if (candidate == 0U)
+        {
+          const auto found = property_for(run, node, owner.member);
+          if (!found.has_value() || (*found.value_if() != c_no_node))
+          {
+            owner.member_matched = found.has_value() || owner.member_matched;
+            return found;
+          }
+          continue;
+        }
+        if (candidate > patterns)
+        {
+          return target_result::success(owner.member_matched ? c_no_node : node.additional_properties);
+        }
+        const auto& edge = compiled_schema_access::property(run.schema, node.pattern_properties.first + candidate - 1U);
+        const auto name = owner.member.member_name();
+        if (!name.has_value())
+        {
+          return target_result::failure(*access_failure(name.error_if()).error_if());
+        }
+        const auto matched = detail::regex_search(compiled_schema_access::regex(run.schema),
+                                                  compiled_schema_access::node(run.schema, edge.node).name_pattern,
+                                                  **name.value_if(), run.work, run.scratch);
+        if (!matched.has_value())
+        {
+          return target_result::failure(*matched.error_if());
+        }
+        if (*matched.value_if())
+        {
+          owner.member_matched = true;
+          return target_result::success(edge.node);
+        }
+      }
+      return target_result::success(c_no_node);
+    }
+
+    /**
+     * @brief properties, patternProperties and additionalProperties over the object members (P051).
+     * @par Requirements
+     * P051; J5-057; Draft-07 Validation sections 6.5.4 to 6.5.6.
+     * @par ID SWU-SCHEMA-302
+     */
+    advance_result advance_members(evaluator& run, frame& owner, const schema_node& node,
+                                   std::optional<bool>& delivered) noexcept
+    {
+      absorb(owner, delivered);
+      const bool applies = (kind_of(owner.instance) == value_kind::object) &&
+                           ((node.properties.count != 0U) || (node.pattern_properties.count != 0U) ||
+                            (node.additional_properties != c_no_node));
+      while (applies && !may_stop(run, owner))
+      {
+        if (!owner.member_open)
+        {
+          const auto next = next_child(owner);
+          if (!next.has_value())
+          {
+            return advance_result::failure(*next.error_if());
+          }
+          if (!next.value_if()->has_value())
+          {
+            break;
+          }
+          owner.member = **next.value_if();
+          owner.member_target = 0U;
+          owner.member_matched = false;
+          owner.member_open = true;
+        }
+        const auto target = next_member_target(run, owner, node);
+        if (!target.has_value())
+        {
+          return advance_result::failure(*target.error_if());
+        }
+        if (*target.value_if() != c_no_node)
+        {
+          return request(*target.value_if(), owner.member, owner.suppressed, false);
+        }
+        owner.member_open = false;
+      }
+      owner.started = false;
+      owner.member_open = false;
+      owner.cursor = 0U;
+      owner.stage = may_stop(run, owner) ? phase::finish : phase::items;
+      return advance_result::success(advance_outcome{});
+    }
+
+    /**
+     * @brief Schema-form dependencies: apply each schema whose trigger member is present (P051).
+     * @par Requirements
+     * P051; J5-057; Draft-07 Validation section 6.5.7.
+     * @par ID SWU-SCHEMA-303
+     */
+    advance_result advance_dependencies(evaluator& run, frame& owner, const schema_node& node,
+                                        std::optional<bool>& delivered) noexcept
+    {
+      absorb(owner, delivered);
+      const bool applies = (kind_of(owner.instance) == value_kind::object) && (node.dependency_schemas.count != 0U);
+      while (applies && !may_stop(run, owner) && (owner.cursor < node.dependency_schemas.count))
+      {
+        const auto& edge = compiled_schema_access::property(run.schema, node.dependency_schemas.first + owner.cursor);
+        ++owner.cursor;
+        const auto present = instance_has_name(run, owner.instance, edge.name);
+        if (!present.has_value())
+        {
+          return advance_result::failure(*present.error_if());
+        }
+        if (*present.value_if())
+        {
+          return request(edge.node, owner.instance, owner.suppressed, true);
+        }
+      }
+      owner.cursor = 0U;
+      owner.started = false;
+      owner.stage = may_stop(run, owner) ? phase::finish : phase::names;
+      return advance_result::success(advance_outcome{});
+    }
+
+    /**
+     * @brief Copy a member name into the names document as a string value (for propertyNames).
+     * @par Requirements
+     * P051; J5-057.
+     * @par ID SWU-SCHEMA-304
+     */
+    result<value_view, schema_error> name_value(evaluator& run, const value_view& member) noexcept
+    {
+      using view_result = result<value_view, schema_error>;
+      if (!run.names.has_value())
+      {
+        static_cast<void>(
+          run.names.emplace(detail::document_access::create(run.scratch, run.work.budget().max_work_steps)));
+      }
+      const auto name = member.member_name();
+      if (!name.has_value())
+      {
+        return view_result::failure(*access_failure(name.error_if()).error_if());
+      }
+      pod_vector<std::uint16_t> units{run.scratch};
+      std::size_t index = 0U;
+      while (index < (*name.value_if())->size())
+      {
+        const auto unit = (*name.value_if())->unit_at(index);
+        const auto pushed = unit.has_value() ? units.push_back(*unit.value_if()) : access_failure(unit.error_if());
+        if (!pushed.has_value())
+        {
+          return view_result::failure(*pushed.error_if());
+        }
+        ++index;
+      }
+      auto copy = decoded_string::copy_units(run.scratch, units.writable(), units.size());
+      auto made = copy.has_value() ? detail::document_access::make_string(*run.names, std::move(*copy.value_if()))
+                                   : result<value_index>::failure(*copy.error_if());
+      const auto view =
+        made.has_value() ? run.names->view(*made.value_if()) : result<value_view>::failure(*made.error_if());
+      return view.has_value() ? view_result::success(*view.value_if())
+                              : view_result::failure(*access_failure(view.error_if()).error_if());
+    }
+
+    /**
+     * @brief propertyNames: every member name, as a string, must match the schema (P051).
+     * @par Requirements
+     * P051; J5-057; Draft-07 Validation section 6.5.8.
+     * @note Name failures are not diagnostics; one propertyNames diagnostic marks the object.
+     * @par ID SWU-SCHEMA-305
+     */
+    advance_result advance_property_names(evaluator& run, frame& owner, const schema_node& node,
+                                          std::optional<bool>& delivered) noexcept
+    {
+      const bool failed_name = delivered.has_value() && !*delivered;
+      delivered.reset();
+      if (failed_name)
+      {
+        const auto failed = fail(run, owner, schema_keyword::property_names);
+        if (!failed.has_value())
+        {
+          return advance_result::failure(*failed.error_if());
+        }
+      }
+      const auto kind = kind_of(owner.instance);
+      const bool applies = (node.property_names != c_no_node) && (kind == value_kind::object);
+      if (applies && !failed_name)
+      {
+        const auto next = next_child(owner);
+        if (!next.has_value())
+        {
+          return advance_result::failure(*next.error_if());
+        }
+        if (next.value_if()->has_value())
+        {
+          const auto name = name_value(run, **next.value_if());
+          if (!name.has_value())
+          {
+            return advance_result::failure(*name.error_if());
+          }
+          return advance_result::success(
+            advance_outcome{child_request{node.property_names, *name.value_if(), true, true, false, true}});
+        }
+      }
+      owner.started = false;
+      owner.stage = phase::finish;
+      return advance_result::success(advance_outcome{});
+    }
+
+    /**
+     * @brief Run the phases after items: contains, schema dependencies, propertyNames.
+     * @par Requirements
+     * P050; P051; J5-057.
+     * @par ID SWU-SCHEMA-306
+     */
+    advance_result advance_late_phase(evaluator& run, frame& owner, const schema_node& node,
+                                      std::optional<bool>& delivered) noexcept
+    {
+      if (owner.stage == phase::contains)
+      {
+        return advance_contains(run, owner, node, delivered);
+      }
+      if (owner.stage == phase::dependencies)
+      {
+        return advance_dependencies(run, owner, node, delivered);
+      }
+      return advance_property_names(run, owner, node, delivered);
     }
 
     /**
@@ -758,9 +1074,10 @@ namespace adaptive_json5
       {
         return status::failure(*failed.error_if());
       }
-      for (std::size_t index = 0U; (index < 64U) && !run.stop; ++index)
+      std::size_t index = 0U;
+      while ((index < 64U) && !run.stop)
       {
-        if ((*failed.value_if() & (detail::keyword_mask{1U} << index)) != 0U)
+        if ((*failed.value_if() & (detail::c_first_keyword_bit << index)) != 0U)
         {
           const auto recorded = fail(run, owner, static_cast<schema_keyword>(index));
           if (!recorded.has_value())
@@ -768,8 +1085,33 @@ namespace adaptive_json5
             return recorded;
           }
         }
+        ++index;
       }
       return status::success();
+    }
+
+    /**
+     * @brief Run the current applicator phase of an object-schema frame.
+     * @par Requirements
+     * P046; P050; P051; J5-057.
+     * @par ID SWU-SCHEMA-307
+     */
+    advance_result advance_stage(evaluator& run, frame& owner, const schema_node& node,
+                                 std::optional<bool>& delivered) noexcept
+    {
+      if (owner.stage >= phase::contains)
+      {
+        return advance_late_phase(run, owner, node, delivered);
+      }
+      if (owner.stage == phase::properties)
+      {
+        return advance_members(run, owner, node, delivered);
+      }
+      if (owner.stage == phase::items)
+      {
+        return advance_descending(run, owner, node, delivered);
+      }
+      return advance_combinators(run, owner, node, delivered);
     }
 
     /**
@@ -819,9 +1161,7 @@ namespace adaptive_json5
           owner.stage = phase::finish;
           continue;
         }
-        const auto advanced = ((owner.stage == phase::properties) || (owner.stage == phase::items))
-                                ? advance_descending(run, owner, node, delivered)
-                                : advance_combinators(run, owner, node, delivered);
+        const auto advanced = advance_stage(run, owner, node, delivered);
         if (!advanced.has_value() || advanced.value_if()->child.has_value())
         {
           return advanced;
@@ -852,6 +1192,8 @@ namespace adaptive_json5
         return access_failure(index.error_if());
       }
       const std::size_t position = index.value_if()->position();
+      const bool in_names =
+        child.in_names || ((run.frames.size() != 0U) && run.frames.get(run.frames.size() - 1U).in_names);
       if (child.via_ref)
       {
         // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
@@ -861,7 +1203,8 @@ namespace adaptive_json5
         for (std::size_t level = 0U; level < run.frames.size(); ++level)
         {
           const frame active = run.frames.get(level);
-          if (active.via_ref && (active.node == child.node) && (active.instance_position == position))
+          if (active.via_ref && (active.node == child.node) && (active.instance_position == position) &&
+              (active.in_names == in_names))
           {
             return status::failure(schema_error::of(schema_error_code::nonprogressing_reference));
           }
@@ -881,6 +1224,7 @@ namespace adaptive_json5
       next.instance_position = position;
       next.suppressed = child.suppressed;
       next.via_ref = child.via_ref;
+      next.in_names = in_names;
       return run.frames.push_back(next);
     }
 

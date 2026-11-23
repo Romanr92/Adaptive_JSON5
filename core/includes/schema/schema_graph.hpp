@@ -7,6 +7,7 @@
 #include "adaptive_json5/schema/schema_keyword.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/value_index.hpp"
+#include "schema/regex_program.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -125,6 +126,26 @@ namespace adaptive_json5::detail
       value_index exclusive_minimum{};
       value_index exclusive_maximum{};
       value_index multiple_of{};
+      std::uint8_t string_flags{}; // P049: string_bit values of the string keywords present.
+      std::size_t min_length{};    // P049: code points; valid when flagged.
+      std::size_t max_length{};
+      std::uint8_t array_flags{}; // P050: array_bit values of the array keywords present.
+      bool items_is_array{};      // P050: items has its array (tuple) form.
+      std::size_t min_items{};    // P050: valid when flagged.
+      std::size_t max_items{};
+      std::size_t additional_items{c_no_node}; // P050: applies to elements after the items tuple.
+      std::size_t contains{c_no_node};         // P050: at least one element must match.
+      std::uint8_t object_flags{};             // P051: object_bit values of the object keywords present.
+      std::size_t min_properties{};            // P051: valid when flagged.
+      std::size_t max_properties{};
+      value_index required_names{};          // P051: copied array of required names.
+      value_index dependency_names{};        // P051: copied object of the array-form dependencies.
+      node_range pattern_properties{0U, 0U}; // P051: property table slice; each node has name_pattern.
+      node_range dependency_schemas{0U, 0U}; // P051: property table slice of schema-form dependencies.
+      std::size_t additional_properties{c_no_node};
+      std::size_t property_names{c_no_node};
+      node_range name_pattern{0U, 0U}; // P051: regex of a patternProperties child's member name.
+      node_range pattern{0U, 0U};      // P049: program range in the regex instruction table.
   };
 
   /**
@@ -140,6 +161,67 @@ namespace adaptive_json5::detail
     exclusive_maximum = 8U,
     multiple_of = 16U
   };
+
+  /**
+   * @brief Bits of schema_node::string_flags.
+   * @par Requirements
+   * P049; J5-057.
+   */
+  enum class string_bit : std::uint8_t
+  {
+    min_length = 1U,
+    max_length = 2U,
+    pattern = 4U
+  };
+
+  /**
+   * @brief Bits of schema_node::array_flags.
+   * @par Requirements
+   * P050; J5-057.
+   */
+  enum class array_bit : std::uint8_t
+  {
+    min_items = 1U,
+    max_items = 2U,
+    unique_items = 4U
+  };
+
+  /**
+   * @brief Bits of schema_node::object_flags.
+   * @par Requirements
+   * P051; J5-057.
+   */
+  enum class object_bit : std::uint8_t
+  {
+    min_properties = 1U,
+    max_properties = 2U,
+    required = 4U,
+    dependencies = 8U
+  };
+
+  /**
+   * @brief Report whether a flag byte contains a bit; the operation is done in std::uint32_t.
+   * @par Requirements
+   * P047; J5-057.
+   * @par ID SWU-SCHEMA-310
+   */
+  template <typename Bit>
+  [[nodiscard]] constexpr bool has_flag(std::uint8_t flags, Bit bit) noexcept
+  {
+    return (static_cast<std::uint32_t>(flags) & static_cast<std::uint32_t>(bit)) != 0U;
+  }
+
+  /**
+   * @brief Return a flag byte with a bit added; the operation is done in std::uint32_t.
+   * @par Requirements
+   * P047; J5-057.
+   * @par ID SWU-SCHEMA-311
+   */
+  template <typename Bit>
+  [[nodiscard]] constexpr std::uint8_t with_flag(std::uint8_t flags, Bit bit) noexcept
+  {
+    return static_cast<std::uint8_t>(static_cast<std::uint32_t>(flags) | static_cast<std::uint32_t>(bit));
+  }
 
   /**
    * @brief A `properties` entry: member name (UTF-16 range) and its schema node.
@@ -225,6 +307,22 @@ namespace adaptive_json5::detail
        * @par ID SWU-SCHEMA-192
        */
       [[nodiscard]] static const document* values(const compiled_schema& schema) noexcept;
+
+      /**
+       * @brief Give a compiled schema its regex instruction and range tables.
+       * @par Requirements
+       * P049; J5-060; J5-066.
+       * @par ID SWU-SCHEMA-276
+       */
+      static void attach_regex(compiled_schema& schema, owned_block&& code, owned_block&& ranges) noexcept;
+
+      /**
+       * @brief Borrow the regex instruction and range tables.
+       * @par Requirements
+       * P049; J5-060.
+       * @par ID SWU-SCHEMA-277
+       */
+      [[nodiscard]] static regex_tables regex(const compiled_schema& schema) noexcept;
 
       /**
        * @brief Return the root node index.

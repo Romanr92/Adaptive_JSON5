@@ -6,12 +6,15 @@
 #include "adaptive_json5/schema/compiled_schema.hpp"
 #include "adaptive_json5/schema/schema_error.hpp"
 #include "adaptive_json5/schema/schema_keyword.hpp"
+#include "adaptive_json5/value/decoded_name_equal.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/number_comparison.hpp"
+#include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 #include "memory/work_budget.hpp"
 #include "schema/exact_number.hpp"
+#include "schema/regex.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_values.hpp"
 #include "schema/schema_work.hpp"
@@ -63,6 +66,32 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief Return the type bit of a value kind; numbers map to number_type.
+     * @par Requirements
+     * P047; J5-057.
+     * @par ID SWU-SCHEMA-309
+     */
+    type_bit kind_bit(value_kind kind) noexcept
+    {
+      switch (kind)
+      {
+      case value_kind::null:
+        return type_bit::null_type;
+      case value_kind::boolean:
+        return type_bit::boolean_type;
+      case value_kind::object:
+        return type_bit::object_type;
+      case value_kind::array:
+        return type_bit::array_type;
+      case value_kind::string:
+        return type_bit::string_type;
+      case value_kind::number:
+      default:
+        return type_bit::number_type;
+      }
+    }
+
+    /**
      * @brief Draft-07 `type`: the instance kind (or integer by value) is one of the listed types.
      * @par Requirements
      * P047; J5-057; J5-059; Draft-07 Validation section 6.1.1.
@@ -75,34 +104,12 @@ namespace adaptive_json5::detail
       {
         return bool_result::failure(failure_of(kind.error_if()));
       }
-      type_bit bit = type_bit::null_type;
-      switch (*kind.value_if())
-      {
-      case value_kind::null:
-        bit = type_bit::null_type;
-        break;
-      case value_kind::boolean:
-        bit = type_bit::boolean_type;
-        break;
-      case value_kind::object:
-        bit = type_bit::object_type;
-        break;
-      case value_kind::array:
-        bit = type_bit::array_type;
-        break;
-      case value_kind::string:
-        bit = type_bit::string_type;
-        break;
-      case value_kind::number:
-      default:
-        bit = type_bit::number_type;
-        break;
-      }
-      if ((mask & static_cast<std::uint8_t>(bit)) != 0U)
+      const type_bit bit = kind_bit(*kind.value_if());
+      if (has_flag(mask, bit))
       {
         return bool_result::success(true);
       }
-      if ((bit != type_bit::number_type) || ((mask & static_cast<std::uint8_t>(type_bit::integer_type)) == 0U))
+      if ((bit != type_bit::number_type) || (!has_flag(mask, type_bit::integer_type)))
       {
         return bool_result::success(false);
       }
@@ -254,7 +261,7 @@ namespace adaptive_json5::detail
     struct bound_rule
     {
         numeric_bit flag;
-        value_index schema_node::*bound;
+        value_index schema_node::* bound;
         schema_keyword keyword;
         bool pass_less;
         bool pass_equal;
@@ -285,7 +292,7 @@ namespace adaptive_json5::detail
           false, false}}};
       for (const auto& rule : c_bounds)
       {
-        if ((node.numeric_flags & static_cast<std::uint8_t>(rule.flag)) == 0U)
+        if (!has_flag(node.numeric_flags, rule.flag))
         {
           continue;
         }
@@ -298,9 +305,9 @@ namespace adaptive_json5::detail
         const bool passed = ((value == number_order::less) && rule.pass_less) ||
                             ((value == number_order::equal) && rule.pass_equal) ||
                             ((value == number_order::greater) && rule.pass_greater);
-        failed |= passed ? keyword_mask{0U} : keyword_bit(rule.keyword);
+        failed |= passed ? c_no_keywords : keyword_bit(rule.keyword);
       }
-      if ((node.numeric_flags & static_cast<std::uint8_t>(numeric_bit::multiple_of)) == 0U)
+      if (!has_flag(node.numeric_flags, numeric_bit::multiple_of))
       {
         return std::nullopt;
       }
@@ -316,6 +323,324 @@ namespace adaptive_json5::detail
       }
       return collect(is_multiple_of(**number.value_if(), **divisor_number.value_if(), scratch),
                      schema_keyword::multiple_of, failed);
+    }
+    /**
+     * @brief Count the code points of a decoded string (a surrogate pair is one character).
+     * @par Requirements
+     * P049; J5-060; Draft-07 Validation section 6.3.1.
+     * @note The instance check has rejected unpaired surrogates, so every high surrogate is
+     * followed by a low one.
+     * @par ID SWU-SCHEMA-280
+     */
+    result<std::size_t, schema_error> code_points(const decoded_string& text) noexcept
+    {
+      std::size_t count = 0U;
+      std::size_t index = 0U;
+      while (index < text.size())
+      {
+        const auto unit = text.unit_at(index);
+        if (!unit.has_value())
+        {
+          return result<std::size_t, schema_error>::failure(failure_of(unit.error_if()));
+        }
+        const bool low_half = (*unit.value_if() >= 0xDC00U) && (*unit.value_if() <= 0xDFFFU);
+        count += low_half ? 0U : 1U;
+        ++index;
+      }
+      return result<std::size_t, schema_error>::success(count);
+    }
+
+    /**
+     * @brief Draft-07 minLength, maxLength and pattern on a string instance (P049).
+     * @par Requirements
+     * P049; J5-057; J5-060; Draft-07 Validation sections 6.3.1 to 6.3.3.
+     * @par ID SWU-SCHEMA-281
+     */
+    std::optional<schema_error> check_string(const compiled_schema& schema, const schema_node& node,
+                                             const value_view& instance, schema_work& work,
+                                             const storage_callbacks& scratch, keyword_mask& failed) noexcept
+    {
+      const auto text = instance.as_string();
+      if (!text.has_value())
+      {
+        return failure_of(text.error_if());
+      }
+      const auto length = code_points(**text.value_if());
+      if (!length.has_value())
+      {
+        return *length.error_if();
+      }
+      const bool has_min = has_flag(node.string_flags, string_bit::min_length);
+      const bool has_max = has_flag(node.string_flags, string_bit::max_length);
+      failed |=
+        (has_min && (*length.value_if() < node.min_length)) ? keyword_bit(schema_keyword::min_length) : c_no_keywords;
+      failed |=
+        (has_max && (*length.value_if() > node.max_length)) ? keyword_bit(schema_keyword::max_length) : c_no_keywords;
+      if (!has_flag(node.string_flags, string_bit::pattern))
+      {
+        return std::nullopt;
+      }
+      return collect(
+        regex_search(compiled_schema_access::regex(schema), node.pattern, **text.value_if(), work, scratch),
+        schema_keyword::pattern, failed);
+    }
+    /**
+     * @brief Report whether all elements of an array are pairwise unequal (uniqueItems).
+     * @par Requirements
+     * P050; J5-057; J5-061; Draft-07 Validation section 6.4.5.
+     * @note Compares every pair with the exact deep equality; each comparison is charged to
+     * max_equality_steps and max_work_steps.
+     * @par ID SWU-SCHEMA-288
+     */
+    bool_result all_unique(const value_view& instance, schema_work& work, const storage_callbacks& scratch) noexcept
+    {
+      auto outer = instance.children();
+      if (!outer.has_value())
+      {
+        return bool_result::failure(failure_of(outer.error_if()));
+      }
+      for (;;)
+      {
+        const auto first = outer.value_if()->next();
+        if (!first.has_value())
+        {
+          return bool_result::failure(failure_of(first.error_if()));
+        }
+        if (!first.value_if()->has_value())
+        {
+          return bool_result::success(true);
+        }
+        value_iterator later = *outer.value_if();
+        for (;;)
+        {
+          const auto second = later.next();
+          if (!second.has_value())
+          {
+            return bool_result::failure(failure_of(second.error_if()));
+          }
+          if (!second.value_if()->has_value())
+          {
+            break;
+          }
+          const auto equal = values_equal(**first.value_if(), **second.value_if(), work, scratch);
+          if (!equal.has_value() || *equal.value_if())
+          {
+            return equal.has_value() ? bool_result::success(false) : equal;
+          }
+        }
+      }
+    }
+
+    /**
+     * @brief Draft-07 minItems, maxItems and uniqueItems on an array instance (P050).
+     * @par Requirements
+     * P050; J5-057; J5-061; Draft-07 Validation sections 6.4.3 to 6.4.5.
+     * @par ID SWU-SCHEMA-289
+     */
+    std::optional<schema_error> check_array(const schema_node& node, const value_view& instance, schema_work& work,
+                                            const storage_callbacks& scratch, keyword_mask& failed) noexcept
+    {
+      const auto size = instance.container_size();
+      if (!size.has_value())
+      {
+        return failure_of(size.error_if());
+      }
+      const bool has_min = has_flag(node.array_flags, array_bit::min_items);
+      const bool has_max = has_flag(node.array_flags, array_bit::max_items);
+      failed |=
+        (has_min && (*size.value_if() < node.min_items)) ? keyword_bit(schema_keyword::min_items) : c_no_keywords;
+      failed |=
+        (has_max && (*size.value_if() > node.max_items)) ? keyword_bit(schema_keyword::max_items) : c_no_keywords;
+      if (!has_flag(node.array_flags, array_bit::unique_items))
+      {
+        return std::nullopt;
+      }
+      return collect(all_unique(instance, work, scratch), schema_keyword::unique_items, failed);
+    }
+    /**
+     * @brief Report whether an object instance has a member with the decoded name.
+     * @par Requirements
+     * P051; J5-057.
+     * @note One work step per name comparison.
+     * @par ID SWU-SCHEMA-296
+     */
+    bool_result has_member(const value_view& object, const decoded_string& name, schema_work& work) noexcept
+    {
+      auto members = object.children();
+      if (!members.has_value())
+      {
+        return bool_result::failure(failure_of(members.error_if()));
+      }
+      for (;;)
+      {
+        const auto member = members.value_if()->next();
+        if (!member.has_value() || !member.value_if()->has_value())
+        {
+          return member.has_value() ? bool_result::success(false) : bool_result::failure(failure_of(member.error_if()));
+        }
+        const auto stepped = work.step();
+        const auto member_name = (*member.value_if())->member_name();
+        if (!stepped.has_value() || !member_name.has_value())
+        {
+          return stepped.has_value() ? bool_result::failure(failure_of(member_name.error_if()))
+                                     : bool_result::failure(*stepped.error_if());
+        }
+        const auto equal = decoded_name_equal(**member_name.value_if(), name);
+        if (!equal.has_value() || *equal.value_if())
+        {
+          return equal.has_value() ? bool_result::success(true) : bool_result::failure(failure_of(equal.error_if()));
+        }
+      }
+    }
+
+    /**
+     * @brief Report whether an object has every name of a copied name list.
+     * @par Requirements
+     * P051; J5-057.
+     * @par ID SWU-SCHEMA-297
+     */
+    bool_result has_all(const value_view& object, const value_view& names, schema_work& work) noexcept
+    {
+      auto entries = names.children();
+      if (!entries.has_value())
+      {
+        return bool_result::failure(failure_of(entries.error_if()));
+      }
+      for (;;)
+      {
+        const auto entry = entries.value_if()->next();
+        if (!entry.has_value() || !entry.value_if()->has_value())
+        {
+          return entry.has_value() ? bool_result::success(true) : bool_result::failure(failure_of(entry.error_if()));
+        }
+        const auto text = (*entry.value_if())->as_string();
+        const auto present = text.has_value() ? has_member(object, **text.value_if(), work)
+                                              : bool_result::failure(failure_of(text.error_if()));
+        if (!present.has_value() || !*present.value_if())
+        {
+          return present;
+        }
+      }
+    }
+
+    /**
+     * @brief Array-form dependencies: when a trigger member is present, its listed names must be too.
+     * @par Requirements
+     * P051; J5-057; Draft-07 Validation section 6.5.7.
+     * @par ID SWU-SCHEMA-298
+     */
+    bool_result dependencies_hold(const value_view& object, const value_view& dependencies, schema_work& work) noexcept
+    {
+      auto entries = dependencies.children();
+      if (!entries.has_value())
+      {
+        return bool_result::failure(failure_of(entries.error_if()));
+      }
+      for (;;)
+      {
+        const auto entry = entries.value_if()->next();
+        if (!entry.has_value() || !entry.value_if()->has_value())
+        {
+          return entry.has_value() ? bool_result::success(true) : bool_result::failure(failure_of(entry.error_if()));
+        }
+        const auto trigger = (*entry.value_if())->member_name();
+        const auto present = trigger.has_value() ? has_member(object, **trigger.value_if(), work)
+                                                 : bool_result::failure(failure_of(trigger.error_if()));
+        if (!present.has_value())
+        {
+          return present;
+        }
+        if (!*present.value_if())
+        {
+          continue;
+        }
+        const auto satisfied = has_all(object, **entry.value_if(), work);
+        if (!satisfied.has_value() || !*satisfied.value_if())
+        {
+          return satisfied;
+        }
+      }
+    }
+
+    /**
+     * @brief Draft-07 minProperties, maxProperties, required and array-form dependencies (P051).
+     * @par Requirements
+     * P051; J5-057; Draft-07 Validation sections 6.5.1 to 6.5.3 and 6.5.7.
+     * @par ID SWU-SCHEMA-299
+     */
+    std::optional<schema_error> check_object(const compiled_schema& schema, const schema_node& node,
+                                             const value_view& instance, schema_work& work,
+                                             keyword_mask& failed) noexcept
+    {
+      const auto size = instance.container_size();
+      if (!size.has_value())
+      {
+        return failure_of(size.error_if());
+      }
+      const bool has_min = has_flag(node.object_flags, object_bit::min_properties);
+      const bool has_max = has_flag(node.object_flags, object_bit::max_properties);
+      failed |= (has_min && (*size.value_if() < node.min_properties)) ? keyword_bit(schema_keyword::min_properties)
+                                                                      : c_no_keywords;
+      failed |= (has_max && (*size.value_if() > node.max_properties)) ? keyword_bit(schema_keyword::max_properties)
+                                                                      : c_no_keywords;
+      if (has_flag(node.object_flags, object_bit::required))
+      {
+        const auto names = schema_value(schema, node.required_names);
+        const auto issue = names.has_value()
+                             ? collect(has_all(instance, *names.value_if(), work), schema_keyword::required, failed)
+                             : std::optional<schema_error>{*names.error_if()};
+        if (issue.has_value())
+        {
+          return issue;
+        }
+      }
+      if (!has_flag(node.object_flags, object_bit::dependencies))
+      {
+        return std::nullopt;
+      }
+      const auto dependencies = schema_value(schema, node.dependency_names);
+      return dependencies.has_value() ? collect(dependencies_hold(instance, *dependencies.value_if(), work),
+                                                schema_keyword::dependencies, failed)
+                                      : std::optional<schema_error>{*dependencies.error_if()};
+    }
+
+    /**
+     * @brief Run the type-specific assertions that apply to the instance's kind.
+     * @par Requirements
+     * P048; P049; P050; J5-057.
+     * @par ID SWU-SCHEMA-291
+     */
+    std::optional<schema_error> check_by_kind(const compiled_schema& schema, const schema_node& node,
+                                              const value_view& instance, schema_work& work,
+                                              const storage_callbacks& scratch, keyword_mask& failed) noexcept
+    {
+      if ((node.numeric_flags == 0U) && (node.string_flags == 0U) && (node.array_flags == 0U) &&
+          (node.object_flags == 0U))
+      {
+        return std::nullopt;
+      }
+      const auto kind = instance.kind();
+      if (!kind.has_value())
+      {
+        return failure_of(kind.error_if());
+      }
+      if ((*kind.value_if() == value_kind::number) && (node.numeric_flags != 0U))
+      {
+        return check_numeric(schema, node, instance, scratch, failed);
+      }
+      if ((*kind.value_if() == value_kind::string) && (node.string_flags != 0U))
+      {
+        return check_string(schema, node, instance, work, scratch, failed);
+      }
+      if ((*kind.value_if() == value_kind::array) && (node.array_flags != 0U))
+      {
+        return check_array(node, instance, work, scratch, failed);
+      }
+      if ((*kind.value_if() == value_kind::object) && (node.object_flags != 0U))
+      {
+        return check_object(schema, node, instance, work, failed);
+      }
+      return std::nullopt;
     }
   } // namespace
 
@@ -340,17 +665,9 @@ namespace adaptive_json5::detail
       }
     }
     auto issue = check_values(schema, node, instance, work, scratch, failed);
-    if (!issue.has_value() && (node.numeric_flags != 0U))
+    if (!issue.has_value())
     {
-      const auto kind = instance.kind();
-      if (!kind.has_value())
-      {
-        return mask_result::failure(failure_of(kind.error_if()));
-      }
-      if (*kind.value_if() == value_kind::number)
-      {
-        issue = check_numeric(schema, node, instance, scratch, failed);
-      }
+      issue = check_by_kind(schema, node, instance, work, scratch, failed);
     }
     if (issue.has_value())
     {

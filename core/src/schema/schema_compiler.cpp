@@ -9,6 +9,7 @@
 #include "adaptive_json5/schema/schema_keyword.hpp"
 #include "adaptive_json5/schema/schema_registry.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
+#include "adaptive_json5/value/integer_conversion.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_kind.hpp"
@@ -16,6 +17,7 @@
 #include "schema/exact_number.hpp"
 #include "schema/json_pointer.hpp"
 #include "schema/pod_vector.hpp"
+#include "schema/regex.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_registry_access.hpp"
 #include "schema/schema_values.hpp"
@@ -25,9 +27,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <string_view>
-#include <tuple>
 #include <utility>
 
 namespace adaptive_json5
@@ -44,6 +46,19 @@ namespace adaptive_json5
 
     constexpr std::size_t c_keyword_count = static_cast<std::size_t>(schema_keyword::not_schema) + 1U;
     constexpr std::size_t c_first_named_keyword = static_cast<std::size_t>(schema_keyword::schema);
+
+    /**
+     * @brief A keyword, its flag bit and the node field that receives its compiled value.
+     * @par Requirements
+     * P048; P049; P050; P051.
+     */
+    template <typename Bit, typename Field>
+    struct keyword_slot
+    {
+        schema_keyword keyword;
+        Bit bit;
+        Field* target;
+    };
 
     /**
      * @brief An identifier or plain-name key and the node it names.
@@ -141,6 +156,8 @@ namespace adaptive_json5
         pod_vector<char> text;
         pod_vector<char> resolved;
         pod_vector<char> token;
+        pod_vector<detail::regex_inst> regex_code;
+        pod_vector<detail::regex_range> regex_ranges;
         storage_callbacks scratch;
         storage_callbacks result_storage;
         std::optional<document> values;
@@ -159,7 +176,8 @@ namespace adaptive_json5
               units(options.result_storage), pending(options.scratch_storage), bases(options.scratch_storage),
               keys(options.scratch_storage), key_text(options.scratch_storage), refs(options.scratch_storage),
               ref_text(options.scratch_storage), text(options.scratch_storage), resolved(options.scratch_storage),
-              token(options.scratch_storage), scratch(options.scratch_storage), result_storage(options.result_storage),
+              token(options.scratch_storage), regex_code(options.result_storage), regex_ranges(options.result_storage),
+              scratch(options.scratch_storage), result_storage(options.result_storage),
               values(detail::document_access::create(options.result_storage, options.limits.max_compile_steps)),
               limits(options.limits), dialect(selected)
         {
@@ -579,6 +597,80 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Compile a patternProperties member name as a regex into its child node (P051).
+     * @par Requirements
+     * P051; J5-054; J5-060.
+     * @par ID SWU-SCHEMA-295
+     */
+    status compile_name_pattern(compile_state& state, const decoded_string& name, const value_view& entry,
+                                std::size_t child) noexcept
+    {
+      const auto name_span = entry.member_name_source_span();
+      const std::optional<source_span> where = (name_span.has_value() && name_span.value_if()->has_value())
+                                                 ? **name_span.value_if()
+                                                 : std::optional<source_span>{};
+      const auto program = detail::compile_regex(name, state.regex_code, state.regex_ranges, state.scratch, state.steps,
+                                                 state.limits.max_compile_steps, where);
+      if (!program.has_value())
+      {
+        return status::failure(*program.error_if());
+      }
+      schema_node node = state.nodes.get(child);
+      node.name_pattern = *program.value_if();
+      state.nodes.set(child, node);
+      return status::success();
+    }
+
+    /**
+     * @brief Queue one member schema of a map keyword (and its property-table entry).
+     * @par Requirements
+     * P044; P051; J5-054.
+     * @par ID SWU-SCHEMA-308
+     */
+    status add_map_member(compile_state& state, const pending_item& parent, schema_keyword keyword,
+                          const value_view& entry, bool property_table) noexcept
+    {
+      const auto name = entry.member_name();
+      if (!name.has_value())
+      {
+        return access_error(name.error_if());
+      }
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
+      // context; the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.24)
+      node_range units{};
+      const auto copied = copy_units(state, **name.value_if(), units);
+      if (!copied.has_value())
+      {
+        return copied;
+      }
+      std::size_t child = 0U;
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.16)
+      const auto added = add_child(state, parent, keyword, step_kind::name, units, 0U, entry, child);
+      if (!added.has_value())
+      {
+        return added;
+      }
+      if (property_table)
+      {
+        auto pushed = state.properties.push_back(property_edge{units, child});
+        if (pushed.has_value() && (keyword == schema_keyword::pattern_properties))
+        {
+          pushed = compile_name_pattern(state, **name.value_if(), entry, child);
+        }
+        if (!pushed.has_value())
+        {
+          return pushed;
+        }
+      }
+      return status::success();
+    }
+
+    /**
      * @brief Queue the member schemas of a map keyword (properties, definitions, ...).
      * @par Requirements
      * P044; J5-054.
@@ -621,38 +713,10 @@ namespace adaptive_json5
         {
           continue;
         }
-        const auto name = entry.member_name();
-        if (!name.has_value())
-        {
-          return access_error(name.error_if());
-        }
-        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
-        // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
-        // context; the value is zero or the stated constant and no conversion changes it.
-        // codeql::misra_deviation_next_line(DEV-103.24)
-        node_range units{};
-        const auto copied = copy_units(state, **name.value_if(), units);
-        if (!copied.has_value())
-        {
-          return copied;
-        }
-        std::size_t child = 0U;
-        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
-        // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
-        // the value; the operands are unsigned values below 0x110000 and the results are used as such.
-        // codeql::misra_deviation_next_line(DEV-106.16)
-        const auto added = add_child(state, parent, keyword, step_kind::name, units, 0U, entry, child);
+        const auto added = add_map_member(state, parent, keyword, entry, property_table);
         if (!added.has_value())
         {
           return added;
-        }
-        if (property_table)
-        {
-          const auto pushed = state.properties.push_back(property_edge{units, child});
-          if (!pushed.has_value())
-          {
-            return pushed;
-          }
         }
       }
     }
@@ -739,6 +803,35 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Record the evaluated single-schema applicators that P050/P051 add.
+     * @par Requirements
+     * P050; P051; J5-057.
+     * @par ID SWU-SCHEMA-286
+     */
+    void set_applicator(schema_node& node, schema_keyword keyword, std::size_t child) noexcept
+    {
+      if (keyword == schema_keyword::additional_items)
+      {
+        node.additional_items = child;
+      }
+      else if (keyword == schema_keyword::contains)
+      {
+        node.contains = child;
+      }
+      else if (keyword == schema_keyword::additional_properties)
+      {
+        node.additional_properties = child;
+      }
+      else if (keyword == schema_keyword::property_names)
+      {
+        node.property_names = child;
+      }
+      else
+      {
+      }
+    }
+
+    /**
      * @brief Queue the schemas of every single-schema keyword present.
      * @par Requirements
      * P044; P046; J5-054.
@@ -795,7 +888,7 @@ namespace adaptive_json5
         }
         else
         {
-          // Evaluated from P047 on; compiled now so pointers into them resolve.
+          set_applicator(node, keyword, child);
         }
       }
       return status::success();
@@ -881,6 +974,7 @@ namespace adaptive_json5
         // context; the value is zero or the stated constant and no conversion changes it.
         // codeql::misra_deviation_next_line(DEV-103.19)
         node.items_array = evaluate ? range : node_range{};
+        node.items_is_array = evaluate;
         return added;
       }
       std::size_t child = 0U;
@@ -969,7 +1063,7 @@ namespace adaptive_json5
         {
           continue;
         }
-        const bool property_table = evaluate && (keyword == schema_keyword::properties);
+        const bool property_table = evaluate && (keyword != schema_keyword::definitions);
         // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
         // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its
         // context; the value is zero or the stated constant and no conversion changes it.
@@ -983,7 +1077,10 @@ namespace adaptive_json5
         }
         if (property_table)
         {
-          node.properties = range;
+          node_range& slot = (keyword == schema_keyword::properties)           ? node.properties
+                             : (keyword == schema_keyword::pattern_properties) ? node.pattern_properties
+                                                                               : node.dependency_schemas;
+          slot = range;
         }
       }
       return status::success();
@@ -1060,7 +1157,7 @@ namespace adaptive_json5
                                     const std::array<std::optional<value_view>, c_keyword_count>& found,
                                     schema_node& node) noexcept
     {
-      const std::array<std::tuple<schema_keyword, detail::numeric_bit, value_index*>, 5> c_numeric{
+      const std::array<keyword_slot<detail::numeric_bit, value_index>, 5> c_numeric{
         {{schema_keyword::minimum, detail::numeric_bit::minimum, &node.minimum},
          {schema_keyword::maximum, detail::numeric_bit::maximum, &node.maximum},
          {schema_keyword::exclusive_minimum, detail::numeric_bit::exclusive_minimum, &node.exclusive_minimum},
@@ -1068,19 +1165,193 @@ namespace adaptive_json5
          {schema_keyword::multiple_of, detail::numeric_bit::multiple_of, &node.multiple_of}}};
       for (const auto& entry : c_numeric)
       {
-        const auto& value = found[static_cast<std::size_t>(std::get<0>(entry))];
+        const auto& value = found[static_cast<std::size_t>(entry.keyword)];
         if (!value.has_value())
         {
           continue;
         }
-        const auto compiled = compile_numeric_keyword(state, *value, std::get<0>(entry) == schema_keyword::multiple_of,
-                                                      *std::get<2>(entry));
+        const auto compiled =
+          compile_numeric_keyword(state, *value, entry.keyword == schema_keyword::multiple_of, *entry.target);
         if (!compiled.has_value())
         {
           return compiled;
         }
-        node.numeric_flags =
-          static_cast<std::uint8_t>(node.numeric_flags | static_cast<std::uint8_t>(std::get<1>(entry)));
+        node.numeric_flags = with_flag(node.numeric_flags, entry.bit);
+      }
+      return status::success();
+    }
+
+    /**
+     * @brief Read a non-negative integer keyword (minLength, maxLength, ...); huge values saturate.
+     * @par Requirements
+     * P049; P050; P051; J5-054.
+     * @return The value, or invalid_schema (keyword_shape) for a non-integer or negative value.
+     * @par ID SWU-SCHEMA-278
+     */
+    result<std::size_t, schema_error> read_count_keyword(const value_view& value) noexcept
+    {
+      using count_result = result<std::size_t, schema_error>;
+      const auto number = value.as_number();
+      if (!number.has_value())
+      {
+        return count_result::failure(*shape_error(value).error_if());
+      }
+      const auto converted = to_integer<std::size_t>(**number.value_if());
+      if (converted.has_value())
+      {
+        return count_result::success(*converted.value_if());
+      }
+      const auto positive = detail::is_positive(**number.value_if());
+      const bool huge = (converted.error_if()->numeric_reason() == numeric_conversion_reason::out_of_range) &&
+                        positive.has_value() && *positive.value_if();
+      return huge ? count_result::success(std::numeric_limits<std::size_t>::max())
+                  : count_result::failure(*shape_error(value).error_if());
+    }
+
+    /**
+     * @brief Compile minLength, maxLength and pattern (P049).
+     * @par Requirements
+     * P049; J5-054; J5-057; J5-060.
+     * @par ID SWU-SCHEMA-279
+     */
+    status compile_string_keywords(compile_state& state,
+                                   const std::array<std::optional<value_view>, c_keyword_count>& found,
+                                   schema_node& node) noexcept
+    {
+      const std::array<keyword_slot<detail::string_bit, std::size_t>, 2> c_lengths{
+        {{schema_keyword::min_length, detail::string_bit::min_length, &node.min_length},
+         {schema_keyword::max_length, detail::string_bit::max_length, &node.max_length}}};
+      for (const auto& entry : c_lengths)
+      {
+        const auto& value = found[static_cast<std::size_t>(entry.keyword)];
+        if (!value.has_value())
+        {
+          continue;
+        }
+        const auto count = read_count_keyword(*value);
+        if (!count.has_value())
+        {
+          return status::failure(*count.error_if());
+        }
+        *entry.target = *count.value_if();
+        node.string_flags = with_flag(node.string_flags, entry.bit);
+      }
+      const auto& pattern = found[static_cast<std::size_t>(schema_keyword::pattern)];
+      if (!pattern.has_value())
+      {
+        return status::success();
+      }
+      const auto text = pattern->as_string();
+      if (!text.has_value())
+      {
+        return shape_error(*pattern);
+      }
+      const auto program = detail::compile_regex(**text.value_if(), state.regex_code, state.regex_ranges, state.scratch,
+                                                 state.steps, state.limits.max_compile_steps, span_of(*pattern));
+      if (!program.has_value())
+      {
+        return status::failure(*program.error_if());
+      }
+      node.pattern = *program.value_if();
+      node.string_flags = with_flag(node.string_flags, detail::string_bit::pattern);
+      return status::success();
+    }
+
+    /**
+     * @brief Compile minProperties, maxProperties, required and array-form dependencies (P051).
+     * @par Requirements
+     * P051; J5-054; J5-057.
+     * @par ID SWU-SCHEMA-294
+     */
+    status compile_object_keywords(compile_state& state,
+                                   const std::array<std::optional<value_view>, c_keyword_count>& found,
+                                   schema_node& node) noexcept
+    {
+      const std::array<keyword_slot<detail::object_bit, std::size_t>, 2> c_counts{
+        {{schema_keyword::min_properties, detail::object_bit::min_properties, &node.min_properties},
+         {schema_keyword::max_properties, detail::object_bit::max_properties, &node.max_properties}}};
+      for (const auto& entry : c_counts)
+      {
+        const auto& value = found[static_cast<std::size_t>(entry.keyword)];
+        const auto count =
+          value.has_value() ? read_count_keyword(*value) : result<std::size_t, schema_error>::success(0U);
+        if (!count.has_value())
+        {
+          return status::failure(*count.error_if());
+        }
+        *entry.target = *count.value_if();
+        node.object_flags = value.has_value() ? with_flag(node.object_flags, entry.bit) : node.object_flags;
+      }
+      const auto& required = found[static_cast<std::size_t>(schema_keyword::required)];
+      if (required.has_value())
+      {
+        auto copied = detail::check_name_list(*required);
+        const auto copy = copied.has_value() ? detail::copy_value(*required, *state.values, state.result_storage,
+                                                                  state.steps, state.limits.max_compile_steps)
+                                             : result<value_index, schema_error>::failure(*copied.error_if());
+        if (!copy.has_value())
+        {
+          return status::failure(*copy.error_if());
+        }
+        node.required_names = *copy.value_if();
+        node.object_flags = with_flag(node.object_flags, detail::object_bit::required);
+      }
+      const auto& dependencies = found[static_cast<std::size_t>(schema_keyword::dependencies)];
+      if (!dependencies.has_value())
+      {
+        return status::success();
+      }
+      const auto copy = detail::copy_dependency_arrays(*dependencies, *state.values, state.result_storage, state.steps,
+                                                       state.limits.max_compile_steps);
+      if (!copy.has_value())
+      {
+        return status::failure(*copy.error_if());
+      }
+      node.dependency_names = *copy.value_if();
+      node.object_flags = with_flag(node.object_flags, detail::object_bit::dependencies);
+      return status::success();
+    }
+
+    /**
+     * @brief Compile minItems, maxItems and uniqueItems (P050).
+     * @par Requirements
+     * P050; J5-054; J5-057.
+     * @par ID SWU-SCHEMA-287
+     */
+    status compile_array_keywords(const std::array<std::optional<value_view>, c_keyword_count>& found,
+                                  schema_node& node) noexcept
+    {
+      const std::array<keyword_slot<detail::array_bit, std::size_t>, 2> c_counts{
+        {{schema_keyword::min_items, detail::array_bit::min_items, &node.min_items},
+         {schema_keyword::max_items, detail::array_bit::max_items, &node.max_items}}};
+      for (const auto& entry : c_counts)
+      {
+        const auto& value = found[static_cast<std::size_t>(entry.keyword)];
+        if (!value.has_value())
+        {
+          continue;
+        }
+        const auto count = read_count_keyword(*value);
+        if (!count.has_value())
+        {
+          return status::failure(*count.error_if());
+        }
+        *entry.target = *count.value_if();
+        node.array_flags = with_flag(node.array_flags, entry.bit);
+      }
+      const auto& unique = found[static_cast<std::size_t>(schema_keyword::unique_items)];
+      if (!unique.has_value())
+      {
+        return status::success();
+      }
+      const auto flag = unique->as_boolean();
+      if (!flag.has_value())
+      {
+        return shape_error(*unique);
+      }
+      if (*flag.value_if())
+      {
+        node.array_flags = with_flag(node.array_flags, detail::array_bit::unique_items);
       }
       return status::success();
     }
@@ -1140,6 +1411,23 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Compile the assertion keywords of a non-`$ref` node (P047-P049).
+     * @par Requirements
+     * P047; P048; P049; J5-054; J5-057.
+     * @par ID SWU-SCHEMA-285
+     */
+    status compile_assertion_keywords(compile_state& state,
+                                      const std::array<std::optional<value_view>, c_keyword_count>& found,
+                                      schema_node& node) noexcept
+    {
+      auto compiled = compile_value_keywords(state, found, node);
+      compiled = compiled.has_value() ? compile_numeric_keywords(state, found, node) : compiled;
+      compiled = compiled.has_value() ? compile_string_keywords(state, found, node) : compiled;
+      compiled = compiled.has_value() ? compile_array_keywords(found, node) : compiled;
+      return compiled.has_value() ? compile_object_keywords(state, found, node) : compiled;
+    }
+
+    /**
      * @brief Compile one queued schema value into its node.
      * @par Requirements
      * P044; J5-053; J5-054; J5-055; J5-062; ADR 0006 decisions 2, 10, O1 and O2.
@@ -1180,17 +1468,10 @@ namespace adaptive_json5
       }
 
       const bool evaluate = !found[static_cast<std::size_t>(schema_keyword::ref)].has_value();
-      if (evaluate)
+      const auto evaluated = evaluate ? compile_assertion_keywords(state, found, node) : status::success();
+      if (!evaluated.has_value())
       {
-        auto values = compile_value_keywords(state, found, node);
-        if (values.has_value())
-        {
-          values = compile_numeric_keywords(state, found, node);
-        }
-        if (!values.has_value())
-        {
-          return values;
-        }
+        return evaluated;
       }
       node.first_child = state.nodes.size();
       const auto single = add_single_children(state, children, found, evaluate, node);
@@ -1775,6 +2056,7 @@ namespace adaptive_json5
       state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(), property_count,
       state.units.release(), unit_count, registry.size(), *root.value_if());
     detail::compiled_schema_access::attach_values(schema, std::move(*state.values));
+    detail::compiled_schema_access::attach_regex(schema, state.regex_code.release(), state.regex_ranges.release());
     return compile_result::success(std::move(schema));
   }
 
@@ -1794,7 +2076,8 @@ namespace adaptive_json5
         m_properties(std::move(other.m_properties)), m_units(std::move(other.m_units)),
         m_node_count(other.m_node_count), m_edge_count(other.m_edge_count), m_property_count(other.m_property_count),
         m_unit_count(other.m_unit_count), m_resource_count(other.m_resource_count), m_root(other.m_root),
-        m_values(std::move(other.m_values))
+        m_values(std::move(other.m_values)), m_regex_code(std::move(other.m_regex_code)),
+        m_regex_ranges(std::move(other.m_regex_ranges))
   {
     other.m_values.reset();
     other.m_node_count = 0U;
@@ -1970,6 +2253,31 @@ namespace adaptive_json5
     const document* compiled_schema_access::values(const compiled_schema& schema) noexcept
     {
       return schema.m_values.has_value() ? &*schema.m_values : nullptr;
+    }
+
+    /**
+     * @brief Give a compiled schema its regex instruction and range tables.
+     * @par Requirements
+     * P049; J5-060; J5-066.
+     * @par ID SWU-SCHEMA-276
+     */
+    void compiled_schema_access::attach_regex(compiled_schema& schema, owned_block&& code,
+                                              owned_block&& ranges) noexcept
+    {
+      schema.m_regex_code = std::move(code);
+      schema.m_regex_ranges = std::move(ranges);
+    }
+
+    /**
+     * @brief Borrow the regex instruction and range tables.
+     * @par Requirements
+     * P049; J5-060.
+     * @par ID SWU-SCHEMA-277
+     */
+    regex_tables compiled_schema_access::regex(const compiled_schema& schema) noexcept
+    {
+      return regex_tables{static_cast<const regex_inst*>(schema.m_regex_code.data()),
+                          static_cast<const regex_range*>(schema.m_regex_ranges.data())};
     }
   } // namespace detail
 } // namespace adaptive_json5

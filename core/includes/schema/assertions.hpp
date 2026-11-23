@@ -21,6 +21,12 @@ namespace adaptive_json5::detail
    */
   using keyword_mask = std::uint64_t;
 
+  /// @brief The empty keyword_mask.
+  constexpr keyword_mask c_no_keywords = 0U;
+
+  /// @brief The keyword_mask bit of the first keyword.
+  constexpr keyword_mask c_first_keyword_bit = 1U;
+
   /**
    * @brief Return the keyword_mask bit of a keyword.
    * @par Requirements
@@ -29,7 +35,7 @@ namespace adaptive_json5::detail
    */
   [[nodiscard]] constexpr keyword_mask keyword_bit(schema_keyword keyword) noexcept
   {
-    return keyword_mask{1U} << static_cast<std::uint32_t>(keyword);
+    return c_first_keyword_bit << static_cast<std::uint32_t>(keyword);
   }
 
   /**

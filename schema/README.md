@@ -9,11 +9,10 @@ public headers in `includes/adaptive_json5/schema/` (entry header
 [ADR 0006](../core/docs/adr-0006-schema-component.md). This directory holds no code
 and is not a dependency of the parser target.
 
-Status: P043–P046 are implemented: registry, compilation with `$ref` resolution,
-exact equality and validation of boolean schemas, `$ref`, allOf, anyOf, oneOf, not,
-if/then/else, properties and items. The remaining Draft-07 assertion keywords
-follow in P047–P051 and meta-schema checking in P052; until then other keywords
-are compiled but not evaluated. Limits and storage are described in
+Status: P043–P051 are implemented: registry, compilation with `$ref` resolution,
+exact equality and every Draft-07 assertion and applicator keyword (types, values,
+numbers, strings and patterns, arrays, objects, combinators and conditions).
+Meta-schema checking (P052) and annotations (P053) follow. Limits and storage are described in
 [memory and limits](../docs/memory-and-limits.md#schema-component-limits-optional-adr-0006).
 
 Keep schema errors separate from syntax errors and consumer policies. Runtime

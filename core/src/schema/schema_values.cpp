@@ -5,6 +5,7 @@
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
 #include "adaptive_json5/schema/schema_error.hpp"
+#include "adaptive_json5/value/decoded_name_equal.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/owned_number.hpp"
@@ -13,6 +14,7 @@
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 #include "schema/pod_vector.hpp"
+#include "schema/schema_graph.hpp"
 #include "value/document_access.hpp"
 
 #include <array>
@@ -72,10 +74,12 @@ namespace adaptive_json5::detail
       for (const auto& entry : c_names)
       {
         bool equal = name.size() == entry.first.size();
-        for (std::size_t index = 0U; equal && (index < entry.first.size()); ++index)
+        std::size_t index = 0U;
+        while (equal && (index < entry.first.size()))
         {
           const auto unit = name.unit_at(index);
           equal = unit.has_value() && (*unit.value_if() == static_cast<std::uint16_t>(entry.first[index]));
+          ++index;
         }
         if (equal)
         {
@@ -108,7 +112,8 @@ namespace adaptive_json5::detail
     {
       using text_result = result<decoded_string, schema_error>;
       units.truncate(0U);
-      for (std::size_t index = 0U; index < text.size(); ++index)
+      std::size_t index = 0U;
+      while (index < text.size())
       {
         const auto unit = text.unit_at(index);
         if (!unit.has_value())
@@ -120,6 +125,7 @@ namespace adaptive_json5::detail
         {
           return text_result::failure(*pushed.error_if());
         }
+        ++index;
       }
       auto copied = decoded_string::copy_units(storage, units.writable(), units.size());
       if (!copied.has_value())
@@ -290,6 +296,100 @@ namespace adaptive_json5::detail
   } // namespace
 
   /**
+   * @brief Check that a value is an array of distinct strings (required, dependency lists).
+   * @par Requirements
+   * P051; J5-054.
+   * @par ID SWU-SCHEMA-293
+   */
+  result<void, schema_error> check_name_list(const value_view& value) noexcept
+  {
+    const auto kind = value.kind();
+    auto outer = value.children();
+    if (!kind.has_value() || (*kind.value_if() != value_kind::array) || !outer.has_value())
+    {
+      return status::failure(shape_at(value));
+    }
+    for (;;)
+    {
+      const auto first = outer.value_if()->next();
+      if (!first.has_value() || !first.value_if()->has_value())
+      {
+        return first.has_value() ? status::success() : status::failure(failure_of(first.error_if()));
+      }
+      const auto first_text = (*first.value_if())->as_string();
+      if (!first_text.has_value())
+      {
+        return status::failure(shape_at(**first.value_if()));
+      }
+      value_iterator later = *outer.value_if();
+      for (;;)
+      {
+        const auto second = later.next();
+        if (!second.has_value())
+        {
+          return status::failure(failure_of(second.error_if()));
+        }
+        if (!second.value_if()->has_value())
+        {
+          break;
+        }
+        const auto second_text = (*second.value_if())->as_string();
+        const auto equal = second_text.has_value()
+                             ? decoded_name_equal(**first_text.value_if(), **second_text.value_if())
+                             : result<bool>::success(false);
+        if (!equal.has_value() || *equal.value_if())
+        {
+          return status::failure(shape_at(**second.value_if()));
+        }
+      }
+    }
+  }
+
+  /**
+   * @brief Copy the array-form entries of a `dependencies` object (name -> required names).
+   * @par Requirements
+   * P051; J5-054; J5-057; J5-066.
+   * @par ID SWU-SCHEMA-292
+   */
+  result<value_index, schema_error> copy_dependency_arrays(const value_view& dependencies, document& target,
+                                                           const storage_callbacks& storage, std::size_t& steps,
+                                                           std::size_t step_limit) noexcept
+  {
+    auto object = document_access::make_object(target);
+    auto members = dependencies.children();
+    if (!object.has_value() || !members.has_value())
+    {
+      return index_result::failure(failure_of(object.has_value() ? members.error_if() : object.error_if()));
+    }
+    pod_vector<std::uint16_t> units{storage};
+    for (;;)
+    {
+      const auto member = members.value_if()->next();
+      if (!member.has_value() || !member.value_if()->has_value())
+      {
+        return member.has_value() ? index_result::success(*object.value_if())
+                                  : index_result::failure(failure_of(member.error_if()));
+      }
+      const value_view& entry = **member.value_if();
+      const auto kind = entry.kind();
+      if (!kind.has_value() || (*kind.value_if() != value_kind::array))
+      {
+        continue;
+      }
+      const auto checked = check_name_list(entry);
+      const auto copy = checked.has_value() ? copy_value(entry, target, storage, steps, step_limit)
+                                            : index_result::failure(*checked.error_if());
+      const auto attached = copy.has_value() ? attach_copy(copy_frame{value_iterator{}, *object.value_if(), true},
+                                                           entry, *copy.value_if(), target, storage, units)
+                                             : status::failure(*copy.error_if());
+      if (!attached.has_value())
+      {
+        return index_result::failure(*attached.error_if());
+      }
+    }
+  }
+
+  /**
    * @brief Parse a `type` keyword value into a mask of type_bit values.
    * @par Requirements
    * P047; J5-054; J5-057.
@@ -322,11 +422,11 @@ namespace adaptive_json5::detail
         break;
       }
       const std::uint8_t bit = type_of_name_value(**element.value_if());
-      if ((bit == 0U) || ((mask & bit) != 0U))
+      if ((bit == 0U) || has_flag(mask, bit))
       {
         return mask_result::failure(shape_at(**element.value_if()));
       }
-      mask = static_cast<std::uint8_t>(mask | bit);
+      mask = with_flag(mask, bit);
     }
     return (mask != 0U) ? mask_result::success(mask) : mask_result::failure(shape_at(value));
   }
