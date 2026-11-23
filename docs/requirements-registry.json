@@ -3972,6 +3972,14 @@
         {
           "files": ["core/src/schema/schema_compiler.cpp"],
           "symbols": ["process", "shape_error"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["compile_assertion_keywords", "read_count_keyword"]
+        },
+        {
+          "files": ["core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
+          "symbols": ["check_name_list", "parse_type_keyword"]
         }
       ],
       "tests": [
@@ -4233,6 +4241,14 @@
         {
           "files": ["core/includes/schema/instance_domain.hpp", "core/src/schema/instance_domain.cpp"],
           "symbols": ["check_instance_domain"]
+        },
+        {
+          "files": ["core/includes/schema/exact_number.hpp", "core/src/schema/exact_number.cpp"],
+          "symbols": ["is_multiple_of", "is_positive"]
+        },
+        {
+          "files": ["core/src/schema/assertions.cpp"],
+          "symbols": ["check_numeric"]
         }
       ],
       "tests": [
@@ -4324,6 +4340,10 @@
         {
           "files": ["core/includes/schema/instance_domain.hpp", "core/src/schema/instance_domain.cpp"],
           "symbols": ["check_instance_domain", "check_unique_names"]
+        },
+        {
+          "files": ["core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
+          "symbols": ["copy_value", "copy_dependency_arrays"]
         }
       ],
       "tests": [
@@ -4514,6 +4534,14 @@
         {
           "files": ["core/src/schema/schema_compiler.cpp"],
           "symbols": ["charge", "add_node"]
+        },
+        {
+          "files": ["core/includes/schema/schema_work.hpp", "core/src/schema/schema_work.cpp"],
+          "symbols": ["regex_steps"]
+        },
+        {
+          "files": ["includes/adaptive_json5/schema/schema_budget.hpp"],
+          "symbols": ["max_regex_steps"]
         }
       ],
       "tests": [
@@ -4599,6 +4627,12 @@
           "file": "tests/schema/object_tests.cpp",
           "names": [
             "P051_ObjectShape.ChargesPatternPropertiesToTheRegexBudget"
+          ]
+        },
+        {
+          "file": "tests/schema/assertion_failure_tests.cpp",
+          "names": [
+            "P051_AllocationFailures.CompileStepLimit"
           ]
         }
       ]
