@@ -575,6 +575,7 @@ with the `schema_limit_reason` of the same name.
 | `validation_budget::max_equality_steps` | 100,000 | Value pairs visited by exact equality |
 | `validation_budget::max_errors` | 100 | Diagnostics kept in collect-all mode; reaching it sets `truncated()`, not an error |
 | `validation_budget::max_work_steps` | 1,000,000 | Every evaluation step, pre-pass value and name comparison |
+| `validation_budget::max_regex_steps` | 1,000,000 | Pattern matcher thread steps (`pattern`, `patternProperties`) |
 | `schema_compile_limits::max_schema_nodes` | 100,000 | Compiled nodes across all registered resources |
 | `schema_compile_limits::max_compile_steps` | 1,000,000 | Keywords, members, key lookups, pointer steps and cycle checks |
 | registry capacity | set by `schema_registry::create()` | Registered resources (`max_resources`) |

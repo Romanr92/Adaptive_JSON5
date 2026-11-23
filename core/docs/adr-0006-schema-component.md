@@ -1,9 +1,9 @@
-# ADR 0006: Schema component decisions (P043–P046)
+# ADR 0006: Schema component decisions (P043–P051)
 
 Status: Decided, 2026-11-22. Started 2026-11-13; the open points of the 2026-11-14
 review (O1–O10) were settled by the user on 2026-11-22 (last section).
 Production C++ is written by the human developer; this record does not claim
-implementation or verification. All requirement rows stay Draft.
+implementation or verification. Requirement statuses are kept in the requirements registry.
 
 Context: issue #44, P043–P046 of the
 [implementation sequence](requirements-json5-implementation-order.md). Related
@@ -476,3 +476,38 @@ suggested resolution:
 `$ref` fragments that are JSON Pointers are decoded per RFC 6901 §6: `%XX` escapes and
 then `~1`/`~0` are decoded in pointer tokens only. Decision 8's "no percent-decoding"
 applies to URI comparison, not to pointer tokens.
+
+## Assertion keywords (P047–P051, issue #48)
+
+Decided by the owner on 2026-11-22 for issue #48 (J5-057, J5-059, J5-060, J5-061, J5-065):
+
+- **const, enum and other schema values.** Compilation copies `const`, `enum`, the numeric
+  bounds, `required` and array-form `dependencies` into an owned value document inside the
+  compiled schema (result storage), so decision 4 holds unchanged: the registry and the
+  schema texts can be destroyed after compilation. Comparisons use the exact equality of
+  decision 11.
+- **Regex dialect and engine.** `pattern` and `patternProperties` use an own ECMA-262
+  compiler and a Pike VM (NFA simulation without backtracking) on Unicode code points, with
+  caller storage only and no third-party dependency. Matching time is bounded by pattern size
+  times input length and charged to `validation_budget::max_regex_steps` (default
+  1,000,000). Supported: literals and escapes, `.`, classes with ranges and negation,
+  `\d \D \w \W \s \S`, `^ $ \b \B`, groups and `(?:...)`, alternation and all greedy and
+  lazy quantifiers; Annex B literal `{`, `}` and `]`. Backreferences, lookaround, named
+  groups, `\p`, `\c` and legacy octal escapes return `invalid_schema` with the
+  `unsupported_pattern` sub-reason; malformed patterns `invalid_pattern`. `.` matches one
+  code point (the behavior of ECMA-262's `u` flag); there are no flags.
+- **Lengths** (`minLength`, `maxLength`) count code points; the instance check guarantees
+  that every surrogate is paired.
+- **propertyNames** validates a copy of each member name as a string and reports one
+  `propertyNames` diagnostic for the object, like `contains`, instead of diagnostics inside
+  the copies.
+
+### Rejected alternatives
+
+- A backtracking engine: closer to full ECMA-262, but hostile patterns would only be stopped
+  by the step budget.
+- RE2 or PCRE2: allocate through their own heap, may throw or abort on exhaustion and add a
+  third-party dependency (J5-046, J5-068, J5-101).
+- Moving the parsed schema documents into the compiled schema: less code, but keeps whole
+  documents alive and changes the compile API (decision 4).
+

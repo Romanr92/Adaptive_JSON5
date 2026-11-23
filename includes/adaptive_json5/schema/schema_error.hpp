@@ -95,7 +95,8 @@ namespace adaptive_json5
     max_work_steps = 5,
     max_schema_nodes = 6,
     max_compile_steps = 7,
-    max_resources = 8 // A schema registry is full (its capacity is fixed at creation).
+    max_resources = 8,  // A schema registry is full (its capacity is fixed at creation).
+    max_regex_steps = 9 // Pattern matching work (P049).
   };
 
   /**

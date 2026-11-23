@@ -13,7 +13,8 @@ namespace adaptive_json5
    * P043; J5-049; J5-065; ADR 0006 decision 5.
    * @note Exceeding a limit returns schema_error_code::resource_limit with the matching
    * schema_limit_reason. max_errors is the exception: reaching it in collect-all mode only
-   * truncates the diagnostic list (ADR 0006 decision 12). The regex budget is added with P048.
+   * truncates the diagnostic list (ADR 0006 decision 12). max_regex_steps bounds the linear-time
+   * pattern matcher (P049).
    * Construction performs no allocation.
    */
   // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
@@ -28,6 +29,7 @@ namespace adaptive_json5
       std::size_t max_equality_steps = 100'000;            // Nodes visited by const, enum, uniqueItems.
       std::size_t max_errors = 100;                        // Diagnostics kept in collect-all mode.
       std::size_t max_work_steps = 1'000'000;              // Overall cap on all evaluation steps.
+      std::size_t max_regex_steps = 1'000'000;             // Pattern matcher thread steps (P049).
   };
 
   /**

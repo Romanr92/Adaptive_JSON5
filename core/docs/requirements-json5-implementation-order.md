@@ -808,6 +808,15 @@ Implement type, enum and const, including type unions and mathematical integer s
 - Existing contracts: J5-057, J5-059, J5-061.
 - Unit acceptance: Positive/negative/nonapplicable-type cases and exact numeric parity.
 
+Implementation: `type` (single names and unions, `integer` decided by mathematical value
+through the parser's number analysis), `enum` and `const`. Compilation copies the values
+into an owned value document in the compiled schema (ADR 0006, #48 section); validation
+compares them with the P045 exact equality. Assertion keywords run in an evaluator phase
+before the applicators; each failed keyword is its own diagnostic
+(`core/src/schema/assertions.cpp`, `core/src/schema/schema_values.cpp`). Units:
+`tests/schema/type_value_tests.cpp` (`P047_Type`, `P047_TypeShape`, `P047_EnumConst`,
+`P047_EnumConstShape`).
+
 ### P048 — Numeric assertions
 
 Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #49).
@@ -817,6 +826,12 @@ Implement multipleOf, minimum, maximum, exclusiveMinimum and exclusiveMaximum wi
 - Prerequisites: P047.
 - Existing contracts: J5-057, J5-059.
 - Unit acceptance: Exact fractional divisibility, huge numbers, every inclusive/exclusive bound.
+
+Implementation: `minimum`, `maximum`, `exclusiveMinimum` and `exclusiveMaximum` with the
+exact `compare_numbers()`; `multipleOf` scales both numbers to a common power of ten and
+takes an exact big-integer remainder (`core/src/schema/exact_number.cpp`); work beyond the
+parser's default work limit returns `resource_limit`. Units: `tests/schema/numeric_tests.cpp`
+(`P048_Bounds`, `P048_MultipleOf`, `P048_NumericShape`).
 
 ### P049 — String assertions and regex budget
 
@@ -828,6 +843,13 @@ Implement minLength/maxLength in Unicode characters and pattern with the documen
 - Existing contracts: J5-057, J5-060, J5-065.
 - Unit acceptance: Supplementary characters, unpaired-unit policy, unanchored patterns, malformed patterns and budget exhaustion.
 
+Implementation: `minLength`/`maxLength` count code points. `pattern` uses the owner-chosen
+own ECMA-262 compiler and Pike VM on code points (`core/src/schema/regex.cpp`, ADR 0006
+#48 section), bounded by the new `validation_budget::max_regex_steps`; unsupported
+features return `unsupported_pattern`, malformed patterns `invalid_pattern`. Units:
+`tests/schema/string_pattern_tests.cpp` (`P049_Length`, `P049_LengthShape`, `P049_Pattern`,
+`P049_PatternErrors`).
+
 ### P050 — Array assertions
 
 Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #51).
@@ -838,6 +860,10 @@ Implement items (schema/tuple), additionalItems, minItems, maxItems, uniqueItems
 - Existing contracts: J5-057, J5-061.
 - Unit acceptance: Empty/tuple arrays, nested schemas, deep exact uniqueness and matching/nonmatching contains cases.
 
+Implementation: `minItems`, `maxItems`, `uniqueItems` (pairwise exact equality, charged
+to `max_equality_steps`), `additionalItems` after an `items` tuple and `contains` (one
+diagnostic). Units: `tests/schema/array_tests.cpp` (`P050_Arrays`, `P050_ArrayShape`).
+
 ### P051 — Object assertions
 
 Tracking: [#48](https://github.com/Romanr92/Adaptive_JSON5/issues/48) (original step issue #52).
@@ -847,6 +873,16 @@ Implement minProperties, maxProperties, required, properties, patternProperties,
 - Prerequisites: P046, P049.
 - Existing contracts: J5-057.
 - Unit acceptance: Missing fields, overlapping patterns, dynamic names, dependent schemas, unknown fields and type applicability.
+
+Implementation: `minProperties`, `maxProperties`, `required`, `properties`,
+`patternProperties` (one compiled regex per key), `additionalProperties`, `dependencies`
+in array and schema form, and `propertyNames` (member names validated as strings; one
+diagnostic per object). Units: `tests/schema/object_tests.cpp` (`P051_Objects`,
+`P051_ObjectShape`).
+
+Local P047–P051 results (2026-11-23, Windows GCC 15.2.0, Ninja, RTTI OFF): 462/462 schema
+units with exceptions OFF and ON; clang-format 18.1.8 clean; no function above the
+complexity limits. CI and developer review/merge are pending.
 
 ### P052 — Logical and conditional assertions
 
