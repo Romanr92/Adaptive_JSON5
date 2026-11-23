@@ -23,7 +23,7 @@ the time of writing; the marker ID in the source is authoritative.
 | DEV-110 | Rules 21.2.2 and 24.5.2, std::memcpy of trivially copyable elements | 1 |
 | DEV-111 | Rule 0.1.1, defensive initialization | 3 |
 | DEV-112 | Rule 21.6.3, construction in caller-provided storage | 3 |
-| DEV-113 | Rule 4.1.3, signed arithmetic bounded by saturation | 7 |
+| DEV-113 | Rule 4.1.3, signed arithmetic bounded by saturation | 5 |
 | DEV-114 | Rule 6.0.3/redeclaration query, namespace-scope constexpr constant | 1 |
 
 ## DEV-101: Rule 8.20.1, unsigned arithmetic that cannot wrap
@@ -644,7 +644,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/signed-integer-overflow` |
-| Lines | 7 |
+| Lines | 5 |
 | Status | Proposed (#48) |
 
 ### Why this rule is deviated instead of fixed
@@ -659,13 +659,11 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 
 | ID | Location | Code | Rules | Status |
 | --- | --- | --- | --- | --- |
-| DEV-113.1 | `core/src/schema/exact_number.cpp:337` | `built = build_scaled(modulus, *divisor_parts, divisor_parts->exponent - common, work);` | 4.1.3 | Proposed |
-| DEV-113.2 | `core/src/schema/exact_number.cpp:333` | `built = build_scaled(dividend, *value_parts, value_parts->exponent - common, work);` | 4.1.3 | Proposed |
-| DEV-113.3 | `core/src/schema/exact_number.cpp:312` | `const auto modulus_digits = scaled_digits(*divisor_parts, divisor_parts->exponent - comm...` | 4.1.3 | Proposed |
-| DEV-113.4 | `core/src/schema/exact_number.cpp:311` | `const auto dividend_digits = scaled_digits(*value_parts, value_parts->exponent - common);` | 4.1.3 | Proposed |
-| DEV-113.5 | `core/src/schema/exact_number.cpp:219` | `++count;` | 4.1.3 | Proposed |
-| DEV-113.6 | `core/src/schema/exact_number.cpp:121` | `parts.exponent -= static_cast<std::int64_t>(parts.fraction.size());` | 4.1.3 | Proposed |
-| DEV-113.7 | `core/src/schema/exact_number.cpp:80` | `value = (value * 10) + static_cast<std::int64_t>(digit_value(c, 10U).value_or(0U));` | 4.1.3 | Proposed |
+| DEV-113.3 | `core/src/schema/exact_number.cpp:374` | `const auto modulus_zeros = static_cast<std::int64_t>(divisor_parts->exponent - common);` | 4.1.3 | Proposed |
+| DEV-113.4 | `core/src/schema/exact_number.cpp:368` | `const auto dividend_zeros = static_cast<std::int64_t>(value_parts->exponent - common);` | 4.1.3 | Proposed |
+| DEV-113.5 | `core/src/schema/exact_number.cpp:266` | `++count;` | 4.1.3 | Proposed |
+| DEV-113.6 | `core/src/schema/exact_number.cpp:153` | `parts.exponent -= static_cast<std::int64_t>(parts.fraction.size());` | 4.1.3 | Proposed |
+| DEV-113.7 | `core/src/schema/exact_number.cpp:93` | `value = (value * 10) + static_cast<std::int64_t>(digit_value(c, 10U).value_or(0U));` | 4.1.3 | Proposed |
 
 ## DEV-114: Rule 6.0.3/redeclaration query, namespace-scope constexpr constant
 

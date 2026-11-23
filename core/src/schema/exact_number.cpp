@@ -365,13 +365,15 @@ namespace adaptive_json5::detail
     // the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
     // follow the saturation.
     // codeql::misra_deviation_next_line(DEV-113.4)
-    const auto dividend_digits = scaled_digits(*value_parts, value_parts->exponent - common);
+    const auto dividend_zeros = static_cast<std::int64_t>(value_parts->exponent - common);
     // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
     // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded by
     // the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
     // follow the saturation.
     // codeql::misra_deviation_next_line(DEV-113.3)
-    const auto modulus_digits = scaled_digits(*divisor_parts, divisor_parts->exponent - common);
+    const auto modulus_zeros = static_cast<std::int64_t>(divisor_parts->exponent - common);
+    const auto dividend_digits = scaled_digits(*value_parts, dividend_zeros);
+    const auto modulus_digits = scaled_digits(*divisor_parts, modulus_zeros);
     if (!dividend_digits.has_value() || !modulus_digits.has_value())
     {
       return bool_result::failure(schema_error::from_storage(error::without_location(error_code::resource_limit)));
@@ -392,21 +394,11 @@ namespace adaptive_json5::detail
     }
     if (built.has_value())
     {
-      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-      // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
-      // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
-      // follow the saturation.
-      // codeql::misra_deviation_next_line(DEV-113.2)
-      built = build_scaled(dividend, *value_parts, value_parts->exponent - common, work);
+      built = build_scaled(dividend, *value_parts, dividend_zeros, work);
     }
     if (built.has_value())
     {
-      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
-      // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
-      // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
-      // follow the saturation.
-      // codeql::misra_deviation_next_line(DEV-113.1)
-      built = build_scaled(modulus, *divisor_parts, divisor_parts->exponent - common, work);
+      built = build_scaled(modulus, *divisor_parts, modulus_zeros, work);
     }
     if (built.has_value() && modulus.is_zero())
     {
