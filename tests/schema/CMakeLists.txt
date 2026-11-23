@@ -36,5 +36,7 @@ adaptive_json5_add_unit(adaptive_json5_schema_assertion_unit_tests schema_assert
     numeric_tests.cpp
     string_pattern_tests.cpp
     array_tests.cpp
-    object_tests.cpp)
+    object_tests.cpp
+    assertion_failure_tests.cpp
+    assertion_edge_tests.cpp)
 target_link_libraries(adaptive_json5_schema_assertion_unit_tests PRIVATE AdaptiveJSON5::schema)

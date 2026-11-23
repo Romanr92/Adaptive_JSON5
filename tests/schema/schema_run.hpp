@@ -31,12 +31,13 @@ namespace adaptive_json5_test
   };
 
   /**
-   * @brief Compile schema_text and validate instance_text in collect-all mode.
+   * @brief Compile schema_text and validate instance_text (collect-all mode unless mode says otherwise).
    * @par Requirements
    * P047; J5-057.
    */
   inline schema_outcome run_schema(const std::string& schema_text, const std::string& instance_text,
-                                   const adaptive_json5::validation_budget& budget = {})
+                                   const adaptive_json5::validation_budget& budget = {},
+                                   adaptive_json5::evaluation_mode mode = adaptive_json5::evaluation_mode::collect_all)
   {
     using namespace adaptive_json5;
     schema_outcome outcome{};
@@ -79,7 +80,7 @@ namespace adaptive_json5_test
     validation_options run{};
     run.work_storage = work.callbacks();
     run.report_storage = report_storage.callbacks();
-    run.mode = evaluation_mode::collect_all;
+    run.mode = mode;
     run.budget = budget;
     const auto report = validate(*compiled, instance.value_if()->values, run);
     EXPECT_EQ(work.live_bytes, 0U);

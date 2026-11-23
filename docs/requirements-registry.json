@@ -2993,6 +2993,15 @@
             "J5_046_StorageIdentity.FirstAllocationFailureRollsBackAndRetries",
             "J5_046_StorageIdentity.FailedGrowthRetainsIdentityAndRecords"
           ]
+        },
+        {
+          "file": "tests/schema/assertion_failure_tests.cpp",
+          "names": [
+            "P051_AllocationFailures.CompileResultStorage",
+            "P051_AllocationFailures.CompileScratchStorage",
+            "P051_AllocationFailures.ValidationWorkStorage",
+            "P051_AllocationFailures.ReportStorage"
+          ]
         }
       ]
     },
@@ -3526,6 +3535,15 @@
           "names": [
             "J5_051_BufferDocumentStorage.LiveAllocationSurvivesMoveAndBufferIsReusable"
           ]
+        },
+        {
+          "file": "tests/schema/assertion_failure_tests.cpp",
+          "names": [
+            "P051_AllocationFailures.CompileResultStorage",
+            "P051_AllocationFailures.CompileScratchStorage",
+            "P051_AllocationFailures.ValidationWorkStorage",
+            "P051_AllocationFailures.ReportStorage"
+          ]
         }
       ]
     },
@@ -4006,6 +4024,12 @@
           "names": [
             "P051_ObjectShape.RejectsMalformedKeywords"
           ]
+        },
+        {
+          "file": "tests/schema/assertion_edge_tests.cpp",
+          "names": [
+            "P051_ListShapes.AreChecked"
+          ]
         }
       ]
     },
@@ -4169,6 +4193,19 @@
             "P051_Objects.MatchDraft07",
             "P051_ObjectShape.ReportsObjectKeywords"
           ]
+        },
+        {
+          "file": "tests/schema/assertion_edge_tests.cpp",
+          "names": [
+            "P051_FailFast.MatchesCollectAll"
+          ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P047_InvalidViews.SchemaValueHelpersReportAccessFailures",
+            "P051_InvalidViews.AssertionsReportAccessFailures"
+          ]
         }
       ]
     },
@@ -4222,6 +4259,18 @@
           "names": [
             "P048_MultipleOf.IsExact"
           ]
+        },
+        {
+          "file": "tests/schema/assertion_edge_tests.cpp",
+          "names": [
+            "P048_NumberSpellings.AreExact"
+          ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P048_ExactNumbers.RejectNonFiniteOperands"
+          ]
         }
       ]
     },
@@ -4249,6 +4298,13 @@
             "P049_Length.CountsCodePoints",
             "P049_Pattern.MatchesEcma262",
             "P049_PatternErrors.ReportsMalformedAndUnsupported"
+          ]
+        },
+        {
+          "file": "tests/schema/assertion_edge_tests.cpp",
+          "names": [
+            "P049_PatternEdges.FollowEcma262",
+            "P049_UnpairedUnits.FollowTheInstancePolicy"
           ]
         }
       ]
@@ -4306,6 +4362,13 @@
           "file": "tests/schema/array_tests.cpp",
           "names": [
             "P050_Arrays.MatchDraft07"
+          ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P047_InvalidViews.CopyHonoursTheStepLimit",
+            "P047_InvalidViews.CopyAllocationFailureSweep"
           ]
         }
       ]

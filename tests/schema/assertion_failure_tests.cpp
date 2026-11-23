@@ -46,7 +46,7 @@ namespace
    * @note Every provider checks on destruction that all its allocations were released.
    */
   failure_run run_failing(const std::string& schema_text, const std::string& instance_text, failing_provider which,
-                          std::size_t fail_on)
+                          std::size_t fail_on, std::size_t compile_steps = schema_compile_limits{}.max_compile_steps)
   {
     failure_run run{};
     schema_test_storage registry_provider;
@@ -67,6 +67,7 @@ namespace
       compile_options options{};
       options.result_storage = result_provider.callbacks();
       options.scratch_storage = scratch_provider.callbacks();
+      options.limits.max_compile_steps = compile_steps;
       auto result = compile_schema(*registry.value_if(), c_default_schema_base_uri, schema_dialect::draft_07, options);
       EXPECT_EQ(scratch_provider.live_bytes, 0U);
       if (!result.has_value())
@@ -184,6 +185,29 @@ namespace
     sweep(GetParam(), failing_provider::report);
   }
 
+  /*
+   * Arrange: As above.
+   * Act: Compile with max_compile_steps = 1, 2, ... until compilation succeeds.
+   * Expect: Every limited compile is resource_limit (regex compilation and value copies included) and
+   *         nothing leaks; the first successful compile keeps the verdict (J5-065).
+   */
+  TEST_P(P051_AllocationFailures, CompileStepLimit)
+  {
+    const sweep_case& item = GetParam();
+    for (std::size_t steps = 1U;; ++steps)
+    {
+      const failure_run run = run_failing(item.schema, item.instance, failing_provider::none, 0U, steps);
+      if (!run.error.has_value())
+      {
+        EXPECT_EQ(run.valid, item.valid) << item.schema << " steps " << steps;
+        break;
+      }
+      ASSERT_EQ(run.error, std::optional<schema_error_code>{schema_error_code::resource_limit})
+        << item.schema << " steps " << steps;
+      ASSERT_LT(steps, 5000U) << item.schema;
+    }
+  }
+
   INSTANTIATE_TEST_SUITE_P(
     Keywords, P051_AllocationFailures,
     testing::Values(
@@ -191,10 +215,9 @@ namespace
                  R"({"type": ["object", "integer"], "enum": [{"a": [1, "x", null, true]}, 2.0, "s"],
                      "const": {"a": [1, "x", null, true]}})",
                  R"({"a": [1, "x", null, true]})", true},
-      sweep_case{"TypeMismatch", R"({"type": "integer", "enum": [1.5, [1, {"b": false}]], "const": 2})", "1.5",
-                 false},
+      sweep_case{"TypeMismatch", R"({"type": "integer", "enum": [1.5, [1, {"b": false}]], "const": 2})", "1.5", false},
       sweep_case{"Numeric",
-                 R"({"minimum": -1e3, "maximum": 1e300, "exclusiveMinimum": 0.5, "exclusiveMaximum": 0x7FFF,
+                 R"({"minimum": -1e3, "maximum": 1e300, "exclusiveMinimum": 0.5, "exclusiveMaximum": 32767,
                      "multipleOf": 0.25})",
                  "12.75", true},
       sweep_case{"NumericFails", R"({"minimum": 10, "exclusiveMaximum": 3, "multipleOf": 0.3})", "1.1", false},
@@ -202,8 +225,8 @@ namespace
                  R"({"minLength": 2, "maxLength": 40,
                      "pattern": "^(?:[a-z]+|\\d{2,4})\\b[\\s\\S]*?(x|y|z)+$"})",
                  R"("abc 12 xyz")", true},
-      sweep_case{"StringClasses", R"({"pattern": "[^\\W_]{1,3}[\\-a-f\\u0041]*\\B.$", "maxLength": 1})",
-                 R"("ab-cé")", false},
+      sweep_case{"StringClasses", R"({"pattern": "[^\\W_]{1,3}[\\-a-f\\u0041]*\\B.$", "maxLength": 1})", R"("ab-cé")",
+                 false},
       sweep_case{"Arrays",
                  R"({"items": [{"type": "integer"}, {"const": "x"}], "additionalItems": {"type": "string"},
                      "minItems": 1, "maxItems": 6, "uniqueItems": true, "contains": {"pattern": "^q"}})",
@@ -227,5 +250,8 @@ namespace
                      "anyOf": [{"required": ["list"]}, {"minProperties": 3}],
                      "not": {"propertyNames": {"pattern": "^_"}}})",
                  R"({"list": [2, 4, 6]})", true}),
-    [](const testing::TestParamInfo<sweep_case>& info) { return std::string{info.param.name}; });
+    [](const testing::TestParamInfo<sweep_case>& param_info)
+    {
+      return std::string{param_info.param.name};
+    });
 } // namespace

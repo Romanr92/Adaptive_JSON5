@@ -24,6 +24,10 @@ namespace adaptive_json5::detail
 
     // Scales beyond this cannot be built within the parser's default work limit anyway.
     constexpr std::int64_t c_scale_cap = 1099511627776; // 2^40
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.1)
     constexpr std::string_view c_signs{"+-"};
     constexpr std::size_t c_minus_index = 1U;
 
@@ -32,6 +36,10 @@ namespace adaptive_json5::detail
      * @par Requirements
      * P048; J5-059.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.31)
     struct decimal_parts
     {
         std::string_view integer{};
@@ -77,6 +85,11 @@ namespace adaptive_json5::detail
       {
         if (value < c_scale_cap)
         {
+          // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+          // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are
+          // bounded by the document size, so sums and differences of two exponents stay far inside std::int64_t;
+          // CodeQL does not follow the saturation.
+          // codeql::misra_deviation_next_line(DEV-113.7)
           value = (value * 10) + static_cast<std::int64_t>(digit_value(c, 10U).value_or(0U));
         }
       }
@@ -102,6 +115,10 @@ namespace adaptive_json5::detail
       {
         text.remove_prefix(1U);
       }
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.39)
       decimal_parts parts{};
       if (number.kind() == number_kind::hexadecimal)
       {
@@ -112,12 +129,27 @@ namespace adaptive_json5::detail
       const std::size_t exponent = text.find_first_of("eE");
       if (exponent != std::string_view::npos)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.92)
         parts.exponent = read_exponent(text.substr(exponent + 1U));
         text = text.substr(0U, exponent);
       }
       const std::size_t point = text.find('.');
       parts.integer = text.substr(0U, point);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.91)
       parts.fraction = (point == std::string_view::npos) ? std::string_view{} : text.substr(point + 1U);
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
+      // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
+      // follow the saturation.
+      // codeql::misra_deviation_next_line(DEV-113.6)
       parts.exponent -= static_cast<std::int64_t>(parts.fraction.size());
       return parts;
     }
@@ -168,7 +200,17 @@ namespace adaptive_json5::detail
     std::optional<std::size_t> scaled_digits(const decimal_parts& parts, std::int64_t zeros) noexcept
     {
       const std::size_t limit = resource_limits{}.max_work_units;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.90)
       const std::size_t written = parts.integer.size() + parts.fraction.size();
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.89)
       const std::size_t digits = (parts.radix == 16U) ? (written * 2U) : written;
       if ((zeros < 0) || (static_cast<std::uint64_t>(zeros) > static_cast<std::uint64_t>(limit)) ||
           (digits > (limit - static_cast<std::size_t>(zeros))))
@@ -216,6 +258,11 @@ namespace adaptive_json5::detail
       {
         const auto appended = target.append_digit(0U, 10U, work);
         built = appended.has_value() ? status::success() : status::failure(failure_of(appended));
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
+        // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does
+        // not follow the saturation.
+        // codeql::misra_deviation_next_line(DEV-113.5)
         ++count;
       }
       return built;
@@ -240,6 +287,11 @@ namespace adaptive_json5::detail
       {
         return status::success();
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.88)
       std::size_t shift = (*value_bits.value_if() - *divisor_bits.value_if()) + 1U;
       while (shift != 0U)
       {
@@ -308,7 +360,17 @@ namespace adaptive_json5::detail
     }
     const std::int64_t common =
       (value_parts->exponent < divisor_parts->exponent) ? value_parts->exponent : divisor_parts->exponent;
+    // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+    // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded by
+    // the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
+    // follow the saturation.
+    // codeql::misra_deviation_next_line(DEV-113.4)
     const auto dividend_digits = scaled_digits(*value_parts, value_parts->exponent - common);
+    // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+    // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded by
+    // the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
+    // follow the saturation.
+    // codeql::misra_deviation_next_line(DEV-113.3)
     const auto modulus_digits = scaled_digits(*divisor_parts, divisor_parts->exponent - common);
     if (!dividend_digits.has_value() || !modulus_digits.has_value())
     {
@@ -330,10 +392,20 @@ namespace adaptive_json5::detail
     }
     if (built.has_value())
     {
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
+      // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
+      // follow the saturation.
+      // codeql::misra_deviation_next_line(DEV-113.2)
       built = build_scaled(dividend, *value_parts, value_parts->exponent - common, work);
     }
     if (built.has_value())
     {
+      // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+      // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
+      // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not
+      // follow the saturation.
+      // codeql::misra_deviation_next_line(DEV-113.1)
       built = build_scaled(modulus, *divisor_parts, divisor_parts->exponent - common, work);
     }
     if (built.has_value() && modulus.is_zero())

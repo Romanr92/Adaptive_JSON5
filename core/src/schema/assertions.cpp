@@ -344,7 +344,17 @@ namespace adaptive_json5::detail
           return result<std::size_t, schema_error>::failure(failure_of(unit.error_if()));
         }
         const bool low_half = (*unit.value_if() >= 0xDC00U) && (*unit.value_if() <= 0xDFFFU);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.81)
         count += low_half ? 0U : 1U;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.80)
         ++index;
       }
       return result<std::size_t, schema_error>::success(count);

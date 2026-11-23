@@ -53,6 +53,10 @@ namespace adaptive_json5
      * P048; P049; P050; P051.
      */
     template <typename Bit, typename Field>
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.39)
     struct keyword_slot
     {
         schema_keyword keyword;
@@ -2055,6 +2059,10 @@ namespace adaptive_json5
     compiled_schema schema = detail::compiled_schema_access::make(
       state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(), property_count,
       state.units.release(), unit_count, registry.size(), *root.value_if());
+    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+    // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+    // once.
+    // codeql::misra_deviation_next_line(DEV-108.7)
     detail::compiled_schema_access::attach_values(schema, std::move(*state.values));
     detail::compiled_schema_access::attach_regex(schema, state.regex_code.release(), state.regex_ranges.release());
     return compile_result::success(std::move(schema));
@@ -2276,7 +2284,16 @@ namespace adaptive_json5
      */
     regex_tables compiled_schema_access::regex(const compiled_schema& schema) noexcept
     {
+      // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+      // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+      // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+      // codeql::misra_deviation_next_line(DEV-107.13)
       return regex_tables{static_cast<const regex_inst*>(schema.m_regex_code.data()),
+                          // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+                          // MISRA justification: Address computation inside an owned block from caller storage, as in
+                          // the parser storage layer (DEV-002/DEV-003); the offset is within the block size that was
+                          // allocated.
+                          // codeql::misra_deviation_next_line(DEV-107.12)
                           static_cast<const regex_range*>(schema.m_regex_ranges.data())};
     }
   } // namespace detail

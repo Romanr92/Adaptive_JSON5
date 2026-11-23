@@ -11,26 +11,28 @@ the time of writing; the marker ID in the source is authoritative.
 
 | ID | Category | Lines |
 | --- | --- | --- |
-| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 79 |
-| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 32 |
-| DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 38 |
-| DEV-104 | Rule 15.0.1, special member functions | 27 |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 154 |
+| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 33 |
+| DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 53 |
+| DEV-104 | Rule 15.0.1, special member functions | 40 |
 | DEV-105 | Rule 9.5.1, counting loops | 21 |
 | DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 21 |
-| DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 11 |
-| DEV-108 | Rule 28.6.3, objects after a move | 5 |
+| DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 13 |
+| DEV-108 | Rule 28.6.3, objects after a move | 11 |
 | DEV-109 | Rules 15.0.2 and 18.4.1, noexcept special members | 7 |
 | DEV-110 | Rules 21.2.2 and 24.5.2, std::memcpy of trivially copyable elements | 1 |
 | DEV-111 | Rule 0.1.1, defensive initialization | 3 |
 | DEV-112 | Rule 21.6.3, construction in caller-provided storage | 3 |
+| DEV-113 | Rule 4.1.3, signed arithmetic bounded by saturation | 7 |
+| DEV-114 | Rule 6.0.3/redeclaration query, namespace-scope constexpr constant | 1 |
 
 ## DEV-101: Rule 8.20.1, unsigned arithmetic that cannot wrap
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
-| Lines | 78 |
-| Status | Proposed (#44) |
+| Lines | 154 |
+| Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -123,14 +125,90 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.77 | `core/src/schema/uri.cpp:68` | `const std::size_t host_start = (at == std::string_view::npos) ? 0U : (at + 1U);` | 8.20.1 | Proposed |
 | DEV-101.78 | `core/src/schema/value_equality.cpp:317` | `const value_pair pair = stack.get(stack.size() - 1U);` | 8.20.1 | Proposed |
 | DEV-101.79 | `core/src/schema/pod_vector.cpp:35` | `return current * 2U;` | 8.20.1 | Proposed |
+| DEV-101.80 | `core/src/schema/assertions.cpp:348` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.81 | `core/src/schema/assertions.cpp:347` | `count += low_half ? 0U : 1U;` | 8.20.1 | Proposed |
+| DEV-101.82 | `core/src/schema/evaluator.cpp:987` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.83 | `core/src/schema/evaluator.cpp:941` | `++owner.cursor;` | 8.20.1 | Proposed |
+| DEV-101.84 | `core/src/schema/evaluator.cpp:940` | `const auto& edge = compiled_schema_access::property(run.schema, node.dependency_schemas....` | 8.20.1 | Proposed |
+| DEV-101.85 | `core/src/schema/evaluator.cpp:856` | `const auto& edge = compiled_schema_access::property(run.schema, node.pattern_properties....` | 8.20.1 | Proposed |
+| DEV-101.86 | `core/src/schema/evaluator.cpp:841` | `++owner.member_target;` | 8.20.1 | Proposed |
+| DEV-101.87 | `core/src/schema/evaluator.cpp:760` | `owner.passes += *delivered ? 1U : 0U;` | 8.20.1 | Proposed |
+| DEV-101.88 | `core/src/schema/exact_number.cpp:243` | `std::size_t shift = (*value_bits.value_if() - *divisor_bits.value_if()) + 1U;` | 8.20.1 | Proposed |
+| DEV-101.89 | `core/src/schema/exact_number.cpp:172` | `const std::size_t digits = (parts.radix == 16U) ? (written * 2U) : written;` | 8.20.1 | Proposed |
+| DEV-101.90 | `core/src/schema/exact_number.cpp:171` | `const std::size_t written = parts.integer.size() + parts.fraction.size();` | 8.20.1 | Proposed |
+| DEV-101.91 | `core/src/schema/exact_number.cpp:120` | `parts.fraction = (point == std::string_view::npos) ? std::string_view{} : text.substr(po...` | 8.20.1 | Proposed |
+| DEV-101.92 | `core/src/schema/exact_number.cpp:115` | `parts.exponent = read_exponent(text.substr(exponent + 1U));` | 8.20.1 | Proposed |
+| DEV-101.93 | `core/src/schema/regex.cpp:1443` | `++position;` | 8.20.1 | Proposed |
+| DEV-101.94 | `core/src/schema/regex.cpp:1424` | `return range_result::success(node_range{start, code.size() - start});` | 8.20.1 | Proposed |
+| DEV-101.95 | `core/src/schema/regex.cpp:1395` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.96 | `core/src/schema/regex.cpp:1377` | `++moved;` | 8.20.1 | Proposed |
+| DEV-101.97 | `core/src/schema/regex.cpp:1371` | `stepped = stepped.has_value() ? add_thread(state, state.next, state.program.first, posit...` | 8.20.1 | Proposed |
+| DEV-101.98 | `core/src/schema/regex.cpp:1369` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.99 | `core/src/schema/regex.cpp:1367` | `stepped = add_thread(state, state.next, pc + 1U, position + 1U);` | 8.20.1 | Proposed |
+| DEV-101.100 | `core/src/schema/regex.cpp:1357` | `++state.generation;` | 8.20.1 | Proposed |
+| DEV-101.101 | `core/src/schema/regex.cpp:1352` | `const auto charged = work.regex_steps(state.current.size() + 1U);` | 8.20.1 | Proposed |
+| DEV-101.102 | `core/src/schema/regex.cpp:1339` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.103 | `core/src/schema/regex.cpp:1337` | `const regex_range& range = tables.ranges[inst.first + index];` | 8.20.1 | Proposed |
+| DEV-101.104 | `core/src/schema/regex.cpp:1308` | `added = state.pending.push_back(at + 1U);` | 8.20.1 | Proposed |
+| DEV-101.105 | `core/src/schema/regex.cpp:1282` | `const std::size_t slot = at - state.program.first;` | 8.20.1 | Proposed |
+| DEV-101.106 | `core/src/schema/regex.cpp:1280` | `const std::size_t at = state.pending.get(state.pending.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.107 | `core/src/schema/regex.cpp:1192` | `const emit_task task = state.tasks.get(state.tasks.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.108 | `core/src/schema/regex.cpp:1155` | `emit_task{task_kind::concat_step, task.node, task.index + 1U, 0U, 0U})` | 8.20.1 | Proposed |
+| DEV-101.109 | `core/src/schema/regex.cpp:1154` | `emit_task{task_kind::emit, builder.children.get(node.first + task.index), 0U, 0U, 0U},` | 8.20.1 | Proposed |
+| DEV-101.110 | `core/src/schema/regex.cpp:1132` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.111 | `core/src/schema/regex.cpp:1123` | `? state.tasks.push_back(emit_task{task_kind::alt_step, task.node, task.index + 1U, task....` | 8.20.1 | Proposed |
+| DEV-101.112 | `core/src/schema/regex.cpp:1057` | `inst.first = split + 1U;` | 8.20.1 | Proposed |
+| DEV-101.113 | `core/src/schema/regex.cpp:1049` | `const emit_task body{task_kind::emit, builder.children.get(node.first + task.index), 0U,...` | 8.20.1 | Proposed |
+| DEV-101.114 | `core/src/schema/regex.cpp:1037` | `return push_tasks(state, body, emit_task{after, task.node, task.index + 1U, 0U, split});` | 8.20.1 | Proposed |
+| DEV-101.115 | `core/src/schema/regex.cpp:1026` | `const std::size_t body_start = split + 1U;` | 8.20.1 | Proposed |
+| DEV-101.116 | `core/src/schema/regex.cpp:1019` | `return push_tasks(state, body, emit_task{task_kind::repeat_step, task.node, task.index +...` | 8.20.1 | Proposed |
+| DEV-101.117 | `core/src/schema/regex.cpp:853` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.118 | `core/src/schema/regex.cpp:799` | `node.count = builder.ranges.size() - first_range;` | 8.20.1 | Proposed |
+| DEV-101.119 | `core/src/schema/regex.cpp:756` | `builder.position += 2U;` | 8.20.1 | Proposed |
+| DEV-101.120 | `core/src/schema/regex.cpp:731` | `++alt;` | 8.20.1 | Proposed |
+| DEV-101.121 | `core/src/schema/regex.cpp:714` | `const group_context group = builder.groups.get(builder.groups.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.122 | `core/src/schema/regex.cpp:693` | `++term;` | 8.20.1 | Proposed |
+| DEV-101.123 | `core/src/schema/regex.cpp:675` | `const group_context group = builder.groups.get(builder.groups.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.124 | `core/src/schema/regex.cpp:662` | `builder.terms.set(builder.terms.size() - 1U, index);` | 8.20.1 | Proposed |
+| DEV-101.125 | `core/src/schema/regex.cpp:654` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.126 | `core/src/schema/regex.cpp:648` | `node.first = builder.terms.get(builder.terms.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.127 | `core/src/schema/regex.cpp:622` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.128 | `core/src/schema/regex.cpp:612` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.129 | `core/src/schema/regex.cpp:592` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.130 | `core/src/schema/regex.cpp:589` | `const std::size_t digit = static_cast<std::size_t>(builder.text.get(builder.position) - ...` | 8.20.1 | Proposed |
+| DEV-101.131 | `core/src/schema/regex.cpp:573` | `node.count = builder.ranges.size() - node.first;` | 8.20.1 | Proposed |
+| DEV-101.132 | `core/src/schema/regex.cpp:572` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.133 | `core/src/schema/regex.cpp:556` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.134 | `core/src/schema/regex.cpp:527` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.135 | `core/src/schema/regex.cpp:491` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.136 | `core/src/schema/regex.cpp:459` | `++builder.position;` | 8.20.1 | Proposed |
+| DEV-101.137 | `core/src/schema/regex.cpp:440` | `builder.position += hex.has_value() ? digits : 0U;` | 8.20.1 | Proposed |
+| DEV-101.138 | `core/src/schema/regex.cpp:362` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.139 | `core/src/schema/regex.cpp:361` | `value = (value * 16U) + *digit;` | 8.20.1 | Proposed |
+| DEV-101.140 | `core/src/schema/regex.cpp:355` | `const std::size_t at = builder.position + index;` | 8.20.1 | Proposed |
+| DEV-101.141 | `core/src/schema/regex.cpp:338` | `return (c - c_capital_a) + 10U;` | 8.20.1 | Proposed |
+| DEV-101.142 | `core/src/schema/regex.cpp:334` | `return (c - c_small_a) + 10U;` | 8.20.1 | Proposed |
+| DEV-101.143 | `core/src/schema/regex.cpp:293` | `next = range.high + 1U;` | 8.20.1 | Proposed |
+| DEV-101.144 | `core/src/schema/regex.cpp:286` | `const regex_range piece = complement ? regex_range{next, range.low - 1U} : range;` | 8.20.1 | Proposed |
+| DEV-101.145 | `core/src/schema/regex.cpp:251` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.146 | `core/src/schema/regex.cpp:243` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.147 | `core/src/schema/regex.cpp:242` | `value = 0x10000U + ((value - 0xD800U) << 10U) + (*low.value_if() - 0xDC00U);` | 8.20.1 | Proposed |
+| DEV-101.148 | `core/src/schema/regex.cpp:239` | `const auto low = source.unit_at(index + 1U);` | 8.20.1 | Proposed |
+| DEV-101.149 | `core/src/schema/regex.cpp:185` | `++builder.steps;` | 8.20.1 | Proposed |
+| DEV-101.150 | `core/src/schema/schema_values.cpp:474` | `stack.set(stack.size() - 1U, frame);` | 8.20.1 | Proposed |
+| DEV-101.151 | `core/src/schema/schema_values.cpp:463` | `copy_frame frame = stack.get(stack.size() - 1U);` | 8.20.1 | Proposed |
+| DEV-101.152 | `core/src/schema/schema_values.cpp:240` | `++steps;` | 8.20.1 | Proposed |
+| DEV-101.153 | `core/src/schema/schema_values.cpp:128` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.154 | `core/src/schema/schema_values.cpp:82` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.155 | `core/src/schema/schema_work.cpp:120` | `m_regex_steps += units;` | 8.20.1 | Proposed |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/no-character-numerical-value` |
-| Lines | 32 |
-| Status | Proposed (#44) |
+| Lines | 33 |
+| Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -176,14 +254,15 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-102.30 | `core/src/schema/uri.cpp:261` | `if (r.has_authority \|\| (!r.path.empty() && (r.path[0U] == '/')))` | 7.0.3 | Proposed |
 | DEV-102.31 | `core/src/schema/uri.cpp:37` | `return ((c >= 'A') && (c <= 'Z')) ? static_cast<char>(c - 'A' + 'a') : c;` | 7.0.3 | Proposed |
 | DEV-102.32 | `core/src/schema/uri.cpp:25` | `return ((c >= 'a') && (c <= 'z')) \|\| ((c >= 'A') && (c <= 'Z')) \|\| ((c >= '0') && (...` | 7.0.3 | Proposed |
+| DEV-102.33 | `core/src/schema/schema_values.cpp:81` | `equal = unit.has_value() && (*unit.value_if() == static_cast<std::uint16_t>(entry.first[...` | 7.0.3, 7.0.5 | Proposed |
 
 ## DEV-103: Rule 5.13.4, empty-brace value-initialization and literals
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-integer-literals-not-appropriately-suffixed` |
-| Lines | 38 |
-| Status | Proposed (#44) |
+| Lines | 53 |
+| Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -235,14 +314,29 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-103.36 | `includes/adaptive_json5/schema/schema_error.hpp:155` | `: m_parser_error(parser_error), m_range(range.value_or(source_span{})), m_code(code),` | 5.13.4 | Proposed |
 | DEV-103.37 | `includes/adaptive_json5/schema/validation_report.hpp:35` | `source_span schema_span{};` | 5.13.4 | Proposed |
 | DEV-103.38 | `includes/adaptive_json5/schema/validation_report.hpp:31` | `source_span instance_span{};` | 5.13.4 | Proposed |
+| DEV-103.39 | `core/src/schema/exact_number.cpp:105` | `decimal_parts parts{};` | 5.13.4 | Proposed |
+| DEV-103.40 | `core/src/schema/regex.cpp:1200` | `regex_inst done{};` | 5.13.4 | Proposed |
+| DEV-103.41 | `core/src/schema/regex.cpp:1166` | `regex_inst inst{};` | 5.13.4 | Proposed |
+| DEV-103.42 | `core/src/schema/regex.cpp:1117` | `regex_inst inst{};` | 5.13.4 | Proposed |
+| DEV-103.43 | `core/src/schema/regex.cpp:1075` | `regex_inst inst{};` | 5.13.4 | Proposed |
+| DEV-103.44 | `core/src/schema/regex.cpp:1055` | `regex_inst inst{};` | 5.13.4 | Proposed |
+| DEV-103.45 | `core/src/schema/regex.cpp:1027` | `regex_inst inst{};` | 5.13.4 | Proposed |
+| DEV-103.46 | `core/src/schema/regex.cpp:896` | `auto parsed = builder.groups.push_back(group_context{});` | 5.13.4 | Proposed |
+| DEV-103.47 | `core/src/schema/regex.cpp:854` | `ast_node node{};` | 5.13.4 | Proposed |
+| DEV-103.48 | `core/src/schema/regex.cpp:838` | `ast_node node{};` | 5.13.4 | Proposed |
+| DEV-103.49 | `core/src/schema/regex.cpp:794` | `ast_node node{};` | 5.13.4 | Proposed |
+| DEV-103.50 | `core/src/schema/regex.cpp:723` | `ast_node node{};` | 5.13.4 | Proposed |
+| DEV-103.51 | `core/src/schema/regex.cpp:685` | `ast_node node{};` | 5.13.4 | Proposed |
+| DEV-103.52 | `core/src/schema/regex.cpp:646` | `ast_node node{};` | 5.13.4 | Proposed |
+| DEV-103.53 | `core/src/schema/regex.cpp:550` | `ast_node node{};` | 5.13.4 | Proposed |
 
 ## DEV-104: Rule 15.0.1, special member functions
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/improperly-provided-special-member-functions-audit`, `cpp/misra/improperly-provided-special-member-functions`, `cpp/misra/implicit-declaration-of-copy-constructor-audit` |
-| Lines | 27 |
-| Status | Proposed (#44) |
+| Lines | 40 |
+| Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -283,6 +377,19 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-104.25 | `includes/adaptive_json5/schema/validation_options.hpp:40` | `struct [[nodiscard]] cancellation_callback` | 15.0.1 | Proposed |
 | DEV-104.26 | `includes/adaptive_json5/schema/validation_report.hpp:49` | `class [[nodiscard]] validation_report` | 15.0.1 | Proposed |
 | DEV-104.27 | `includes/adaptive_json5/schema/validation_report.hpp:27` | `struct [[nodiscard]] schema_diagnostic` | 15.0.1 | Proposed |
+| DEV-104.28 | `core/includes/schema/regex_program.hpp:58` | `struct regex_tables` | 15.0.1 | Proposed |
+| DEV-104.29 | `core/includes/schema/regex_program.hpp:47` | `struct regex_range` | 15.0.1 | Proposed |
+| DEV-104.30 | `core/includes/schema/regex_program.hpp:33` | `struct regex_inst` | 15.0.1 | Proposed |
+| DEV-104.31 | `core/src/schema/exact_number.cpp:35` | `struct decimal_parts` | 15.0.1 | Proposed |
+| DEV-104.32 | `core/src/schema/regex.cpp:1210` | `struct matcher` | 15.0.1 | Proposed |
+| DEV-104.33 | `core/src/schema/regex.cpp:949` | `struct emitter` | 15.0.1 | Proposed |
+| DEV-104.34 | `core/src/schema/regex.cpp:935` | `struct emit_task` | 15.0.1 | Proposed |
+| DEV-104.35 | `core/src/schema/regex.cpp:373` | `struct escape_value` | 15.0.1 | Proposed |
+| DEV-104.36 | `core/src/schema/regex.cpp:129` | `struct regex_builder` | 15.0.1 | Proposed |
+| DEV-104.37 | `core/src/schema/regex.cpp:118` | `struct group_context` | 15.0.1 | Proposed |
+| DEV-104.38 | `core/src/schema/regex.cpp:100` | `struct ast_node` | 15.0.1 | Proposed |
+| DEV-104.39 | `core/src/schema/schema_compiler.cpp:56` | `struct keyword_slot` | 15.0.1 | Proposed |
+| DEV-104.40 | `core/src/schema/schema_values.cpp:221` | `struct copy_frame` | 15.0.1 | Proposed |
 
 ## DEV-105: Rule 9.5.1, counting loops
 
@@ -373,8 +480,8 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/int-to-pointer-cast-prohibited`, `cpp/misra/function-pointer-conversion-context` |
-| Lines | 11 |
-| Status | Proposed (#44) |
+| Lines | 13 |
+| Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -399,14 +506,16 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-107.9 | `core/src/schema/schema_registry.cpp:265` | `return std::string_view{static_cast<const char*>(entry.uri.data()), entry.uri_size};` | 8.2.6 | Proposed |
 | DEV-107.10 | `core/src/schema/schema_registry.cpp:42` | `return std::launder(static_cast<registry_entry*>(address));` | 8.2.6 | Proposed |
 | DEV-107.11 | `core/src/schema/uri.cpp:383` | `return std::string_view{static_cast<const char*>(text.data()) + offset, length};` | 8.2.6 | Proposed |
+| DEV-107.12 | `core/src/schema/schema_compiler.cpp:2280` | `static_cast<const regex_range*>(schema.m_regex_ranges.data())};` | 8.2.6 | Proposed |
+| DEV-107.13 | `core/src/schema/schema_compiler.cpp:2279` | `return regex_tables{static_cast<const regex_inst*>(schema.m_regex_code.data()),` | 8.2.6 | Proposed |
 
 ## DEV-108: Rule 28.6.3, objects after a move
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/object-used-while-in-potentially-moved-from-state` |
-| Lines | 5 |
-| Status | Proposed (#44) |
+| Lines | 11 |
+| Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -425,6 +534,12 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-108.3 | `core/src/schema/instance_domain.cpp:337` | `m_block = std::move(*block.value_if());` | 28.6.3 | Proposed |
 | DEV-108.4 | `core/src/schema/schema_registry.cpp:202` | `registry_entry{std::move(uri_block), uri_size, std::move(*parsed.value_if())});` | 28.6.3 | Proposed |
 | DEV-108.5 | `core/src/schema/schema_registry.cpp:119` | `schema_registry{storage, std::move(*entries.value_if()), capacity});` | 28.6.3 | Proposed |
+| DEV-108.6 | `core/src/schema/evaluator.cpp:990` | `auto made = copy.has_value() ? detail::document_access::make_string(*run.names, std::mov...` | 28.6.3 | Proposed |
+| DEV-108.7 | `core/src/schema/schema_compiler.cpp:2058` | `detail::compiled_schema_access::attach_values(schema, std::move(*state.values));` | 28.6.3 | Proposed |
+| DEV-108.8 | `core/src/schema/schema_values.cpp:293` | `const auto attached = document_access::append_member(target, frame.target, std::move(*co...` | 28.6.3 | Proposed |
+| DEV-108.9 | `core/src/schema/schema_values.cpp:206` | `auto string = document_access::make_string(target, std::move(*copied.value_if()));` | 28.6.3 | Proposed |
+| DEV-108.10 | `core/src/schema/schema_values.cpp:152` | `auto made = document_access::make_number(target, std::move(*copied.value_if()));` | 28.6.3 | Proposed |
+| DEV-108.11 | `core/src/schema/schema_values.cpp:135` | `return text_result::success(std::move(*copied.value_if()));` | 28.6.3 | Proposed |
 
 ## DEV-109: Rules 15.0.2 and 18.4.1, noexcept special members
 
@@ -523,3 +638,53 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-112.1 | `core/src/schema/instance_domain.cpp:355` | `static_cast<void>(::new (slot) stack_frame(frame));` | 21.6.3 | Proposed |
 | DEV-112.2 | `core/src/schema/schema_registry.cpp:201` | `static_cast<void>(::new (static_cast<void*>(slot(m_entries, m_size)))` | 21.6.3 | Proposed |
 | DEV-112.3 | `core/src/schema/schema_registry.cpp:147` | `slot(m_entries, m_size)->~registry_entry();` | 21.6.3 | Proposed |
+
+## DEV-113: Rule 4.1.3, signed arithmetic bounded by saturation
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/signed-integer-overflow` |
+| Lines | 7 |
+| Status | Proposed (#48) |
+
+### Why this rule is deviated instead of fixed
+
+Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does not follow the saturation.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-113.1 | `core/src/schema/exact_number.cpp:337` | `built = build_scaled(modulus, *divisor_parts, divisor_parts->exponent - common, work);` | 4.1.3 | Proposed |
+| DEV-113.2 | `core/src/schema/exact_number.cpp:333` | `built = build_scaled(dividend, *value_parts, value_parts->exponent - common, work);` | 4.1.3 | Proposed |
+| DEV-113.3 | `core/src/schema/exact_number.cpp:312` | `const auto modulus_digits = scaled_digits(*divisor_parts, divisor_parts->exponent - comm...` | 4.1.3 | Proposed |
+| DEV-113.4 | `core/src/schema/exact_number.cpp:311` | `const auto dividend_digits = scaled_digits(*value_parts, value_parts->exponent - common);` | 4.1.3 | Proposed |
+| DEV-113.5 | `core/src/schema/exact_number.cpp:219` | `++count;` | 4.1.3 | Proposed |
+| DEV-113.6 | `core/src/schema/exact_number.cpp:121` | `parts.exponent -= static_cast<std::int64_t>(parts.fraction.size());` | 4.1.3 | Proposed |
+| DEV-113.7 | `core/src/schema/exact_number.cpp:80` | `value = (value * 10) + static_cast<std::int64_t>(digit_value(c, 10U).value_or(0U));` | 4.1.3 | Proposed |
+
+## DEV-114: Rule 6.0.3/redeclaration query, namespace-scope constexpr constant
+
+| Field | Value |
+| --- | --- |
+| CodeQL queries | `cpp/misra/redeclaration-of-static-constexpr-data-member` |
+| Lines | 1 |
+| Status | Proposed (#48) |
+
+### Why this rule is deviated instead of fixed
+
+A namespace-scope constexpr std::string_view in an anonymous namespace is declared once; it is not a static data member, so the redeclaration the query reports does not exist.
+
+### Risk and compensating measures
+
+Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and budget tests exercise these lines; each line keeps the justification next to it in the source.
+
+### Lines
+
+| ID | Location | Code | Rules | Status |
+| --- | --- | --- | --- | --- |
+| DEV-114.1 | `core/src/schema/exact_number.cpp:27` | `constexpr std::string_view c_signs{"+-"};` | 4.1.2 | Proposed |

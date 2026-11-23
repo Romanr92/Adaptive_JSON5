@@ -30,6 +30,10 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P049; J5-060.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.30)
   struct regex_inst
   {
       regex_op op{regex_op::match};
@@ -44,6 +48,10 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P049; J5-060.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.29)
   struct regex_range
   {
       std::uint32_t low{};
@@ -55,6 +63,10 @@ namespace adaptive_json5::detail
    * @par Requirements
    * P049; J5-060.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+  // they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.28)
   struct regex_tables
   {
       const regex_inst* code{};

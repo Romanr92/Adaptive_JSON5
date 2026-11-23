@@ -151,7 +151,8 @@ if(ADAPTIVE_JSON5_BUILD_SCHEMA)
         schema/uri_pointer_tests.cpp
         schema/schema_compiler_tests.cpp
         schema/value_equality_tests.cpp
-        schema/schema_edge_tests.cpp)
+        schema/schema_edge_tests.cpp
+        schema/assertion_core_tests.cpp)
     target_link_libraries(adaptive_json5_schema_core_unit_tests PRIVATE AdaptiveJSON5::schema)
     target_include_directories(adaptive_json5_schema_core_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
 endif()

@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-308 | SWU-SCHEMA-309 |
+| SCHEMA | SWU-SCHEMA-311 | SWU-SCHEMA-312 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -699,6 +699,9 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-306 | used | `(anonymous)::advance_late_phase(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-307 | used | `(anonymous)::advance_stage(evaluator &, frame &, const schema_node &, std::optional<bool> &)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-308 | used | `(anonymous)::add_map_member(compile_state &, const pending_item &, schema_keyword, const value_view &, bool)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-309 | used | `(anonymous)::kind_bit(value_kind)` | `core/src/schema/assertions.cpp` | — |
+| SWU-SCHEMA-310 | used | `detail::has_flag<Bit>(std::uint8_t, Bit)` | `core/includes/schema/schema_graph.hpp` | — |
+| SWU-SCHEMA-311 | used | `detail::with_flag<Bit>(std::uint8_t, Bit)` | `core/includes/schema/schema_graph.hpp` | — |
 
 ## UNICODE
 

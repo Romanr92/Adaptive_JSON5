@@ -78,7 +78,19 @@ namespace adaptive_json5::detail
         while (equal && (index < entry.first.size()))
         {
           const auto unit = name.unit_at(index);
+          // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+          // MISRA rule: RULE-7-0-5 cpp/misra/no-signedness-change-from-promotion
+          // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without
+          // changing the value; the operands are unsigned values below 0x110000 and the results are used as such.
+          // URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and code units by
+          // value, as RFC 3986, RFC 6901 and Unicode define them.
+          // codeql::misra_deviation_next_line(DEV-102.33)
           equal = unit.has_value() && (*unit.value_if() == static_cast<std::uint16_t>(entry.first[index]));
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+          // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+          // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.154)
           ++index;
         }
         if (equal)
@@ -125,6 +137,11 @@ namespace adaptive_json5::detail
         {
           return text_result::failure(*pushed.error_if());
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.153)
         ++index;
       }
       auto copied = decoded_string::copy_units(storage, units.writable(), units.size());
@@ -132,6 +149,10 @@ namespace adaptive_json5::detail
       {
         return text_result::failure(failure_of(copied.error_if()));
       }
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+      // once.
+      // codeql::misra_deviation_next_line(DEV-108.11)
       return text_result::success(std::move(*copied.value_if()));
     }
 
@@ -149,6 +170,10 @@ namespace adaptive_json5::detail
       {
         return index_result::failure(failure_of(copied.error_if()));
       }
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+      // once.
+      // codeql::misra_deviation_next_line(DEV-108.10)
       auto made = document_access::make_number(target, std::move(*copied.value_if()));
       return made.has_value() ? index_result::success(*made.value_if())
                               : index_result::failure(failure_of(made.error_if()));
@@ -203,6 +228,10 @@ namespace adaptive_json5::detail
         {
           return index_result::failure(*copied.error_if());
         }
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+        // once.
+        // codeql::misra_deviation_next_line(DEV-108.9)
         auto string = document_access::make_string(target, std::move(*copied.value_if()));
         return string.has_value() ? index_result::success(*string.value_if())
                                   : index_result::failure(failure_of(string.error_if()));
@@ -218,6 +247,10 @@ namespace adaptive_json5::detail
      * @par Requirements
      * P047; J5-048.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.40)
     struct copy_frame
     {
         value_iterator children{};
@@ -237,6 +270,11 @@ namespace adaptive_json5::detail
       {
         return status::failure(schema_error::limit(schema_limit_reason::max_compile_steps));
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.152)
       ++steps;
       return status::success();
     }
@@ -290,6 +328,10 @@ namespace adaptive_json5::detail
       {
         return status::failure(*copied.error_if());
       }
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+      // once.
+      // codeql::misra_deviation_next_line(DEV-108.8)
       const auto attached = document_access::append_member(target, frame.target, std::move(*copied.value_if()), copy);
       return attached.has_value() ? status::success() : status::failure(failure_of(attached.error_if()));
     }
@@ -460,6 +502,11 @@ namespace adaptive_json5::detail
     }
     while (stack.size() != 0U)
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.151)
       copy_frame frame = stack.get(stack.size() - 1U);
       const auto next = frame.children.next();
       if (!next.has_value())
@@ -471,6 +518,11 @@ namespace adaptive_json5::detail
         stack.pop_back();
         continue;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.150)
       stack.set(stack.size() - 1U, frame);
       const value_view child = **next.value_if();
       auto step = charge_copy(steps, step_limit);
