@@ -3554,7 +3554,15 @@
       "issue": 53,
       "section": "core",
       "implementation": [],
-      "tests": []
+      "tests": [
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Conformance.MatchesTheSuite",
+            "P055_Draft07Inventory.NoRequiredCaseIsSkipped"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-099",
@@ -3960,6 +3968,12 @@
           "names": [
             "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself"
           ]
+        },
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Conformance.MatchesTheSuite"
+          ]
         }
       ]
     },
@@ -4250,6 +4264,12 @@
           "file": "tests/schema/logic_tests.cpp",
           "names": [
             "P052_Logic.MatchesDraft07InBothModes"
+          ]
+        },
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Conformance.MatchesTheSuite"
           ]
         }
       ]
@@ -4870,6 +4890,12 @@
             "J5_069_FormatAssertion.ChecksTheSupportedSet",
             "J5_069_FormatOptions.UnsupportedAndNonApplicable",
             "J5_069_FormatOptions.BudgetAndStorageFailures"
+          ]
+        },
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Inventory.NoRequiredCaseIsSkipped"
           ]
         }
       ]

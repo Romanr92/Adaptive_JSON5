@@ -269,54 +269,86 @@ namespace adaptive_json5::detail
     }
 
     /**
-     * @brief Replace value by value mod divisor (shift-and-subtract long division).
+     * @brief remainder = (remainder x radix + digit) mod modulus, given remainder < modulus.
      * @par Requirements
-     * P048; J5-059.
-     * @par ID SWU-SCHEMA-224
+     * P048; J5-059; J5-065.
+     * @note At most radix - 1 subtractions keep the remainder below modulus, so the work is
+     * linear in the number of digits and in the size of modulus, not of the dividend.
+     * @par ID SWU-SCHEMA-349
      */
-    status reduce_modulo(big_unsigned& value, const big_unsigned& divisor, big_unsigned& shifted,
-                         work_budget& work) noexcept
+    status append_reduced(big_unsigned& remainder, std::uint32_t digit, std::uint32_t radix,
+                          const big_unsigned& modulus, work_budget& work) noexcept
     {
-      const auto value_bits = value.bit_length();
-      const auto divisor_bits = divisor.bit_length();
-      if (!value_bits.has_value() || !divisor_bits.has_value())
+      const auto appended = remainder.append_digit(digit, radix, work);
+      if (!appended.has_value())
       {
-        return status::failure(schema_error::of(schema_error_code::internal_error));
+        return status::failure(failure_of(appended));
       }
-      if (*value_bits.value_if() < *divisor_bits.value_if())
+      for (;;)
       {
-        return status::success();
-      }
-      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
-      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
-      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
-      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
-      // codeql::misra_deviation_next_line(DEV-101.88)
-      std::size_t shift = (*value_bits.value_if() - *divisor_bits.value_if()) + 1U;
-      while (shift != 0U)
-      {
-        --shift;
-        auto step = shifted.assign(divisor, work);
-        if (step.has_value())
-        {
-          step = shifted.shift_left(shift, work);
-        }
-        const auto order =
-          step.has_value() ? value.compare(shifted, work) : result<magnitude_order>::failure(*step.error_if());
+        const auto order = remainder.compare(modulus, work);
         if (!order.has_value())
         {
           return status::failure(schema_error::from_storage(*order.error_if()));
         }
-        if (*order.value_if() != magnitude_order::less)
+        if (*order.value_if() == magnitude_order::less)
         {
-          const auto subtracted = value.subtract(shifted, work);
-          if (!subtracted.has_value())
-          {
-            return status::failure(failure_of(subtracted));
-          }
+          return status::success();
+        }
+        const auto subtracted = remainder.subtract(modulus, work);
+        if (!subtracted.has_value())
+        {
+          return status::failure(failure_of(subtracted));
+        }
+      }
+    }
+
+    /**
+     * @brief Feed one digit run into the running remainder.
+     * @par Requirements
+     * P048; J5-059.
+     * @par ID SWU-SCHEMA-350
+     */
+    status reduce_digits(big_unsigned& remainder, std::string_view digits, std::uint32_t radix,
+                         const big_unsigned& modulus, work_budget& work) noexcept
+    {
+      for (const char c : digits)
+      {
+        const auto digit = digit_value(c, radix);
+        if (!digit.has_value())
+        {
+          return status::failure(schema_error::of(schema_error_code::internal_error));
+        }
+        const auto reduced = append_reduced(remainder, *digit, radix, modulus, work);
+        if (!reduced.has_value())
+        {
+          return reduced;
         }
       }
       return status::success();
+    }
+
+    /**
+     * @brief Compute (significand x 10^zeros) mod modulus digit by digit (long division remainder).
+     * @par Requirements
+     * P048; J5-059; J5-065.
+     * @par ID SWU-SCHEMA-224
+     */
+    status reduce_scaled(big_unsigned& remainder, const decimal_parts& parts, std::int64_t zeros,
+                         const big_unsigned& modulus, work_budget& work) noexcept
+    {
+      auto reduced = reduce_digits(remainder, parts.integer, parts.radix, modulus, work);
+      if (reduced.has_value())
+      {
+        reduced = reduce_digits(remainder, parts.fraction, parts.radix, modulus, work);
+      }
+      std::int64_t count = 0;
+      while (reduced.has_value() && (count < zeros))
+      {
+        reduced = append_reduced(remainder, 0U, 10U, modulus, work);
+        ++count;
+      }
+      return reduced;
     }
   } // namespace
 
@@ -378,23 +410,14 @@ namespace adaptive_json5::detail
     {
       return bool_result::failure(schema_error::from_storage(error::without_location(error_code::resource_limit)));
     }
-    const std::size_t widest = (*dividend_digits > *modulus_digits) ? *dividend_digits : *modulus_digits;
     work_budget work{resource_limits{}.max_work_units};
-    big_unsigned dividend{scratch};
+    big_unsigned remainder{scratch};
     big_unsigned modulus{scratch};
-    big_unsigned shifted{scratch};
-    auto built = reserve_digits(dividend, widest);
+    auto built = reserve_digits(modulus, *modulus_digits);
     if (built.has_value())
     {
-      built = reserve_digits(modulus, widest);
-    }
-    if (built.has_value())
-    {
-      built = reserve_digits(shifted, widest);
-    }
-    if (built.has_value())
-    {
-      built = build_scaled(dividend, *value_parts, dividend_zeros, work);
+      // The remainder stays below modulus, so one digit more than modulus always fits.
+      built = reserve_digits(remainder, *modulus_digits + 1U);
     }
     if (built.has_value())
     {
@@ -406,12 +429,12 @@ namespace adaptive_json5::detail
     }
     if (built.has_value())
     {
-      built = reduce_modulo(dividend, modulus, shifted, work);
+      built = reduce_scaled(remainder, *value_parts, dividend_zeros, modulus, work);
     }
     if (!built.has_value())
     {
       return bool_result::failure(*built.error_if());
     }
-    return bool_result::success(dividend.is_zero());
+    return bool_result::success(remainder.is_zero());
   }
 } // namespace adaptive_json5::detail

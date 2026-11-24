@@ -29,6 +29,10 @@ tests/fixtures/third_party, which are not part of the parser:
 - JSONTestSuite test_parsing (https://github.com/nst/JSONTestSuite, commit
   1ef36fa01286573e846ac449e8683f8833c5b26a), MIT, Copyright (c) 2016 Nicolas
   Seriot. See LICENSES/JSONTestSuite-MIT.txt.
+- JSON-Schema-Test-Suite draft7 tests and remotes
+  (https://github.com/json-schema-org/JSON-Schema-Test-Suite, commit
+  245a45abc90190c0bff04d97e6d2b541b4bb9f12), MIT, Copyright (c) 2012 Julian
+  Berman. See LICENSES/JSON-Schema-Test-Suite-MIT.txt.
 
 The optional schema library (AdaptiveJSON5::schema) embeds the unmodified JSON
 Schema Draft-07 meta-schema (https://github.com/json-schema-org/json-schema-spec,

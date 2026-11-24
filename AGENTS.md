@@ -57,6 +57,10 @@ restriction, and never include `core/tests/` in production source lists.
   Also user-approved (#127), the informative `complexity-report` workflow lists
   production functions above the complexity limits of
   `core/docs/design-coding-style.md`; it is not a merge requirement.
+  Also user-approved (#53, 2026-11-24), the informative `schema-conformance` workflow
+  runs the pinned official JSON-Schema-Test-Suite (draft7) against the optional schema
+  component on every pull request; it is not a merge requirement until the owner makes
+  it one, and the required validation-test job excludes its `schema_validation_tests` label.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
   must pass all host unit-test jobs, validation-test jobs, formatting, the
   sanitizer and fuzz jobs, the Clang job and the static-analysis jobs before merging

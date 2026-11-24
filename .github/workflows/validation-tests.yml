@@ -32,4 +32,6 @@ jobs:
       - name: Build validation tests
         run: cmake --build --preset ${{ matrix.preset }} --parallel
       - name: Run validation tests
-        run: ctest --preset ${{ matrix.preset }} --parallel 4
+        # The JSON Schema Draft-07 suite runs in its own, not yet required, workflow
+        # (schema-conformance.yml).
+        run: ctest --preset ${{ matrix.preset }} --parallel 4 --label-exclude schema_validation_tests

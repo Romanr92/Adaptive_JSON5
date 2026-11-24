@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-348 | SWU-SCHEMA-349 |
+| SCHEMA | SWU-SCHEMA-356 | SWU-SCHEMA-357 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -614,7 +614,7 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-221 | used | `(anonymous)::failure_of(const status_result &)` | `core/src/schema/exact_number.cpp` | — |
 | SWU-SCHEMA-222 | used | `(anonymous)::append_digits(big_unsigned &, std::string_view, std::uint32_t, work_budget &)` | `core/src/schema/exact_number.cpp` | — |
 | SWU-SCHEMA-223 | used | `(anonymous)::build_scaled(big_unsigned &, const decimal_parts &, std::int64_t, work_budget &)` | `core/src/schema/exact_number.cpp` | — |
-| SWU-SCHEMA-224 | used | `(anonymous)::reduce_modulo(big_unsigned &, const big_unsigned &, big_unsigned &, work_budget &)` | `core/src/schema/exact_number.cpp` | — |
+| SWU-SCHEMA-224 | used | `(anonymous)::reduce_scaled(big_unsigned &, const decimal_parts &, std::int64_t, const big_unsigned &, work_budget &)` | `core/src/schema/exact_number.cpp` | — |
 | SWU-SCHEMA-225 | used | `(anonymous)::compile_numeric_keyword(compile_state &, const value_view &, bool, value_index &)` | `core/src/schema/schema_compiler.cpp` | — |
 | SWU-SCHEMA-226 | used | `(anonymous)::compile_numeric_keywords(compile_state &, const std::array<std::optional<value_view>, c_keyword_count> &, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
 | SWU-SCHEMA-227 | used | `(anonymous)::order_against(const compiled_schema &, const owned_number &, value_index, const storage_callbacks &)` | `core/src/schema/assertions.cpp` | — |
@@ -739,6 +739,14 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-346 | used | `detail::draft07_meta_schema()` | `core/src/schema/meta_schema.cpp` | `core/includes/schema/meta_schema.hpp` |
 | SWU-SCHEMA-347 | used | `(anonymous)::check_meta_schema(const schema_registry &, const compile_options &)` | `core/src/schema/schema_compiler.cpp` | — |
 | SWU-SCHEMA-348 | used | `(anonymous)::compile_graph(const schema_registry &, std::string_view, schema_dialect, const compile_options &, bool)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-349 | used | `(anonymous)::append_reduced(big_unsigned &, std::uint32_t, std::uint32_t, const big_unsigned &, work_budget &)` | `core/src/schema/exact_number.cpp` | — |
+| SWU-SCHEMA-350 | used | `(anonymous)::reduce_digits(big_unsigned &, std::string_view, std::uint32_t, const big_unsigned &, work_budget &)` | `core/src/schema/exact_number.cpp` | — |
+| SWU-SCHEMA-351 | used | `(anonymous)::leap_second_allowed(std::string_view, std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-352 | used | `(anonymous)::is_quoted_local(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-353 | used | `(anonymous)::is_mail_domain(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-354 | used | `(anonymous)::is_authority(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-355 | used | `(anonymous)::port_of(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-356 | used | `(anonymous)::valid_percent_escapes(std::string_view)` | `core/src/schema/format.cpp` | — |
 
 ## UNICODE
 

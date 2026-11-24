@@ -34,11 +34,12 @@ reproduce those in accompanying documentation/materials. The complete notice is
 from the pinned source. Its non-endorsement condition also applies. A local CMake
 fetch is not a relicensing of GoogleTest.
 
-The source repository also contains unmodified json5-tests and JSONTestSuite
-fixtures under `tests/fixtures/third_party`, each under MIT with its upstream
-license file kept beside it and copied to
-[LICENSES/json5-tests-MIT.txt](../LICENSES/json5-tests-MIT.txt) and
-[LICENSES/JSONTestSuite-MIT.txt](../LICENSES/JSONTestSuite-MIT.txt). They are
+The source repository also contains unmodified json5-tests, JSONTestSuite and
+JSON-Schema-Test-Suite fixtures under `tests/fixtures/third_party`, each under MIT
+with its upstream license file kept beside it and copied to
+[LICENSES/json5-tests-MIT.txt](../LICENSES/json5-tests-MIT.txt),
+[LICENSES/JSONTestSuite-MIT.txt](../LICENSES/JSONTestSuite-MIT.txt) and
+[LICENSES/JSON-Schema-Test-Suite-MIT.txt](../LICENSES/JSON-Schema-Test-Suite-MIT.txt). They are
 host unit-test input only, are not installed and are not covered by Apache-2.0.
 Redistributing them requires keeping their MIT notices. See the
 [fixture README](../tests/fixtures/third_party/README.md) for provenance.

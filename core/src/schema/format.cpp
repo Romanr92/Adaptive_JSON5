@@ -34,6 +34,9 @@ namespace adaptive_json5::detail
     // RFC 3986 unreserved, gen-delims, sub-delims and '%' (checked separately).
     constexpr std::string_view c_uri{
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%"};
+    // Printable ASCII including space (RFC 5321 qtext and quoted-pair characters).
+    constexpr std::string_view c_printable{
+      " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"};
     constexpr std::size_t c_max_hostname = 253U;
     constexpr std::size_t c_max_label = 63U;
     constexpr std::size_t c_max_local_part = 64U;
@@ -176,6 +179,30 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief A leap second (:60) is valid only at 23:59 UTC once the offset is applied.
+     * @par Requirements
+     * J5-069; RFC 3339 sections 5.6 and 5.7.
+     * @param text The full-time text (hh:mm:60...); offset its time-offset part.
+     * @par ID SWU-SCHEMA-351
+     */
+    bool leap_second_allowed(std::string_view text, std::string_view offset) noexcept
+    {
+      constexpr std::uint32_t c_day_minutes = 1440U;
+      constexpr std::uint32_t c_last_minute = 1439U; // 23:59
+      const std::uint32_t local = (*decimal(text.substr(0U, 2U)) * 60U) + *decimal(text.substr(3U, 2U));
+      std::uint32_t shift = 0U;
+      if (offset.size() == 6U)
+      {
+        shift = (*decimal(offset.substr(1U, 2U)) * 60U) + *decimal(offset.substr(4U, 2U));
+      }
+      // UTC = local - offset: subtract a positive offset, add a negative one (mod one day).
+      const bool positive = (offset.size() == 6U) && is_one_of(offset[0U], "+");
+      const std::uint32_t utc =
+        positive ? ((local + c_day_minutes) - shift) % c_day_minutes : (local + shift) % c_day_minutes;
+      return utc == c_last_minute;
+    }
+
+    /**
      * @brief RFC 3339 full-time: partial-time with optional fraction, then Z or a numeric offset.
      * @par Requirements
      * J5-069; RFC 3339 section 5.6.
@@ -190,7 +217,11 @@ namespace adaptive_json5::detail
         return false;
       }
       const auto rest = skip_fraction(text.substr(8U));
-      return rest.has_value() && is_offset(*rest);
+      if (!rest.has_value() || !is_offset(*rest))
+      {
+        return false;
+      }
+      return !is_one_of(text[6U], "6") || leap_second_allowed(text, *rest);
     }
 
     /**
@@ -233,25 +264,6 @@ namespace adaptive_json5::detail
         }
         rest = rest.substr(dot + 1U);
       }
-    }
-
-    /**
-     * @brief Email address: dot-atom local part, '@', host name (RFC 5321 section 4.1.2, basic).
-     * @par Requirements
-     * J5-069; RFC 5321.
-     * @par ID SWU-SCHEMA-331
-     */
-    bool is_email(std::string_view text) noexcept
-    {
-      const std::size_t at = text.rfind('@');
-      if (at == std::string_view::npos)
-      {
-        return false;
-      }
-      const std::string_view local = text.substr(0U, at);
-      return only(local, c_local) && (local.size() <= c_max_local_part) && !is_one_of(local.front(), ".") &&
-             !is_one_of(local.back(), ".") && (local.find("..") == std::string_view::npos) &&
-             is_hostname(text.substr(at + 1U));
     }
 
     /**
@@ -347,36 +359,197 @@ namespace adaptive_json5::detail
     }
 
     /**
-     * @brief RFC 3986 URI reference: allowed characters, valid percent escapes, at most one
-     * fragment and a valid scheme when there is one.
+     * @brief RFC 5321 quoted-string local part: printable ASCII and space, with backslash pairs.
      * @par Requirements
-     * J5-069; RFC 3986 sections 2, 3.1 and 4.1.
+     * J5-069; RFC 5321 section 4.1.2.
+     * @par ID SWU-SCHEMA-352
+     */
+    bool is_quoted_local(std::string_view local) noexcept
+    {
+      if ((local.size() < 2U) || !is_one_of(local.front(), "\"") || !is_one_of(local.back(), "\""))
+      {
+        return false;
+      }
+      const std::string_view inner = local.substr(1U, local.size() - 2U);
+      bool escaped = false;
+      for (const char c : inner)
+      {
+        if (!is_one_of(c, c_printable))
+        {
+          return false;
+        }
+        if (escaped)
+        {
+          escaped = false;
+        }
+        else if (is_one_of(c, "\\"))
+        {
+          escaped = true;
+        }
+        else if (is_one_of(c, "\""))
+        {
+          return false;
+        }
+        else
+        {
+          // Any other printable character or space is qtext.
+        }
+      }
+      return !escaped;
+    }
+
+    /**
+     * @brief RFC 5321 domain: a host name or an address literal [IPv4] / [IPv6:...].
+     * @par Requirements
+     * J5-069; RFC 5321 section 4.1.3.
+     * @par ID SWU-SCHEMA-353
+     */
+    bool is_mail_domain(std::string_view domain) noexcept
+    {
+      if (domain.empty() || !is_one_of(domain.front(), "[") || !is_one_of(domain.back(), "]"))
+      {
+        return is_hostname(domain);
+      }
+      const std::string_view literal = domain.substr(1U, domain.size() - 2U);
+      const bool ipv6_tag = (literal.size() > 5U) && is_one_of(literal[0U], "Ii") && is_one_of(literal[1U], "Pp") &&
+                            is_one_of(literal[2U], "Vv") && is_one_of(literal[3U], "6") && is_one_of(literal[4U], ":");
+      return ipv6_tag ? is_ipv6(literal.substr(5U)) : is_ipv4(literal);
+    }
+
+    /**
+     * @brief Email address: dot-atom or quoted local part, '@', domain (RFC 5321 section 4.1.2).
+     * @par Requirements
+     * J5-069; RFC 5321.
+     * @par ID SWU-SCHEMA-331
+     */
+    bool is_email(std::string_view text) noexcept
+    {
+      const std::size_t at = text.rfind('@');
+      if (at == std::string_view::npos)
+      {
+        return false;
+      }
+      const std::string_view local = text.substr(0U, at);
+      const bool dot_atom = only(local, c_local) && !is_one_of(local.front(), ".") && !is_one_of(local.back(), ".") &&
+                            (local.find("..") == std::string_view::npos);
+      return (local.size() <= c_max_local_part) && (dot_atom || is_quoted_local(local)) &&
+             is_mail_domain(text.substr(at + 1U));
+    }
+
+    /**
+     * @brief Return the port text after an RFC 3986 host (reg-name or [IP-literal]); nullopt when
+     * the host is malformed.
+     * @par Requirements
+     * J5-069; RFC 3986 sections 3.2.2 and 3.2.3.
+     * @par ID SWU-SCHEMA-355
+     */
+    std::optional<std::string_view> port_of(std::string_view host_port) noexcept
+    {
+      if (host_port.empty() || !is_one_of(host_port.front(), "["))
+      {
+        const std::size_t colon = host_port.find(':');
+        if (host_port.substr(0U, colon).find_first_of("[]") != std::string_view::npos)
+        {
+          return std::nullopt;
+        }
+        return (colon == std::string_view::npos) ? std::string_view{} : host_port.substr(colon + 1U);
+      }
+      const std::size_t close = host_port.find(']');
+      if (close == std::string_view::npos)
+      {
+        return std::nullopt;
+      }
+      const std::string_view literal = host_port.substr(1U, close - 1U);
+      const bool future = !literal.empty() && is_one_of(literal.front(), "vV");
+      const std::string_view after = host_port.substr(close + 1U);
+      if ((!future && !is_ipv6(literal)) || (!after.empty() && !is_one_of(after.front(), ":")))
+      {
+        return std::nullopt;
+      }
+      return after.empty() ? after : after.substr(1U);
+    }
+
+    /**
+     * @brief Report whether every '%' starts a two-hex-digit escape (RFC 3986 section 2.1).
+     * @par Requirements
+     * J5-069; RFC 3986 section 2.1.
+     * @par ID SWU-SCHEMA-356
+     */
+    bool valid_percent_escapes(std::string_view text) noexcept
+    {
+      for (std::size_t percent = text.find('%'); percent != std::string_view::npos;
+           percent = text.find('%', percent + 1U))
+      {
+        const std::string_view escape = text.substr(percent + 1U, 2U);
+        if ((escape.size() != 2U) || !only(escape, c_hex_digits))
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * @brief RFC 3986 authority: optional userinfo '@', host (reg-name or [IP-literal]) and digit port.
+     * @par Requirements
+     * J5-069; RFC 3986 section 3.2.
+     * @par ID SWU-SCHEMA-354
+     */
+    bool is_authority(std::string_view authority) noexcept
+    {
+      const std::size_t at = authority.find('@');
+      if ((at != std::string_view::npos) && (authority.find('@', at + 1U) != std::string_view::npos))
+      {
+        return false;
+      }
+      const std::string_view userinfo = (at == std::string_view::npos) ? std::string_view{} : authority.substr(0U, at);
+      const std::string_view host_port = (at == std::string_view::npos) ? authority : authority.substr(at + 1U);
+      if (userinfo.find_first_of("[]") != std::string_view::npos)
+      {
+        return false;
+      }
+      const auto port = port_of(host_port);
+      return port.has_value() && (port->empty() || only(*port, c_digits));
+    }
+
+    /**
+     * @brief RFC 3986 URI reference: allowed characters, valid percent escapes, at most one
+     * fragment, a valid scheme when there is one, a valid authority after "//" and brackets
+     * only inside the authority.
+     * @par Requirements
+     * J5-069; RFC 3986 sections 2, 3 and 4.1.
      * @param absolute Require a scheme (format uri).
      * @par ID SWU-SCHEMA-335
      */
     bool is_uri_reference(std::string_view text, bool absolute) noexcept
     {
-      if ((text.find_first_not_of(c_uri) != std::string_view::npos) || (text.find('#') != text.rfind('#')))
+      if ((text.find_first_not_of(c_uri) != std::string_view::npos) || (text.find('#') != text.rfind('#')) ||
+          !valid_percent_escapes(text))
       {
         return false;
-      }
-      for (std::size_t percent = text.find('%'); percent != std::string_view::npos;
-           percent = text.find('%', percent + 1U))
-      {
-        if (!only(text.substr(percent + 1U, 2U), c_hex_digits) || (text.substr(percent + 1U, 2U).size() != 2U))
-        {
-          return false;
-        }
       }
       const std::size_t colon = text.find(':');
       const std::size_t first_delimiter = text.find_first_of("/?#");
       const bool has_scheme = (colon != std::string_view::npos) && (colon < first_delimiter);
-      if (!has_scheme)
+      if (has_scheme && (!only(text.substr(0U, colon), c_scheme) || !is_one_of(text[0U], c_letters)))
       {
-        return !absolute;
+        return false;
       }
-      const std::string_view scheme = text.substr(0U, colon);
-      return only(scheme, c_scheme) && is_one_of(scheme[0U], c_letters);
+      if (!has_scheme && absolute)
+      {
+        return false;
+      }
+      std::string_view rest = has_scheme ? text.substr(colon + 1U) : text;
+      if (rest.substr(0U, 2U) == "//")
+      {
+        const std::size_t end = rest.find_first_of("/?#", 2U);
+        if (!is_authority(rest.substr(2U, end - 2U)))
+        {
+          return false;
+        }
+        rest = (end == std::string_view::npos) ? std::string_view{} : rest.substr(end);
+      }
+      return rest.find_first_of("[]") == std::string_view::npos;
     }
 
     /**

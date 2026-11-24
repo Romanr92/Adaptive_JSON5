@@ -39,7 +39,10 @@ namespace adaptive_json5::detail
     constexpr std::uint32_t c_digit_zero = 0x30U;    // 0
     constexpr std::uint32_t c_digit_one = 0x31U;     // 1
     constexpr std::uint32_t c_digit_nine = 0x39U;    // 9
+    constexpr std::uint32_t c_exclamation = 0x21U;   // !
     constexpr std::uint32_t c_colon = 0x3AU;         // :
+    constexpr std::uint32_t c_less = 0x3CU;          // <
+    constexpr std::uint32_t c_equals = 0x3DU;        // =
     constexpr std::uint32_t c_question = 0x3FU;      // ?
     constexpr std::uint32_t c_capital_a = 0x41U;     // A
     constexpr std::uint32_t c_capital_b = 0x42U;     // B
@@ -933,7 +936,12 @@ namespace adaptive_json5::detail
           ((builder.position + 1U) < builder.text.size()) && (builder.text.get(builder.position + 1U) == c_colon);
         if (!plain)
         {
-          return pattern_error(builder, true);
+          // Lookahead, lookbehind and named groups are ECMA-262 syntax this engine does not support;
+          // anything else after "(?" (for example "(?i)", "(?P<n>" or "(?#") is malformed.
+          const std::uint32_t kind =
+            ((builder.position + 1U) < builder.text.size()) ? builder.text.get(builder.position + 1U) : c_question;
+          const bool ecma = (kind == c_equals) || (kind == c_exclamation) || (kind == c_less);
+          return pattern_error(builder, ecma);
         }
         // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
         // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
