@@ -230,9 +230,9 @@ namespace
             item.valid = *test.find_member("valid").value_if()->as_boolean().value_if();
             item.assert_format = *selection;
             // ADR 0006 requires an explicit compile error for control and Unicode property escapes.
-            item.unsupported_pattern = relative == "optional/ecmascript-regex.json" &&
-                                       (group == 2U || group == 3U || group == 10U || group == 14U ||
-                                        group == 15U || group == 19U);
+            item.unsupported_pattern =
+              relative == "optional/ecmascript-regex.json" &&
+              (group == 2U || group == 3U || group == 10U || group == 14U || group == 15U || group == 19U);
             result.tests.push_back(item);
             (is_optional ? result.optional : result.required) += 1U;
           }
