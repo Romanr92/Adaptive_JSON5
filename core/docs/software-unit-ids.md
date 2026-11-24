@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-357 | SWU-SCHEMA-358 |
+| SCHEMA | SWU-SCHEMA-358 | SWU-SCHEMA-359 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -748,6 +748,7 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-355 | used | `(anonymous)::port_of(std::string_view)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-356 | used | `(anonymous)::valid_percent_escapes(std::string_view)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-357 | used | `(anonymous)::ascii_of(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-358 | used | `(anonymous)::is_ecma_group_prefix(const regex_builder &)` | `core/src/schema/regex.cpp` | — |
 
 ## UNICODE
 

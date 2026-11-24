@@ -2140,7 +2140,17 @@ namespace adaptive_json5
       run.work_storage = options.scratch_storage;
       run.report_storage = options.scratch_storage;
       run.mode = evaluation_mode::fail_fast;
-      run.budget.max_work_steps = options.limits.max_compile_steps;
+      // Sized by the compile limits, not the validation defaults: the meta-schema reaches every
+      // subschema through {"$ref": "#"} and checks types with anyOf, so references, branches and
+      // comparisons grow with the schema. Every one of them is also a work step, so
+      // max_compile_steps still bounds the check; depth is bounded by the parsed document.
+      const std::size_t steps = options.limits.max_compile_steps;
+      run.budget.max_work_steps = steps;
+      run.budget.max_reference_steps = steps;
+      run.budget.max_branch_evaluations = steps;
+      run.budget.max_equality_steps = steps;
+      run.budget.max_regex_steps = steps;
+      run.budget.max_depth = std::numeric_limits<std::size_t>::max();
       std::size_t resource = 0U;
       while (resource < registry.size())
       {
@@ -2148,10 +2158,10 @@ namespace adaptive_json5
         const auto report = validate(*meta.value_if(), entry.parsed.values, run);
         if (!report.has_value())
         {
+          // Every budget of this check derives from max_compile_steps, so report that limit.
           const schema_error& failed = *report.error_if();
-          const bool work = (failed.code() == schema_error_code::resource_limit) &&
-                            (failed.limit_reason() == schema_limit_reason::max_work_steps);
-          return status::failure(work ? schema_error::limit(schema_limit_reason::max_compile_steps) : failed);
+          const bool limited = failed.code() == schema_error_code::resource_limit;
+          return status::failure(limited ? schema_error::limit(schema_limit_reason::max_compile_steps) : failed);
         }
         const schema_diagnostic* failed = report.value_if()->diagnostic(0U);
         if (failed != nullptr)

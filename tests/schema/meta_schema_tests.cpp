@@ -212,4 +212,62 @@ namespace
       ASSERT_LT(steps, 100000U);
     }
   }
+
+  /**
+   * @brief A schema with count sibling properties, each a small subschema.
+   * @par Requirements
+   * P054; J5-047; J5-054.
+   */
+  std::string wide_schema(std::size_t count)
+  {
+    std::string text = R"({"properties": {)";
+    for (std::size_t index = 0U; index < count; ++index)
+    {
+      text += (index == 0U) ? "" : ",";
+      text += "\"p" + std::to_string(index) + R"(": {"type": "integer"})";
+    }
+    return text + "}}";
+  }
+
+  /**
+   * @brief A schema nested depth properties levels deep.
+   * @par Requirements
+   * P054; J5-048; J5-054.
+   */
+  std::string deep_schema(std::size_t depth)
+  {
+    std::string text;
+    for (std::size_t level = 0U; level < depth; ++level)
+    {
+      text += R"({"properties": {"a": )";
+    }
+    text += "true";
+    for (std::size_t level = 0U; level < depth; ++level)
+    {
+      text += "}}";
+    }
+    return text;
+  }
+
+  /*
+   * Arrange: A schema nested 250 properties levels deep (about 500 JSON levels, near the parser
+   *          depth limit that registration applies), one with 100 sibling subschemas (within the
+   *          registration value limit), and the wide schema with a small compile step limit.
+   * Act: Compile with the default limits, then with the small step limit.
+   * Expect: Both compile: the meta-schema check is bounded by the compile limits, not by the
+   *         validation defaults (the deep schema needs about three validation frames per level
+   *         and failed with max_depth before); with the small step limit compilation fails with
+   *         resource_limit / max_compile_steps (J5-047, J5-048, J5-054, J5-065).
+   */
+  TEST(P054_MetaSchemaDetails, LargeSchemasStayWithinCompileLimits)
+  {
+    EXPECT_EQ(compile_texts({deep_schema(250U)}).error, c_compiles);
+    const std::string wide = wide_schema(100U);
+    EXPECT_EQ(compile_texts({wide}).error, c_compiles);
+    schema_compile_limits small{};
+    small.max_compile_steps = 2000U;
+    const compile_outcome limited = compile_texts({wide}, 0U, small);
+    EXPECT_EQ(limited.error, std::optional<schema_error_code>{schema_error_code::resource_limit});
+    EXPECT_EQ(limited.limit, std::optional<schema_limit_reason>{schema_limit_reason::max_compile_steps});
+  }
 } // namespace

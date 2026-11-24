@@ -3150,6 +3150,12 @@
           "names": [
             "J5_047_StorageIdentity.TokenCountsAgainstOwnedByteBudget"
           ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.LargeSchemasStayWithinCompileLimits"
+          ]
         }
       ]
     },
@@ -4082,6 +4088,12 @@
           "file": "core/tests/schema/assertion_core_tests.cpp",
           "names": [
             "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.LargeSchemasStayWithinCompileLimits"
           ]
         }
       ]

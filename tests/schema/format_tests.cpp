@@ -199,7 +199,10 @@ namespace
       format_case{"regex", R"("([abc])+\\s+$")", true}, format_case{"regex", R"x("(?=lookahead)")x", true},
       format_case{"regex", R"x("^(abc]")x", false}, format_case{"regex", R"("[")", false},
       format_case{"regex", R"x("(?<=a)b(?<n>c)(?!d)")x", true}, format_case{"regex", R"x("(?i)abc")x", false},
-      format_case{"regex", R"x("(?P<n>a)")x", false}, format_case{"regex", R"x("(?#comment)a")x", false}),
+      format_case{"regex", R"x("(?P<n>a)")x", false}, format_case{"regex", R"x("(?#comment)a")x", false},
+      format_case{"regex", R"x("(?<name>a)")x", true}, format_case{"regex", R"x("(?<!a)b")x", true},
+      format_case{"regex", R"x("(?<1a>b)")x", false}, format_case{"regex", R"x("(?<")x", false},
+      format_case{"regex", R"x("(?")x", false}),
     [](const testing::TestParamInfo<format_case>& param_info)
     {
       std::string name = std::to_string(param_info.index) + "_" + param_info.param.format;
