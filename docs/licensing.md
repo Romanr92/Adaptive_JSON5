@@ -56,6 +56,15 @@ Original input files and their provenance remain in `tools/unicode-data/`.
 Unicode's license applies to that material; it does not replace Apache-2.0 for
 the project's original code.
 
+The optional schema library embeds the unmodified JSON Schema Draft-07 meta-schema
+(json-schema-org/json-schema-spec, branch `draft-07`, commit
+`20a3fee852db88519dcb3bb329b7a872ebad8953`) under the BSD-3-Clause option of its
+upstream dual license (BSD-3-Clause OR AFL-3.0). Its notice is
+[LICENSES/json-schema-spec-BSD-3-Clause.txt](../LICENSES/json-schema-spec-BSD-3-Clause.txt);
+it is installed with the schema library and must accompany binary distributions of
+it, including the non-endorsement condition. The parser library does not contain it.
+Provenance is in [dependencies](dependencies.md).
+
 Future syntax/schema corpora and schema/editor dependencies are not presently
 imported. Record their exact source/version/license/notices before
 incorporation; standards links and original examples do not grant redistribution

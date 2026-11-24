@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-345 | SWU-SCHEMA-346 |
+| SCHEMA | SWU-SCHEMA-348 | SWU-SCHEMA-349 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -736,6 +736,9 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-343 | used | `(anonymous)::days_in_month(std::uint32_t, std::uint32_t)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-344 | used | `(anonymous)::skip_fraction(std::string_view)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-345 | used | `(anonymous)::is_offset(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-346 | used | `detail::draft07_meta_schema()` | `core/src/schema/meta_schema.cpp` | `core/includes/schema/meta_schema.hpp` |
+| SWU-SCHEMA-347 | used | `(anonymous)::check_meta_schema(const schema_registry &, const compile_options &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-348 | used | `(anonymous)::compile_graph(const schema_registry &, std::string_view, schema_dialect, const compile_options &, bool)` | `core/src/schema/schema_compiler.cpp` | — |
 
 ## UNICODE
 

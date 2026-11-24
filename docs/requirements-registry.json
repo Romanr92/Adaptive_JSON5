@@ -3954,6 +3954,12 @@
           "names": [
             "P046_Applicators.MatchesDraft07"
           ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself"
+          ]
         }
       ]
     },
@@ -3980,6 +3986,10 @@
         {
           "files": ["core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
           "symbols": ["check_name_list", "parse_type_keyword"]
+        },
+        {
+          "files": ["core/includes/schema/meta_schema.hpp", "core/src/schema/meta_schema.cpp", "core/src/schema/schema_compiler.cpp"],
+          "symbols": ["draft07_meta_schema", "check_meta_schema", "compile_graph"]
         }
       ],
       "tests": [
@@ -4043,6 +4053,21 @@
           "file": "tests/schema/format_tests.cpp",
           "names": [
             "J5_069_FormatOptions.UnsupportedAndNonApplicable"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchema.SeparatesFailureClasses",
+            "P054_MetaSchemaDetails.ReportsTheOffendingValue",
+            "P054_MetaSchemaDetails.ChecksEveryRegisteredResource",
+            "P054_MetaSchemaDetails.FailuresDuringTheMetaCheck"
+          ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself"
           ]
         }
       ]
@@ -4514,6 +4539,12 @@
             "P052_Failures.CancellationDuringBranches",
             "P052_Failures.AllocationFailureDuringBranches"
           ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchema.SeparatesFailureClasses"
+          ]
         }
       ]
     },
@@ -4564,6 +4595,12 @@
             "P046_EdgeCases.SchemaLocationNames",
             "P046_EdgeCases.LocationForms",
             "P046_EdgeCases.ZeroCapacityFormatting"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.ReportsTheOffendingValue"
           ]
         }
       ]
@@ -4699,6 +4736,12 @@
           "file": "tests/schema/format_tests.cpp",
           "names": [
             "J5_069_FormatOptions.BudgetAndStorageFailures"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.FailuresDuringTheMetaCheck"
           ]
         }
       ]

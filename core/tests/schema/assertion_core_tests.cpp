@@ -6,6 +6,7 @@
 #include "adaptive_json5/value/value_view.hpp"
 #include "schema/assertions.hpp"
 #include "schema/exact_number.hpp"
+#include "schema/meta_schema.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_values.hpp"
 #include "schema/schema_work.hpp"
@@ -187,5 +188,31 @@ namespace
       EXPECT_FALSE(check_assertions(*schema.compiled, node, value_view{}, work, scratch.callbacks()).has_value())
         << text;
     }
+  }
+
+  /* =============================== Test_P054_EmbeddedMetaSchema =============================== */
+  /*
+   * Arrange: The embedded Draft-07 meta-schema text.
+   * Act: Check its pinned size and identity, register it as both schema and instance, compile it
+   *      and validate it against itself.
+   * Expect: The byte-identical upstream copy (4,979 bytes, $id of Draft-07) compiles and is valid
+   *         against itself (J5-053, J5-054).
+   */
+  TEST(P054_EmbeddedMetaSchema, IsPinnedAndValidatesItself)
+  {
+    const std::string_view text = draft07_meta_schema();
+    EXPECT_EQ(text.size(), 4979U);
+    EXPECT_NE(text.find(R"("$id": "http://json-schema.org/draft-07/schema#")"), std::string_view::npos);
+    const compiled_text meta{std::string{text}};
+    ASSERT_TRUE(meta.compiled.has_value());
+    const parsed_text instance{std::string{text}.c_str()};
+    schema_test_storage work;
+    schema_test_storage report;
+    validation_options options{};
+    options.work_storage = work.callbacks();
+    options.report_storage = report.callbacks();
+    const auto verdict = validate(*meta.compiled, instance.parsed->values, options);
+    ASSERT_TRUE(verdict.has_value());
+    EXPECT_TRUE(verdict.value_if()->valid());
   }
 } // namespace

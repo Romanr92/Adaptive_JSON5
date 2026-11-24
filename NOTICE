@@ -30,6 +30,14 @@ tests/fixtures/third_party, which are not part of the parser:
   1ef36fa01286573e846ac449e8683f8833c5b26a), MIT, Copyright (c) 2016 Nicolas
   Seriot. See LICENSES/JSONTestSuite-MIT.txt.
 
+The optional schema library (AdaptiveJSON5::schema) embeds the unmodified JSON
+Schema Draft-07 meta-schema (https://github.com/json-schema-org/json-schema-spec,
+branch draft-07, commit 20a3fee852db88519dcb3bb329b7a872ebad8953), Copyright (c)
+2022 JSON Schema Specification Authors, under the BSD 3-Clause License (upstream
+dual license BSD-3-Clause OR AFL-3.0). See LICENSES/json-schema-spec-BSD-3-Clause.txt.
+Distributions of the schema library must reproduce that notice; the parser library
+does not contain this material.
+
 These notices are informational and do not modify any license terms.
 
 The JSON5 implementation checklist explains JSON5 1.0.0 (MIT, Copyright (c)

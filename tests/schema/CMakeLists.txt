@@ -45,5 +45,6 @@ target_link_libraries(adaptive_json5_schema_assertion_unit_tests PRIVATE Adaptiv
 adaptive_json5_add_unit(adaptive_json5_schema_logic_unit_tests schema_logic_units
     logic_tests.cpp
     annotation_tests.cpp
-    format_tests.cpp)
+    format_tests.cpp
+    meta_schema_tests.cpp)
 target_link_libraries(adaptive_json5_schema_logic_unit_tests PRIVATE AdaptiveJSON5::schema)
