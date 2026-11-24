@@ -4214,6 +4214,12 @@
             "P047_InvalidViews.SchemaValueHelpersReportAccessFailures",
             "P051_InvalidViews.AssertionsReportAccessFailures"
           ]
+        },
+        {
+          "file": "tests/schema/logic_tests.cpp",
+          "names": [
+            "P052_Logic.MatchesDraft07InBothModes"
+          ]
         }
       ]
     },
@@ -4461,6 +4467,15 @@
           "names": [
             "P046_Outcomes.CancellationAfterAssertionFailureWins"
           ]
+        },
+        {
+          "file": "tests/schema/logic_tests.cpp",
+          "names": [
+            "P052_Diagnostics.ReportTheFailedKeyword",
+            "P052_Failures.BudgetsInsideBranchesAreOperational",
+            "P052_Failures.CancellationDuringBranches",
+            "P052_Failures.AllocationFailureDuringBranches"
+          ]
         }
       ]
     },
@@ -4633,6 +4648,13 @@
           "file": "tests/schema/assertion_failure_tests.cpp",
           "names": [
             "P051_AllocationFailures.CompileStepLimit"
+          ]
+        },
+        {
+          "file": "tests/schema/logic_tests.cpp",
+          "names": [
+            "P052_Failures.BudgetsInsideBranchesAreOperational",
+            "P052_Failures.BranchBudgetSweep"
           ]
         }
       ]
