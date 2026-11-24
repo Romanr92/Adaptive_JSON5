@@ -38,7 +38,7 @@ JSON5 n_ cases remain clean-completion cases because many are valid JSON5.
   `idn-email`, `idn-hostname`, `iri`, `iri-reference`, `uri-template` (not asserted).
   `remotes/` (draft-07-compatible files) are registered offline under
   `http://localhost:1234/`, and the Draft-07 meta-schema under its own URI.
-  At this revision: 747 required and 568 optional tests run.
+  The hostname file runs its RFC 1123 cases. Its optional IDNA A-label group is listed in the inventory as outside the advertised format. The 18 control-escape and Unicode-property pattern cases assert the ADR 0006 compile error (`unsupported_pattern`). The inventory runs 927 required and 670 optional cases.
 
 ## Recorded deviations from upstream labels
 
