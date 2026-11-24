@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-319 | SWU-SCHEMA-320 |
+| SCHEMA | SWU-SCHEMA-345 | SWU-SCHEMA-346 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -710,6 +710,32 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-317 | used | `(anonymous)::compile_annotations(compile_state &, const value_view &, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
 | SWU-SCHEMA-318 | used | `(anonymous)::located(const evaluator &, const frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
 | SWU-SCHEMA-319 | used | `(anonymous)::note_annotations(evaluator &, const frame &, const schema_node &)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-320 | used | `detail::format_from_name(std::string_view)` | `core/src/schema/format.cpp` | `core/includes/schema/format.hpp` |
+| SWU-SCHEMA-321 | used | `detail::format_from_name(const decoded_string &)` | `core/src/schema/format.cpp` | `core/includes/schema/format.hpp` |
+| SWU-SCHEMA-322 | used | `detail::check_format(format_kind, const decoded_string &, schema_work &, const storage_callbacks &)` | `core/src/schema/format.cpp` | `core/includes/schema/format.hpp` |
+| SWU-SCHEMA-323 | used | `(anonymous)::is_one_of(char, std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-324 | used | `(anonymous)::only(std::string_view, std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-325 | used | `(anonymous)::decimal(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-326 | used | `(anonymous)::two_digits_at_most(std::string_view, std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-327 | used | `(anonymous)::is_date(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-328 | used | `(anonymous)::is_time(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-329 | used | `(anonymous)::is_date_time(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-330 | used | `(anonymous)::is_hostname(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-331 | used | `(anonymous)::is_email(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-332 | used | `(anonymous)::is_ipv4(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-333 | used | `(anonymous)::ipv6_groups(std::string_view, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-334 | used | `(anonymous)::is_ipv6(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-335 | used | `(anonymous)::is_uri_reference(std::string_view, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-336 | used | `(anonymous)::is_json_pointer(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-337 | used | `(anonymous)::is_relative_json_pointer(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-338 | used | `(anonymous)::ascii_copy(const decoded_string &, pod_vector<char> &)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-339 | used | `(anonymous)::check_text(format_kind, std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-340 | used | `(anonymous)::is_regex(const decoded_string &, schema_work &, const storage_callbacks &)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-341 | used | `format_assertion_supported(std::string_view)` | `core/src/schema/format.cpp` | `includes/adaptive_json5/schema/compiled_schema.hpp` |
+| SWU-SCHEMA-342 | used | `(anonymous)::compile_format(const compile_state &, const std::array<std::optional<value_view>, c_keyword_count> &, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-343 | used | `(anonymous)::days_in_month(std::uint32_t, std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-344 | used | `(anonymous)::skip_fraction(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-345 | used | `(anonymous)::is_offset(std::string_view)` | `core/src/schema/format.cpp` | — |
 
 ## UNICODE
 

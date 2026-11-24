@@ -14,6 +14,7 @@
 #include "adaptive_json5/value/value_view.hpp"
 #include "memory/work_budget.hpp"
 #include "schema/exact_number.hpp"
+#include "schema/format.hpp"
 #include "schema/regex.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_values.hpp"
@@ -386,6 +387,16 @@ namespace adaptive_json5::detail
         (has_min && (*length.value_if() < node.min_length)) ? keyword_bit(schema_keyword::min_length) : c_no_keywords;
       failed |=
         (has_max && (*length.value_if() > node.max_length)) ? keyword_bit(schema_keyword::max_length) : c_no_keywords;
+      if (has_flag(node.string_flags, string_bit::format))
+      {
+        const auto issue =
+          collect(check_format(static_cast<format_kind>(node.format), **text.value_if(), work, scratch),
+                  schema_keyword::format, failed);
+        if (issue.has_value())
+        {
+          return issue;
+        }
+      }
       if (!has_flag(node.string_flags, string_bit::pattern))
       {
         return std::nullopt;

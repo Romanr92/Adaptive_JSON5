@@ -4038,6 +4038,12 @@
           "names": [
             "P051_ListShapes.AreChecked"
           ]
+        },
+        {
+          "file": "tests/schema/format_tests.cpp",
+          "names": [
+            "J5_069_FormatOptions.UnsupportedAndNonApplicable"
+          ]
         }
       ]
     },
@@ -4688,6 +4694,12 @@
             "P052_Failures.BudgetsInsideBranchesAreOperational",
             "P052_Failures.BranchBudgetSweep"
           ]
+        },
+        {
+          "file": "tests/schema/format_tests.cpp",
+          "names": [
+            "J5_069_FormatOptions.BudgetAndStorageFailures"
+          ]
         }
       ]
     },
@@ -4796,12 +4808,25 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
+      "implementation": [
+        {
+          "files": ["core/includes/schema/format.hpp", "core/src/schema/format.cpp", "includes/adaptive_json5/schema/compiled_schema.hpp", "core/src/schema/schema_compiler.cpp"],
+          "symbols": ["check_format", "format_from_name", "format_assertion_supported", "compile_format"]
+        }
+      ],
       "tests": [
         {
           "file": "tests/schema/annotation_tests.cpp",
           "names": [
             "P053_ExtensionKeywords.FormatAndContentAreAnnotations"
+          ]
+        },
+        {
+          "file": "tests/schema/format_tests.cpp",
+          "names": [
+            "J5_069_FormatAssertion.ChecksTheSupportedSet",
+            "J5_069_FormatOptions.UnsupportedAndNonApplicable",
+            "J5_069_FormatOptions.BudgetAndStorageFailures"
           ]
         }
       ]

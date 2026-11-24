@@ -15,6 +15,7 @@
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 #include "schema/exact_number.hpp"
+#include "schema/format.hpp"
 #include "schema/json_pointer.hpp"
 #include "schema/pod_vector.hpp"
 #include "schema/regex.hpp"
@@ -168,6 +169,7 @@ namespace adaptive_json5
         schema_compile_limits limits;
         schema_dialect dialect;
         std::size_t steps{};
+        bool assert_format{};
 
         /**
          * @brief Bind every table to its storage; no allocation.
@@ -183,7 +185,7 @@ namespace adaptive_json5
               token(options.scratch_storage), regex_code(options.result_storage), regex_ranges(options.result_storage),
               scratch(options.scratch_storage), result_storage(options.result_storage),
               values(detail::document_access::create(options.result_storage, options.limits.max_compile_steps)),
-              limits(options.limits), dialect(selected)
+              limits(options.limits), dialect(selected), assert_format(options.assert_format)
         {
         }
     };
@@ -1213,6 +1215,35 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Check `format` (a string) and select its assertion when requested and supported.
+     * @par Requirements
+     * J5-069; J5-054.
+     * @par ID SWU-SCHEMA-342
+     */
+    status compile_format(const compile_state& state,
+                          const std::array<std::optional<value_view>, c_keyword_count>& found,
+                          schema_node& node) noexcept
+    {
+      const auto& format = found[static_cast<std::size_t>(schema_keyword::format)];
+      if (!format.has_value())
+      {
+        return status::success();
+      }
+      const auto text = format->as_string();
+      if (!text.has_value())
+      {
+        return shape_error(*format);
+      }
+      const detail::format_kind kind = detail::format_from_name(**text.value_if());
+      if (state.assert_format && (kind != detail::format_kind::none))
+      {
+        node.format = static_cast<std::uint8_t>(kind);
+        node.string_flags = with_flag(node.string_flags, detail::string_bit::format);
+      }
+      return status::success();
+    }
+
+    /**
      * @brief Compile minLength, maxLength and pattern (P049).
      * @par Requirements
      * P049; J5-054; J5-057; J5-060.
@@ -1240,10 +1271,11 @@ namespace adaptive_json5
         *entry.target = *count.value_if();
         node.string_flags = with_flag(node.string_flags, entry.bit);
       }
+      const auto formatted = compile_format(state, found, node);
       const auto& pattern = found[static_cast<std::size_t>(schema_keyword::pattern)];
-      if (!pattern.has_value())
+      if (!formatted.has_value() || !pattern.has_value())
       {
-        return status::success();
+        return formatted;
       }
       const auto text = pattern->as_string();
       if (!text.has_value())
@@ -2072,6 +2104,10 @@ namespace adaptive_json5
   {
     using compile_result = result<compiled_schema, schema_error>;
     compile_state state{options, dialect};
+    if (options.assert_content)
+    {
+      return compile_result::failure(schema_error::of(schema_error_code::unsupported_option));
+    }
 
     // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
     // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
