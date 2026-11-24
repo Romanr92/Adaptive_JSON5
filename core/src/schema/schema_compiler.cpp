@@ -1432,6 +1432,54 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Report whether a member name is an annotation keyword or an unknown keyword.
+     * @par Requirements
+     * P053; J5-058; J5-062; J5-069; Draft-07 Validation sections 7, 8 and 10.
+     * @par ID SWU-SCHEMA-316
+     */
+    bool is_annotation_name(const decoded_string& name) noexcept
+    {
+      const auto keyword = classify(name);
+      if (!keyword.has_value())
+      {
+        return true;
+      }
+      constexpr std::array<schema_keyword, 10> c_annotations{
+        schema_keyword::comment,         schema_keyword::title,     schema_keyword::description,
+        schema_keyword::default_value,   schema_keyword::read_only, schema_keyword::write_only,
+        schema_keyword::examples,        schema_keyword::format,    schema_keyword::content_media_type,
+        schema_keyword::content_encoding};
+      for (const schema_keyword annotation : c_annotations)
+      {
+        if (annotation == *keyword)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * @brief Copy a node's annotation and unknown keywords into the value document.
+     * @par Requirements
+     * P053; J5-058; J5-062; J5-066.
+     * @par ID SWU-SCHEMA-317
+     */
+    status compile_annotations(compile_state& state, const value_view& object, schema_node& node) noexcept
+    {
+      std::size_t copied = 0U;
+      const auto annotations = detail::copy_members_if(object, &is_annotation_name, *state.values, state.result_storage,
+                                                       state.steps, state.limits.max_compile_steps, copied);
+      if (!annotations.has_value())
+      {
+        return status::failure(*annotations.error_if());
+      }
+      node.annotations = *annotations.value_if();
+      node.has_annotations = copied != 0U;
+      return status::success();
+    }
+
+    /**
      * @brief Compile one queued schema value into its node.
      * @par Requirements
      * P044; J5-053; J5-054; J5-055; J5-062; ADR 0006 decisions 2, 10, O1 and O2.
@@ -1472,7 +1520,8 @@ namespace adaptive_json5
       }
 
       const bool evaluate = !found[static_cast<std::size_t>(schema_keyword::ref)].has_value();
-      const auto evaluated = evaluate ? compile_assertion_keywords(state, found, node) : status::success();
+      auto evaluated = evaluate ? compile_assertion_keywords(state, found, node) : status::success();
+      evaluated = (evaluate && evaluated.has_value()) ? compile_annotations(state, item.value, node) : evaluated;
       if (!evaluated.has_value())
       {
         return evaluated;

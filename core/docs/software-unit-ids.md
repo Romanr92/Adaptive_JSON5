@@ -36,7 +36,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-311 | SWU-SCHEMA-312 |
+| SCHEMA | SWU-SCHEMA-319 | SWU-SCHEMA-320 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -702,6 +702,14 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-309 | used | `(anonymous)::kind_bit(value_kind)` | `core/src/schema/assertions.cpp` | — |
 | SWU-SCHEMA-310 | used | `detail::has_flag<Bit>(std::uint8_t, Bit)` | `core/includes/schema/schema_graph.hpp` | — |
 | SWU-SCHEMA-311 | used | `detail::with_flag<Bit>(std::uint8_t, Bit)` | `core/includes/schema/schema_graph.hpp` | — |
+| SWU-SCHEMA-312 | used | `validation_report::annotation_count()` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-313 | used | `validation_report::annotation(std::size_t)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validation_report.hpp` |
+| SWU-SCHEMA-314 | used | `annotation_values(const compiled_schema &, const schema_annotation &)` | `core/src/schema/evaluator.cpp` | `includes/adaptive_json5/schema/validate.hpp` |
+| SWU-SCHEMA-315 | used | `detail::copy_members_if(const value_view &, member_filter, document &, const storage_callbacks &, std::size_t &, std::size_t, std::size_t &)` | `core/src/schema/schema_values.cpp` | `core/includes/schema/schema_values.hpp` |
+| SWU-SCHEMA-316 | used | `(anonymous)::is_annotation_name(const decoded_string &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-317 | used | `(anonymous)::compile_annotations(compile_state &, const value_view &, schema_node &)` | `core/src/schema/schema_compiler.cpp` | — |
+| SWU-SCHEMA-318 | used | `(anonymous)::located(const evaluator &, const frame &, schema_keyword)` | `core/src/schema/evaluator.cpp` | — |
+| SWU-SCHEMA-319 | used | `(anonymous)::note_annotations(evaluator &, const frame &, const schema_node &)` | `core/src/schema/evaluator.cpp` | — |
 
 ## UNICODE
 

@@ -115,6 +115,8 @@ namespace adaptive_json5::detail
       std::size_t else_schema{c_no_node};
       std::size_t items_single{c_no_node};
       std::size_t unknown_keywords{};
+      value_index annotations{};    // P053: copied annotation and unknown keywords (an object).
+      bool has_annotations{};       // P053: annotations holds at least one member.
       std::uint8_t type_mask{};     // P047: type_bit values; zero when the node has no type keyword.
       bool has_const{};             // P047: const_value holds the copied const value.
       bool has_enum{};              // P047: enum_values holds the copied enum array.

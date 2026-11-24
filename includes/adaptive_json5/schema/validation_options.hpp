@@ -66,6 +66,7 @@ namespace adaptive_json5
       validation_budget budget{};
       evaluation_mode mode = evaluation_mode::fail_fast;
       cancellation_callback cancellation{};
+      bool collect_annotations{}; // P053: keep annotation records of valid branches in the report.
   };
 } // namespace adaptive_json5
 

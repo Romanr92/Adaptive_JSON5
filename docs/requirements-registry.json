@@ -4229,8 +4229,30 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/validation_report.hpp", "includes/adaptive_json5/schema/validate.hpp", "core/src/schema/evaluator.cpp"],
+          "symbols": ["annotation_count", "annotation", "annotation_values", "note_annotations"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp", "core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
+          "symbols": ["compile_annotations", "copy_members_if"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/annotation_tests.cpp",
+          "names": [
+            "P053_Annotations.CollectsEveryStandardKeyword",
+            "P053_Annotations.OnlyPassingBranchesContribute",
+            "P053_Annotations.SuppressedContexts",
+            "P053_Annotations.ValidReportsOnly",
+            "P053_Annotations.NeverMutatesTheInstance",
+            "P053_Failures.ReportAllocationFailureSweep",
+            "P053_Failures.ForeignRecordsAreRejected"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-059",
@@ -4414,6 +4436,10 @@
         {
           "files": ["includes/adaptive_json5/schema/compiled_schema.hpp"],
           "symbols": ["unknown_keyword_count"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["is_annotation_name", "compile_annotations"]
         }
       ],
       "tests": [
@@ -4421,6 +4447,12 @@
           "file": "core/tests/schema/schema_compiler_tests.cpp",
           "names": [
             "P044_CompileGraph.CountsUnknownKeywords"
+          ]
+        },
+        {
+          "file": "tests/schema/annotation_tests.cpp",
+          "names": [
+            "P053_ExtensionKeywords.AreNotInstanceProperties"
           ]
         }
       ]
@@ -4765,7 +4797,14 @@
       "issue": 53,
       "section": "api",
       "implementation": [],
-      "tests": []
+      "tests": [
+        {
+          "file": "tests/schema/annotation_tests.cpp",
+          "names": [
+            "P053_ExtensionKeywords.FormatAndContentAreAnnotations"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-070",

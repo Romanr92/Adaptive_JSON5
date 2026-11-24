@@ -432,6 +432,54 @@ namespace adaptive_json5::detail
   }
 
   /**
+   * @brief Copy the members of a schema object whose names keep() accepts into a new object.
+   * @par Requirements
+   * P053; J5-058; J5-062; J5-066.
+   * @par ID SWU-SCHEMA-315
+   */
+  result<value_index, schema_error> copy_members_if(const value_view& object, member_filter keep, document& target,
+                                                    const storage_callbacks& storage, std::size_t& steps,
+                                                    std::size_t step_limit, std::size_t& copied) noexcept
+  {
+    copied = 0U;
+    auto copy = document_access::make_object(target);
+    auto members = object.children();
+    if (!copy.has_value() || !members.has_value())
+    {
+      return index_result::failure(failure_of(copy.has_value() ? members.error_if() : copy.error_if()));
+    }
+    pod_vector<std::uint16_t> units{storage};
+    for (;;)
+    {
+      const auto member = members.value_if()->next();
+      if (!member.has_value() || !member.value_if()->has_value())
+      {
+        return member.has_value() ? index_result::success(*copy.value_if())
+                                  : index_result::failure(failure_of(member.error_if()));
+      }
+      const value_view& entry = **member.value_if();
+      const auto name = entry.member_name();
+      if (!name.has_value())
+      {
+        return index_result::failure(failure_of(name.error_if()));
+      }
+      if (!keep(**name.value_if()))
+      {
+        continue;
+      }
+      const auto value = copy_value(entry, target, storage, steps, step_limit);
+      const auto attached = value.has_value() ? attach_copy(copy_frame{value_iterator{}, *copy.value_if(), true}, entry,
+                                                            *value.value_if(), target, storage, units)
+                                              : status::failure(*value.error_if());
+      if (!attached.has_value())
+      {
+        return index_result::failure(*attached.error_if());
+      }
+      ++copied;
+    }
+  }
+
+  /**
    * @brief Parse a `type` keyword value into a mask of type_bit values.
    * @par Requirements
    * P047; J5-054; J5-057.

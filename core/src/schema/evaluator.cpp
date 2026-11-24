@@ -47,13 +47,16 @@ namespace adaptive_json5
          * P046; J5-063.
          * @par ID SWU-SCHEMA-141
          */
-        static validation_report make(bool valid, bool truncated, owned_block&& diagnostics, std::size_t count) noexcept
+        static validation_report make(bool valid, bool truncated, owned_block&& diagnostics, std::size_t count,
+                                      owned_block&& annotations, std::size_t annotation_count) noexcept
         {
           validation_report report{};
           report.m_valid = valid;
           report.m_truncated = truncated;
           report.m_diagnostics = std::move(diagnostics);
           report.m_count = count;
+          report.m_annotations = std::move(annotations);
+          report.m_annotation_count = annotation_count;
           return report;
         }
     };
@@ -116,11 +119,13 @@ namespace adaptive_json5
         bool valid{true};
         bool started{};
         bool if_result{};
-        value_view member{};         // P051: member whose candidate schemas are being applied.
-        std::size_t member_target{}; // P051: next candidate (0 properties, 1..n patterns, n+1 additional).
-        bool member_open{};          // P051: member is set and has candidates left.
-        bool member_matched{};       // P051: properties or a pattern applied to member.
-        bool in_names{};             // P051: instance is a property name copy (propertyNames).
+        value_view member{};           // P051: member whose candidate schemas are being applied.
+        std::size_t member_target{};   // P051: next candidate (0 properties, 1..n patterns, n+1 additional).
+        bool member_open{};            // P051: member is set and has candidates left.
+        bool member_matched{};         // P051: properties or a pattern applied to member.
+        bool in_names{};               // P051: instance is a property name copy (propertyNames).
+        std::size_t annotation_mark{}; // P053: annotation count when the frame was pushed.
+        std::size_t branch_mark{};     // P053: annotation count before the `not` subschema.
     };
 
     /**
@@ -157,12 +162,14 @@ namespace adaptive_json5
         detail::schema_work work;
         pod_vector<frame> frames;
         pod_vector<schema_diagnostic> diagnostics;
+        pod_vector<schema_annotation> annotations; // P053: records of passing frames so far.
         storage_callbacks scratch;
         std::optional<document> names{}; // P051: copies of member names for propertyNames.
         evaluation_mode mode;
         std::size_t diagnostic_limit;
         bool stop{};
         bool truncated{};
+        bool collect{}; // P053: collect_annotations.
 
         /**
          * @brief Bind the schema, budget and storages; no allocation.
@@ -172,8 +179,10 @@ namespace adaptive_json5
          */
         evaluator(const compiled_schema& compiled, const validation_options& options) noexcept
             : schema(compiled), work(options.budget, options.cancellation), frames(options.work_storage),
-              diagnostics(options.report_storage), scratch(options.work_storage), mode(options.mode),
-              diagnostic_limit((options.mode == evaluation_mode::fail_fast) ? 1U : options.budget.max_errors)
+              diagnostics(options.report_storage), annotations(options.report_storage), scratch(options.work_storage),
+              mode(options.mode),
+              diagnostic_limit((options.mode == evaluation_mode::fail_fast) ? 1U : options.budget.max_errors),
+              collect(options.collect_annotations)
         {
         }
     };
@@ -203,6 +212,35 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Build the location record of a frame (diagnostics and annotations).
+     * @par Requirements
+     * P046; P053; J5-064.
+     * @par ID SWU-SCHEMA-318
+     */
+    schema_diagnostic located(const evaluator& run, const frame& owner, schema_keyword keyword) noexcept
+    {
+      const schema_node& node = compiled_schema_access::node(run.schema, owner.node);
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.11)
+      schema_diagnostic entry{};
+      entry.keyword = keyword;
+      entry.instance_position = owner.instance_position;
+      const auto span = owner.instance.source_span();
+      if (span.has_value() && span.value_if()->has_value())
+      {
+        entry.has_instance_span = true;
+        entry.instance_span = **span.value_if();
+      }
+      entry.schema_node = owner.node;
+      entry.schema_resource = node.resource;
+      entry.has_schema_span = node.has_span;
+      entry.schema_span = node.span;
+      return entry;
+    }
+
+    /**
      * @brief Record a diagnostic for a failed keyword of an unsuppressed frame.
      * @par Requirements
      * P046; J5-063; J5-064; ADR 0006 decisions 12 and 13.
@@ -222,24 +260,7 @@ namespace adaptive_json5
         run.stop = true;
         return status::success();
       }
-      const schema_node& node = compiled_schema_access::node(run.schema, owner.node);
-      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
-      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
-      // the value is zero or the stated constant and no conversion changes it.
-      // codeql::misra_deviation_next_line(DEV-103.11)
-      schema_diagnostic entry{};
-      entry.keyword = keyword;
-      entry.instance_position = owner.instance_position;
-      const auto span = owner.instance.source_span();
-      if (span.has_value() && span.value_if()->has_value())
-      {
-        entry.has_instance_span = true;
-        entry.instance_span = **span.value_if();
-      }
-      entry.schema_node = owner.node;
-      entry.schema_resource = node.resource;
-      entry.has_schema_span = node.has_span;
-      entry.schema_span = node.span;
+      const schema_diagnostic entry = located(run, owner, keyword);
       const auto pushed = run.diagnostics.push_back(entry);
       if (!pushed.has_value())
       {
@@ -502,7 +523,7 @@ namespace adaptive_json5
         owner.passes += *delivered ? 1U : 0U;
         delivered.reset();
       }
-      if ((owner.passes == 0U) && (owner.cursor < node.any_of.count))
+      if (((owner.passes == 0U) || run.collect) && (owner.cursor < node.any_of.count))
       {
         // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
         // MISRA justification: Index, offset and count arithmetic on std::size_t is bounded by a preceding check, the
@@ -570,7 +591,12 @@ namespace adaptive_json5
     {
       if (!delivered.has_value() && (node.not_schema != c_no_node))
       {
+        owner.branch_mark = run.annotations.size();
         return request(node.not_schema, owner.instance, true, true);
+      }
+      if (delivered.has_value())
+      {
+        run.annotations.truncate(owner.branch_mark);
       }
       const bool matched = delivered.value_or(false);
       delivered.reset();
@@ -1095,6 +1121,23 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Record a frame's annotation keywords when collecting (P053).
+     * @par Requirements
+     * P053; J5-058; J5-062.
+     * @note Frames inside propertyNames are skipped: their instance is a name copy, not a value
+     * of the instance document.
+     * @par ID SWU-SCHEMA-319
+     */
+    status note_annotations(evaluator& run, const frame& owner, const schema_node& node) noexcept
+    {
+      if (!run.collect || !node.has_annotations || owner.in_names)
+      {
+        return status::success();
+      }
+      return run.annotations.push_back(located(run, owner, schema_keyword::none));
+    }
+
+    /**
      * @brief Evaluate a node's assertion keywords and record each failed one.
      * @par Requirements
      * P047; J5-057; J5-063.
@@ -1103,6 +1146,11 @@ namespace adaptive_json5
      */
     status run_assertions(evaluator& run, frame& owner, const schema_node& node) noexcept
     {
+      const auto noted = note_annotations(run, owner, node);
+      if (!noted.has_value())
+      {
+        return noted;
+      }
       const auto failed = detail::check_assertions(run.schema, node, owner.instance, run.work, run.scratch);
       if (!failed.has_value())
       {
@@ -1259,6 +1307,7 @@ namespace adaptive_json5
       next.suppressed = child.suppressed;
       next.via_ref = child.via_ref;
       next.in_names = in_names;
+      next.annotation_mark = run.annotations.size();
       return run.frames.push_back(next);
     }
 
@@ -1316,6 +1365,10 @@ namespace adaptive_json5
           continue;
         }
         run.frames.pop_back();
+        if (!current.valid)
+        {
+          run.annotations.truncate(current.annotation_mark);
+        }
         delivered = current.valid;
         verdict = current.valid;
       }
@@ -1356,8 +1409,10 @@ namespace adaptive_json5
     }
     const std::size_t count = run.diagnostics.size();
     const bool valid = *verdict.value_if() && (count == 0U);
+    const std::size_t annotation_count = valid ? run.annotations.size() : 0U;
     return validate_result::success(
-      detail::validation_report_access::make(valid, run.truncated, run.diagnostics.release(), count));
+      detail::validation_report_access::make(valid, run.truncated, run.diagnostics.release(), count,
+                                             valid ? run.annotations.release() : owned_block{}, annotation_count));
   }
 
   namespace
@@ -1852,11 +1907,13 @@ namespace adaptive_json5
   // codeql::misra_deviation_next_line(DEV-109.3)
   validation_report::validation_report(validation_report&& other) noexcept
       : m_diagnostics(std::move(other.m_diagnostics)), m_count(other.m_count), m_valid(other.m_valid),
-        m_truncated(other.m_truncated)
+        m_truncated(other.m_truncated), m_annotations(std::move(other.m_annotations)),
+        m_annotation_count(other.m_annotation_count)
   {
     other.m_count = 0U;
     other.m_valid = true;
     other.m_truncated = false;
+    other.m_annotation_count = 0U;
   }
 
   /**
@@ -1909,5 +1966,55 @@ namespace adaptive_json5
     // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
     // codeql::misra_deviation_next_line(DEV-107.3)
     return static_cast<const schema_diagnostic*>(m_diagnostics.data()) + index;
+  }
+  /**
+   * @brief Return the number of annotation records.
+   * @par Requirements
+   * P053; J5-058.
+   * @par ID SWU-SCHEMA-312
+   */
+  std::size_t validation_report::annotation_count() const noexcept
+  {
+    return m_annotation_count;
+  }
+
+  /**
+   * @brief Borrow annotation record index, or nullptr when index >= annotation_count().
+   * @par Requirements
+   * P053; J5-058; J5-064.
+   * @par ID SWU-SCHEMA-313
+   */
+  const schema_annotation* validation_report::annotation(std::size_t index) const noexcept
+  {
+    if (index >= m_annotation_count)
+    {
+      return nullptr;
+    }
+    return static_cast<const schema_annotation*>(m_annotations.data()) + index;
+  }
+
+  /**
+   * @brief Borrow the annotation keywords of an annotation record's schema node.
+   * @par Requirements
+   * P053; J5-058; J5-062; J5-069.
+   * @par ID SWU-SCHEMA-314
+   */
+  result<value_view, schema_error> annotation_values(const compiled_schema& schema,
+                                                     const schema_annotation& annotation) noexcept
+  {
+    using view_result = result<value_view, schema_error>;
+    const document* values = compiled_schema_access::values(schema);
+    if ((annotation.schema_node >= schema.node_count()) || (values == nullptr))
+    {
+      return view_result::failure(schema_error::of(schema_error_code::internal_error));
+    }
+    const schema_node& node = compiled_schema_access::node(schema, annotation.schema_node);
+    if (!node.has_annotations)
+    {
+      return view_result::failure(schema_error::of(schema_error_code::internal_error));
+    }
+    const auto view = values->view(node.annotations);
+    return view.has_value() ? view_result::success(*view.value_if())
+                            : view_result::failure(schema_error::from_storage(*view.error_if()));
   }
 } // namespace adaptive_json5

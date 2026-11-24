@@ -68,6 +68,26 @@ namespace adaptive_json5::detail
                          std::size_t& steps, std::size_t step_limit) noexcept;
 
   /**
+   * @brief Decide whether a schema member name is kept by copy_members_if().
+   * @par Requirements
+   * P053; J5-058; J5-062.
+   */
+  using member_filter = bool (*)(const decoded_string& name) noexcept;
+
+  /**
+   * @brief Copy the members of a schema object whose names keep() accepts into a new object.
+   * @par Requirements
+   * P053; J5-058; J5-062; J5-066.
+   * @param copied Set to the number of copied members.
+   * @return The new object in target, resource_limit or a storage failure.
+   * @par ID SWU-SCHEMA-315
+   */
+  [[nodiscard]] result<value_index, schema_error> copy_members_if(const value_view& object, member_filter keep,
+                                                                  document& target, const storage_callbacks& storage,
+                                                                  std::size_t& steps, std::size_t step_limit,
+                                                                  std::size_t& copied) noexcept;
+
+  /**
    * @brief Check that a value is an array of distinct strings (required, dependency lists).
    * @par Requirements
    * P051; J5-054.
