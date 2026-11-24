@@ -23,18 +23,50 @@ namespace adaptive_json5::detail
   {
     using bool_result = result<bool, schema_error>;
 
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.11)
     constexpr std::string_view c_digits{"0123456789"};
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.10)
     constexpr std::string_view c_hex_digits{"0123456789abcdefABCDEF"};
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.9)
     constexpr std::string_view c_letters{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"};
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.8)
     constexpr std::string_view c_label{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-"};
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.7)
     constexpr std::string_view c_scheme{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-."};
     // RFC 5322 atext plus '.', for dot-atom local parts.
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.6)
     constexpr std::string_view c_local{
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&'*+/=?^_`{|}~-."};
     // RFC 3986 unreserved, gen-delims, sub-delims and '%' (checked separately).
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.5)
     constexpr std::string_view c_uri{
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%"};
     // Printable ASCII including space (RFC 5321 qtext and quoted-pair characters).
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.4)
     constexpr std::string_view c_printable{
       " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"};
     constexpr std::size_t c_max_hostname = 253U;
@@ -42,13 +74,24 @@ namespace adaptive_json5::detail
     constexpr std::size_t c_max_local_part = 64U;
     constexpr std::size_t c_ipv6_groups = 8U;
     // A non-ASCII code unit in the ASCII copy; formats that allow any character never inspect it.
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.3)
     constexpr std::string_view c_non_ascii{"\x7f"};
+    constexpr std::uint32_t c_first_printable = 0x20U; // ' ', the first character of c_printable.
+    constexpr std::uint32_t c_ascii_end = 0x80U;
+    constexpr std::size_t c_text_start = 0U;
 
     /**
      * @brief Names of the supported formats, indexed by format_kind.
      * @par Requirements
      * J5-069.
      */
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.2)
     constexpr std::array<std::string_view, 13> c_format_names{{"", "date-time", "date", "time", "email", "hostname",
                                                                "ipv4", "ipv6", "uri", "uri-reference", "json-pointer",
                                                                "relative-json-pointer", "regex"}};
@@ -90,6 +133,11 @@ namespace adaptive_json5::detail
       std::uint32_t value = 0U;
       for (const char c : digits)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.179)
         value = (value * 10U) + static_cast<std::uint32_t>(c_digits.find(c));
       }
       return value;
@@ -117,7 +165,16 @@ namespace adaptive_json5::detail
     {
       constexpr std::array<std::uint32_t, 12> c_days{{31U, 28U, 31U, 30U, 31U, 30U, 31U, 31U, 30U, 31U, 30U, 31U}};
       const bool leap = ((year % 4U) == 0U) && (((year % 100U) != 0U) || ((year % 400U) == 0U));
-      return ((month == 2U) && leap) ? 29U : c_days[month - 1U];
+      constexpr std::uint32_t c_leap_february = 29U;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds. Comparisons and arithmetic on
+      // std::uint16_t code units promote to int without changing the value; the operands are unsigned values below
+      // 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-101.178)
+      return ((month == 2U) && leap) ? c_leap_february : c_days[month - 1U];
     }
 
     /**
@@ -189,16 +246,31 @@ namespace adaptive_json5::detail
     {
       constexpr std::uint32_t c_day_minutes = 1440U;
       constexpr std::uint32_t c_last_minute = 1439U; // 23:59
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.177)
       const std::uint32_t local = (*decimal(text.substr(0U, 2U)) * 60U) + *decimal(text.substr(3U, 2U));
       std::uint32_t shift = 0U;
       if (offset.size() == 6U)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.176)
         shift = (*decimal(offset.substr(1U, 2U)) * 60U) + *decimal(offset.substr(4U, 2U));
       }
       // UTC = local - offset: subtract a positive offset, add a negative one (mod one day).
       const bool positive = (offset.size() == 6U) && is_one_of(offset[0U], "+");
       const std::uint32_t utc =
-        positive ? ((local + c_day_minutes) - shift) % c_day_minutes : (local + shift) % c_day_minutes;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.175)
+        positive ? (((local + c_day_minutes) - shift) % c_day_minutes) : ((local + shift) % c_day_minutes);
       return utc == c_last_minute;
     }
 
@@ -262,6 +334,11 @@ namespace adaptive_json5::detail
         {
           return true;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.174)
         rest = rest.substr(dot + 1U);
       }
     }
@@ -275,7 +352,8 @@ namespace adaptive_json5::detail
     bool is_ipv4(std::string_view text) noexcept
     {
       std::string_view rest = text;
-      for (std::size_t part = 0U; part < 4U; ++part)
+      std::size_t part = 0U;
+      while (part < 4U)
       {
         const std::size_t dot = rest.find('.');
         const std::string_view octet = rest.substr(0U, dot);
@@ -293,7 +371,13 @@ namespace adaptive_json5::detail
         {
           return false;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.173)
         rest = rest.substr(dot + 1U);
+        ++part;
       }
       return false;
     }
@@ -319,17 +403,32 @@ namespace adaptive_json5::detail
         const std::string_view group = rest.substr(0U, colon);
         if ((colon == std::string_view::npos) && allow_ipv4 && is_one_of('.', group) && is_ipv4(group))
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+          // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+          // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.172)
           return count + 2U;
         }
         if (!only(group, c_hex_digits) || (group.size() > 4U))
         {
           return std::nullopt;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.171)
         ++count;
         if (colon == std::string_view::npos)
         {
           return count;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.170)
         rest = rest.substr(colon + 1U);
       }
     }
@@ -348,6 +447,11 @@ namespace adaptive_json5::detail
         const auto groups = ipv6_groups(text, true);
         return groups.has_value() && (*groups == c_ipv6_groups);
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.169)
       const std::string_view right = text.substr(gap + 2U);
       if (right.find("::") != std::string_view::npos)
       {
@@ -370,6 +474,11 @@ namespace adaptive_json5::detail
       {
         return false;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.168)
       const std::string_view inner = local.substr(1U, local.size() - 2U);
       bool escaped = false;
       for (const char c : inner)
@@ -410,6 +519,11 @@ namespace adaptive_json5::detail
       {
         return is_hostname(domain);
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.167)
       const std::string_view literal = domain.substr(1U, domain.size() - 2U);
       const bool ipv6_tag = (literal.size() > 5U) && is_one_of(literal[0U], "Ii") && is_one_of(literal[1U], "Pp") &&
                             is_one_of(literal[2U], "Vv") && is_one_of(literal[3U], "6") && is_one_of(literal[4U], ":");
@@ -452,6 +566,11 @@ namespace adaptive_json5::detail
         {
           return std::nullopt;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.166)
         return (colon == std::string_view::npos) ? std::string_view{} : host_port.substr(colon + 1U);
       }
       const std::size_t close = host_port.find(']');
@@ -459,8 +578,18 @@ namespace adaptive_json5::detail
       {
         return std::nullopt;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.165)
       const std::string_view literal = host_port.substr(1U, close - 1U);
       const bool future = !literal.empty() && is_one_of(literal.front(), "vV");
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.164)
       const std::string_view after = host_port.substr(close + 1U);
       if ((!future && !is_ipv6(literal)) || (!after.empty() && !is_one_of(after.front(), ":")))
       {
@@ -477,14 +606,25 @@ namespace adaptive_json5::detail
      */
     bool valid_percent_escapes(std::string_view text) noexcept
     {
-      for (std::size_t percent = text.find('%'); percent != std::string_view::npos;
-           percent = text.find('%', percent + 1U))
+      std::size_t percent = text.find('%');
+      while (percent != std::string_view::npos)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.163)
         const std::string_view escape = text.substr(percent + 1U, 2U);
         if ((escape.size() != 2U) || !only(escape, c_hex_digits))
         {
           return false;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.162)
+        percent = text.find('%', percent + 1U);
       }
       return true;
     }
@@ -503,6 +643,11 @@ namespace adaptive_json5::detail
         return false;
       }
       const std::string_view userinfo = (at == std::string_view::npos) ? std::string_view{} : authority.substr(0U, at);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.161)
       const std::string_view host_port = (at == std::string_view::npos) ? authority : authority.substr(at + 1U);
       if (userinfo.find_first_of("[]") != std::string_view::npos)
       {
@@ -539,6 +684,11 @@ namespace adaptive_json5::detail
       {
         return false;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.160)
       std::string_view rest = has_scheme ? text.substr(colon + 1U) : text;
       if (rest.substr(0U, 2U) == "//")
       {
@@ -564,12 +714,19 @@ namespace adaptive_json5::detail
       {
         return false;
       }
-      for (std::size_t tilde = text.find('~'); tilde != std::string_view::npos; tilde = text.find('~', tilde + 1U))
+      std::size_t tilde = text.find('~');
+      while (tilde != std::string_view::npos)
       {
         if (((tilde + 1U) >= text.size()) || !is_one_of(text[tilde + 1U], "01"))
         {
           return false;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.159)
+        tilde = text.find('~', tilde + 1U);
       }
       return true;
     }
@@ -593,6 +750,23 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief Return the printable ASCII character of a code unit, or c_non_ascii for every other
+     * unit (control characters and non-ASCII), without using character values numerically.
+     * @par Requirements
+     * J5-069.
+     * @par ID SWU-SCHEMA-357
+     */
+    char ascii_of(std::uint32_t unit) noexcept
+    {
+      const bool printable = (unit >= c_first_printable) && ((unit - c_first_printable) < c_printable.size());
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: Comparisons and arithmetic on std::uint16_t code units promote to int without changing
+      // the value; the operands are unsigned values below 0x110000 and the results are used as such.
+      // codeql::misra_deviation_next_line(DEV-106.22)
+      return printable ? c_printable[unit - c_first_printable] : c_non_ascii[0U];
+    }
+
+    /**
      * @brief Copy the code units of text as ASCII characters; other units become c_non_ascii.
      * @par Requirements
      * J5-069.
@@ -601,26 +775,28 @@ namespace adaptive_json5::detail
      */
     bool_result ascii_copy(const decoded_string& text, pod_vector<char>& out) noexcept
     {
-      constexpr std::string_view c_ascii{
-        "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19"
-        "\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
-        "abcdefghijklmnopqrstuvwxyz{|}~\x7f",
-        128U};
       bool ascii = true;
-      for (std::size_t index = 0U; index < text.size(); ++index)
+      std::size_t index = 0U;
+      while (index < text.size())
       {
         const auto unit = text.unit_at(index);
         if (!unit.has_value())
         {
           return bool_result::failure(schema_error::from_storage(*unit.error_if()));
         }
-        const std::size_t code = *unit.value_if();
-        ascii = ascii && (code < c_ascii.size());
-        const auto pushed = out.push_back((code < c_ascii.size()) ? c_ascii[code] : c_non_ascii[0U]);
+        const std::uint32_t code = static_cast<std::uint32_t>(*unit.value_if());
+        ascii = ascii && (code < c_ascii_end);
+        const auto pushed = out.push_back(ascii_of(code));
         if (!pushed.has_value())
         {
           return bool_result::failure(*pushed.error_if());
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.158)
+        ++index;
       }
       return bool_result::success(ascii);
     }
@@ -704,12 +880,14 @@ namespace adaptive_json5::detail
    */
   format_kind format_from_name(std::string_view name) noexcept
   {
-    for (std::size_t index = 1U; index < c_format_names.size(); ++index)
+    std::size_t index = 1U;
+    while (index < c_format_names.size())
     {
       if (c_format_names[index] == name)
       {
         return static_cast<format_kind>(index);
       }
+      ++index;
     }
     return format_kind::none;
   }
@@ -727,23 +905,21 @@ namespace adaptive_json5::detail
     {
       return format_kind::none;
     }
-    constexpr std::string_view c_name_characters{"abcdefghijklmnopqrstuvwxyz0123456789-"};
-    for (std::size_t index = 0U; index < name.size(); ++index)
+    std::size_t index = 0U;
+    while (index < name.size())
     {
       const auto unit = name.unit_at(index);
-      bool matched = false;
-      for (const char c : c_name_characters)
-      {
-        if (unit.has_value() && (*unit.value_if() == static_cast<std::uint16_t>(static_cast<unsigned char>(c))))
-        {
-          buffer[index] = c;
-          matched = true;
-        }
-      }
-      if (!matched)
+      if (!unit.has_value())
       {
         return format_kind::none;
       }
+      buffer[index] = ascii_of(static_cast<std::uint32_t>(*unit.value_if()));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.157)
+      ++index;
     }
     return format_from_name(std::string_view{buffer.data(), name.size()});
   }
@@ -777,7 +953,7 @@ namespace adaptive_json5::detail
     {
       return bool_result::success(false);
     }
-    return bool_result::success(check_text(format, text_of(copy, 0U, copy.size())));
+    return bool_result::success(check_text(format, text_of(copy, c_text_start, copy.size())));
   }
 } // namespace adaptive_json5::detail
 

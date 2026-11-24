@@ -1,4 +1,4 @@
-# ADR 0006: Schema component decisions (P043–P051)
+# ADR 0006: Schema component decisions (P043–P055)
 
 Status: Decided, 2026-11-22. Started 2026-11-13; the open points of the 2026-11-14
 review (O1–O10) were settled by the user on 2026-11-22 (last section).
@@ -511,3 +511,43 @@ Decided by the owner on 2026-11-22 for issue #48 (J5-057, J5-059, J5-060, J5-061
 - Moving the parsed schema documents into the compiled schema: less code, but keeps whole
   documents alive and changes the compile API (decision 4).
 
+## Logic, annotations, compilation and conformance (P052–P055, issue #53)
+
+Decided by the owner on 2026-11-24 for issue #53 (J5-053, J5-054, J5-058, J5-062, J5-065,
+J5-069, J5-096):
+
+- **Annotations (D1).** Collection is opt-in (`validation_options::collect_annotations`).
+  Compilation copies each node's annotation keywords (`title`, `description`, `default`,
+  `examples`, `readOnly`, `writeOnly`, `$comment`, `format`, `contentEncoding`,
+  `contentMediaType`) and unknown keywords into the value document. A
+  `schema_annotation` uses the diagnostic layout with keyword `none`. Records come only from
+  subschemas that pass: a failed frame drops its records, a `not` subschema and
+  propertyNames never contribute, `$ref` siblings are ignored, and an invalid report carries
+  none. While collecting, anyOf evaluates every branch. Records live in report storage and
+  are bounded by the evaluated frames. Instances are never changed.
+- **Meta-schema (D2).** The unmodified Draft-07 meta-schema is embedded under its
+  BSD-3-Clause option. `compile_schema()` validates every registered resource against it
+  after the dialect and built-in checks, so `unsupported_dialect` and pattern errors keep
+  their classes; a mismatch is `invalid_schema` / `keyword_shape` at the offending value,
+  bounded by `max_compile_steps`, in scratch storage.
+- **Optional assertions (D3).** `compile_options::assert_format` asserts date-time, date,
+  time (RFC 3339, leap second only at 23:59 UTC), email (RFC 5321: dot-atom or quoted local
+  part, host name or address literal), hostname (RFC 1123), ipv4, ipv6, uri and
+  uri-reference (RFC 3986 including the authority), json-pointer, relative-json-pointer and
+  regex (not malformed for the own engine; `(?` forms outside ECMA-262 are malformed).
+  Other names stay annotations. Checks are charged to `max_regex_steps`. Content
+  assertion is unsupported: `assert_content` returns `unsupported_option`.
+- **Conformance (D4).** JSON-Schema-Test-Suite release `Test-JSON-Schema-Acceptance-1.041`
+  (the newest with the `tests/draft7` and `remotes` layout) is pinned and run by its own
+  pull-request workflow, which is informative until the owner makes it required. The
+  suite led to an exact digit-by-digit `multipleOf` remainder, so huge values such as
+  `1e308` no longer reach the work limit.
+
+### Rejected alternatives
+
+- Static per-node metadata without validation-time collection: cannot give valid-branch
+  semantics (J5-058).
+- Shape checks only, with a test that they agree with the meta-schema: J5-054 asks for the
+  meta-schema check itself.
+- Running the suite in the unit-test executables: mixes third-party fixtures into the unit
+  gate, unlike the existing corpora.

@@ -2100,8 +2100,8 @@ namespace adaptive_json5
   namespace
   {
     result<compiled_schema, schema_error> compile_graph(const schema_registry& registry, std::string_view root_uri,
-                                                        schema_dialect dialect, const compile_options& options,
-                                                        bool meta_check) noexcept;
+                                                        schema_dialect dialect,
+                                                        const compile_options& options) noexcept;
 
     /**
      * @brief Validate every registered resource against the embedded Draft-07 meta-schema.
@@ -2131,7 +2131,7 @@ namespace adaptive_json5
       meta_options.result_storage = options.scratch_storage;
       meta_options.scratch_storage = options.scratch_storage;
       const auto meta = compile_graph(*meta_registry.value_if(), detail::c_draft07_meta_schema_uri,
-                                      schema_dialect::draft_07, meta_options, false);
+                                      schema_dialect::draft_07, meta_options);
       if (!meta.has_value())
       {
         return status::failure(*meta.error_if());
@@ -2141,10 +2141,8 @@ namespace adaptive_json5
       run.report_storage = options.scratch_storage;
       run.mode = evaluation_mode::fail_fast;
       run.budget.max_work_steps = options.limits.max_compile_steps;
-      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
-      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
-      // call; the counter is only incremented by the loop statement.
-      for (std::size_t resource = 0U; resource < registry.size(); ++resource)
+      std::size_t resource = 0U;
+      while (resource < registry.size())
       {
         const auto& entry = detail::schema_registry_access::entry(registry, resource);
         const auto report = validate(*meta.value_if(), entry.parsed.values, run);
@@ -2162,19 +2160,24 @@ namespace adaptive_json5
             invalid_schema_reason::keyword_shape,
             failed->has_instance_span ? std::optional<source_span>{failed->instance_span} : std::nullopt));
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.180)
+        ++resource;
       }
       return status::success();
     }
 
     /**
-     * @brief Compile the registry into a schema graph, optionally checking the meta-schema first.
+     * @brief Compile the registry into a schema graph (no meta-schema check).
      * @par Requirements
      * P044; P054; J5-053; J5-054; J5-055; J5-066.
      * @par ID SWU-SCHEMA-348
      */
     result<compiled_schema, schema_error> compile_graph(const schema_registry& registry, std::string_view root_uri,
-                                                        schema_dialect dialect, const compile_options& options,
-                                                        bool meta_check) noexcept
+                                                        schema_dialect dialect, const compile_options& options) noexcept
     {
       using compile_result = result<compiled_schema, schema_error>;
       compile_state state{options, dialect};
@@ -2194,11 +2197,6 @@ namespace adaptive_json5
         {
           return compile_result::failure(*added.error_if());
         }
-      }
-      const auto checked = meta_check ? check_meta_schema(registry, options) : status::success();
-      if (!checked.has_value())
-      {
-        return compile_result::failure(*checked.error_if());
       }
       const auto refs = resolve_refs(state);
       if (!refs.has_value())
@@ -2243,7 +2241,17 @@ namespace adaptive_json5
   result<compiled_schema, schema_error> compile_schema(const schema_registry& registry, std::string_view root_uri,
                                                        schema_dialect dialect, const compile_options& options) noexcept
   {
-    return compile_graph(registry, root_uri, dialect, options, true);
+    auto graph = compile_graph(registry, root_uri, dialect, options);
+    if (!graph.has_value())
+    {
+      return graph;
+    }
+    const auto checked = check_meta_schema(registry, options);
+    if (!checked.has_value())
+    {
+      return result<compiled_schema, schema_error>::failure(*checked.error_if());
+    }
+    return graph;
   }
 
   /**

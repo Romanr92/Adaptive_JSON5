@@ -11,28 +11,28 @@ the time of writing; the marker ID in the source is authoritative.
 
 | ID | Category | Lines |
 | --- | --- | --- |
-| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 154 |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 178 |
 | DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 33 |
 | DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 53 |
 | DEV-104 | Rule 15.0.1, special member functions | 40 |
 | DEV-105 | Rule 9.5.1, counting loops | 21 |
-| DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 21 |
-| DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 13 |
+| DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 22 |
+| DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 14 |
 | DEV-108 | Rule 28.6.3, objects after a move | 11 |
 | DEV-109 | Rules 15.0.2 and 18.4.1, noexcept special members | 7 |
 | DEV-110 | Rules 21.2.2 and 24.5.2, std::memcpy of trivially copyable elements | 1 |
 | DEV-111 | Rule 0.1.1, defensive initialization | 3 |
 | DEV-112 | Rule 21.6.3, construction in caller-provided storage | 3 |
-| DEV-113 | Rule 4.1.3, signed arithmetic bounded by saturation | 5 |
-| DEV-114 | Rule 6.0.3/redeclaration query, namespace-scope constexpr constant | 1 |
+| DEV-113 | Rule 4.1.3, signed arithmetic bounded by saturation | 6 |
+| DEV-114 | Rule 6.0.3/redeclaration query, namespace-scope constexpr constant | 12 |
 
 ## DEV-101: Rule 8.20.1, unsigned arithmetic that cannot wrap
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
-| Lines | 154 |
-| Status | Proposed (#44, #48) |
+| Lines | 178 |
+| Status | Proposed (#44, #48, #53) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -52,8 +52,6 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.4 | `core/includes/schema/pod_vector.hpp:113` | `++m_size;` | 8.20.1 | Proposed |
 | DEV-101.5 | `core/includes/schema/pod_vector.hpp:112` | `std::memcpy(static_cast<unsigned char*>(m_block.data()) + (m_size * sizeof(T)), &value,...` | 8.20.1, 8.2.6, 24.5.2, 8.7.1 | Proposed |
 | DEV-101.6 | `core/includes/schema/pod_vector.hpp:62` | `copy_bytes(block.value_if()->data(), m_block.data(), m_size * sizeof(T));` | 8.20.1, 24.5.2 | Proposed |
-| DEV-101.7 | `core/includes/schema/pod_vector.hpp:54` | `const std::size_t capacity = (m_capacity == 0U) ? c_first_capacity : (m_capacity * 2U);` | 8.20.1 | Removed (check moved to `next_capacity()` in `core/src/schema/pod_vector.cpp`) |
-| DEV-101.8 | `core/includes/schema/pod_vector.hpp:49` | `const std::size_t limit = std::numeric_limits<std::size_t>::max() / (2U * sizeof(T));` | 8.20.1 | Removed (check moved to `next_capacity()` in `core/src/schema/pod_vector.cpp`) |
 | DEV-101.9 | `core/src/schema/evaluator.cpp:1174` | `path.set(path.size() - 1U, top);` | 8.20.1 | Proposed |
 | DEV-101.10 | `core/src/schema/evaluator.cpp:1173` | `++top.index;` | 8.20.1 | Proposed |
 | DEV-101.11 | `core/src/schema/evaluator.cpp:1161` | `path_frame top = path.get(path.size() - 1U);` | 8.20.1 | Proposed |
@@ -133,7 +131,6 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.85 | `core/src/schema/evaluator.cpp:856` | `const auto& edge = compiled_schema_access::property(run.schema, node.pattern_properties....` | 8.20.1 | Proposed |
 | DEV-101.86 | `core/src/schema/evaluator.cpp:841` | `++owner.member_target;` | 8.20.1 | Proposed |
 | DEV-101.87 | `core/src/schema/evaluator.cpp:760` | `owner.passes += *delivered ? 1U : 0U;` | 8.20.1 | Proposed |
-| DEV-101.88 | `core/src/schema/exact_number.cpp:243` | `std::size_t shift = (*value_bits.value_if() - *divisor_bits.value_if()) + 1U;` | 8.20.1 | Proposed |
 | DEV-101.89 | `core/src/schema/exact_number.cpp:172` | `const std::size_t digits = (parts.radix == 16U) ? (written * 2U) : written;` | 8.20.1 | Proposed |
 | DEV-101.90 | `core/src/schema/exact_number.cpp:171` | `const std::size_t written = parts.integer.size() + parts.fraction.size();` | 8.20.1 | Proposed |
 | DEV-101.91 | `core/src/schema/exact_number.cpp:120` | `parts.fraction = (point == std::string_view::npos) ? std::string_view{} : text.substr(po...` | 8.20.1 | Proposed |
@@ -201,6 +198,32 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.153 | `core/src/schema/schema_values.cpp:128` | `++index;` | 8.20.1 | Proposed |
 | DEV-101.154 | `core/src/schema/schema_values.cpp:82` | `++index;` | 8.20.1 | Proposed |
 | DEV-101.155 | `core/src/schema/schema_work.cpp:120` | `m_regex_steps += units;` | 8.20.1 | Proposed |
+| DEV-101.156 | `core/src/schema/exact_number.cpp:420` | `built = reserve_digits(remainder, *modulus_digits + 1U);` | 8.20.1 | Proposed |
+| DEV-101.157 | `core/src/schema/format.cpp:760` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.158 | `core/src/schema/format.cpp:642` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.159 | `core/src/schema/format.cpp:581` | `tilde = text.find('~', tilde + 1U);` | 8.20.1 | Proposed |
+| DEV-101.160 | `core/src/schema/format.cpp:549` | `std::string_view rest = has_scheme ? text.substr(colon + 1U) : text;` | 8.20.1 | Proposed |
+| DEV-101.161 | `core/src/schema/format.cpp:513` | `const std::string_view host_port = (at == std::string_view::npos) ? authority : authorit...` | 8.20.1 | Proposed |
+| DEV-101.162 | `core/src/schema/format.cpp:494` | `percent = text.find('%', percent + 1U);` | 8.20.1 | Proposed |
+| DEV-101.163 | `core/src/schema/format.cpp:489` | `const std::string_view escape = text.substr(percent + 1U, 2U);` | 8.20.1 | Proposed |
+| DEV-101.164 | `core/src/schema/format.cpp:470` | `const std::string_view after = host_port.substr(close + 1U);` | 8.20.1 | Proposed |
+| DEV-101.165 | `core/src/schema/format.cpp:468` | `const std::string_view literal = host_port.substr(1U, close - 1U);` | 8.20.1 | Proposed |
+| DEV-101.166 | `core/src/schema/format.cpp:461` | `return (colon == std::string_view::npos) ? std::string_view{} : host_port.substr(colon +...` | 8.20.1 | Proposed |
+| DEV-101.167 | `core/src/schema/format.cpp:419` | `const std::string_view literal = domain.substr(1U, domain.size() - 2U);` | 8.20.1 | Proposed |
+| DEV-101.168 | `core/src/schema/format.cpp:379` | `const std::string_view inner = local.substr(1U, local.size() - 2U);` | 8.20.1 | Proposed |
+| DEV-101.169 | `core/src/schema/format.cpp:357` | `const std::string_view right = text.substr(gap + 2U);` | 8.20.1 | Proposed |
+| DEV-101.170 | `core/src/schema/format.cpp:339` | `rest = rest.substr(colon + 1U);` | 8.20.1 | Proposed |
+| DEV-101.171 | `core/src/schema/format.cpp:334` | `++count;` | 8.20.1 | Proposed |
+| DEV-101.172 | `core/src/schema/format.cpp:328` | `return count + 2U;` | 8.20.1 | Proposed |
+| DEV-101.173 | `core/src/schema/format.cpp:301` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Proposed |
+| DEV-101.174 | `core/src/schema/format.cpp:269` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Proposed |
+| DEV-101.175 | `core/src/schema/format.cpp:205` | `positive ? (((local + c_day_minutes) - shift) % c_day_minutes) : ((local + shift) % c_da...` | 8.20.1 | Proposed |
+| DEV-101.176 | `core/src/schema/format.cpp:200` | `shift = (*decimal(offset.substr(1U, 2U)) * 60U) + *decimal(offset.substr(4U, 2U));` | 8.20.1 | Proposed |
+| DEV-101.177 | `core/src/schema/format.cpp:196` | `const std::uint32_t local = (*decimal(text.substr(0U, 2U)) * 60U) + *decimal(text.substr...` | 8.20.1 | Proposed |
+| DEV-101.178 | `core/src/schema/format.cpp:124` | `return ((month == 2U) && leap) ? c_leap_february : c_days[month - 1U];` | 8.20.1, 7.0.6 | Proposed |
+| DEV-101.179 | `core/src/schema/format.cpp:96` | `value = (value * 10U) + static_cast<std::uint32_t>(c_digits.find(c));` | 8.20.1 | Proposed |
+| DEV-101.180 | `core/src/schema/schema_compiler.cpp:2163` | `++resource;` | 8.20.1 | Proposed |
+| DEV-101.181 | `core/src/schema/schema_values.cpp:478` | `++copied;` | 8.20.1 | Proposed |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 
@@ -438,8 +461,8 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/no-signedness-change-from-promotion`, `cpp/misra/numeric-assignment-type-mismatch` |
-| Lines | 21 |
-| Status | Proposed (#44) |
+| Lines | 22 |
+| Status | Proposed (#44, #48, #53) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -474,13 +497,14 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-106.19 | `core/src/schema/schema_registry.cpp:174` | `const std::string_view uri = detail::text_of(normalized, 0U, normalized.size());` | 7.0.6 | Proposed |
 | DEV-106.20 | `core/src/schema/uri.cpp:272` | `path = text_of(merged, 0U, merged.size());` | 7.0.6 | Proposed |
 | DEV-106.21 | `core/src/schema/value_equality.cpp:71` | `if (*a.value_if() != *b.value_if())` | 7.0.5 | Proposed |
+| DEV-106.22 | `core/src/schema/format.cpp:614` | `return printable ? c_printable[unit - c_first_printable] : c_non_ascii[0U];` | 7.0.6 | Proposed |
 
 ## DEV-107: Rule 8.2.6 and related, object pointers in caller-provided storage
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/int-to-pointer-cast-prohibited`, `cpp/misra/function-pointer-conversion-context` |
-| Lines | 13 |
+| Lines | 14 |
 | Status | Proposed (#44, #48) |
 
 ### Why this rule is deviated instead of fixed
@@ -508,6 +532,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-107.11 | `core/src/schema/uri.cpp:383` | `return std::string_view{static_cast<const char*>(text.data()) + offset, length};` | 8.2.6 | Proposed |
 | DEV-107.12 | `core/src/schema/schema_compiler.cpp:2280` | `static_cast<const regex_range*>(schema.m_regex_ranges.data())};` | 8.2.6 | Proposed |
 | DEV-107.13 | `core/src/schema/schema_compiler.cpp:2279` | `return regex_tables{static_cast<const regex_inst*>(schema.m_regex_code.data()),` | 8.2.6 | Proposed |
+| DEV-107.14 | `core/src/schema/evaluator.cpp:1993` | `return static_cast<const schema_annotation*>(m_annotations.data()) + index;` | 8.2.6 | Proposed |
 
 ## DEV-108: Rule 28.6.3, objects after a move
 
@@ -644,7 +669,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/signed-integer-overflow` |
-| Lines | 5 |
+| Lines | 6 |
 | Status | Proposed (#48) |
 
 ### Why this rule is deviated instead of fixed
@@ -664,14 +689,15 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-113.5 | `core/src/schema/exact_number.cpp:266` | `++count;` | 4.1.3 | Proposed |
 | DEV-113.6 | `core/src/schema/exact_number.cpp:153` | `parts.exponent -= static_cast<std::int64_t>(parts.fraction.size());` | 4.1.3 | Proposed |
 | DEV-113.7 | `core/src/schema/exact_number.cpp:93` | `value = (value * 10) + static_cast<std::int64_t>(digit_value(c, 10U).value_or(0U));` | 4.1.3 | Proposed |
+| DEV-113.8 | `core/src/schema/exact_number.cpp:349` | `++count;` | 4.1.3 | Proposed |
 
 ## DEV-114: Rule 6.0.3/redeclaration query, namespace-scope constexpr constant
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/redeclaration-of-static-constexpr-data-member` |
-| Lines | 1 |
-| Status | Proposed (#48) |
+| Lines | 12 |
+| Status | Proposed (#48, #53) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -686,3 +712,14 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | ID | Location | Code | Rules | Status |
 | --- | --- | --- | --- | --- |
 | DEV-114.1 | `core/src/schema/exact_number.cpp:27` | `constexpr std::string_view c_signs{"+-"};` | 4.1.2 | Proposed |
+| DEV-114.2 | `core/src/schema/format.cpp:55` | `constexpr std::array<std::string_view, 13> c_format_names{{"", "date-time", "date", "tim...` | 4.1.2 | Proposed |
+| DEV-114.3 | `core/src/schema/format.cpp:45` | `constexpr std::string_view c_non_ascii{"\x7f"};` | 4.1.2 | Proposed |
+| DEV-114.4 | `core/src/schema/format.cpp:38` | `constexpr std::string_view c_printable{` | 4.1.2 | Proposed |
+| DEV-114.5 | `core/src/schema/format.cpp:35` | `constexpr std::string_view c_uri{` | 4.1.2 | Proposed |
+| DEV-114.6 | `core/src/schema/format.cpp:32` | `constexpr std::string_view c_local{` | 4.1.2 | Proposed |
+| DEV-114.7 | `core/src/schema/format.cpp:30` | `constexpr std::string_view c_scheme{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy...` | 4.1.2 | Proposed |
+| DEV-114.8 | `core/src/schema/format.cpp:29` | `constexpr std::string_view c_label{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz...` | 4.1.2 | Proposed |
+| DEV-114.9 | `core/src/schema/format.cpp:28` | `constexpr std::string_view c_letters{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx...` | 4.1.2 | Proposed |
+| DEV-114.10 | `core/src/schema/format.cpp:27` | `constexpr std::string_view c_hex_digits{"0123456789abcdefABCDEF"};` | 4.1.2 | Proposed |
+| DEV-114.11 | `core/src/schema/format.cpp:26` | `constexpr std::string_view c_digits{"0123456789"};` | 4.1.2 | Proposed |
+| DEV-114.12 | `core/src/schema/meta_schema.cpp:16` | `constexpr std::string_view c_draft07_meta_schema{R"meta({` | 4.1.2 | Proposed |

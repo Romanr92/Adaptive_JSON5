@@ -346,6 +346,11 @@ namespace adaptive_json5::detail
       while (reduced.has_value() && (count < zeros))
       {
         reduced = append_reduced(remainder, 0U, 10U, modulus, work);
+        // MISRA rule: RULE-4-1-3 cpp/misra/signed-integer-overflow
+        // MISRA justification: Decimal exponents are saturated at 2^40 (c_scale_cap) and fraction lengths are bounded
+        // by the document size, so sums and differences of two exponents stay far inside std::int64_t; CodeQL does
+        // not follow the saturation.
+        // codeql::misra_deviation_next_line(DEV-113.8)
         ++count;
       }
       return reduced;
@@ -417,6 +422,11 @@ namespace adaptive_json5::detail
     if (built.has_value())
     {
       // The remainder stays below modulus, so one digit more than modulus always fits.
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.156)
       built = reserve_digits(remainder, *modulus_digits + 1U);
     }
     if (built.has_value())

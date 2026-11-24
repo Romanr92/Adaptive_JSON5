@@ -96,9 +96,11 @@ namespace
   /**
    * @brief Validate one instance in both modes with small budgets.
    * @par Requirements
-   * P046; J5-056; J5-065.
+   * P046; P053; J5-056; J5-058; J5-065.
+   * @note With collect, an invalid report must carry no annotations and every record must
+   * name an annotated node.
    */
-  void validate_both_modes(const compiled_schema& schema, const document& instance)
+  void validate_both_modes(const compiled_schema& schema, const document& instance, bool collect)
   {
     for (const evaluation_mode mode : {evaluation_mode::fail_fast, evaluation_mode::collect_all})
     {
@@ -111,6 +113,7 @@ namespace
       options.mode = mode;
       options.budget.max_work_steps = 100000U;
       options.budget.max_errors = 8U;
+      options.collect_annotations = collect;
       {
         const auto outcome = validate(schema, instance, options);
         if (work.live != 0U)
@@ -120,6 +123,18 @@ namespace
         if (outcome.has_value())
         {
           check_report(schema, instance, *outcome.value_if(), options, scratch);
+          const validation_report& report = *outcome.value_if();
+          if (!report.valid() && (report.annotation_count() != 0U))
+          {
+            std::abort();
+          }
+          for (std::size_t index = 0U; index < report.annotation_count(); ++index)
+          {
+            if (!annotation_values(schema, *report.annotation(index)).has_value())
+            {
+              std::abort();
+            }
+          }
         }
       }
       if ((report_storage.live != 0U) || (scratch.live != 0U))
@@ -133,7 +148,7 @@ namespace
 /**
  * @brief Fuzz registration, compilation and validation: schema text, a NUL byte, instance text.
  * @par Requirements
- * P046; J5-054; J5-055; J5-056; J5-065; J5-097.
+ * P046; P053; P054; J5-054; J5-055; J5-056; J5-058; J5-065; J5-069; J5-097.
  * @note Every failure must be a structured result; storage must balance; reports must be consistent.
  */
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size)
@@ -165,6 +180,8 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     options.limits.max_compile_steps = 200000U;
     options.result_storage = result_provider.callbacks();
     options.scratch_storage = scratch_provider.callbacks();
+    // Input lengths select the P053 options, so existing seeds stay valid inputs.
+    options.assert_format = (schema_size % 2U) == 0U;
     const auto compiled =
       compile_schema(*registry.value_if(), c_default_schema_base_uri, schema_dialect::draft_07, options);
     if (scratch_provider.live != 0U)
@@ -177,7 +194,7 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
         parse_document({text + instance_offset, size - instance_offset}, parse_options{}, instance_storage);
       if (instance.has_value())
       {
-        validate_both_modes(*compiled.value_if(), instance.value_if()->values);
+        validate_both_modes(*compiled.value_if(), instance.value_if()->values, ((size - instance_offset) % 2U) == 1U);
       }
     }
   }

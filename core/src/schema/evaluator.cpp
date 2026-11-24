@@ -1990,6 +1990,10 @@ namespace adaptive_json5
     {
       return nullptr;
     }
+    // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+    // MISRA justification: Address computation inside an owned block from caller storage, as in the parser storage
+    // layer (DEV-002/DEV-003); the offset is within the block size that was allocated.
+    // codeql::misra_deviation_next_line(DEV-107.14)
     return static_cast<const schema_annotation*>(m_annotations.data()) + index;
   }
 

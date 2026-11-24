@@ -13,6 +13,10 @@ namespace adaptive_json5::detail
     // Copyright (c) 2022 JSON Schema Specification Authors. Used under the BSD 3-Clause License
     // (the upstream dual license BSD-3-Clause OR AFL-3.0); see LICENSES/json-schema-spec-BSD-3-Clause.txt
     // and NOTICE. Not modified.
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.12)
     constexpr std::string_view c_draft07_meta_schema{R"meta({
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "http://json-schema.org/draft-07/schema#",
