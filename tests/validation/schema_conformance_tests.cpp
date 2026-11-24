@@ -38,6 +38,23 @@ namespace
   }
 
   /**
+   * @brief Parse options for whole fixture files, which exceed the default document limits
+   * (ref.json is about 30 KB); each test schema is still registered with the default limits.
+   * @par Requirements
+   * P055; J5-096.
+   */
+  parse_options fixture_options()
+  {
+    parse_options options{};
+    options.limits.max_input_bytes = 1U << 20U;
+    options.limits.max_nodes = 1U << 20U;
+    options.limits.max_members = 1U << 20U;
+    options.limits.max_total_string_units = 1U << 22U;
+    options.limits.max_owned_bytes = 1U << 26U;
+    return options;
+  }
+
+  /**
    * @brief A parsed fixture file kept alive with its storage.
    * @par Requirements
    * P055; J5-096.
@@ -50,9 +67,9 @@ namespace
       std::optional<parsed_document> parsed;
 
       explicit parsed_file(std::string input)
-          : text(std::move(input)), accounting(provider.callbacks(), parse_options{}.limits.max_owned_bytes)
+          : text(std::move(input)), accounting(provider.callbacks(), fixture_options().limits.max_owned_bytes)
       {
-        auto outcome = parse_document({text.data(), text.size()}, parse_options{}, accounting);
+        auto outcome = parse_document({text.data(), text.size()}, fixture_options(), accounting);
         if (outcome.has_value())
         {
           parsed.emplace(std::move(*outcome.value_if()));
@@ -396,7 +413,12 @@ namespace
   TEST(P055_Draft07Inventory, NoRequiredCaseIsSkipped)
   {
     const suite_inventory& loaded = inventory();
-    EXPECT_TRUE(loaded.unreadable.empty());
+    std::ostringstream unreadable;
+    for (const std::string& file : loaded.unreadable)
+    {
+      unreadable << file << ' ';
+    }
+    EXPECT_TRUE(loaded.unreadable.empty()) << "fixture files that failed to parse: " << unreadable.str();
     EXPECT_GT(loaded.required, 0U);
     for (const std::string& file : loaded.skipped_files)
     {
