@@ -12,6 +12,7 @@ carry the same ID. The IDs are used for traceability (see
 - `<MODULE>` is the source folder that holds the function's definition: `core/src/<topic>/`,
   `core/includes/<topic>/` or `includes/adaptive_json5/<topic>/`, written in capitals.
   Functions defined only in a header directly under `includes/adaptive_json5/` use `API`.
+  Functions of the host tool under `cli/` (P056–P059) use `CLI`.
 - `<number>` has three digits and counts up per module.
 - A new function takes the **next free ID** of its module from the table below, and a
   new row is added here with status **used**.
@@ -29,7 +30,7 @@ library was checked to be byte-identical before and after.
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
 | API | SWU-API-043 | SWU-API-044 |
-| CLI | SWU-CLI-032 | SWU-CLI-033 |
+| CLI | SWU-CLI-059 | SWU-CLI-060 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
@@ -109,14 +110,14 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of th
 | SWU-CLI-012 | used | `text_writer::put_count(std::size_t)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
 | SWU-CLI-013 | used | `text_writer::ok()` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
 | SWU-CLI-014 | used | `run_cli(int, const char* const*, const environment&)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
-| SWU-CLI-015 | used | `(anonymous)::host_buffer(const storage_callbacks&, std::size_t size) noexcept : m_storage(storage)` | `cli/src/cli_app.cpp` | — |
-| SWU-CLI-016 | used | `(anonymous)::~host_buffer()` | `cli/src/cli_app.cpp` | — |
-| SWU-CLI-017 | used | `(anonymous)::data()` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-015 | used | `host_buffer(const storage_callbacks&, std::size_t size) noexcept : m_storage(storage)` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-016 | used | `~host_buffer()` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-017 | used | `data()` | `cli/includes/cli/host_buffer.hpp` | — |
 | SWU-CLI-018 | used | `(anonymous)::report_arguments(const environment&, const argument_error&)` | `cli/src/cli_app.cpp` | — |
 | SWU-CLI-019 | used | `(anonymous)::report_failure(const environment&, std::string_view, std::string_view)` | `cli/src/cli_app.cpp` | — |
-| SWU-CLI-020 | used | `(anonymous)::describe_io(io_status)` | `cli/src/cli_app.cpp` | — |
-| SWU-CLI-021 | used | `(anonymous)::is_input_error(error_code)` | `cli/src/cli_app.cpp` | — |
-| SWU-CLI-022 | used | `(anonymous)::run_validate(const options&, const environment&)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-020 | used | `describe_io(io_status)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-021 | deleted | `(anonymous)::is_input_error(error_code)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-022 | deleted | `(anonymous)::run_validate(const options&, const environment&)` | `cli/src/cli_app.cpp` | — |
 | SWU-CLI-023 | used | `host_environment()` | `cli/src/host_io.cpp` | `cli/includes/cli/host_io.hpp` |
 | SWU-CLI-024 | used | `(anonymous)::read_stream(std::FILE*, char*, std::size_t, std::size_t&)` | `cli/src/host_io.cpp` | — |
 | SWU-CLI-025 | used | `(anonymous)::read_input(void*, std::string_view, char*, std::size_t, std::size_t&)` | `cli/src/host_io.cpp` | — |
@@ -127,6 +128,33 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of th
 | SWU-CLI-030 | used | `(anonymous)::apply_limit(resource_limits&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
 | SWU-CLI-031 | used | `(anonymous)::take_option(options&, std::array<bool, c_options.size()` | `cli/src/cli_options.cpp` | — |
 | SWU-CLI-032 | used | `(anonymous)::apply_choice(options&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-033 | used | `put_json_text(text_writer&, std::string_view)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-034 | used | `reporter::reporter(const output_sink&, diagnostics_format, std::string_view, std::string_view)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-035 | used | `reporter::add(const diagnostic&)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-036 | used | `reporter::finish(outcome, int)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-037 | used | `category_name(category)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-038 | used | `(anonymous)::byte_at(std::string_view, std::size_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-039 | used | `(anonymous)::utf8_length(std::string_view, std::size_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-040 | used | `(anonymous)::is_utf8(std::string_view)` | `cli/src/report.cpp` | — |
+| SWU-CLI-041 | used | `(anonymous)::put_escaped(text_writer&, char, std::uint32_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-042 | used | `(anonymous)::put_key(text_writer&, std::string_view)` | `cli/src/report.cpp` | — |
+| SWU-CLI-043 | used | `size()` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-044 | used | `run_validate(const options&, const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-045 | used | `run_capabilities(const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-046 | used | `category_of(error_code)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-047 | used | `read_input(const environment&, std::string_view, char*, std::size_t, std::size_t&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-048 | used | `(anonymous)::position_of(input_view, std::size_t)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-049 | used | `(anonymous)::report_parse_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-050 | used | `(anonymous)::report_warnings(reporter&, const parsed_document&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-051 | used | `(anonymous)::describe_schema(schema_error_code)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-052 | used | `(anonymous)::schema_category(schema_error_code)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-053 | used | `(anonymous)::report_schema_failure(reporter&, const schema_error&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-054 | used | `(anonymous)::report_assertion(reporter&, const compiled_schema&, const document&, const schema_diagnostic&, input_view, const environment&)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-055 | used | `(anonymous)::validate_with_schema(const options&, const environment&, reporter&, const document&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-056 | used | `(anonymous)::sequence_length(std::uint32_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-057 | used | `(anonymous)::second_allowed(std::uint32_t, std::uint32_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-058 | used | `reporter::add_text(const diagnostic&)` | `cli/src/report.cpp` | — |
+| SWU-CLI-059 | used | `reporter::put_details(const diagnostic&)` | `cli/src/report.cpp` | — |
 
 ## COMMON
 

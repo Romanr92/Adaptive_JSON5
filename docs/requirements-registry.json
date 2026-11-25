@@ -4634,6 +4634,12 @@
           "names": [
             "P054_MetaSchemaDetails.ReportsTheOffendingValue"
           ]
+        },
+        {
+          "file": "core/tests/cli/cli_diagnostics_tests.cpp",
+          "names": [
+            "P057_Diagnostics.LocateFailures"
+          ]
         }
       ]
     },
@@ -4922,6 +4928,10 @@
         {
           "files": ["cli/includes/cli/cli_options.hpp", "cli/src/cli_options.cpp", "cli/includes/cli/cli_app.hpp", "cli/src/cli_app.cpp", "cli/includes/cli/cli_io.hpp", "cli/src/host_io.cpp"],
           "symbols": ["parse_arguments", "run_cli", "input_source", "output_sink", "host_environment"]
+        },
+        {
+          "files": ["cli/includes/cli/validate_command.hpp", "cli/src/validate_command.cpp"],
+          "symbols": ["run_validate", "category_of"]
         }
       ],
       "tests": [
@@ -4935,6 +4945,12 @@
             "P056_Dispatch.UsageHelpAndOutputFailures",
             "P056_Dispatch.SchemaFlagReportsUnavailable"
           ]
+        },
+        {
+          "file": "core/tests/cli/cli_diagnostics_tests.cpp",
+          "names": [
+            "P057_Outcomes.MapResultsAndExitCodes"
+          ]
         }
       ]
     },
@@ -4944,13 +4960,29 @@
       "status": "Draft",
       "issue": 57,
       "section": "api",
-      "implementation": [],
+      "implementation": [
+        {
+          "files": ["cli/includes/cli/report.hpp", "cli/src/report.cpp", "cli/src/validate_command.cpp"],
+          "symbols": ["reporter", "put_json_text", "category_name", "run_capabilities"]
+        }
+      ],
       "tests": [
         {
           "file": "core/tests/cli/cli_dispatch_tests.cpp",
           "names": [
             "P056_Dispatch.UsageHelpAndOutputFailures",
             "P056_Dispatch.AllocationFailureSweep"
+          ]
+        },
+        {
+          "file": "core/tests/cli/cli_diagnostics_tests.cpp",
+          "names": [
+            "P057_Outcomes.MapResultsAndExitCodes",
+            "P057_Diagnostics.LocateFailures",
+            "P057_Diagnostics.WarningsHaveWarningSeverity",
+            "P057_Diagnostics.EscapesArbitraryText",
+            "P057_Diagnostics.CapabilitiesAreStrictJson",
+            "P057_Diagnostics.OutOfMemoryFallbackIsStrictJson"
           ]
         }
       ]

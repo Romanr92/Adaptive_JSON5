@@ -206,17 +206,22 @@ namespace
   }
 
   /*
-   * Arrange: --schema in a build without the schema component (or before P057 wires it).
-   * Act: Run validate with a schema.
-   * Expect: exit 2 and an explicit "not available" message; never a silent pass (J5-070).
+   * Arrange: --schema with a trivial schema.
+   * Act: Run validate.
+   * Expect: Without the schema component: exit 2 and an explicit "not available" message,
+   *         never a silent pass; with it: the schema is applied (J5-070).
    */
   TEST(P056_Dispatch, SchemaFlagReportsUnavailable)
   {
     fake_host host;
     host.files["ok.json"] = "1";
     host.files["s.json"] = "{}";
+#if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
+    EXPECT_EQ(host.run({"validate", "--syntax", "json", "--schema", "s.json", "ok.json"}), 0);
+#else
     EXPECT_EQ(host.run({"validate", "--syntax", "json", "--schema", "s.json", "ok.json"}), 2);
     EXPECT_NE(host.err.find("not available"), std::string::npos) << host.err;
+#endif
   }
 
   /*

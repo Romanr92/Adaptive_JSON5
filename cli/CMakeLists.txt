@@ -3,7 +3,9 @@
 # executable and by the units in core/tests/cli. Only the executable touches files.
 add_library(adaptive_json5_cli_core STATIC
     src/cli_app.cpp
-    src/cli_options.cpp)
+    src/cli_options.cpp
+    src/report.cpp
+    src/validate_command.cpp)
 target_include_directories(adaptive_json5_cli_core PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/includes")
 target_link_libraries(adaptive_json5_cli_core PUBLIC AdaptiveJSON5::parser)
