@@ -7,6 +7,7 @@
 #include "adaptive_json5/schema/validation_options.hpp"
 #include "adaptive_json5/schema/validation_report.hpp"
 #include "adaptive_json5/value/document.hpp"
+#include "adaptive_json5/value/value_view.hpp"
 
 #include <cstddef>
 
@@ -64,6 +65,21 @@ namespace adaptive_json5
                                                                            const schema_diagnostic& diagnostic,
                                                                            char* buffer, std::size_t capacity,
                                                                            const storage_callbacks& scratch) noexcept;
+
+  /**
+   * @brief Borrow the annotation keywords of an annotation record's schema node.
+   * @par Requirements
+   * P053; J5-058; J5-062; J5-069.
+   * @param schema The compiled schema the report was produced with.
+   * @param annotation A record from validation_report::annotation().
+   * @return An object view whose members are the node's annotation keywords and unknown
+   * keywords with copies of their values, valid as long as schema; internal_error when the
+   * record names no annotated node of schema.
+   * @note Read-only: validation never inserts defaults or changes the instance.
+   * @par ID SWU-SCHEMA-314
+   */
+  [[nodiscard]] result<value_view, schema_error> annotation_values(const compiled_schema& schema,
+                                                                   const schema_annotation& annotation) noexcept;
 } // namespace adaptive_json5
 
 #endif /* ADAPTIVE_JSON5_SCHEMA_VALIDATE_HPP_ */

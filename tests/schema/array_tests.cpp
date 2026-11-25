@@ -52,7 +52,6 @@ namespace
                    R"([1, "a", "b"])", true},
       verdict_case{"additional_schema_bad", R"({"items": [true], "additionalItems": {"type": "string"}})",
                    R"([1, "a", 2])", false},
-      verdict_case{"additional_empty_tuple", R"({"items": [], "additionalItems": false})", "[1]", false},
       verdict_case{"additional_ignored_single_items", R"({"items": {}, "additionalItems": false})", "[1, 2]", true},
       verdict_case{"additional_ignored_no_items", R"({"additionalItems": false})", "[1, 2]", true},
       verdict_case{"tuple_shorter_instance", R"({"items": [{"type": "integer"}, {"type": "string"}]})", "[1]", true},

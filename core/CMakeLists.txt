@@ -37,10 +37,12 @@ endif()
 if(ADAPTIVE_JSON5_BUILD_SCHEMA)
     add_library(adaptive_json5_schema STATIC
         src/schema/assertions.cpp
+        src/schema/format.cpp
         src/schema/evaluator.cpp
         src/schema/exact_number.cpp
         src/schema/instance_domain.cpp
         src/schema/json_pointer.cpp
+        src/schema/meta_schema.cpp
         src/schema/pod_vector.cpp
         src/schema/regex.cpp
         src/schema/schema_compiler.cpp

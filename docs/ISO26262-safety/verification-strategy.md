@@ -32,6 +32,7 @@ assessor expects, so on 2026-11-07 the owner changed the scope:
 | --- | --- | --- | --- | --- | --- |
 | V1 | GoogleTest unit tests, exceptions OFF and ON, RTTI OFF | Each part behaves as specified, including errors and limit boundaries | Every PR, Linux x86-64 and ARM64, Windows MinGW | Yes | In place |
 | V2 | Validation tests over pinned third-party fixtures (JSONTestSuite, json5-tests) | The grammar accepts and rejects what the specifications say | Every PR | Yes | In place |
+| V2a | Optional schema component: pinned JSON-Schema-Test-Suite draft7 (`schema-conformance` workflow, QM, outside the ASIL scope) | The schema component gives the official Draft-07 verdicts | Every PR | Not yet (owner decides) | Added in #53 |
 | V3 | Formatting check (clang-format 18.1.8) | Code layout follows the style guide | Every PR | Yes | In place |
 | V4 | **Sanitizer runs:** the existing unit and validation tests rebuilt with AddressSanitizer and UndefinedBehaviorSanitizer | No out-of-bounds access, use after free or undefined behaviour on any tested path (SSR-01, SSR-08) | Every PR | **Yes**, like the unit tests | Planned in #132 |
 | V5 | **Fuzzing:** a libFuzzer harness that feeds random and mutated input through parsing, value access, conversions and error formatting | No crash, hang or memory error on input nobody thought of (SSR-01, SSR-02, SSR-08) | Every PR for a fixed time (about 5 to 10 minutes); a longer run weekly | **Yes**, but only when it finds a crash, timeout or out-of-memory | Planned in #132 |

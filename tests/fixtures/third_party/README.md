@@ -10,6 +10,7 @@ Apache-2.0 license does not apply to them. `.gitattributes` marks this tree
 | --- | --- | --- | --- | --- | --- |
 | `json5-tests/` | https://github.com/json5/json5-tests | `ceb24d4080137d70833f86c25659c1331b80a387` | `30d041035ce29dc4f01d1836b7885c89689fc1bdee4c384bc2bc113c737c0a28` | MIT, Copyright (c) 2012-2016 Aseem Kishore, and others (`json5-tests/LICENSE.md`, `LICENSES/json5-tests-MIT.txt`) | The complete repository |
 | `JSONTestSuite/` | https://github.com/nst/JSONTestSuite | `1ef36fa01286573e846ac449e8683f8833c5b26a` | `32ab2fb37cc26679dbd9164dbb7053bcef10134643d53cb0cef45de7680dcdcc` | MIT, Copyright (c) 2016 Nicolas Seriot (`JSONTestSuite/LICENSE`, `LICENSES/JSONTestSuite-MIT.txt`) | `test_parsing/`, `LICENSE`, `README.md` only; the benchmarked parsers and results are omitted |
+| `JSON-Schema-Test-Suite/` | https://github.com/json-schema-org/JSON-Schema-Test-Suite (release `Test-JSON-Schema-Acceptance-1.041`) | `245a45abc90190c0bff04d97e6d2b541b4bb9f12` | `b60bdf58fd414e9b86c8be70b03e3b2d596b8bc3bc822a2083d86041cea4b20e` | MIT, Copyright (c) 2012 Julian Berman (`JSON-Schema-Test-Suite/LICENSE`, `LICENSES/JSON-Schema-Test-Suite-MIT.txt`) | `tests/draft7/`, `remotes/`, `LICENSE`, `README.md` only; other drafts, output and annotation tests are omitted |
 
 Archives are `https://github.com/<owner>/<repo>/archive/<commit>.tar.gz`. Every
 included file is byte-identical to the archive.
@@ -29,6 +30,16 @@ The inventory unit rejects missing, duplicate or obsolete classifications, and
 project-outcome units assert rejection codes/offsets or warning counts/spans.
 JSON5 n_ cases remain clean-completion cases because many are valid JSON5.
 
+- JSON-Schema-Test-Suite `tests/draft7/`: each test's `valid` is the expected verdict.
+  Required files are all run; optional files run when they need only advertised
+  capabilities (the asserted `format` subset, bignum, ECMAScript and non-BMP regex,
+  unknown keywords, `$id`). Skipped optional files: `content.json` (content assertion is
+  unsupported), `cross-draft.json` (needs 2019-09 processing), and the `format` files
+  `idn-email`, `idn-hostname`, `iri`, `iri-reference`, `uri-template` (not asserted).
+  `remotes/` (draft-07-compatible files) are registered offline under
+  `http://localhost:1234/`, and the Draft-07 meta-schema under its own URI.
+  The hostname file runs its RFC 1123 cases. Its optional IDNA A-label group is listed in the inventory as outside the advertised format. The 18 control-escape and Unicode-property pattern cases assert the ADR 0006 compile error (`unsupported_pattern`). The inventory runs 927 required and 670 optional cases.
+
 ## Recorded deviations from upstream labels
 
 The specification decides the expected outcome, not the corpus. Where an
@@ -37,6 +48,7 @@ upstream label contradicts it, the validation test overrides that one case:
 | File | Mode | Upstream label | Required outcome | Reason |
 | --- | --- | --- | --- | --- |
 | `json5-tests/comments/irregular-block-comment.json` | strict | valid JSON (`.json`) | reject | Contains a block comment; RFC 8259 has no comments. Accepted in JSON5 mode. |
+| `JSON-Schema-Test-Suite/tests/draft7/optional/format/ecmascript-regex.json` test 0/0 (`"\a"`, `format: regex`) | Draft-07 | invalid | valid | `` is invalid only with the ECMA-262 `u` flag; the pattern engine follows Annex B (owner decision, ADR 0006 #48 section), where an unknown identity escape matches the letter. Optional test. |
 
 ## CMake acquisition
 

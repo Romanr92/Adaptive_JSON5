@@ -34,11 +34,12 @@ reproduce those in accompanying documentation/materials. The complete notice is
 from the pinned source. Its non-endorsement condition also applies. A local CMake
 fetch is not a relicensing of GoogleTest.
 
-The source repository also contains unmodified json5-tests and JSONTestSuite
-fixtures under `tests/fixtures/third_party`, each under MIT with its upstream
-license file kept beside it and copied to
-[LICENSES/json5-tests-MIT.txt](../LICENSES/json5-tests-MIT.txt) and
-[LICENSES/JSONTestSuite-MIT.txt](../LICENSES/JSONTestSuite-MIT.txt). They are
+The source repository also contains unmodified json5-tests, JSONTestSuite and
+JSON-Schema-Test-Suite fixtures under `tests/fixtures/third_party`, each under MIT
+with its upstream license file kept beside it and copied to
+[LICENSES/json5-tests-MIT.txt](../LICENSES/json5-tests-MIT.txt),
+[LICENSES/JSONTestSuite-MIT.txt](../LICENSES/JSONTestSuite-MIT.txt) and
+[LICENSES/JSON-Schema-Test-Suite-MIT.txt](../LICENSES/JSON-Schema-Test-Suite-MIT.txt). They are
 host unit-test input only, are not installed and are not covered by Apache-2.0.
 Redistributing them requires keeping their MIT notices. See the
 [fixture README](../tests/fixtures/third_party/README.md) for provenance.
@@ -55,6 +56,15 @@ the data or accompanying documentation; the generated header embeds the notice.
 Original input files and their provenance remain in `tools/unicode-data/`.
 Unicode's license applies to that material; it does not replace Apache-2.0 for
 the project's original code.
+
+The optional schema library embeds the unmodified JSON Schema Draft-07 meta-schema
+(json-schema-org/json-schema-spec, branch `draft-07`, commit
+`20a3fee852db88519dcb3bb329b7a872ebad8953`) under the BSD-3-Clause option of its
+upstream dual license (BSD-3-Clause OR AFL-3.0). Its notice is
+[LICENSES/json-schema-spec-BSD-3-Clause.txt](../LICENSES/json-schema-spec-BSD-3-Clause.txt);
+it is installed with the schema library and must accompany binary distributions of
+it, including the non-endorsement condition. The parser library does not contain it.
+Provenance is in [dependencies](dependencies.md).
 
 Future syntax/schema corpora and schema/editor dependencies are not presently
 imported. Record their exact source/version/license/notices before

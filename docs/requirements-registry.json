@@ -3150,6 +3150,12 @@
           "names": [
             "J5_047_StorageIdentity.TokenCountsAgainstOwnedByteBudget"
           ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.LargeSchemasStayWithinCompileLimits"
+          ]
         }
       ]
     },
@@ -3554,7 +3560,15 @@
       "issue": 53,
       "section": "core",
       "implementation": [],
-      "tests": []
+      "tests": [
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Conformance.MatchesTheSuite",
+            "P055_Draft07Inventory.NoRequiredCaseIsSkipped"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-099",
@@ -3954,6 +3968,18 @@
           "names": [
             "P046_Applicators.MatchesDraft07"
           ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself"
+          ]
+        },
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Conformance.MatchesTheSuite"
+          ]
         }
       ]
     },
@@ -3980,6 +4006,10 @@
         {
           "files": ["core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
           "symbols": ["check_name_list", "parse_type_keyword"]
+        },
+        {
+          "files": ["core/includes/schema/meta_schema.hpp", "core/src/schema/meta_schema.cpp", "core/src/schema/schema_compiler.cpp"],
+          "symbols": ["draft07_meta_schema", "check_meta_schema", "compile_graph"]
         }
       ],
       "tests": [
@@ -4037,6 +4067,33 @@
           "file": "tests/schema/assertion_edge_tests.cpp",
           "names": [
             "P051_ListShapes.AreChecked"
+          ]
+        },
+        {
+          "file": "tests/schema/format_tests.cpp",
+          "names": [
+            "J5_069_FormatOptions.UnsupportedAndNonApplicable"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchema.SeparatesFailureClasses",
+            "P054_MetaSchemaDetails.ReportsTheOffendingValue",
+            "P054_MetaSchemaDetails.ChecksEveryRegisteredResource",
+            "P054_MetaSchemaDetails.FailuresDuringTheMetaCheck"
+          ]
+        },
+        {
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "names": [
+            "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.LargeSchemasStayWithinCompileLimits"
           ]
         }
       ]
@@ -4214,6 +4271,18 @@
             "P047_InvalidViews.SchemaValueHelpersReportAccessFailures",
             "P051_InvalidViews.AssertionsReportAccessFailures"
           ]
+        },
+        {
+          "file": "tests/schema/logic_tests.cpp",
+          "names": [
+            "P052_Logic.MatchesDraft07InBothModes"
+          ]
+        },
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Conformance.MatchesTheSuite"
+          ]
         }
       ]
     },
@@ -4223,8 +4292,30 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": ["includes/adaptive_json5/schema/validation_report.hpp", "includes/adaptive_json5/schema/validate.hpp", "core/src/schema/evaluator.cpp"],
+          "symbols": ["annotation_count", "annotation", "annotation_values", "note_annotations"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp", "core/includes/schema/schema_values.hpp", "core/src/schema/schema_values.cpp"],
+          "symbols": ["compile_annotations", "copy_members_if"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/annotation_tests.cpp",
+          "names": [
+            "P053_Annotations.CollectsEveryStandardKeyword",
+            "P053_Annotations.OnlyPassingBranchesContribute",
+            "P053_Annotations.SuppressedContexts",
+            "P053_Annotations.ValidReportsOnly",
+            "P053_Annotations.NeverMutatesTheInstance",
+            "P053_Failures.ReportAllocationFailureSweep",
+            "P053_Failures.ForeignRecordsAreRejected"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-059",
@@ -4408,6 +4499,10 @@
         {
           "files": ["includes/adaptive_json5/schema/compiled_schema.hpp"],
           "symbols": ["unknown_keyword_count"]
+        },
+        {
+          "files": ["core/src/schema/schema_compiler.cpp"],
+          "symbols": ["is_annotation_name", "compile_annotations"]
         }
       ],
       "tests": [
@@ -4415,6 +4510,12 @@
           "file": "core/tests/schema/schema_compiler_tests.cpp",
           "names": [
             "P044_CompileGraph.CountsUnknownKeywords"
+          ]
+        },
+        {
+          "file": "tests/schema/annotation_tests.cpp",
+          "names": [
+            "P053_ExtensionKeywords.AreNotInstanceProperties"
           ]
         }
       ]
@@ -4460,6 +4561,21 @@
           "file": "tests/schema/validate_tests.cpp",
           "names": [
             "P046_Outcomes.CancellationAfterAssertionFailureWins"
+          ]
+        },
+        {
+          "file": "tests/schema/logic_tests.cpp",
+          "names": [
+            "P052_Diagnostics.ReportTheFailedKeyword",
+            "P052_Failures.BudgetsInsideBranchesAreOperational",
+            "P052_Failures.CancellationDuringBranches",
+            "P052_Failures.AllocationFailureDuringBranches"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchema.SeparatesFailureClasses"
           ]
         }
       ]
@@ -4511,6 +4627,12 @@
             "P046_EdgeCases.SchemaLocationNames",
             "P046_EdgeCases.LocationForms",
             "P046_EdgeCases.ZeroCapacityFormatting"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.ReportsTheOffendingValue"
           ]
         }
       ]
@@ -4634,6 +4756,25 @@
           "names": [
             "P051_AllocationFailures.CompileStepLimit"
           ]
+        },
+        {
+          "file": "tests/schema/logic_tests.cpp",
+          "names": [
+            "P052_Failures.BudgetsInsideBranchesAreOperational",
+            "P052_Failures.BranchBudgetSweep"
+          ]
+        },
+        {
+          "file": "tests/schema/format_tests.cpp",
+          "names": [
+            "J5_069_FormatOptions.BudgetAndStorageFailures"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.FailuresDuringTheMetaCheck"
+          ]
         }
       ]
     },
@@ -4742,8 +4883,34 @@
       "status": "Draft",
       "issue": 53,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": ["core/includes/schema/format.hpp", "core/src/schema/format.cpp", "includes/adaptive_json5/schema/compiled_schema.hpp", "core/src/schema/schema_compiler.cpp"],
+          "symbols": ["check_format", "format_from_name", "format_assertion_supported", "compile_format"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "tests/schema/annotation_tests.cpp",
+          "names": [
+            "P053_ExtensionKeywords.FormatAndContentAreAnnotations"
+          ]
+        },
+        {
+          "file": "tests/schema/format_tests.cpp",
+          "names": [
+            "J5_069_FormatAssertion.ChecksTheSupportedSet",
+            "J5_069_FormatOptions.UnsupportedAndNonApplicable",
+            "J5_069_FormatOptions.BudgetAndStorageFailures"
+          ]
+        },
+        {
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "names": [
+            "P055_Draft07Inventory.NoRequiredCaseIsSkipped"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-070",

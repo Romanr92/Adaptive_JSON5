@@ -22,6 +22,7 @@ namespace adaptive_json5::detail
     using status = result<void, schema_error>;
 
     constexpr std::uint32_t c_max_code_point = 0x10FFFFU;
+    constexpr std::uint32_t c_ascii_last = 0x7FU;
     constexpr std::size_t c_unbounded = std::numeric_limits<std::size_t>::max();
     constexpr std::size_t c_max_repeat = 100000U;
     constexpr std::size_t c_count_zero = 0U;
@@ -39,7 +40,10 @@ namespace adaptive_json5::detail
     constexpr std::uint32_t c_digit_zero = 0x30U;    // 0
     constexpr std::uint32_t c_digit_one = 0x31U;     // 1
     constexpr std::uint32_t c_digit_nine = 0x39U;    // 9
+    constexpr std::uint32_t c_exclamation = 0x21U;   // !
     constexpr std::uint32_t c_colon = 0x3AU;         // :
+    constexpr std::uint32_t c_less = 0x3CU;          // <
+    constexpr std::uint32_t c_equals = 0x3DU;        // =
     constexpr std::uint32_t c_question = 0x3FU;      // ?
     constexpr std::uint32_t c_capital_a = 0x41U;     // A
     constexpr std::uint32_t c_capital_b = 0x42U;     // B
@@ -920,6 +924,37 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief Report whether the text after "(?" is ECMA-262 syntax this engine does not support:
+     * lookahead "(?=" / "(?!", lookbehind "(?<=" / "(?<!" or a named group "(?<name>".
+     * @par Requirements
+     * P049; J5-060; ECMA-262 2018 sections 21.2.1 and 21.2.2.
+     * @par ID SWU-SCHEMA-358
+     */
+    bool is_ecma_group_prefix(const regex_builder& builder) noexcept
+    {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.182)
+      const std::size_t at = builder.position + 1U;
+      const std::uint32_t kind = (at < builder.text.size()) ? builder.text.get(at) : c_question;
+      if ((kind == c_equals) || (kind == c_exclamation))
+      {
+        return true;
+      }
+      if ((kind != c_less) || ((at + 1U) >= builder.text.size()))
+      {
+        return false;
+      }
+      const std::uint32_t next = builder.text.get(at + 1U);
+      const bool letter =
+        ((next >= c_capital_a) && (next <= c_capital_z)) || ((next >= c_small_a) && (next <= c_small_z));
+      return (next == c_equals) || (next == c_exclamation) || letter || (next == c_underscore) || (next == c_dollar) ||
+             (next > c_ascii_last);
+    }
+
+    /**
      * @brief Handle '(' : open a group, or report lookaround and named groups as unsupported.
      * @par Requirements
      * P049; J5-060.
@@ -933,7 +968,9 @@ namespace adaptive_json5::detail
           ((builder.position + 1U) < builder.text.size()) && (builder.text.get(builder.position + 1U) == c_colon);
         if (!plain)
         {
-          return pattern_error(builder, true);
+          // Lookahead, lookbehind and named groups are ECMA-262 syntax this engine does not support;
+          // anything else after "(?" (for example "(?i)", "(?P<n>" or "(?#") is malformed.
+          return pattern_error(builder, is_ecma_group_prefix(builder));
         }
         // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
         // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the

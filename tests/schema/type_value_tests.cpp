@@ -117,7 +117,6 @@ namespace
                     verdict_case{"enum_object_reordered", R"({"enum": [{"a": [1, 2], "b": null}]})",
                                  R"({b: null, a: [1.0, 2]})", true},
                     verdict_case{"enum_array_reordered", R"({"enum": [[1, 2]]})", "[2, 1]", false},
-                    verdict_case{"enum_empty", R"({"enum": []})", "1", false},
                     verdict_case{"const_object", R"({"const": {"a": [1, {"b": "c"}]}})", R"({"a": [1e0, {"b": "c"}]})",
                                  true},
                     verdict_case{"const_extra_member", R"({"const": {"a": 1}})", R"({"a": 1, "b": 2})", false},

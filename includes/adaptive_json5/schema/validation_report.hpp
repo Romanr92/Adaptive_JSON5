@@ -58,6 +58,19 @@ namespace adaptive_json5
    * verdict is still invalid. Diagnostics live in validation_options::report_storage,
    * which must outlive the report. Move-only.
    */
+  /**
+   * @brief One annotation record: a schema node whose annotation keywords applied to an
+   * instance value (P053).
+   * @par Requirements
+   * P053; J5-058; J5-062; J5-069; ADR 0006 #53 section.
+   * @note Uses the schema_diagnostic layout with keyword none, so format_schema_location()
+   * and format_instance_location() apply. The values (title, description, default, examples,
+   * readOnly, writeOnly, $comment, format, contentEncoding, contentMediaType and unknown
+   * keywords) are read with annotation_values(). Records come only from subschemas that
+   * passed and are not inside `not` or propertyNames; an invalid report has none.
+   */
+  using schema_annotation = schema_diagnostic;
+
   // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions
   // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
   // they need; the implicitly provided members are the intended ones.
@@ -69,6 +82,8 @@ namespace adaptive_json5
       std::size_t m_count{};
       bool m_valid{true};
       bool m_truncated{};
+      owned_block m_annotations{};
+      std::size_t m_annotation_count{};
 
       validation_report() noexcept = default;
 
@@ -125,6 +140,23 @@ namespace adaptive_json5
        * @par ID SWU-SCHEMA-138
        */
       [[nodiscard]] const schema_diagnostic* diagnostic(std::size_t index) const noexcept;
+
+      /**
+       * @brief Return the number of annotation records (0 unless collect_annotations was set
+       * and the instance is valid).
+       * @par Requirements
+       * P053; J5-058.
+       * @par ID SWU-SCHEMA-312
+       */
+      [[nodiscard]] std::size_t annotation_count() const noexcept;
+
+      /**
+       * @brief Borrow annotation record index, or nullptr when index >= annotation_count().
+       * @par Requirements
+       * P053; J5-058; J5-064.
+       * @par ID SWU-SCHEMA-313
+       */
+      [[nodiscard]] const schema_annotation* annotation(std::size_t index) const noexcept;
   };
 } // namespace adaptive_json5
 

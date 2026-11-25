@@ -35,7 +35,17 @@ Native GoogleTest tasks/debugging replace its QEMU/Yocto configuration; formatte
 paths, presets, exclusions and the header-guard prefix match this repository.
 
 The optional schema component (`AdaptiveJSON5::schema`, ADR 0006) depends only on
-the parser library and the C++17 standard library; it adds no third-party code.
+the parser library and the C++17 standard library. It embeds one piece of third-party
+data: the JSON Schema Draft-07 meta-schema, used by `compile_schema()` to check every
+registered schema (P054, J5-054).
+
+| Item | Value |
+| --- | --- |
+| Source | `schema.json` of https://github.com/json-schema-org/json-schema-spec, branch `draft-07`, commit `20a3fee852db88519dcb3bb329b7a872ebad8953` (also served at http://json-schema.org/draft-07/schema) |
+| SHA-256 | `692e1d165e47afcb5f11b2ce1c639635ffa834035d6ecb6bcf3087481dae8404` (4,979 bytes) |
+| License | BSD-3-Clause (upstream dual license BSD-3-Clause OR AFL-3.0; the BSD option is used), Copyright (c) 2022 JSON Schema Specification Authors; `LICENSES/json-schema-spec-BSD-3-Clause.txt` |
+| Location | `core/src/schema/meta_schema.cpp`, byte-identical, marked `-text` in `.gitattributes` |
+| Distribution | Binary packages of the schema library must reproduce the BSD-3-Clause notice; the parser library does not contain it. |
 
 Before adding further Unicode data, grammar/schema fixtures, a regex engine or editor
 dependencies, record its source, immutable version, license, notices and any

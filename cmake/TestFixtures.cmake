@@ -9,6 +9,8 @@ set(ADAPTIVE_JSON5_JSON5_TESTS_SOURCE_DIR "" CACHE PATH
     "Offline json5-tests checkout to use instead of the committed copy")
 set(ADAPTIVE_JSON5_JSONTESTSUITE_SOURCE_DIR "" CACHE PATH
     "Offline JSONTestSuite checkout to use instead of the committed copy")
+set(ADAPTIVE_JSON5_JSON_SCHEMA_TEST_SUITE_SOURCE_DIR "" CACHE PATH
+    "Offline JSON-Schema-Test-Suite checkout to use instead of the committed copy")
 
 # Resolve one fixture set and store its root directory in out_var.
 # marker is a path relative to the root that must exist in a usable copy.
@@ -66,6 +68,16 @@ adaptive_json5_resolve_fixture(jsontestsuite
     32ab2fb37cc26679dbd9164dbb7053bcef10134643d53cb0cef45de7680dcdcc
     ADAPTIVE_JSON5_JSONTESTSUITE_DIR)
 
+# JSON Schema Draft-07 conformance (P055, J5-096): release Test-JSON-Schema-Acceptance-1.041,
+# the newest release with the tests/draft7 and remotes layout.
+adaptive_json5_resolve_fixture(json_schema_test_suite
+    "${ADAPTIVE_JSON5_JSON_SCHEMA_TEST_SUITE_SOURCE_DIR}"
+    "${adaptive_json5_fixture_root}/JSON-Schema-Test-Suite"
+    "tests/draft7/type.json"
+    "https://github.com/json-schema-org/JSON-Schema-Test-Suite/archive/245a45abc90190c0bff04d97e6d2b541b4bb9f12.tar.gz"
+    b60bdf58fd414e9b86c8be70b03e3b2d596b8bc3bc822a2083d86041cea4b20e
+    ADAPTIVE_JSON5_JSON_SCHEMA_TEST_SUITE_DIR)
+
 message(STATUS "json5-tests fixtures: ${ADAPTIVE_JSON5_JSON5_TESTS_DIR}")
 message(STATUS
     "JSONTestSuite fixtures: ${ADAPTIVE_JSON5_JSONTESTSUITE_DIR}/test_parsing")
@@ -77,4 +89,12 @@ function(adaptive_json5_use_conformance_fixtures target)
     target_compile_definitions(${target} PRIVATE
         "ADAPTIVE_JSON5_JSON5_TESTS_DIR=\"${json5_dir}\""
         "ADAPTIVE_JSON5_JSONTESTSUITE_DIR=\"${suite_dir}\"")
+endfunction()
+
+# Expose the JSON-Schema-Test-Suite root and the embedded meta-schema source (whose
+# Draft-07 text the suite's remote references need) to a schema conformance target.
+function(adaptive_json5_use_schema_conformance_fixtures target)
+    target_compile_definitions(${target} PRIVATE
+        "ADAPTIVE_JSON5_JSON_SCHEMA_TEST_SUITE_DIR=\"${ADAPTIVE_JSON5_JSON_SCHEMA_TEST_SUITE_DIR}\""
+        "ADAPTIVE_JSON5_META_SCHEMA_SOURCE=\"${PROJECT_SOURCE_DIR}/core/src/schema/meta_schema.cpp\"")
 endfunction()

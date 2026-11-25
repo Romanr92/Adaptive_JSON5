@@ -38,7 +38,19 @@ namespace adaptive_json5
       schema_compile_limits limits{};
       storage_callbacks result_storage{};
       storage_callbacks scratch_storage{};
+      bool assert_format{};  // J5-069: assert the supported `format` values (format_assertion_supported()).
+      bool assert_content{}; // J5-069: content assertions are unsupported; true returns unsupported_option.
   };
+
+  /**
+   * @brief Report whether `format` value name is asserted when compile_options::assert_format is set.
+   * @par Requirements
+   * J5-069; ADR 0006 #53 section.
+   * @note Supported: date-time, date, time, email, hostname, ipv4, ipv6, uri, uri-reference,
+   * json-pointer, relative-json-pointer and regex. Other names stay annotations.
+   * @par ID SWU-SCHEMA-341
+   */
+  [[nodiscard]] bool format_assertion_supported(std::string_view name) noexcept;
 
   /**
    * @brief Immutable, move-only compiled schema graph.

@@ -575,9 +575,9 @@ with the `schema_limit_reason` of the same name.
 | `validation_budget::max_equality_steps` | 100,000 | Value pairs visited by exact equality |
 | `validation_budget::max_errors` | 100 | Diagnostics kept in collect-all mode; reaching it sets `truncated()`, not an error |
 | `validation_budget::max_work_steps` | 1,000,000 | Every evaluation step, pre-pass value and name comparison |
-| `validation_budget::max_regex_steps` | 1,000,000 | Pattern matcher thread steps (`pattern`, `patternProperties`) |
+| `validation_budget::max_regex_steps` | 1,000,000 | Pattern matcher thread steps (`pattern`, `patternProperties`), and one unit per code unit of an asserted `format` value |
 | `schema_compile_limits::max_schema_nodes` | 100,000 | Compiled nodes across all registered resources |
-| `schema_compile_limits::max_compile_steps` | 1,000,000 | Keywords, members, key lookups, pointer steps and cycle checks |
+| `schema_compile_limits::max_compile_steps` | 1,000,000 | Keywords, members, key lookups, pointer steps and cycle checks; also the work limit of the meta-schema check of each resource |
 | registry capacity | set by `schema_registry::create()` | Registered resources (`max_resources`) |
 
 Storage: the registry parses into the caller's `accounted_storage`. Compilation
@@ -586,3 +586,9 @@ uses `compile_options::result_storage` for the compiled schema and
 `validation_options::work_storage` for its stack (released before `validate()`
 returns) and `report_storage` for the diagnostics the report owns. The
 cancellation callback is polled once per evaluation step.
+
+With `collect_annotations`, annotation records (one fixed-size record per annotated
+schema node and instance value that passed) also live in `report_storage`; their number
+is bounded by the evaluated frames and therefore by `max_work_steps`. The meta-schema
+check of `compile_schema()` parses and compiles the embedded Draft-07 meta-schema in
+`scratch_storage` (up to 1 MiB accounted) and releases it before returning.

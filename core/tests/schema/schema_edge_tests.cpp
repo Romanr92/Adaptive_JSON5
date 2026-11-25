@@ -590,11 +590,13 @@ namespace
    * Arrange: An empty $ref (the current document), an empty tuple items, and an astral
    *          pointer token that is longer than every candidate name.
    * Act: Compile.
-   * Expect: The empty reference resolves to the root; the astral token resolves nothing.
+   * Expect: The empty reference resolves to the root; an empty items array fails the Draft-07
+   *         meta-schema (schemaArray minItems 1); the astral token resolves nothing.
    */
   TEST(P044_EdgeCases, EmptyReferencesAndShortNames)
   {
-    EXPECT_EQ(compile_error(R"({"items": [], "properties": {"a": {"not": {"$ref": ""}}}})"), std::nullopt);
+    EXPECT_EQ(compile_error(R"({"items": [true], "properties": {"a": {"not": {"$ref": ""}}}})"), std::nullopt);
+    EXPECT_EQ(compile_error(R"({"items": []})"), std::optional<schema_error_code>{schema_error_code::invalid_schema});
     EXPECT_EQ(compile_error(R"({"definitions": {"a": true, "": true}, "not": {"$ref": "#/definitions/%F0%9F%98%80"}})"),
               std::optional<schema_error_code>{schema_error_code::unresolved_reference});
     EXPECT_EQ(compile_error(R"({"definitions": {"😀x": true}, "not": {"$ref": "#/definitions/%F0%9F%98%80"}})"),

@@ -170,6 +170,9 @@ if(ADAPTIVE_JSON5_BUILD_LIBRARY)
         if(ADAPTIVE_JSON5_BUILD_SCHEMA)
             install(TARGETS adaptive_json5_schema EXPORT AdaptiveJSON5Targets
                 ARCHIVE DESTINATION ${ADAPTIVE_JSON5_INSTALL_ARCHIVEDIR})
+            # The schema library embeds the Draft-07 meta-schema (BSD-3-Clause, NOTICE).
+            install(FILES LICENSES/json-schema-spec-BSD-3-Clause.txt
+                DESTINATION ${CMAKE_INSTALL_DATADIR}/AdaptiveJSON5/LICENSES)
         else()
             # Without the schema library its headers would only produce link errors.
             list(APPEND adaptive_json5_header_excludes

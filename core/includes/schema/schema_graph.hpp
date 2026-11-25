@@ -115,6 +115,8 @@ namespace adaptive_json5::detail
       std::size_t else_schema{c_no_node};
       std::size_t items_single{c_no_node};
       std::size_t unknown_keywords{};
+      value_index annotations{};    // P053: copied annotation and unknown keywords (an object).
+      bool has_annotations{};       // P053: annotations holds at least one member.
       std::uint8_t type_mask{};     // P047: type_bit values; zero when the node has no type keyword.
       bool has_const{};             // P047: const_value holds the copied const value.
       bool has_enum{};              // P047: enum_values holds the copied enum array.
@@ -127,6 +129,7 @@ namespace adaptive_json5::detail
       value_index exclusive_maximum{};
       value_index multiple_of{};
       std::uint8_t string_flags{}; // P049: string_bit values of the string keywords present.
+      std::uint8_t format{};       // J5-069: format_kind asserted when string_bit::format is set.
       std::size_t min_length{};    // P049: code points; valid when flagged.
       std::size_t max_length{};
       std::uint8_t array_flags{}; // P050: array_bit values of the array keywords present.
@@ -171,7 +174,8 @@ namespace adaptive_json5::detail
   {
     min_length = 1U,
     max_length = 2U,
-    pattern = 4U
+    pattern = 4U,
+    format = 8U // J5-069: format is asserted (compile_options::assert_format).
   };
 
   /**

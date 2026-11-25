@@ -1,0 +1,39 @@
+name: JSON Schema Draft-07 Test Suite
+
+# Runs the pinned official JSON-Schema-Test-Suite (draft7, P055, J5-096) against the optional
+# schema component on every pull request. Informative for now: the owner decides when it
+# becomes a required check.
+
+on:
+  pull_request:
+
+concurrency:
+  group: schema-conformance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  schema-conformance:
+    name: JSON Schema Draft-07 Test Suite (exceptions ${{ matrix.exceptions }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - exceptions: 'OFF'
+            preset: validation-tests
+          - exceptions: 'ON'
+            preset: validation-tests-exceptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Configure with the schema component
+        run: cmake --preset ${{ matrix.preset }} -DADAPTIVE_JSON5_BUILD_SCHEMA=ON
+      - name: Build the Draft-07 suite runner
+        run: cmake --build --preset ${{ matrix.preset }} --parallel --target adaptive_json5_schema_conformance_validation_tests
+      - name: Run the Draft-07 suite
+        run: ctest --preset ${{ matrix.preset }} --parallel 4 --label-regex schema_validation_tests --output-on-failure

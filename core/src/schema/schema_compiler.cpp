@@ -1,4 +1,5 @@
 #include "adaptive_json5/input.hpp"
+#include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/owned_block.hpp"
 #include "adaptive_json5/memory/storage.hpp"
 #include "adaptive_json5/result.hpp"
@@ -8,6 +9,7 @@
 #include "adaptive_json5/schema/schema_error.hpp"
 #include "adaptive_json5/schema/schema_keyword.hpp"
 #include "adaptive_json5/schema/schema_registry.hpp"
+#include "adaptive_json5/schema/validate.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
 #include "adaptive_json5/value/integer_conversion.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
@@ -15,7 +17,9 @@
 #include "adaptive_json5/value/value_kind.hpp"
 #include "adaptive_json5/value/value_view.hpp"
 #include "schema/exact_number.hpp"
+#include "schema/format.hpp"
 #include "schema/json_pointer.hpp"
+#include "schema/meta_schema.hpp"
 #include "schema/pod_vector.hpp"
 #include "schema/regex.hpp"
 #include "schema/schema_graph.hpp"
@@ -46,6 +50,8 @@ namespace adaptive_json5
 
     constexpr std::size_t c_keyword_count = static_cast<std::size_t>(schema_keyword::not_schema) + 1U;
     constexpr std::size_t c_first_named_keyword = static_cast<std::size_t>(schema_keyword::schema);
+    // Scratch bytes for parsing the embedded meta-schema (about 5 KB of text; generous headroom).
+    constexpr std::size_t c_meta_storage_limit = 1048576U;
 
     /**
      * @brief A keyword, its flag bit and the node field that receives its compiled value.
@@ -168,6 +174,7 @@ namespace adaptive_json5
         schema_compile_limits limits;
         schema_dialect dialect;
         std::size_t steps{};
+        bool assert_format{};
 
         /**
          * @brief Bind every table to its storage; no allocation.
@@ -183,7 +190,7 @@ namespace adaptive_json5
               token(options.scratch_storage), regex_code(options.result_storage), regex_ranges(options.result_storage),
               scratch(options.scratch_storage), result_storage(options.result_storage),
               values(detail::document_access::create(options.result_storage, options.limits.max_compile_steps)),
-              limits(options.limits), dialect(selected)
+              limits(options.limits), dialect(selected), assert_format(options.assert_format)
         {
         }
     };
@@ -1213,6 +1220,35 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Check `format` (a string) and select its assertion when requested and supported.
+     * @par Requirements
+     * J5-069; J5-054.
+     * @par ID SWU-SCHEMA-342
+     */
+    status compile_format(const compile_state& state,
+                          const std::array<std::optional<value_view>, c_keyword_count>& found,
+                          schema_node& node) noexcept
+    {
+      const auto& format = found[static_cast<std::size_t>(schema_keyword::format)];
+      if (!format.has_value())
+      {
+        return status::success();
+      }
+      const auto text = format->as_string();
+      if (!text.has_value())
+      {
+        return shape_error(*format);
+      }
+      const detail::format_kind kind = detail::format_from_name(**text.value_if());
+      if (state.assert_format && (kind != detail::format_kind::none))
+      {
+        node.format = static_cast<std::uint8_t>(kind);
+        node.string_flags = with_flag(node.string_flags, detail::string_bit::format);
+      }
+      return status::success();
+    }
+
+    /**
      * @brief Compile minLength, maxLength and pattern (P049).
      * @par Requirements
      * P049; J5-054; J5-057; J5-060.
@@ -1240,10 +1276,11 @@ namespace adaptive_json5
         *entry.target = *count.value_if();
         node.string_flags = with_flag(node.string_flags, entry.bit);
       }
+      const auto formatted = compile_format(state, found, node);
       const auto& pattern = found[static_cast<std::size_t>(schema_keyword::pattern)];
-      if (!pattern.has_value())
+      if (!formatted.has_value() || !pattern.has_value())
       {
-        return status::success();
+        return formatted;
       }
       const auto text = pattern->as_string();
       if (!text.has_value())
@@ -1432,6 +1469,54 @@ namespace adaptive_json5
     }
 
     /**
+     * @brief Report whether a member name is an annotation keyword or an unknown keyword.
+     * @par Requirements
+     * P053; J5-058; J5-062; J5-069; Draft-07 Validation sections 7, 8 and 10.
+     * @par ID SWU-SCHEMA-316
+     */
+    bool is_annotation_name(const decoded_string& name) noexcept
+    {
+      const auto keyword = classify(name);
+      if (!keyword.has_value())
+      {
+        return true;
+      }
+      constexpr std::array<schema_keyword, 10> c_annotations{
+        schema_keyword::comment,         schema_keyword::title,     schema_keyword::description,
+        schema_keyword::default_value,   schema_keyword::read_only, schema_keyword::write_only,
+        schema_keyword::examples,        schema_keyword::format,    schema_keyword::content_media_type,
+        schema_keyword::content_encoding};
+      for (const schema_keyword annotation : c_annotations)
+      {
+        if (annotation == *keyword)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * @brief Copy a node's annotation and unknown keywords into the value document.
+     * @par Requirements
+     * P053; J5-058; J5-062; J5-066.
+     * @par ID SWU-SCHEMA-317
+     */
+    status compile_annotations(compile_state& state, const value_view& object, schema_node& node) noexcept
+    {
+      std::size_t copied = 0U;
+      const auto annotations = detail::copy_members_if(object, &is_annotation_name, *state.values, state.result_storage,
+                                                       state.steps, state.limits.max_compile_steps, copied);
+      if (!annotations.has_value())
+      {
+        return status::failure(*annotations.error_if());
+      }
+      node.annotations = *annotations.value_if();
+      node.has_annotations = copied != 0U;
+      return status::success();
+    }
+
+    /**
      * @brief Compile one queued schema value into its node.
      * @par Requirements
      * P044; J5-053; J5-054; J5-055; J5-062; ADR 0006 decisions 2, 10, O1 and O2.
@@ -1472,7 +1557,8 @@ namespace adaptive_json5
       }
 
       const bool evaluate = !found[static_cast<std::size_t>(schema_keyword::ref)].has_value();
-      const auto evaluated = evaluate ? compile_assertion_keywords(state, found, node) : status::success();
+      auto evaluated = evaluate ? compile_assertion_keywords(state, found, node) : status::success();
+      evaluated = (evaluate && evaluated.has_value()) ? compile_annotations(state, item.value, node) : evaluated;
       if (!evaluated.has_value())
       {
         return evaluated;
@@ -2011,61 +2097,171 @@ namespace adaptive_json5
     }
   } // namespace
 
+  namespace
+  {
+    result<compiled_schema, schema_error> compile_graph(const schema_registry& registry, std::string_view root_uri,
+                                                        schema_dialect dialect,
+                                                        const compile_options& options) noexcept;
+
+    /**
+     * @brief Validate every registered resource against the embedded Draft-07 meta-schema.
+     * @par Requirements
+     * P054; J5-054; J5-053; ADR 0006 #53 section.
+     * @note The meta-schema is registered and compiled in scratch storage, then each resource
+     * document is validated fail-fast with max_work_steps = max_compile_steps. A mismatch is
+     * invalid_schema (keyword_shape) at the offending schema value. All scratch storage is
+     * released before returning.
+     * @par ID SWU-SCHEMA-347
+     */
+    status check_meta_schema(const schema_registry& registry, const compile_options& options) noexcept
+    {
+      accounted_storage meta_storage{options.scratch_storage, c_meta_storage_limit};
+      auto meta_registry = schema_registry::create(meta_storage, 1U);
+      if (!meta_registry.has_value())
+      {
+        return status::failure(*meta_registry.error_if());
+      }
+      const std::string_view text = detail::draft07_meta_schema();
+      const auto added = meta_registry.value_if()->add(detail::c_draft07_meta_schema_uri, {text.data(), text.size()});
+      if (!added.has_value())
+      {
+        return status::failure(*added.error_if());
+      }
+      compile_options meta_options{};
+      meta_options.result_storage = options.scratch_storage;
+      meta_options.scratch_storage = options.scratch_storage;
+      const auto meta = compile_graph(*meta_registry.value_if(), detail::c_draft07_meta_schema_uri,
+                                      schema_dialect::draft_07, meta_options);
+      if (!meta.has_value())
+      {
+        return status::failure(*meta.error_if());
+      }
+      validation_options run{};
+      run.work_storage = options.scratch_storage;
+      run.report_storage = options.scratch_storage;
+      run.mode = evaluation_mode::fail_fast;
+      // Sized by the compile limits, not the validation defaults: the meta-schema reaches every
+      // subschema through {"$ref": "#"} and checks types with anyOf, so references, branches and
+      // comparisons grow with the schema. Every one of them is also a work step, so
+      // max_compile_steps still bounds the check; depth is bounded by the parsed document.
+      const std::size_t steps = options.limits.max_compile_steps;
+      run.budget.max_work_steps = steps;
+      run.budget.max_reference_steps = steps;
+      run.budget.max_branch_evaluations = steps;
+      run.budget.max_equality_steps = steps;
+      run.budget.max_regex_steps = steps;
+      run.budget.max_depth = std::numeric_limits<std::size_t>::max();
+      std::size_t resource = 0U;
+      while (resource < registry.size())
+      {
+        const auto& entry = detail::schema_registry_access::entry(registry, resource);
+        const auto report = validate(*meta.value_if(), entry.parsed.values, run);
+        if (!report.has_value())
+        {
+          // Every budget of this check derives from max_compile_steps, so report that limit.
+          const schema_error& failed = *report.error_if();
+          const bool limited = failed.code() == schema_error_code::resource_limit;
+          return status::failure(limited ? schema_error::limit(schema_limit_reason::max_compile_steps) : failed);
+        }
+        const schema_diagnostic* failed = report.value_if()->diagnostic(0U);
+        if (failed != nullptr)
+        {
+          return status::failure(schema_error::invalid(
+            invalid_schema_reason::keyword_shape,
+            failed->has_instance_span ? std::optional<source_span>{failed->instance_span} : std::nullopt));
+        }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.180)
+        ++resource;
+      }
+      return status::success();
+    }
+
+    /**
+     * @brief Compile the registry into a schema graph (no meta-schema check).
+     * @par Requirements
+     * P044; P054; J5-053; J5-054; J5-055; J5-066.
+     * @par ID SWU-SCHEMA-348
+     */
+    result<compiled_schema, schema_error> compile_graph(const schema_registry& registry, std::string_view root_uri,
+                                                        schema_dialect dialect, const compile_options& options) noexcept
+    {
+      using compile_result = result<compiled_schema, schema_error>;
+      compile_state state{options, dialect};
+      if (options.assert_content)
+      {
+        return compile_result::failure(schema_error::of(schema_error_code::unsupported_option));
+      }
+
+      // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
+      // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
+      // call; the counter is only incremented by the loop statement.
+      // codeql::misra_deviation_next_line(DEV-105.10)
+      for (std::size_t resource = 0U; resource < registry.size(); ++resource)
+      {
+        const auto added = add_resource(state, registry, resource);
+        if (!added.has_value())
+        {
+          return compile_result::failure(*added.error_if());
+        }
+      }
+      const auto refs = resolve_refs(state);
+      if (!refs.has_value())
+      {
+        return compile_result::failure(*refs.error_if());
+      }
+      const auto cycles = reject_pure_cycles(state);
+      if (!cycles.has_value())
+      {
+        return compile_result::failure(*cycles.error_if());
+      }
+      const auto root = find_root(state, root_uri);
+      if (!root.has_value())
+      {
+        return compile_result::failure(*root.error_if());
+      }
+
+      const std::size_t node_count = state.nodes.size();
+      const std::size_t edge_count = state.edges.size();
+      const std::size_t property_count = state.properties.size();
+      const std::size_t unit_count = state.units.size();
+      compiled_schema schema = detail::compiled_schema_access::make(
+        state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(),
+        property_count, state.units.release(), unit_count, registry.size(), *root.value_if());
+      // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+      // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
+      // once.
+      // codeql::misra_deviation_next_line(DEV-108.7)
+      detail::compiled_schema_access::attach_values(schema, std::move(*state.values));
+      detail::compiled_schema_access::attach_regex(schema, state.regex_code.release(), state.regex_ranges.release());
+      return compile_result::success(std::move(schema));
+    }
+  } // namespace
+
   /**
    * @brief Compile every registered resource and select the root schema.
    * @par Requirements
-   * P044; J5-047; J5-053; J5-054; J5-055; J5-056; J5-066; J5-067; ADR 0006 decisions 2, 5,
+   * P044; P054; J5-047; J5-053; J5-054; J5-055; J5-056; J5-066; J5-067; ADR 0006 decisions 2, 5,
    * 8, 9, 10, O1, O2 and O7.
    * @par ID SWU-SCHEMA-081
    */
   result<compiled_schema, schema_error> compile_schema(const schema_registry& registry, std::string_view root_uri,
                                                        schema_dialect dialect, const compile_options& options) noexcept
   {
-    using compile_result = result<compiled_schema, schema_error>;
-    compile_state state{options, dialect};
-
-    // MISRA rule: RULE-9-5-1 cpp/misra/legacy-for-statements-should-be-simple
-    // MISRA justification: A counting loop over a container or range whose bound is a size read through a member
-    // call; the counter is only incremented by the loop statement.
-    // codeql::misra_deviation_next_line(DEV-105.10)
-    for (std::size_t resource = 0U; resource < registry.size(); ++resource)
+    auto graph = compile_graph(registry, root_uri, dialect, options);
+    if (!graph.has_value())
     {
-      const auto added = add_resource(state, registry, resource);
-      if (!added.has_value())
-      {
-        return compile_result::failure(*added.error_if());
-      }
+      return graph;
     }
-    const auto refs = resolve_refs(state);
-    if (!refs.has_value())
+    const auto checked = check_meta_schema(registry, options);
+    if (!checked.has_value())
     {
-      return compile_result::failure(*refs.error_if());
+      return result<compiled_schema, schema_error>::failure(*checked.error_if());
     }
-    const auto cycles = reject_pure_cycles(state);
-    if (!cycles.has_value())
-    {
-      return compile_result::failure(*cycles.error_if());
-    }
-    const auto root = find_root(state, root_uri);
-    if (!root.has_value())
-    {
-      return compile_result::failure(*root.error_if());
-    }
-
-    const std::size_t node_count = state.nodes.size();
-    const std::size_t edge_count = state.edges.size();
-    const std::size_t property_count = state.properties.size();
-    const std::size_t unit_count = state.units.size();
-    compiled_schema schema = detail::compiled_schema_access::make(
-      state.nodes.release(), node_count, state.edges.release(), edge_count, state.properties.release(), property_count,
-      state.units.release(), unit_count, registry.size(), *root.value_if());
-    // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
-    // MISRA justification: The moved-from object is reassigned, reset or only destroyed; a result is moved out of
-    // once.
-    // codeql::misra_deviation_next_line(DEV-108.7)
-    detail::compiled_schema_access::attach_values(schema, std::move(*state.values));
-    detail::compiled_schema_access::attach_regex(schema, state.regex_code.release(), state.regex_ranges.release());
-    return compile_result::success(std::move(schema));
+    return graph;
   }
 
   /**

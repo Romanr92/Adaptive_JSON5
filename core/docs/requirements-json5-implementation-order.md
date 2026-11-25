@@ -894,6 +894,10 @@ Implement allOf, anyOf, oneOf, not and if/then/else, accounting for all work and
 - Existing contracts: J5-057, J5-065.
 - Unit acceptance: Zero/one/multiple matching branches, nested conditions and failures during branch evaluation.
 
+Implementation: no evaluator change was needed; P046 already charges every branch and
+treats budget, cancellation and storage failures inside branches as operational errors.
+Units: `tests/schema/logic_tests.cpp` (`P052_Logic`, `P052_Diagnostics`, `P052_Failures`).
+
 ### P053 — Annotations and extension handling
 
 Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) (original step issue #54).
@@ -903,6 +907,13 @@ Expose title/description/default/examples/readOnly/writeOnly and unknown-keyword
 - Prerequisites: P052.
 - Existing contracts: J5-058, J5-062, J5-069.
 - Unit acceptance: No mutation, failed/not-branch annotation suppression, unknown schema keywords versus unknown instance properties.
+
+Implementation (owner decisions 2026-11-24, ADR 0006 #53 section): opt-in
+`validation_options::collect_annotations`; `schema_annotation` records from passing
+subschemas only, values through `annotation_values()`; unknown keywords are annotations.
+`compile_options::assert_format` asserts a documented `format` subset
+(`format_assertion_supported()`); `assert_content` returns `unsupported_option`. Units:
+`tests/schema/annotation_tests.cpp`, `tests/schema/format_tests.cpp`.
 
 ### P054 — Public schema compilation and diagnostics
 
@@ -914,6 +925,11 @@ Complete strict-JSON boolean/object schema compilation with the Draft-07 meta-sc
 - Existing contracts: J5-054, J5-063, J5-064.
 - Unit acceptance: Bootstrap shape checks are component units before this step; final public compiler validates the meta-schema with the completed engine and separates every failure class.
 
+Implementation: the Draft-07 meta-schema is embedded (BSD-3-Clause option, provenance in
+`docs/dependencies.md`) and every registered resource is validated against it after the
+dialect and built-in checks. Empty `enum` and empty `items` arrays are therefore invalid
+schemas. Units: `tests/schema/meta_schema_tests.cpp`, `P054_EmbeddedMetaSchema`.
+
 ### P055 — Schema conformance and packaging
 
 Tracking: [#53](https://github.com/Romanr92/Adaptive_JSON5/issues/53) (original step issue #56).
@@ -923,6 +939,19 @@ Run pinned required Draft-07 unit fixtures with offline registered resources, ex
 - Prerequisites: P054.
 - Existing contracts: J5-053, J5-065, J5-066, J5-067, J5-068, J5-069, J5-096.
 - Unit acceptance: Required keyword/reference matrix, exceptions-OFF units, provenance and parser-only independence.
+
+Implementation: JSON-Schema-Test-Suite release 1.041 (draft7 and remotes) is pinned under
+`tests/fixtures/third_party` and run by `tests/validation/schema_conformance_tests.cpp` in
+the informative `schema-conformance` workflow; selections, counts and the one recorded
+deviation are in the fixture README. Capabilities: [schema/README.md](../../schema/README.md);
+packaging: [release packages](../../docs/release-packages.md).
+
+Local P052–P055 results (2026-11-24, Windows GCC 15.2.0, Ninja, RTTI OFF): 3596/3596 units
+with schema ON in both exception modes, 3708/3708 with schema OFF; Draft-07 suite 747
+required and 568 optional tests pass; MISRA C++:2023 0 open findings (deviations in
+`docs/schema-deviation-register.md`); coverage line 96.8%, function 99.7%, branch 90.2%;
+clang-format clean; no function above the complexity limits. CI and developer review/merge
+are pending.
 
 ### P056 — CLI dispatch and bounded readers
 

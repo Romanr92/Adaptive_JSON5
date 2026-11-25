@@ -1,1 +1,2 @@
 tests/fixtures/third_party/** -text
+core/src/schema/meta_schema.cpp -text
