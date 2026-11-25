@@ -5,19 +5,19 @@
   "configurations": {
     "g++-13-OFF": {
       "available": true,
-      "detail": "908 tests"
+      "detail": "938 tests"
     },
     "g++-13-ON": {
       "available": true,
-      "detail": "908 tests"
+      "detail": "938 tests"
     },
     "clang++-18-OFF": {
       "available": true,
-      "detail": "908 tests"
+      "detail": "938 tests"
     },
     "clang++-18-ON": {
       "available": true,
-      "detail": "908 tests"
+      "detail": "938 tests"
     }
   },
   "metrics": {
@@ -26,16 +26,16 @@
     "stale_links": 0,
     "unmapped_tests": 0,
     "implementation": {
-      "count": 77,
-      "percent": 76.2
+      "count": 79,
+      "percent": 78.2
     },
     "tests": {
-      "count": 73,
-      "percent": 72.2
+      "count": 76,
+      "percent": 75.2
     },
     "passing": {
-      "count": 73,
-      "percent": 72.2
+      "count": 75,
+      "percent": 74.2
     }
   },
   "requirements": [
@@ -10556,6 +10556,17 @@
             "clang++-18-OFF": "passed",
             "clang++-18-ON": "passed"
           }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.LargeSchemasStayWithinCompileLimits",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
         }
       ],
       "code_mapped": true,
@@ -11786,13 +11797,35 @@
       "reason": "",
       "design": [],
       "implementation": [],
-      "tests": [],
+      "tests": [
+        {
+          "id": "P055_Draft07Conformance.MatchesTheSuite",
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P055_Draft07Inventory.NoRequiredCaseIsSkipped",
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
       "code_mapped": false,
-      "test_mapped": false,
+      "test_mapped": true,
       "tests_passing": false,
       "gaps": [
-        "no code mapped",
-        "no tests mapped"
+        "no code mapped"
       ]
     },
     {
@@ -12768,6 +12801,28 @@
             "clang++-18-OFF": "passed",
             "clang++-18-ON": "passed"
           }
+        },
+        {
+          "id": "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself",
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P055_Draft07Conformance.MatchesTheSuite",
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
         }
       ],
       "code_mapped": true,
@@ -12833,6 +12888,20 @@
           "symbols": [
             "check_name_list",
             "parse_type_keyword"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/includes/schema/meta_schema.hpp",
+            "core/src/schema/meta_schema.cpp",
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "draft07_meta_schema",
+            "check_meta_schema",
+            "compile_graph"
           ],
           "note": "",
           "problems": []
@@ -12952,6 +13021,83 @@
         {
           "id": "P051_ListShapes.AreChecked",
           "file": "tests/schema/assertion_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_069_FormatOptions.UnsupportedAndNonApplicable",
+          "file": "tests/schema/format_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchema.SeparatesFailureClasses",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.ReportsTheOffendingValue",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.ChecksEveryRegisteredResource",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.FailuresDuringTheMetaCheck",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_EmbeddedMetaSchema.IsPinnedAndValidatesItself",
+          "file": "core/tests/schema/assertion_core_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.LargeSchemasStayWithinCompileLimits",
+          "file": "tests/schema/meta_schema_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
@@ -13567,6 +13713,28 @@
             "clang++-18-OFF": "passed",
             "clang++-18-ON": "passed"
           }
+        },
+        {
+          "id": "P052_Logic.MatchesDraft07InBothModes",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P055_Draft07Conformance.MatchesTheSuite",
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
         }
       ],
       "code_mapped": true,
@@ -13583,15 +13751,119 @@
       "applicable": true,
       "reason": "",
       "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "implementation": [
+        {
+          "files": [
+            "includes/adaptive_json5/schema/validation_report.hpp",
+            "includes/adaptive_json5/schema/validate.hpp",
+            "core/src/schema/evaluator.cpp"
+          ],
+          "symbols": [
+            "annotation_count",
+            "annotation",
+            "annotation_values",
+            "note_annotations"
+          ],
+          "note": "",
+          "problems": []
+        },
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp",
+            "core/includes/schema/schema_values.hpp",
+            "core/src/schema/schema_values.cpp"
+          ],
+          "symbols": [
+            "compile_annotations",
+            "copy_members_if"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P053_Annotations.CollectsEveryStandardKeyword",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_Annotations.OnlyPassingBranchesContribute",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_Annotations.SuppressedContexts",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_Annotations.ValidReportsOnly",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_Annotations.NeverMutatesTheInstance",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_Failures.ReportAllocationFailureSweep",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_Failures.ForeignRecordsAreRejected",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-059",
@@ -14019,12 +14291,34 @@
           ],
           "note": "",
           "problems": []
+        },
+        {
+          "files": [
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "is_annotation_name",
+            "compile_annotations"
+          ],
+          "note": "",
+          "problems": []
         }
       ],
       "tests": [
         {
           "id": "P044_CompileGraph.CountsUnknownKeywords",
           "file": "core/tests/schema/schema_compiler_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P053_ExtensionKeywords.AreNotInstanceProperties",
+          "file": "tests/schema/annotation_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
@@ -14189,6 +14483,61 @@
             "clang++-18-OFF": "passed",
             "clang++-18-ON": "passed"
           }
+        },
+        {
+          "id": "P052_Diagnostics.ReportTheFailedKeyword",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P052_Failures.BudgetsInsideBranchesAreOperational",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P052_Failures.CancellationDuringBranches",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P052_Failures.AllocationFailureDuringBranches",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchema.SeparatesFailureClasses",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
         }
       ],
       "code_mapped": true,
@@ -14315,6 +14664,17 @@
         {
           "id": "P046_EdgeCases.ZeroCapacityFormatting",
           "file": "core/tests/schema/schema_edge_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.ReportsTheOffendingValue",
+          "file": "tests/schema/meta_schema_tests.cpp",
           "problem": "",
           "results": {
             "g++-13-OFF": "passed",
@@ -14733,6 +15093,50 @@
             "clang++-18-OFF": "passed",
             "clang++-18-ON": "passed"
           }
+        },
+        {
+          "id": "P052_Failures.BudgetsInsideBranchesAreOperational",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P052_Failures.BranchBudgetSweep",
+          "file": "tests/schema/logic_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_069_FormatOptions.BudgetAndStorageFailures",
+          "file": "tests/schema/format_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P054_MetaSchemaDetails.FailuresDuringTheMetaCheck",
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
         }
       ],
       "code_mapped": true,
@@ -14959,15 +15363,85 @@
       "applicable": true,
       "reason": "",
       "design": [],
-      "implementation": [],
-      "tests": [],
-      "code_mapped": false,
-      "test_mapped": false,
-      "tests_passing": false,
-      "gaps": [
-        "no code mapped",
-        "no tests mapped"
-      ]
+      "implementation": [
+        {
+          "files": [
+            "core/includes/schema/format.hpp",
+            "core/src/schema/format.cpp",
+            "includes/adaptive_json5/schema/compiled_schema.hpp",
+            "core/src/schema/schema_compiler.cpp"
+          ],
+          "symbols": [
+            "check_format",
+            "format_from_name",
+            "format_assertion_supported",
+            "compile_format"
+          ],
+          "note": "",
+          "problems": []
+        }
+      ],
+      "tests": [
+        {
+          "id": "P053_ExtensionKeywords.FormatAndContentAreAnnotations",
+          "file": "tests/schema/annotation_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_069_FormatAssertion.ChecksTheSupportedSet",
+          "file": "tests/schema/format_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_069_FormatOptions.UnsupportedAndNonApplicable",
+          "file": "tests/schema/format_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "J5_069_FormatOptions.BudgetAndStorageFailures",
+          "file": "tests/schema/format_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        },
+        {
+          "id": "P055_Draft07Inventory.NoRequiredCaseIsSkipped",
+          "file": "tests/validation/schema_conformance_tests.cpp",
+          "problem": "",
+          "results": {
+            "g++-13-OFF": "passed",
+            "g++-13-ON": "passed",
+            "clang++-18-OFF": "passed",
+            "clang++-18-ON": "passed"
+          }
+        }
+      ],
+      "code_mapped": true,
+      "test_mapped": true,
+      "tests_passing": true,
+      "gaps": []
     },
     {
       "id": "J5-070",
