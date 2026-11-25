@@ -29,6 +29,7 @@ library was checked to be byte-identical before and after.
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
 | API | SWU-API-043 | SWU-API-044 |
+| CLI | SWU-CLI-032 | SWU-CLI-033 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
@@ -87,6 +88,45 @@ library was checked to be byte-identical before and after.
 | SWU-API-041 | used | `error::security_reason()` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-042 | used | `error::security_at_range(source_span, security_reason)` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-043 | used | `secure_parse_options()` | `includes/adaptive_json5/options.hpp` | — |
+
+## CLI
+
+Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of the parser or schema libraries.
+
+| ID | Status | Function | Defined in | Also documented in |
+| --- | --- | --- | --- | --- |
+| SWU-CLI-001 | used | `parse_arguments(int, const char* const*)` | `cli/src/cli_options.cpp` | `cli/includes/cli/cli_options.hpp` |
+| SWU-CLI-002 | used | `describe(argument_error_code)` | `cli/src/cli_options.cpp` | `cli/includes/cli/cli_options.hpp` |
+| SWU-CLI-003 | used | `(anonymous)::command_named(std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-004 | used | `(anonymous)::option_named(std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-005 | used | `(anonymous)::allowed(const option_spec&, command)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-006 | used | `(anonymous)::positive_count(std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-007 | used | `(anonymous)::apply(options&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-008 | used | `(anonymous)::failed(argument_error_code, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-009 | used | `(anonymous)::finish(const options&)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-010 | used | `text_writer::text_writer(const output_sink&, output_stream stream) noexcept : m_sink(&sink), m_stream(stream)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-011 | used | `text_writer::put(std::string_view)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-012 | used | `text_writer::put_count(std::size_t)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-013 | used | `text_writer::ok()` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-014 | used | `run_cli(int, const char* const*, const environment&)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-015 | used | `(anonymous)::host_buffer(const storage_callbacks&, std::size_t size) noexcept : m_storage(storage)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-016 | used | `(anonymous)::~host_buffer()` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-017 | used | `(anonymous)::data()` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-018 | used | `(anonymous)::report_arguments(const environment&, const argument_error&)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-019 | used | `(anonymous)::report_failure(const environment&, std::string_view, std::string_view)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-020 | used | `(anonymous)::describe_io(io_status)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-021 | used | `(anonymous)::is_input_error(error_code)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-022 | used | `(anonymous)::run_validate(const options&, const environment&)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-023 | used | `host_environment()` | `cli/src/host_io.cpp` | `cli/includes/cli/host_io.hpp` |
+| SWU-CLI-024 | used | `(anonymous)::read_stream(std::FILE*, char*, std::size_t, std::size_t&)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-025 | used | `(anonymous)::read_input(void*, std::string_view, char*, std::size_t, std::size_t&)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-026 | used | `(anonymous)::write_output(void*, output_stream, std::string_view)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-027 | used | `(anonymous)::allocate(void*, std::size_t, std::size_t)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-028 | used | `(anonymous)::deallocate(void*, void*, std::size_t, std::size_t)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-029 | used | `main(int, char**)` | `cli/src/main.cpp` | — |
+| SWU-CLI-030 | used | `(anonymous)::apply_limit(resource_limits&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-031 | used | `(anonymous)::take_option(options&, std::array<bool, c_options.size()` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-032 | used | `(anonymous)::apply_choice(options&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
 
 ## COMMON
 

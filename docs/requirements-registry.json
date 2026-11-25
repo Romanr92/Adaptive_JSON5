@@ -4918,8 +4918,25 @@
       "status": "Draft",
       "issue": 57,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": ["cli/includes/cli/cli_options.hpp", "cli/src/cli_options.cpp", "cli/includes/cli/cli_app.hpp", "cli/src/cli_app.cpp", "cli/includes/cli/cli_io.hpp", "cli/src/host_io.cpp"],
+          "symbols": ["parse_arguments", "run_cli", "input_source", "output_sink", "host_environment"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "core/tests/cli/cli_dispatch_tests.cpp",
+          "names": [
+            "P056_Arguments.ParsesEveryOption",
+            "P056_Arguments.RejectsEveryMistake",
+            "P056_Dispatch.ValidateMapsParseOutcomes",
+            "P056_Dispatch.IoAndBudgetFailuresExitTwo",
+            "P056_Dispatch.UsageHelpAndOutputFailures",
+            "P056_Dispatch.SchemaFlagReportsUnavailable"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-071",
@@ -4928,7 +4945,15 @@
       "issue": 57,
       "section": "api",
       "implementation": [],
-      "tests": []
+      "tests": [
+        {
+          "file": "core/tests/cli/cli_dispatch_tests.cpp",
+          "names": [
+            "P056_Dispatch.UsageHelpAndOutputFailures",
+            "P056_Dispatch.AllocationFailureSweep"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-072",
