@@ -1,0 +1,121 @@
+PASS strict
+PASS features
+PASS unicode
+PASS duplicates
+PASS exact-numbers
+PASS bom
+PASS root-string
+PASS trailing-root
+PASS array-hole
+PASS token-suffix
+PASS unterminated-string
+PASS invalid-escape
+PASS leading-zero
+PASS device.schema
+PASS device-valid
+PASS device-invalid
+PASS json5-in-strict-mode
+PASS bom-in-strict-mode
+requirements:
+  J5-001: not demonstrated by file cases
+  J5-002: not demonstrated by file cases
+  J5-003: not demonstrated by file cases
+  J5-004: not demonstrated by file cases
+  J5-005: demonstrated
+  J5-006: not demonstrated by file cases
+  J5-007: not demonstrated by file cases
+  J5-008: not demonstrated by file cases
+  J5-009: demonstrated
+  J5-010: demonstrated
+  J5-011: demonstrated
+  J5-012: demonstrated
+  J5-013: demonstrated
+  J5-014: demonstrated
+  J5-015: demonstrated
+  J5-016: demonstrated
+  J5-017: demonstrated
+  J5-018: demonstrated
+  J5-019: demonstrated
+  J5-020: demonstrated
+  J5-021: demonstrated
+  J5-022: demonstrated
+  J5-023: demonstrated
+  J5-024: demonstrated
+  J5-025: demonstrated
+  J5-026: demonstrated
+  J5-027: demonstrated
+  J5-028: demonstrated
+  J5-029: demonstrated
+  J5-030: demonstrated
+  J5-031: demonstrated
+  J5-032: demonstrated
+  J5-033: demonstrated
+  J5-034: demonstrated
+  J5-035: demonstrated
+  J5-036: demonstrated
+  J5-037: demonstrated
+  J5-038: demonstrated
+  J5-039: demonstrated
+  J5-040: demonstrated
+  J5-041: demonstrated
+  J5-042: demonstrated
+  J5-043: demonstrated
+  J5-044: demonstrated
+  J5-045: demonstrated
+  J5-046: demonstrated
+  J5-047: demonstrated
+  J5-048: demonstrated
+  J5-049: demonstrated
+  J5-050: demonstrated
+  J5-051: demonstrated
+  J5-052: demonstrated
+  J5-053: demonstrated
+  J5-054: demonstrated
+  J5-055: demonstrated
+  J5-056: demonstrated
+  J5-057: demonstrated
+  J5-058: demonstrated
+  J5-059: demonstrated
+  J5-060: demonstrated
+  J5-061: demonstrated
+  J5-062: demonstrated
+  J5-063: demonstrated
+  J5-064: demonstrated
+  J5-065: demonstrated
+  J5-066: demonstrated
+  J5-067: demonstrated
+  J5-068: demonstrated
+  J5-069: demonstrated
+  J5-070: demonstrated
+  J5-071: demonstrated
+  J5-072: demonstrated
+  J5-073: demonstrated
+  J5-074: demonstrated
+  J5-075: demonstrated
+  J5-076: demonstrated
+  J5-077: demonstrated
+  J5-078: demonstrated
+  J5-079: demonstrated
+  J5-080: demonstrated
+  J5-081: demonstrated
+  J5-082: demonstrated
+  J5-083: not demonstrated by file cases
+  J5-084: not demonstrated by file cases
+  J5-085: not demonstrated by file cases
+  J5-086: not demonstrated by file cases
+  J5-087: not demonstrated by file cases
+  J5-088: not demonstrated by file cases
+  J5-089: not demonstrated by file cases
+  J5-090: not demonstrated by file cases
+  J5-091: not demonstrated by file cases
+  J5-092: not demonstrated by file cases
+  J5-093: not demonstrated by file cases
+  J5-094: demonstrated
+  J5-095: not demonstrated by file cases
+  J5-096: demonstrated
+  J5-097: demonstrated
+  J5-098: demonstrated
+  J5-099: not demonstrated by file cases
+  J5-100: not demonstrated by file cases
+  J5-101: not demonstrated by file cases
+18 passed, 0 failed, 0 unsupported, 0 errors

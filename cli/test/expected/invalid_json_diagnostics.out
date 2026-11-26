@@ -1,0 +1,1 @@
+{"format": "adaptive-json5-diagnostics", "version": 1, "command": "validate", "input": "examples/invalid/leading-zero.json", "diagnostics": [{"severity": "error", "category": "syntax", "message": "line: 1, column: 12: invalid number", "line": 1, "column": 12, "byte_offset": 11}], "result": "invalid", "exit": 1}
