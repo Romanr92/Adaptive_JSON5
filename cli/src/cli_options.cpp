@@ -6,6 +6,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <string_view>
 
@@ -13,6 +14,9 @@ namespace adaptive_json5::cli
 {
   namespace
   {
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.3)
     constexpr std::string_view c_digits{"0123456789"};
     constexpr std::size_t c_max_decimal_digits = 18U; // Fits std::size_t without overflow.
 
@@ -40,6 +44,10 @@ namespace adaptive_json5::cli
      * @par Requirements
      * P056; J5-070.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.10)
     struct option_spec
     {
         std::string_view name;
@@ -49,6 +57,9 @@ namespace adaptive_json5::cli
         bool for_run;
     };
 
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.2)
     constexpr std::array<option_spec, 10> c_options{{
       {"--syntax", option_id::syntax, true, true, false},
       {"--duplicates", option_id::duplicates, true, true, false},
@@ -142,7 +153,16 @@ namespace adaptive_json5::cli
       std::size_t value = 0U;
       for (const char c : text)
       {
-        value = (value * 10U) + c_digits.find(c);
+        const auto digit = c_digits.find(c);
+        if (value > ((std::numeric_limits<std::size_t>::max() - digit) / 10U))
+        {
+          return std::nullopt;
+        }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.6)
+        value = (value * 10U) + digit;
       }
       return (value == 0U) ? std::nullopt : std::optional<std::size_t>{value};
     }
@@ -247,6 +267,10 @@ namespace adaptive_json5::cli
      */
     parsed_arguments failed(argument_error_code code, std::string_view argument) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.4)
       parsed_arguments result{};
       result.failure = argument_error{code, argument};
       return result;
@@ -260,8 +284,8 @@ namespace adaptive_json5::cli
      * @par ID SWU-CLI-031
      */
     std::optional<argument_error> take_option(options& parsed, std::array<bool, c_options.size()>& seen,
-                                              const option_spec& spec, std::int32_t argc, const char* const* argv,
-                                              std::int32_t index) noexcept
+                                              const option_spec& spec, std::size_t count, const char* const* argv,
+                                              std::size_t index) noexcept
     {
       const std::string_view argument{argv[index]};
       const auto slot = static_cast<std::size_t>(spec.id);
@@ -273,12 +297,16 @@ namespace adaptive_json5::cli
       {
         return argument_error{argument_error_code::repeated_option, argument};
       }
-      if ((index + 1) >= argc)
+      if ((count - index) < 2U)
       {
         return argument_error{argument_error_code::missing_value, argument};
       }
       seen[slot] = true;
-      const std::string_view value{argv[index + 1]};
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check.
+      // codeql::misra_deviation_next_line(DEV-201.5)
+      const std::string_view value{argv[index + 1U]};
       if (!apply(parsed, spec.id, value))
       {
         return argument_error{argument_error_code::invalid_value, value};
@@ -307,6 +335,10 @@ namespace adaptive_json5::cli
       {
         return failed(argument_error_code::missing_value, "--manifest");
       }
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.3)
       parsed_arguments result{};
       result.parsed = parsed;
       return result;
@@ -331,11 +363,16 @@ namespace adaptive_json5::cli
     {
       return failed(argument_error_code::unknown_command, name);
     }
+    // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+    // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+    // unsigned member to zero.
+    // codeql::misra_deviation_next_line(DEV-203.2)
     options parsed{};
     parsed.selected = *selected;
     std::array<bool, c_options.size()> seen{};
-    std::int32_t index = 2;
-    while (index < argc)
+    const auto count = static_cast<std::size_t>(argc);
+    std::size_t index = 2U;
+    while (index < count)
     {
       const std::string_view argument{argv[index]};
       const option_spec* spec = option_named(argument);
@@ -346,20 +383,28 @@ namespace adaptive_json5::cli
       }
       if (spec == nullptr)
       {
-        if (!parsed.input.empty() || (parsed.selected != command::validate && parsed.selected != command::inspect))
+        if (!parsed.input.empty() || ((parsed.selected != command::validate) && (parsed.selected != command::inspect)))
         {
           return failed(argument_error_code::extra_argument, argument);
         }
         parsed.input = argument;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.4)
         ++index;
         continue;
       }
-      const auto taken = take_option(parsed, seen, *spec, argc, argv, index);
+      const auto taken = take_option(parsed, seen, *spec, count, argv, index);
       if (taken.has_value())
       {
         return failed(taken->code, taken->argument);
       }
-      index += 2;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check.
+      // codeql::misra_deviation_next_line(DEV-201.3)
+      index += 2U;
     }
     return finish(parsed);
   }

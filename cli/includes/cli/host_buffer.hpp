@@ -34,6 +34,10 @@ namespace adaptive_json5::cli
           const auto block = storage.allocate(storage.context, size, alignof(char));
           if (block.has_value())
           {
+            // MISRA rule: RULE-8-2-6 cpp/misra/int-to-pointer-cast-prohibited
+            // MISRA justification: The storage callback returns an allocated void pointer. The host buffer accesses
+            // its bytes through char.
+            // codeql::misra_deviation_next_line(DEV-211.1)
             m_data = static_cast<char*>(*block.value_if());
             m_size = size;
           }

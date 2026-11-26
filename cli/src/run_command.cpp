@@ -36,16 +36,25 @@ namespace adaptive_json5::cli
 {
   namespace
   {
+    // MISRA rule: RULE-0-2-1 cpp/misra/unused-limited-visibility-variable
+    // MISRA justification: The constant supplies a compile-time buffer extent.
+    // codeql::misra_deviation_next_line(DEV-212.1)
     constexpr std::size_t c_text_capacity = 256U;
     constexpr std::size_t c_path_capacity = 1024U;
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.5)
     constexpr std::string_view c_digits{"0123456789"};
-    constexpr error c_not_a_manifest = error::without_location(error_code::wrong_type_or_access);
 
     /**
      * @brief Fixed buffer holding a short UTF-8 text copied out of a document.
      * @par Requirements
      * P058.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.16)
     struct short_text
     {
         std::array<char, c_text_capacity> bytes{};
@@ -85,7 +94,31 @@ namespace adaptive_json5::cli
     bool member_text(const value_view& object, std::string_view name, short_text& out) noexcept
     {
       const auto member = object.find_member(name);
-      return member.has_value() && copy_text(*member.value_if(), out);
+      if (!member.has_value())
+      {
+        return false;
+      }
+      return copy_text(*member.value_if(), out);
+    }
+
+    /**
+     * @brief Text of member name of object, or empty when it is absent or not a short string.
+     * @par Requirements
+     * P058.
+     * @par ID SWU-CLI-116
+     */
+    short_text text_of(const value_view& object, std::string_view name) noexcept
+    {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.17)
+      short_text out{};
+      if (!member_text(object, name, out))
+      {
+        out.size = 0U;
+      }
+      return out;
     }
 
     /**
@@ -124,7 +157,15 @@ namespace adaptive_json5::cli
           {
             return false;
           }
+          // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+          // MISRA justification: Encoding and escaping use the numeric values of ASCII characters and Unicode code
+          // units.
+          // codeql::misra_deviation_next_line(DEV-202.5)
           c = (token[index + 1U] == '1') ? '/' : '~';
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds.
+          // Decimal accumulation uses a digit bound or an explicit range check.
+          // codeql::misra_deviation_next_line(DEV-201.43)
           ++index;
         }
         if (out.size >= out.bytes.size())
@@ -132,7 +173,15 @@ namespace adaptive_json5::cli
           return false;
         }
         out.bytes[out.size] = c;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.42)
         ++out.size;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.41)
         ++index;
       }
       return true;
@@ -156,6 +205,10 @@ namespace adaptive_json5::cli
         std::size_t index = 0U;
         for (const char c : token)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds.
+          // Decimal accumulation uses a digit bound or an explicit range check.
+          // codeql::misra_deviation_next_line(DEV-201.40)
           index = (index * 10U) + c_digits.find(c);
         }
         const auto element = current.element_at(index);
@@ -183,6 +236,10 @@ namespace adaptive_json5::cli
      * @par Requirements
      * P058.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.15)
     struct case_context
     {
         const options& selected;
@@ -221,6 +278,10 @@ namespace adaptive_json5::cli
         context.out.put(detail.empty() ? "" : ")");
         context.out.put("\n");
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check.
+      // codeql::misra_deviation_next_line(DEV-201.39)
       ++context.mismatches;
     }
 
@@ -260,6 +321,10 @@ namespace adaptive_json5::cli
       std::uint64_t rest = magnitude;
       do
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.38)
         --first;
         digits[first] = c_digits[static_cast<std::size_t>(rest % 10U)];
         rest /= 10U;
@@ -270,11 +335,54 @@ namespace adaptive_json5::cli
         out.bytes[0U] = '-';
         out.size = 1U;
       }
-      for (std::size_t index = first; index < digits.size(); ++index)
+      std::size_t index = first;
+      while (index < digits.size())
       {
         out.bytes[out.size] = digits[index];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.37)
         ++out.size;
+        ++index;
       }
+    }
+
+    /**
+     * @brief Convert number to int64, uint64 or (any other to) double; return "ok" or the failure
+     * name and write an integer result as decimal text into value.
+     * @par Requirements
+     * P058; J5-034; J5-035.
+     * @par ID SWU-CLI-117
+     */
+    std::string_view convert(const owned_number& number, std::string_view to, const environment& host,
+                             short_text& value) noexcept
+    {
+      if (to == "int64")
+      {
+        const auto converted = to_integer<std::int64_t>(number);
+        if (converted.has_value())
+        {
+          const std::int64_t v = *converted.value_if();
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Unsigned subtraction computes the magnitude of a negative value modulo 2^64,
+          // including INT64_MIN.
+          // codeql::misra_deviation_next_line(DEV-201.36)
+          decimal_text((v < 0) ? (0U - static_cast<std::uint64_t>(v)) : static_cast<std::uint64_t>(v), v < 0, value);
+        }
+        return conversion_name(converted.error_if());
+      }
+      if (to == "uint64")
+      {
+        const auto converted = to_integer<std::uint64_t>(number);
+        if (converted.has_value())
+        {
+          decimal_text(*converted.value_if(), false, value);
+        }
+        return conversion_name(converted.error_if());
+      }
+      const auto converted = to_double(number, host.storage);
+      return conversion_name(converted.error_if());
     }
 
     /**
@@ -285,41 +393,21 @@ namespace adaptive_json5::cli
      */
     bool check_conversion(const value_view& target, const value_view& check, const environment& host) noexcept
     {
-      short_text to{};
-      short_text expected{};
       const auto number = target.as_number();
-      if (!number.has_value() || !member_text(check, "to", to) || !member_text(check, "result", expected))
+      const short_text to = text_of(check, "to");
+      const short_text expected = text_of(check, "result");
+      if (!number.has_value() || (to.size == 0U) || (expected.size == 0U))
       {
         return false;
       }
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.16)
       short_text value{};
-      std::string_view observed{};
-      if (to.view() == "int64")
-      {
-        const auto converted = to_integer<std::int64_t>(**number.value_if());
-        observed = conversion_name(converted.error_if());
-        if (converted.has_value())
-        {
-          const std::int64_t v = *converted.value_if();
-          decimal_text((v < 0) ? (0U - static_cast<std::uint64_t>(v)) : static_cast<std::uint64_t>(v), v < 0, value);
-        }
-      }
-      else if (to.view() == "uint64")
-      {
-        const auto converted = to_integer<std::uint64_t>(**number.value_if());
-        observed = conversion_name(converted.error_if());
-        if (converted.has_value())
-        {
-          decimal_text(*converted.value_if(), false, value);
-        }
-      }
-      else
-      {
-        const auto converted = to_double(**number.value_if(), host.storage);
-        observed = conversion_name(converted.error_if());
-      }
-      short_text expected_value{};
-      const bool has_value = member_text(check, "value", expected_value);
+      const std::string_view observed = convert(**number.value_if(), to.view(), host, value);
+      const short_text expected_value = text_of(check, "value");
+      const bool has_value = expected_value.size != 0U;
       return (observed == expected.view()) && (!has_value || (value.view() == expected_value.view()));
     }
 
@@ -350,6 +438,10 @@ namespace adaptive_json5::cli
         {
           return member.value_if()->has_value() == name.value_if()->has_value();
         }
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+        // unsigned member to zero.
+        // codeql::misra_deviation_next_line(DEV-203.15)
         short_text wanted{};
         const auto actual = (*member.value_if())->member_name();
         if (!copy_text(**name.value_if(), wanted) || !actual.has_value())
@@ -381,16 +473,23 @@ namespace adaptive_json5::cli
       {
         return false;
       }
-      for (std::size_t index = 0U; index < *count.value_if(); ++index)
+      std::size_t index = 0U;
+      while (index < *count.value_if())
       {
         const auto expected = units.value_if()->element_at(index);
         const auto wanted = expected.has_value() ? to_integer<std::uint16_t>(*expected.value_if())
                                                  : result<std::uint16_t>::failure(*expected.error_if());
         const auto actual = (*text.value_if())->unit_at(index);
-        if (!wanted.has_value() || !actual.has_value() || (*wanted.value_if() != *actual.value_if()))
+        if (!wanted.has_value() || !actual.has_value() ||
+            (static_cast<std::uint32_t>(*wanted.value_if()) != static_cast<std::uint32_t>(*actual.value_if())))
         {
           return false;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.35)
+        ++index;
       }
       return true;
     }
@@ -403,6 +502,10 @@ namespace adaptive_json5::cli
      */
     bool check_same(const value_view& root, const value_view& target, const value_view& check) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.14)
       short_text other{};
       if (!member_text(check, "other", other))
       {
@@ -444,11 +547,15 @@ namespace adaptive_json5::cli
       const auto repeated = locate(text, locations->repeated.byte_offset);
       const auto want_first = check.find_member("first");
       const auto want_repeated = check.find_member("repeated");
-      return first.has_value() && repeated.has_value() && want_first.has_value() && want_repeated.has_value() &&
-             (member_count(*want_first.value_if(), "line") == first.value_if()->line) &&
-             (member_count(*want_first.value_if(), "column") == first.value_if()->column) &&
-             (member_count(*want_repeated.value_if(), "line") == repeated.value_if()->line) &&
-             (member_count(*want_repeated.value_if(), "column") == repeated.value_if()->column);
+      if (!first.has_value() || !repeated.has_value() || !want_first.has_value() || !want_repeated.has_value())
+      {
+        return false;
+      }
+      const bool first_line = member_count(*want_first.value_if(), "line") == first.value_if()->line;
+      const bool first_column = member_count(*want_first.value_if(), "column") == first.value_if()->column;
+      const bool repeated_line = member_count(*want_repeated.value_if(), "line") == repeated.value_if()->line;
+      const bool repeated_column = member_count(*want_repeated.value_if(), "column") == repeated.value_if()->column;
+      return first_line && first_column && repeated_line && repeated_column;
     }
 
     /**
@@ -459,11 +566,14 @@ namespace adaptive_json5::cli
      */
     bool check_spelling(const value_view& target, const value_view& check) noexcept
     {
-      short_text expected{};
       const auto number = target.as_number();
-      const input_view spelling = number.has_value() ? (*number.value_if())->spelling() : input_view{};
-      return number.has_value() && member_text(check, "spelling", expected) &&
-             (std::string_view{spelling.data, spelling.size} == expected.view());
+      const short_text expected = text_of(check, "spelling");
+      if (!number.has_value() || (expected.size == 0U))
+      {
+        return false;
+      }
+      const input_view spelling = (*number.value_if())->spelling();
+      return std::string_view{spelling.data, spelling.size} == expected.view();
     }
 
     /**
@@ -474,11 +584,14 @@ namespace adaptive_json5::cli
      */
     bool check_utf8(const value_view& target, const value_view& check) noexcept
     {
-      short_text expected{};
       const auto string = target.as_string();
-      const bool exported = string.has_value() && utf8_size(**string.value_if()).has_value();
-      return string.has_value() && member_text(check, "result", expected) &&
-             (expected.view() == (exported ? "success" : "failure"));
+      const short_text expected = text_of(check, "result");
+      if (!string.has_value())
+      {
+        return false;
+      }
+      const bool exported = utf8_size(**string.value_if()).has_value();
+      return expected.view() == (exported ? "success" : "failure");
     }
 
     /**
@@ -490,10 +603,14 @@ namespace adaptive_json5::cli
     bool evaluate_value_check(std::string_view kind, const value_view& root, const value_view& target,
                               const value_view& check, const environment& host) noexcept
     {
-      short_text expected{};
       if (kind == "absent_member")
       {
-        return member_text(check, "name", expected) && !target.find_member(expected.view()).has_value();
+        const short_text name = text_of(check, "name");
+        if (name.size == 0U)
+        {
+          return false;
+        }
+        return !target.find_member(name.view()).has_value();
       }
       if (kind == "number_spelling")
       {
@@ -515,7 +632,11 @@ namespace adaptive_json5::cli
       {
         return check_member_names(target, check);
       }
-      return (kind == "conversion") && check_conversion(target, check, host);
+      if (kind != "conversion")
+      {
+        return false;
+      }
+      return check_conversion(target, check, host);
     }
 
     /**
@@ -527,10 +648,9 @@ namespace adaptive_json5::cli
     bool evaluate_check(const value_view& check, const parsed_document& parsed, input_view text,
                         const case_context& context, syntax_mode syntax) noexcept
     {
-      short_text kind{};
-      short_text pointer{};
+      const short_text kind = text_of(check, "check");
       const auto root = parsed.values.root();
-      if (!member_text(check, "check", kind) || !root.has_value())
+      if ((kind.size == 0U) || !root.has_value())
       {
         return false;
       }
@@ -542,9 +662,21 @@ namespace adaptive_json5::cli
       {
         return check_duplicates(check, text, context, syntax);
       }
-      const auto target = member_text(check, "pointer", pointer) ? resolve_pointer(*root.value_if(), pointer.view())
-                                                                 : std::optional<value_view>{};
-      return target.has_value() && evaluate_value_check(kind.view(), *root.value_if(), *target, check, context.host);
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.13)
+      short_text pointer{};
+      if (!member_text(check, "pointer", pointer))
+      {
+        return false;
+      }
+      const auto target = resolve_pointer(*root.value_if(), pointer.view());
+      if (!target.has_value())
+      {
+        return false;
+      }
+      return evaluate_value_check(kind.view(), *root.value_if(), *target, check, context.host);
     }
 
     /**
@@ -571,10 +703,8 @@ namespace adaptive_json5::cli
         }
         if (!evaluate_check(**check.value_if(), parsed, text, context, syntax))
         {
-          short_text kind{};
-          short_text description{};
-          static_cast<void>(member_text(**check.value_if(), "check", kind));
-          static_cast<void>(member_text(**check.value_if(), "description", description));
+          const short_text kind = text_of(**check.value_if(), "check");
+          const short_text description = text_of(**check.value_if(), "description");
           mismatch(context, kind.view(), description.view());
         }
       }
@@ -585,6 +715,10 @@ namespace adaptive_json5::cli
      * @par Requirements
      * P058; J5-070.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.14)
     struct observation
     {
         bool parsed{};
@@ -608,15 +742,20 @@ namespace adaptive_json5::cli
       seen.parsed = true;
       host_buffer schema_text{context.host.storage, context.selected.limits.max_input_bytes};
       std::size_t size = 0U;
-      if ((schema_text.data() == nullptr) ||
-          (read_input(context.host, schema_path, schema_text.data(), schema_text.size(), size) != io_status::ok))
+      if (schema_text.data() == nullptr)
+      {
+        seen.operational = true;
+        return seen;
+      }
+      if (read_input(context.host, schema_path, schema_text.data(), schema_text.size(), size) != io_status::ok)
       {
         seen.operational = true;
         return seen;
       }
       accounted_storage registry_storage{context.host.storage, c_manifest_bytes * 64U};
       auto registry = schema_registry::create(registry_storage, 1U);
-      const bool added = registry.has_value() && registry.value_if()->add({schema_text.data(), size}).has_value();
+      const bool added =
+        registry.has_value() ? registry.value_if()->add({schema_text.data(), size}).has_value() : false;
       compile_options compile{};
       compile.result_storage = context.host.storage;
       compile.scratch_storage = context.host.storage;
@@ -663,6 +802,10 @@ namespace adaptive_json5::cli
         for (const char c : part)
         {
           buffer[size] = c;
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds.
+          // Decimal accumulation uses a digit bound or an explicit range check.
+          // codeql::misra_deviation_next_line(DEV-201.34)
           ++size;
         }
       }
@@ -678,14 +821,17 @@ namespace adaptive_json5::cli
     void compare(case_context& context, const value_view& expect, const observation& seen,
                  const std::optional<parsed_document>& parsed, input_view text, syntax_mode syntax) noexcept
     {
-      short_text want{};
-      if (member_text(expect, "parse", want) && ((want.view() == "success") != seen.parsed))
+      const short_text parse = text_of(expect, "parse");
+      const bool want_parsed = parse.view() == "success";
+      if ((parse.size != 0U) && (want_parsed ? !seen.parsed : seen.parsed))
       {
         mismatch(context, "parse",
                  seen.parsed ? "expected error, observed success" : "expected success, observed error");
       }
-      if (member_text(expect, "validation", want) && seen.valid_schema.has_value() &&
-          ((want.view() == "success") != *seen.valid_schema))
+      const short_text validation = text_of(expect, "validation");
+      const bool want_valid = validation.view() == "success";
+      if ((validation.size != 0U) && seen.valid_schema.has_value() &&
+          (want_valid ? !*seen.valid_schema : *seen.valid_schema))
       {
         mismatch(context, "validation",
                  *seen.valid_schema ? "expected failure, observed success" : "expected success, observed failure");
@@ -709,12 +855,11 @@ namespace adaptive_json5::cli
      */
     parse_options case_options(const case_context& context, const value_view& item, std::string_view syntax) noexcept
     {
-      short_text policy{};
+      const short_text policy = text_of(item, "duplicates");
       parse_options parse{};
       parse.syntax = (syntax == "json") ? syntax_mode::strict_json : syntax_mode::json5;
-      parse.duplicate_names = (member_text(item, "duplicates", policy) && (policy.view() == "reject"))
-                                ? duplicate_name_policy::reject_duplicates
-                                : duplicate_name_policy::preserve_all;
+      parse.duplicate_names =
+        (policy.view() == "reject") ? duplicate_name_policy::reject_duplicates : duplicate_name_policy::preserve_all;
       parse.limits = context.selected.limits;
       return parse;
     }
@@ -750,15 +895,15 @@ namespace adaptive_json5::cli
      */
     case_result evaluate_case(case_context& context, const value_view& item) noexcept
     {
-      short_text input{};
-      short_text syntax_name{};
-      short_text schema{};
+      const short_text input = text_of(item, "input");
+      const short_text syntax_name = text_of(item, "syntax");
+      const short_text schema = text_of(item, "schema");
       const auto expect = item.find_member("expect");
-      if (!member_text(item, "input", input) || !member_text(item, "syntax", syntax_name) || !expect.has_value())
+      if ((input.size == 0U) || (syntax_name.size == 0U) || !expect.has_value())
       {
         return case_result::error;
       }
-      const bool has_schema = member_text(item, "schema", schema);
+      const bool has_schema = schema.size != 0U;
 #if !defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
       if (has_schema)
       {
@@ -769,8 +914,11 @@ namespace adaptive_json5::cli
       host_buffer bytes{context.host.storage, context.selected.limits.max_input_bytes};
       std::size_t size = 0U;
       const std::string_view input_path = join_path(context.base, input.view(), path);
-      if ((bytes.data() == nullptr) || input_path.empty() ||
-          (read_input(context.host, input_path, bytes.data(), bytes.size(), size) != io_status::ok))
+      if ((bytes.data() == nullptr) || input_path.empty())
+      {
+        return case_result::error;
+      }
+      if (read_input(context.host, input_path, bytes.data(), bytes.size(), size) != io_status::ok)
       {
         return case_result::error;
       }
@@ -782,7 +930,11 @@ namespace adaptive_json5::cli
       observation seen = observe_parse(parsed_result.error_if());
       if (parsed_result.has_value())
       {
-        parsed.emplace(std::move(*parsed_result.value_if()));
+        // MISRA rule: RULE-28-6-3 cpp/misra/object-used-while-in-potentially-moved-from-state
+        // MISRA justification: The success discriminator is checked before the first and only move from the contained
+        // document.
+        // codeql::misra_deviation_next_line(DEV-213.1)
+        static_cast<void>(parsed.emplace(std::move(*parsed_result.value_if())));
       }
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
       std::array<char, c_path_capacity> schema_path{};
@@ -803,6 +955,10 @@ namespace adaptive_json5::cli
      * @par Requirements
      * P058.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.13)
     struct run_totals
     {
         std::size_t passed{};
@@ -821,15 +977,31 @@ namespace adaptive_json5::cli
                                                 std::size_t count) noexcept
     {
       std::optional<case_result> combined{};
-      for (std::size_t index = 0U; index < count; ++index)
+      std::size_t index = 0U;
+      while (index < count)
       {
         const auto item = cases.element_at(index);
-        short_text path{};
-        if (!item.has_value() || !member_text(*item.value_if(), "input", path) || (path.view() != input))
+        const char stored = results[index];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.33)
+        ++index;
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+        // unsigned member to zero.
+        // codeql::misra_deviation_next_line(DEV-203.12)
+        const short_text path = item.has_value() ? text_of(*item.value_if(), "input") : short_text{};
+        if (!item.has_value() || (path.view() != input))
         {
           continue;
         }
-        const auto result = static_cast<case_result>(results[index]);
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA rule: RULE-4-1-3 cpp/misra/out-of-range-enum-cast-critical-unspecified-behavior
+        // MISRA justification: The result byte is written from a case_result enumerator before the summary reads it
+        // back. Encoding and escaping use the numeric values of ASCII characters and Unicode code units.
+        // codeql::misra_deviation_next_line(DEV-202.4)
+        const auto result = static_cast<case_result>(stored);
         if (!combined.has_value() || (result == case_result::fail) || (result == case_result::error) ||
             ((result == case_result::pass) && (*combined == case_result::unsupported)))
         {
@@ -853,16 +1025,28 @@ namespace adaptive_json5::cli
       const auto inputs_size =
         inputs.has_value() ? inputs.value_if()->container_size() : result<std::size_t>::success(0U);
       const std::size_t inputs_count = inputs_size.has_value() ? *inputs_size.value_if() : 0U;
-      for (std::size_t index = 0U; index < inputs_count; ++index)
+      std::size_t index = 0U;
+      while (index < inputs_count)
       {
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+        // unsigned member to zero.
+        // codeql::misra_deviation_next_line(DEV-203.11)
         short_text input{};
         const auto element = inputs.value_if()->element_at(index);
-        const auto one = (element.has_value() && copy_text(*element.value_if(), input))
+        const bool named = element.has_value() ? copy_text(*element.value_if(), input) : false;
+        const auto one = named
+
                            ? result_for_input(cases, input.view(), results, count)
                            : std::nullopt;
         const bool worse =
           one.has_value() && (!combined.has_value() || (*one == case_result::fail) || (*one == case_result::error));
         combined = worse ? one : combined;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.32)
+        ++index;
       }
       if (!combined.has_value())
       {
@@ -894,8 +1078,7 @@ namespace adaptive_json5::cli
         {
           return;
         }
-        short_text id{};
-        static_cast<void>(member_text(**row.value_if(), "requirement", id));
+        const short_text id = text_of(**row.value_if(), "requirement");
         const std::string_view status = requirement_status(**row.value_if(), cases, results, count);
         if (json)
         {
@@ -913,6 +1096,10 @@ namespace adaptive_json5::cli
           out.put(status);
           out.put("\n");
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.31)
         ++written;
       }
     }
@@ -927,6 +1114,10 @@ namespace adaptive_json5::cli
                              std::string_view message) noexcept
     {
       reporter failures{host.output, selected.diagnostics, "run", selected.manifest};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.10)
       failures.add(diagnostic{severity::error, kind, message});
       return failures.finish(outcome::error, exit_failure);
     }
@@ -939,8 +1130,7 @@ namespace adaptive_json5::cli
      */
     case_result run_one(case_context& context, const value_view& item, std::size_t index) noexcept
     {
-      short_text id{};
-      static_cast<void>(member_text(item, "id", id));
+      const short_text id = text_of(item, "id");
       context.id = id.view();
       context.mismatches = 0U;
       if (context.json)
@@ -976,16 +1166,46 @@ namespace adaptive_json5::cli
      */
     run_totals run_cases(case_context& context, const value_view& cases, char* results, std::size_t count) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.9)
       run_totals totals{};
-      for (std::size_t index = 0U; index < count; ++index)
+      std::size_t index = 0U;
+      while (index < count)
       {
         const auto item = cases.element_at(index);
         const case_result result = item.has_value() ? run_one(context, *item.value_if(), index) : case_result::error;
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: Encoding and escaping use the numeric values of ASCII characters and Unicode code
+        // units.
+        // codeql::misra_deviation_next_line(DEV-202.3)
         results[index] = static_cast<char>(result);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.30)
         totals.passed += (result == case_result::pass) ? 1U : 0U;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.29)
         totals.failed += (result == case_result::fail) ? 1U : 0U;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.28)
         totals.unsupported += (result == case_result::unsupported) ? 1U : 0U;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.27)
         totals.errors += (result == case_result::error) ? 1U : 0U;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.26)
+        ++index;
       }
       return totals;
     }
@@ -1060,6 +1280,9 @@ namespace adaptive_json5::cli
     {
       return root;
     }
+    // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+    // MISRA justification: Encoding and escaping use the numeric values of ASCII characters and Unicode code units.
+    // codeql::misra_deviation_next_line(DEV-202.2)
     if (pointer[0U] != '/')
     {
       return std::nullopt;
@@ -1069,6 +1292,10 @@ namespace adaptive_json5::cli
     for (;;)
     {
       const std::size_t slash = rest.find('/');
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.8)
       short_text token{};
       if (!decode_token(rest.substr(0U, slash), token))
       {
@@ -1079,6 +1306,10 @@ namespace adaptive_json5::cli
       {
         return current;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check.
+      // codeql::misra_deviation_next_line(DEV-201.25)
       rest = rest.substr(slash + 1U);
     }
   }
@@ -1110,16 +1341,18 @@ namespace adaptive_json5::cli
       reporter failures{host.output, selected.diagnostics, "run", selected.manifest};
       return finish_with_configuration_failure(failures, *manifest.error_if(), {bytes.data(), size});
     }
-    const auto root =
-      manifest.has_value() ? manifest.value_if()->values.root() : result<value_view>::failure(c_not_a_manifest);
-    const auto cases =
-      root.has_value() ? root.value_if()->find_member("cases") : result<value_view>::failure(c_not_a_manifest);
+    const auto root = manifest.value_if()->values.root();
+    const auto cases = root.has_value() ? root.value_if()->find_member("cases") : result<value_view>{root};
     const auto count =
-      cases.has_value() ? cases.value_if()->container_size() : result<std::size_t>::failure(c_not_a_manifest);
+      cases.has_value() ? cases.value_if()->container_size() : result<std::size_t>::failure(*cases.error_if());
     if (!count.has_value())
     {
       return run_failure(selected, host, category::syntax, "manifest is not a valid case list");
     }
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+    // accumulation uses a digit bound or an explicit range check.
+    // codeql::misra_deviation_next_line(DEV-201.24)
     host_buffer results{host.storage, *count.value_if() + 1U};
     if (results.data() == nullptr)
     {
@@ -1128,13 +1361,15 @@ namespace adaptive_json5::cli
     const std::size_t last = selected.manifest.find_last_of("/\\");
     text_writer out{host.output, output_stream::out};
     const bool json = selected.diagnostics == diagnostics_format::json;
-    case_context context{selected,
-                         host,
-                         out,
-                         json,
-                         (last == std::string_view::npos) ? std::string_view{}
-                                                          : selected.manifest.substr(0U, last + 1U),
-                         {}};
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: A found separator is strictly before the end of the manifest path.
+    // codeql::misra_deviation_next_line(DEV-201.23)
+    const auto base = (last == std::string_view::npos) ? std::string_view{} : selected.manifest.substr(0U, last + 1U);
+    // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+    // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+    // unsigned member to zero.
+    // codeql::misra_deviation_next_line(DEV-203.7)
+    case_context context{selected, host, out, json, base, {}};
     if (json)
     {
       out.put("{\"format\": \"adaptive-json5-run\", \"version\": ");

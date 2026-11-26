@@ -30,7 +30,7 @@ library was checked to be byte-identical before and after.
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
 | API | SWU-API-043 | SWU-API-044 |
-| CLI | SWU-CLI-115 | SWU-CLI-116 |
+| CLI | SWU-CLI-117 | SWU-CLI-118 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
@@ -211,6 +211,8 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0009); not part of th
 | SWU-CLI-113 | used | `(anonymous)::check_spelling(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
 | SWU-CLI-114 | used | `(anonymous)::check_utf8(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
 | SWU-CLI-115 | used | `run_version(const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-116 | used | `text_of(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-117 | used | `convert(const owned_number&, std::string_view, const environment&, short_text&)` | `cli/src/run_command.cpp` | — |
 
 ## COMMON
 

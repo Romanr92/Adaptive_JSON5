@@ -15,6 +15,9 @@ namespace adaptive_json5::cli
 {
   namespace
   {
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.4)
     constexpr std::string_view c_hex{"0123456789abcdef"};
 
     /**
@@ -25,6 +28,9 @@ namespace adaptive_json5::cli
      */
     std::uint32_t byte_at(std::string_view text, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+      // MISRA justification: Encoding and escaping use the numeric values of ASCII characters and Unicode code units.
+      // codeql::misra_deviation_next_line(DEV-202.1)
       return static_cast<std::uint32_t>(static_cast<unsigned char>(text[index]));
     }
 
@@ -52,6 +58,10 @@ namespace adaptive_json5::cli
       {
         return 3U;
       }
+      // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+      // MISRA justification: The constant, index or code unit is representable in the destination. Standard stream
+      // macros expand to host runtime expressions.
+      // codeql::misra_deviation_next_line(DEV-205.11)
       return (lead < 0xF5U) ? 4U : 0U;
     }
 
@@ -84,12 +94,18 @@ namespace adaptive_json5::cli
       {
         return 0U;
       }
-      for (std::size_t offset = 1U; offset < length; ++offset)
+      std::size_t offset = 1U;
+      while (offset < length)
       {
         if ((byte_at(text, index + offset) & 0xC0U) != 0x80U)
         {
           return 0U;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.22)
+        ++offset;
       }
       return ((length == 1U) || second_allowed(lead, byte_at(text, index + 1U))) ? length : 0U;
     }
@@ -110,6 +126,10 @@ namespace adaptive_json5::cli
         {
           return false;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.21)
         index += length;
       }
       return true;
@@ -133,11 +153,19 @@ namespace adaptive_json5::cli
       }
       else if (value < 0x20U)
       {
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: The constant, index or code unit is representable in the destination. Standard stream
+        // macros expand to host runtime expressions.
+        // codeql::misra_deviation_next_line(DEV-205.10)
         const std::array<char, 6> escape{{'\\', 'u', '0', '0', c_hex[value >> 4U], c_hex[value & 0xFU]}};
         out.put(std::string_view{escape.data(), escape.size()});
       }
       else
       {
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: The constant, index or code unit is representable in the destination. Standard stream
+        // macros expand to host runtime expressions.
+        // codeql::misra_deviation_next_line(DEV-205.9)
         out.put(std::string_view{&c, 1U});
       }
     }
@@ -167,10 +195,20 @@ namespace adaptive_json5::cli
     if (!is_utf8(text))
     {
       out.put("{\"$bytes\": [");
-      for (std::size_t index = 0U; index < text.size(); ++index)
+      std::size_t index = 0U;
+      while (index < text.size())
       {
         out.put((index == 0U) ? "" : ", ");
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: The constant, index or code unit is representable in the destination. Standard stream
+        // macros expand to host runtime expressions.
+        // codeql::misra_deviation_next_line(DEV-205.8)
         out.put_count(byte_at(text, index));
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.20)
+        ++index;
       }
       out.put("]}");
       return;
@@ -183,11 +221,19 @@ namespace adaptive_json5::cli
       if (value < 0x80U)
       {
         put_escaped(out, text[index], value);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.19)
         ++index;
         continue;
       }
       const std::size_t length = utf8_length(text, index);
       out.put(text.substr(index, length));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check.
+      // codeql::misra_deviation_next_line(DEV-201.18)
       index += length;
     }
     out.put("\"");
@@ -327,6 +373,10 @@ namespace adaptive_json5::cli
     put_json_text(m_out, item.message);
     put_details(item);
     m_out.put("}");
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+    // accumulation uses a digit bound or an explicit range check.
+    // codeql::misra_deviation_next_line(DEV-201.17)
     ++m_count;
   }
 

@@ -50,10 +50,18 @@ namespace adaptive_json5::cli
     std::size_t rest = value;
     do
     {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check.
+      // codeql::misra_deviation_next_line(DEV-201.2)
       --first;
       digits[first] = c_digits[rest % 10U];
       rest /= 10U;
     } while (rest != 0U);
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+    // accumulation uses a digit bound or an explicit range check.
+    // codeql::misra_deviation_next_line(DEV-201.1)
     put(std::string_view{digits.data() + first, digits.size() - first});
   }
 
@@ -70,6 +78,9 @@ namespace adaptive_json5::cli
 
   namespace
   {
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.1)
     constexpr std::string_view c_usage =
       "usage: adaptive_json5_examples <command> [options] [input]\n"
       "commands:\n"

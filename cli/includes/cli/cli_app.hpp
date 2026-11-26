@@ -21,6 +21,10 @@ namespace adaptive_json5::cli
    * @par Requirements
    * P056; J5-071.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.1)
   class text_writer
   {
     private:

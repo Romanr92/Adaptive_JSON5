@@ -53,8 +53,8 @@ adaptive_json5_examples run --manifest examples/manifest.json --diagnostics json
 `inspect` shows ordered values with positions, raw number spellings, checked int64,
 uint64 and double conversions (value or failure reason) and string warnings. Strict-JSON
 output never exports lone surrogates as invalid UTF-8 or NaN/Infinity as number tokens: it
-uses `{"$utf16": [...]}`, `{"$number": "Infinity"}` and, for bytes that are not UTF-8,
-`{"$bytes": [...]}`. `run` evaluates every case like `validate`, compares parse,
+uses `{"$utf16": [...]}` and, for bytes that are not UTF-8, `{"$bytes": [...]}`; NaN and
+Infinity keep their spelling as a string and report the double conversion as `non_finite`. `run` evaluates every case like `validate`, compares parse,
 validation and exit expectations, runs each structured check, and reports PASS, FAIL,
 UNSUPPORTED or ERROR per case and a status per requirement (demonstrated, failed,
 unsupported, or not demonstrated by file cases). Expected malformed inputs pass when

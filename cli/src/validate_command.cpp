@@ -33,15 +33,27 @@ namespace adaptive_json5::cli
     constexpr std::size_t c_pointer_capacity = 1024U;
     constexpr std::size_t c_registry_bytes = 1U << 26U;
 #endif
+    // Build options as text, chosen by the preprocessor (capabilities JSON and version lines).
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
-    constexpr bool c_exceptions_enabled = true;
+    constexpr std::string_view c_exceptions_json = "true";
+    constexpr std::string_view c_exceptions_text = "on";
 #else
-    constexpr bool c_exceptions_enabled = false;
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.8)
+    constexpr std::string_view c_exceptions_json = "false";
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.7)
+    constexpr std::string_view c_exceptions_text = "off";
 #endif
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
-    constexpr bool c_schema_enabled = true;
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: This namespace-scope constant has one definition and is not a static data member.
+    // codeql::misra_deviation_next_line(DEV-206.6)
+    constexpr std::string_view c_schema_text = "on";
 #else
-    constexpr bool c_schema_enabled = false;
+    constexpr std::string_view c_schema_text = "off";
 #endif
 
     /**
@@ -69,6 +81,10 @@ namespace adaptive_json5::cli
       const std::size_t length = formatted.has_value()
                                    ? ((*formatted.value_if() < message.size()) ? *formatted.value_if() : message.size())
                                    : 0U;
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.26)
       diagnostic item{};
       item.kind = category_of(failure.code());
       item.message = std::string_view{message.data(), length};
@@ -89,9 +105,15 @@ namespace adaptive_json5::cli
      */
     void report_warnings(reporter& report, const parsed_document& parsed, input_view text) noexcept
     {
-      for (std::size_t index = 0U; index < parsed.warnings.size(); ++index)
+      std::size_t index = 0U;
+      while (index < parsed.warnings.size())
       {
         const auto warning = parsed.warnings.at(index);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.45)
+        ++index;
         if (!warning.has_value())
         {
           continue;
@@ -101,6 +123,10 @@ namespace adaptive_json5::cli
         const std::size_t length =
           formatted.has_value() ? ((*formatted.value_if() < message.size()) ? *formatted.value_if() : message.size())
                                 : 0U;
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+        // unsigned member to zero.
+        // codeql::misra_deviation_next_line(DEV-203.25)
         diagnostic item{};
         item.level = severity::warning;
         item.kind = category::string;
@@ -168,6 +194,10 @@ namespace adaptive_json5::cli
      */
     std::int32_t report_schema_failure(reporter& report, const schema_error& failure, input_view text) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.24)
       diagnostic item{};
       item.kind = schema_category(failure.code());
       item.message = describe_schema(failure.code());
@@ -202,6 +232,10 @@ namespace adaptive_json5::cli
         return false;
       }
       const std::string_view name = keyword_name(failed.keyword);
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.23)
       diagnostic item{};
       item.kind = category::assertion;
       item.message = "schema assertion failed";
@@ -231,16 +265,22 @@ namespace adaptive_json5::cli
     {
       host_buffer schema_text{host.storage, selected.limits.max_input_bytes};
       std::size_t size = 0U;
-      const io_status read = (schema_text.data() == nullptr)
-                               ? io_status::read_error
-                               : read_input(host, selected.schema, schema_text.data(), schema_text.size(), size);
       if (schema_text.data() == nullptr)
       {
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+        // unsigned member to zero.
+        // codeql::misra_deviation_next_line(DEV-203.22)
         report.add(diagnostic{severity::error, category::allocation, "out of memory"});
         return report.finish(outcome::error, exit_failure);
       }
+      const io_status read = read_input(host, selected.schema, schema_text.data(), schema_text.size(), size);
       if (read != io_status::ok)
       {
+        // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+        // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+        // unsigned member to zero.
+        // codeql::misra_deviation_next_line(DEV-203.21)
         report.add(diagnostic{severity::error, category::io, describe_io(read)});
         return report.finish(outcome::error, exit_failure);
       }
@@ -274,14 +314,24 @@ namespace adaptive_json5::cli
       {
         return report_schema_failure(report, *verdict.error_if(), text);
       }
-      for (std::size_t index = 0U; index < verdict.value_if()->diagnostic_count(); ++index)
+      std::size_t index = 0U;
+      while (index < verdict.value_if()->diagnostic_count())
       {
         if (!report_assertion(report, *compiled.value_if(), instance, *verdict.value_if()->diagnostic(index), text,
                               host))
         {
+          // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+          // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes
+          // an unsigned member to zero.
+          // codeql::misra_deviation_next_line(DEV-203.20)
           report.add(diagnostic{severity::error, category::allocation, "out of memory"});
           return report.finish(outcome::error, exit_failure);
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.44)
+        ++index;
       }
       return verdict.value_if()->valid() ? report.finish(outcome::valid, exit_ok)
                                          : report.finish(outcome::invalid, exit_invalid);
@@ -401,6 +451,10 @@ namespace adaptive_json5::cli
     host_buffer input{host.storage, selected.limits.max_input_bytes};
     if (input.data() == nullptr)
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.19)
       report.add(diagnostic{severity::error, category::allocation, "out of memory"});
       return report.finish(outcome::error, exit_failure);
     }
@@ -408,6 +462,10 @@ namespace adaptive_json5::cli
     const io_status read = read_input(host, selected.input, input.data(), input.size(), size);
     if (read != io_status::ok)
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.18)
       report.add(diagnostic{severity::error, category::io, describe_io(read)});
       return report.finish(outcome::error, exit_failure);
     }
@@ -451,7 +509,7 @@ namespace adaptive_json5::cli
     out.put(c_source_revision);
     out.put("\"");
     out.put(", \"exceptions\": ");
-    out.put(c_exceptions_enabled ? "true" : "false");
+    out.put(c_exceptions_json);
     out.put(", \"commands\": [\"validate\", \"inspect\", \"run\", \"capabilities\", \"version\", \"help\"]");
     out.put(", \"syntax\": [\"json\", \"json5\"], \"diagnostics\": [\"text\", \"json\"]");
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
@@ -497,10 +555,10 @@ namespace adaptive_json5::cli
     out.put(c_source_revision);
     out.put("\n");
     out.put("schema ");
-    out.put(c_schema_enabled ? "on" : "off");
+    out.put(c_schema_text);
     out.put("\n");
     out.put("exceptions ");
-    out.put(c_exceptions_enabled ? "on" : "off");
+    out.put(c_exceptions_text);
     out.put("\n");
     return out.ok() ? exit_ok : exit_failure;
   }

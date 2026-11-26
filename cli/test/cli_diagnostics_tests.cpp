@@ -286,6 +286,15 @@ namespace
     host.out.clear();
     EXPECT_EQ(host.run({"validate", "--syntax", "json5", "sep.json5"}), 0);
     EXPECT_NE(host.out.find("sep.json5: valid"), std::string::npos);
+    host.files["two.json5"] = R"(["\uD800", "\uDC00"])";
+    host.out.clear();
+    EXPECT_EQ(host.run({"validate", "--diagnostics", "json", "--syntax", "json5", "two.json5"}), 0);
+    const json_output two{host.out};
+    ASSERT_TRUE(two.valid()) << host.out;
+    EXPECT_EQ(two.diagnostic_count(), 2U);
+    host.out.clear();
+    EXPECT_EQ(host.run({"validate", "--syntax", "json5", "two.json5"}), 0);
+    EXPECT_NE(host.out.find("two.json5: line: 1, column: 13: warning"), std::string::npos) << host.out;
   }
 
   /*
@@ -315,6 +324,9 @@ namespace
     EXPECT_EQ(written("\xF4\x90\x80\x80"), R"({"$bytes": [244, 144, 128, 128]})");
     EXPECT_EQ(written("\xE2\x82"), R"({"$bytes": [226, 130]})");
     EXPECT_EQ(written(""), R"("")");
+    EXPECT_EQ(written("\xE0\xA0\x80\xED\x9F\xBF"), "\"\xE0\xA0\x80\xED\x9F\xBF\"");
+    EXPECT_EQ(written("\xF0\x90\x80\x80\xF4\x8F\xBF\xBF"), "\"\xF0\x90\x80\x80\xF4\x8F\xBF\xBF\"");
+    EXPECT_EQ(written("\xF0\x80\x80\x80"), R"({"$bytes": [240, 128, 128, 128]})");
 
     fake_host host;
     const std::string path = std::string{"we\"ird\x01\xFF"} + ".json";

@@ -980,8 +980,8 @@ Connect parser and optional compiled-schema validation; provide readable and ver
 - Unit acceptance: Dispatch/result mapping units, strict-JSON output round-trip, missing schema component and OOM fallback.
 
 Implementation: `validate` with optional Draft-07 schema validation, readable text and the
-versioned strict-JSON diagnostic and capability formats with `$utf16`, `$number` and
-`$bytes` tags, the J5-070 exit mapping and an out-of-memory fallback that is always strict
+versioned strict-JSON diagnostic and capability formats with `$utf16` and
+`$bytes` tags (`$number` is reserved), the J5-070 exit mapping and an out-of-memory fallback that is always strict
 JSON. Units: `cli/test/cli_diagnostics_tests.cpp` (`P057_Outcomes`, `P057_Diagnostics`).
 
 ### P058 — File-driven example executable

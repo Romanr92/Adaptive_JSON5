@@ -41,6 +41,10 @@ namespace adaptive_json5::cli
    * @par Requirements
    * P056; J5-070.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.7)
   struct options
   {
       command selected = command::help;
@@ -77,6 +81,10 @@ namespace adaptive_json5::cli
    * @par Requirements
    * P056; J5-070.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.6)
   struct argument_error
   {
       argument_error_code code = argument_error_code::missing_command;
@@ -88,9 +96,17 @@ namespace adaptive_json5::cli
    * @par Requirements
    * P056; J5-070.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.5)
   struct parsed_arguments
   {
       std::optional<options> parsed{};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.1)
       argument_error failure{};
   };
 

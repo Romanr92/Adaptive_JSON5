@@ -67,6 +67,10 @@ namespace adaptive_json5::cli
    * @par Requirements
    * P057; J5-071.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.9)
   struct diagnostic
   {
       severity level = severity::error;
@@ -98,6 +102,10 @@ namespace adaptive_json5::cli
    * JSON: one object on standard output with format, version, command, input, diagnostics,
    * result and exit.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.8)
   class reporter
   {
     private:

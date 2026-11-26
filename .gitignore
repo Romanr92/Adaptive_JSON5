@@ -86,3 +86,6 @@ __cmake_systeminformation/
 
 # CMake-acquired host-only GoogleTest sources
 /tools/gtest/
+
+# Local agent plans (never committed)
+.agents/p*-plan.md

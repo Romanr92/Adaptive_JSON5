@@ -69,9 +69,10 @@ and operational errors go to standard error. `--diagnostics json` writes one obj
 `version` 1, the command and input, the diagnostics (severity, category, message, line,
 column, byte offset, schema keyword and instance and schema pointers) and `result` and
 `exit`. Values strict JSON cannot carry losslessly are tagged objects:
-`{"$utf16": [...]}` for strings with unpaired surrogates, `{"$number": "Infinity"}` for
-non-finite numbers and `{"$bytes": [...]}` for text that is not UTF-8 (for example a file
-path). Rejected: escaped lone surrogates and `"NaN"` strings (invalid Unicode for many
+`{"$utf16": [...]}` for strings with unpaired surrogates and `{"$bytes": [...]}` for text that is not UTF-8 (for example a file
+path). `{"$number": "Infinity"}` is reserved for non-finite numbers but not emitted: a
+number is written as its spelling (a string) and `to_double` reports NaN and Infinity as a
+`non_finite` failure, so no non-finite double reaches the output. Rejected: escaped lone surrogates and `"NaN"` strings (invalid Unicode for many
 readers, and indistinguishable from real text).
 
 ## Decision 7: manifest observations (owner D3)

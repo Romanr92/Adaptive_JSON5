@@ -29,6 +29,10 @@ namespace adaptive_json5::cli
    * @note read fills buffer with at most capacity bytes and sets size; when the input has more
    * bytes it returns too_large. The real adapter is in host_io.cpp; units use fakes.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.4)
   struct input_source
   {
       void* context = nullptr;
@@ -53,6 +57,10 @@ namespace adaptive_json5::cli
    * P056; J5-071.
    * @note write returns false when the text could not be written.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.3)
   struct output_sink
   {
       void* context = nullptr;
@@ -64,6 +72,10 @@ namespace adaptive_json5::cli
    * @par Requirements
    * P056; J5-070; ADR 0009.
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly restricts
+  // ownership transfer.
+  // codeql::misra_deviation_next_line(DEV-204.2)
   struct environment
   {
       input_source input{};

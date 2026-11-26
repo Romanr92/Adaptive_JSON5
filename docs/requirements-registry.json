@@ -4971,6 +4971,7 @@
           "names": [
             "P058_Run.AppliesTheExitContract",
             "P058_RunReport.ManifestFailuresAreOperational",
+            "P058_RunReport.WriteAndLimitFailuresAreOperational",
             "P058_RunReport.AllocationSweep",
             "P058_Inspect.FailuresAndAllocationSweep",
             "P058_Pointers.ResolveRfc6901"
@@ -5013,6 +5014,9 @@
           "file": "cli/test/cli_run_tests.cpp",
           "names": [
             "P058_Inspect.ShowsValuesAndConversions",
+            "P058_Inspect.EveryKindInBothFormats",
+            "P058_RunReport.WorstResultWinsAndJsonListsMismatches",
+            "P058_RunReport.JsonFailResult",
             "P058_RunReport.SummarisesRequirements"
           ]
         },

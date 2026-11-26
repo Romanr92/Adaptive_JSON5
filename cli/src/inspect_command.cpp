@@ -25,11 +25,11 @@
 #include "cli/validate_command.hpp"
 
 #include <array>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -43,6 +43,10 @@ namespace adaptive_json5::cli
      * @par Requirements
      * P058; J5-048 (no recursion).
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.12)
     struct walk_frame
     {
         value_iterator children{};
@@ -139,6 +143,10 @@ namespace adaptive_json5::cli
       if (value < 0)
       {
         out.put("-");
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Unsigned subtraction computes the magnitude of a negative value modulo 2^64, including
+        // INT64_MIN.
+        // codeql::misra_deviation_next_line(DEV-201.16)
         out.put_count(static_cast<std::size_t>(0U - static_cast<std::uint64_t>(value)));
         return;
       }
@@ -146,24 +154,19 @@ namespace adaptive_json5::cli
     }
 
     /**
-     * @brief Write a double: shortest round-trip decimal, or {"$number": ...} when non-finite.
+     * @brief Write a finite double as a round-trip decimal (%.17g).
      * @par Requirements
      * P058; J5-071; ADR 0009 D2.
+     * @note to_double reports non-finite values as a non_finite failure, so value is finite.
      * @par ID SWU-CLI-066
      */
     void put_double(text_writer& out, double value) noexcept
     {
-      if (std::isnan(value))
-      {
-        out.put("{\"$number\": \"NaN\"}");
-        return;
-      }
-      if (std::isinf(value))
-      {
-        out.put((value < 0.0) ? "{\"$number\": \"-Infinity\"}" : "{\"$number\": \"Infinity\"}");
-        return;
-      }
       std::array<char, 40> text{};
+      // MISRA rule: RULE-30-0-1 cpp/misra/cstdio-functions-shall-not-be-used
+      // MISRA justification: The optional host adapter uses standard C streams for byte-oriented I/O. Finite doubles
+      // use bounded snprintf formatting with the return length checked.
+      // codeql::misra_deviation_next_line(DEV-207.5)
       const std::int32_t written = std::snprintf(text.data(), text.size(), "%.17g", value);
       out.put(std::string_view{text.data(), (written > 0) ? static_cast<std::size_t>(written) : 0U});
     }
@@ -173,6 +176,10 @@ namespace adaptive_json5::cli
      * @par Requirements
      * P058; J5-041; J5-071.
      */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: The type relies on its member types for copy, move and destruction, or explicitly
+    // restricts ownership transfer.
+    // codeql::misra_deviation_next_line(DEV-204.11)
     class inspection
     {
       private:
@@ -302,7 +309,8 @@ namespace adaptive_json5::cli
           {
             const auto text = value.as_string();
             m_out.put(json ? ", \"value\": " : " ");
-            m_storage_ok = m_storage_ok && text.has_value() && put_json_decoded(m_out, **text.value_if(), m_scratch);
+            const bool written = text.has_value() ? put_json_decoded(m_out, **text.value_if(), m_scratch) : false;
+            m_storage_ok = m_storage_ok && written;
           }
           else if (kind == value_kind::number)
           {
@@ -339,15 +347,22 @@ namespace adaptive_json5::cli
           {
             m_out.put(first ? "{" : ", {");
           }
-          for (std::size_t level = 0U; !json && (level < depth); ++level)
+          std::size_t level = 0U;
+          while (!json && (level < depth))
           {
             m_out.put("  ");
+            // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+            // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds.
+            // Decimal accumulation uses a digit bound or an explicit range check.
+            // codeql::misra_deviation_next_line(DEV-201.15)
+            ++level;
           }
           if (member)
           {
             const auto name = value.member_name();
             m_out.put(json ? "\"name\": " : "");
-            m_storage_ok = m_storage_ok && name.has_value() && put_json_decoded(m_out, **name.value_if(), m_scratch);
+            const bool written = name.has_value() ? put_json_decoded(m_out, **name.value_if(), m_scratch) : false;
+            m_storage_ok = m_storage_ok && written;
             m_out.put(json ? ", " : ": ");
           }
         }
@@ -403,7 +418,14 @@ namespace adaptive_json5::cli
      */
     void store_frame(char* stack, std::size_t index, const walk_frame& frame) noexcept
     {
-      std::memcpy(stack + (index * sizeof(walk_frame)), &frame, sizeof(walk_frame));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+      // MISRA rule: RULE-8-7-1 cpp/misra/pointer-argument-to-cstring-function-is-invalid
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check. The copy spans exactly one walk_frame. A static
+      // assertion requires trivial copyability and the checked allocation holds all frame slots.
+      // codeql::misra_deviation_next_line(DEV-201.14)
+      static_cast<void>(std::memcpy(stack + (index * sizeof(walk_frame)), &frame, sizeof(walk_frame)));
     }
 
     /**
@@ -414,8 +436,18 @@ namespace adaptive_json5::cli
      */
     walk_frame load_frame(const char* stack, std::size_t index) noexcept
     {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.6)
       walk_frame frame{};
-      std::memcpy(&frame, stack + (index * sizeof(walk_frame)), sizeof(walk_frame));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA rule: RULE-24-5-2 cpp/misra/no-memory-functions-from-c-string
+      // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+      // accumulation uses a digit bound or an explicit range check. The copy spans exactly one walk_frame. A static
+      // assertion requires trivial copyability and the checked allocation holds all frame slots.
+      // codeql::misra_deviation_next_line(DEV-201.13)
+      static_cast<void>(std::memcpy(&frame, stack + (index * sizeof(walk_frame)), sizeof(walk_frame)));
       return frame;
     }
 
@@ -428,6 +460,10 @@ namespace adaptive_json5::cli
     bool walk(inspection& writer, const value_view& root, std::size_t max_depth,
               const storage_callbacks& storage) noexcept
     {
+      if (max_depth > ((std::numeric_limits<std::size_t>::max() / sizeof(walk_frame)) - 2U))
+      {
+        return false;
+      }
       host_buffer stack{storage, (max_depth + 2U) * sizeof(walk_frame)};
       if (stack.data() == nullptr)
       {
@@ -438,6 +474,10 @@ namespace adaptive_json5::cli
       {
         const auto children = root.children();
         const auto kind = root.kind();
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: The constant, index or code unit is representable in the destination. Standard stream
+        // macros expand to host runtime expressions.
+        // codeql::misra_deviation_next_line(DEV-205.7)
         store_frame(stack.data(), 0U,
                     walk_frame{children.has_value() ? *children.value_if() : value_iterator{},
                                kind.has_value() && (*kind.value_if() == value_kind::object), 0U});
@@ -455,6 +495,10 @@ namespace adaptive_json5::cli
         }
         const value_view child = **next.value_if();
         const bool container = writer.open(child, top.object, depth, top.count == 0U);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.12)
         ++top.count;
         store_frame(stack.data(), depth - 1U, top);
         if (container && (depth <= max_depth))
@@ -464,6 +508,10 @@ namespace adaptive_json5::cli
           store_frame(stack.data(), depth,
                       walk_frame{children.has_value() ? *children.value_if() : value_iterator{},
                                  kind.has_value() && (*kind.value_if() == value_kind::object), 0U});
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds.
+          // Decimal accumulation uses a digit bound or an explicit range check.
+          // codeql::misra_deviation_next_line(DEV-201.11)
           ++depth;
         }
       }
@@ -479,9 +527,15 @@ namespace adaptive_json5::cli
     void put_warnings(text_writer& out, bool json, std::string_view input, const parsed_document& parsed,
                       input_view text) noexcept
     {
-      for (std::size_t index = 0U; index < parsed.warnings.size(); ++index)
+      std::size_t index = 0U;
+      while (index < parsed.warnings.size())
       {
         const auto warning = parsed.warnings.at(index);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.10)
+        ++index;
         if (!warning.has_value())
         {
           continue;
@@ -494,7 +548,7 @@ namespace adaptive_json5::cli
         const std::string_view line{message.data(), length};
         if (json)
         {
-          out.put((index == 0U) ? "{\"message\": " : ", {\"message\": ");
+          out.put((index == 1U) ? "{\"message\": " : ", {\"message\": ");
           put_json_text(out, line);
           out.put(", \"byte_offset\": ");
           out.put_count(warning.value_if()->byte_offset);
@@ -520,6 +574,10 @@ namespace adaptive_json5::cli
                                  std::string_view message) noexcept
     {
       reporter failures{host.output, selected.diagnostics, "inspect", selected.input};
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Aggregate initialization supplies the declared member defaults or value-initializes an
+      // unsigned member to zero.
+      // codeql::misra_deviation_next_line(DEV-203.5)
       failures.add(diagnostic{severity::error, kind, message});
       return failures.finish(outcome::error, exit_failure);
     }
@@ -537,15 +595,29 @@ namespace adaptive_json5::cli
     if (!size.has_value())
     {
       out.put("{\"$utf16\": [");
-      for (std::size_t index = 0U; index < text.size(); ++index)
+      std::size_t index = 0U;
+      while (index < text.size())
       {
         const auto unit = text.unit_at(index);
         out.put((index == 0U) ? "" : ", ");
+        // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+        // MISRA justification: The constant, index or code unit is representable in the destination. Standard stream
+        // macros expand to host runtime expressions.
+        // codeql::misra_deviation_next_line(DEV-205.6)
         out.put_count(unit.has_value() ? *unit.value_if() : 0U);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+        // accumulation uses a digit bound or an explicit range check.
+        // codeql::misra_deviation_next_line(DEV-201.9)
+        ++index;
       }
       out.put("]}");
       return true;
     }
+    // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+    // MISRA justification: Indices, offsets and counters follow the enclosing sequence or storage bounds. Decimal
+    // accumulation uses a digit bound or an explicit range check.
+    // codeql::misra_deviation_next_line(DEV-201.8)
     host_buffer utf8{scratch, *size.value_if() + 1U};
     if (utf8.data() == nullptr)
     {
@@ -602,7 +674,8 @@ namespace adaptive_json5::cli
     put_warnings(out, json, selected.input, *parsed.value_if(), text);
     out.put(json ? "], \"value\": " : "");
     inspection writer{out, selected.diagnostics, text, host.storage};
-    const bool walked = root.has_value() && walk(writer, *root.value_if(), selected.limits.max_depth, host.storage);
+    const bool walked =
+      root.has_value() ? walk(writer, *root.value_if(), selected.limits.max_depth, host.storage) : false;
     if (json)
     {
       out.put(walked ? ", \"result\": \"valid\", \"exit\": 0}\n" : "null, \"result\": \"error\", \"exit\": 2}\n");
