@@ -43,12 +43,12 @@ namespace adaptive_json5::cli
     }
 
     /**
-     * @brief Report a parser failure and return the exit code.
+     * @brief Add a parser failure diagnostic and return its category.
      * @par Requirements
      * P057; J5-044; J5-070; J5-071.
      * @par ID SWU-CLI-049
      */
-    int report_parse_failure(reporter& report, const error& failure, input_view text) noexcept
+    category add_parse_failure(reporter& report, const error& failure, input_view text) noexcept
     {
       std::array<char, c_message_capacity> message{};
       const auto formatted = format_error(failure, text, message.data(), message.size());
@@ -64,9 +64,7 @@ namespace adaptive_json5::cli
         item.position = position_of(text, failure.byte_offset());
       }
       report.add(item);
-      const bool invalid = (item.kind == category::syntax) || (item.kind == category::encoding) ||
-                           (item.kind == category::duplicate) || (item.kind == category::security);
-      return invalid ? report.finish(outcome::invalid, exit_invalid) : report.finish(outcome::error, exit_failure);
+      return item.kind;
     }
 
     /**
@@ -278,6 +276,33 @@ namespace adaptive_json5::cli
   } // namespace
 
   /**
+   * @brief Report a parser failure and finish the report.
+   * @par Requirements
+   * P057; P058; J5-044; J5-070; J5-071.
+   * @par ID SWU-CLI-076
+   */
+  int finish_with_parse_failure(reporter& report, const error& failure, input_view text) noexcept
+  {
+    const category kind = add_parse_failure(report, failure, text);
+    const bool invalid = (kind == category::syntax) || (kind == category::encoding) || (kind == category::duplicate) ||
+                         (kind == category::security);
+    return invalid ? report.finish(outcome::invalid, exit_invalid) : report.finish(outcome::error, exit_failure);
+  }
+
+  /**
+   * @brief Report a parser failure of a configuration file (schema, manifest) and finish with
+   * exit 2: such files are configuration, not the validated input.
+   * @par Requirements
+   * P058; J5-070.
+   * @par ID SWU-CLI-105
+   */
+  int finish_with_configuration_failure(reporter& report, const error& failure, input_view text) noexcept
+  {
+    static_cast<void>(add_parse_failure(report, failure, text));
+    return report.finish(outcome::error, exit_failure);
+  }
+
+  /**
    * @brief Diagnostic category of a parser failure.
    * @par Requirements
    * P057; J5-070; J5-071.
@@ -381,7 +406,7 @@ namespace adaptive_json5::cli
     const auto parsed = parse_document(text, parse, accounting);
     if (!parsed.has_value())
     {
-      return report_parse_failure(report, *parsed.error_if(), text);
+      return finish_with_parse_failure(report, *parsed.error_if(), text);
     }
     report_warnings(report, *parsed.value_if(), text);
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)

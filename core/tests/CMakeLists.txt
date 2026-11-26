@@ -143,14 +143,6 @@ adaptive_json5_add_unit(adaptive_json5_measure_unit_tests measure_units
     lexer/measure_tests.cpp)
 target_include_directories(adaptive_json5_measure_unit_tests PRIVATE "${PROJECT_SOURCE_DIR}/core/includes")
 
-# Host CLI units (P056-P059, ADR 0007) against the logic library with fake I/O.
-if(NOT CMAKE_CROSSCOMPILING)
-    adaptive_json5_add_unit(adaptive_json5_cli_unit_tests cli_units
-        cli/cli_dispatch_tests.cpp
-        cli/cli_diagnostics_tests.cpp)
-    target_link_libraries(adaptive_json5_cli_unit_tests PRIVATE adaptive_json5_cli_core)
-endif()
-
 # Internal schema units (ADR 0006 decision 1); built only with ADAPTIVE_JSON5_BUILD_SCHEMA.
 if(ADAPTIVE_JSON5_BUILD_SCHEMA)
     adaptive_json5_add_unit(adaptive_json5_schema_core_unit_tests schema_core_units

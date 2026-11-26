@@ -1,6 +1,6 @@
 {
-  "format_version": 1,
-  "status": "planned demonstration data; no executable implemented",
+  "format_version": 2,
+  "status": "demonstration data run by adaptive_json5_examples run; expectations and checks are machine-verified, requirement rows remain starter mappings",
   "cases": [
     {
       "id": "strict",
@@ -9,8 +9,7 @@
       "expect": {
         "parse": "success",
         "exit": 0
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "features",
@@ -19,8 +18,7 @@
       "expect": {
         "parse": "success",
         "exit": 0
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "unicode",
@@ -29,14 +27,50 @@
       "expect": {
         "parse": "success",
         "exit": 0,
-        "observations": [
-          "paired and raw emoji equivalent",
-          "unpaired surrogate units preserved; checked UTF-8 export fails",
-          "NUL retained",
-          "raw separator warning without parse failure"
+        "checks": [
+          {
+            "check": "same_string",
+            "pointer": "/pair",
+            "other": "/raw",
+            "description": "paired and raw emoji equivalent"
+          },
+          {
+            "check": "string_units",
+            "pointer": "/loneHigh",
+            "units": [
+              55296
+            ],
+            "description": "unpaired surrogate units preserved"
+          },
+          {
+            "check": "utf8_export",
+            "pointer": "/loneHigh",
+            "result": "failure",
+            "description": "checked UTF-8 export fails for an unpaired surrogate"
+          },
+          {
+            "check": "utf8_export",
+            "pointer": "/pair",
+            "result": "success",
+            "description": "checked UTF-8 export succeeds for a paired surrogate"
+          },
+          {
+            "check": "string_units",
+            "pointer": "/nul",
+            "units": [
+              97,
+              0,
+              98
+            ],
+            "description": "NUL retained"
+          },
+          {
+            "check": "warnings",
+            "count": 3,
+            "description": "raw separator and unpaired-escape warnings without parse failure"
+          }
         ]
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "duplicates",
@@ -45,12 +79,33 @@
       "expect": {
         "parse": "success",
         "exit": 0,
-        "observations": [
-          "source order and all five members preserved",
-          "three decoded name occurrences; reject policy fails with both locations"
+        "checks": [
+          {
+            "check": "member_names",
+            "pointer": "",
+            "names": [
+              "name",
+              "name",
+              "name",
+              "nested",
+              "Name"
+            ],
+            "description": "source order and all five members preserved"
+          },
+          {
+            "check": "duplicate_rejection",
+            "first": {
+              "line": 1,
+              "column": 2
+            },
+            "repeated": {
+              "line": 1,
+              "column": 11
+            },
+            "description": "three decoded name occurrences; reject policy fails with both locations"
+          }
         ]
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "exact-numbers",
@@ -59,12 +114,73 @@
       "expect": {
         "parse": "success",
         "exit": 0,
-        "observations": [
-          "number spelling and precision preserved",
-          "checked conversions report range/nonintegral/nonfinite errors"
+        "checks": [
+          {
+            "check": "number_spelling",
+            "pointer": "/0",
+            "spelling": "9007199254740993",
+            "description": "number spelling and precision preserved"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/0",
+            "to": "int64",
+            "result": "ok",
+            "value": "9007199254740993",
+            "description": "exact integer conversion above 2^53"
+          },
+          {
+            "check": "number_spelling",
+            "pointer": "/1",
+            "spelling": "0x10000000000000001",
+            "description": "hexadecimal spelling preserved"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/1",
+            "to": "uint64",
+            "result": "out_of_range",
+            "description": "checked conversion reports out of range"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/2",
+            "to": "uint64",
+            "result": "ok",
+            "value": "18446744073709551615",
+            "description": "largest uint64 converts exactly"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/3",
+            "to": "int64",
+            "result": "ok",
+            "value": "-9223372036854775808",
+            "description": "smallest int64 converts exactly"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/4",
+            "to": "double",
+            "result": "out_of_range",
+            "description": "1e10000 does not fit a double"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/5",
+            "to": "int64",
+            "result": "non_integral",
+            "description": "checked conversion reports a non-integral value"
+          },
+          {
+            "check": "conversion",
+            "pointer": "/7",
+            "to": "double",
+            "result": "non_finite",
+            "description": "checked conversion reports NaN as non-finite"
+          }
         ]
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "bom",
@@ -73,8 +189,7 @@
       "expect": {
         "parse": "success",
         "exit": 0
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "root-string",
@@ -83,8 +198,7 @@
       "expect": {
         "parse": "success",
         "exit": 0
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "trailing-root",
@@ -147,8 +261,7 @@
       "expect": {
         "parse": "success",
         "exit": 0
-      },
-      "notes": "Expected outcomes are planned; no parser execution has occurred."
+      }
     },
     {
       "id": "device-valid",
@@ -158,11 +271,15 @@
         "parse": "success",
         "exit": 0,
         "validation": "success",
-        "observations": [
-          "label default remains annotation; no field insertion"
+        "checks": [
+          {
+            "check": "absent_member",
+            "pointer": "",
+            "name": "label",
+            "description": "label default remains annotation; no field insertion"
+          }
         ]
       },
-      "notes": "Expected outcomes are planned; no parser execution has occurred.",
       "schema": "schema/device.schema.json"
     },
     {
@@ -174,7 +291,6 @@
         "exit": 1,
         "validation": "failure"
       },
-      "notes": "Expected outcomes are planned; no parser execution has occurred.",
       "schema": "schema/device.schema.json"
     },
     {

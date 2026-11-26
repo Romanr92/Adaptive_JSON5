@@ -1,5 +1,5 @@
-#ifndef ADAPTIVE_JSON5_CORE_TESTS_CLI_CLI_FAKES_HPP_
-#define ADAPTIVE_JSON5_CORE_TESTS_CLI_CLI_FAKES_HPP_
+#ifndef ADAPTIVE_JSON5_CLI_TEST_CLI_FAKES_HPP_
+#define ADAPTIVE_JSON5_CLI_TEST_CLI_FAKES_HPP_
 
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/memory/storage.hpp"
@@ -135,4 +135,4 @@ namespace adaptive_json5_test
   };
 } // namespace adaptive_json5_test
 
-#endif /* ADAPTIVE_JSON5_CORE_TESTS_CLI_CLI_FAKES_HPP_ */
+#endif /* ADAPTIVE_JSON5_CLI_TEST_CLI_FAKES_HPP_ */

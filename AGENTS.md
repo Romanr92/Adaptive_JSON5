@@ -16,7 +16,8 @@ code. This covers CMake, GoogleTest units, documentation, requirements and
 repository/issue organization. **Do not create or modify production C++
 implementation or public C++ headers.** Production code is written by Romanr92.
 
-Test-only C++ under top-level `tests/` and `core/tests/` is permitted. Internal
+Test-only C++ under top-level `tests/`, `core/tests/` and, for the host CLI, `cli/test/`
+(owner decision 2026-11-25, #57) is permitted. Internal
 component units belong in `core/tests/`; public-header/API and whole-library
 behavior units using only public interfaces belong in top-level `tests/`.
 Both remain GoogleTest unit tests under the existing quality scope. Do not

@@ -2,6 +2,8 @@
 
 #include "cli/cli_io.hpp"
 #include "cli/cli_options.hpp"
+#include "cli/inspect_command.hpp"
+#include "cli/run_command.hpp"
 #include "cli/validate_command.hpp"
 
 #include <array>
@@ -144,9 +146,11 @@ namespace adaptive_json5::cli
     }
     case command::capabilities:
       return run_capabilities(host);
-    case command::version:
     case command::inspect:
+      return run_inspect(selected, host);
     case command::run:
+      return run_manifest(selected, host);
+    case command::version:
     default:
       return report_failure(host, "command is not available yet", argv[1]);
     }

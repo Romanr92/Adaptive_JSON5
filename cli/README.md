@@ -1,11 +1,19 @@
-# Optional command-line tools
+# Command-line tool
 
-Reserved for future host tools that use the parser and optional schema library.
-No command-line executable is implemented yet. A future CLI must be independently
-selectable and must not add host dependencies to the parser library.
+`adaptive_json5_examples` is the optional host tool for P056–P059 (issue #57, ADR 0007).
+It uses the real parser and, when built, the optional schema library; it never
+reimplements parsing. It is host-only and never part of the parser or schema libraries.
 
-The future `adaptive_json5_examples` host executable shall demonstrate the real
-parser using [example files and their manifest](../examples/README.md), including
-expected failures and requirement-specific observations. Issue #24 covers its
-dispatch, diagnostics and unit-test seams alongside the validation CLI. It must
-report unsupported/unimplemented demonstrations without claiming conformance.
+| Path | Contents |
+| --- | --- |
+| `includes/cli/` | Private headers: I/O seams (`cli_io.hpp`), options, commands, reporter |
+| `src/` | The logic library `adaptive_json5_cli_core`, plus `main.cpp` and the real file and console adapters (`host_io.cpp`) |
+| `test/` | GoogleTest units (`adaptive_json5_cli_unit_tests`) with a fake host: in-memory files, captured output, failure-injecting storage |
+
+Commands: `validate`, `inspect`, `run`, `capabilities`, `version`, `help`. See the
+[examples README](../examples/README.md) for usage, output formats and exit codes.
+
+All input, output and memory go through the injectable `environment` (reader, sink,
+storage callbacks). The tool logic allocates only through those callbacks and writes
+output without allocating, so an allocation failure is always reported (exit 2,
+strict-JSON diagnostics with `--diagnostics json`).

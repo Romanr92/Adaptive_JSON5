@@ -30,7 +30,7 @@ library was checked to be byte-identical before and after.
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
 | API | SWU-API-043 | SWU-API-044 |
-| CLI | SWU-CLI-059 | SWU-CLI-060 |
+| CLI | SWU-CLI-114 | SWU-CLI-115 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
@@ -144,7 +144,7 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of th
 | SWU-CLI-046 | used | `category_of(error_code)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
 | SWU-CLI-047 | used | `read_input(const environment&, std::string_view, char*, std::size_t, std::size_t&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
 | SWU-CLI-048 | used | `(anonymous)::position_of(input_view, std::size_t)` | `cli/src/validate_command.cpp` | — |
-| SWU-CLI-049 | used | `(anonymous)::report_parse_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-049 | used | `(anonymous)::add_parse_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | — |
 | SWU-CLI-050 | used | `(anonymous)::report_warnings(reporter&, const parsed_document&, input_view)` | `cli/src/validate_command.cpp` | — |
 | SWU-CLI-051 | used | `(anonymous)::describe_schema(schema_error_code)` | `cli/src/validate_command.cpp` | — |
 | SWU-CLI-052 | used | `(anonymous)::schema_category(schema_error_code)` | `cli/src/validate_command.cpp` | — |
@@ -155,6 +155,61 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of th
 | SWU-CLI-057 | used | `(anonymous)::second_allowed(std::uint32_t, std::uint32_t)` | `cli/src/report.cpp` | — |
 | SWU-CLI-058 | used | `reporter::add_text(const diagnostic&)` | `cli/src/report.cpp` | — |
 | SWU-CLI-059 | used | `reporter::put_details(const diagnostic&)` | `cli/src/report.cpp` | — |
+| SWU-CLI-060 | used | `put_json_decoded(text_writer&, const decoded_string&, const storage_callbacks&)` | `cli/src/inspect_command.cpp` | `cli/includes/cli/inspect_command.hpp` |
+| SWU-CLI-061 | used | `run_inspect(const options&, const environment&)` | `cli/src/inspect_command.cpp` | `cli/includes/cli/inspect_command.hpp` |
+| SWU-CLI-062 | used | `(anonymous)::kind_name(value_kind)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-063 | used | `(anonymous)::number_kind_name(number_kind)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-064 | used | `(anonymous)::conversion_failure(const error&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-065 | used | `(anonymous)::put_signed(text_writer&, std::int64_t)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-066 | used | `(anonymous)::put_double(text_writer&, double)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-067 | used | `(anonymous)::storage_ok()` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-068 | used | `(anonymous)::put_position(const value_view&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-069 | used | `(anonymous)::put_conversions(const owned_number&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-070 | used | `(anonymous)::put_scalar(const value_view&, value_kind)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-071 | used | `(anonymous)::open(const value_view&, bool, std::size_t, bool)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-072 | used | `(anonymous)::close()` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-073 | used | `(anonymous)::store_frame(char*, std::size_t, const walk_frame&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-074 | used | `(anonymous)::load_frame(const char*, std::size_t)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-075 | used | `(anonymous)::walk(inspection&, const value_view&, std::size_t, const storage_callbacks&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-076 | used | `finish_with_parse_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-077 | used | `(anonymous)::put_warnings(text_writer&, bool, std::string_view, const parsed_document&, input_view)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-078 | used | `(anonymous)::inspect_failure(const options&, const environment&, category, std::string_view)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-079 | used | `resolve_pointer(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | `cli/includes/cli/run_command.hpp` |
+| SWU-CLI-080 | used | `run_manifest(const options&, const environment&)` | `cli/src/run_command.cpp` | `cli/includes/cli/run_command.hpp` |
+| SWU-CLI-081 | used | `(anonymous)::copy_text(const value_view&, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-082 | used | `(anonymous)::member_text(const value_view&, std::string_view, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-083 | used | `(anonymous)::member_count(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-084 | used | `(anonymous)::decode_token(std::string_view, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-085 | used | `(anonymous)::step(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-086 | used | `(anonymous)::mismatch(case_context&, std::string_view, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-087 | used | `(anonymous)::conversion_name(const error*)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-088 | used | `(anonymous)::decimal_text(std::uint64_t, bool, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-089 | used | `(anonymous)::check_conversion(const value_view&, const value_view&, const environment&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-090 | used | `(anonymous)::check_member_names(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-091 | used | `(anonymous)::check_units(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-092 | used | `(anonymous)::check_same(const value_view&, const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-093 | used | `(anonymous)::check_duplicates(const value_view&, input_view, const case_context&, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-094 | used | `(anonymous)::evaluate_check(const value_view&, const parsed_document&, input_view, const case_context&, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-095 | used | `(anonymous)::run_checks(case_context&, const value_view&, const parsed_document&, input_view, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-096 | used | `(anonymous)::validate_case(const case_context&, std::string_view, const document&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-097 | used | `(anonymous)::join_path(std::string_view, std::string_view, std::array<char, c_path_capacity>&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-098 | used | `(anonymous)::compare(case_context&, const value_view&, const observation&, const std::optional<parsed_document>&, input_view, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-099 | used | `(anonymous)::evaluate_case(case_context&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-100 | used | `(anonymous)::result_for_input(const value_view&, std::string_view, const char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-101 | used | `(anonymous)::summarise_requirements(text_writer&, bool, const value_view&, const value_view&, const char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-102 | used | `(anonymous)::run_failure(const options&, const environment&, category, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-103 | used | `(anonymous)::run_one(case_context&, const value_view&, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-104 | used | `(anonymous)::run_cases(case_context&, const value_view&, char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-105 | used | `finish_with_configuration_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-106 | used | `(anonymous)::evaluate_value_check(std::string_view, const value_view&, const value_view&, const value_view&, const environment&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-107 | used | `(anonymous)::case_options(const case_context&, const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-108 | used | `(anonymous)::observe_parse(const error*)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-109 | used | `(anonymous)::requirement_status(const value_view&, const value_view&, const char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-110 | used | `(anonymous)::write_footer(text_writer&, bool, const run_totals&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-111 | used | `(anonymous)::manifest_options()` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-112 | used | `(anonymous)::put_prefix(const value_view&, bool, std::size_t, bool)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-113 | used | `(anonymous)::check_spelling(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-114 | used | `(anonymous)::check_utf8(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
 
 ## COMMON
 

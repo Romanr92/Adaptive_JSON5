@@ -2503,6 +2503,12 @@
           "names": [
             "J5_041_HostedParse.RetainsSourceOnRequestAndNavigates"
           ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Inspect.ShowsValuesAndConversions"
+          ]
         }
       ]
     },
@@ -4636,7 +4642,7 @@
           ]
         },
         {
-          "file": "core/tests/cli/cli_diagnostics_tests.cpp",
+          "file": "cli/test/cli_diagnostics_tests.cpp",
           "names": [
             "P057_Diagnostics.LocateFailures"
           ]
@@ -4932,11 +4938,15 @@
         {
           "files": ["cli/includes/cli/validate_command.hpp", "cli/src/validate_command.cpp"],
           "symbols": ["run_validate", "category_of"]
+        },
+        {
+          "files": ["cli/includes/cli/inspect_command.hpp", "cli/src/inspect_command.cpp", "cli/includes/cli/run_command.hpp", "cli/src/run_command.cpp"],
+          "symbols": ["run_inspect", "run_manifest", "resolve_pointer"]
         }
       ],
       "tests": [
         {
-          "file": "core/tests/cli/cli_dispatch_tests.cpp",
+          "file": "cli/test/cli_dispatch_tests.cpp",
           "names": [
             "P056_Arguments.ParsesEveryOption",
             "P056_Arguments.RejectsEveryMistake",
@@ -4947,9 +4957,19 @@
           ]
         },
         {
-          "file": "core/tests/cli/cli_diagnostics_tests.cpp",
+          "file": "cli/test/cli_diagnostics_tests.cpp",
           "names": [
             "P057_Outcomes.MapResultsAndExitCodes"
+          ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Run.AppliesTheExitContract",
+            "P058_RunReport.ManifestFailuresAreOperational",
+            "P058_RunReport.AllocationSweep",
+            "P058_Inspect.FailuresAndAllocationSweep",
+            "P058_Pointers.ResolveRfc6901"
           ]
         }
       ]
@@ -4968,14 +4988,14 @@
       ],
       "tests": [
         {
-          "file": "core/tests/cli/cli_dispatch_tests.cpp",
+          "file": "cli/test/cli_dispatch_tests.cpp",
           "names": [
             "P056_Dispatch.UsageHelpAndOutputFailures",
             "P056_Dispatch.AllocationFailureSweep"
           ]
         },
         {
-          "file": "core/tests/cli/cli_diagnostics_tests.cpp",
+          "file": "cli/test/cli_diagnostics_tests.cpp",
           "names": [
             "P057_Outcomes.MapResultsAndExitCodes",
             "P057_Diagnostics.LocateFailures",
@@ -4983,6 +5003,13 @@
             "P057_Diagnostics.EscapesArbitraryText",
             "P057_Diagnostics.CapabilitiesAreStrictJson",
             "P057_Diagnostics.OutOfMemoryFallbackIsStrictJson"
+          ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Inspect.ShowsValuesAndConversions",
+            "P058_RunReport.SummarisesRequirements"
           ]
         }
       ]
@@ -5248,6 +5275,10 @@
         {
           "files": ["includes/adaptive_json5/parser.hpp", "core/src/parser/parser.cpp"],
           "symbols": ["parse_document"]
+        },
+        {
+          "files": ["cli/src/run_command.cpp", "examples/manifest.json"],
+          "symbols": ["run_manifest", "evaluate_check", "summarise_requirements"]
         }
       ],
       "tests": [
@@ -5255,6 +5286,13 @@
           "file": "tests/api/grammar_evidence_tests.cpp",
           "names": [
             "P040/J5_094_DocumentTruncation.RejectsEveryProperPrefix"
+          ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Run.AppliesTheExitContract",
+            "P058_RunReport.SummarisesRequirements"
           ]
         }
       ]
