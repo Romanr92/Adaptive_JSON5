@@ -792,7 +792,7 @@ namespace adaptive_json5::cli
     std::string_view join_path(std::string_view base, std::string_view relative,
                                std::array<char, c_path_capacity>& buffer) noexcept
     {
-      if ((base.size() + relative.size()) > buffer.size())
+      if ((base.size() + relative.size()) > c_path_capacity)
       {
         return {};
       }
