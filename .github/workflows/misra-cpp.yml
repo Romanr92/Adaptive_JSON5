@@ -31,7 +31,7 @@ jobs:
           cmake -S . -B build/misra -G Ninja
           -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_BUILD_TYPE=Debug
           -DADAPTIVE_JSON5_BUILD_LIBRARY=ON
-          -DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF
+          -DADAPTIVE_JSON5_BUILD_EXECUTABLE=ON
           -DADAPTIVE_JSON5_BUILD_TESTS=OFF
           -DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF
           -DADAPTIVE_JSON5_BUILD_SCHEMA=ON
@@ -45,8 +45,10 @@ jobs:
           config-file: .github/codeql/misra.yml
       - name: Index MISRA source deviations
         run: python3 tools/misra_check.py --index-deviations
+      # Only the CLI target (#57): it links the parser and schema libraries, so every
+      # library source and cli/ are traced, while the example programs are not.
       - name: Trace Clang compilation
-        run: cmake --build build/misra --parallel "$(nproc)"
+        run: cmake --build build/misra --parallel "$(nproc)" --target adaptive_json5_examples
       - name: Run CodeQL MISRA and security analysis
         uses: github/codeql-action/analyze@v4
         with:

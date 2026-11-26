@@ -963,6 +963,12 @@ Prepare optional host command dispatch for file/stdin syntax selection and confi
 - Existing contracts: J5-070.
 - Unit acceptance: Argument and fake I/O units; file errors, unsupported flags and input budget handling; schema flags initially report unavailable.
 
+Implementation: `adaptive_json5_examples` under `cli/` ([ADR 0009](adr-0009-cli-tool.md)):
+allocation-free argument parsing, injectable `input_source`/`output_sink` seams and storage
+callbacks, bounded file and standard-input reads, and `--schema` reported as unavailable in
+builds without the schema component. Units: `cli/test/cli_dispatch_tests.cpp`
+(`P056_Arguments`, `P056_Dispatch`).
+
 ### P057 — CLI validation and diagnostic protocol
 
 Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57) (original step issue #58).
@@ -972,6 +978,11 @@ Connect parser and optional compiled-schema validation; provide readable and ver
 - Prerequisites: P055, P056.
 - Existing contracts: J5-070, J5-071.
 - Unit acceptance: Dispatch/result mapping units, strict-JSON output round-trip, missing schema component and OOM fallback.
+
+Implementation: `validate` with optional Draft-07 schema validation, readable text and the
+versioned strict-JSON diagnostic and capability formats with `$utf16`, `$number` and
+`$bytes` tags, the J5-070 exit mapping and an out-of-memory fallback that is always strict
+JSON. Units: `cli/test/cli_diagnostics_tests.cpp` (`P057_Outcomes`, `P057_Diagnostics`).
 
 ### P058 — File-driven example executable
 
@@ -983,6 +994,12 @@ Implement optional adaptive_json5_examples against examples/manifest.json with r
 - Existing contracts: J5-070, J5-071, J5-094.
 - Unit acceptance: Injected readers/reporters, valid/intentional-invalid examples and mismatch/resource outcomes; no e2e CI gate.
 
+Implementation: `inspect` (ordered values, positions, raw spellings, checked conversions,
+warnings) and `run` over `examples/manifest.json` format_version 2 with structured checks,
+per-case and per-requirement results and the demonstration exit contract. Units:
+`cli/test/cli_run_tests.cpp` (`P058_Run`, `P058_RunReport`, `P058_Pointers`,
+`P058_Inspect`).
+
 ### P059 — Host-tool packaging
 
 Tracking: [#57](https://github.com/Romanr92/Adaptive_JSON5/issues/57) (original step issue #60).
@@ -992,6 +1009,12 @@ Expose the example executable behind ADAPTIVE_JSON5_BUILD_EXECUTABLE; install/ve
 - Prerequisites: P058.
 - Existing contracts: J5-002, J5-007, J5-070, J5-092, J5-093.
 - Unit acceptance: CMake target/options review, documented usage and unit capability/version output.
+
+Implementation: independent tool version (`ADAPTIVE_JSON5_CLI_VERSION`), `version` and
+`capabilities` reporting, install component `cli`, presets `cli` and `cli-no-schema`, and
+smoke tests of the real executable (`cli/test/smoke_cases.json`, `ctest --preset cli`,
+informative `cli` workflow, `tools/cli_smoke.py` for local runs). Units:
+`cli/test/cli_package_tests.cpp` (`P059_Version`).
 
 ### P060 — VS Code extension package
 

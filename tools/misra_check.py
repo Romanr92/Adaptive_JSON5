@@ -31,7 +31,7 @@ def source_deviations():
     """Read source exceptions keyed by source file, code line, and query."""
     deviations = {}
     seen = set()
-    for directory in ("core/src", "core/includes", "includes"):
+    for directory in ("core/src", "core/includes", "includes", "cli/src", "cli/includes"):
         for path in sorted((ROOT / directory).rglob("*")):
             if path.suffix not in SOURCE_SUFFIXES or not path.is_file():
                 continue
@@ -414,7 +414,8 @@ def main():
     run("codeql", "version")
     run("cmake", "--preset", "clang", "-B", build,
         "-DADAPTIVE_JSON5_BUILD_LIBRARY=ON",
-        "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=OFF",
+        # The host CLI (cli/, #57) is analysed too, by the owner's decision of 2026-11-26.
+        "-DADAPTIVE_JSON5_BUILD_EXECUTABLE=ON",
         "-DADAPTIVE_JSON5_BUILD_TESTS=OFF",
         "-DADAPTIVE_JSON5_BUILD_VALIDATION_TESTS=OFF",
         # The optional schema component is analysed too, as in CI (ADR 0006).
@@ -424,7 +425,9 @@ def main():
     run("codeql", "database", "create", database, "--language=c-cpp",
         "--source-root=.", "--threads=0",
         f"--command={quote_command(index_command)}",
-        f"--command=cmake --build {build} --clean-first --parallel {cores}")
+        # Only the CLI target: it links the parser and schema libraries, so every library
+        # source and cli/ are compiled and analysed, while the example programs are not.
+        f"--command=cmake --build {build} --clean-first --parallel {cores} --target adaptive_json5_examples")
     print("Downloading query packs and running analysis; HTML opens after completion.", flush=True)
     print(f"Analysis logs: {ROOT / database / 'log'}", flush=True)
     run("codeql", "database", "analyze", database,
