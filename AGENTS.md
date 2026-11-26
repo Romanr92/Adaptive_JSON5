@@ -62,6 +62,10 @@ restriction, and never include `core/tests/` in production source lists.
   runs the pinned official JSON-Schema-Test-Suite (draft7) against the optional schema
   component on every pull request; it is not a merge requirement until the owner makes
   it one, and the required validation-test job excludes its `schema_validation_tests` label.
+  Also user-approved (#57, 2026-11-26), the informative `cli` workflow builds
+  `adaptive_json5_examples` and runs it on known example files (`ctest -L cli_smoke`),
+  comparing exit codes and output with `cli/test/expected`; it is not a merge requirement
+  until the owner makes it one, and the `examples` workflow excludes its label.
 - Run applicable GoogleTest units with exceptions OFF and RTTI OFF. Pull requests
   must pass all host unit-test jobs, validation-test jobs, formatting, the
   sanitizer and fuzz jobs, the Clang job and the static-analysis jobs before merging

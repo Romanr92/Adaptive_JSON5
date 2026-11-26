@@ -1,0 +1,4 @@
+{
+  // a comment is not strict JSON
+  "device": "sensor-7"
+}

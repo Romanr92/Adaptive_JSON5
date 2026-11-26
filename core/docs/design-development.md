@@ -161,6 +161,9 @@ its older in-progress runs:
 - Validation tests over the pinned fixtures, exceptions OFF and ON.
 - `formatting`: clang-format 23.1.6 from the official LLVM Linux release.
 - `examples`: builds the example programs and checks their output. It is non-blocking.
+- `cli`: builds `adaptive_json5_examples` with the schema component and runs it on known
+  example files (`ctest -L cli_smoke`), comparing exit codes and output with
+  `cli/test/expected`. It is informative until the owner makes it required.
 
 `unit-tests`, `formatting` and both validation jobs are required by the branch protection
 on `main`, including for admins.
@@ -173,11 +176,12 @@ Three independent component switches select what to prepare/build:
 | Switch | Default | Current scaffold behavior |
 | --- | --- | --- |
 | `ADAPTIVE_JSON5_BUILD_LIBRARY` | ON | Build/export/install the compiled core and public headers |
-| `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example programs and data; the future command-line `examples/main.cpp` target is pending |
+| `ADAPTIVE_JSON5_BUILD_EXECUTABLE` | OFF | Example programs and the `adaptive_json5_examples` command-line tool (`cli/`), installed as component `cli` with its own version (`ADAPTIVE_JSON5_CLI_VERSION`) |
 | `ADAPTIVE_JSON5_BUILD_TESTS` | ON at root, OFF as subproject | Fetch/build/run host GoogleTest units |
 | `ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS` | OFF | Build/run the conformance validation tests in `tests/validation` |
 
 Select `Debug: Library`, `Release: Library`, `Debug: Example executable`,
+`Debug: Command-line tool with the schema component` (`cli`),
 `Debug: Unit Tests`, `Debug: Unit Tests (exceptions ON)`, `Debug: Official JSON & JSON5 Validation Tests`
 or `Debug: Official JSON & JSON5 Validation Tests (exceptions ON)` in the bottom CMake
 configuration-preset control. Then select its matching build preset and press
@@ -189,8 +193,6 @@ shown. Tracked settings keep configure/build/test presets and actions visible.
 Native generator/compiler selection follows your environment; no Linux compiler,
 Ninja, WSL or SDK is hardcoded. Use personal presets for toolchain overrides.
 The `dev`, `dev-exceptions` and `library` aliases keep earlier commands working.
-Example/library selections currently configure infrastructure only and explicitly
-report the missing executable; they do not produce a working parser or demo.
 When both library and tests are OFF, no install package or GoogleTest is produced.
 The metadata interface remains available internally for test build settings.
 

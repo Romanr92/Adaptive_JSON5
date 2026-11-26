@@ -33,6 +33,15 @@ namespace adaptive_json5::cli
   [[nodiscard]] int run_capabilities(const environment& host) noexcept;
 
   /**
+   * @brief The version command: tool and library versions, source revision and whether the
+   * schema component and exceptions are enabled.
+   * @par Requirements
+   * P059; J5-093.
+   * @par ID SWU-CLI-115
+   */
+  [[nodiscard]] int run_version(const environment& host) noexcept;
+
+  /**
    * @brief Report a parser failure with category, message and position, and finish the report.
    * @par Requirements
    * P057; P058; J5-044; J5-070; J5-071.

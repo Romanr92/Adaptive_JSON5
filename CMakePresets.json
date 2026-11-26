@@ -52,6 +52,38 @@
       }
     },
     {
+      "name": "cli",
+      "displayName": "Debug: Command-line tool with the schema component",
+      "binaryDir": "${sourceDir}/build/cli",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "ON",
+        "ADAPTIVE_JSON5_BUILD_SCHEMA": "ON",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
+      "name": "cli-no-schema",
+      "displayName": "Debug: Command-line tool without the schema component",
+      "binaryDir": "${sourceDir}/build/cli-no-schema",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ADAPTIVE_JSON5_BUILD_LIBRARY": "ON",
+        "ADAPTIVE_JSON5_BUILD_EXECUTABLE": "ON",
+        "ADAPTIVE_JSON5_BUILD_SCHEMA": "OFF",
+        "ADAPTIVE_JSON5_BUILD_TESTS": "OFF",
+        "ADAPTIVE_JSON5_BUILD_VALIDATION_TESTS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_EXCEPTIONS": "OFF",
+        "ADAPTIVE_JSON5_ENABLE_RTTI": "OFF"
+      }
+    },
+    {
       "name": "debug-unit-tests",
       "displayName": "Debug: Unit Tests",
       "binaryDir": "${sourceDir}/build/debug-unit-tests",
@@ -172,6 +204,16 @@
       "displayName": "Build: Debug: Example executable",
       "configurePreset": "debug-example",
       "configuration": "Debug"
+    },
+    {
+      "name": "cli",
+      "displayName": "Build: Debug: Command-line tool",
+      "configurePreset": "cli"
+    },
+    {
+      "name": "cli-no-schema",
+      "displayName": "Build: Debug: Command-line tool without schema",
+      "configurePreset": "cli-no-schema"
     },
     {
       "name": "debug-unit-tests",
@@ -326,6 +368,32 @@
       },
       "execution": {
         "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "cli",
+      "displayName": "Test: Command-line tool smoke tests",
+      "configurePreset": "cli",
+      "filter": {
+        "include": {
+          "label": "cli_smoke"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cli-no-schema",
+      "displayName": "Test: Command-line tool smoke tests without schema",
+      "configurePreset": "cli-no-schema",
+      "filter": {
+        "include": {
+          "label": "cli_smoke"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
       }
     }
   ],

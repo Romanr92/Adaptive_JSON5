@@ -10,6 +10,7 @@
 #include "cli/cli_app.hpp"
 #include "cli/cli_io.hpp"
 #include "cli/cli_options.hpp"
+#include "cli/cli_version.hpp"
 #include "cli/host_buffer.hpp"
 #include "cli/report.hpp"
 
@@ -29,6 +30,16 @@ namespace adaptive_json5::cli
     constexpr std::size_t c_message_capacity = 512U;
     constexpr std::size_t c_pointer_capacity = 1024U;
     constexpr std::size_t c_registry_bytes = 1U << 26U;
+#if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
+    constexpr bool c_exceptions_enabled = true;
+#else
+    constexpr bool c_exceptions_enabled = false;
+#endif
+#if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
+    constexpr bool c_schema_enabled = true;
+#else
+    constexpr bool c_schema_enabled = false;
+#endif
 
     /**
      * @brief Line and column of byte_offset in text, if it can be located.
@@ -428,7 +439,10 @@ namespace adaptive_json5::cli
   {
     text_writer out{host.output, output_stream::out};
     out.put("{\"format\": \"adaptive-json5-capabilities\", \"version\": ").put_count(c_format_version);
-    out.put(", \"commands\": [\"validate\", \"capabilities\", \"help\"]");
+    out.put(", \"tool_version\": \"").put(c_tool_version).put("\", \"library_version\": \"").put(c_library_version);
+    out.put("\", \"source_revision\": \"").put(c_source_revision).put("\"");
+    out.put(", \"exceptions\": ").put(c_exceptions_enabled ? "true" : "false");
+    out.put(", \"commands\": [\"validate\", \"inspect\", \"run\", \"capabilities\", \"version\", \"help\"]");
     out.put(", \"syntax\": [\"json\", \"json5\"], \"diagnostics\": [\"text\", \"json\"]");
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
     out.put(", \"schema\": {\"available\": true, \"dialects\": [\"draft-07\"], \"format_assertions\": [");
@@ -449,6 +463,23 @@ namespace adaptive_json5::cli
     out.put(", \"schema\": {\"available\": false}");
 #endif
     out.put("}\n");
+    return out.ok() ? exit_ok : exit_failure;
+  }
+
+  /**
+   * @brief The version command: tool and library versions, source revision and build options.
+   * @par Requirements
+   * P059; J5-093.
+   * @par ID SWU-CLI-115
+   */
+  int run_version(const environment& host) noexcept
+  {
+    text_writer out{host.output, output_stream::out};
+    out.put("adaptive_json5_examples ").put(c_tool_version).put("\n");
+    out.put("library ").put(c_library_version).put("\n");
+    out.put("revision ").put(c_source_revision).put("\n");
+    out.put("schema ").put(c_schema_enabled ? "on" : "off").put("\n");
+    out.put("exceptions ").put(c_exceptions_enabled ? "on" : "off").put("\n");
     return out.ok() ? exit_ok : exit_failure;
   }
 } // namespace adaptive_json5::cli

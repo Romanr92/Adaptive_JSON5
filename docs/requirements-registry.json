@@ -3665,6 +3665,10 @@
             "CMakePresets.json"
           ],
           "note": "Parser-only library build with optional unit tests; schema and tool targets are not implemented yet"
+        },
+        {
+          "files": ["cli/CMakeLists.txt", "CMakeLists.txt"],
+          "symbols": ["adaptive_json5_cli_core", "adaptive_json5_examples"]
         }
       ],
       "tests": []
@@ -5011,6 +5015,12 @@
             "P058_Inspect.ShowsValuesAndConversions",
             "P058_RunReport.SummarisesRequirements"
           ]
+        },
+        {
+          "file": "cli/test/cli_package_tests.cpp",
+          "names": [
+            "P059_Version.CapabilitiesCarryTheVersions"
+          ]
         }
       ]
     },
@@ -5260,9 +5270,21 @@
             "docs/dependencies.md"
           ],
           "note": "Pinned dependency versions are documented; no public version or configuration information exists yet to unit-test"
+        },
+        {
+          "files": ["cli/cli_version.hpp.in", "cli/src/validate_command.cpp", "cli/CMakeLists.txt"],
+          "symbols": ["c_tool_version", "c_library_version", "c_source_revision", "run_version"]
         }
       ],
-      "tests": []
+      "tests": [
+        {
+          "file": "cli/test/cli_package_tests.cpp",
+          "names": [
+            "P059_Version.ReportsToolLibraryAndBuildOptions",
+            "P059_Version.CapabilitiesCarryTheVersions"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-094",

@@ -1,0 +1,43 @@
+# Smoke tests of adaptive_json5_examples (issue #57, P059). The cases are listed once in
+# cli/test/smoke_cases.json, which tools/cli_smoke.py also reads for local runs. Each test
+# runs the real executable from the repository root and compares the exit code and output
+# with cli/test/expected/<name>.out (and .err), or checks that stdout contains a fragment.
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/test/smoke_cases.json" adaptive_json5_smoke_json)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/test/smoke_cases.json")
+string(JSON adaptive_json5_smoke_count LENGTH "${adaptive_json5_smoke_json}" cases)
+math(EXPR adaptive_json5_smoke_last "${adaptive_json5_smoke_count} - 1")
+foreach(index RANGE ${adaptive_json5_smoke_last})
+    string(JSON name GET "${adaptive_json5_smoke_json}" cases ${index} name)
+    string(JSON expected_exit GET "${adaptive_json5_smoke_json}" cases ${index} exit)
+    string(JSON requires ERROR_VARIABLE no_requires GET "${adaptive_json5_smoke_json}" cases ${index} requires)
+    if(requires STREQUAL "schema" AND NOT TARGET AdaptiveJSON5::schema)
+        continue()
+    endif()
+    if(requires STREQUAL "no-schema" AND TARGET AdaptiveJSON5::schema)
+        continue()
+    endif()
+    string(JSON argument_count LENGTH "${adaptive_json5_smoke_json}" cases ${index} args)
+    math(EXPR argument_last "${argument_count} - 1")
+    set(packed "")
+    foreach(argument_index RANGE ${argument_last})
+        string(JSON argument GET "${adaptive_json5_smoke_json}" cases ${index} args ${argument_index})
+        list(APPEND packed "${argument}")
+    endforeach()
+    string(REPLACE ";" "|" packed "${packed}")
+    string(JSON contains ERROR_VARIABLE no_contains GET "${adaptive_json5_smoke_json}" cases ${index} contains)
+    set(expected "${CMAKE_CURRENT_SOURCE_DIR}/test/expected/${name}")
+    if(no_contains)
+        set(options "-DEXPECTED=${expected}.out")
+        if(EXISTS "${expected}.err")
+            list(APPEND options "-DEXPECTED_ERR=${expected}.err")
+        endif()
+    else()
+        string(REPLACE "{tool_version}" "${ADAPTIVE_JSON5_CLI_VERSION}" contains "${contains}")
+        set(options "-DCONTAINS=${contains}")
+    endif()
+    add_test(NAME cli_smoke_${name}
+        COMMAND ${CMAKE_COMMAND} -DPROGRAM=$<TARGET_FILE:adaptive_json5_examples> "-DARGS=${packed}"
+            -DEXIT=${expected_exit} ${options} -P ${CMAKE_CURRENT_SOURCE_DIR}/test/check_cli.cmake
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+    set_tests_properties(cli_smoke_${name} PROPERTIES LABELS cli_smoke)
+endforeach()

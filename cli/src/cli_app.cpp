@@ -151,6 +151,7 @@ namespace adaptive_json5::cli
     case command::run:
       return run_manifest(selected, host);
     case command::version:
+      return run_version(host);
     default:
       return report_failure(host, "command is not available yet", argv[1]);
     }

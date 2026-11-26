@@ -4,5 +4,6 @@
 adaptive_json5_add_unit(adaptive_json5_cli_unit_tests cli_units
     cli_dispatch_tests.cpp
     cli_diagnostics_tests.cpp
-    cli_run_tests.cpp)
+    cli_run_tests.cpp
+    cli_package_tests.cpp)
 target_link_libraries(adaptive_json5_cli_unit_tests PRIVATE adaptive_json5_cli_core)

@@ -30,7 +30,7 @@ library was checked to be byte-identical before and after.
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
 | API | SWU-API-043 | SWU-API-044 |
-| CLI | SWU-CLI-114 | SWU-CLI-115 |
+| CLI | SWU-CLI-115 | SWU-CLI-116 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
@@ -210,6 +210,7 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of th
 | SWU-CLI-112 | used | `(anonymous)::put_prefix(const value_view&, bool, std::size_t, bool)` | `cli/src/inspect_command.cpp` | — |
 | SWU-CLI-113 | used | `(anonymous)::check_spelling(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
 | SWU-CLI-114 | used | `(anonymous)::check_utf8(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-115 | used | `run_version(const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
 
 ## COMMON
 
