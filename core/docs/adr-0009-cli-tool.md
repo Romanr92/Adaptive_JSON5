@@ -1,6 +1,6 @@
 # ADR 0009: Command-line tool decisions (P056–P059)
 
-Status: Decided, 2026-11-25 and 2026-11-26 (issue #57). Production C++ is written by the
+Status: Decided, 2026-11-25, 2026-11-26 and 2026-11-27 (issue #57). Production C++ is written by the
 human developer; this record does not claim implementation or verification. Requirement
 statuses are kept in the requirements registry.
 
@@ -57,9 +57,12 @@ configuration (including an invalid or unreadable schema), I/O, limit or allocat
 failure. `run`: 0 when every selected supported expectation matched (intentionally invalid
 inputs included), 1 on a mismatch, 2 when the manifest or an input cannot be processed. An
 unavailable capability (a schema case in a build without the schema component) is
-reported as UNSUPPORTED and never counts as passing. The tool has no cancellation source
-of its own; a cancelled schema run would map to category `limit`, exit 2, and is reachable
-only through the library.
+reported as UNSUPPORTED and never counts as passing.
+
+The tool has no cancellation source of its own; a cancelled schema run would map to
+category `limit`, exit 2, and is reachable only through the library. Accepted as a known
+limitation (owner, 2026-11-27): every run is bounded by the `--max-*` limits and the work
+budget, so it cannot hang. Rejected: a `--timeout-ms` option (no need for a host clock).
 
 ## Decision 6: diagnostics (J5-071, owner D2)
 
@@ -69,11 +72,16 @@ and operational errors go to standard error. `--diagnostics json` writes one obj
 `version` 1, the command and input, the diagnostics (severity, category, message, line,
 column, byte offset, schema keyword and instance and schema pointers) and `result` and
 `exit`. Values strict JSON cannot carry losslessly are tagged objects:
-`{"$utf16": [...]}` for strings with unpaired surrogates and `{"$bytes": [...]}` for text that is not UTF-8 (for example a file
-path). `{"$number": "Infinity"}` is reserved for non-finite numbers but not emitted: a
-number is written as its spelling (a string) and `to_double` reports NaN and Infinity as a
-`non_finite` failure, so no non-finite double reaches the output. Rejected: escaped lone surrogates and `"NaN"` strings (invalid Unicode for many
-readers, and indistinguishable from real text).
+`{"$utf16": [...]}` for strings with unpaired surrogates and `{"$bytes": [...]}` for text
+that is not UTF-8 (for example a file path). Rejected: escaped lone surrogates and `"NaN"`
+strings (invalid Unicode for many readers, and indistinguishable from real text).
+
+`{"$number": "Infinity"}` is reserved for non-finite numbers but not emitted (owner,
+2026-11-27, refining D2): a number is written as its spelling (a string) and `to_double`
+reports NaN and Infinity as a `non_finite` failure, so no non-finite double reaches the
+output and the spelling plus `non_finite` carries the value without loss. Rejected:
+emitting `$number` from the spelling in place of the conversion result (it would report a
+value the library refused to produce).
 
 ## Decision 7: manifest observations (owner D3)
 
