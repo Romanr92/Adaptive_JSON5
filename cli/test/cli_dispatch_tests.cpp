@@ -1,4 +1,3 @@
-#include "cli/cli_app.hpp"
 #include "cli/cli_options.hpp"
 #include "cli_fakes.hpp"
 

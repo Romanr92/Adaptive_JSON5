@@ -2,7 +2,6 @@
 #include "adaptive_json5/error.hpp"
 #include "adaptive_json5/input.hpp"
 #include "adaptive_json5/options.hpp"
-#include "adaptive_json5/syntax_error_reason.hpp"
 #include "input/cursor.hpp"
 #include "lexer/identifier/identifier_lexer.hpp"
 #include "lexer/member_name_lexer.hpp"
@@ -60,7 +59,7 @@ namespace
       syntax_mode mode;  // Selected syntax.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const measure_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const measure_case& value)
   {
     return stream << value.name;
   }

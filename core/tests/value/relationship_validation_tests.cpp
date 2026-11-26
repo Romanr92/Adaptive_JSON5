@@ -1,13 +1,11 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
 #include "adaptive_json5/value/value_iterator.hpp"
 #include "adaptive_json5/value/value_view.hpp"
-#include "value/document_links.hpp"
 #include "value/member_lookup.hpp"
 #include "value/value_record.hpp"
 
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <limits>
 
 namespace
 {

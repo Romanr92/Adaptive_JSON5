@@ -119,7 +119,7 @@ namespace
       const char* expected; // Expected complete message.
   };
   // Print the case name in failure output instead of the error fields.
-  void PrintTo(const message_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const message_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -286,7 +286,7 @@ namespace
       const char* expected;     // Expected complete message.
   };
   // Print the case name in failure output.
-  void PrintTo(const warning_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const warning_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -334,7 +334,7 @@ namespace
       const char* prefix; // Expected position prefix of the message.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const position_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const position_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }

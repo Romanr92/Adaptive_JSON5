@@ -197,7 +197,7 @@ namespace
       std::size_t extra_bytes; // Expected: bytes the cursor advances past the scalar (1 for CRLF).
   };
 
-  std::ostream& operator<<(std::ostream& stream, const decoded_terminator_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const decoded_terminator_case& value)
   {
     return stream << value.name;
   }

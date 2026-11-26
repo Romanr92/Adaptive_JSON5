@@ -124,7 +124,7 @@ namespace
       std::size_t offset;       // Expected root byte offset on success, or error byte offset.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const bom_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const bom_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -203,7 +203,7 @@ namespace
       std::size_t strict_offset; // Expected strict error offset: number token start, escaped character or terminator.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const mode_pair_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const mode_pair_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -286,7 +286,7 @@ namespace
       std::size_t offset; // Expected byte offset of the first invalid sequence.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const encoding_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const encoding_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -340,7 +340,7 @@ namespace
       std::string input; // JSON5 spelling that must decode to the reference document.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const equivalence_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const equivalence_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -414,7 +414,7 @@ namespace
       syntax_mode mode;  // Input syntax selection.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const truncation_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const truncation_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -475,7 +475,7 @@ namespace
       source_retention_policy retention; // Input source retention selection.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const fault_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const fault_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -544,7 +544,7 @@ namespace
       bool nested;        // True when close is repeated count times instead of once.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const work_growth_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const work_growth_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }

@@ -2,7 +2,6 @@
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/options.hpp"
 #include "adaptive_json5/result.hpp"
-#include "adaptive_json5/syntax_error_reason.hpp"
 #include "parser/parser_engine.hpp"
 #include "parser/parser_frame.hpp"
 #include "value/value_record.hpp"
@@ -124,7 +123,7 @@ namespace
       std::size_t byte_offset; // Expected error offset; 0 for unlocated limit errors.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const prepass_failure_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const prepass_failure_case& value)
   {
     return stream << value.name;
   }

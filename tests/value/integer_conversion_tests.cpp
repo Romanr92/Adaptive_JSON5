@@ -162,7 +162,7 @@ namespace
       numeric_conversion_reason reason; // Expected conversion reason on failure.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const integer_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const integer_case& value)
   {
     return stream << value.name;
   }
@@ -435,7 +435,7 @@ namespace
       bool integral;        // Expected mathematical integrality.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const integral_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const integral_case& value)
   {
     return stream << value.name;
   }
@@ -495,7 +495,7 @@ namespace
       bool integral;              // Expected integrality on success.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const view_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const view_case& value)
   {
     return stream << value.name;
   }

@@ -85,7 +85,7 @@ namespace
       numeric_conversion_reason reason; // Expected conversion reason on failure.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const floating_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const floating_case& value)
   {
     return stream << value.name;
   }
@@ -412,7 +412,7 @@ namespace
       fast_step step;       // Expected scratch-free step, or none.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const fast_path_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const fast_path_case& value)
   {
     return stream << value.name;
   }
@@ -801,7 +801,7 @@ namespace
       std::size_t without_eisel; // Measured minimum max_work_units with it OFF.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const conversion_work_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const conversion_work_case& value)
   {
     return stream << value.name;
   }

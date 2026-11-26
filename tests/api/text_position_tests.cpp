@@ -31,7 +31,7 @@ namespace
       std::size_t column;     // Expected 1-based column in code points.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const position_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const position_case& value)
   {
     return stream << value.name;
   }

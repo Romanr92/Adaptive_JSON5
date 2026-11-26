@@ -153,7 +153,7 @@ namespace
   };
 
   /** @brief Name an excess case for parameterized test output. */
-  std::ostream& operator<<(std::ostream& stream, const excess_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const excess_case& value)
   {
     return stream << value.name;
   }

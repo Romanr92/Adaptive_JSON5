@@ -73,7 +73,7 @@ namespace
       syntax_mode mode;  // Selected syntax.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const failure_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const failure_case& value)
   {
     return stream << value.name;
   }

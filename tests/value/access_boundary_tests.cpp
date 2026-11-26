@@ -3,7 +3,6 @@
 #include "adaptive_json5/parser.hpp"
 #include "adaptive_json5/value/document.hpp"
 #include "adaptive_json5/value/utf8_export.hpp"
-#include "adaptive_json5/value/value_iterator.hpp"
 
 #include <cstdint>
 #include <gtest/gtest.h>

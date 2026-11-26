@@ -4,7 +4,6 @@
 #include "memory/resource_budget.hpp"
 #include "memory/work_budget.hpp"
 
-#include <array>
 #include <cstddef>
 #include <cstdlib>
 #include <gtest/gtest.h>
@@ -437,7 +436,7 @@ namespace
       std::size_t expected;   // Expected allowance for the next string in decoded units.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const allowance_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const allowance_case& value)
   {
     return stream << value.name;
   }

@@ -2,7 +2,6 @@
 #include "lexer/string/string_boundary.hpp"
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <utility>

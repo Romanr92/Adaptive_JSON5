@@ -28,8 +28,10 @@ namespace adaptive_json5::cli
   namespace
   {
     constexpr std::size_t c_message_capacity = 512U;
+#if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
     constexpr std::size_t c_pointer_capacity = 1024U;
     constexpr std::size_t c_registry_bytes = 1U << 26U;
+#endif
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
     constexpr bool c_exceptions_enabled = true;
 #else

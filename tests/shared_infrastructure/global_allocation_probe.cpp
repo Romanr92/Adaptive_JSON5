@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <new>
 #if defined(_WIN32)
-  #include <malloc.h>
+  #include <malloc.h> // IWYU pragma: keep (_aligned_malloc, _aligned_free)
 #endif
 
 namespace adaptive_json5_test

@@ -262,7 +262,7 @@ namespace
       std::size_t required_work; // Measured minimum max_work_units (ADR 0003, decision 7b).
   };
 
-  std::ostream& operator<<(std::ostream& stream, const baseline_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const baseline_case& value)
   {
     return stream << value.name;
   }

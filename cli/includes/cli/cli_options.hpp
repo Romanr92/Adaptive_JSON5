@@ -4,7 +4,6 @@
 #include "adaptive_json5/memory/resource_limits.hpp"
 #include "adaptive_json5/options.hpp"
 
-#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>

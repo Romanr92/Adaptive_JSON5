@@ -9,7 +9,6 @@
 #include <gtest/gtest.h>
 #include <optional>
 #include <utility>
-#include <variant>
 
 namespace
 {

@@ -57,7 +57,7 @@ namespace
       bool is_integral;     // Expected mathematical integrality.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const analysis_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const analysis_case& value)
   {
     return stream << value.name;
   }
@@ -140,7 +140,7 @@ namespace
       std::size_t scale_magnitude; // Expected absolute combined scale.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const scale_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const scale_case& value)
   {
     return stream << value.name;
   }
@@ -256,7 +256,7 @@ namespace
       error_code code;         // Expected error code on failure.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const digit_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const digit_case& value)
   {
     return stream << value.name;
   }
@@ -281,7 +281,7 @@ namespace
       numeric_conversion_reason reason; // Expected conversion reason on failure.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const magnitude_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const magnitude_case& value)
   {
     return stream << value.name;
   }

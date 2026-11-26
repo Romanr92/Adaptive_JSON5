@@ -89,7 +89,7 @@ namespace
       std::size_t column;     // Expected 1-based column of the primary offset.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const location_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const location_case& value)
   {
     return stream << value.name;
   }

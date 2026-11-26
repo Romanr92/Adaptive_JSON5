@@ -195,7 +195,7 @@ namespace
   };
 
   /** @brief Describe a mismatched release case for test names. */
-  std::ostream& operator<<(std::ostream& stream, mismatched_release value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, mismatched_release value)
   {
     const char* names[] = {"NullAddress", "ZeroBytes", "NothingHeld", "TooManyBytes", "WrongLastSize"};
     return stream << names[static_cast<int>(value)];

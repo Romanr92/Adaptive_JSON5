@@ -56,7 +56,7 @@ namespace
       syntax_error_reason reason; // Expected syntax reason.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const reason_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const reason_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }

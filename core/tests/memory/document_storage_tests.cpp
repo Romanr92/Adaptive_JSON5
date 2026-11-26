@@ -1,4 +1,3 @@
-#include "adaptive_json5/input.hpp"
 #include "adaptive_json5/json5_document.hpp"
 #include "adaptive_json5/memory/accounted_storage.hpp"
 #include "adaptive_json5/memory/document_storage_owner.hpp"
