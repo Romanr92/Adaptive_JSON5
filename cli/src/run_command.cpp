@@ -212,8 +212,14 @@ namespace adaptive_json5::cli
       }
       else
       {
-        context.out.put("  ").put(context.id).put(": ").put(what);
-        context.out.put(detail.empty() ? "" : " (").put(detail).put(detail.empty() ? "" : ")").put("\n");
+        context.out.put("  ");
+        context.out.put(context.id);
+        context.out.put(": ");
+        context.out.put(what);
+        context.out.put(detail.empty() ? "" : " (");
+        context.out.put(detail);
+        context.out.put(detail.empty() ? "" : ")");
+        context.out.put("\n");
       }
       ++context.mismatches;
     }
@@ -583,7 +589,7 @@ namespace adaptive_json5::cli
     {
         bool parsed{};
         std::optional<bool> valid_schema{}; // Validation verdict when a schema was applied.
-        int exit = exit_failure;
+        std::int32_t exit = exit_failure;
         bool unsupported{};
         bool operational{};
     };
@@ -895,11 +901,17 @@ namespace adaptive_json5::cli
         {
           out.put((written == 0U) ? "{\"requirement\": " : ", {\"requirement\": ");
           put_json_text(out, id.view());
-          out.put(", \"status\": \"").put(status).put("\"}");
+          out.put(", \"status\": \"");
+          out.put(status);
+          out.put("\"}");
         }
         else
         {
-          out.put("  ").put(id.view()).put(": ").put(status).put("\n");
+          out.put("  ");
+          out.put(id.view());
+          out.put(": ");
+          out.put(status);
+          out.put("\n");
         }
         ++written;
       }
@@ -911,7 +923,8 @@ namespace adaptive_json5::cli
      * P058; J5-070.
      * @par ID SWU-CLI-102
      */
-    int run_failure(const options& selected, const environment& host, category kind, std::string_view message) noexcept
+    std::int32_t run_failure(const options& selected, const environment& host, category kind,
+                             std::string_view message) noexcept
     {
       reporter failures{host.output, selected.diagnostics, "run", selected.manifest};
       failures.add(diagnostic{severity::error, kind, message});
@@ -941,12 +954,16 @@ namespace adaptive_json5::cli
       const std::string_view name = c_names[static_cast<std::size_t>(result)];
       if (context.json)
       {
-        context.out.put("], \"result\": \"").put(name).put("\"}");
+        context.out.put("], \"result\": \"");
+        context.out.put(name);
+        context.out.put("\"}");
       }
       else
       {
         constexpr std::array<std::string_view, 4> c_labels{{"PASS ", "FAIL ", "UNSUPPORTED ", "ERROR "}};
-        context.out.put(c_labels[static_cast<std::size_t>(result)]).put(id.view()).put("\n");
+        context.out.put(c_labels[static_cast<std::size_t>(result)]);
+        context.out.put(id.view());
+        context.out.put("\n");
       }
       return result;
     }
@@ -978,25 +995,37 @@ namespace adaptive_json5::cli
      * P058; J5-070; J5-071.
      * @par ID SWU-CLI-110
      */
-    int write_footer(text_writer& out, bool json, const run_totals& totals) noexcept
+    std::int32_t write_footer(text_writer& out, bool json, const run_totals& totals) noexcept
     {
-      const int exit = (totals.errors != 0U) ? exit_failure : ((totals.failed != 0U) ? exit_invalid : exit_ok);
+      const std::int32_t exit = (totals.errors != 0U) ? exit_failure : ((totals.failed != 0U) ? exit_invalid : exit_ok);
       if (json)
       {
-        out.put("], \"summary\": {\"passed\": ")
-          .put_count(totals.passed)
-          .put(", \"failed\": ")
-          .put_count(totals.failed);
-        out.put(", \"unsupported\": ").put_count(totals.unsupported).put(", \"errors\": ").put_count(totals.errors);
-        out.put("}, \"result\": \"").put((exit == exit_ok) ? "pass" : ((exit == exit_invalid) ? "fail" : "error"));
-        out.put("\", \"exit\": ").put_count(static_cast<std::size_t>(exit)).put("}\n");
+        out.put("], \"summary\": {\"passed\": ");
+        out.put_count(totals.passed);
+        out.put(", \"failed\": ");
+        out.put_count(totals.failed);
+        out.put(", \"unsupported\": ");
+        out.put_count(totals.unsupported);
+        out.put(", \"errors\": ");
+        out.put_count(totals.errors);
+        out.put("}, \"result\": \"");
+        out.put((exit == exit_ok) ? "pass" : ((exit == exit_invalid) ? "fail" : "error"));
+        out.put("\", \"exit\": ");
+        out.put_count(static_cast<std::size_t>(exit));
+        out.put("}\n");
       }
       else
       {
-        out.put_count(totals.passed).put(" passed, ").put_count(totals.failed).put(" failed, ");
-        out.put_count(totals.unsupported).put(" unsupported, ").put_count(totals.errors).put(" errors\n");
+        out.put_count(totals.passed);
+        out.put(" passed, ");
+        out.put_count(totals.failed);
+        out.put(" failed, ");
+        out.put_count(totals.unsupported);
+        out.put(" unsupported, ");
+        out.put_count(totals.errors);
+        out.put(" errors\n");
       }
-      return out.ok() ? exit : static_cast<int>(exit_failure);
+      return out.ok() ? exit : exit_failure;
     }
 
     /**
@@ -1060,7 +1089,7 @@ namespace adaptive_json5::cli
    * P058; J5-070; J5-071; J5-094.
    * @par ID SWU-CLI-080
    */
-  int run_manifest(const options& selected, const environment& host) noexcept
+  std::int32_t run_manifest(const options& selected, const environment& host) noexcept
   {
     host_buffer bytes{host.storage, c_manifest_bytes};
     std::size_t size = 0U;
@@ -1108,7 +1137,8 @@ namespace adaptive_json5::cli
                          {}};
     if (json)
     {
-      out.put("{\"format\": \"adaptive-json5-run\", \"version\": ").put_count(c_format_version);
+      out.put("{\"format\": \"adaptive-json5-run\", \"version\": ");
+      out.put_count(c_format_version);
       out.put(", \"manifest\": ");
       put_json_text(out, selected.manifest);
       out.put(", \"cases\": [");

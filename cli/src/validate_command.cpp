@@ -20,6 +20,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string_view>
 
@@ -165,7 +166,7 @@ namespace adaptive_json5::cli
      * @param text The text the error's range refers to (the schema, or the instance).
      * @par ID SWU-CLI-053
      */
-    int report_schema_failure(reporter& report, const schema_error& failure, input_view text) noexcept
+    std::int32_t report_schema_failure(reporter& report, const schema_error& failure, input_view text) noexcept
     {
       diagnostic item{};
       item.kind = schema_category(failure.code());
@@ -225,8 +226,8 @@ namespace adaptive_json5::cli
      * P057; J5-063; J5-064; J5-070.
      * @par ID SWU-CLI-055
      */
-    int validate_with_schema(const options& selected, const environment& host, reporter& report,
-                             const document& instance, input_view text) noexcept
+    std::int32_t validate_with_schema(const options& selected, const environment& host, reporter& report,
+                                      const document& instance, input_view text) noexcept
     {
       host_buffer schema_text{host.storage, selected.limits.max_input_bytes};
       std::size_t size = 0U;
@@ -294,7 +295,7 @@ namespace adaptive_json5::cli
    * P057; P058; J5-044; J5-070; J5-071.
    * @par ID SWU-CLI-076
    */
-  int finish_with_parse_failure(reporter& report, const error& failure, input_view text) noexcept
+  std::int32_t finish_with_parse_failure(reporter& report, const error& failure, input_view text) noexcept
   {
     const category kind = add_parse_failure(report, failure, text);
     const bool invalid = (kind == category::syntax) || (kind == category::encoding) || (kind == category::duplicate) ||
@@ -309,7 +310,7 @@ namespace adaptive_json5::cli
    * P058; J5-070.
    * @par ID SWU-CLI-105
    */
-  int finish_with_configuration_failure(reporter& report, const error& failure, input_view text) noexcept
+  std::int32_t finish_with_configuration_failure(reporter& report, const error& failure, input_view text) noexcept
   {
     static_cast<void>(add_parse_failure(report, failure, text));
     return report.finish(outcome::error, exit_failure);
@@ -386,7 +387,7 @@ namespace adaptive_json5::cli
    * P056; P057; J5-070; J5-071.
    * @par ID SWU-CLI-044
    */
-  int run_validate(const options& selected, const environment& host) noexcept
+  std::int32_t run_validate(const options& selected, const environment& host) noexcept
   {
     reporter report{host.output, selected.diagnostics, "validate", selected.input};
 #if !defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
@@ -437,13 +438,20 @@ namespace adaptive_json5::cli
    * P057; P059; J5-069; J5-071.
    * @par ID SWU-CLI-045
    */
-  int run_capabilities(const environment& host) noexcept
+  std::int32_t run_capabilities(const environment& host) noexcept
   {
     text_writer out{host.output, output_stream::out};
-    out.put("{\"format\": \"adaptive-json5-capabilities\", \"version\": ").put_count(c_format_version);
-    out.put(", \"tool_version\": \"").put(c_tool_version).put("\", \"library_version\": \"").put(c_library_version);
-    out.put("\", \"source_revision\": \"").put(c_source_revision).put("\"");
-    out.put(", \"exceptions\": ").put(c_exceptions_enabled ? "true" : "false");
+    out.put("{\"format\": \"adaptive-json5-capabilities\", \"version\": ");
+    out.put_count(c_format_version);
+    out.put(", \"tool_version\": \"");
+    out.put(c_tool_version);
+    out.put("\", \"library_version\": \"");
+    out.put(c_library_version);
+    out.put("\", \"source_revision\": \"");
+    out.put(c_source_revision);
+    out.put("\"");
+    out.put(", \"exceptions\": ");
+    out.put(c_exceptions_enabled ? "true" : "false");
     out.put(", \"commands\": [\"validate\", \"inspect\", \"run\", \"capabilities\", \"version\", \"help\"]");
     out.put(", \"syntax\": [\"json\", \"json5\"], \"diagnostics\": [\"text\", \"json\"]");
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
@@ -456,7 +464,9 @@ namespace adaptive_json5::cli
     {
       if (format_assertion_supported(name))
       {
-        out.put(first ? "\"" : ", \"").put(name).put("\"");
+        out.put(first ? "\"" : ", \"");
+        out.put(name);
+        out.put("\"");
         first = false;
       }
     }
@@ -474,14 +484,24 @@ namespace adaptive_json5::cli
    * P059; J5-093.
    * @par ID SWU-CLI-115
    */
-  int run_version(const environment& host) noexcept
+  std::int32_t run_version(const environment& host) noexcept
   {
     text_writer out{host.output, output_stream::out};
-    out.put("adaptive_json5_examples ").put(c_tool_version).put("\n");
-    out.put("library ").put(c_library_version).put("\n");
-    out.put("revision ").put(c_source_revision).put("\n");
-    out.put("schema ").put(c_schema_enabled ? "on" : "off").put("\n");
-    out.put("exceptions ").put(c_exceptions_enabled ? "on" : "off").put("\n");
+    out.put("adaptive_json5_examples ");
+    out.put(c_tool_version);
+    out.put("\n");
+    out.put("library ");
+    out.put(c_library_version);
+    out.put("\n");
+    out.put("revision ");
+    out.put(c_source_revision);
+    out.put("\n");
+    out.put("schema ");
+    out.put(c_schema_enabled ? "on" : "off");
+    out.put("\n");
+    out.put("exceptions ");
+    out.put(c_exceptions_enabled ? "on" : "off");
+    out.put("\n");
     return out.ok() ? exit_ok : exit_failure;
   }
 } // namespace adaptive_json5::cli

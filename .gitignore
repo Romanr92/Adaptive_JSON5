@@ -37,6 +37,8 @@
 *.exe
 *.out
 *.app
+# Expected CLI output compared by the smoke tests (cli/test/smoke_cases.json).
+!cli/test/expected/*.out
 
 # Build directories
 build/

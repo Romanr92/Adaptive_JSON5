@@ -10,7 +10,7 @@ namespace adaptive_json5::cli
   /**
    * @brief A byte buffer from the host storage, released on destruction.
    * @par Requirements
-   * P056; P057; J5-046; ADR 0007.
+   * P056; P057; J5-046; ADR 0009.
    * @note data() is nullptr when the allocation failed; callers report allocation_failure.
    */
   class host_buffer

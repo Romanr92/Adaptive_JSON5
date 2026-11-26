@@ -293,7 +293,7 @@ namespace
    *          malformed, overlong and surrogate UTF-8.
    * Act: Write them with put_json_text and in a report's input field.
    * Expect: Escaped strict-JSON strings for well-formed UTF-8 and {"$bytes": [...]} otherwise;
-   *         the result always parses as strict JSON (J5-071, ADR 0007 D2).
+   *         the result always parses as strict JSON (J5-071, ADR 0009 D2).
    */
   TEST(P057_Diagnostics, EscapesArbitraryText)
   {

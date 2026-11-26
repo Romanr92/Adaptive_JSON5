@@ -1,6 +1,6 @@
 # Command-line tool
 
-`adaptive_json5_examples` is the optional host tool for P056–P059 (issue #57, ADR 0007).
+`adaptive_json5_examples` is the optional host tool for P056–P059 (issue #57, ADR 0009).
 It uses the real parser and, when built, the optional schema library; it never
 reimplements parsing. It is host-only and never part of the parser or schema libraries.
 

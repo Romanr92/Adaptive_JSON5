@@ -92,7 +92,7 @@ library was checked to be byte-identical before and after.
 
 ## CLI
 
-Host-only command-line tool under `cli/` (P056–P059, ADR 0007); not part of the parser or schema libraries.
+Host-only command-line tool under `cli/` (P056–P059, ADR 0009); not part of the parser or schema libraries.
 
 | ID | Status | Function | Defined in | Also documented in |
 | --- | --- | --- | --- | --- |

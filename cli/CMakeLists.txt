@@ -1,4 +1,4 @@
-# Host-only command-line tool (P056-P059, ADR 0007). The logic library holds argument
+# Host-only command-line tool (P056-P059, ADR 0009). The logic library holds argument
 # parsing, dispatch and output formatting behind injectable I/O seams; it is linked by the
 # executable and by the units in cli/test. Only the executable touches files.
 # The tool is versioned independently of the library (P059, J5-093).

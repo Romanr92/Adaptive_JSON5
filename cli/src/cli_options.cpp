@@ -260,8 +260,8 @@ namespace adaptive_json5::cli
      * @par ID SWU-CLI-031
      */
     std::optional<argument_error> take_option(options& parsed, std::array<bool, c_options.size()>& seen,
-                                              const option_spec& spec, int argc, const char* const* argv,
-                                              int index) noexcept
+                                              const option_spec& spec, std::int32_t argc, const char* const* argv,
+                                              std::int32_t index) noexcept
     {
       const std::string_view argument{argv[index]};
       const auto slot = static_cast<std::size_t>(spec.id);
@@ -319,7 +319,7 @@ namespace adaptive_json5::cli
    * P056; J5-070.
    * @par ID SWU-CLI-001
    */
-  parsed_arguments parse_arguments(int argc, const char* const* argv) noexcept
+  parsed_arguments parse_arguments(std::int32_t argc, const char* const* argv) noexcept
   {
     if ((argc < 2) || (argv == nullptr))
     {
@@ -334,7 +334,7 @@ namespace adaptive_json5::cli
     options parsed{};
     parsed.selected = *selected;
     std::array<bool, c_options.size()> seen{};
-    int index = 2;
+    std::int32_t index = 2;
     while (index < argc)
     {
       const std::string_view argument{argv[index]};

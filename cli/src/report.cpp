@@ -150,7 +150,9 @@ namespace adaptive_json5::cli
      */
     void put_key(text_writer& out, std::string_view name) noexcept
     {
-      out.put("\"").put(name).put("\": ");
+      out.put("\"");
+      out.put(name);
+      out.put("\": ");
     }
   } // namespace
 
@@ -167,7 +169,8 @@ namespace adaptive_json5::cli
       out.put("{\"$bytes\": [");
       for (std::size_t index = 0U; index < text.size(); ++index)
       {
-        out.put((index == 0U) ? "" : ", ").put_count(byte_at(text, index));
+        out.put((index == 0U) ? "" : ", ");
+        out.put_count(byte_at(text, index));
       }
       out.put("]}");
       return;
@@ -217,7 +220,8 @@ namespace adaptive_json5::cli
   {
     if (m_format == diagnostics_format::json)
     {
-      m_out.put("{\"format\": \"adaptive-json5-diagnostics\", \"version\": ").put_count(c_format_version);
+      m_out.put("{\"format\": \"adaptive-json5-diagnostics\", \"version\": ");
+      m_out.put_count(c_format_version);
       m_out.put(", \"command\": ");
       put_json_text(m_out, command);
       m_out.put(", \"input\": ");
@@ -238,15 +242,25 @@ namespace adaptive_json5::cli
                              (item.kind == category::unsupported) || (item.kind == category::internal);
     if (operational)
     {
-      m_err.put("error: ").put(item.message);
-      m_err.put(m_input.empty() ? "" : ": ").put(m_input).put("\n");
+      m_err.put("error: ");
+      m_err.put(item.message);
+      m_err.put(m_input.empty() ? "" : ": ");
+      m_err.put(m_input);
+      m_err.put("\n");
       return;
     }
-    m_out.put(m_input).put(": ").put(item.message);
+    m_out.put(m_input);
+    m_out.put(": ");
+    m_out.put(item.message);
     if (!item.keyword.empty())
     {
-      m_out.put(" (").put(item.keyword).put(" at \"").put(item.instance_pointer).put("\", schema ");
-      m_out.put(item.schema_pointer).put(")");
+      m_out.put(" (");
+      m_out.put(item.keyword);
+      m_out.put(" at \"");
+      m_out.put(item.instance_pointer);
+      m_out.put("\", schema ");
+      m_out.put(item.schema_pointer);
+      m_out.put(")");
     }
     m_out.put("\n");
   }
@@ -263,7 +277,8 @@ namespace adaptive_json5::cli
     {
       m_out.put(", ");
       put_key(m_out, "line");
-      m_out.put_count(item.position->line).put(", ");
+      m_out.put_count(item.position->line);
+      m_out.put(", ");
       put_key(m_out, "column");
       m_out.put_count(item.position->column);
     }
@@ -302,9 +317,12 @@ namespace adaptive_json5::cli
     }
     m_out.put((m_count == 0U) ? "{" : ", {");
     put_key(m_out, "severity");
-    m_out.put((item.level == severity::error) ? "\"error\"" : "\"warning\"").put(", ");
+    m_out.put((item.level == severity::error) ? "\"error\"" : "\"warning\"");
+    m_out.put(", ");
     put_key(m_out, "category");
-    m_out.put("\"").put(category_name(item.kind)).put("\", ");
+    m_out.put("\"");
+    m_out.put(category_name(item.kind));
+    m_out.put("\", ");
     put_key(m_out, "message");
     put_json_text(m_out, item.message);
     put_details(item);
@@ -318,22 +336,26 @@ namespace adaptive_json5::cli
    * P057; J5-070; J5-071.
    * @par ID SWU-CLI-036
    */
-  int reporter::finish(outcome result, int exit) noexcept
+  std::int32_t reporter::finish(outcome result, std::int32_t exit) noexcept
   {
     if (m_format == diagnostics_format::json)
     {
       constexpr std::array<std::string_view, 3> c_results{{"valid", "invalid", "error"}};
-      m_out.put("], \"result\": \"").put(c_results[static_cast<std::size_t>(result)]).put("\", \"exit\": ");
-      m_out.put_count(static_cast<std::size_t>(exit)).put("}\n");
+      m_out.put("], \"result\": \"");
+      m_out.put(c_results[static_cast<std::size_t>(result)]);
+      m_out.put("\", \"exit\": ");
+      m_out.put_count(static_cast<std::size_t>(exit));
+      m_out.put("}\n");
     }
     else if (result == outcome::valid)
     {
-      m_out.put(m_input).put(": valid\n");
+      m_out.put(m_input);
+      m_out.put(": valid\n");
     }
     else
     {
       // Diagnostics were already written.
     }
-    return (m_out.ok() && m_err.ok()) ? exit : static_cast<int>(exit_failure);
+    return (m_out.ok() && m_err.ok()) ? exit : exit_failure;
   }
 } // namespace adaptive_json5::cli

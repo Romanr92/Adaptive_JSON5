@@ -8,6 +8,7 @@
 #include "cli/report.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace adaptive_json5::cli
@@ -21,7 +22,7 @@ namespace adaptive_json5::cli
    * operational failure.
    * @par ID SWU-CLI-044
    */
-  [[nodiscard]] int run_validate(const options& selected, const environment& host) noexcept;
+  [[nodiscard]] std::int32_t run_validate(const options& selected, const environment& host) noexcept;
 
   /**
    * @brief The capabilities command: a strict-JSON description of commands, syntax modes,
@@ -30,7 +31,7 @@ namespace adaptive_json5::cli
    * P057; P059; J5-069; J5-071.
    * @par ID SWU-CLI-045
    */
-  [[nodiscard]] int run_capabilities(const environment& host) noexcept;
+  [[nodiscard]] std::int32_t run_capabilities(const environment& host) noexcept;
 
   /**
    * @brief The version command: tool and library versions, source revision and whether the
@@ -39,7 +40,7 @@ namespace adaptive_json5::cli
    * P059; J5-093.
    * @par ID SWU-CLI-115
    */
-  [[nodiscard]] int run_version(const environment& host) noexcept;
+  [[nodiscard]] std::int32_t run_version(const environment& host) noexcept;
 
   /**
    * @brief Report a parser failure with category, message and position, and finish the report.
@@ -48,7 +49,8 @@ namespace adaptive_json5::cli
    * @return 1 for invalid input, 2 for limit, allocation or internal failures.
    * @par ID SWU-CLI-076
    */
-  [[nodiscard]] int finish_with_parse_failure(reporter& report, const error& failure, input_view text) noexcept;
+  [[nodiscard]] std::int32_t finish_with_parse_failure(reporter& report, const error& failure,
+                                                       input_view text) noexcept;
 
   /**
    * @brief Report a parser failure of a configuration file (schema, manifest) and finish with
@@ -57,7 +59,8 @@ namespace adaptive_json5::cli
    * P058; J5-070.
    * @par ID SWU-CLI-105
    */
-  [[nodiscard]] int finish_with_configuration_failure(reporter& report, const error& failure, input_view text) noexcept;
+  [[nodiscard]] std::int32_t finish_with_configuration_failure(reporter& report, const error& failure,
+                                                               input_view text) noexcept;
 
   /**
    * @brief Diagnostic category of a parser failure.

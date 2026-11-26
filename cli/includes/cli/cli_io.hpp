@@ -25,7 +25,7 @@ namespace adaptive_json5::cli
   /**
    * @brief Injectable bounded reader for files and standard input ("-").
    * @par Requirements
-   * P056; J5-070; ADR 0007.
+   * P056; J5-070; ADR 0009.
    * @note read fills buffer with at most capacity bytes and sets size; when the input has more
    * bytes it returns too_large. The real adapter is in host_io.cpp; units use fakes.
    */
@@ -62,7 +62,7 @@ namespace adaptive_json5::cli
   /**
    * @brief Everything the tool needs from its host: input, output and memory.
    * @par Requirements
-   * P056; J5-070; ADR 0007.
+   * P056; J5-070; ADR 0009.
    */
   struct environment
   {

@@ -6,6 +6,7 @@
 #include "cli/cli_options.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string_view>
 
@@ -33,7 +34,7 @@ namespace adaptive_json5::cli
    * Unsupported capabilities are reported and never count as passing.
    * @par ID SWU-CLI-080
    */
-  [[nodiscard]] int run_manifest(const options& selected, const environment& host) noexcept;
+  [[nodiscard]] std::int32_t run_manifest(const options& selected, const environment& host) noexcept;
 } // namespace adaptive_json5::cli
 
 #endif /* ADAPTIVE_JSON5_CLI_RUN_COMMAND_HPP_ */

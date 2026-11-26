@@ -9,7 +9,7 @@ namespace adaptive_json5::cli
    * @brief The real host environment: files and standard input through <cstdio>, standard
    * output and error, and malloc-backed storage.
    * @par Requirements
-   * P056; J5-070; ADR 0007 (host-only; heap allowed).
+   * P056; J5-070; ADR 0009 (host-only; heap allowed).
    * @par ID SWU-CLI-023
    */
   [[nodiscard]] environment host_environment() noexcept;

@@ -86,7 +86,7 @@ namespace adaptive_json5::cli
     }
 
     /**
-     * @brief malloc-backed allocation (host tool; ADR 0007).
+     * @brief malloc-backed allocation (host tool; ADR 0009).
      * @par Requirements
      * P056; J5-046.
      * @par ID SWU-CLI-027

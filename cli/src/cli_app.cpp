@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string_view>
 
@@ -27,13 +28,12 @@ namespace adaptive_json5::cli
    * P056; J5-071.
    * @par ID SWU-CLI-011
    */
-  text_writer& text_writer::put(std::string_view text) noexcept
+  void text_writer::put(std::string_view text) noexcept
   {
     if (m_ok && !text.empty())
     {
       m_ok = (m_sink->write != nullptr) && m_sink->write(m_sink->context, m_stream, text);
     }
-    return *this;
   }
 
   /**
@@ -42,7 +42,7 @@ namespace adaptive_json5::cli
    * P056; J5-071.
    * @par ID SWU-CLI-012
    */
-  text_writer& text_writer::put_count(std::size_t value) noexcept
+  void text_writer::put_count(std::size_t value) noexcept
   {
     constexpr std::string_view c_digits{"0123456789"};
     std::array<char, 24> digits{};
@@ -54,7 +54,7 @@ namespace adaptive_json5::cli
       digits[first] = c_digits[rest % 10U];
       rest /= 10U;
     } while (rest != 0U);
-    return put(std::string_view{digits.data() + first, digits.size() - first});
+    put(std::string_view{digits.data() + first, digits.size() - first});
   }
 
   /**
@@ -88,15 +88,18 @@ namespace adaptive_json5::cli
      * P056; J5-070.
      * @par ID SWU-CLI-018
      */
-    int report_arguments(const environment& host, const argument_error& failure) noexcept
+    std::int32_t report_arguments(const environment& host, const argument_error& failure) noexcept
     {
       text_writer err{host.output, output_stream::err};
-      err.put("error: ").put(describe(failure.code));
+      err.put("error: ");
+      err.put(describe(failure.code));
       if (!failure.argument.empty())
       {
-        err.put(": ").put(failure.argument);
+        err.put(": ");
+        err.put(failure.argument);
       }
-      err.put("\n").put(c_usage);
+      err.put("\n");
+      err.put(c_usage);
       return exit_failure;
     }
 
@@ -106,13 +109,15 @@ namespace adaptive_json5::cli
      * P056; J5-070.
      * @par ID SWU-CLI-019
      */
-    int report_failure(const environment& host, std::string_view message, std::string_view subject) noexcept
+    std::int32_t report_failure(const environment& host, std::string_view message, std::string_view subject) noexcept
     {
       text_writer err{host.output, output_stream::err};
-      err.put("error: ").put(message);
+      err.put("error: ");
+      err.put(message);
       if (!subject.empty())
       {
-        err.put(": ").put(subject);
+        err.put(": ");
+        err.put(subject);
       }
       err.put("\n");
       return exit_failure;
@@ -126,7 +131,7 @@ namespace adaptive_json5::cli
    * P056; P057; P058; J5-070.
    * @par ID SWU-CLI-014
    */
-  int run_cli(int argc, const char* const* argv, const environment& host) noexcept
+  std::int32_t run_cli(std::int32_t argc, const char* const* argv, const environment& host) noexcept
   {
     const parsed_arguments arguments = parse_arguments(argc, argv);
     if (!arguments.parsed.has_value())

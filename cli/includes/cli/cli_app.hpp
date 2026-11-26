@@ -4,23 +4,17 @@
 #include "cli/cli_io.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <string_view>
 
 namespace adaptive_json5::cli
 {
-  /**
-   * @brief Process exit codes (J5-070).
-   * @par Requirements
-   * P056; P057; P058; J5-070.
-   * @note validate/inspect: valid, invalid input/assertion/profile, configuration/I/O/operational.
-   * run: every selected supported expectation matched, a mismatch, operational failure.
-   */
-  enum exit_code : int
-  {
-    exit_ok = 0,
-    exit_invalid = 1,
-    exit_failure = 2
-  };
+  // Process exit codes (J5-070; P056, P057, P058).
+  // validate/inspect: valid, invalid input/assertion/profile, configuration/I/O/operational.
+  // run: every selected supported expectation matched, a mismatch, operational failure.
+  constexpr std::int32_t exit_ok = 0;
+  constexpr std::int32_t exit_invalid = 1;
+  constexpr std::int32_t exit_failure = 2;
 
   /**
    * @brief Writes text pieces to one output stream without allocating; remembers write failures.
@@ -49,7 +43,7 @@ namespace adaptive_json5::cli
        * P056; J5-071.
        * @par ID SWU-CLI-011
        */
-      text_writer& put(std::string_view text) noexcept;
+      void put(std::string_view text) noexcept;
 
       /**
        * @brief Write an unsigned decimal number.
@@ -57,7 +51,7 @@ namespace adaptive_json5::cli
        * P056; J5-071.
        * @par ID SWU-CLI-012
        */
-      text_writer& put_count(std::size_t value) noexcept;
+      void put_count(std::size_t value) noexcept;
 
       /**
        * @brief Return false when any write failed.
@@ -71,11 +65,11 @@ namespace adaptive_json5::cli
   /**
    * @brief Run the tool: parse the arguments, dispatch the command and return the exit code.
    * @par Requirements
-   * P056; P057; P058; J5-070; ADR 0007.
+   * P056; P057; P058; J5-070; ADR 0009.
    * @note All input, output and memory go through host; nothing else is touched.
    * @par ID SWU-CLI-014
    */
-  [[nodiscard]] int run_cli(int argc, const char* const* argv, const environment& host) noexcept;
+  [[nodiscard]] std::int32_t run_cli(std::int32_t argc, const char* const* argv, const environment& host) noexcept;
 } // namespace adaptive_json5::cli
 
 #endif /* ADAPTIVE_JSON5_CLI_CLI_APP_HPP_ */

@@ -4,7 +4,7 @@
 /**
  * @brief Entry point of adaptive_json5_examples: run the tool with the real host environment.
  * @par Requirements
- * P056; J5-070; ADR 0007.
+ * P056; J5-070; ADR 0009.
  * @par ID SWU-CLI-029
  */
 int main(int argc, char** argv)

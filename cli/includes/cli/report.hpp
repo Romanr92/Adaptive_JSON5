@@ -81,7 +81,7 @@ namespace adaptive_json5::cli
 
   /**
    * @brief Write a string as a strict-JSON value: an escaped string when it is valid UTF-8,
-   * otherwise {"$bytes": [...]} (ADR 0007 D2).
+   * otherwise {"$bytes": [...]} (ADR 0009 D2).
    * @par Requirements
    * P057; J5-071.
    * @par ID SWU-CLI-033
@@ -92,7 +92,7 @@ namespace adaptive_json5::cli
    * @brief Writes one command's diagnostics as readable text or as a versioned strict-JSON
    * document, without allocating.
    * @par Requirements
-   * P057; J5-070; J5-071; ADR 0007.
+   * P057; J5-070; J5-071; ADR 0009.
    * @note Text: diagnostics on standard output as "<input>: <message>", "<input>: valid" at the
    * end of a valid run, I/O and operational errors on standard error as "error: ...".
    * JSON: one object on standard output with format, version, command, input, diagnostics,
@@ -134,7 +134,7 @@ namespace adaptive_json5::cli
        * P057; J5-070; J5-071.
        * @par ID SWU-CLI-036
        */
-      [[nodiscard]] int finish(outcome result, int exit) noexcept;
+      [[nodiscard]] std::int32_t finish(outcome result, std::int32_t exit) noexcept;
   };
 
   /**

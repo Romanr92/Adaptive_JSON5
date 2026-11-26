@@ -138,7 +138,8 @@ namespace adaptive_json5::cli
     {
       if (value < 0)
       {
-        out.put("-").put_count(static_cast<std::size_t>(0U - static_cast<std::uint64_t>(value)));
+        out.put("-");
+        out.put_count(static_cast<std::size_t>(0U - static_cast<std::uint64_t>(value)));
         return;
       }
       out.put_count(static_cast<std::size_t>(value));
@@ -147,7 +148,7 @@ namespace adaptive_json5::cli
     /**
      * @brief Write a double: shortest round-trip decimal, or {"$number": ...} when non-finite.
      * @par Requirements
-     * P058; J5-071; ADR 0007 D2.
+     * P058; J5-071; ADR 0009 D2.
      * @par ID SWU-CLI-066
      */
     void put_double(text_writer& out, double value) noexcept
@@ -163,7 +164,7 @@ namespace adaptive_json5::cli
         return;
       }
       std::array<char, 40> text{};
-      const int written = std::snprintf(text.data(), text.size(), "%.17g", value);
+      const std::int32_t written = std::snprintf(text.data(), text.size(), "%.17g", value);
       out.put(std::string_view{text.data(), (written > 0) ? static_cast<std::size_t>(written) : 0U});
     }
 
@@ -219,13 +220,18 @@ namespace adaptive_json5::cli
           }
           if (m_format == diagnostics_format::json)
           {
-            m_out.put(", \"line\": ").put_count(located.value_if()->line);
-            m_out.put(", \"column\": ").put_count(located.value_if()->column);
+            m_out.put(", \"line\": ");
+            m_out.put_count(located.value_if()->line);
+            m_out.put(", \"column\": ");
+            m_out.put_count(located.value_if()->column);
           }
           else
           {
-            m_out.put(" (line ").put_count(located.value_if()->line);
-            m_out.put(", column ").put_count(located.value_if()->column).put(")");
+            m_out.put(" (line ");
+            m_out.put_count(located.value_if()->line);
+            m_out.put(", column ");
+            m_out.put_count(located.value_if()->column);
+            m_out.put(")");
           }
         }
 
@@ -246,9 +252,9 @@ namespace adaptive_json5::cli
           }
           else
           {
-            m_out.put(json ? "{\"error\": \"" : "error ")
-              .put(conversion_failure(*as_int.error_if()))
-              .put(json ? "\"}" : "");
+            m_out.put(json ? "{\"error\": \"" : "error ");
+            m_out.put(conversion_failure(*as_int.error_if()));
+            m_out.put(json ? "\"}" : "");
           }
           const auto as_unsigned = to_integer<std::uint64_t>(number);
           m_out.put(json ? ", \"uint64\": " : "; uint64 ");
@@ -258,9 +264,9 @@ namespace adaptive_json5::cli
           }
           else
           {
-            m_out.put(json ? "{\"error\": \"" : "error ")
-              .put(conversion_failure(*as_unsigned.error_if()))
-              .put(json ? "\"}" : "");
+            m_out.put(json ? "{\"error\": \"" : "error ");
+            m_out.put(conversion_failure(*as_unsigned.error_if()));
+            m_out.put(json ? "\"}" : "");
           }
           const auto as_double = to_double(number, m_scratch);
           m_out.put(json ? ", \"double\": " : "; double ");
@@ -271,9 +277,9 @@ namespace adaptive_json5::cli
           else
           {
             m_storage_ok = m_storage_ok && (as_double.error_if()->code() != error_code::allocation_failure);
-            m_out.put(json ? "{\"error\": \"" : "error ")
-              .put(conversion_failure(*as_double.error_if()))
-              .put(json ? "\"}" : "");
+            m_out.put(json ? "{\"error\": \"" : "error ");
+            m_out.put(conversion_failure(*as_double.error_if()));
+            m_out.put(json ? "\"}" : "");
           }
         }
 
@@ -289,7 +295,8 @@ namespace adaptive_json5::cli
           if (kind == value_kind::boolean)
           {
             const auto flag = value.as_boolean();
-            m_out.put(json ? ", \"value\": " : " ").put((flag.has_value() && *flag.value_if()) ? "true" : "false");
+            m_out.put(json ? ", \"value\": " : " ");
+            m_out.put((flag.has_value() && *flag.value_if()) ? "true" : "false");
           }
           else if (kind == value_kind::string)
           {
@@ -307,7 +314,8 @@ namespace adaptive_json5::cli
             const input_view spelling = (*number.value_if())->spelling();
             m_out.put(json ? ", \"spelling\": " : " ");
             put_json_text(m_out, std::string_view{spelling.data, spelling.size});
-            m_out.put(json ? ", \"number_kind\": \"" : " (").put(number_kind_name((*number.value_if())->kind()));
+            m_out.put(json ? ", \"number_kind\": \"" : " (");
+            m_out.put(number_kind_name((*number.value_if())->kind()));
             m_out.put(json ? "\"" : "");
             put_conversions(**number.value_if());
             m_out.put(json ? "" : ")");
@@ -357,7 +365,9 @@ namespace adaptive_json5::cli
           const value_kind known = kind.has_value() ? *kind.value_if() : value_kind::null;
           const bool json = m_format == diagnostics_format::json;
           put_prefix(value, member, depth, first);
-          m_out.put(json ? "\"kind\": \"" : "").put(kind_name(known)).put(json ? "\"" : "");
+          m_out.put(json ? "\"kind\": \"" : "");
+          m_out.put(kind_name(known));
+          m_out.put(json ? "\"" : "");
           put_position(value);
           const bool container = (known == value_kind::array) || (known == value_kind::object);
           if (!container)
@@ -486,11 +496,16 @@ namespace adaptive_json5::cli
         {
           out.put((index == 0U) ? "{\"message\": " : ", {\"message\": ");
           put_json_text(out, line);
-          out.put(", \"byte_offset\": ").put_count(warning.value_if()->byte_offset).put("}");
+          out.put(", \"byte_offset\": ");
+          out.put_count(warning.value_if()->byte_offset);
+          out.put("}");
         }
         else
         {
-          out.put(input).put(": warning: ").put(line).put("\n");
+          out.put(input);
+          out.put(": warning: ");
+          out.put(line);
+          out.put("\n");
         }
       }
     }
@@ -501,8 +516,8 @@ namespace adaptive_json5::cli
      * P058; J5-070; J5-071.
      * @par ID SWU-CLI-078
      */
-    int inspect_failure(const options& selected, const environment& host, category kind,
-                        std::string_view message) noexcept
+    std::int32_t inspect_failure(const options& selected, const environment& host, category kind,
+                                 std::string_view message) noexcept
     {
       reporter failures{host.output, selected.diagnostics, "inspect", selected.input};
       failures.add(diagnostic{severity::error, kind, message});
@@ -525,7 +540,8 @@ namespace adaptive_json5::cli
       for (std::size_t index = 0U; index < text.size(); ++index)
       {
         const auto unit = text.unit_at(index);
-        out.put((index == 0U) ? "" : ", ").put_count(unit.has_value() ? *unit.value_if() : 0U);
+        out.put((index == 0U) ? "" : ", ");
+        out.put_count(unit.has_value() ? *unit.value_if() : 0U);
       }
       out.put("]}");
       return true;
@@ -546,7 +562,7 @@ namespace adaptive_json5::cli
    * P058; J5-041; J5-045; J5-070; J5-071.
    * @par ID SWU-CLI-061
    */
-  int run_inspect(const options& selected, const environment& host) noexcept
+  std::int32_t run_inspect(const options& selected, const environment& host) noexcept
   {
     host_buffer input{host.storage, selected.limits.max_input_bytes};
     if (input.data() == nullptr)
@@ -576,7 +592,8 @@ namespace adaptive_json5::cli
     const bool json = selected.diagnostics == diagnostics_format::json;
     if (json)
     {
-      out.put("{\"format\": \"adaptive-json5-inspection\", \"version\": ").put_count(c_format_version);
+      out.put("{\"format\": \"adaptive-json5-inspection\", \"version\": ");
+      out.put_count(c_format_version);
       out.put(", \"input\": ");
       put_json_text(out, selected.input);
       out.put((*selected.syntax == syntax_mode::json5) ? ", \"syntax\": \"json5\"" : ", \"syntax\": \"json\"");
@@ -593,7 +610,9 @@ namespace adaptive_json5::cli
     if (!walked)
     {
       text_writer err{host.output, output_stream::err};
-      err.put("error: out of memory: ").put(selected.input).put("\n");
+      err.put("error: out of memory: ");
+      err.put(selected.input);
+      err.put("\n");
       return exit_failure;
     }
     return out.ok() ? exit_ok : exit_failure;

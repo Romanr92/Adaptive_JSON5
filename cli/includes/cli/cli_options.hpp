@@ -100,7 +100,7 @@ namespace adaptive_json5::cli
    * P056; J5-070.
    * @par ID SWU-CLI-001
    */
-  [[nodiscard]] parsed_arguments parse_arguments(int argc, const char* const* argv) noexcept;
+  [[nodiscard]] parsed_arguments parse_arguments(std::int32_t argc, const char* const* argv) noexcept;
 
   /**
    * @brief Short human-readable text of an argument error code.

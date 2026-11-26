@@ -7,11 +7,13 @@
 #include "cli/cli_io.hpp"
 #include "cli/cli_options.hpp"
 
+#include <cstdint>
+
 namespace adaptive_json5::cli
 {
   /**
    * @brief Write a decoded string as a strict-JSON value: an escaped string, or
-   * {"$utf16": [units...]} when it holds unpaired surrogates (ADR 0007 D2).
+   * {"$utf16": [units...]} when it holds unpaired surrogates (ADR 0009 D2).
    * @par Requirements
    * P058; J5-071.
    * @return false when scratch storage for the UTF-8 copy could not be allocated.
@@ -28,7 +30,7 @@ namespace adaptive_json5::cli
    * @return 0 parsed; 1 invalid input; 2 I/O, limit or operational failure.
    * @par ID SWU-CLI-061
    */
-  [[nodiscard]] int run_inspect(const options& selected, const environment& host) noexcept;
+  [[nodiscard]] std::int32_t run_inspect(const options& selected, const environment& host) noexcept;
 } // namespace adaptive_json5::cli
 
 #endif /* ADAPTIVE_JSON5_CLI_INSPECT_COMMAND_HPP_ */
