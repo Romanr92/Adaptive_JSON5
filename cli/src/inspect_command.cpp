@@ -255,6 +255,10 @@ namespace adaptive_json5::cli
           m_out.put(json ? ", \"int64\": " : "; int64 ");
           if (as_int.has_value())
           {
+            // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+            // MISRA justification: to_integer<std::int64_t> yields std::int64_t, the parameter type; CodeQL reports
+            // the typedef's underlying type (long on LP64 hosts) as a different type, but no conversion takes place.
+            // codeql::misra_deviation_next_line(DEV-205.13)
             put_signed(m_out, *as_int.value_if());
           }
           else

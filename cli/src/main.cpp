@@ -25,6 +25,10 @@ int main(int argc, char** argv)
     return adaptive_json5::cli::exit_failure;
   }
 #else
+  // MISRA rule: RULE-7-0-6 cpp/misra/numeric-assignment-type-mismatch
+  // MISRA justification: main's int argc is passed to std::int32_t, which is the same type (a typedef of int) on
+  // every supported host; no conversion takes place.
+  // codeql::misra_deviation_next_line(DEV-205.12)
   return adaptive_json5::cli::run_cli(argc, argv, adaptive_json5::cli::host_environment());
 #endif
 }
