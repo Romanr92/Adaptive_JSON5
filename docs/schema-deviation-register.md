@@ -253,59 +253,59 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.208 | `core/src/schema/unicode_property.cpp:37` | `low = middle + 1U;` | 8.20.1 | Accepted |
 | DEV-101.209 | `core/src/schema/unicode_property.cpp:29` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
 | DEV-101.210 | `core/src/schema/format.cpp:573` | `return is_mail_domain(text.substr(at + 1U));` | 8.20.1 | Accepted |
-| DEV-101.211 | `core/src/schema/idna.cpp:767` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Proposed |
-| DEV-101.212 | `core/src/schema/idna.cpp:651` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Proposed |
-| DEV-101.213 | `core/src/schema/idna.cpp:645` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.214 | `core/src/schema/idna.cpp:618` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.215 | `core/src/schema/idna.cpp:527` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.216 | `core/src/schema/normalization.cpp:235` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.217 | `core/src/schema/normalization.cpp:220` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.218 | `core/src/schema/normalization.cpp:197` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.219 | `core/src/schema/normalization.cpp:195` | `++written;` | 8.20.1 | Proposed |
-| DEV-101.220 | `core/src/schema/normalization.cpp:158` | `return first + (second - c_trailing_base);` | 8.20.1 | Proposed |
-| DEV-101.221 | `core/src/schema/normalization.cpp:151` | `((((first - c_leading_base) * c_vowel_count) + (second - c_vowel_base)) * c_trailing_cou...` | 8.20.1 | Proposed |
-| DEV-101.222 | `core/src/schema/normalization.cpp:150` | `return c_hangul_base +` | 8.20.1 | Proposed |
-| DEV-101.223 | `core/src/schema/normalization.cpp:134` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.224 | `core/src/schema/normalization.cpp:57` | `const std::uint32_t index = syllable - c_hangul_base;` | 8.20.1 | Proposed |
-| DEV-101.225 | `core/src/schema/unicode_property.cpp:256` | `low = middle + 1U;` | 8.20.1 | Proposed |
-| DEV-101.226 | `core/src/schema/unicode_property.cpp:247` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
-| DEV-101.227 | `core/src/schema/unicode_property.cpp:225` | `low = middle + 1U;` | 8.20.1 | Proposed |
-| DEV-101.228 | `core/src/schema/unicode_property.cpp:217` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
-| DEV-101.229 | `core/src/schema/format.cpp:953` | `const std::size_t next = index + 1U;` | 8.20.1 | Proposed |
-| DEV-101.230 | `core/src/schema/format.cpp:973` | `const std::uint32_t offset = ((high - 0xD800U) << 10U) | (second - 0xDC00U);` | 8.20.1 | Proposed |
-| DEV-101.231 | `core/src/schema/format.cpp:979` | `const std::uint32_t value = 0x10000U + offset;` | 8.20.1 | Proposed |
-| DEV-101.232 | `core/src/schema/format.cpp:1076` | `index += point.units;` | 8.20.1 | Proposed |
-| DEV-101.233 | `core/src/schema/uts46.cpp:53` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
-| DEV-101.234 | `core/src/schema/uts46.cpp:66` | `low = middle + 1U;` | 8.20.1 | Proposed |
-| DEV-101.235 | `core/src/schema/uts46.cpp:94` | `++state.size;` | 8.20.1 | Proposed |
-| DEV-101.236 | `core/src/schema/uts46.cpp:136` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.237 | `core/src/schema/uts46.cpp:166` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.238 | `core/src/schema/uts46.cpp:193` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.239 | `core/src/schema/uts46.cpp:207` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.240 | `core/src/schema/uts46.cpp:256` | `++state.count;` | 8.20.1 | Proposed |
-| DEV-101.241 | `core/src/schema/uts46.cpp:293` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.242 | `core/src/schema/uts46.cpp:319` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.243 | `core/src/schema/idna.cpp:273` | `++encoder.size;` | 8.20.1 | Proposed |
-| DEV-101.244 | `core/src/schema/idna.cpp:331` | `++basic;` | 8.20.1 | Proposed |
-| DEV-101.245 | `core/src/schema/idna.cpp:338` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.246 | `core/src/schema/idna.cpp:368` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.247 | `core/src/schema/idna.cpp:399` | `q = (q - t) / (c_base - t);` | 8.20.1 | Proposed |
-| DEV-101.248 | `core/src/schema/idna.cpp:405` | `k += c_base;` | 8.20.1 | Proposed |
-| DEV-101.249 | `core/src/schema/idna.cpp:428` | `++encoder.delta;` | 8.20.1 | Proposed |
-| DEV-101.250 | `core/src/schema/idna.cpp:441` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Proposed |
-| DEV-101.251 | `core/src/schema/idna.cpp:449` | `++encoder.handled;` | 8.20.1 | Proposed |
-| DEV-101.252 | `core/src/schema/idna.cpp:460` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.253 | `core/src/schema/idna.cpp:495` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.254 | `core/src/schema/idna.cpp:1056` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Proposed |
-| DEV-101.255 | `core/src/schema/idna.cpp:1062` | `encoder.delta += (smallest - encoder.n) * points;` | 8.20.1 | Proposed |
-| DEV-101.256 | `core/src/schema/idna.cpp:1073` | `++encoder.delta;` | 8.20.1 | Proposed |
-| DEV-101.257 | `core/src/schema/idna.cpp:1079` | `++encoder.n;` | 8.20.1 | Proposed |
-| DEV-101.258 | `core/src/schema/normalization.cpp:307` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.259 | `core/src/schema/normalization.cpp:320` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.260 | `core/src/schema/format.cpp:1109` | `index += point.units;` | 8.20.1 | Proposed |
-| DEV-101.261 | `core/src/schema/format.cpp:1181` | `octets += utf8_octets(code_point);` | 8.20.1 | Proposed |
-| DEV-101.262 | `core/src/schema/format.cpp:1192` | `++index;` | 8.20.1 | Proposed |
-| DEV-101.263 | `core/src/schema/format.cpp:1222` | `return is_idn_domain(code_points, index + 1U, code_points.size(), true);` | 8.20.1 | Proposed |
+| DEV-101.211 | `core/src/schema/idna.cpp:767` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Accepted |
+| DEV-101.212 | `core/src/schema/idna.cpp:651` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Accepted |
+| DEV-101.213 | `core/src/schema/idna.cpp:645` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.214 | `core/src/schema/idna.cpp:618` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.215 | `core/src/schema/idna.cpp:527` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.216 | `core/src/schema/normalization.cpp:235` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.217 | `core/src/schema/normalization.cpp:220` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.218 | `core/src/schema/normalization.cpp:197` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.219 | `core/src/schema/normalization.cpp:195` | `++written;` | 8.20.1 | Accepted |
+| DEV-101.220 | `core/src/schema/normalization.cpp:158` | `return first + (second - c_trailing_base);` | 8.20.1 | Accepted |
+| DEV-101.221 | `core/src/schema/normalization.cpp:151` | `((((first - c_leading_base) * c_vowel_count) + (second - c_vowel_base)) * c_trailing_cou...` | 8.20.1 | Accepted |
+| DEV-101.222 | `core/src/schema/normalization.cpp:150` | `return c_hangul_base +` | 8.20.1 | Accepted |
+| DEV-101.223 | `core/src/schema/normalization.cpp:134` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.224 | `core/src/schema/normalization.cpp:57` | `const std::uint32_t index = syllable - c_hangul_base;` | 8.20.1 | Accepted |
+| DEV-101.225 | `core/src/schema/unicode_property.cpp:256` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.226 | `core/src/schema/unicode_property.cpp:247` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.227 | `core/src/schema/unicode_property.cpp:225` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.228 | `core/src/schema/unicode_property.cpp:217` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.229 | `core/src/schema/format.cpp:953` | `const std::size_t next = index + 1U;` | 8.20.1 | Accepted |
+| DEV-101.230 | `core/src/schema/format.cpp:973` | `const std::uint32_t offset = ((high - 0xD800U) << 10U) | (second - 0xDC00U);` | 8.20.1 | Accepted |
+| DEV-101.231 | `core/src/schema/format.cpp:979` | `const std::uint32_t value = 0x10000U + offset;` | 8.20.1 | Accepted |
+| DEV-101.232 | `core/src/schema/format.cpp:1076` | `index += point.units;` | 8.20.1 | Accepted |
+| DEV-101.233 | `core/src/schema/uts46.cpp:53` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.234 | `core/src/schema/uts46.cpp:66` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.235 | `core/src/schema/uts46.cpp:94` | `++state.size;` | 8.20.1 | Accepted |
+| DEV-101.236 | `core/src/schema/uts46.cpp:136` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.237 | `core/src/schema/uts46.cpp:166` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.238 | `core/src/schema/uts46.cpp:193` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.239 | `core/src/schema/uts46.cpp:207` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.240 | `core/src/schema/uts46.cpp:256` | `++state.count;` | 8.20.1 | Accepted |
+| DEV-101.241 | `core/src/schema/uts46.cpp:293` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.242 | `core/src/schema/uts46.cpp:319` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.243 | `core/src/schema/idna.cpp:273` | `++encoder.size;` | 8.20.1 | Accepted |
+| DEV-101.244 | `core/src/schema/idna.cpp:331` | `++basic;` | 8.20.1 | Accepted |
+| DEV-101.245 | `core/src/schema/idna.cpp:338` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.246 | `core/src/schema/idna.cpp:368` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.247 | `core/src/schema/idna.cpp:399` | `q = (q - t) / (c_base - t);` | 8.20.1 | Accepted |
+| DEV-101.248 | `core/src/schema/idna.cpp:405` | `k += c_base;` | 8.20.1 | Accepted |
+| DEV-101.249 | `core/src/schema/idna.cpp:428` | `++encoder.delta;` | 8.20.1 | Accepted |
+| DEV-101.250 | `core/src/schema/idna.cpp:441` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Accepted |
+| DEV-101.251 | `core/src/schema/idna.cpp:449` | `++encoder.handled;` | 8.20.1 | Accepted |
+| DEV-101.252 | `core/src/schema/idna.cpp:460` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.253 | `core/src/schema/idna.cpp:495` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.254 | `core/src/schema/idna.cpp:1056` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Accepted |
+| DEV-101.255 | `core/src/schema/idna.cpp:1062` | `encoder.delta += (smallest - encoder.n) * points;` | 8.20.1 | Accepted |
+| DEV-101.256 | `core/src/schema/idna.cpp:1073` | `++encoder.delta;` | 8.20.1 | Accepted |
+| DEV-101.257 | `core/src/schema/idna.cpp:1079` | `++encoder.n;` | 8.20.1 | Accepted |
+| DEV-101.258 | `core/src/schema/normalization.cpp:307` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.259 | `core/src/schema/normalization.cpp:320` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.260 | `core/src/schema/format.cpp:1109` | `index += point.units;` | 8.20.1 | Accepted |
+| DEV-101.261 | `core/src/schema/format.cpp:1181` | `octets += utf8_octets(code_point);` | 8.20.1 | Accepted |
+| DEV-101.262 | `core/src/schema/format.cpp:1192` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.263 | `core/src/schema/format.cpp:1222` | `return is_idn_domain(code_points, index + 1U, code_points.size(), true);` | 8.20.1 | Accepted |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 
@@ -363,7 +363,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-102.34 | `core/src/schema/idna.cpp:177` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(input[index]));` | 7.0.3 | Accepted |
 | DEV-102.35 | `core/src/schema/idna.cpp:53` | `const auto unit = static_cast<std::uint32_t>(static_cast<unsigned char>(c));` | 7.0.3 | Accepted |
 | DEV-102.36 | `core/src/schema/regex.cpp:859` | `name[length] = static_cast<char>(c);` | 7.0.3 | Accepted |
-| DEV-102.37 | `core/src/schema/idna.cpp:526` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(label[index]));` | 7.0.3 | Proposed |
+| DEV-102.37 | `core/src/schema/idna.cpp:526` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(label[index]));` | 7.0.3 | Accepted |
 
 ## DEV-103: Rule 5.13.4, empty-brace value-initialization and literals
 
@@ -503,10 +503,10 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-104.40 | `core/src/schema/schema_values.cpp:221` | `struct copy_frame` | 15.0.1 | Accepted |
 | DEV-104.41 | `core/src/schema/regex.cpp` | `struct property_selector` | 15.0.1 | Accepted |
 | DEV-104.42 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_value_name` | 15.0.1 | Accepted |
-| DEV-104.43 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_decomposition` | 15.0.1 | Proposed |
-| DEV-104.44 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_composition` | 15.0.1 | Proposed |
-| DEV-104.45 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct uts46_entry` | 15.0.1 | Proposed |
-| DEV-104.46 | `core/src/schema/format.cpp:926` | `struct code_point_read` | 15.0.1 | Proposed |
+| DEV-104.43 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_decomposition` | 15.0.1 | Accepted |
+| DEV-104.44 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_composition` | 15.0.1 | Accepted |
+| DEV-104.45 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct uts46_entry` | 15.0.1 | Accepted |
+| DEV-104.46 | `core/src/schema/format.cpp:926` | `struct code_point_read` | 15.0.1 | Accepted |
 
 ## DEV-105: Rule 9.5.1, counting loops
 
