@@ -38,7 +38,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-358 | SWU-SCHEMA-359 |
+| SCHEMA | SWU-SCHEMA-398 | SWU-SCHEMA-399 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -875,6 +875,46 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0009); not part of th
 | SWU-SCHEMA-356 | used | `(anonymous)::valid_percent_escapes(std::string_view)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-357 | used | `(anonymous)::ascii_of(std::uint32_t)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-358 | used | `(anonymous)::is_ecma_group_prefix(const regex_builder &)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-359 | used | `detail::general_category_mask(std::string_view)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-360 | used | `detail::script_number(std::string_view)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-361 | used | `detail::general_category_bit(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-362 | used | `detail::script_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-363 | used | `detail::joining_type_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-364 | used | `detail::is_virama(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-365 | used | `detail::idna_property_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-366 | used | `(anonymous)::find_name<N>(const std::array<unicode_value_name, N> &, std::string_view)` | `core/src/schema/unicode_property.cpp` | — |
+| SWU-SCHEMA-367 | used | `(anonymous)::find_range<N>(const std::array<unicode_value_range, N> &, std::uint32_t)` | `core/src/schema/unicode_property.cpp` | — |
+| SWU-SCHEMA-368 | used | `(anonymous)::control_letter(regex_builder &, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-369 | used | `(anonymous)::selects(const property_selector &, std::uint32_t)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-370 | used | `(anonymous)::add_run(regex_builder &, std::size_t, std::uint32_t, std::uint32_t)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-371 | used | `(anonymous)::append_table<N>(regex_builder &, const std::array<unicode_value_range, N> &, const property_selector &, bool, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-372 | used | `(anonymous)::append_selection(regex_builder &, const property_selector &, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-373 | used | `(anonymous)::lone_property(const regex_builder &, std::string_view)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-374 | used | `(anonymous)::named_property(const regex_builder &, std::string_view, std::string_view)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-375 | used | `(anonymous)::read_property_text(regex_builder &, std::array<char, c_max_property_name> &, std::size_t &)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-376 | used | `(anonymous)::append_property(regex_builder &, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-377 | used | `detail::punycode_decode(std::string_view, std::array<std::uint32_t, c_max_label_code_points> &)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-378 | used | `detail::is_a_label(std::string_view)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-379 | used | `(anonymous)::digit_value(char)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-380 | used | `(anonymous)::adapt(std::uint32_t, std::uint32_t, bool)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-381 | used | `(anonymous)::threshold(std::uint32_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-382 | used | `(anonymous)::read_delta(std::string_view, std::size_t &, std::uint32_t, std::uint32_t &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-383 | used | `(anonymous)::insert_at(label_buffer &, std::size_t, std::size_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-384 | used | `(anonymous)::copy_basic(std::string_view, label_buffer &, std::size_t &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-385 | used | `(anonymous)::is_invalid_code_point(std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-386 | used | `(anonymous)::has_script(const label_buffer &, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-387 | used | `(anonymous)::has_range(const label_buffer &, std::size_t, std::uint32_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-388 | used | `(anonymous)::script_at(const label_buffer &, std::size_t, std::size_t, std::string_view)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-389 | used | `(anonymous)::joins(std::uint32_t, joining_type)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-390 | used | `(anonymous)::zero_width_non_joiner_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-391 | used | `(anonymous)::contextj_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-392 | used | `(anonymous)::contexto_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-393 | used | `(anonymous)::is_u_label(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-394 | used | `(anonymous)::has_ace_prefix(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-395 | used | `(anonymous)::digit_context_allowed(const label_buffer &, std::size_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-396 | used | `(anonymous)::katakana_dot_allowed(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-397 | used | `(anonymous)::has_u_label_shape(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-398 | used | `(anonymous)::code_point_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
 
 ## UNICODE
 

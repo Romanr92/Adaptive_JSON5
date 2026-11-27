@@ -4406,6 +4406,10 @@
         {
           "files": ["core/src/schema/assertions.cpp"],
           "symbols": ["code_points", "check_string"]
+        },
+        {
+          "files": ["core/includes/schema/unicode_property.hpp", "core/src/schema/unicode_property.cpp", "core/includes/schema/unicode_properties.hpp"],
+          "symbols": ["general_category_mask", "script_number", "general_category_bit", "script_of"]
         }
       ],
       "tests": [
@@ -4422,6 +4426,18 @@
           "names": [
             "P049_PatternEdges.FollowEcma262",
             "P049_UnpairedUnits.FollowTheInstancePolicy"
+          ]
+        },
+        {
+          "file": "core/tests/schema/unicode_idna_tests.cpp",
+          "names": [
+            "P187_UnicodeProperties.LookUpCodePoints"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.PropertySetsAreChargedToCompileSteps"
           ]
         }
       ]
@@ -4903,6 +4919,10 @@
         {
           "files": ["core/includes/schema/format.hpp", "core/src/schema/format.cpp", "includes/adaptive_json5/schema/compiled_schema.hpp", "core/src/schema/schema_compiler.cpp"],
           "symbols": ["check_format", "format_from_name", "format_assertion_supported", "compile_format"]
+        },
+        {
+          "files": ["core/includes/schema/idna.hpp", "core/src/schema/idna.cpp"],
+          "symbols": ["punycode_decode", "is_a_label"]
         }
       ],
       "tests": [
@@ -4918,6 +4938,13 @@
             "J5_069_FormatAssertion.ChecksTheSupportedSet",
             "J5_069_FormatOptions.UnsupportedAndNonApplicable",
             "J5_069_FormatOptions.BudgetAndStorageFailures"
+          ]
+        },
+        {
+          "file": "core/tests/schema/unicode_idna_tests.cpp",
+          "names": [
+            "P187_Punycode.DecodesAndRejects",
+            "P187_ALabels.FollowIdna2008"
           ]
         },
         {

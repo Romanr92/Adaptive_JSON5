@@ -5,6 +5,7 @@
 #include "adaptive_json5/schema/compiled_schema.hpp"
 #include "adaptive_json5/schema/schema_error.hpp"
 #include "adaptive_json5/value/decoded_string.hpp"
+#include "schema/idna.hpp"
 #include "schema/pod_vector.hpp"
 #include "schema/regex.hpp"
 #include "schema/regex_program.hpp"
@@ -309,9 +310,22 @@ namespace adaptive_json5::detail
     }
 
     /**
-     * @brief RFC 1123 host name: dot-separated labels of letters, digits and inner hyphens.
+     * @brief Report whether a label starts with the ACE prefix "xn--" (ASCII case-insensitive).
      * @par Requirements
-     * J5-069; RFC 1123 section 2.1.
+     * J5-069; RFC 5890 section 2.3.2.1; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-394
+     */
+    bool has_ace_prefix(std::string_view label) noexcept
+    {
+      return (label.size() >= 4U) && is_one_of(label[0U], "xX") && is_one_of(label[1U], "nN") &&
+             (label.substr(2U, 2U) == "--");
+    }
+
+    /**
+     * @brief RFC 1123 host name: dot-separated labels of letters, digits and inner hyphens; a label
+     * with the ACE prefix must be a valid IDNA2008 A-label.
+     * @par Requirements
+     * J5-069; RFC 1123 section 2.1; RFC 5891 section 5.4; ADR 0006 (issue #187).
      * @par ID SWU-SCHEMA-330
      */
     bool is_hostname(std::string_view text) noexcept
@@ -327,6 +341,11 @@ namespace adaptive_json5::detail
         const std::string_view label = rest.substr(0U, dot);
         if (!only(label, c_label) || (label.size() > c_max_label) || is_one_of(label.front(), "-") ||
             is_one_of(label.back(), "-"))
+        {
+          return false;
+        }
+        const bool a_label_ok = has_ace_prefix(label) ? is_a_label(label) : true;
+        if (!a_label_ok)
         {
           return false;
         }
@@ -546,8 +565,17 @@ namespace adaptive_json5::detail
       const std::string_view local = text.substr(0U, at);
       const bool dot_atom = only(local, c_local) && !is_one_of(local.front(), ".") && !is_one_of(local.back(), ".") &&
                             (local.find("..") == std::string_view::npos);
-      return (local.size() <= c_max_local_part) && (dot_atom || is_quoted_local(local)) &&
-             is_mail_domain(text.substr(at + 1U));
+      const bool quoted = dot_atom ? false : is_quoted_local(local);
+      if ((local.size() > c_max_local_part) || (!dot_atom && !quoted))
+      {
+        return false;
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.210)
+      return is_mail_domain(text.substr(at + 1U));
     }
 
     /**

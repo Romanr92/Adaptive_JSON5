@@ -204,6 +204,8 @@ def build():
                    for first, last, value in ranges_of(derived, set(IDNA_VALUES))]
     return {
         "categories": [fields[0] for fields in categories],
+        "unassigned_mask": 1 << index["Cn"],
+        "script_unknown": script_index["Unknown"],
         "gc_names": sorted(gc_names),
         "gc_ranges": gc_ranges,
         "script_count": len(scripts),
@@ -219,7 +221,7 @@ def build():
 def table(lines, name, brief, element, rows, note):
     """Append one constexpr array, one row per line."""
     lines += ["", "    /**", f"     * @brief {brief}", "     * @par Requirements",
-              "     * J5-061; J5-062; ADR 0006 (issue #187).", f"     * @note {note}", "     */",
+              "     * J5-060; J5-069; ADR 0006 (issue #187).", f"     * @note {note}", "     */",
               f"    inline constexpr std::array<{element}, {len(rows)}> {name} =", "    {{"]
     lines.extend("      " + row + "," for row in rows)
     lines.append("    }};")
@@ -240,7 +242,7 @@ def render(tables, manifest):
               "  /**",
               "   * @brief Inclusive code point range with one property value.",
               "   * @par Requirements",
-              "   * J5-061; J5-062; ADR 0006 (issue #187).",
+              "   * J5-060; J5-069; ADR 0006 (issue #187).",
               "   */",
               "  struct unicode_value_range",
               "  {",
@@ -252,8 +254,12 @@ def render(tables, manifest):
               "  /**",
               "   * @brief A property value name and its value (a category bit mask or a script number).",
               "   * @par Requirements",
-              "   * J5-061; ADR 0006 (issue #187).",
+              "   * J5-060; ADR 0006 (issue #187).",
               "   */",
+              "  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit",
+              "  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only",
+              "  // set they need; the implicitly provided members are the intended ones.",
+              "  // codeql::misra_deviation_next_line(DEV-104.42)",
               "  struct unicode_value_name",
               "  {",
               "      std::string_view name;",
@@ -263,7 +269,7 @@ def render(tables, manifest):
               "  /**",
               "   * @brief IDNA2008 derived property values stored in c_idna_ranges (RFC 5892 section 3).",
               "   * @par Requirements",
-              "   * J5-062; ADR 0006 (issue #187).",
+              "   * J5-069; ADR 0006 (issue #187).",
               "   */",
               "  enum class idna_property : std::uint8_t",
               "  {",
@@ -275,7 +281,7 @@ def render(tables, manifest):
               "  /**",
               "   * @brief Joining_Type values stored in c_joining_type_ranges (U is implicit).",
               "   * @par Requirements",
-              "   * J5-062; ADR 0006 (issue #187).",
+              "   * J5-069; ADR 0006 (issue #187).",
               "   */",
               "  enum class joining_type : std::uint8_t",
               "  {",
@@ -284,6 +290,10 @@ def render(tables, manifest):
               "",
               '  inline constexpr std::string_view c_schema_unicode_version = "17.0.0";',
               f"  inline constexpr std::uint32_t c_script_count = {tables['script_count']}U;",
+              "  // Category bit of Cn (unassigned code points are not listed in c_general_category_ranges).",
+              f"  inline constexpr std::uint32_t c_unassigned_category_mask = 0x{tables['unassigned_mask']:08X}U;",
+              "  // Script number of Unknown (Zzzz), the script of code points not listed in c_script_ranges.",
+              f"  inline constexpr std::uint32_t c_unknown_script = {tables['script_unknown']}U;",
               "",
               "  // Keep one entry per line for reproducible generation and review.",
               "  // clang-format off"]

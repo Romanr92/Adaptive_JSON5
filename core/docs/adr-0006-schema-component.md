@@ -554,7 +554,7 @@ J5-069, J5-096):
 
 ## Optional draft7 conformance (issue #187)
 
-Decided by the owner on 2026-11-27 for issue #187 (J5-061, J5-062, J5-096). This section
+Decided by the owner on 2026-11-27 for issue #187 (J5-060, J5-069, J5-096). This section
 supersedes the `\p` and `\c` rule of the assertion-keyword section above:
 
 - **Control escapes.** `\cX` with an ASCII letter X matches the code point `X % 32`. `\c`
@@ -562,13 +562,19 @@ supersedes the `\p` and `\c` rule of the assertion-keyword section above:
   accepted `\a` identity escape.
 - **Unicode property escapes.** `\p{…}` and `\P{…}` (negated), inside and outside classes,
   accept General_Category values by short or long name and the lone forms (`L`, `Letter`,
-  `Nd`, `digit`, …), the `gc=`/`General_Category=` forms and `Script=`/`sc=` script names.
-  An unknown name is `invalid_pattern`. Matching uses one pinned Unicode version.
+  `Nd`, `digit`, …), the `gc=`/`General_Category=` forms, `Script=`/`sc=` script names and
+  the binary properties `Any`, `ASCII` and `Assigned`. Other ECMA-262 binary properties and
+  `Script_Extensions` return `unsupported_pattern`; an unknown name is `invalid_pattern`.
+  Matching uses one pinned Unicode version, and every range a property set adds is charged
+  to `max_compile_steps`.
 - **IDN host names.** With `assert_format`, `hostname` also validates A-labels (`xn--`):
-  RFC 3492 Punycode decoding with overflow checks, then IDNA2008 (RFC 5891, 5892, 5893
-  context rules): every code point must be PVALID or satisfy its CONTEXTJ/CONTEXTO rule,
-  a label must not start with a combining mark, and a U-label must not have `--` in
-  positions 3–4. Plain labels keep the RFC 1123 rules.
+  RFC 3492 Punycode decoding with overflow checks, then IDNA2008 (RFC 5891 section 5.4,
+  RFC 5892 with its Appendix A context rules): the U-label must not be all ASCII, every
+  code point must be PVALID or satisfy its CONTEXTJ/CONTEXTO rule, a label must not start
+  with a combining mark, and a U-label must not have `-` at either end or `--` in positions
+  3–4. The RFC 5893 Bidi rule and the NFC check of RFC 5891 section 5.4 are not applied
+  (documented gaps; no draft7 test depends on them, and NFC needs normalization tables the
+  component does not carry). Plain labels keep the RFC 1123 rules.
 - **Unicode data.** Unicode 17.0.0, the version of the parser's identifier tables. A
   separate generator (`tools/generate_schema_unicode_tables.py`) builds constexpr range
   tables for General_Category, Script, Joining_Type, Virama (combining class 9) and the

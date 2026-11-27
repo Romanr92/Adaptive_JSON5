@@ -136,7 +136,36 @@ namespace
       pattern_case{"nul_escape", "^\\\\0$", "\\u0000", true}, pattern_case{"identity_escape", "^\\\\/$", "/", true},
       pattern_case{"astral_literal", "^😀+$", "😀😀", true}, pattern_case{"astral_class", "^[😀-😂]$", "😁", true},
       pattern_case{"nested_star", "^(a*)*b$", "aaab", true}, pattern_case{"nested_star_no", "^(a*)*b$", "aaaa", false},
-      pattern_case{"pathological", "^(a|a)*b$", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac", false}),
+      pattern_case{"pathological", "^(a|a)*b$", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac", false},
+      pattern_case{"control_upper", "^\\\\cJ$", "\\n", true}, pattern_case{"control_lower", "^\\\\cj$", "\\n", true},
+      pattern_case{"control_annex_b", "^\\\\c1$", "\\\\c1", true},
+      pattern_case{"control_at_end", "\\\\c$", "\\\\c", true},
+      pattern_case{"control_class_digit", "^[\\\\c1]$", "\\u0011", true},
+      pattern_case{"control_class_underscore", "^[\\\\c_]$", "\\u001f", true},
+      pattern_case{"property_letter", "^\\\\p{L}+$", "école", true},
+      pattern_case{"property_letter_no", "^\\\\p{L}$", "1", false},
+      pattern_case{"property_long_name", "^\\\\p{Letter}cole$", "école", true},
+      pattern_case{"property_digit", "^\\\\p{digit}+$", "٢٣", true},
+      pattern_case{"property_negated", "^\\\\P{L}+$", "123", true},
+      pattern_case{"property_negated_no", "^\\\\P{L}$", "a", false},
+      pattern_case{"property_gc_form", "^\\\\p{gc=Lu}$", "A", true},
+      pattern_case{"property_gc_form_no", "^\\\\p{General_Category=Lu}$", "a", false},
+      pattern_case{"property_script", "^\\\\p{Script=Greek}+$", "αβ", true},
+      pattern_case{"property_script_no", "^\\\\p{sc=Grek}$", "a", false},
+      pattern_case{"property_in_class", "^[\\\\p{Nd}a]+$", "a1a", true},
+      pattern_case{"property_negated_class", "^[^\\\\p{L}]$", "1", true},
+      pattern_case{"property_negated_class_no", "^[^\\\\p{L}]$", "x", false},
+      pattern_case{"property_any", "^\\\\p{Any}$", "😀", true},
+      pattern_case{"property_not_any", "^\\\\P{Any}$", "a", false},
+      pattern_case{"property_ascii", "^\\\\p{ASCII}+$", "abc", true},
+      pattern_case{"property_ascii_no", "^\\\\p{ASCII}$", "é", false},
+      pattern_case{"property_not_ascii", "^\\\\P{ASCII}$", "é", true},
+      pattern_case{"property_assigned_no", "^\\\\p{Assigned}$", "\\u0378", false},
+      pattern_case{"property_unassigned", "^\\\\p{Cn}$", "\\u0378", true},
+      pattern_case{"property_other_group", "^\\\\p{C}$", "\\u0378", true},
+      pattern_case{"property_unknown_script", "^\\\\p{sc=Zzzz}$", "\\u0378", true},
+      pattern_case{"property_not_unknown_script", "^\\\\P{sc=Unknown}$", "a", true},
+      pattern_case{"property_last_code_point", "^\\\\p{Co}$", "\\udbff\\udffd", true}),
     [](const testing::TestParamInfo<pattern_case>& param_info)
     {
       return std::string{param_info.param.name};
@@ -154,24 +183,38 @@ namespace
         const char* pattern;
         invalid_schema_reason reason;
     };
-    for (const error_case& entry : {error_case{"(", invalid_schema_reason::invalid_pattern},
-                                    error_case{"a)", invalid_schema_reason::invalid_pattern},
-                                    error_case{"[a", invalid_schema_reason::invalid_pattern},
-                                    error_case{"*a", invalid_schema_reason::invalid_pattern},
-                                    error_case{"a**", invalid_schema_reason::invalid_pattern},
-                                    error_case{"^*", invalid_schema_reason::invalid_pattern},
-                                    error_case{"a{3,2}", invalid_schema_reason::invalid_pattern},
-                                    error_case{"[z-a]", invalid_schema_reason::invalid_pattern},
-                                    error_case{"a\\\\", invalid_schema_reason::invalid_pattern},
-                                    error_case{"(a)\\\\1", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"(?=a)", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"(?!a)", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"(?<=a)b", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"(?<name>a)", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"\\\\p{L}", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"\\\\cA", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"[\\\\B]", invalid_schema_reason::unsupported_pattern},
-                                    error_case{"\\\\01", invalid_schema_reason::unsupported_pattern}})
+    for (const error_case& entry :
+         {error_case{"(", invalid_schema_reason::invalid_pattern},
+          error_case{"a)", invalid_schema_reason::invalid_pattern},
+          error_case{"[a", invalid_schema_reason::invalid_pattern},
+          error_case{"*a", invalid_schema_reason::invalid_pattern},
+          error_case{"a**", invalid_schema_reason::invalid_pattern},
+          error_case{"^*", invalid_schema_reason::invalid_pattern},
+          error_case{"a{3,2}", invalid_schema_reason::invalid_pattern},
+          error_case{"[z-a]", invalid_schema_reason::invalid_pattern},
+          error_case{"a\\\\", invalid_schema_reason::invalid_pattern},
+          error_case{"(a)\\\\1", invalid_schema_reason::unsupported_pattern},
+          error_case{"(?=a)", invalid_schema_reason::unsupported_pattern},
+          error_case{"(?!a)", invalid_schema_reason::unsupported_pattern},
+          error_case{"(?<=a)b", invalid_schema_reason::unsupported_pattern},
+          error_case{"(?<name>a)", invalid_schema_reason::unsupported_pattern},
+          error_case{"\\\\p{Bogus}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\pL", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{L", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{é}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{gc=Bogus}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{sc=Bogus}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{Foo=Bar}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{scx=Bogus}", invalid_schema_reason::invalid_pattern},
+          error_case{"\\\\p{Alphabetic}", invalid_schema_reason::unsupported_pattern},
+          error_case{"\\\\p{White_Space}", invalid_schema_reason::unsupported_pattern},
+          error_case{"\\\\p{scx=Greek}", invalid_schema_reason::unsupported_pattern},
+          error_case{"\\\\p{Script_Extensions=Greek}", invalid_schema_reason::unsupported_pattern},
+          error_case{"[\\\\B]", invalid_schema_reason::unsupported_pattern},
+          error_case{"\\\\01", invalid_schema_reason::unsupported_pattern}})
     {
       const std::string schema = std::string{R"({"pattern": ")"} + entry.pattern + "\"}";
       const auto outcome = run_schema(schema, R"("x")");
@@ -182,6 +225,9 @@ namespace
               std::optional<invalid_schema_reason>{invalid_schema_reason::keyword_shape});
     EXPECT_EQ(run_schema(R"({"pattern": "a{1000000}"})", R"("x")").error,
               std::optional<schema_error_code>{schema_error_code::resource_limit});
+    const std::string long_name = R"({"pattern": "\\p{)" + std::string(70U, 'L') + "}\"}";
+    EXPECT_EQ(run_schema(long_name, R"("x")").reason,
+              std::optional<invalid_schema_reason>{invalid_schema_reason::invalid_pattern});
   }
 
   /*

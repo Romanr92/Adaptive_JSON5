@@ -72,7 +72,7 @@ namespace adaptive_json5::detail
   /**
    * @brief Inclusive code point range with one property value.
    * @par Requirements
-   * J5-061; J5-062; ADR 0006 (issue #187).
+   * J5-060; J5-069; ADR 0006 (issue #187).
    */
   struct unicode_value_range
   {
@@ -84,8 +84,12 @@ namespace adaptive_json5::detail
   /**
    * @brief A property value name and its value (a category bit mask or a script number).
    * @par Requirements
-   * J5-061; ADR 0006 (issue #187).
+   * J5-060; ADR 0006 (issue #187).
    */
+  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only
+  // set they need; the implicitly provided members are the intended ones.
+  // codeql::misra_deviation_next_line(DEV-104.42)
   struct unicode_value_name
   {
       std::string_view name;
@@ -95,7 +99,7 @@ namespace adaptive_json5::detail
   /**
    * @brief IDNA2008 derived property values stored in c_idna_ranges (RFC 5892 section 3).
    * @par Requirements
-   * J5-062; ADR 0006 (issue #187).
+   * J5-069; ADR 0006 (issue #187).
    */
   enum class idna_property : std::uint8_t
   {
@@ -107,7 +111,7 @@ namespace adaptive_json5::detail
   /**
    * @brief Joining_Type values stored in c_joining_type_ranges (U is implicit).
    * @par Requirements
-   * J5-062; ADR 0006 (issue #187).
+   * J5-069; ADR 0006 (issue #187).
    */
   enum class joining_type : std::uint8_t
   {
@@ -120,6 +124,10 @@ namespace adaptive_json5::detail
 
   inline constexpr std::string_view c_schema_unicode_version = "17.0.0";
   inline constexpr std::uint32_t c_script_count = 176U;
+  // Category bit of Cn (unassigned code points are not listed in c_general_category_ranges).
+  inline constexpr std::uint32_t c_unassigned_category_mask = 0x00000004U;
+  // Script number of Unknown (Zzzz), the script of code points not listed in c_script_ranges.
+  inline constexpr std::uint32_t c_unknown_script = 175U;
 
   // Keep one entry per line for reproducible generation and review.
   // clang-format off
@@ -127,7 +135,7 @@ namespace adaptive_json5::detail
     /**
      * @brief General_Category of every assigned code point (value: category number).
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted, disjoint; unlisted code points are Cn. Numbers: 0 Cc, 1 Cf, 2 Cn, 3 Co, 4 Cs, 5 Ll, 6 Lm, 7 Lo, 8 Lt, 9 Lu, 10 Mc, 11 Me, 12 Mn, 13 Nd, 14 Nl, 15 No, 16 Pc, 17 Pd, 18 Pe, 19 Pf, 20 Pi, 21 Po, 22 Ps, 23 Sc, 24 Sk, 25 Sm, 26 So, 27 Zl, 28 Zp, 29 Zs.
      */
     inline constexpr std::array<unicode_value_range, 3409> c_general_category_ranges =
@@ -3546,7 +3554,7 @@ namespace adaptive_json5::detail
     /**
      * @brief General_Category value names and aliases with their category bit masks.
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted by name for binary search; group names (L, LC, M, N, P, S, Z, C) set several bits.
      */
     inline constexpr std::array<unicode_value_name, 80> c_general_category_names =
@@ -3636,7 +3644,7 @@ namespace adaptive_json5::detail
     /**
      * @brief Script of every code point listed in Scripts.txt (value: script number).
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted, disjoint; unlisted code points have the script Unknown (Zzzz).
      */
     inline constexpr std::array<unicode_value_range, 984> c_script_ranges =
@@ -4630,7 +4638,7 @@ namespace adaptive_json5::detail
     /**
      * @brief Script names and aliases with their script numbers.
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted by name for binary search.
      */
     inline constexpr std::array<unicode_value_name, 354> c_script_names =
@@ -4994,7 +5002,7 @@ namespace adaptive_json5::detail
     /**
      * @brief Joining_Type D, L, R, T and C (value: joining_type).
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted, disjoint; unlisted code points are U (non-joining).
      */
     inline constexpr std::array<unicode_value_range, 529> c_joining_type_ranges =
@@ -5533,7 +5541,7 @@ namespace adaptive_json5::detail
     /**
      * @brief Code points with Canonical_Combining_Class 9 (Virama).
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted, disjoint.
      */
     inline constexpr std::array<unicode_value_range, 58> c_virama_ranges =
@@ -5601,7 +5609,7 @@ namespace adaptive_json5::detail
     /**
      * @brief IDNA2008 derived property PVALID, CONTEXTJ or CONTEXTO (value: idna_property).
      * @par Requirements
-     * J5-061; J5-062; ADR 0006 (issue #187).
+     * J5-060; J5-069; ADR 0006 (issue #187).
      * @note Sorted, disjoint; unlisted code points are DISALLOWED or UNASSIGNED (RFC 5892 section 3).
      */
     inline constexpr std::array<unicode_value_range, 1244> c_idna_ranges =

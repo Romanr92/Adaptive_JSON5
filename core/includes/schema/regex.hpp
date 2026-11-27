@@ -29,11 +29,13 @@ namespace adaptive_json5::detail
    * @param step_limit Inclusive max_compile_steps.
    * @param span Source range of the pattern string, for errors.
    * @return The program as a range of the instruction table, or invalid_schema (invalid_pattern)
-   * for malformed patterns, invalid_schema (unsupported_pattern) for backreferences,
-   * lookaround, named groups and other unsupported features, resource_limit
+   * for malformed patterns and unknown property names, invalid_schema (unsupported_pattern) for
+   * backreferences, lookaround, named groups, other binary properties and Script_Extensions, resource_limit
    * (max_compile_steps) or a storage failure.
-   * @note Supported: literals and escapes (\t \n \v \f \r \0 \xHH \uHHHH, identity escapes),
-   * `.`, classes with ranges, negation and \d \D \w \W \s \S, ^ $ \b \B, groups and (?:...),
+   * @note Supported: literals and escapes (\t \n \v \f \r \0 \xHH \uHHHH, \cX, identity escapes),
+   * `.`, classes with ranges, negation and \d \D \w \W \s \S, Unicode property escapes \p{...}
+   * and \P{...} (General_Category, Script, Any, ASCII, Assigned; Unicode 17.0.0; issue #187),
+   * ^ $ \b \B, groups and (?:...),
    * alternation, * + ? {n} {n,} {n,m} and their lazy forms. `{` that does not start a valid
    * quantifier and unmatched `]` or `}` are literals (ECMA-262 Annex B). Matching works on
    * code points, so `.` matches one code point, also an astral one. No recursion.
