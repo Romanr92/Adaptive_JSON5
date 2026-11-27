@@ -11,7 +11,6 @@
 #include "adaptive_json5/value/string_warning.hpp"
 
 #include <cstddef>
-#include <cstdint>
 #include <gtest/gtest.h>
 #include <optional>
 #include <string>
@@ -156,7 +155,7 @@ namespace
   };
 
   /** @brief Name a word case for parameterized test output. */
-  std::ostream& operator<<(std::ostream& stream, const word_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const word_case& value)
   {
     return stream << value.name;
   }
@@ -253,7 +252,7 @@ namespace
   };
 
   /** @brief Name a limit case for parameterized test output. */
-  std::ostream& operator<<(std::ostream& stream, const limit_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const limit_case& value)
   {
     return stream << value.name;
   }
@@ -445,7 +444,7 @@ namespace
   };
 
   /** @brief Name a diagnostics case for parameterized test output. */
-  std::ostream& operator<<(std::ostream& stream, const diagnostics_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const diagnostics_case& value)
   {
     return stream << value.name;
   }

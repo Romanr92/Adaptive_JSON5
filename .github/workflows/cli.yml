@@ -1,0 +1,38 @@
+name: CLI smoke tests
+
+# Builds adaptive_json5_examples with and without the schema component and runs it on known
+# files (cli/test/smoke_cases.json): valid JSON5, valid JSON in both modes, JSON5 rejected in
+# strict mode, invalid input with a known error and position, JSON diagnostics, inspect,
+# schema validation (with schema) or the unavailable-schema report (without), and the example
+# manifest. Exit codes and output must match cli/test/expected exactly.
+
+on:
+  pull_request:
+
+concurrency:
+  group: cli-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cli-smoke:
+    name: CLI smoke tests (${{ matrix.preset }})
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [cli, cli-no-schema]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Configure the command-line tool
+        run: cmake --preset ${{ matrix.preset }}
+      # A named target makes the job fail if the executable is missing.
+      - name: Build adaptive_json5_examples
+        run: cmake --build --preset ${{ matrix.preset }} --parallel --target adaptive_json5_examples
+      - name: Run the CLI on known files and compare with the expected output
+        run: ctest --preset ${{ matrix.preset }}

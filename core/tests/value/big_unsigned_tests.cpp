@@ -127,7 +127,7 @@ namespace
       std::size_t bits;    // Expected significant bit count.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const bit_length_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const bit_length_case& value)
   {
     return stream << value.name;
   }
@@ -148,7 +148,7 @@ namespace
       std::uint32_t radix; // Requested spelling base.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const invalid_digit_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const invalid_digit_case& value)
   {
     return stream << value.name;
   }
@@ -170,7 +170,7 @@ namespace
       magnitude_order expected; // Expected ordering of left relative to right.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const compare_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const compare_case& value)
   {
     return stream << value.name;
   }
@@ -193,7 +193,7 @@ namespace
       std::size_t length;   // Expected significant bit count after shifting.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const shift_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const shift_case& value)
   {
     return stream << value.name;
   }
@@ -749,7 +749,7 @@ namespace
       double expected;                   // Expected value when produced; NaN means any NaN.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const special_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const special_case& value)
   {
     return stream << value.name;
   }

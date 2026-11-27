@@ -254,7 +254,7 @@ namespace
       std::size_t expected_successes; // Blocks of three requests that succeed.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const budget_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const budget_case& value)
   {
     return stream << value.name;
   }

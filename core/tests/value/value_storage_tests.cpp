@@ -6,7 +6,6 @@
 #include "value/value_record.hpp"
 
 #include <array>
-#include <type_traits>
 namespace
 {
   using namespace adaptive_json5;

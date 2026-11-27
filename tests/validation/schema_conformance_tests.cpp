@@ -105,7 +105,6 @@ namespace
       std::string data;     // Instance source text.
       bool valid{};
       bool assert_format{};
-      bool unsupported_pattern{};
   };
 
   /**
@@ -213,12 +212,6 @@ namespace
           const value_view schema = *entry.find_member("schema").value_if();
           const value_view tests = *entry.find_member("tests").value_if();
           const std::size_t test_count = *tests.container_size().value_if();
-          // ADR 0006 advertises RFC 1123 hostname syntax. This group requires IDNA.
-          if (relative == "optional/format/hostname.json" && group == 1U)
-          {
-            result.skipped_files.push_back(relative.generic_string() + "#1 (IDNA A-label validation)");
-            continue;
-          }
           for (std::size_t index = 0U; index < test_count; ++index)
           {
             const value_view test = *tests.element_at(index).value_if();
@@ -229,10 +222,6 @@ namespace
             item.data = file.slice(*test.find_member("data").value_if());
             item.valid = *test.find_member("valid").value_if()->as_boolean().value_if();
             item.assert_format = *selection;
-            // ADR 0006 requires an explicit compile error for control and Unicode property escapes.
-            item.unsupported_pattern =
-              relative == "optional/ecmascript-regex.json" &&
-              (group == 2U || group == 3U || group == 10U || group == 14U || group == 15U || group == 19U);
             result.tests.push_back(item);
             (is_optional ? result.optional : result.required) += 1U;
           }
@@ -313,7 +302,6 @@ namespace
   struct suite_outcome
   {
       std::optional<schema_error_code> error{};
-      std::optional<invalid_schema_reason> compile_reason{};
       bool valid{};
   };
 
@@ -358,7 +346,6 @@ namespace
       compile_schema(*registry.value_if(), c_default_schema_base_uri, schema_dialect::draft_07, options);
     if (!compiled.has_value())
     {
-      outcome.compile_reason = compiled.error_if()->invalid_schema_reason();
       outcome.error = compiled.error_if()->code();
       return outcome;
     }
@@ -398,11 +385,6 @@ namespace
   {
     const suite_test& item = GetParam();
     const suite_outcome outcome = run_test(item);
-    if (item.unsupported_pattern)
-    {
-      EXPECT_EQ(outcome.compile_reason, invalid_schema_reason::unsupported_pattern) << item.location;
-      return;
-    }
     const bool matches = !outcome.error.has_value() && (outcome.valid == item.valid);
     const bool deviation = deviations().count(item.location) != 0U;
     if (deviation)

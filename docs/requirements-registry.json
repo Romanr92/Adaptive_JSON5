@@ -2503,6 +2503,12 @@
           "names": [
             "J5_041_HostedParse.RetainsSourceOnRequestAndNavigates"
           ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Inspect.ShowsValuesAndConversions"
+          ]
         }
       ]
     },
@@ -3659,6 +3665,10 @@
             "CMakePresets.json"
           ],
           "note": "Parser-only library build with optional unit tests; schema and tool targets are not implemented yet"
+        },
+        {
+          "files": ["cli/CMakeLists.txt", "CMakeLists.txt"],
+          "symbols": ["adaptive_json5_cli_core", "adaptive_json5_examples"]
         }
       ],
       "tests": []
@@ -4396,6 +4406,10 @@
         {
           "files": ["core/src/schema/assertions.cpp"],
           "symbols": ["code_points", "check_string"]
+        },
+        {
+          "files": ["core/includes/schema/unicode_property.hpp", "core/src/schema/unicode_property.cpp", "core/includes/schema/unicode_properties.hpp"],
+          "symbols": ["general_category_mask", "script_number", "general_category_bit", "script_of"]
         }
       ],
       "tests": [
@@ -4412,6 +4426,18 @@
           "names": [
             "P049_PatternEdges.FollowEcma262",
             "P049_UnpairedUnits.FollowTheInstancePolicy"
+          ]
+        },
+        {
+          "file": "core/tests/schema/unicode_idna_tests.cpp",
+          "names": [
+            "P187_UnicodeProperties.LookUpCodePoints"
+          ]
+        },
+        {
+          "file": "tests/schema/meta_schema_tests.cpp",
+          "names": [
+            "P054_MetaSchemaDetails.PropertySetsAreChargedToCompileSteps"
           ]
         }
       ]
@@ -4633,6 +4659,12 @@
           "file": "tests/schema/meta_schema_tests.cpp",
           "names": [
             "P054_MetaSchemaDetails.ReportsTheOffendingValue"
+          ]
+        },
+        {
+          "file": "cli/test/cli_diagnostics_tests.cpp",
+          "names": [
+            "P057_Diagnostics.LocateFailures"
           ]
         }
       ]
@@ -4887,6 +4919,18 @@
         {
           "files": ["core/includes/schema/format.hpp", "core/src/schema/format.cpp", "includes/adaptive_json5/schema/compiled_schema.hpp", "core/src/schema/schema_compiler.cpp"],
           "symbols": ["check_format", "format_from_name", "format_assertion_supported", "compile_format"]
+        },
+        {
+          "files": ["core/includes/schema/idna.hpp", "core/src/schema/idna.cpp"],
+          "symbols": ["punycode_decode", "is_a_label", "has_ace_prefix", "satisfies_bidi_rule", "to_a_label"]
+        },
+        {
+          "files": ["core/includes/schema/normalization.hpp", "core/src/schema/normalization.cpp"],
+          "symbols": ["is_nfc", "normalize_nfc"]
+        },
+        {
+          "files": ["core/includes/schema/uts46.hpp", "core/src/schema/uts46.cpp"],
+          "symbols": ["idn_to_ascii"]
         }
       ],
       "tests": [
@@ -4901,7 +4945,19 @@
           "names": [
             "J5_069_FormatAssertion.ChecksTheSupportedSet",
             "J5_069_FormatOptions.UnsupportedAndNonApplicable",
-            "J5_069_FormatOptions.BudgetAndStorageFailures"
+            "J5_069_FormatOptions.BudgetAndStorageFailures",
+            "J5_069_FormatOptions.InternationalizedLimits"
+          ]
+        },
+        {
+          "file": "core/tests/schema/unicode_idna_tests.cpp",
+          "names": [
+            "P187_Punycode.DecodesAndRejects",
+            "P187_PunycodeEncode.EncodesCanonically",
+            "P187_ALabels.FollowIdna2008",
+            "P187_Nfc.MatchesUnicodeNormalization",
+            "P187_NfcNormalize.ProducesNfc",
+            "P187_BidiRule.FollowsRfc5893"
           ]
         },
         {
@@ -4918,8 +4974,50 @@
       "status": "Draft",
       "issue": 57,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": ["cli/includes/cli/cli_options.hpp", "cli/src/cli_options.cpp", "cli/includes/cli/cli_app.hpp", "cli/src/cli_app.cpp", "cli/includes/cli/cli_io.hpp", "cli/src/host_io.cpp"],
+          "symbols": ["parse_arguments", "run_cli", "input_source", "output_sink", "host_environment"]
+        },
+        {
+          "files": ["cli/includes/cli/validate_command.hpp", "cli/src/validate_command.cpp"],
+          "symbols": ["run_validate", "category_of"]
+        },
+        {
+          "files": ["cli/includes/cli/inspect_command.hpp", "cli/src/inspect_command.cpp", "cli/includes/cli/run_command.hpp", "cli/src/run_command.cpp"],
+          "symbols": ["run_inspect", "run_manifest", "resolve_pointer"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "cli/test/cli_dispatch_tests.cpp",
+          "names": [
+            "P056_Arguments.ParsesEveryOption",
+            "P056_Arguments.RejectsEveryMistake",
+            "P056_Dispatch.ValidateMapsParseOutcomes",
+            "P056_Dispatch.IoAndBudgetFailuresExitTwo",
+            "P056_Dispatch.UsageHelpAndOutputFailures",
+            "P056_Dispatch.SchemaFlagReportsUnavailable"
+          ]
+        },
+        {
+          "file": "cli/test/cli_diagnostics_tests.cpp",
+          "names": [
+            "P057_Outcomes.MapResultsAndExitCodes"
+          ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Run.AppliesTheExitContract",
+            "P058_RunReport.ManifestFailuresAreOperational",
+            "P058_RunReport.WriteAndLimitFailuresAreOperational",
+            "P058_RunReport.AllocationSweep",
+            "P058_Inspect.FailuresAndAllocationSweep",
+            "P058_Pointers.ResolveRfc6901"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-071",
@@ -4927,8 +5025,48 @@
       "status": "Draft",
       "issue": 57,
       "section": "api",
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        {
+          "files": ["cli/includes/cli/report.hpp", "cli/src/report.cpp", "cli/src/validate_command.cpp"],
+          "symbols": ["reporter", "put_json_text", "category_name", "run_capabilities"]
+        }
+      ],
+      "tests": [
+        {
+          "file": "cli/test/cli_dispatch_tests.cpp",
+          "names": [
+            "P056_Dispatch.UsageHelpAndOutputFailures",
+            "P056_Dispatch.AllocationFailureSweep"
+          ]
+        },
+        {
+          "file": "cli/test/cli_diagnostics_tests.cpp",
+          "names": [
+            "P057_Outcomes.MapResultsAndExitCodes",
+            "P057_Diagnostics.LocateFailures",
+            "P057_Diagnostics.WarningsHaveWarningSeverity",
+            "P057_Diagnostics.EscapesArbitraryText",
+            "P057_Diagnostics.CapabilitiesAreStrictJson",
+            "P057_Diagnostics.OutOfMemoryFallbackIsStrictJson"
+          ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Inspect.ShowsValuesAndConversions",
+            "P058_Inspect.EveryKindInBothFormats",
+            "P058_RunReport.WorstResultWinsAndJsonListsMismatches",
+            "P058_RunReport.JsonFailResult",
+            "P058_RunReport.SummarisesRequirements"
+          ]
+        },
+        {
+          "file": "cli/test/cli_package_tests.cpp",
+          "names": [
+            "P059_Version.CapabilitiesCarryTheVersions"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-072",
@@ -5176,9 +5314,21 @@
             "docs/dependencies.md"
           ],
           "note": "Pinned dependency versions are documented; no public version or configuration information exists yet to unit-test"
+        },
+        {
+          "files": ["cli/cli_version.hpp.in", "cli/src/validate_command.cpp", "cli/CMakeLists.txt"],
+          "symbols": ["c_tool_version", "c_library_version", "c_source_revision", "run_version"]
         }
       ],
-      "tests": []
+      "tests": [
+        {
+          "file": "cli/test/cli_package_tests.cpp",
+          "names": [
+            "P059_Version.ReportsToolLibraryAndBuildOptions",
+            "P059_Version.CapabilitiesCarryTheVersions"
+          ]
+        }
+      ]
     },
     {
       "id": "J5-094",
@@ -5191,6 +5341,10 @@
         {
           "files": ["includes/adaptive_json5/parser.hpp", "core/src/parser/parser.cpp"],
           "symbols": ["parse_document"]
+        },
+        {
+          "files": ["cli/src/run_command.cpp", "examples/manifest.json"],
+          "symbols": ["run_manifest", "evaluate_check", "summarise_requirements"]
         }
       ],
       "tests": [
@@ -5198,6 +5352,13 @@
           "file": "tests/api/grammar_evidence_tests.cpp",
           "names": [
             "P040/J5_094_DocumentTruncation.RejectsEveryProperPrefix"
+          ]
+        },
+        {
+          "file": "cli/test/cli_run_tests.cpp",
+          "names": [
+            "P058_Run.AppliesTheExitContract",
+            "P058_RunReport.SummarisesRequirements"
           ]
         }
       ]

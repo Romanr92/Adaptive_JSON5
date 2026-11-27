@@ -1,7 +1,5 @@
 #include "input/cursor.hpp"
 
-#include <array>
-#include <cstddef>
 #include <gtest/gtest.h>
 #include <type_traits>
 

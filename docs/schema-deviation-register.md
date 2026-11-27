@@ -6,15 +6,15 @@ component is QM and outside the ASIL B(D) scope of the
 are recorded here, with their own IDs (DEV-101 and up). Markers in the source use the same
 format and are read by `tools/misra_check.py`.
 
-Status: all entries were **accepted** by the owner on 2026-11-25. Line numbers are those at
+Status: all entries were **accepted** by the owner on 2026-11-25; the rows added for issue #187 were accepted on 2026-11-27. Line numbers are those at
 the time of writing; the marker ID in the source is authoritative.
 
 | ID | Category | Lines |
 | --- | --- | --- |
-| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 179 |
-| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 33 |
-| DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 53 |
-| DEV-104 | Rule 15.0.1, special member functions | 40 |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 260 |
+| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 37 |
+| DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 55 |
+| DEV-104 | Rule 15.0.1, special member functions | 46 |
 | DEV-105 | Rule 9.5.1, counting loops | 21 |
 | DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 22 |
 | DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 14 |
@@ -24,15 +24,15 @@ the time of writing; the marker ID in the source is authoritative.
 | DEV-111 | Rule 0.1.1, defensive initialization | 3 |
 | DEV-112 | Rule 21.6.3, construction in caller-provided storage | 3 |
 | DEV-113 | Rule 4.1.3, signed arithmetic bounded by saturation | 6 |
-| DEV-114 | Rule 6.0.3/redeclaration query, namespace-scope constexpr constant | 12 |
+| DEV-114 | Rule 6.0.3/redeclaration query, namespace-scope constexpr constant | 13 |
 
 ## DEV-101: Rule 8.20.1, unsigned arithmetic that cannot wrap
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
-| Lines | 179 |
-| Status | Accepted by the owner 2026-11-25 (#44, #48, #53) |
+| Lines | 260 |
+| Status | Accepted by the owner 2026-11-25 (#44, #48, #53; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -225,14 +225,95 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.180 | `core/src/schema/schema_compiler.cpp:2163` | `++resource;` | 8.20.1 | Accepted |
 | DEV-101.181 | `core/src/schema/schema_values.cpp:478` | `++copied;` | 8.20.1 | Accepted |
 | DEV-101.182 | `core/src/schema/regex.cpp:935` | `const std::size_t at = builder.position + 1U;` | 8.20.1 | Accepted |
+| DEV-101.183 | `core/src/schema/idna.cpp:460` | `n += i / points;` | 8.20.1 | Accepted |
+| DEV-101.184 | `core/src/schema/idna.cpp:455` | `bias = adapt(i - old_i, points, old_i == 0U);` | 8.20.1 | Accepted |
+| DEV-101.185 | `core/src/schema/idna.cpp:423` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.186 | `core/src/schema/idna.cpp:352` | `return script_at(label, count, index + 1U, "Greek");` | 8.20.1 | Accepted |
+| DEV-101.187 | `core/src/schema/idna.cpp:282` | `++after;` | 8.20.1 | Accepted |
+| DEV-101.188 | `core/src/schema/idna.cpp:279` | `std::size_t after = index + 1U;` | 8.20.1 | Accepted |
+| DEV-101.189 | `core/src/schema/idna.cpp:232` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.190 | `core/src/schema/idna.cpp:212` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.191 | `core/src/schema/idna.cpp:133` | `k += c_base;` | 8.20.1 | Accepted |
+| DEV-101.192 | `core/src/schema/idna.cpp:132` | `weight *= c_base - t;` | 8.20.1 | Accepted |
+| DEV-101.193 | `core/src/schema/idna.cpp:122` | `i += *digit * weight;` | 8.20.1 | Accepted |
+| DEV-101.194 | `core/src/schema/idna.cpp:121` | `++position;` | 8.20.1 | Accepted |
+| DEV-101.195 | `core/src/schema/idna.cpp:85` | `return k + (((c_base - c_tmin + 1U) * scaled) / (scaled + c_skew));` | 8.20.1 | Accepted |
+| DEV-101.196 | `core/src/schema/idna.cpp:83` | `k += c_base;` | 8.20.1 | Accepted |
+| DEV-101.197 | `core/src/schema/idna.cpp:78` | `scaled += scaled / points;` | 8.20.1 | Accepted |
+| DEV-101.198 | `core/src/schema/regex.cpp:889` | `: named_property(builder, text.substr(0U, equals), text.substr(equals + 1U));` | 8.20.1 | Accepted |
+| DEV-101.199 | `core/src/schema/regex.cpp:867` | `++builder.position;` | 8.20.1 | Accepted |
+| DEV-101.200 | `core/src/schema/regex.cpp:861` | `++builder.position;` | 8.20.1 | Accepted |
+| DEV-101.201 | `core/src/schema/regex.cpp:851` | `++builder.position;` | 8.20.1 | Accepted |
+| DEV-101.202 | `core/src/schema/regex.cpp:734` | `next = entry.last + 1U;` | 8.20.1 | Accepted |
+| DEV-101.203 | `core/src/schema/regex.cpp:728` | `added = add_run(builder, first_range, next, entry.first - 1U);` | 8.20.1 | Accepted |
+| DEV-101.204 | `core/src/schema/regex.cpp:521` | `--builder.position;` | 8.20.1 | Accepted |
+| DEV-101.205 | `core/src/schema/regex.cpp:518` | `++builder.position;` | 8.20.1 | Accepted |
+| DEV-101.206 | `core/src/schema/unicode_property.cpp:69` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.207 | `core/src/schema/unicode_property.cpp:61` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.208 | `core/src/schema/unicode_property.cpp:37` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.209 | `core/src/schema/unicode_property.cpp:29` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.210 | `core/src/schema/format.cpp:573` | `return is_mail_domain(text.substr(at + 1U));` | 8.20.1 | Accepted |
+| DEV-101.211 | `core/src/schema/idna.cpp:767` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Accepted |
+| DEV-101.212 | `core/src/schema/idna.cpp:651` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Accepted |
+| DEV-101.213 | `core/src/schema/idna.cpp:645` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.214 | `core/src/schema/idna.cpp:618` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.215 | `core/src/schema/idna.cpp:527` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.216 | `core/src/schema/normalization.cpp:235` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.217 | `core/src/schema/normalization.cpp:220` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.218 | `core/src/schema/normalization.cpp:197` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.219 | `core/src/schema/normalization.cpp:195` | `++written;` | 8.20.1 | Accepted |
+| DEV-101.220 | `core/src/schema/normalization.cpp:158` | `return first + (second - c_trailing_base);` | 8.20.1 | Accepted |
+| DEV-101.221 | `core/src/schema/normalization.cpp:151` | `((((first - c_leading_base) * c_vowel_count) + (second - c_vowel_base)) * c_trailing_cou...` | 8.20.1 | Accepted |
+| DEV-101.222 | `core/src/schema/normalization.cpp:150` | `return c_hangul_base +` | 8.20.1 | Accepted |
+| DEV-101.223 | `core/src/schema/normalization.cpp:134` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.224 | `core/src/schema/normalization.cpp:57` | `const std::uint32_t index = syllable - c_hangul_base;` | 8.20.1 | Accepted |
+| DEV-101.225 | `core/src/schema/unicode_property.cpp:256` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.226 | `core/src/schema/unicode_property.cpp:247` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.227 | `core/src/schema/unicode_property.cpp:225` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.228 | `core/src/schema/unicode_property.cpp:217` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.229 | `core/src/schema/format.cpp:953` | `const std::size_t next = index + 1U;` | 8.20.1 | Accepted |
+| DEV-101.230 | `core/src/schema/format.cpp:973` | `const std::uint32_t offset = ((high - 0xD800U) << 10U) | (second - 0xDC00U);` | 8.20.1 | Accepted |
+| DEV-101.231 | `core/src/schema/format.cpp:979` | `const std::uint32_t value = 0x10000U + offset;` | 8.20.1 | Accepted |
+| DEV-101.232 | `core/src/schema/format.cpp:1076` | `index += point.units;` | 8.20.1 | Accepted |
+| DEV-101.233 | `core/src/schema/uts46.cpp:53` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
+| DEV-101.234 | `core/src/schema/uts46.cpp:66` | `low = middle + 1U;` | 8.20.1 | Accepted |
+| DEV-101.235 | `core/src/schema/uts46.cpp:94` | `++state.size;` | 8.20.1 | Accepted |
+| DEV-101.236 | `core/src/schema/uts46.cpp:136` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.237 | `core/src/schema/uts46.cpp:166` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.238 | `core/src/schema/uts46.cpp:193` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.239 | `core/src/schema/uts46.cpp:207` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.240 | `core/src/schema/uts46.cpp:256` | `++state.count;` | 8.20.1 | Accepted |
+| DEV-101.241 | `core/src/schema/uts46.cpp:293` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.242 | `core/src/schema/uts46.cpp:319` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.243 | `core/src/schema/idna.cpp:273` | `++encoder.size;` | 8.20.1 | Accepted |
+| DEV-101.244 | `core/src/schema/idna.cpp:331` | `++basic;` | 8.20.1 | Accepted |
+| DEV-101.245 | `core/src/schema/idna.cpp:338` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.246 | `core/src/schema/idna.cpp:368` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.247 | `core/src/schema/idna.cpp:399` | `q = (q - t) / (c_base - t);` | 8.20.1 | Accepted |
+| DEV-101.248 | `core/src/schema/idna.cpp:405` | `k += c_base;` | 8.20.1 | Accepted |
+| DEV-101.249 | `core/src/schema/idna.cpp:428` | `++encoder.delta;` | 8.20.1 | Accepted |
+| DEV-101.250 | `core/src/schema/idna.cpp:441` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Accepted |
+| DEV-101.251 | `core/src/schema/idna.cpp:449` | `++encoder.handled;` | 8.20.1 | Accepted |
+| DEV-101.252 | `core/src/schema/idna.cpp:460` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.253 | `core/src/schema/idna.cpp:495` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.254 | `core/src/schema/idna.cpp:1056` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Accepted |
+| DEV-101.255 | `core/src/schema/idna.cpp:1062` | `encoder.delta += (smallest - encoder.n) * points;` | 8.20.1 | Accepted |
+| DEV-101.256 | `core/src/schema/idna.cpp:1073` | `++encoder.delta;` | 8.20.1 | Accepted |
+| DEV-101.257 | `core/src/schema/idna.cpp:1079` | `++encoder.n;` | 8.20.1 | Accepted |
+| DEV-101.258 | `core/src/schema/normalization.cpp:307` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.259 | `core/src/schema/normalization.cpp:320` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.260 | `core/src/schema/format.cpp:1109` | `index += point.units;` | 8.20.1 | Accepted |
+| DEV-101.261 | `core/src/schema/format.cpp:1181` | `octets += utf8_octets(code_point);` | 8.20.1 | Accepted |
+| DEV-101.262 | `core/src/schema/format.cpp:1192` | `++index;` | 8.20.1 | Accepted |
+| DEV-101.263 | `core/src/schema/format.cpp:1222` | `return is_idn_domain(code_points, index + 1U, code_points.size(), true);` | 8.20.1 | Accepted |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/no-character-numerical-value` |
-| Lines | 33 |
-| Status | Accepted by the owner 2026-11-25 (#44, #48) |
+| Lines | 37 |
+| Status | Accepted by the owner 2026-11-25 (#44, #48; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -279,14 +360,18 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-102.31 | `core/src/schema/uri.cpp:37` | `return ((c >= 'A') && (c <= 'Z')) ? static_cast<char>(c - 'A' + 'a') : c;` | 7.0.3 | Accepted |
 | DEV-102.32 | `core/src/schema/uri.cpp:25` | `return ((c >= 'a') && (c <= 'z')) \|\| ((c >= 'A') && (c <= 'Z')) \|\| ((c >= '0') && (...` | 7.0.3 | Accepted |
 | DEV-102.33 | `core/src/schema/schema_values.cpp:81` | `equal = unit.has_value() && (*unit.value_if() == static_cast<std::uint16_t>(entry.first[...` | 7.0.3, 7.0.5 | Accepted |
+| DEV-102.34 | `core/src/schema/idna.cpp:177` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(input[index]));` | 7.0.3 | Accepted |
+| DEV-102.35 | `core/src/schema/idna.cpp:53` | `const auto unit = static_cast<std::uint32_t>(static_cast<unsigned char>(c));` | 7.0.3 | Accepted |
+| DEV-102.36 | `core/src/schema/regex.cpp:859` | `name[length] = static_cast<char>(c);` | 7.0.3 | Accepted |
+| DEV-102.37 | `core/src/schema/idna.cpp:526` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(label[index]));` | 7.0.3 | Accepted |
 
 ## DEV-103: Rule 5.13.4, empty-brace value-initialization and literals
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-integer-literals-not-appropriately-suffixed` |
-| Lines | 53 |
-| Status | Accepted by the owner 2026-11-25 (#44, #48) |
+| Lines | 55 |
+| Status | Accepted by the owner 2026-11-25 (#44, #48; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -353,14 +438,16 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-103.51 | `core/src/schema/regex.cpp:685` | `ast_node node{};` | 5.13.4 | Accepted |
 | DEV-103.52 | `core/src/schema/regex.cpp:646` | `ast_node node{};` | 5.13.4 | Accepted |
 | DEV-103.53 | `core/src/schema/regex.cpp:550` | `ast_node node{};` | 5.13.4 | Accepted |
+| DEV-103.54 | `core/src/schema/regex.cpp:815` | `property_selector selector{};` | 5.13.4 | Accepted |
+| DEV-103.55 | `core/src/schema/regex.cpp:779` | `property_selector selector{};` | 5.13.4 | Accepted |
 
 ## DEV-104: Rule 15.0.1, special member functions
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/improperly-provided-special-member-functions-audit`, `cpp/misra/improperly-provided-special-member-functions`, `cpp/misra/implicit-declaration-of-copy-constructor-audit` |
-| Lines | 40 |
-| Status | Accepted by the owner 2026-11-25 (#44, #48) |
+| Lines | 46 |
+| Status | Accepted by the owner 2026-11-25 (#44, #48; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -414,6 +501,12 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-104.38 | `core/src/schema/regex.cpp:100` | `struct ast_node` | 15.0.1 | Accepted |
 | DEV-104.39 | `core/src/schema/schema_compiler.cpp:56` | `struct keyword_slot` | 15.0.1 | Accepted |
 | DEV-104.40 | `core/src/schema/schema_values.cpp:221` | `struct copy_frame` | 15.0.1 | Accepted |
+| DEV-104.41 | `core/src/schema/regex.cpp` | `struct property_selector` | 15.0.1 | Accepted |
+| DEV-104.42 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_value_name` | 15.0.1 | Accepted |
+| DEV-104.43 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_decomposition` | 15.0.1 | Accepted |
+| DEV-104.44 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_composition` | 15.0.1 | Accepted |
+| DEV-104.45 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct uts46_entry` | 15.0.1 | Accepted |
+| DEV-104.46 | `core/src/schema/format.cpp:926` | `struct code_point_read` | 15.0.1 | Accepted |
 
 ## DEV-105: Rule 9.5.1, counting loops
 
@@ -697,8 +790,8 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/redeclaration-of-static-constexpr-data-member` |
-| Lines | 12 |
-| Status | Accepted by the owner 2026-11-25 (#48, #53) |
+| Lines | 13 |
+| Status | Accepted by the owner 2026-11-25 (#48, #53; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
 
@@ -713,7 +806,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | ID | Location | Code | Rules | Status |
 | --- | --- | --- | --- | --- |
 | DEV-114.1 | `core/src/schema/exact_number.cpp:27` | `constexpr std::string_view c_signs{"+-"};` | 4.1.2 | Accepted |
-| DEV-114.2 | `core/src/schema/format.cpp:55` | `constexpr std::array<std::string_view, 13> c_format_names{{"", "date-time", "date", "tim...` | 4.1.2 | Accepted |
+| DEV-114.2 | `core/src/schema/format.cpp:96` | `constexpr std::array<std::string_view, 16> c_format_names{` | 4.1.2 | Accepted |
 | DEV-114.3 | `core/src/schema/format.cpp:45` | `constexpr std::string_view c_non_ascii{"\x7f"};` | 4.1.2 | Accepted |
 | DEV-114.4 | `core/src/schema/format.cpp:38` | `constexpr std::string_view c_printable{` | 4.1.2 | Accepted |
 | DEV-114.5 | `core/src/schema/format.cpp:35` | `constexpr std::string_view c_uri{` | 4.1.2 | Accepted |
@@ -724,3 +817,4 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-114.10 | `core/src/schema/format.cpp:27` | `constexpr std::string_view c_hex_digits{"0123456789abcdefABCDEF"};` | 4.1.2 | Accepted |
 | DEV-114.11 | `core/src/schema/format.cpp:26` | `constexpr std::string_view c_digits{"0123456789"};` | 4.1.2 | Accepted |
 | DEV-114.12 | `core/src/schema/meta_schema.cpp:16` | `constexpr std::string_view c_draft07_meta_schema{R"meta({` | 4.1.2 | Accepted |
+| DEV-114.13 | `core/src/schema/regex.cpp:561` | `constexpr std::array<std::string_view, 95> c_unsupported_binary_properties{{` | 4.1.2 | Accepted |

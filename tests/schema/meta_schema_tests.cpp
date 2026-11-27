@@ -270,4 +270,23 @@ namespace
     EXPECT_EQ(limited.error, std::optional<schema_error_code>{schema_error_code::resource_limit});
     EXPECT_EQ(limited.limit, std::optional<schema_limit_reason>{schema_limit_reason::max_compile_steps});
   }
+
+  /*
+   * Arrange: A pattern of four \p{L} sets (each hundreds of ranges) and a one-letter pattern, with
+   *          the same small compile step limit.
+   * Act: Compile both.
+   * Expect: Every range a property set appends is charged: the property pattern fails with
+   *         resource_limit / max_compile_steps where the plain one compiles (J5-047, J5-065;
+   *         ADR 0006 issue #187).
+   */
+  TEST(P054_MetaSchemaDetails, PropertySetsAreChargedToCompileSteps)
+  {
+    schema_compile_limits small{};
+    small.max_compile_steps = 2000U;
+    EXPECT_EQ(compile_texts({R"({"pattern": "a"})"}, 0U, small).error, c_compiles);
+    const compile_outcome limited = compile_texts({R"({"pattern": "\\p{L}\\p{L}\\p{L}\\p{L}"})"}, 0U, small);
+    EXPECT_EQ(limited.error, std::optional<schema_error_code>{schema_error_code::resource_limit});
+    EXPECT_EQ(limited.limit, std::optional<schema_limit_reason>{schema_limit_reason::max_compile_steps});
+    EXPECT_EQ(compile_texts({R"({"pattern": "\\p{L}\\p{L}\\p{L}\\p{L}"})"}).error, c_compiles);
+  }
 } // namespace

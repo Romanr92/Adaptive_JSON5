@@ -31,7 +31,12 @@ namespace adaptive_json5::detail
     uri_reference,
     json_pointer,
     relative_json_pointer,
-    regex
+    regex,
+    iri,
+    iri_reference,
+    uri_template,
+    idn_email,
+    idn_hostname
   };
 
   /**
@@ -54,9 +59,12 @@ namespace adaptive_json5::detail
    * @brief Report whether text is a valid value of format.
    * @par Requirements
    * J5-069; J5-065; Draft-07 Validation section 7.3; RFC 3339; RFC 5321; RFC 1123; RFC 2673;
-   * RFC 4291; RFC 3986; RFC 6901; draft-handrews-relative-json-pointer-01; ECMA-262.
+   * RFC 4291; RFC 3986; RFC 3987; RFC 6570; RFC 6901; draft-handrews-relative-json-pointer-01;
+   * ECMA-262.
    * @note Charged to max_regex_steps, one unit per code unit; the scratch storage holds the ASCII
-   * copy (and the regex program for regex) and is released before returning.
+   * copy (and the regex program for regex) and is released before returning. For iri,
+   * iri-reference and uri-template the copy holds one character per code point, with a stand-in
+   * for every allowed non-ASCII character.
    * @return The verdict, resource_limit or a storage failure.
    * @par ID SWU-SCHEMA-322
    */

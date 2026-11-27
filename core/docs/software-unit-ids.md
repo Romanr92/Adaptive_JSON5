@@ -12,6 +12,7 @@ carry the same ID. The IDs are used for traceability (see
 - `<MODULE>` is the source folder that holds the function's definition: `core/src/<topic>/`,
   `core/includes/<topic>/` or `includes/adaptive_json5/<topic>/`, written in capitals.
   Functions defined only in a header directly under `includes/adaptive_json5/` use `API`.
+  Functions of the host tool under `cli/` (P056–P059) use `CLI`.
 - `<number>` has three digits and counts up per module.
 - A new function takes the **next free ID** of its module from the table below, and a
   new row is added here with status **used**.
@@ -29,6 +30,7 @@ library was checked to be byte-identical before and after.
 | Module | Last ID | Next free ID |
 | --- | --- | --- |
 | API | SWU-API-043 | SWU-API-044 |
+| CLI | SWU-CLI-117 | SWU-CLI-118 |
 | COMMON | SWU-COMMON-003 | SWU-COMMON-004 |
 | DIAGNOSTICS | SWU-DIAGNOSTICS-018 | SWU-DIAGNOSTICS-019 |
 | HOSTED | SWU-HOSTED-005 | SWU-HOSTED-006 |
@@ -36,7 +38,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-358 | SWU-SCHEMA-359 |
+| SCHEMA | SWU-SCHEMA-454 | SWU-SCHEMA-455 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -87,6 +89,130 @@ library was checked to be byte-identical before and after.
 | SWU-API-041 | used | `error::security_reason()` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-042 | used | `error::security_at_range(source_span, security_reason)` | `includes/adaptive_json5/error.hpp` | — |
 | SWU-API-043 | used | `secure_parse_options()` | `includes/adaptive_json5/options.hpp` | — |
+
+## CLI
+
+Host-only command-line tool under `cli/` (P056–P059, ADR 0009); not part of the parser or schema libraries.
+
+| ID | Status | Function | Defined in | Also documented in |
+| --- | --- | --- | --- | --- |
+| SWU-CLI-001 | used | `parse_arguments(int, const char* const*)` | `cli/src/cli_options.cpp` | `cli/includes/cli/cli_options.hpp` |
+| SWU-CLI-002 | used | `describe(argument_error_code)` | `cli/src/cli_options.cpp` | `cli/includes/cli/cli_options.hpp` |
+| SWU-CLI-003 | used | `(anonymous)::command_named(std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-004 | used | `(anonymous)::option_named(std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-005 | used | `(anonymous)::allowed(const option_spec&, command)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-006 | used | `(anonymous)::positive_count(std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-007 | used | `(anonymous)::apply(options&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-008 | used | `(anonymous)::failed(argument_error_code, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-009 | used | `(anonymous)::finish(const options&)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-010 | used | `text_writer::text_writer(const output_sink&, output_stream stream) noexcept : m_sink(&sink), m_stream(stream)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-011 | used | `text_writer::put(std::string_view)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-012 | used | `text_writer::put_count(std::size_t)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-013 | used | `text_writer::ok()` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-014 | used | `run_cli(int, const char* const*, const environment&)` | `cli/src/cli_app.cpp` | `cli/includes/cli/cli_app.hpp` |
+| SWU-CLI-015 | used | `host_buffer(const storage_callbacks&, std::size_t size) noexcept : m_storage(storage)` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-016 | used | `~host_buffer()` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-017 | used | `data()` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-018 | used | `(anonymous)::report_arguments(const environment&, const argument_error&)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-019 | used | `(anonymous)::report_failure(const environment&, std::string_view, std::string_view)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-020 | used | `describe_io(io_status)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-021 | deleted | `(anonymous)::is_input_error(error_code)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-022 | deleted | `(anonymous)::run_validate(const options&, const environment&)` | `cli/src/cli_app.cpp` | — |
+| SWU-CLI-023 | used | `host_environment()` | `cli/src/host_io.cpp` | `cli/includes/cli/host_io.hpp` |
+| SWU-CLI-024 | used | `(anonymous)::read_stream(std::FILE*, char*, std::size_t, std::size_t&)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-025 | used | `(anonymous)::read_input(void*, std::string_view, char*, std::size_t, std::size_t&)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-026 | used | `(anonymous)::write_output(void*, output_stream, std::string_view)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-027 | used | `(anonymous)::allocate(void*, std::size_t, std::size_t)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-028 | used | `(anonymous)::deallocate(void*, void*, std::size_t, std::size_t)` | `cli/src/host_io.cpp` | — |
+| SWU-CLI-029 | used | `main(int, char**)` | `cli/src/main.cpp` | — |
+| SWU-CLI-030 | used | `(anonymous)::apply_limit(resource_limits&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-031 | used | `(anonymous)::take_option(options&, std::array<bool, c_options.size()` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-032 | used | `(anonymous)::apply_choice(options&, option_id, std::string_view)` | `cli/src/cli_options.cpp` | — |
+| SWU-CLI-033 | used | `put_json_text(text_writer&, std::string_view)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-034 | used | `reporter::reporter(const output_sink&, diagnostics_format, std::string_view, std::string_view)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-035 | used | `reporter::add(const diagnostic&)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-036 | used | `reporter::finish(outcome, int)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-037 | used | `category_name(category)` | `cli/src/report.cpp` | `cli/includes/cli/report.hpp` |
+| SWU-CLI-038 | used | `(anonymous)::byte_at(std::string_view, std::size_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-039 | used | `(anonymous)::utf8_length(std::string_view, std::size_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-040 | used | `(anonymous)::is_utf8(std::string_view)` | `cli/src/report.cpp` | — |
+| SWU-CLI-041 | used | `(anonymous)::put_escaped(text_writer&, char, std::uint32_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-042 | used | `(anonymous)::put_key(text_writer&, std::string_view)` | `cli/src/report.cpp` | — |
+| SWU-CLI-043 | used | `size()` | `cli/includes/cli/host_buffer.hpp` | — |
+| SWU-CLI-044 | used | `run_validate(const options&, const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-045 | used | `run_capabilities(const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-046 | used | `category_of(error_code)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-047 | used | `read_input(const environment&, std::string_view, char*, std::size_t, std::size_t&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-048 | used | `(anonymous)::position_of(input_view, std::size_t)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-049 | used | `(anonymous)::add_parse_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-050 | used | `(anonymous)::report_warnings(reporter&, const parsed_document&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-051 | used | `(anonymous)::describe_schema(schema_error_code)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-052 | used | `(anonymous)::schema_category(schema_error_code)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-053 | used | `(anonymous)::report_schema_failure(reporter&, const schema_error&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-054 | used | `(anonymous)::report_assertion(reporter&, const compiled_schema&, const document&, const schema_diagnostic&, input_view, const environment&)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-055 | used | `(anonymous)::validate_with_schema(const options&, const environment&, reporter&, const document&, input_view)` | `cli/src/validate_command.cpp` | — |
+| SWU-CLI-056 | used | `(anonymous)::sequence_length(std::uint32_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-057 | used | `(anonymous)::second_allowed(std::uint32_t, std::uint32_t)` | `cli/src/report.cpp` | — |
+| SWU-CLI-058 | used | `reporter::add_text(const diagnostic&)` | `cli/src/report.cpp` | — |
+| SWU-CLI-059 | used | `reporter::put_details(const diagnostic&)` | `cli/src/report.cpp` | — |
+| SWU-CLI-060 | used | `put_json_decoded(text_writer&, const decoded_string&, const storage_callbacks&)` | `cli/src/inspect_command.cpp` | `cli/includes/cli/inspect_command.hpp` |
+| SWU-CLI-061 | used | `run_inspect(const options&, const environment&)` | `cli/src/inspect_command.cpp` | `cli/includes/cli/inspect_command.hpp` |
+| SWU-CLI-062 | used | `(anonymous)::kind_name(value_kind)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-063 | used | `(anonymous)::number_kind_name(number_kind)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-064 | used | `(anonymous)::conversion_failure(const error&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-065 | used | `(anonymous)::put_signed(text_writer&, std::int64_t)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-066 | used | `(anonymous)::put_double(text_writer&, double)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-067 | used | `(anonymous)::storage_ok()` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-068 | used | `(anonymous)::put_position(const value_view&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-069 | used | `(anonymous)::put_conversions(const owned_number&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-070 | used | `(anonymous)::put_scalar(const value_view&, value_kind)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-071 | used | `(anonymous)::open(const value_view&, bool, std::size_t, bool)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-072 | used | `(anonymous)::close()` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-073 | used | `(anonymous)::store_frame(char*, std::size_t, const walk_frame&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-074 | used | `(anonymous)::load_frame(const char*, std::size_t)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-075 | used | `(anonymous)::walk(inspection&, const value_view&, std::size_t, const storage_callbacks&)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-076 | used | `finish_with_parse_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-077 | used | `(anonymous)::put_warnings(text_writer&, bool, std::string_view, const parsed_document&, input_view)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-078 | used | `(anonymous)::inspect_failure(const options&, const environment&, category, std::string_view)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-079 | used | `resolve_pointer(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | `cli/includes/cli/run_command.hpp` |
+| SWU-CLI-080 | used | `run_manifest(const options&, const environment&)` | `cli/src/run_command.cpp` | `cli/includes/cli/run_command.hpp` |
+| SWU-CLI-081 | used | `(anonymous)::copy_text(const value_view&, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-082 | used | `(anonymous)::member_text(const value_view&, std::string_view, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-083 | used | `(anonymous)::member_count(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-084 | used | `(anonymous)::decode_token(std::string_view, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-085 | used | `(anonymous)::step(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-086 | used | `(anonymous)::mismatch(case_context&, std::string_view, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-087 | used | `(anonymous)::conversion_name(const error*)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-088 | used | `(anonymous)::decimal_text(std::uint64_t, bool, short_text&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-089 | used | `(anonymous)::check_conversion(const value_view&, const value_view&, const environment&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-090 | used | `(anonymous)::check_member_names(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-091 | used | `(anonymous)::check_units(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-092 | used | `(anonymous)::check_same(const value_view&, const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-093 | used | `(anonymous)::check_duplicates(const value_view&, input_view, const case_context&, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-094 | used | `(anonymous)::evaluate_check(const value_view&, const parsed_document&, input_view, const case_context&, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-095 | used | `(anonymous)::run_checks(case_context&, const value_view&, const parsed_document&, input_view, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-096 | used | `(anonymous)::validate_case(const case_context&, std::string_view, const document&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-097 | used | `(anonymous)::join_path(std::string_view, std::string_view, std::array<char, c_path_capacity>&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-098 | used | `(anonymous)::compare(case_context&, const value_view&, const observation&, const std::optional<parsed_document>&, input_view, syntax_mode)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-099 | used | `(anonymous)::evaluate_case(case_context&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-100 | used | `(anonymous)::result_for_input(const value_view&, std::string_view, const char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-101 | used | `(anonymous)::summarise_requirements(text_writer&, bool, const value_view&, const value_view&, const char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-102 | used | `(anonymous)::run_failure(const options&, const environment&, category, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-103 | used | `(anonymous)::run_one(case_context&, const value_view&, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-104 | used | `(anonymous)::run_cases(case_context&, const value_view&, char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-105 | used | `finish_with_configuration_failure(reporter&, const error&, input_view)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-106 | used | `(anonymous)::evaluate_value_check(std::string_view, const value_view&, const value_view&, const value_view&, const environment&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-107 | used | `(anonymous)::case_options(const case_context&, const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-108 | used | `(anonymous)::observe_parse(const error*)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-109 | used | `(anonymous)::requirement_status(const value_view&, const value_view&, const char*, std::size_t)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-110 | used | `(anonymous)::write_footer(text_writer&, bool, const run_totals&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-111 | used | `(anonymous)::manifest_options()` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-112 | used | `(anonymous)::put_prefix(const value_view&, bool, std::size_t, bool)` | `cli/src/inspect_command.cpp` | — |
+| SWU-CLI-113 | used | `(anonymous)::check_spelling(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-114 | used | `(anonymous)::check_utf8(const value_view&, const value_view&)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-115 | used | `run_version(const environment&)` | `cli/src/validate_command.cpp` | `cli/includes/cli/validate_command.hpp` |
+| SWU-CLI-116 | used | `text_of(const value_view&, std::string_view)` | `cli/src/run_command.cpp` | — |
+| SWU-CLI-117 | used | `convert(const owned_number&, std::string_view, const environment&, short_text&)` | `cli/src/run_command.cpp` | — |
 
 ## COMMON
 
@@ -749,6 +875,102 @@ library was checked to be byte-identical before and after.
 | SWU-SCHEMA-356 | used | `(anonymous)::valid_percent_escapes(std::string_view)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-357 | used | `(anonymous)::ascii_of(std::uint32_t)` | `core/src/schema/format.cpp` | — |
 | SWU-SCHEMA-358 | used | `(anonymous)::is_ecma_group_prefix(const regex_builder &)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-359 | used | `detail::general_category_mask(std::string_view)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-360 | used | `detail::script_number(std::string_view)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-361 | used | `detail::general_category_bit(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-362 | used | `detail::script_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-363 | used | `detail::joining_type_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-364 | used | `detail::is_virama(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-365 | used | `detail::idna_property_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-366 | used | `(anonymous)::find_name<N>(const std::array<unicode_value_name, N> &, std::string_view)` | `core/src/schema/unicode_property.cpp` | — |
+| SWU-SCHEMA-367 | used | `(anonymous)::find_range<N>(const std::array<unicode_value_range, N> &, std::uint32_t)` | `core/src/schema/unicode_property.cpp` | — |
+| SWU-SCHEMA-368 | used | `(anonymous)::control_letter(regex_builder &, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-369 | used | `(anonymous)::selects(const property_selector &, std::uint32_t)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-370 | used | `(anonymous)::add_run(regex_builder &, std::size_t, std::uint32_t, std::uint32_t)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-371 | used | `(anonymous)::append_table<N>(regex_builder &, const std::array<unicode_value_range, N> &, const property_selector &, bool, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-372 | used | `(anonymous)::append_selection(regex_builder &, const property_selector &, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-373 | used | `(anonymous)::lone_property(const regex_builder &, std::string_view)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-374 | used | `(anonymous)::named_property(const regex_builder &, std::string_view, std::string_view)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-375 | used | `(anonymous)::read_property_text(regex_builder &, std::array<char, c_max_property_name> &, std::size_t &)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-376 | used | `(anonymous)::append_property(regex_builder &, bool)` | `core/src/schema/regex.cpp` | — |
+| SWU-SCHEMA-377 | used | `detail::punycode_decode(std::string_view, std::array<std::uint32_t, c_max_label_code_points> &)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-378 | used | `detail::is_a_label(std::string_view)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-379 | used | `(anonymous)::digit_value(char)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-380 | used | `(anonymous)::adapt(std::uint32_t, std::uint32_t, bool)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-381 | used | `(anonymous)::threshold(std::uint32_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-382 | used | `(anonymous)::read_delta(std::string_view, std::size_t &, std::uint32_t, std::uint32_t &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-383 | used | `(anonymous)::insert_at(label_buffer &, std::size_t, std::size_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-384 | used | `(anonymous)::copy_basic(std::string_view, label_buffer &, std::size_t &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-385 | used | `(anonymous)::is_invalid_code_point(std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-386 | used | `(anonymous)::has_script(const label_buffer &, std::size_t, std::uint32_t, std::uint32_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-387 | used | `(anonymous)::has_range(const label_buffer &, std::size_t, std::uint32_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-388 | used | `(anonymous)::script_at(const label_buffer &, std::size_t, std::size_t, std::string_view)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-389 | used | `(anonymous)::joins(std::uint32_t, joining_type)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-390 | used | `(anonymous)::zero_width_non_joiner_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-391 | used | `(anonymous)::contextj_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-392 | used | `(anonymous)::contexto_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-393 | used | `(anonymous)::is_u_label(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-394 | used | `detail::has_ace_prefix(std::string_view)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-395 | used | `(anonymous)::digit_context_allowed(const label_buffer &, std::size_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-396 | used | `(anonymous)::katakana_dot_allowed(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-397 | used | `(anonymous)::has_u_label_shape(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-398 | used | `(anonymous)::code_point_allowed(const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-399 | used | `detail::bidi_class_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-400 | used | `detail::combining_class_of(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-401 | used | `detail::canonical_decomposition(std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-402 | used | `detail::canonical_composition(std::uint32_t, std::uint32_t)` | `core/src/schema/unicode_property.cpp` | `core/includes/schema/unicode_property.hpp` |
+| SWU-SCHEMA-403 | used | `detail::is_nfc(const std::array<std::uint32_t, c_max_label_code_points> &, std::size_t)` | `core/src/schema/normalization.cpp` | `core/includes/schema/normalization.hpp` |
+| SWU-SCHEMA-404 | used | `(anonymous)::append(normal_buffer &, std::size_t &, std::uint32_t)` | `core/src/schema/normalization.cpp` | — |
+| SWU-SCHEMA-405 | used | `(anonymous)::append_hangul(normal_buffer &, std::size_t &, std::uint32_t)` | `core/src/schema/normalization.cpp` | — |
+| SWU-SCHEMA-406 | used | `(anonymous)::decompose(normal_buffer &, std::size_t &, std::uint32_t)` | `core/src/schema/normalization.cpp` | — |
+| SWU-SCHEMA-407 | used | `(anonymous)::order(normal_buffer &, std::size_t)` | `core/src/schema/normalization.cpp` | — |
+| SWU-SCHEMA-408 | used | `(anonymous)::compose_pair(std::uint32_t, std::uint32_t)` | `core/src/schema/normalization.cpp` | — |
+| SWU-SCHEMA-409 | used | `(anonymous)::compose(normal_buffer &, std::size_t)` | `core/src/schema/normalization.cpp` | — |
+| SWU-SCHEMA-410 | used | `detail::satisfies_bidi_rule(std::string_view)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-411 | used | `(anonymous)::label_code_points(std::string_view, label_buffer &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-412 | used | `(anonymous)::is_rtl_class(bidi_class)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-413 | used | `(anonymous)::allowed_class(bidi_class, bool)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-414 | used | `(anonymous)::label_satisfies_bidi_rule(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-415 | used | `(anonymous)::is_bidi_domain(std::string_view)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-416 | used | `(anonymous)::last_class(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-417 | used | `(anonymous)::ends_well(bidi_class, bool)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-418 | used | `(anonymous)::is_varname(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-419 | used | `(anonymous)::is_varspec(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-420 | used | `(anonymous)::is_expression(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-421 | used | `(anonymous)::is_uri_template(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-422 | used | `(anonymous)::read_code_point(const decoded_string &, std::size_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-423 | used | `(anonymous)::is_ucschar(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-424 | used | `(anonymous)::is_iprivate(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-425 | used | `(anonymous)::iri_char(std::uint32_t, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-426 | used | `(anonymous)::iri_copy(const decoded_string &, pod_vector<char> &, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-427 | used | `(anonymous)::check_network_text(format_kind, std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-428 | used | `detail::idn_to_ascii(const pod_vector<std::uint32_t> &, std::size_t, std::size_t, ascii_host &)` | `core/src/schema/uts46.cpp` | `core/includes/schema/uts46.hpp` |
+| SWU-SCHEMA-429 | used | `(anonymous)::uts46_entry_of(std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-430 | used | `(anonymous)::put_char(host_conversion &, char)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-431 | used | `(anonymous)::ascii_char(std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-432 | used | `(anonymous)::is_ascii_label(const decomposed_label &, std::size_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-433 | used | `(anonymous)::put_ascii_label(host_conversion &, std::size_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-434 | used | `(anonymous)::put_a_label(host_conversion &, std::size_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-435 | used | `(anonymous)::flush_label(host_conversion &)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-436 | used | `(anonymous)::push_mapped(host_conversion &, std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-437 | used | `(anonymous)::push_input(host_conversion &, std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-438 | used | `detail::normalize_nfc(decomposed_label &, std::size_t)` | `core/src/schema/normalization.cpp` | `core/includes/schema/normalization.hpp` |
+| SWU-SCHEMA-439 | used | `detail::to_a_label(const std::array<std::uint32_t, c_max_label_code_points> &, std::size_t, a_label_text &)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-440 | used | `(anonymous)::digit_char(std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-441 | used | `(anonymous)::put(punycode_encoder &, char)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-442 | used | `(anonymous)::basic_char(std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-443 | used | `(anonymous)::put_basic(punycode_encoder &, const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-444 | used | `(anonymous)::next_at_least(const label_buffer &, std::size_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-445 | used | `(anonymous)::put_delta(punycode_encoder &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-446 | used | `(anonymous)::encode_round(punycode_encoder &, const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-447 | used | `(anonymous)::same_ignoring_case(std::string_view, std::string_view)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-448 | used | `(anonymous)::is_local_part(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-449 | used | `(anonymous)::decode_code_points(const decoded_string &, pod_vector<std::uint32_t> &)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-450 | used | `(anonymous)::is_idn_domain(const pod_vector<std::uint32_t> &, std::size_t, std::size_t, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-451 | used | `(anonymous)::utf8_octets(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-452 | used | `(anonymous)::is_idn_local_part(const pod_vector<std::uint32_t> &, std::size_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-453 | used | `(anonymous)::is_idn_email(const pod_vector<std::uint32_t> &)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-454 | used | `(anonymous)::check_idn(format_kind, const decoded_string &, const storage_callbacks &)` | `core/src/schema/format.cpp` | — |
 
 ## UNICODE
 

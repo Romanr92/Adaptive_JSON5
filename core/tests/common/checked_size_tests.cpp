@@ -25,7 +25,7 @@ namespace
       std::size_t expected; // Exact result when succeeds; ignored otherwise.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const size_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const size_case& value)
   {
     return stream << value.name;
   }

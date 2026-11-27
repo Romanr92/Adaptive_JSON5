@@ -1,0 +1,33 @@
+{
+  "description": "CLI smoke cases. The real adaptive_json5_examples runs each case from the repository root; its exit code and stdout/stderr must match cli/test/expected/<name>.out and .err, or stdout must contain 'contains' ({tool_version} is replaced by the tool version). 'requires' limits a case to builds with ('schema') or without ('no-schema') the schema component. Read by cli/test/cli_smoke.cmake (CTest, CI) and tools/cli_smoke.py (local runs).",
+  "cases": [
+    {"name": "json5_valid", "exit": 0, "args": ["validate", "--syntax", "json5", "examples/valid/features.json5"]},
+    {"name": "json_valid_as_json5", "exit": 0, "args": ["validate", "--syntax", "json5", "examples/valid/strict.json"]},
+    {"name": "strict_json_valid", "exit": 0, "args": ["validate", "--syntax", "json", "examples/valid/strict.json"]},
+    {"name": "json5_rejected_in_strict_mode", "exit": 1, "args": ["validate", "--syntax", "json", "examples/valid/features.json5"]},
+    {"name": "invalid_known_error", "exit": 1, "args": ["validate", "--syntax", "json5", "examples/invalid/array-hole.json5"]},
+    {"name": "invalid_json_diagnostics", "exit": 1, "args": ["validate", "--diagnostics", "json", "--syntax", "json", "examples/invalid/leading-zero.json"]},
+    {"name": "missing_file", "exit": 2, "args": ["validate", "--syntax", "json", "examples/no-such-file.json"]},
+    {"name": "inspect_numbers", "exit": 0, "args": ["inspect", "--syntax", "json5", "examples/valid/exact-numbers.json5"]},
+    {"name": "inspect_unicode_json", "exit": 0, "args": ["inspect", "--diagnostics", "json", "--syntax", "json5", "examples/valid/unicode.json5"]},
+    {"name": "version", "exit": 0, "args": ["version"], "contains": "adaptive_json5_examples {tool_version}"},
+    {"name": "schema_valid", "exit": 0, "requires": "schema", "args": ["validate", "--syntax", "json5", "--schema", "examples/schema/device.schema.json", "examples/schema/device-valid.json5"]},
+    {"name": "schema_invalid", "exit": 1, "requires": "schema", "args": ["validate", "--syntax", "json5", "--schema", "examples/schema/device.schema.json", "examples/schema/device-invalid.json5"]},
+    {"name": "run_manifest", "exit": 0, "requires": "schema", "args": ["run", "--manifest", "examples/manifest.json"]},
+    {"name": "run_manifest_without_schema", "exit": 0, "requires": "no-schema", "args": ["run", "--manifest", "examples/manifest.json"]},
+    {"name": "capabilities", "exit": 0, "requires": "schema", "args": ["capabilities"], "contains": "\"schema\": {\"available\": true"},
+    {"name": "capabilities_without_schema", "exit": 0, "requires": "no-schema", "args": ["capabilities"], "contains": "\"schema\": {\"available\": false}"},
+    {"name": "file_json5_valid", "exit": 0, "args": ["validate", "--syntax", "json5", "cli/test/expected/inputs/valid.json5"]},
+    {"name": "file_json_valid", "exit": 0, "args": ["validate", "--syntax", "json5", "cli/test/expected/inputs/valid.json"]},
+    {"name": "file_json_valid_strict", "exit": 0, "args": ["validate", "--syntax", "json", "cli/test/expected/inputs/valid.json"]},
+    {"name": "file_strict_json_valid", "exit": 0, "args": ["validate", "--syntax", "json", "cli/test/expected/inputs/strict.json"]},
+    {"name": "file_json5_rejected_in_strict_mode", "exit": 1, "args": ["validate", "--syntax", "json", "cli/test/expected/inputs/json5-in-strict.json5"]},
+    {"name": "file_invalid_known_error", "exit": 1, "args": ["validate", "--syntax", "json5", "cli/test/expected/inputs/invalid-known-error.json5"]},
+    {"name": "file_invalid_known_error_json", "exit": 1, "args": ["validate", "--diagnostics", "json", "--syntax", "json5", "cli/test/expected/inputs/invalid-known-error.json5"]},
+    {"name": "file_invalid_leading_zero_json", "exit": 1, "args": ["validate", "--diagnostics", "json", "--syntax", "json", "cli/test/expected/inputs/invalid-leading-zero.json"]},
+    {"name": "file_inspect_json5", "exit": 0, "args": ["inspect", "--syntax", "json5", "cli/test/expected/inputs/valid.json5"]},
+    {"name": "file_inspect_json", "exit": 0, "args": ["inspect", "--diagnostics", "json", "--syntax", "json", "cli/test/expected/inputs/valid.json"]},
+    {"name": "file_schema_valid", "exit": 0, "requires": "schema", "args": ["validate", "--syntax", "json5", "--schema", "cli/test/expected/inputs/device.schema.json", "cli/test/expected/inputs/device-valid.json5"]},
+    {"name": "file_schema_invalid", "exit": 1, "requires": "schema", "args": ["validate", "--syntax", "json5", "--schema", "cli/test/expected/inputs/device.schema.json", "cli/test/expected/inputs/device-invalid.json5"]}
+  ]
+}

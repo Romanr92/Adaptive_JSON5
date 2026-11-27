@@ -1,0 +1,3 @@
+cli/test/expected/inputs/device-invalid.json5: schema assertion failed (minLength at "/device", schema #/properties/device)
+cli/test/expected/inputs/device-invalid.json5: schema assertion failed (minimum at "/values/1", schema #/properties/values/items)
+cli/test/expected/inputs/device-invalid.json5: schema assertion failed (false at "/extra", schema #/additionalProperties)

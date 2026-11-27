@@ -8,12 +8,15 @@
 #include "schema/pod_vector.hpp"
 #include "schema/schema_graph.hpp"
 #include "schema/schema_work.hpp"
+#include "schema/unicode_properties.hpp"
+#include "schema/unicode_property.hpp"
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <optional>
+#include <string_view>
 
 namespace adaptive_json5::detail
 {
@@ -27,56 +30,58 @@ namespace adaptive_json5::detail
     constexpr std::size_t c_max_repeat = 100000U;
     constexpr std::size_t c_count_zero = 0U;
     constexpr std::size_t c_count_one = 1U;
-    constexpr std::size_t c_short_hex = 2U;          // \xHH
-    constexpr std::size_t c_long_hex = 4U;           // \uHHHH
-    constexpr std::uint32_t c_dollar = 0x24U;        // $
-    constexpr std::uint32_t c_open_paren = 0x28U;    // (
-    constexpr std::uint32_t c_close_paren = 0x29U;   // )
-    constexpr std::uint32_t c_asterisk = 0x2AU;      // *
-    constexpr std::uint32_t c_plus = 0x2BU;          // +
-    constexpr std::uint32_t c_comma = 0x2CU;         // ,
-    constexpr std::uint32_t c_hyphen = 0x2DU;        // -
-    constexpr std::uint32_t c_full_stop = 0x2EU;     // .
-    constexpr std::uint32_t c_digit_zero = 0x30U;    // 0
-    constexpr std::uint32_t c_digit_one = 0x31U;     // 1
-    constexpr std::uint32_t c_digit_nine = 0x39U;    // 9
-    constexpr std::uint32_t c_exclamation = 0x21U;   // !
-    constexpr std::uint32_t c_colon = 0x3AU;         // :
-    constexpr std::uint32_t c_less = 0x3CU;          // <
-    constexpr std::uint32_t c_equals = 0x3DU;        // =
-    constexpr std::uint32_t c_question = 0x3FU;      // ?
-    constexpr std::uint32_t c_capital_a = 0x41U;     // A
-    constexpr std::uint32_t c_capital_b = 0x42U;     // B
-    constexpr std::uint32_t c_capital_d = 0x44U;     // D
-    constexpr std::uint32_t c_capital_f = 0x46U;     // F
-    constexpr std::uint32_t c_capital_p = 0x50U;     // P
-    constexpr std::uint32_t c_capital_s = 0x53U;     // S
-    constexpr std::uint32_t c_capital_w = 0x57U;     // W
-    constexpr std::uint32_t c_capital_z = 0x5AU;     // Z
-    constexpr std::uint32_t c_open_bracket = 0x5BU;  // [
-    constexpr std::uint32_t c_backslash = 0x5CU;     // backslash
-    constexpr std::uint32_t c_close_bracket = 0x5DU; // ]
-    constexpr std::uint32_t c_caret = 0x5EU;         // ^
-    constexpr std::uint32_t c_underscore = 0x5FU;    // _
-    constexpr std::uint32_t c_small_a = 0x61U;       // a
-    constexpr std::uint32_t c_small_b = 0x62U;       // b
-    constexpr std::uint32_t c_small_c = 0x63U;       // c
-    constexpr std::uint32_t c_small_d = 0x64U;       // d
-    constexpr std::uint32_t c_small_f = 0x66U;       // f
-    constexpr std::uint32_t c_small_k = 0x6BU;       // k
-    constexpr std::uint32_t c_small_n = 0x6EU;       // n
-    constexpr std::uint32_t c_small_p = 0x70U;       // p
-    constexpr std::uint32_t c_small_r = 0x72U;       // r
-    constexpr std::uint32_t c_small_s = 0x73U;       // s
-    constexpr std::uint32_t c_small_t = 0x74U;       // t
-    constexpr std::uint32_t c_small_u = 0x75U;       // u
-    constexpr std::uint32_t c_small_v = 0x76U;       // v
-    constexpr std::uint32_t c_small_w = 0x77U;       // w
-    constexpr std::uint32_t c_small_x = 0x78U;       // x
-    constexpr std::uint32_t c_small_z = 0x7AU;       // z
-    constexpr std::uint32_t c_open_brace = 0x7BU;    // {
-    constexpr std::uint32_t c_vertical_bar = 0x7CU;  // |
-    constexpr std::uint32_t c_close_brace = 0x7DU;   // }
+    constexpr std::size_t c_short_hex = 2U;           // \xHH
+    constexpr std::size_t c_long_hex = 4U;            // \uHHHH
+    constexpr std::uint32_t c_dollar = 0x24U;         // $
+    constexpr std::uint32_t c_open_paren = 0x28U;     // (
+    constexpr std::uint32_t c_close_paren = 0x29U;    // )
+    constexpr std::uint32_t c_asterisk = 0x2AU;       // *
+    constexpr std::uint32_t c_plus = 0x2BU;           // +
+    constexpr std::uint32_t c_comma = 0x2CU;          // ,
+    constexpr std::uint32_t c_hyphen = 0x2DU;         // -
+    constexpr std::uint32_t c_full_stop = 0x2EU;      // .
+    constexpr std::uint32_t c_digit_zero = 0x30U;     // 0
+    constexpr std::uint32_t c_digit_one = 0x31U;      // 1
+    constexpr std::uint32_t c_digit_nine = 0x39U;     // 9
+    constexpr std::uint32_t c_exclamation = 0x21U;    // !
+    constexpr std::uint32_t c_colon = 0x3AU;          // :
+    constexpr std::uint32_t c_less = 0x3CU;           // <
+    constexpr std::uint32_t c_control_modulus = 32U;  // \cX matches X % 32.
+    using property_name_text = std::array<char, 64U>; // Longest accepted \p{...} text.
+    constexpr std::uint32_t c_equals = 0x3DU;         // =
+    constexpr std::uint32_t c_question = 0x3FU;       // ?
+    constexpr std::uint32_t c_capital_a = 0x41U;      // A
+    constexpr std::uint32_t c_capital_b = 0x42U;      // B
+    constexpr std::uint32_t c_capital_d = 0x44U;      // D
+    constexpr std::uint32_t c_capital_f = 0x46U;      // F
+    constexpr std::uint32_t c_capital_p = 0x50U;      // P
+    constexpr std::uint32_t c_capital_s = 0x53U;      // S
+    constexpr std::uint32_t c_capital_w = 0x57U;      // W
+    constexpr std::uint32_t c_capital_z = 0x5AU;      // Z
+    constexpr std::uint32_t c_open_bracket = 0x5BU;   // [
+    constexpr std::uint32_t c_backslash = 0x5CU;      // backslash
+    constexpr std::uint32_t c_close_bracket = 0x5DU;  // ]
+    constexpr std::uint32_t c_caret = 0x5EU;          // ^
+    constexpr std::uint32_t c_underscore = 0x5FU;     // _
+    constexpr std::uint32_t c_small_a = 0x61U;        // a
+    constexpr std::uint32_t c_small_b = 0x62U;        // b
+    constexpr std::uint32_t c_small_c = 0x63U;        // c
+    constexpr std::uint32_t c_small_d = 0x64U;        // d
+    constexpr std::uint32_t c_small_f = 0x66U;        // f
+    constexpr std::uint32_t c_small_k = 0x6BU;        // k
+    constexpr std::uint32_t c_small_n = 0x6EU;        // n
+    constexpr std::uint32_t c_small_p = 0x70U;        // p
+    constexpr std::uint32_t c_small_r = 0x72U;        // r
+    constexpr std::uint32_t c_small_s = 0x73U;        // s
+    constexpr std::uint32_t c_small_t = 0x74U;        // t
+    constexpr std::uint32_t c_small_u = 0x75U;        // u
+    constexpr std::uint32_t c_small_v = 0x76U;        // v
+    constexpr std::uint32_t c_small_w = 0x77U;        // w
+    constexpr std::uint32_t c_small_x = 0x78U;        // x
+    constexpr std::uint32_t c_small_z = 0x7AU;        // z
+    constexpr std::uint32_t c_open_brace = 0x7BU;     // {
+    constexpr std::uint32_t c_vertical_bar = 0x7CU;   // |
+    constexpr std::uint32_t c_close_brace = 0x7DU;    // }
 
     /**
      * @brief Parse tree node kinds.
@@ -479,7 +484,7 @@ namespace adaptive_json5::detail
 
     /**
      * @brief Report whether an escape letter names an unsupported feature (backreference, octal,
-     * named reference, control letter, property class, \B in a class).
+     * named reference, \B in a class).
      * @par Requirements
      * P049; J5-060.
      * @par ID SWU-SCHEMA-282
@@ -491,9 +496,40 @@ namespace adaptive_json5::detail
                                  (builder.text.get(builder.position) <= c_digit_nine);
       const bool reference = (letter >= c_digit_one) && (letter <= c_digit_nine);
       const bool octal = (letter == c_digit_zero) && next_is_digit;
-      const bool named =
-        (letter == c_small_k) || (letter == c_small_c) || (letter == c_small_p) || (letter == c_capital_p);
-      return reference || octal || named || (in_class && (letter == c_capital_b));
+      return reference || octal || (letter == c_small_k) || (in_class && (letter == c_capital_b));
+    }
+
+    /**
+     * @brief Read the control letter of \c (position is past the c). Without a letter (or, in a
+     * class, a digit or '_') the backslash is literal and 'c' is read again (Annex B).
+     * @par Requirements
+     * P049; J5-060; ECMA-262 sections 22.2.1.1 and B.1.2; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-368
+     */
+    std::uint32_t control_letter(regex_builder& builder, bool in_class) noexcept
+    {
+      const std::uint32_t next = (builder.position < builder.text.size()) ? builder.text.get(builder.position) : 0U;
+      const bool letter =
+        ((next >= c_capital_a) && (next <= c_capital_z)) || ((next >= c_small_a) && (next <= c_small_z));
+      const bool class_extra =
+        in_class && (((next >= c_digit_zero) && (next <= c_digit_nine)) || (next == c_underscore));
+      if (letter || class_extra)
+      {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.205)
+        ++builder.position;
+        return next % c_control_modulus;
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.204)
+      --builder.position;
+      return c_backslash;
     }
 
     /**
@@ -527,6 +563,395 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief ECMA-262 binary property names and aliases that \p{...} does not support (only Any,
+     * ASCII and Assigned are), so a pattern using them is unsupported rather than malformed.
+     * @par Requirements
+     * P049; J5-060; ECMA-262 table "Binary Unicode property aliases"; ADR 0006 (issue #187).
+     */
+    // MISRA rule: RULE-4-1-2 cpp/misra/redeclaration-of-static-constexpr-data-member
+    // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
+    // it is not a static data member, so the redeclaration the query reports does not exist.
+    // codeql::misra_deviation_next_line(DEV-114.13)
+    constexpr std::array<std::string_view, 95> c_unsupported_binary_properties{{
+      "AHex",
+      "ASCII_Hex_Digit",
+      "Alpha",
+      "Alphabetic",
+      "Bidi_C",
+      "Bidi_Control",
+      "Bidi_M",
+      "Bidi_Mirrored",
+      "CI",
+      "CWCF",
+      "CWCM",
+      "CWKCF",
+      "CWL",
+      "CWT",
+      "CWU",
+      "Case_Ignorable",
+      "Cased",
+      "Changes_When_Casefolded",
+      "Changes_When_Casemapped",
+      "Changes_When_Lowercased",
+      "Changes_When_NFKC_Casefolded",
+      "Changes_When_Titlecased",
+      "Changes_When_Uppercased",
+      "DI",
+      "Dash",
+      "Default_Ignorable_Code_Point",
+      "Dep",
+      "Deprecated",
+      "Dia",
+      "Diacritic",
+      "EBase",
+      "EComp",
+      "EMod",
+      "EPres",
+      "Emoji",
+      "Emoji_Component",
+      "Emoji_Modifier",
+      "Emoji_Modifier_Base",
+      "Emoji_Presentation",
+      "Ext",
+      "ExtPict",
+      "Extended_Pictographic",
+      "Extender",
+      "Gr_Base",
+      "Gr_Ext",
+      "Grapheme_Base",
+      "Grapheme_Extend",
+      "Hex",
+      "Hex_Digit",
+      "IDC",
+      "IDS",
+      "IDSB",
+      "IDST",
+      "IDS_Binary_Operator",
+      "IDS_Trinary_Operator",
+      "ID_Continue",
+      "ID_Start",
+      "Ideo",
+      "Ideographic",
+      "Join_C",
+      "Join_Control",
+      "LOE",
+      "Logical_Order_Exception",
+      "Lower",
+      "Lowercase",
+      "Math",
+      "NChar",
+      "Noncharacter_Code_Point",
+      "Pat_Syn",
+      "Pat_WS",
+      "Pattern_Syntax",
+      "Pattern_White_Space",
+      "QMark",
+      "Quotation_Mark",
+      "RI",
+      "Radical",
+      "Regional_Indicator",
+      "SD",
+      "STerm",
+      "Sentence_Terminal",
+      "Soft_Dotted",
+      "Term",
+      "Terminal_Punctuation",
+      "UIdeo",
+      "Unified_Ideograph",
+      "Upper",
+      "Uppercase",
+      "VS",
+      "Variation_Selector",
+      "White_Space",
+      "XIDC",
+      "XIDS",
+      "XID_Continue",
+      "XID_Start",
+      "space",
+    }};
+
+    /**
+     * @brief The code points a \p{...} name selects: a General_Category mask (gaps are Cn) or one
+     * script number (gaps are Unknown), or ASCII.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.41)
+    struct property_selector
+    {
+        bool script{};
+        bool ascii{};
+        std::uint32_t value{};
+    };
+
+    /**
+     * @brief Report whether a table entry value (category number or script number) is selected.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-369
+     */
+    bool selects(const property_selector& selector, std::uint32_t entry) noexcept
+    {
+      return selector.script ? (entry == selector.value) : (((selector.value >> entry) & 1U) != 0U);
+    }
+
+    /**
+     * @brief Append [from, to] to the ranges of the current set, merging with the previous range
+     * of the same set when adjacent; one compile step per new range.
+     * @par Requirements
+     * P049; J5-047; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-370
+     */
+    status add_run(regex_builder& builder, std::size_t first_range, std::uint32_t from, std::uint32_t to) noexcept
+    {
+      const std::size_t count = builder.ranges.size();
+      if (count > first_range)
+      {
+        const regex_range last = builder.ranges.get(count - 1U);
+        if ((last.high + 1U) == from)
+        {
+          builder.ranges.set(count - 1U, regex_range{last.low, to});
+          return status::success();
+        }
+      }
+      const status charged = charge(builder);
+      return charged.has_value() ? builder.ranges.push_back(regex_range{from, to}) : charged;
+    }
+
+    /**
+     * @brief Append the code points of a table selection (or its complement) as merged ranges.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @param gap Whether code points missing from the table (Cn, or script Unknown) are selected.
+     * @par ID SWU-SCHEMA-371
+     */
+    template <std::size_t N>
+    status append_table(regex_builder& builder, const std::array<unicode_value_range, N>& table,
+                        const property_selector& selector, bool gap, bool negated) noexcept
+    {
+      const std::size_t first_range = builder.ranges.size();
+      std::uint32_t next = 0U;
+      status added = status::success();
+      for (const unicode_value_range& entry : table)
+      {
+        if (added.has_value() && (entry.first > next) && (gap != negated))
+        {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+          // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+          // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.203)
+          added = add_run(builder, first_range, next, entry.first - 1U);
+        }
+        if (added.has_value() && (selects(selector, static_cast<std::uint32_t>(entry.value)) != negated))
+        {
+          added = add_run(builder, first_range, entry.first, entry.last);
+        }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.202)
+        next = entry.last + 1U;
+      }
+      if (added.has_value() && (next <= c_max_code_point) && (gap != negated))
+      {
+        added = add_run(builder, first_range, next, c_max_code_point);
+      }
+      return added;
+    }
+
+    /**
+     * @brief Append the set of a property selector, negated for \P.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-372
+     */
+    status append_selection(regex_builder& builder, const property_selector& selector, bool negated) noexcept
+    {
+      if (selector.ascii)
+      {
+        return negated ? builder.ranges.push_back(regex_range{c_ascii_last + 1U, c_max_code_point})
+                       : builder.ranges.push_back(regex_range{0U, c_ascii_last});
+      }
+      if (selector.script)
+      {
+        return append_table(builder, c_script_ranges, selector, selector.value == c_unknown_script, negated);
+      }
+      return append_table(builder, c_general_category_ranges, selector,
+                          (selector.value & c_unassigned_category_mask) != 0U, negated);
+    }
+
+    /**
+     * @brief Result of resolving a \p{...} text: a selector, unsupported or malformed.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     */
+    using selector_result = result<property_selector, schema_error>;
+
+    /**
+     * @brief Resolve a lone \p{name}: a General_Category value, Any, ASCII or Assigned.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-373
+     */
+    selector_result lone_property(const regex_builder& builder, std::string_view name) noexcept
+    {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.55)
+      property_selector selector{};
+      const auto mask = general_category_mask(name);
+      if (mask.has_value())
+      {
+        selector.value = *mask;
+        return selector_result::success(selector);
+      }
+      if ((name == "Any") || (name == "Assigned"))
+      {
+        selector.value = (name == "Any") ? 0xFFFFFFFFU : ~c_unassigned_category_mask;
+        return selector_result::success(selector);
+      }
+      if (name == "ASCII")
+      {
+        selector.ascii = true;
+        return selector_result::success(selector);
+      }
+      for (const std::string_view binary : c_unsupported_binary_properties)
+      {
+        if (binary == name)
+        {
+          return selector_result::failure(*pattern_error(builder, true).error_if());
+        }
+      }
+      return selector_result::failure(*pattern_error(builder, false).error_if());
+    }
+
+    /**
+     * @brief Resolve \p{property=value}: General_Category or Script.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-374
+     */
+    selector_result named_property(const regex_builder& builder, std::string_view property,
+                                   std::string_view value) noexcept
+    {
+      // MISRA rule: RULE-5-13-4 cpp/misra/unsigned-integer-literals-not-appropriately-suffixed
+      // MISRA justification: Empty-brace value-initialization (`{}`) or a literal whose type is fixed by its context;
+      // the value is zero or the stated constant and no conversion changes it.
+      // codeql::misra_deviation_next_line(DEV-103.54)
+      property_selector selector{};
+      if ((property == "General_Category") || (property == "gc"))
+      {
+        const auto mask = general_category_mask(value);
+        selector.value = mask.has_value() ? *mask : 0U;
+        return mask.has_value() ? selector_result::success(selector)
+                                : selector_result::failure(*pattern_error(builder, false).error_if());
+      }
+      if ((property == "Script") || (property == "sc"))
+      {
+        const auto number = script_number(value);
+        selector.script = true;
+        selector.value = number.has_value() ? *number : 0U;
+        return number.has_value() ? selector_result::success(selector)
+                                  : selector_result::failure(*pattern_error(builder, false).error_if());
+      }
+      const bool extensions = (property == "Script_Extensions") || (property == "scx");
+      return selector_result::failure(
+        *pattern_error(builder, extensions && script_number(value).has_value()).error_if());
+    }
+
+    /**
+     * @brief Read the {...} text of \p or \P (position is past the p) into name; false when it is
+     * missing, unterminated, empty, too long or not ASCII.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-375
+     */
+    bool read_property_text(regex_builder& builder, property_name_text& name, std::size_t& length) noexcept
+    {
+      length = 0U;
+      if ((builder.position >= builder.text.size()) || (builder.text.get(builder.position) != c_open_brace))
+      {
+        return false;
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.201)
+      ++builder.position;
+      while ((builder.position < builder.text.size()) && (builder.text.get(builder.position) != c_close_brace))
+      {
+        const std::uint32_t c = builder.text.get(builder.position);
+        if ((c > c_ascii_last) || (length >= name.size()))
+        {
+          return false;
+        }
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+        // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+        // codeql::misra_deviation_next_line(DEV-102.36)
+        name[length] = static_cast<char>(c);
+        ++length;
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.200)
+        ++builder.position;
+      }
+      if ((builder.position >= builder.text.size()) || (length == 0U))
+      {
+        return false;
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.199)
+      ++builder.position;
+      return true;
+    }
+
+    /**
+     * @brief Parse \p{...} or \P{...} (position is past the p) and append its code points.
+     * @par Requirements
+     * P049; J5-060; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-376
+     */
+    status append_property(regex_builder& builder, bool negated) noexcept
+    {
+      property_name_text name{};
+      std::size_t length = 0U;
+      if (!read_property_text(builder, name, length))
+      {
+        return pattern_error(builder, false);
+      }
+      const std::string_view text{name.data(), length};
+      const std::size_t equals = text.find('=');
+      if (equals == std::string_view::npos)
+      {
+        const selector_result lone = lone_property(builder, text);
+        return lone.has_value() ? append_selection(builder, *lone.value_if(), negated)
+                                : status::failure(*lone.error_if());
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.198)
+      const std::string_view value = text.substr(equals + 1U);
+      const selector_result named = named_property(builder, text.substr(0U, equals), value);
+      return named.has_value() ? append_selection(builder, *named.value_if(), negated)
+                               : status::failure(*named.error_if());
+    }
+
+    /**
      * @brief Read the escape after a backslash (position is past the backslash).
      * @par Requirements
      * P049; J5-060; ECMA-262 5.1 sections 15.10.2.10 to 15.10.2.12 and Annex B.
@@ -553,6 +978,17 @@ namespace adaptive_json5::detail
       {
         value.set = true;
         return shorthand.has_value() ? escape_result::success(value) : escape_result::failure(*shorthand.error_if());
+      }
+      if ((letter == c_small_p) || (letter == c_capital_p))
+      {
+        const status appended = append_property(builder, letter == c_capital_p);
+        value.set = true;
+        return appended.has_value() ? escape_result::success(value) : escape_result::failure(*appended.error_if());
+      }
+      if (letter == c_small_c)
+      {
+        value.code_point = control_letter(builder, in_class);
+        return escape_result::success(value);
       }
       if (is_unsupported_escape(builder, letter, in_class))
       {

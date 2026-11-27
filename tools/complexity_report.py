@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Report production functions above the complexity limits of the coding-style guide.
 
-Measures every function in core/src, core/includes and includes with lizard and lists
+Measures every function in core/src, core/includes, includes and cli with lizard and lists
 those whose cyclomatic complexity or code-line count (NLOC, without comments or blank
 lines) is above the limits in core/docs/design-coding-style.md, "Function size and
 complexity". Functions listed in that section's exception table are reported
@@ -22,7 +22,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "core/docs/design-coding-style.md"
-SOURCE_DIRECTORIES = ("core/src", "core/includes", "includes")
+SOURCE_DIRECTORIES = ("core/src", "core/includes", "includes", "cli/src", "cli/includes")
 SUFFIXES = {".cpp", ".hpp"}
 # Keep in step with the limits table in the guide.
 MAX_CCN = 15

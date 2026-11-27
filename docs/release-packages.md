@@ -125,7 +125,28 @@ installs and exports the static library as `AdaptiveJSON5::schema` (component
 `schema`), its public headers under `adaptive_json5/schema/` and the BSD-3-Clause
 notice of the embedded Draft-07 meta-schema; it depends only on
 `AdaptiveJSON5::parser`. Capabilities are listed in [schema/README.md](../schema/README.md).
-The real host CLI remains future work.
+The host command-line tool `adaptive_json5_examples` (P056–P059, [cli/](../cli/README.md))
+is likewise not part of the release packages. A source build with
+`ADAPTIVE_JSON5_BUILD_EXECUTABLE=ON` builds it (the `cli` preset adds the schema
+component); `cmake --install <build> --component cli` installs only the executable to
+`bin/`. It has its own version (`ADAPTIVE_JSON5_CLI_VERSION`, reported by
+`adaptive_json5_examples version` together with the library version and source
+revision) and depends only on the parser and, optionally, the schema library. Parser and
+embedded consumers never build or need it.
+
+| Preset | Builds |
+| --- | --- |
+| `release-library` | Parser library only (release `.a`) |
+| `debug-unit-tests` | Library, unit tests (including the CLI units in `cli/test`) |
+| `validation-tests` | Library and the pinned-fixture validation tests |
+| `debug-example` | Library, example programs and `adaptive_json5_examples` |
+| `cli` | Library, schema component and `adaptive_json5_examples`; `ctest -L cli_smoke` runs the smoke tests |
+| `cli-no-schema` | Library and `adaptive_json5_examples` without the schema component (schema cases are reported as unsupported) |
+
+Smoke tests: `ctest --preset cli` or `ctest --preset cli-no-schema` after building the
+preset, or `python tools/cli_smoke.py` to run every built CLI variant with the output of each
+case and a PASSED/FAILED verdict. Both read `cli/test/smoke_cases.json` and compare with
+`cli/test/expected`.
 
 For future AdaptivePi use, vendor `cmake/ImportAdaptiveJSON5.cmake` from a pinned
 repository revision into that consumer. This task changes only Adaptive_JSON5;

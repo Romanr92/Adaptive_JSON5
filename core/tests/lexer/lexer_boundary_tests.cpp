@@ -1,5 +1,4 @@
 #include "../../../tests/shared_infrastructure/document_provider.hpp"
-#include "lexer/scalar_lexer.hpp"
 #include "lexer/string/string_lexer.hpp"
 #include "unicode/unicode.hpp"
 

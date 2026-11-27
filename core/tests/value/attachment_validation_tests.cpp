@@ -8,7 +8,6 @@
 #include <limits>
 #include <optional>
 #include <utility>
-#include <variant>
 
 namespace
 {

@@ -493,7 +493,7 @@ Decided by the owner on 2026-11-22 for issue #48 (J5-057, J5-059, J5-060, J5-061
   1,000,000). Supported: literals and escapes, `.`, classes with ranges and negation,
   `\d \D \w \W \s \S`, `^ $ \b \B`, groups and `(?:...)`, alternation and all greedy and
   lazy quantifiers; Annex B literal `{`, `}` and `]`. Backreferences, lookaround, named
-  groups, `\p`, `\c` and legacy octal escapes return `invalid_schema` with the
+  groups, `\p`, `\c` (both supported since issue #187, see below) and legacy octal escapes return `invalid_schema` with the
   `unsupported_pattern` sub-reason; malformed patterns `invalid_pattern`. `.` matches one
   code point (the behavior of ECMA-262's `u` flag); there are no flags.
 - **Lengths** (`minLength`, `maxLength`) count code points; the instance check guarantees
@@ -534,7 +534,9 @@ J5-069, J5-096):
   time (RFC 3339, leap second only at 23:59 UTC), email (RFC 5321: dot-atom or quoted local
   part, host name or address literal), hostname (RFC 1123), ipv4, ipv6, uri and
   uri-reference (RFC 3986 including the authority), json-pointer, relative-json-pointer and
-  regex (not malformed for the own engine; `(?` forms outside ECMA-262 are malformed).
+  regex (not malformed for the own engine; `(?` forms outside ECMA-262 are malformed);
+  iri, iri-reference, uri-template, idn-hostname and idn-email were added for issue #187
+  (see that section).
   Other names stay annotations. Checks are charged to `max_regex_steps`. Content
   assertion is unsupported: `assert_content` returns `unsupported_option`.
 - **Conformance (D4).** JSON-Schema-Test-Suite release `Test-JSON-Schema-Acceptance-1.041`
@@ -551,3 +553,72 @@ J5-069, J5-096):
   meta-schema check itself.
 - Running the suite in the unit-test executables: mixes third-party fixtures into the unit
   gate, unlike the existing corpora.
+
+## Optional draft7 conformance (issue #187)
+
+Decided by the owner on 2026-11-27 for issue #187 (J5-060, J5-069, J5-096). This section
+supersedes the `\p` and `\c` rule of the assertion-keyword section above:
+
+- **Control escapes.** `\cX` with an ASCII letter X matches the code point `X % 32`. `\c`
+  followed by anything else follows Annex B (a literal backslash, then `c`), like the
+  accepted `\a` identity escape.
+- **Unicode property escapes.** `\p{…}` and `\P{…}` (negated), inside and outside classes,
+  accept General_Category values by short or long name and the lone forms (`L`, `Letter`,
+  `Nd`, `digit`, …), the `gc=`/`General_Category=` forms, `Script=`/`sc=` script names and
+  the binary properties `Any`, `ASCII` and `Assigned`. Other ECMA-262 binary properties and
+  `Script_Extensions` return `unsupported_pattern`; an unknown name is `invalid_pattern`.
+  Matching uses one pinned Unicode version, and every range a property set adds is charged
+  to `max_compile_steps`.
+- **IDN host names.** With `assert_format`, `hostname` also validates A-labels (`xn--`):
+  RFC 3492 Punycode decoding with overflow checks, then IDNA2008 (RFC 5891 section 5.4,
+  RFC 5892 with its Appendix A context rules): the U-label must not be all ASCII, every
+  code point must be PVALID or satisfy its CONTEXTJ/CONTEXTO rule, a label must not start
+  with a combining mark, and a U-label must not have `-` at either end or `--` in positions
+  3–4, and must be in NFC (RFC 5891 section 5.4; checked by normalizing a copy in fixed
+  storage: canonical decomposition, ordering and composition, Hangul included). When any
+  label of the host holds a right-to-left character (Bidi_Class R, AL or AN), every label
+  must satisfy the RFC 5893 section 2 Bidi rule. Plain labels keep the RFC 1123 rules.
+- **IRIs and URI Templates.** `iri` and `iri-reference` (RFC 3987) use the `uri` and
+  `uri-reference` checks on a copy with one character per code point, where a `ucschar`
+  (and an `iprivate` character in the query, between the first `?` and `#`) becomes `~`.
+  `~` is unreserved but not a scheme, hex-digit or port character, so non-ASCII characters
+  are rejected in the scheme, an IP literal and the port. `uri-template` (RFC 6570 section
+  2) checks literals with valid percent escapes and `ucschar`/`iprivate`, and expressions
+  with an optional operator (levels 2–3 and the reserved operators) and a varspec list:
+  dotted varnames, prefix lengths 1–9999 without a leading zero, or explode. As the test
+  suite expects, `'` is a literal character (RFC 6570 erratum).
+- **Internationalized host names and email.** `idn-hostname` converts the value to its
+  ASCII form with UTS #46 ToASCII (nontransitional, IdnaMappingTable 17.0.0): ignored code
+  points are removed, mapped ones replaced (U+3002, U+FF0E and U+FF61 become `.`),
+  disallowed ones are invalid, each label is normalized to NFC, and each label with a
+  non-ASCII code point is encoded as an A-label. The ASCII form must then pass `hostname`
+  (STD3 letters, digits and hyphens, label and name lengths, the A-label checks and the
+  Bidi rule). Conversion uses fixed storage: a label holds at most 252 mapped code points
+  (the canonical decomposition of the longest U-label) and the ASCII form at most 253
+  octets; longer values are invalid. A-labels in `hostname` and `idn-hostname` must also be
+  the canonical Punycode encoding of their U-label (decoded and re-encoded, ASCII
+  case-insensitive). `idn-email` (RFC 6531) allows every non-ASCII character in a dot-atom
+  or quoted local part of at most 64 UTF-8 octets; the domain after the last `@` is an
+  internationalized host name or an address literal.
+- **Unicode data.** Unicode 17.0.0, the version of the parser's identifier tables. A
+  separate generator (`tools/generate_schema_unicode_tables.py`) builds constexpr range
+  tables for General_Category, Script, Joining_Type, Virama (combining class 9), Bidi_Class,
+  Canonical_Combining_Class, canonical decompositions and primary composites, the
+  IDNA2008 derived property and the UTS #46 mapping from the pinned UCD and
+  IdnaMappingTable files in `tools/unicode-data/`. IANA
+  publishes derived IDNA tables only up to Unicode 12.0.0, so the derived property is
+  computed with the RFC 5892 algorithm and cross-checked against IANA's 12.0.0 table in the
+  generator's tests. The tables belong to the schema library only; the parser is unchanged.
+- **Conformance.** The runner no longer expects `unsupported_pattern` for the
+  ecmascript-regex `\c` and `\p` groups and no longer skips the A-label group of
+  `optional/format/hostname.json`, and it now runs the `iri`, `iri-reference`,
+  `uri-template`, `idn-hostname` and `idn-email` format files. The `\a` deviation (Annex B) stays.
+
+### Rejected alternatives
+
+- Keeping the explicit `unsupported_pattern` errors: conservative, but schemas written for
+  ECMA-262 `u`-flag engines use `\p{…}` widely.
+- Using IANA's 12.0.0 IDNA table directly: official, but leaves the property tables of the
+  regex (17.0.0) and the host name check on different Unicode versions.
+- A third-party IDNA or Unicode library: adds a dependency with its own allocation and
+  error model (J5-046, J5-101).

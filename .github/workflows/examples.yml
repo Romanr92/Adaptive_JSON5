@@ -28,4 +28,5 @@ jobs:
           adaptive_json5_example_read_value
           adaptive_json5_example_handle_error
       - name: Run example programs and check their output
-        run: ctest --preset debug-example
+        # CLI smoke tests run in their own workflow (cli.yml).
+        run: ctest --preset debug-example --label-exclude cli_smoke

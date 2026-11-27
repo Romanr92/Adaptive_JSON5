@@ -12,7 +12,9 @@ if(CMAKE_HOST_WIN32)
     # Scoop GCC bundles its exception runtime in libgcc; let its driver select
     # the matching libraries rather than Clang's generic MinGW runtime list.
     set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX "${CMAKE_CURRENT_LIST_DIR}/ScoopClangRules.cmake")
-    set(ENV{PATH} "${adaptive_json5_scoop_root}/apps/gcc/current/bin;${adaptive_json5_scoop_root}/apps/llvm/current/bin;$ENV{PATH}")
+    set(adaptive_json5_scoop_gcc_bin "${adaptive_json5_scoop_root}/apps/gcc/current/bin")
+    set(adaptive_json5_scoop_llvm_bin "${adaptive_json5_scoop_root}/apps/llvm/current/bin")
+    set(ENV{PATH} "${adaptive_json5_scoop_gcc_bin};${adaptive_json5_scoop_llvm_bin};$ENV{PATH}")
 else()
     set(CMAKE_CXX_COMPILER clang++)
 endif()

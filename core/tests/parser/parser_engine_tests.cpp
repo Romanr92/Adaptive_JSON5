@@ -187,7 +187,7 @@ namespace
    * @par Requirements
    * P033; J5-013.
    */
-  void PrintTo(const container_case& value, std::ostream* output)
+  [[maybe_unused]] void PrintTo(const container_case& value, std::ostream* output)
   {
     *output << value.input;
   }
@@ -255,7 +255,7 @@ namespace
    * @par Requirements
    * P033; J5-013.
    */
-  void PrintTo(const invalid_case& value, std::ostream* output)
+  [[maybe_unused]] void PrintTo(const invalid_case& value, std::ostream* output)
   {
     *output << value.input << " at byte " << value.offset;
   }
@@ -598,7 +598,7 @@ namespace
    * @par Requirements
    * P033; J5-047.
    */
-  void PrintTo(const limit_case& value, std::ostream* output)
+  [[maybe_unused]] void PrintTo(const limit_case& value, std::ostream* output)
   {
     *output << value.name;
   }

@@ -39,17 +39,21 @@ if(ADAPTIVE_JSON5_BUILD_SCHEMA)
         src/schema/assertions.cpp
         src/schema/format.cpp
         src/schema/evaluator.cpp
+        src/schema/idna.cpp
         src/schema/exact_number.cpp
         src/schema/instance_domain.cpp
         src/schema/json_pointer.cpp
         src/schema/meta_schema.cpp
+        src/schema/normalization.cpp
         src/schema/pod_vector.cpp
         src/schema/regex.cpp
         src/schema/schema_compiler.cpp
         src/schema/schema_registry.cpp
         src/schema/schema_values.cpp
         src/schema/schema_work.cpp
+        src/schema/unicode_property.cpp
         src/schema/uri.cpp
+        src/schema/uts46.cpp
         src/schema/value_equality.cpp)
     add_library(AdaptiveJSON5::schema ALIAS adaptive_json5_schema)
     set_target_properties(adaptive_json5_schema PROPERTIES EXPORT_NAME schema)

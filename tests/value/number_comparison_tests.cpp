@@ -108,7 +108,7 @@ namespace
       number_order expected; // Expected ordering of left relative to right.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const comparison_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const comparison_case& value)
   {
     return stream << value.name;
   }

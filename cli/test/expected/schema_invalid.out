@@ -1,0 +1,5 @@
+examples/schema/device-invalid.json5: schema assertion failed (minLength at "/name", schema #/properties/name)
+examples/schema/device-invalid.json5: schema assertion failed (type at "/enabled", schema #/properties/enabled)
+examples/schema/device-invalid.json5: schema assertion failed (minimum at "/samples/0", schema #/properties/samples/items)
+examples/schema/device-invalid.json5: schema assertion failed (type at "/samples/1", schema #/properties/samples/items)
+examples/schema/device-invalid.json5: schema assertion failed (false at "/extra", schema #/additionalProperties)

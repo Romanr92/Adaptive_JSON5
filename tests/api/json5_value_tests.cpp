@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <optional>
-#include <ostream>
 #include <string>
 #include <string_view>
 #include <type_traits>

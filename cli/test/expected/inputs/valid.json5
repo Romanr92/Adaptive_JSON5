@@ -1,0 +1,12 @@
+// JSON5 document: comments, unquoted names, single quotes, trailing commas,
+// hexadecimal and leading-dot numbers, Infinity and a multi-line string.
+{
+  name: 'sensor-7', // unquoted member name, single-quoted string
+  enabled: true, // boolean literal
+  offset: +0x1F, // explicit plus sign and hexadecimal integer (31)
+  gain: .5, // decimal number with a leading dot (0.5)
+  limit: Infinity, // non-finite number, allowed in JSON5 only
+  tags: ['a', "b",], // single- and double-quoted strings, trailing comma in the array
+  note: "line one \
+line two", // string continued on the next line with a backslash
+} // trailing comma after the last member above

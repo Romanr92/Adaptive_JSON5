@@ -49,7 +49,7 @@ namespace
       value_kind root;   // Expected root value kind.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const strict_accept_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const strict_accept_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -151,7 +151,7 @@ namespace
       std::size_t strict_error; // Expected strict syntax error byte offset.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const strict_reject_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const strict_reject_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }
@@ -219,7 +219,7 @@ namespace
       std::size_t offset;       // Expected root byte offset on success, or syntax error byte offset.
   };
   // Print the case name in failure output instead of raw bytes.
-  void PrintTo(const strict_bom_case& param, std::ostream* stream)
+  [[maybe_unused]] void PrintTo(const strict_bom_case& param, std::ostream* stream)
   {
     *stream << param.name;
   }

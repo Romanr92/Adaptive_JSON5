@@ -60,7 +60,7 @@ namespace
       std::size_t max_depth; // Configured nesting limit.
   };
 
-  std::ostream& operator<<(std::ostream& stream, const failure_case& value)
+  [[maybe_unused]] std::ostream& operator<<(std::ostream& stream, const failure_case& value)
   {
     return stream << value.name;
   }

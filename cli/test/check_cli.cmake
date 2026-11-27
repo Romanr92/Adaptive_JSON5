@@ -1,0 +1,36 @@
+# Run adaptive_json5_examples once and compare its exit code and output with expectations.
+# -DPROGRAM=<exe> -DARGS=<arguments separated by |> -DEXIT=<code>
+# -DEXPECTED=<file with the exact stdout> and/or -DCONTAINS=<text stdout must contain>
+# -DEXPECTED_ERR=<file with the exact stderr> (optional; otherwise stderr must be empty
+#  unless EXIT is 2). Line endings are normalized, so the expectations work on Windows too.
+string(REPLACE "|" ";" arguments "${ARGS}")
+execute_process(COMMAND "${PROGRAM}" ${arguments}
+    RESULT_VARIABLE result OUTPUT_VARIABLE out ERROR_VARIABLE err ENCODING UTF-8)
+string(REPLACE "\r\n" "\n" out "${out}")
+string(REPLACE "\r\n" "\n" err "${err}")
+if(NOT result STREQUAL "${EXIT}")
+    message(FATAL_ERROR "exit code ${result}, expected ${EXIT}\nstdout:\n${out}\nstderr:\n${err}")
+endif()
+if(DEFINED EXPECTED)
+    file(READ "${EXPECTED}" want)
+    string(REPLACE "\r\n" "\n" want "${want}")
+    if(NOT out STREQUAL want)
+        message(FATAL_ERROR "stdout differs from ${EXPECTED}\n--- observed ---\n${out}\n--- expected ---\n${want}")
+    endif()
+endif()
+if(DEFINED CONTAINS)
+    string(FIND "${out}" "${CONTAINS}" found)
+    if(found EQUAL -1)
+        message(FATAL_ERROR "stdout does not contain '${CONTAINS}':\n${out}")
+    endif()
+endif()
+if(DEFINED EXPECTED_ERR)
+    file(READ "${EXPECTED_ERR}" want_err)
+    string(REPLACE "\r\n" "\n" want_err "${want_err}")
+    if(NOT err STREQUAL want_err)
+        message(FATAL_ERROR "stderr differs from ${EXPECTED_ERR}\n"
+            "--- observed ---\n${err}\n--- expected ---\n${want_err}")
+    endif()
+elseif(NOT EXIT STREQUAL "2" AND NOT err STREQUAL "")
+    message(FATAL_ERROR "unexpected stderr:\n${err}")
+endif()

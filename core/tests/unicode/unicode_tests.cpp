@@ -1,7 +1,6 @@
 #include "unicode/unicode.hpp"
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
 
