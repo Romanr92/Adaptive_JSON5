@@ -1,4 +1,5 @@
 #include "schema/idna.hpp"
+#include "schema/normalization.hpp"
 #include "schema/unicode_properties.hpp"
 #include "schema/unicode_property.hpp"
 
@@ -89,10 +90,104 @@ namespace
     EXPECT_FALSE(decode("a{").has_value());
     EXPECT_FALSE(decode("a_").has_value());
     EXPECT_FALSE(decode("a:").has_value());
+    EXPECT_TRUE(has_ace_prefix("Xn--abc"));
+    EXPECT_FALSE(has_ace_prefix("xn-"));
+    EXPECT_FALSE(has_ace_prefix("xm--a"));
+    EXPECT_FALSE(has_ace_prefix("xna-a"));
     EXPECT_FALSE(decode("99999999999a").has_value());
     EXPECT_FALSE(decode("ib9b").has_value());
     EXPECT_FALSE(decode("en32g").has_value());
   }
+
+  /**
+   * @brief Run is_nfc on a list of code points (at most c_max_label_code_points).
+   * @par Requirements
+   * J5-069; Unicode UAX #15.
+   */
+  bool nfc(const std::vector<std::uint32_t>& text)
+  {
+    std::array<std::uint32_t, c_max_label_code_points> label{};
+    std::size_t index = 0U;
+    for (const std::uint32_t code_point : text)
+    {
+      label[index] = code_point;
+      ++index;
+    }
+    return is_nfc(label, text.size());
+  }
+
+  /* ===================================== Test_P187_Nfc ====================================== */
+  /*
+   * Arrange: Composed and decomposed forms: a precomposed letter, a base with a combining accent,
+   *          a singleton (ANGSTROM SIGN), a composition exclusion (DEVANAGARI QA), non-starters
+   *          out of canonical order, a blocked composition and Hangul LV, LVT and conjoining jamo.
+   * Act: Check each for NFC.
+   * Expect: The Unicode 17.0.0 NFC verdict (J5-069; RFC 5891 section 5.4; UAX #15).
+   */
+  TEST(P187_Nfc, MatchesUnicodeNormalization)
+  {
+    EXPECT_TRUE(nfc({0xE9U}));
+    EXPECT_FALSE(nfc({0x65U, 0x301U}));
+    EXPECT_FALSE(nfc({0x212BU}));
+    EXPECT_FALSE(nfc({0x958U}));
+    EXPECT_TRUE(nfc({0x915U, 0x93CU}));
+    EXPECT_FALSE(nfc({0x61U, 0x301U, 0x316U}));
+    EXPECT_FALSE(nfc({0x61U, 0x316U, 0x301U}));
+    EXPECT_TRUE(nfc({0xE1U, 0x316U}));
+    EXPECT_FALSE(nfc({0x61U, 0x315U, 0x300U, 0x5AEU, 0x300U, 0x62U}));
+    EXPECT_TRUE(nfc({0xE0U, 0x5AEU, 0x300U, 0x315U, 0x62U}));
+    EXPECT_TRUE(nfc({0x301U, 0x61U}));
+    EXPECT_TRUE(nfc({0xAC00U}));
+    EXPECT_TRUE(nfc({0xAC01U}));
+    EXPECT_FALSE(nfc({0x1100U, 0x1161U}));
+    EXPECT_FALSE(nfc({0xAC00U, 0x11A8U}));
+    EXPECT_TRUE(nfc({}));
+    EXPECT_TRUE(nfc(std::vector<std::uint32_t>(63U, 0x1E08U)));
+  }
+
+  /* =================================== Test_P187_BidiRule =================================== */
+  struct bidi_case
+  {
+      const char* name;
+      const char* host;
+      bool valid;
+  };
+
+  class P187_BidiRule : public testing::TestWithParam<bidi_case>
+  {
+  };
+
+  /*
+   * Arrange: Host names without right-to-left labels, and Bidi domains whose labels meet or break
+   *          each condition of RFC 5893 section 2.
+   * Act: Apply satisfies_bidi_rule.
+   * Expect: The rule applies only when a label holds R, AL or AN, and then to every label
+   *         (J5-069; RFC 5893).
+   */
+  TEST_P(P187_BidiRule, FollowsRfc5893)
+  {
+    EXPECT_EQ(satisfies_bidi_rule(GetParam().host), GetParam().valid) << GetParam().host;
+  }
+
+  INSTANTIATE_TEST_SUITE_P(Cases, P187_BidiRule,
+                           testing::Values(bidi_case{"NoRightToLeft", "1abc.example", true},
+                                           bidi_case{"Hebrew", "xn--4dbc5h", true},
+                                           bidi_case{"WithLtrLabel", "abc.xn--4dbc5h", true},
+                                           bidi_case{"LtrLabelStartsWithDigit", "1abc.xn--4dbc5h", false},
+                                           bidi_case{"LtrLabelEndsWithHyphen", "abc-.xn--4dbc5h", false},
+                                           bidi_case{"LtrLabelEndsWithDigit", "abc1.xn--4dbc5h", true},
+                                           bidi_case{"ArabicIndicDigit", "xn--ngba1o", true},
+                                           bidi_case{"EuropeanAndArabicDigits", "xn--1-0mcb6t", false},
+                                           bidi_case{"LtrWithHebrew", "xn--a-0hc", false},
+                                           bidi_case{"StartsWithArabicDigit", "xn--ngb5i", false},
+                                           bidi_case{"EndsWithMark", "xn--ngb0f", true},
+                                           bidi_case{"RtlEndsWithNeutral", "xn--uba99y", false},
+                                           bidi_case{"LtrEndsWithNeutral", "xn--a-gda.xn--4dbc5h", false},
+                                           bidi_case{"UndecodableLabel", "xn--b.xn--4dbc5h", false}),
+                           [](const testing::TestParamInfo<bidi_case>& param_info)
+                           {
+                             return std::string{param_info.param.name};
+                           });
 
   /* =================================== Test_P187_ALabels ==================================== */
   struct label_case

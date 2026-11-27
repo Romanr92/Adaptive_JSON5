@@ -40,6 +40,58 @@ class DerivedIdnaPropertyTests(unittest.TestCase):
         self.assertEqual(self.derived[0x0378], "UNASSIGNED")
 
 
+@unittest.skipUnless(__import__("unicodedata").unidata_version == "17.0.0", "needs Python's Unicode 17.0.0 data")
+class PythonUnicodeDataTests(unittest.TestCase):
+    """The tables agree with Python's independent unicodedata module for every assigned code point."""
+
+    @classmethod
+    def setUpClass(cls):
+        import unicodedata
+        cls.unicodedata = unicodedata
+        generator.verify_inputs()
+        cls.tables = generator.build()
+        cls.category, _ = generator.unicode_data()
+
+    @staticmethod
+    def lookup(ranges, code_point, default):
+        for first, last, value in ranges:
+            if first <= code_point <= last:
+                return value
+        return default
+
+    def test_bidi_combining_and_decomposition(self):
+        bidi = dict()
+        for first, last, value in self.tables["bidi_ranges"]:
+            for cp in range(first, last + 1):
+                bidi[cp] = generator.BIDI_CLASSES[value]
+        combining = dict()
+        for first, last, value in self.tables["combining_ranges"]:
+            for cp in range(first, last + 1):
+                combining[cp] = value
+        decompositions = {cp: (a, b) for cp, a, b in self.tables["decompositions"]}
+        mismatches = []
+        for cp in self.category:
+            character = chr(cp)
+            if bidi.get(cp, "L") != self.unicodedata.bidirectional(character):
+                mismatches.append(("bidi", cp))
+            if combining.get(cp, 0) != self.unicodedata.combining(character):
+                mismatches.append(("ccc", cp))
+            if 0xAC00 <= cp <= 0xD7A3:
+                continue  # Hangul syllables decompose algorithmically and are not in the table.
+            mapping = self.unicodedata.decomposition(character)
+            expected = None if (not mapping or mapping.startswith("<")) else [int(p, 16) for p in mapping.split()]
+            actual = decompositions.get(cp)
+            actual = None if actual is None else [part for part in actual if part != 0]
+            if expected != actual:
+                mismatches.append(("decomposition", cp))
+        self.assertEqual(mismatches[:10], [])
+
+    def test_compositions_are_the_nfc_primary_composites(self):
+        mismatches = [(first, second, composite) for first, second, composite in self.tables["compositions"]
+                      if self.unicodedata.normalize("NFC", chr(first) + chr(second)) != chr(composite)]
+        self.assertEqual(mismatches, [])
+
+
 class HeaderTests(unittest.TestCase):
     """The checked-in header is the generator's current output."""
 

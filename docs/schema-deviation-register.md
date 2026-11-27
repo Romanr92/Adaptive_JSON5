@@ -11,10 +11,10 @@ the time of writing; the marker ID in the source is authoritative.
 
 | ID | Category | Lines |
 | --- | --- | --- |
-| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 207 |
-| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 36 |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 225 |
+| DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 37 |
 | DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 55 |
-| DEV-104 | Rule 15.0.1, special member functions | 42 |
+| DEV-104 | Rule 15.0.1, special member functions | 45 |
 | DEV-105 | Rule 9.5.1, counting loops | 21 |
 | DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 22 |
 | DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 14 |
@@ -31,7 +31,7 @@ the time of writing; the marker ID in the source is authoritative.
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
-| Lines | 207 |
+| Lines | 225 |
 | Status | Accepted by the owner 2026-11-25 (#44, #48, #53; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
@@ -253,13 +253,31 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.208 | `core/src/schema/unicode_property.cpp:37` | `low = middle + 1U;` | 8.20.1 | Accepted |
 | DEV-101.209 | `core/src/schema/unicode_property.cpp:29` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Accepted |
 | DEV-101.210 | `core/src/schema/format.cpp:573` | `return is_mail_domain(text.substr(at + 1U));` | 8.20.1 | Accepted |
+| DEV-101.211 | `core/src/schema/idna.cpp:767` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Proposed |
+| DEV-101.212 | `core/src/schema/idna.cpp:651` | `rest = rest.substr(dot + 1U);` | 8.20.1 | Proposed |
+| DEV-101.213 | `core/src/schema/idna.cpp:645` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.214 | `core/src/schema/idna.cpp:618` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.215 | `core/src/schema/idna.cpp:527` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.216 | `core/src/schema/normalization.cpp:235` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.217 | `core/src/schema/normalization.cpp:220` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.218 | `core/src/schema/normalization.cpp:197` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.219 | `core/src/schema/normalization.cpp:195` | `++written;` | 8.20.1 | Proposed |
+| DEV-101.220 | `core/src/schema/normalization.cpp:158` | `return first + (second - c_trailing_base);` | 8.20.1 | Proposed |
+| DEV-101.221 | `core/src/schema/normalization.cpp:151` | `((((first - c_leading_base) * c_vowel_count) + (second - c_vowel_base)) * c_trailing_cou...` | 8.20.1 | Proposed |
+| DEV-101.222 | `core/src/schema/normalization.cpp:150` | `return c_hangul_base +` | 8.20.1 | Proposed |
+| DEV-101.223 | `core/src/schema/normalization.cpp:134` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.224 | `core/src/schema/normalization.cpp:57` | `const std::uint32_t index = syllable - c_hangul_base;` | 8.20.1 | Proposed |
+| DEV-101.225 | `core/src/schema/unicode_property.cpp:256` | `low = middle + 1U;` | 8.20.1 | Proposed |
+| DEV-101.226 | `core/src/schema/unicode_property.cpp:247` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
+| DEV-101.227 | `core/src/schema/unicode_property.cpp:225` | `low = middle + 1U;` | 8.20.1 | Proposed |
+| DEV-101.228 | `core/src/schema/unicode_property.cpp:217` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/no-character-numerical-value` |
-| Lines | 36 |
+| Lines | 37 |
 | Status | Accepted by the owner 2026-11-25 (#44, #48; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
@@ -310,6 +328,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-102.34 | `core/src/schema/idna.cpp:177` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(input[index]));` | 7.0.3 | Accepted |
 | DEV-102.35 | `core/src/schema/idna.cpp:53` | `const auto unit = static_cast<std::uint32_t>(static_cast<unsigned char>(c));` | 7.0.3 | Accepted |
 | DEV-102.36 | `core/src/schema/regex.cpp:859` | `name[length] = static_cast<char>(c);` | 7.0.3 | Accepted |
+| DEV-102.37 | `core/src/schema/idna.cpp:526` | `output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(label[index]));` | 7.0.3 | Proposed |
 
 ## DEV-103: Rule 5.13.4, empty-brace value-initialization and literals
 
@@ -392,7 +411,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/improperly-provided-special-member-functions-audit`, `cpp/misra/improperly-provided-special-member-functions`, `cpp/misra/implicit-declaration-of-copy-constructor-audit` |
-| Lines | 42 |
+| Lines | 45 |
 | Status | Accepted by the owner 2026-11-25 (#44, #48; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
@@ -449,6 +468,9 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-104.40 | `core/src/schema/schema_values.cpp:221` | `struct copy_frame` | 15.0.1 | Accepted |
 | DEV-104.41 | `core/src/schema/regex.cpp` | `struct property_selector` | 15.0.1 | Accepted |
 | DEV-104.42 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_value_name` | 15.0.1 | Accepted |
+| DEV-104.43 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_decomposition` | 15.0.1 | Proposed |
+| DEV-104.44 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_composition` | 15.0.1 | Proposed |
+| DEV-104.45 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct uts46_entry` | 15.0.1 | Proposed |
 
 ## DEV-105: Rule 9.5.1, counting loops
 

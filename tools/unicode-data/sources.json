@@ -48,5 +48,13 @@
     "url": "https://www.iana.org/assignments/idna-tables-12.0.0/idna-tables-properties.csv",
     "sha256": "160b72e33a377a84253393c572dc338879f39b93beccbb9cb9baebbf4d6dd743",
     "retrieved": "2026-11-27"
+  },
+  "17.0.0/extracted/DerivedBidiClass.txt": {
+    "url": "https://www.unicode.org/Public/17.0.0/ucd/extracted/DerivedBidiClass.txt",
+    "sha256": "4867b4b7f0731ed1bfcd34cc6251211ff1542541fce0734b6fbda139ee80b3a4"
+  },
+  "17.0.0/idna/IdnaMappingTable.txt": {
+    "url": "https://www.unicode.org/Public/17.0.0/idna/IdnaMappingTable.txt",
+    "sha256": "87f05505dc026fdb2bff16132bdc68a8014675836882a9a2b1844540ad3be382"
   }
 }

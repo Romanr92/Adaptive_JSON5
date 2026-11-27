@@ -27,7 +27,8 @@ UCD = DATA / "17.0.0"
 OUTPUT = ROOT / "core/includes/schema/unicode_properties.hpp"
 INPUTS = ("17.0.0/UnicodeData.txt", "17.0.0/PropertyValueAliases.txt", "17.0.0/Scripts.txt",
           "17.0.0/DerivedCoreProperties.txt", "17.0.0/PropList.txt", "17.0.0/DerivedNormalizationProps.txt",
-          "17.0.0/HangulSyllableType.txt", "17.0.0/extracted/DerivedJoiningType.txt")
+          "17.0.0/HangulSyllableType.txt", "17.0.0/extracted/DerivedJoiningType.txt",
+          "17.0.0/extracted/DerivedBidiClass.txt", "17.0.0/idna/IdnaMappingTable.txt")
 MAX_CODE_POINT = 0x10FFFF
 
 # RFC 5892 section 2.6 exceptions (F) and their derived values.
@@ -45,6 +46,9 @@ LETTER_DIGITS = {"Ll", "Lu", "Lo", "Nd", "Lm", "Mn", "Mc"}  # RFC 5892 section 2
 IGNORABLE_BLOCKS = ((0x20D0, 0x20FF), (0x1D100, 0x1D1FF), (0x1D200, 0x1D24F))  # Section 2.4 (D).
 IDNA_VALUES = ("PVALID", "CONTEXTJ", "CONTEXTO")
 JOINING_TYPES = ("D", "L", "R", "T", "C")
+# Bidi_Class values stored in c_bidi_class_ranges; L (the default of unlisted code points) is not stored.
+BIDI_CLASSES = ("L", "R", "AL", "EN", "ES", "ET", "AN", "CS", "NSM", "BN", "B", "S", "WS", "ON",
+                "LRE", "LRO", "RLE", "RLO", "PDF", "LRI", "RLI", "FSI", "PDI")
 
 
 def verify_inputs():
@@ -92,6 +96,47 @@ def unicode_data():
             if ccc:
                 combining[cp] = ccc
     return category, combining
+
+
+def canonical_decompositions():
+    """Return {code point: (first, second or 0)} of every canonical (untagged) decomposition."""
+    decompositions = {}
+    for fields in data_lines(UCD / "UnicodeData.txt"):
+        mapping = fields[5]
+        if not mapping or mapping.startswith("<"):
+            continue
+        parts = [int(part, 16) for part in mapping.split()]
+        if len(parts) > 2:
+            raise ValueError("canonical decomposition longer than two code points: " + fields[0])
+        decompositions[int(fields[0], 16)] = (parts[0], parts[1] if len(parts) == 2 else 0)
+    return decompositions
+
+
+UTS46_STATUSES = ("valid", "ignored", "mapped", "disallowed")
+
+
+def uts46_table():
+    """Return UTS #46 entries (first, last, status, offset, length) for every code point that is not
+    valid, and the pool of mapping code points. Deviation counts as valid (nontransitional)."""
+    entries = []
+    pool = []
+    for fields in data_lines(UCD / "idna/IdnaMappingTable.txt"):
+        first, last = code_points(fields[0])
+        status = "valid" if fields[1] == "deviation" else fields[1]
+        if status == "valid":
+            continue
+        offset = len(pool)
+        mapping = [int(part, 16) for part in fields[2].split()] if status == "mapped" else []
+        pool.extend(mapping)
+        code = UTS46_STATUSES.index(status)
+        previous = entries[-1] if entries else None
+        if previous and status != "mapped" and previous[2] == code and previous[1] + 1 == first:
+            entries[-1] = (previous[0], last, code, 0, 0)
+        else:
+            entries.append((first, last, code, offset if mapping else 0, len(mapping)))
+    if len(pool) > 0xFFFF or max(entry[4] for entry in entries) > 0xFF:
+        raise ValueError("UTS #46 mapping pool exceeds the table field sizes")
+    return entries, pool
 
 
 def property_values(path, wanted=None):
@@ -199,6 +244,14 @@ def build():
                       for first, last, value in ranges_of(joining, set(JOINING_TYPES))]
     virama_ranges = [(first, last, 0) for first, last, _ in ranges_of({cp: 9 for cp, ccc in combining.items()
                                                                         if ccc == 9})]
+    bidi = {cp: value for cp, value in property_values(UCD / "extracted/DerivedBidiClass.txt").items() if value != "L"}
+    bidi_ranges = [(first, last, BIDI_CLASSES.index(value)) for first, last, value in ranges_of(bidi)]
+    combining_ranges = ranges_of(combining)
+    decompositions = canonical_decompositions()
+    excluded = property_values(UCD / "DerivedNormalizationProps.txt", "Full_Composition_Exclusion")
+    compositions = sorted((first, second, cp) for cp, (first, second) in decompositions.items()
+                          if second != 0 and cp not in excluded)
+    uts46_entries, uts46_pool = uts46_table()
     derived = derive_idna(category)
     idna_ranges = [(first, last, IDNA_VALUES.index(value))
                    for first, last, value in ranges_of(derived, set(IDNA_VALUES))]
@@ -214,6 +267,12 @@ def build():
         "joining_ranges": joining_ranges,
         "virama_ranges": virama_ranges,
         "idna_ranges": idna_ranges,
+        "bidi_ranges": bidi_ranges,
+        "combining_ranges": combining_ranges,
+        "decompositions": sorted((cp, pair[0], pair[1]) for cp, pair in decompositions.items()),
+        "compositions": compositions,
+        "uts46_entries": uts46_entries,
+        "uts46_pool": uts46_pool,
         "derived": derived,
     }
 
@@ -279,6 +338,81 @@ def render(tables, manifest):
               "  };",
               "",
               "  /**",
+              "   * @brief Canonical decomposition of one code point into one or two code points (second 0).",
+              "   * @par Requirements",
+              "   * J5-069; ADR 0006 (issue #187).",
+              "   */",
+              "  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit",
+              "  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only",
+              "  // set they need; the implicitly provided members are the intended ones.",
+              "  // codeql::misra_deviation_next_line(DEV-104.43)",
+              "  struct unicode_decomposition",
+              "  {",
+              "      std::uint32_t code_point;",
+              "      std::uint32_t first;",
+              "      std::uint32_t second;",
+              "  };",
+              "",
+              "  /**",
+              "   * @brief Primary composite of a canonical pair (first, second) that NFC composes.",
+              "   * @par Requirements",
+              "   * J5-069; ADR 0006 (issue #187).",
+              "   */",
+              "  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit",
+              "  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only",
+              "  // set they need; the implicitly provided members are the intended ones.",
+              "  // codeql::misra_deviation_next_line(DEV-104.44)",
+              "  struct unicode_composition",
+              "  {",
+              "      std::uint32_t first;",
+              "      std::uint32_t second;",
+              "      std::uint32_t composite;",
+              "  };",
+              "",
+              "  /**",
+              "   * @brief UTS #46 status of a code point range that is not valid; mapped ranges replace each",
+              "   * code point with c_uts46_mappings[offset, offset + length).",
+              "   * @par Requirements",
+              "   * J5-069; UTS #46 section 5; ADR 0006 (issue #187).",
+              "   */",
+              "  // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit",
+              "  // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only",
+              "  // set they need; the implicitly provided members are the intended ones.",
+              "  // codeql::misra_deviation_next_line(DEV-104.45)",
+              "  struct uts46_entry",
+              "  {",
+              "      std::uint32_t first;",
+              "      std::uint32_t last;",
+              "      std::uint16_t offset;",
+              "      std::uint8_t status;",
+              "      std::uint8_t length;",
+              "  };",
+              "",
+              "  /**",
+              "   * @brief UTS #46 statuses stored in c_uts46_entries (valid is implicit; deviation counts as",
+              "   * valid, nontransitional processing).",
+              "   * @par Requirements",
+              "   * J5-069; UTS #46 section 5.",
+              "   */",
+              "  enum class uts46_status : std::uint8_t",
+              "  {",
+              "    valid = 0,",
+              "    ignored = 1,",
+              "    mapped = 2,",
+              "    disallowed = 3",
+              "  };",
+              "",
+              "  /**",
+              "   * @brief Bidi_Class values stored in c_bidi_class_ranges (L is implicit).",
+              "   * @par Requirements",
+              "   * J5-069; RFC 5893 section 2; ADR 0006 (issue #187).",
+              "   */",
+              "  enum class bidi_class : std::uint8_t",
+              "  {",
+              *[f"    {name.lower()}_class = {number}," for number, name in enumerate(BIDI_CLASSES)],
+              "  };",
+              "",
+              "  /**",
               "   * @brief Joining_Type values stored in c_joining_type_ranges (U is implicit).",
               "   * @par Requirements",
               "   * J5-069; ADR 0006 (issue #187).",
@@ -318,6 +452,29 @@ def render(tables, manifest):
     table(lines, "c_idna_ranges", "IDNA2008 derived property PVALID, CONTEXTJ or CONTEXTO (value: idna_property).",
           "unicode_value_range", [f"{{0x{f:06X}, 0x{l:06X}, {v}U}}" for f, l, v in tables["idna_ranges"]],
           "Sorted, disjoint; unlisted code points are DISALLOWED or UNASSIGNED (RFC 5892 section 3).")
+    table(lines, "c_bidi_class_ranges", "Bidi_Class of every code point that is not L (value: bidi_class).",
+          "unicode_value_range", [f"{{0x{f:06X}, 0x{l:06X}, {v}U}}" for f, l, v in tables["bidi_ranges"]],
+          "Sorted, disjoint; unlisted code points are L (RFC 5893 uses the explicit values).")
+    table(lines, "c_combining_class_ranges", "Non-zero Canonical_Combining_Class (value: the class).",
+          "unicode_value_range", [f"{{0x{f:06X}, 0x{l:06X}, {v}U}}" for f, l, v in tables["combining_ranges"]],
+          "Sorted, disjoint; unlisted code points have class 0.")
+    table(lines, "c_canonical_decompositions", "Canonical decompositions (UnicodeData field 5 without a tag).",
+          "unicode_decomposition", [f"{{0x{c:06X}, 0x{a:06X}, 0x{b:06X}}}" for c, a, b in tables["decompositions"]],
+          "Sorted by code_point; second is 0 for singletons. Hangul syllables are algorithmic.")
+    table(lines, "c_canonical_compositions", "Primary composites: two-code-point decompositions without "
+          "Full_Composition_Exclusion.", "unicode_composition",
+          [f"{{0x{a:06X}, 0x{b:06X}, 0x{c:06X}}}" for a, b, c in tables["compositions"]],
+          "Sorted by (first, second) for binary search. Hangul syllables are algorithmic.")
+    table(lines, "c_uts46_entries", "UTS #46 IDNA mapping: every code point range that is not valid.",
+          "uts46_entry", [f"{{0x{f:06X}, 0x{l:06X}, {o}U, {s}U, {n}U}}" for f, l, s, o, n in tables["uts46_entries"]],
+          "Sorted, disjoint; unlisted code points are valid (IdnaMappingTable 17.0.0, nontransitional).")
+    pool = tables["uts46_pool"]
+    lines += ["", "    /**", "     * @brief Code points of the UTS #46 mappings, indexed by uts46_entry::offset.",
+              "     * @par Requirements", "     * J5-069; ADR 0006 (issue #187).", "     */",
+              f"    inline constexpr std::array<std::uint32_t, {len(pool)}> c_uts46_mappings =", "    {{"]
+    lines.extend("      " + ", ".join(f"0x{cp:06X}U" for cp in pool[index:index + 8]) + ","
+                 for index in range(0, len(pool), 8))
+    lines.append("    }};")
     lines += ["", "  // clang-format on", "} // namespace adaptive_json5::detail", "", f"#endif /* {guard} */", ""]
     return "\n".join(lines)
 
@@ -340,7 +497,8 @@ def main():
     with arguments.output.open("w", encoding="utf-8", newline="\n") as output:
         output.write(text)
     for key in ("gc_ranges", "gc_names", "script_ranges", "script_names", "joining_ranges", "virama_ranges",
-                "idna_ranges"):
+                "idna_ranges", "bidi_ranges", "combining_ranges", "decompositions", "compositions",
+                "uts46_entries", "uts46_pool"):
         print(f"{key}: {len(tables[key])}")
     return 0
 

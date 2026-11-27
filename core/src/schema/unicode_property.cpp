@@ -177,4 +177,109 @@ namespace adaptive_json5::detail
     const unicode_value_range* entry = find_range(c_idna_ranges, code_point);
     return (entry == nullptr) ? std::nullopt : std::optional<idna_property>{static_cast<idna_property>(entry->value)};
   }
+
+  /**
+   * @brief Bidi_Class of a code point.
+   * @par Requirements
+   * J5-069; RFC 5893 section 2; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-399
+   */
+  bidi_class bidi_class_of(std::uint32_t code_point) noexcept
+  {
+    const unicode_value_range* entry = find_range(c_bidi_class_ranges, code_point);
+    return (entry == nullptr) ? bidi_class::l_class : static_cast<bidi_class>(entry->value);
+  }
+
+  /**
+   * @brief Canonical_Combining_Class of a code point.
+   * @par Requirements
+   * J5-069; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-400
+   */
+  std::uint32_t combining_class_of(std::uint32_t code_point) noexcept
+  {
+    const unicode_value_range* entry = find_range(c_combining_class_ranges, code_point);
+    return (entry == nullptr) ? 0U : static_cast<std::uint32_t>(entry->value);
+  }
+
+  /**
+   * @brief Canonical decomposition of a code point.
+   * @par Requirements
+   * J5-069; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-401
+   */
+  const unicode_decomposition* canonical_decomposition(std::uint32_t code_point) noexcept
+  {
+    std::size_t low = 0U;
+    std::size_t high = c_canonical_decompositions.size();
+    while (low < high)
+    {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.228)
+      const std::size_t middle = low + ((high - low) / 2U);
+      const unicode_decomposition& entry = c_canonical_decompositions[middle];
+      if (entry.code_point == code_point)
+      {
+        return &entry;
+      }
+      if (entry.code_point < code_point)
+      {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.227)
+        low = middle + 1U;
+      }
+      else
+      {
+        high = middle;
+      }
+    }
+    return nullptr;
+  }
+
+  /**
+   * @brief Primary composite of a canonical pair.
+   * @par Requirements
+   * J5-069; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-402
+   */
+  std::optional<std::uint32_t> canonical_composition(std::uint32_t first, std::uint32_t second) noexcept
+  {
+    std::size_t low = 0U;
+    std::size_t high = c_canonical_compositions.size();
+    while (low < high)
+    {
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.226)
+      const std::size_t middle = low + ((high - low) / 2U);
+      const unicode_composition& entry = c_canonical_compositions[middle];
+      if ((entry.first == first) && (entry.second == second))
+      {
+        return entry.composite;
+      }
+      const bool before = (entry.first < first) || ((entry.first == first) && (entry.second < second));
+      if (before)
+      {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.225)
+        low = middle + 1U;
+      }
+      else
+      {
+        high = middle;
+      }
+    }
+    return std::nullopt;
+  }
 } // namespace adaptive_json5::detail

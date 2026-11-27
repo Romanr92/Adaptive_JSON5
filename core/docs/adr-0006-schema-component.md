@@ -572,12 +572,14 @@ supersedes the `\p` and `\c` rule of the assertion-keyword section above:
   RFC 5892 with its Appendix A context rules): the U-label must not be all ASCII, every
   code point must be PVALID or satisfy its CONTEXTJ/CONTEXTO rule, a label must not start
   with a combining mark, and a U-label must not have `-` at either end or `--` in positions
-  3–4. The RFC 5893 Bidi rule and the NFC check of RFC 5891 section 5.4 are not applied
-  (documented gaps; no draft7 test depends on them, and NFC needs normalization tables the
-  component does not carry). Plain labels keep the RFC 1123 rules.
+  3–4, and must be in NFC (RFC 5891 section 5.4; checked by normalizing a copy in fixed
+  storage: canonical decomposition, ordering and composition, Hangul included). When any
+  label of the host holds a right-to-left character (Bidi_Class R, AL or AN), every label
+  must satisfy the RFC 5893 section 2 Bidi rule. Plain labels keep the RFC 1123 rules.
 - **Unicode data.** Unicode 17.0.0, the version of the parser's identifier tables. A
   separate generator (`tools/generate_schema_unicode_tables.py`) builds constexpr range
-  tables for General_Category, Script, Joining_Type, Virama (combining class 9) and the
+  tables for General_Category, Script, Joining_Type, Virama (combining class 9), Bidi_Class,
+  Canonical_Combining_Class, canonical decompositions and primary composites, and the
   IDNA2008 derived property from the pinned UCD files in `tools/unicode-data/`. IANA
   publishes derived IDNA tables only up to Unicode 12.0.0, so the derived property is
   computed with the RFC 5892 algorithm and cross-checked against IANA's 12.0.0 table in the

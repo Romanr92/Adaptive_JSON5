@@ -1,5 +1,6 @@
 #include "schema/idna.hpp"
 
+#include "schema/normalization.hpp"
 #include "schema/unicode_properties.hpp"
 #include "schema/unicode_property.hpp"
 
@@ -481,6 +482,10 @@ namespace adaptive_json5::detail
       {
         return false;
       }
+      if (!is_nfc(label, count))
+      {
+        return false;
+      }
       std::size_t index = 0U;
       while (index < count)
       {
@@ -496,6 +501,179 @@ namespace adaptive_json5::detail
         ++index;
       }
       return true;
+    }
+
+    /**
+     * @brief Code points of a label: the decoded U-label of an A-label, otherwise the ASCII
+     * characters; nullopt when an A-label does not decode or the label is too long.
+     * @par Requirements
+     * J5-069; RFC 5893 section 2.
+     * @par ID SWU-SCHEMA-411
+     */
+    std::optional<std::size_t> label_code_points(std::string_view label, label_buffer& output) noexcept
+    {
+      if (has_ace_prefix(label))
+      {
+        return punycode_decode(label.substr(c_ace_prefix_length), output);
+      }
+      if (label.size() > output.size())
+      {
+        return std::nullopt;
+      }
+      std::size_t index = 0U;
+      while (index < label.size())
+      {
+        // MISRA rule: RULE-7-0-3 cpp/misra/no-character-numerical-value
+        // MISRA justification: URI, JSON Pointer and UTF-8/UTF-16 handling compares and computes ASCII characters and
+        // code units by value, as RFC 3986, RFC 6901 and Unicode define them.
+        // codeql::misra_deviation_next_line(DEV-102.37)
+        output[index] = static_cast<std::uint32_t>(static_cast<unsigned char>(label[index]));
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.215)
+        ++index;
+      }
+      return label.size();
+    }
+
+    /**
+     * @brief Report whether a Bidi_Class is right-to-left (R, AL or AN; RFC 5893 section 1.4).
+     * @par Requirements
+     * J5-069; RFC 5893 section 1.4.
+     * @par ID SWU-SCHEMA-412
+     */
+    bool is_rtl_class(bidi_class value) noexcept
+    {
+      return (value == bidi_class::r_class) || (value == bidi_class::al_class) || (value == bidi_class::an_class);
+    }
+
+    /**
+     * @brief Report whether a Bidi_Class may appear in an RTL (rtl) or LTR label (RFC 5893
+     * section 2, conditions 2 and 5).
+     * @par Requirements
+     * J5-069; RFC 5893 section 2.
+     * @par ID SWU-SCHEMA-413
+     */
+    bool allowed_class(bidi_class value, bool rtl) noexcept
+    {
+      const bool common = (value == bidi_class::en_class) || (value == bidi_class::es_class) ||
+                          (value == bidi_class::cs_class) || (value == bidi_class::et_class) ||
+                          (value == bidi_class::on_class) || (value == bidi_class::bn_class) ||
+                          (value == bidi_class::nsm_class);
+      return common || (rtl ? is_rtl_class(value) : (value == bidi_class::l_class));
+    }
+
+    /**
+     * @brief Bidi_Class of the last code point that is not NSM (NSM when there is none).
+     * @par Requirements
+     * J5-069; RFC 5893 section 2, conditions 3 and 6.
+     * @par ID SWU-SCHEMA-416
+     */
+    bidi_class last_class(const label_buffer& label, std::size_t count) noexcept
+    {
+      std::size_t end = count;
+      while ((end > 0U) && (bidi_class_of(label[end - 1U]) == bidi_class::nsm_class))
+      {
+        --end;
+      }
+      return (end > 0U) ? bidi_class_of(label[end - 1U]) : bidi_class::nsm_class;
+    }
+
+    /**
+     * @brief Report whether a label may end with this class: R, AL, EN or AN for RTL labels; L
+     * or EN for LTR labels.
+     * @par Requirements
+     * J5-069; RFC 5893 section 2, conditions 3 and 6.
+     * @par ID SWU-SCHEMA-417
+     */
+    bool ends_well(bidi_class last, bool rtl) noexcept
+    {
+      if (rtl)
+      {
+        return (last == bidi_class::r_class) || (last == bidi_class::al_class) || (last == bidi_class::en_class) ||
+               (last == bidi_class::an_class);
+      }
+      return (last == bidi_class::l_class) || (last == bidi_class::en_class);
+    }
+
+    /**
+     * @brief RFC 5893 section 2 conditions 1 to 6 for one label.
+     * @par Requirements
+     * J5-069; RFC 5893 section 2.
+     * @par ID SWU-SCHEMA-414
+     */
+    bool label_satisfies_bidi_rule(const label_buffer& label, std::size_t count) noexcept
+    {
+      const bidi_class first = bidi_class_of(label[0U]);
+      if ((first != bidi_class::l_class) && (first != bidi_class::r_class) && (first != bidi_class::al_class))
+      {
+        return false;
+      }
+      const bool rtl = first != bidi_class::l_class;
+      bool european = false;
+      bool arabic = false;
+      std::size_t index = 0U;
+      while (index < count)
+      {
+        const bidi_class value = bidi_class_of(label[index]);
+        if (!allowed_class(value, rtl))
+        {
+          return false;
+        }
+        european = european || (value == bidi_class::en_class);
+        arabic = arabic || (value == bidi_class::an_class);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.214)
+        ++index;
+      }
+      return ends_well(last_class(label, count), rtl) && !(rtl && european && arabic);
+    }
+
+    /**
+     * @brief Report whether any label of the host holds a right-to-left character.
+     * @par Requirements
+     * J5-069; RFC 5893 section 1.4.
+     * @par ID SWU-SCHEMA-415
+     */
+    bool is_bidi_domain(std::string_view host) noexcept
+    {
+      std::string_view rest = host;
+      for (;;)
+      {
+        const std::size_t dot = rest.find('.');
+        label_buffer label{};
+        const auto count = label_code_points(rest.substr(0U, dot), label);
+        const std::size_t size = count.has_value() ? *count : 0U;
+        std::size_t index = 0U;
+        while (index < size)
+        {
+          if (is_rtl_class(bidi_class_of(label[index])))
+          {
+            return true;
+          }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+          // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+          // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.213)
+          ++index;
+        }
+        if (dot == std::string_view::npos)
+        {
+          return false;
+        }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.212)
+        rest = rest.substr(dot + 1U);
+      }
     }
   } // namespace
 
@@ -563,6 +741,59 @@ namespace adaptive_json5::detail
   {
     label_buffer decoded{};
     const auto count = punycode_decode(label.substr(c_ace_prefix_length), decoded);
-    return count.has_value() && (*count != 0U) && is_u_label(decoded, *count);
+    if (!count.has_value() || (*count == 0U))
+    {
+      return false;
+    }
+    return is_u_label(decoded, *count);
+  }
+
+  /**
+   * @brief Report whether a label starts with the ACE prefix "xn--".
+   * @par Requirements
+   * J5-069; RFC 5890 section 2.3.2.1; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-394
+   */
+  bool has_ace_prefix(std::string_view label) noexcept
+  {
+    constexpr std::string_view c_x{"xX"};
+    constexpr std::string_view c_n{"nN"};
+    return (label.size() >= c_ace_prefix_length) && (c_x.find(label[0U]) != std::string_view::npos) &&
+           (c_n.find(label[1U]) != std::string_view::npos) && (label.substr(2U, 2U) == "--");
+  }
+
+  /**
+   * @brief RFC 5893 Bidi rule of a host name.
+   * @par Requirements
+   * J5-069; RFC 5893 section 2; RFC 5891 section 5.4; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-410
+   */
+  bool satisfies_bidi_rule(std::string_view host) noexcept
+  {
+    if (!is_bidi_domain(host))
+    {
+      return true;
+    }
+    std::string_view rest = host;
+    for (;;)
+    {
+      const std::size_t dot = rest.find('.');
+      label_buffer label{};
+      const auto count = label_code_points(rest.substr(0U, dot), label);
+      if (!count.has_value() || (*count == 0U) || !label_satisfies_bidi_rule(label, *count))
+      {
+        return false;
+      }
+      if (dot == std::string_view::npos)
+      {
+        return true;
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.211)
+      rest = rest.substr(dot + 1U);
+    }
   }
 } // namespace adaptive_json5::detail

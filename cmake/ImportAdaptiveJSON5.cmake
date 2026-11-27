@@ -4,7 +4,8 @@ include_guard(GLOBAL)
 
 function(adaptive_json5_import_release)
     if(TARGET AdaptiveJSON5::parser)
-        message(FATAL_ERROR "AdaptiveJSON5::parser already exists; import the pinned release once, before defining consumers")
+        message(FATAL_ERROR "AdaptiveJSON5::parser already exists; "
+            "import the pinned release once, before defining consumers")
     endif()
     cmake_parse_arguments(PARSE_ARGV 0 package ""
         "VERSION;SHA256;PROFILE;CACHE_DIR;ARCHIVE;ROOT" "")
@@ -16,7 +17,8 @@ function(adaptive_json5_import_release)
     endif()
     set(package_cmake_version "${CMAKE_MATCH_1}")
     if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        message(FATAL_ERROR "Release binaries require GNU G++; use a matching GCC toolchain or build the source package")
+        message(FATAL_ERROR "Release binaries require GNU G++; "
+            "use a matching GCC toolchain or build the source package")
     endif()
     separate_arguments(compiler_args NATIVE_COMMAND "${CMAKE_CXX_COMPILER_ARG1}")
     execute_process(COMMAND "${CMAKE_CXX_COMPILER}" ${compiler_args} -dumpmachine

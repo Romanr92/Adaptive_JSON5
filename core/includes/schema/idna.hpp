@@ -32,13 +32,31 @@ namespace adaptive_json5::detail
    * @brief Validate an A-label (a label starting with "xn--", ASCII case-insensitive).
    * @par Requirements
    * J5-069; RFC 5891 section 5.4; RFC 5892 section 3 and Appendix A; ADR 0006 (issue #187).
-   * @return true when the Punycode decodes to a U-label that is not all ASCII, has no hyphen at
-   * either end or in positions 3 and 4, does not start with a combining mark, and whose code
-   * points are PVALID or satisfy their CONTEXTJ/CONTEXTO rule. NFC and the RFC 5893 Bidi rule
-   * are not checked (ADR 0006, issue #187).
+   * @return true when the Punycode decodes to a U-label that is in NFC and not all ASCII, has
+   * no hyphen at either end or in positions 3 and 4, does not start with a combining mark,
+   * and whose code points are PVALID or satisfy their CONTEXTJ/CONTEXTO rule. The RFC 5893
+   * Bidi rule spans all labels and is checked by satisfies_bidi_rule.
    * @par ID SWU-SCHEMA-378
    */
   [[nodiscard]] bool is_a_label(std::string_view label) noexcept;
+
+  /**
+   * @brief Report whether a label starts with the ACE prefix "xn--" (ASCII case-insensitive).
+   * @par Requirements
+   * J5-069; RFC 5890 section 2.3.2.1; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-394
+   */
+  [[nodiscard]] bool has_ace_prefix(std::string_view label) noexcept;
+
+  /**
+   * @brief RFC 5893 Bidi rule of a host name whose labels are already valid: when any label
+   * holds a right-to-left character (Bidi_Class R, AL or AN), every label must satisfy the six
+   * conditions of RFC 5893 section 2; otherwise the rule does not apply.
+   * @par Requirements
+   * J5-069; RFC 5893 section 2; RFC 5891 section 5.4; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-410
+   */
+  [[nodiscard]] bool satisfies_bidi_rule(std::string_view host) noexcept;
 } // namespace adaptive_json5::detail
 
 #endif /* ADAPTIVE_JSON5_CORE_SCHEMA_IDNA_HPP_ */

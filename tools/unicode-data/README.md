@@ -32,16 +32,20 @@ explicitly. Generation does not implement the whitespace policy or classifiers.
 `python tools/generate_schema_unicode_tables.py` builds
 `core/includes/schema/unicode_properties.hpp` for the optional schema library only (ADR 0006,
 issue #187 section): General_Category and Script of every code point with their ECMA-262
-`\p{…}` names and aliases, Joining_Type, Virama (Canonical_Combining_Class 9) and the
-IDNA2008 derived property. Inputs are the unchanged UCD 17.0.0 files `UnicodeData.txt`,
+`\p{…}` names and aliases, Joining_Type, Virama (Canonical_Combining_Class 9), Bidi_Class,
+Canonical_Combining_Class, canonical decompositions, primary composites (without
+Full_Composition_Exclusion) and the IDNA2008 derived property. Inputs are the unchanged UCD 17.0.0 files `UnicodeData.txt`,
 `PropertyValueAliases.txt`, `Scripts.txt`, `DerivedCoreProperties.txt`, `PropList.txt`,
 `DerivedNormalizationProps.txt`, `HangulSyllableType.txt` and
-`extracted/DerivedJoiningType.txt`, pinned in [sources.json](sources.json).
+`extracted/DerivedJoiningType.txt` and `extracted/DerivedBidiClass.txt`, pinned in
+[sources.json](sources.json).
 
 IANA publishes derived IDNA2008 tables only up to Unicode 12.0.0, so the generator computes
 the derived property with the RFC 5892 section 3 algorithm. The unchanged IANA table
 `idna-12.0.0/idna-tables-properties.csv` (retrieved 2026-11-27) is used only by
 `tools/tests/test_generate_schema_unicode_tables.py`, which checks that the derivation gives
-IANA's value for every code point assigned in Unicode 12.0.0. `--check` fails when the
+IANA's value for every code point assigned in Unicode 12.0.0. When Python's `unicodedata`
+is also Unicode 17.0.0, the same tests compare Bidi_Class, combining classes, decompositions
+and composites with it for every assigned code point. `--check` fails when the
 checked-in header is stale. `.gitattributes` keeps these files byte-exact (`-text`) so the
 SHA-256 checks also hold on Windows checkouts.

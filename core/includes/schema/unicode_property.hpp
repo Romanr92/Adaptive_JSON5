@@ -65,6 +65,38 @@ namespace adaptive_json5::detail
    * @par ID SWU-SCHEMA-365
    */
   [[nodiscard]] std::optional<idna_property> idna_property_of(std::uint32_t code_point) noexcept;
+
+  /**
+   * @brief Bidi_Class of a code point (L when it is not listed).
+   * @par Requirements
+   * J5-069; RFC 5893 section 2; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-399
+   */
+  [[nodiscard]] bidi_class bidi_class_of(std::uint32_t code_point) noexcept;
+
+  /**
+   * @brief Canonical_Combining_Class of a code point (0 when it is not listed).
+   * @par Requirements
+   * J5-069; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-400
+   */
+  [[nodiscard]] std::uint32_t combining_class_of(std::uint32_t code_point) noexcept;
+
+  /**
+   * @brief Canonical decomposition of a code point (one level; not Hangul), or nullptr.
+   * @par Requirements
+   * J5-069; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-401
+   */
+  [[nodiscard]] const unicode_decomposition* canonical_decomposition(std::uint32_t code_point) noexcept;
+
+  /**
+   * @brief Primary composite of a canonical pair (not Hangul), or nullopt.
+   * @par Requirements
+   * J5-069; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-402
+   */
+  [[nodiscard]] std::optional<std::uint32_t> canonical_composition(std::uint32_t first, std::uint32_t second) noexcept;
 } // namespace adaptive_json5::detail
 
 #endif /* ADAPTIVE_JSON5_CORE_SCHEMA_UNICODE_PROPERTY_HPP_ */

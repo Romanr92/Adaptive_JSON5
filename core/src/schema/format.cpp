@@ -310,20 +310,9 @@ namespace adaptive_json5::detail
     }
 
     /**
-     * @brief Report whether a label starts with the ACE prefix "xn--" (ASCII case-insensitive).
-     * @par Requirements
-     * J5-069; RFC 5890 section 2.3.2.1; ADR 0006 (issue #187).
-     * @par ID SWU-SCHEMA-394
-     */
-    bool has_ace_prefix(std::string_view label) noexcept
-    {
-      return (label.size() >= 4U) && is_one_of(label[0U], "xX") && is_one_of(label[1U], "nN") &&
-             (label.substr(2U, 2U) == "--");
-    }
-
-    /**
      * @brief RFC 1123 host name: dot-separated labels of letters, digits and inner hyphens; a label
-     * with the ACE prefix must be a valid IDNA2008 A-label.
+     * with the ACE prefix must be a valid IDNA2008 A-label, and a host with right-to-left labels
+     * must satisfy the RFC 5893 Bidi rule.
      * @par Requirements
      * J5-069; RFC 1123 section 2.1; RFC 5891 section 5.4; ADR 0006 (issue #187).
      * @par ID SWU-SCHEMA-330
@@ -351,7 +340,7 @@ namespace adaptive_json5::detail
         }
         if (dot == std::string_view::npos)
         {
-          return true;
+          return satisfies_bidi_rule(text);
         }
         // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
         // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the

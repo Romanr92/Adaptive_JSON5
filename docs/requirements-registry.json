@@ -4922,7 +4922,11 @@
         },
         {
           "files": ["core/includes/schema/idna.hpp", "core/src/schema/idna.cpp"],
-          "symbols": ["punycode_decode", "is_a_label"]
+          "symbols": ["punycode_decode", "is_a_label", "has_ace_prefix", "satisfies_bidi_rule"]
+        },
+        {
+          "files": ["core/includes/schema/normalization.hpp", "core/src/schema/normalization.cpp"],
+          "symbols": ["is_nfc"]
         }
       ],
       "tests": [
@@ -4944,7 +4948,9 @@
           "file": "core/tests/schema/unicode_idna_tests.cpp",
           "names": [
             "P187_Punycode.DecodesAndRejects",
-            "P187_ALabels.FollowIdna2008"
+            "P187_ALabels.FollowIdna2008",
+            "P187_Nfc.MatchesUnicodeNormalization",
+            "P187_BidiRule.FollowsRfc5893"
           ]
         },
         {

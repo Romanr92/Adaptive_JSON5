@@ -93,5 +93,7 @@ foreach(pair IN ITEMS
 endforeach()
 adaptive_json5_json_string("cxx_standard" "17")
 adaptive_json5_json_string("unicode_version" "17.0.0; historical identifier baseline 3.0.0")
-adaptive_json5_json_string("runtime_dependencies" "C/C++ runtime supplied by the matching toolchain; no external parser library")
+string(CONCAT adaptive_json5_runtime_dependencies
+    "C/C++ runtime supplied by the matching toolchain; " "no external parser library")
+adaptive_json5_json_string("runtime_dependencies" "${adaptive_json5_runtime_dependencies}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build-info.json" "${adaptive_json5_info}\n")
