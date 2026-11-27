@@ -217,6 +217,16 @@ namespace
     host.files["s.json"] = "{}";
 #if defined(ADAPTIVE_JSON5_CLI_HAS_SCHEMA)
     EXPECT_EQ(host.run({"validate", "--syntax", "json", "--schema", "s.json", "ok.json"}), 0);
+    host.files["never.json"] = "false";
+    host.files["obj.json"] = R"({"a": 1})";
+    host.files["no-a.json"] = R"({"properties": {"a": false}})";
+    host.out.clear();
+    EXPECT_EQ(host.run({"validate", "--diagnostics", "json", "--syntax", "json", "--schema", "never.json", "ok.json"}),
+              1);
+    EXPECT_NE(host.out.find(R"("keyword": "false")"), std::string::npos) << host.out;
+    host.out.clear();
+    EXPECT_EQ(host.run({"validate", "--syntax", "json", "--schema", "no-a.json", "obj.json"}), 1);
+    EXPECT_NE(host.out.find("obj.json"), std::string::npos) << host.out;
 #else
     EXPECT_EQ(host.run({"validate", "--syntax", "json", "--schema", "s.json", "ok.json"}), 2);
     EXPECT_NE(host.err.find("not available"), std::string::npos) << host.err;
@@ -243,6 +253,73 @@ namespace
       }
       ASSERT_EQ(exit, 2) << fail_on;
       ASSERT_LT(fail_on, 100U);
+    }
+  }
+
+  /*
+   * Arrange: The explicit default choices, an option that only some commands take, a null
+   *          argument vector and an argument error code outside the known range.
+   * Act: Parse them and describe the code.
+   * Expect: "preserve" and "text" are accepted as values; --duplicates is refused for run;
+   *         a null argv is a missing command; an unknown code has a generic description
+   *         (J5-070).
+   */
+  TEST(P056_Arguments, DefaultsAndEdges)
+  {
+    const command_line defaults(
+      {"inspect", "--duplicates", "preserve", "--diagnostics", "text", "--syntax", "json", "--max-depth", "3", "a"});
+    ASSERT_TRUE(defaults.result.parsed.has_value());
+    EXPECT_EQ(defaults.result.parsed->limits.max_depth, 3U);
+    const command_line refused({"run", "--duplicates", "reject"});
+    ASSERT_FALSE(refused.result.parsed.has_value());
+    EXPECT_EQ(refused.result.failure.code, argument_error_code::option_not_allowed);
+    const command_line inspect_manifest({"inspect", "--manifest", "m.json"});
+    EXPECT_EQ(inspect_manifest.result.failure.code, argument_error_code::option_not_allowed);
+    EXPECT_EQ(parse_arguments(2, nullptr).failure.code, argument_error_code::missing_command);
+    EXPECT_EQ(adaptive_json5::cli::describe(static_cast<argument_error_code>(99)), "invalid arguments");
+  }
+
+  /*
+   * Arrange: Inspect of a scalar document, a string with several UTF-16 units around an
+   *          unpaired surrogate, and a depth limit too large to size the walk.
+   * Act: Run inspect.
+   * Expect: A scalar root is printed alone; $utf16 lists every unit; an unrepresentable
+   *         depth is an operational failure, exit 2 (J5-030, J5-048, J5-070).
+   */
+  TEST(P056_Dispatch, InspectEdges)
+  {
+    fake_host host;
+    host.files["one.json"] = "1";
+    host.files["s.json5"] = R"("a\uD800b")";
+    EXPECT_EQ(host.run({"inspect", "--syntax", "json", "one.json"}), 0);
+    EXPECT_NE(host.out.find("number (line 1, column 1) \"1\""), std::string::npos) << host.out;
+    host.out.clear();
+    EXPECT_EQ(host.run({"inspect", "--diagnostics", "json", "--syntax", "json5", "s.json5"}), 0);
+    EXPECT_NE(host.out.find(R"({"$utf16": [97, 55296, 98]})"), std::string::npos) << host.out;
+    EXPECT_EQ(host.run({"inspect", "--syntax", "json", "--max-depth", "999999999999999999", "one.json"}), 2);
+  }
+
+  /*
+   * Arrange: A document with strings, member names and nested containers, and allocation n
+   *          failing for each n.
+   * Act: Inspect it with JSON diagnostics.
+   * Expect: exit 2 until enough memory is available, then 0; nothing leaks (J5-046,
+   *         J5-071).
+   */
+  TEST(P056_Dispatch, InspectAllocationSweep)
+  {
+    for (std::size_t fail_on = 1U;; ++fail_on)
+    {
+      fake_host host;
+      host.files["doc.json5"] = R"({name: "value", list: ["a", {"b": "c"}], lone: "\uD800"})";
+      host.fail_on = fail_on;
+      const int exit = host.run({"inspect", "--diagnostics", "json", "--syntax", "json5", "doc.json5"});
+      if (exit == 0)
+      {
+        break;
+      }
+      ASSERT_EQ(exit, 2) << fail_on;
+      ASSERT_LT(fail_on, 500U);
     }
   }
 } // namespace
