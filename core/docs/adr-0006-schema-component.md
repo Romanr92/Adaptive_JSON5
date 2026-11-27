@@ -493,7 +493,7 @@ Decided by the owner on 2026-11-22 for issue #48 (J5-057, J5-059, J5-060, J5-061
   1,000,000). Supported: literals and escapes, `.`, classes with ranges and negation,
   `\d \D \w \W \s \S`, `^ $ \b \B`, groups and `(?:...)`, alternation and all greedy and
   lazy quantifiers; Annex B literal `{`, `}` and `]`. Backreferences, lookaround, named
-  groups, `\p`, `\c` and legacy octal escapes return `invalid_schema` with the
+  groups, `\p`, `\c` (both supported since issue #187, see below) and legacy octal escapes return `invalid_schema` with the
   `unsupported_pattern` sub-reason; malformed patterns `invalid_pattern`. `.` matches one
   code point (the behavior of ECMA-262's `u` flag); there are no flags.
 - **Lengths** (`minLength`, `maxLength`) count code points; the instance check guarantees
@@ -551,3 +551,40 @@ J5-069, J5-096):
   meta-schema check itself.
 - Running the suite in the unit-test executables: mixes third-party fixtures into the unit
   gate, unlike the existing corpora.
+
+## Optional draft7 conformance (issue #187)
+
+Decided by the owner on 2026-11-27 for issue #187 (J5-061, J5-062, J5-096). This section
+supersedes the `\p` and `\c` rule of the assertion-keyword section above:
+
+- **Control escapes.** `\cX` with an ASCII letter X matches the code point `X % 32`. `\c`
+  followed by anything else follows Annex B (a literal backslash, then `c`), like the
+  accepted `\a` identity escape.
+- **Unicode property escapes.** `\p{…}` and `\P{…}` (negated), inside and outside classes,
+  accept General_Category values by short or long name and the lone forms (`L`, `Letter`,
+  `Nd`, `digit`, …), the `gc=`/`General_Category=` forms and `Script=`/`sc=` script names.
+  An unknown name is `invalid_pattern`. Matching uses one pinned Unicode version.
+- **IDN host names.** With `assert_format`, `hostname` also validates A-labels (`xn--`):
+  RFC 3492 Punycode decoding with overflow checks, then IDNA2008 (RFC 5891, 5892, 5893
+  context rules): every code point must be PVALID or satisfy its CONTEXTJ/CONTEXTO rule,
+  a label must not start with a combining mark, and a U-label must not have `--` in
+  positions 3–4. Plain labels keep the RFC 1123 rules.
+- **Unicode data.** Unicode 17.0.0, the version of the parser's identifier tables. A
+  separate generator (`tools/generate_schema_unicode_tables.py`) builds constexpr range
+  tables for General_Category, Script, Joining_Type, Virama (combining class 9) and the
+  IDNA2008 derived property from the pinned UCD files in `tools/unicode-data/`. IANA
+  publishes derived IDNA tables only up to Unicode 12.0.0, so the derived property is
+  computed with the RFC 5892 algorithm and cross-checked against IANA's 12.0.0 table in the
+  generator's tests. The tables belong to the schema library only; the parser is unchanged.
+- **Conformance.** The runner no longer expects `unsupported_pattern` for the
+  ecmascript-regex `\c` and `\p` groups and no longer skips the A-label group of
+  `optional/format/hostname.json`. The `\a` deviation (Annex B) stays.
+
+### Rejected alternatives
+
+- Keeping the explicit `unsupported_pattern` errors: conservative, but schemas written for
+  ECMA-262 `u`-flag engines use `\p{…}` widely.
+- Using IANA's 12.0.0 IDNA table directly: official, but leaves the property tables of the
+  regex (17.0.0) and the host name check on different Unicode versions.
+- A third-party IDNA or Unicode library: adds a dependency with its own allocation and
+  error model (J5-046, J5-101).

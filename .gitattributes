@@ -1,3 +1,5 @@
 tests/fixtures/third_party/** -text
 core/src/schema/meta_schema.cpp -text
 cli/test/expected/** -text
+tools/unicode-data/** -text
+LICENSES/Unicode-License-V3.txt -text

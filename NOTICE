@@ -56,3 +56,9 @@ The complete Unicode License V3 notice is preserved in
 LICENSES/Unicode-License-V3.txt and embedded in unicode_tables.hpp.
 Original data inputs are unchanged; generated category unions/ranges and their
 regeneration procedure are documented in tools/unicode-data/README.md.
+
+The optional schema library embeds generated Unicode 17.0.0 property tables
+(core/includes/schema/unicode_properties.hpp: General_Category, Script,
+Joining_Type, Virama and the RFC 5892 IDNA2008 derived property) under the same
+Unicode License V3; the notice is embedded in that header. The IANA IDNA 12.0.0
+table in tools/unicode-data is used only to test the generator.
