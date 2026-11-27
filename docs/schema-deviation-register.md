@@ -11,7 +11,7 @@ the time of writing; the marker ID in the source is authoritative.
 
 | ID | Category | Lines |
 | --- | --- | --- |
-| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 228 |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 260 |
 | DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 37 |
 | DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 55 |
 | DEV-104 | Rule 15.0.1, special member functions | 46 |
@@ -31,7 +31,7 @@ the time of writing; the marker ID in the source is authoritative.
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
-| Lines | 228 |
+| Lines | 260 |
 | Status | Accepted by the owner 2026-11-25 (#44, #48, #53; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
@@ -274,6 +274,38 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.229 | `core/src/schema/format.cpp:953` | `const std::size_t next = index + 1U;` | 8.20.1 | Proposed |
 | DEV-101.230 | `core/src/schema/format.cpp:973` | `const std::uint32_t offset = ((high - 0xD800U) << 10U) | (second - 0xDC00U);` | 8.20.1 | Proposed |
 | DEV-101.231 | `core/src/schema/format.cpp:979` | `const std::uint32_t value = 0x10000U + offset;` | 8.20.1 | Proposed |
+| DEV-101.232 | `core/src/schema/format.cpp:1076` | `index += point.units;` | 8.20.1 | Proposed |
+| DEV-101.233 | `core/src/schema/uts46.cpp:53` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
+| DEV-101.234 | `core/src/schema/uts46.cpp:66` | `low = middle + 1U;` | 8.20.1 | Proposed |
+| DEV-101.235 | `core/src/schema/uts46.cpp:94` | `++state.size;` | 8.20.1 | Proposed |
+| DEV-101.236 | `core/src/schema/uts46.cpp:136` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.237 | `core/src/schema/uts46.cpp:166` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.238 | `core/src/schema/uts46.cpp:193` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.239 | `core/src/schema/uts46.cpp:207` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.240 | `core/src/schema/uts46.cpp:256` | `++state.count;` | 8.20.1 | Proposed |
+| DEV-101.241 | `core/src/schema/uts46.cpp:293` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.242 | `core/src/schema/uts46.cpp:319` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.243 | `core/src/schema/idna.cpp:273` | `++encoder.size;` | 8.20.1 | Proposed |
+| DEV-101.244 | `core/src/schema/idna.cpp:331` | `++basic;` | 8.20.1 | Proposed |
+| DEV-101.245 | `core/src/schema/idna.cpp:338` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.246 | `core/src/schema/idna.cpp:368` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.247 | `core/src/schema/idna.cpp:399` | `q = (q - t) / (c_base - t);` | 8.20.1 | Proposed |
+| DEV-101.248 | `core/src/schema/idna.cpp:405` | `k += c_base;` | 8.20.1 | Proposed |
+| DEV-101.249 | `core/src/schema/idna.cpp:428` | `++encoder.delta;` | 8.20.1 | Proposed |
+| DEV-101.250 | `core/src/schema/idna.cpp:441` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Proposed |
+| DEV-101.251 | `core/src/schema/idna.cpp:449` | `++encoder.handled;` | 8.20.1 | Proposed |
+| DEV-101.252 | `core/src/schema/idna.cpp:460` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.253 | `core/src/schema/idna.cpp:495` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.254 | `core/src/schema/idna.cpp:1056` | `const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);` | 8.20.1 | Proposed |
+| DEV-101.255 | `core/src/schema/idna.cpp:1062` | `encoder.delta += (smallest - encoder.n) * points;` | 8.20.1 | Proposed |
+| DEV-101.256 | `core/src/schema/idna.cpp:1073` | `++encoder.delta;` | 8.20.1 | Proposed |
+| DEV-101.257 | `core/src/schema/idna.cpp:1079` | `++encoder.n;` | 8.20.1 | Proposed |
+| DEV-101.258 | `core/src/schema/normalization.cpp:307` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.259 | `core/src/schema/normalization.cpp:320` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.260 | `core/src/schema/format.cpp:1109` | `index += point.units;` | 8.20.1 | Proposed |
+| DEV-101.261 | `core/src/schema/format.cpp:1181` | `octets += utf8_octets(code_point);` | 8.20.1 | Proposed |
+| DEV-101.262 | `core/src/schema/format.cpp:1192` | `++index;` | 8.20.1 | Proposed |
+| DEV-101.263 | `core/src/schema/format.cpp:1222` | `return is_idn_domain(code_points, index + 1U, code_points.size(), true);` | 8.20.1 | Proposed |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 

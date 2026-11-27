@@ -30,58 +30,58 @@ namespace adaptive_json5::detail
     constexpr std::size_t c_max_repeat = 100000U;
     constexpr std::size_t c_count_zero = 0U;
     constexpr std::size_t c_count_one = 1U;
-    constexpr std::size_t c_short_hex = 2U;          // \xHH
-    constexpr std::size_t c_long_hex = 4U;           // \uHHHH
-    constexpr std::uint32_t c_dollar = 0x24U;        // $
-    constexpr std::uint32_t c_open_paren = 0x28U;    // (
-    constexpr std::uint32_t c_close_paren = 0x29U;   // )
-    constexpr std::uint32_t c_asterisk = 0x2AU;      // *
-    constexpr std::uint32_t c_plus = 0x2BU;          // +
-    constexpr std::uint32_t c_comma = 0x2CU;         // ,
-    constexpr std::uint32_t c_hyphen = 0x2DU;        // -
-    constexpr std::uint32_t c_full_stop = 0x2EU;     // .
-    constexpr std::uint32_t c_digit_zero = 0x30U;    // 0
-    constexpr std::uint32_t c_digit_one = 0x31U;     // 1
-    constexpr std::uint32_t c_digit_nine = 0x39U;    // 9
-    constexpr std::uint32_t c_exclamation = 0x21U;   // !
-    constexpr std::uint32_t c_colon = 0x3AU;         // :
-    constexpr std::uint32_t c_less = 0x3CU;          // <
-    constexpr std::uint32_t c_control_modulus = 32U; // \cX matches X % 32.
-    constexpr std::size_t c_max_property_name = 64U; // Longest accepted \p{...} text.
-    constexpr std::uint32_t c_equals = 0x3DU;        // =
-    constexpr std::uint32_t c_question = 0x3FU;      // ?
-    constexpr std::uint32_t c_capital_a = 0x41U;     // A
-    constexpr std::uint32_t c_capital_b = 0x42U;     // B
-    constexpr std::uint32_t c_capital_d = 0x44U;     // D
-    constexpr std::uint32_t c_capital_f = 0x46U;     // F
-    constexpr std::uint32_t c_capital_p = 0x50U;     // P
-    constexpr std::uint32_t c_capital_s = 0x53U;     // S
-    constexpr std::uint32_t c_capital_w = 0x57U;     // W
-    constexpr std::uint32_t c_capital_z = 0x5AU;     // Z
-    constexpr std::uint32_t c_open_bracket = 0x5BU;  // [
-    constexpr std::uint32_t c_backslash = 0x5CU;     // backslash
-    constexpr std::uint32_t c_close_bracket = 0x5DU; // ]
-    constexpr std::uint32_t c_caret = 0x5EU;         // ^
-    constexpr std::uint32_t c_underscore = 0x5FU;    // _
-    constexpr std::uint32_t c_small_a = 0x61U;       // a
-    constexpr std::uint32_t c_small_b = 0x62U;       // b
-    constexpr std::uint32_t c_small_c = 0x63U;       // c
-    constexpr std::uint32_t c_small_d = 0x64U;       // d
-    constexpr std::uint32_t c_small_f = 0x66U;       // f
-    constexpr std::uint32_t c_small_k = 0x6BU;       // k
-    constexpr std::uint32_t c_small_n = 0x6EU;       // n
-    constexpr std::uint32_t c_small_p = 0x70U;       // p
-    constexpr std::uint32_t c_small_r = 0x72U;       // r
-    constexpr std::uint32_t c_small_s = 0x73U;       // s
-    constexpr std::uint32_t c_small_t = 0x74U;       // t
-    constexpr std::uint32_t c_small_u = 0x75U;       // u
-    constexpr std::uint32_t c_small_v = 0x76U;       // v
-    constexpr std::uint32_t c_small_w = 0x77U;       // w
-    constexpr std::uint32_t c_small_x = 0x78U;       // x
-    constexpr std::uint32_t c_small_z = 0x7AU;       // z
-    constexpr std::uint32_t c_open_brace = 0x7BU;    // {
-    constexpr std::uint32_t c_vertical_bar = 0x7CU;  // |
-    constexpr std::uint32_t c_close_brace = 0x7DU;   // }
+    constexpr std::size_t c_short_hex = 2U;           // \xHH
+    constexpr std::size_t c_long_hex = 4U;            // \uHHHH
+    constexpr std::uint32_t c_dollar = 0x24U;         // $
+    constexpr std::uint32_t c_open_paren = 0x28U;     // (
+    constexpr std::uint32_t c_close_paren = 0x29U;    // )
+    constexpr std::uint32_t c_asterisk = 0x2AU;       // *
+    constexpr std::uint32_t c_plus = 0x2BU;           // +
+    constexpr std::uint32_t c_comma = 0x2CU;          // ,
+    constexpr std::uint32_t c_hyphen = 0x2DU;         // -
+    constexpr std::uint32_t c_full_stop = 0x2EU;      // .
+    constexpr std::uint32_t c_digit_zero = 0x30U;     // 0
+    constexpr std::uint32_t c_digit_one = 0x31U;      // 1
+    constexpr std::uint32_t c_digit_nine = 0x39U;     // 9
+    constexpr std::uint32_t c_exclamation = 0x21U;    // !
+    constexpr std::uint32_t c_colon = 0x3AU;          // :
+    constexpr std::uint32_t c_less = 0x3CU;           // <
+    constexpr std::uint32_t c_control_modulus = 32U;  // \cX matches X % 32.
+    using property_name_text = std::array<char, 64U>; // Longest accepted \p{...} text.
+    constexpr std::uint32_t c_equals = 0x3DU;         // =
+    constexpr std::uint32_t c_question = 0x3FU;       // ?
+    constexpr std::uint32_t c_capital_a = 0x41U;      // A
+    constexpr std::uint32_t c_capital_b = 0x42U;      // B
+    constexpr std::uint32_t c_capital_d = 0x44U;      // D
+    constexpr std::uint32_t c_capital_f = 0x46U;      // F
+    constexpr std::uint32_t c_capital_p = 0x50U;      // P
+    constexpr std::uint32_t c_capital_s = 0x53U;      // S
+    constexpr std::uint32_t c_capital_w = 0x57U;      // W
+    constexpr std::uint32_t c_capital_z = 0x5AU;      // Z
+    constexpr std::uint32_t c_open_bracket = 0x5BU;   // [
+    constexpr std::uint32_t c_backslash = 0x5CU;      // backslash
+    constexpr std::uint32_t c_close_bracket = 0x5DU;  // ]
+    constexpr std::uint32_t c_caret = 0x5EU;          // ^
+    constexpr std::uint32_t c_underscore = 0x5FU;     // _
+    constexpr std::uint32_t c_small_a = 0x61U;        // a
+    constexpr std::uint32_t c_small_b = 0x62U;        // b
+    constexpr std::uint32_t c_small_c = 0x63U;        // c
+    constexpr std::uint32_t c_small_d = 0x64U;        // d
+    constexpr std::uint32_t c_small_f = 0x66U;        // f
+    constexpr std::uint32_t c_small_k = 0x6BU;        // k
+    constexpr std::uint32_t c_small_n = 0x6EU;        // n
+    constexpr std::uint32_t c_small_p = 0x70U;        // p
+    constexpr std::uint32_t c_small_r = 0x72U;        // r
+    constexpr std::uint32_t c_small_s = 0x73U;        // s
+    constexpr std::uint32_t c_small_t = 0x74U;        // t
+    constexpr std::uint32_t c_small_u = 0x75U;        // u
+    constexpr std::uint32_t c_small_v = 0x76U;        // v
+    constexpr std::uint32_t c_small_w = 0x77U;        // w
+    constexpr std::uint32_t c_small_x = 0x78U;        // x
+    constexpr std::uint32_t c_small_z = 0x7AU;        // z
+    constexpr std::uint32_t c_open_brace = 0x7BU;     // {
+    constexpr std::uint32_t c_vertical_bar = 0x7CU;   // |
+    constexpr std::uint32_t c_close_brace = 0x7DU;    // }
 
     /**
      * @brief Parse tree node kinds.
@@ -872,8 +872,7 @@ namespace adaptive_json5::detail
      * P049; J5-060; ADR 0006 (issue #187).
      * @par ID SWU-SCHEMA-375
      */
-    bool read_property_text(regex_builder& builder, std::array<char, c_max_property_name>& name,
-                            std::size_t& length) noexcept
+    bool read_property_text(regex_builder& builder, property_name_text& name, std::size_t& length) noexcept
     {
       length = 0U;
       if ((builder.position >= builder.text.size()) || (builder.text.get(builder.position) != c_open_brace))
@@ -927,7 +926,7 @@ namespace adaptive_json5::detail
      */
     status append_property(regex_builder& builder, bool negated) noexcept
     {
-      std::array<char, c_max_property_name> name{};
+      property_name_text name{};
       std::size_t length = 0U;
       if (!read_property_text(builder, name, length))
       {

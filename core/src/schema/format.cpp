@@ -1101,6 +1101,11 @@ namespace adaptive_json5::detail
         {
           return bool_result::failure(*pushed.error_if());
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.260)
         index += point.units;
       }
       return bool_result::success(true);
@@ -1143,7 +1148,11 @@ namespace adaptive_json5::detail
       {
         return 2U;
       }
-      return (code_point < 0x10000U) ? 3U : 4U;
+      if (code_point < 0x10000U)
+      {
+        return 3U;
+      }
+      return 4U;
     }
 
     /**
@@ -1164,12 +1173,22 @@ namespace adaptive_json5::detail
       while (index < at)
       {
         const std::uint32_t code_point = code_points.get(index);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.261)
         octets += utf8_octets(code_point);
         if (octets > c_max_local_part)
         {
           return false;
         }
         local[index] = (code_point < c_ascii_end) ? ascii_of(code_point) : c_stand_in[0U];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.262)
         ++index;
       }
       return is_local_part(std::string_view{local.data(), at});
@@ -1191,8 +1210,16 @@ namespace adaptive_json5::detail
         --index;
         if (code_points.get(index) == c_commercial_at)
         {
-          return is_idn_local_part(code_points, index) &&
-                 is_idn_domain(code_points, index + 1U, code_points.size(), true);
+          if (!is_idn_local_part(code_points, index))
+          {
+            return false;
+          }
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+          // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves
+          // checked before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.263)
+          return is_idn_domain(code_points, index + 1U, code_points.size(), true);
         }
       }
       return false;
@@ -1213,9 +1240,11 @@ namespace adaptive_json5::detail
       {
         return decoded;
       }
-      const bool valid = (format == format_kind::idn_email) ? is_idn_email(code_points)
-                                                            : is_idn_domain(code_points, 0U, code_points.size(), false);
-      return bool_result::success(valid);
+      if (format == format_kind::idn_email)
+      {
+        return bool_result::success(is_idn_email(code_points));
+      }
+      return bool_result::success(is_idn_domain(code_points, c_text_start, code_points.size(), false));
     }
 
     /**

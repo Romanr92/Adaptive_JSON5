@@ -45,6 +45,11 @@ namespace adaptive_json5::detail
       std::size_t high = c_uts46_entries.size();
       while (low < high)
       {
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.233)
         const std::size_t middle = low + ((high - low) / 2U);
         const uts46_entry& entry = c_uts46_entries[middle];
         if (code_point < entry.first)
@@ -53,6 +58,11 @@ namespace adaptive_json5::detail
         }
         else if (code_point > entry.last)
         {
+          // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+          // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+          // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+          // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+          // codeql::misra_deviation_next_line(DEV-101.234)
           low = middle + 1U;
         }
         else
@@ -76,6 +86,11 @@ namespace adaptive_json5::detail
         return false;
       }
       state.text[state.size] = c;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+      // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+      // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.235)
       ++state.size;
       return true;
     }
@@ -95,7 +110,7 @@ namespace adaptive_json5::detail
       {
         return std::nullopt;
       }
-      return c_printable[code_point - c_first_printable];
+      return c_printable[static_cast<std::size_t>(code_point - c_first_printable)];
     }
 
     /**
@@ -113,6 +128,11 @@ namespace adaptive_json5::detail
         {
           return false;
         }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.236)
         ++index;
       }
       return true;
@@ -126,15 +146,26 @@ namespace adaptive_json5::detail
      */
     bool put_ascii_label(host_conversion& state, std::size_t count) noexcept
     {
-      bool ok = true;
       std::size_t index = 0U;
-      while (ok && (index < count))
+      while (index < count)
       {
         const auto c = ascii_char(state.label[index]);
-        ok = c.has_value() && put_char(state, *c);
+        if (!c.has_value())
+        {
+          return false;
+        }
+        if (!put_char(state, *c))
+        {
+          return false;
+        }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.237)
         ++index;
       }
-      return ok;
+      return true;
     }
 
     /**
@@ -154,6 +185,11 @@ namespace adaptive_json5::detail
       while (index < count)
       {
         label[index] = state.label[index];
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.238)
         ++index;
       }
       a_label_text encoded{};
@@ -163,6 +199,11 @@ namespace adaptive_json5::detail
       while (ok && (index < *length))
       {
         ok = put_char(state, encoded[index]);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.239)
         ++index;
       }
       return ok;
@@ -196,13 +237,22 @@ namespace adaptive_json5::detail
     {
       if (code_point == c_full_stop)
       {
-        return flush_label(state) && put_char(state, '.');
+        if (!flush_label(state))
+        {
+          return false;
+        }
+        return put_char(state, '.');
       }
       if (state.count >= state.label.size())
       {
         return false;
       }
       state.label[state.count] = code_point;
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+      // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+      // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.240)
       ++state.count;
       return true;
     }
@@ -221,11 +271,12 @@ namespace adaptive_json5::detail
       {
         return push_mapped(state, code_point);
       }
-      if (entry->status == static_cast<std::uint8_t>(uts46_status::ignored))
+      const auto status = static_cast<std::uint32_t>(entry->status);
+      if (status == static_cast<std::uint32_t>(uts46_status::ignored))
       {
         return true;
       }
-      if (entry->status != static_cast<std::uint8_t>(uts46_status::mapped))
+      if (status != static_cast<std::uint32_t>(uts46_status::mapped))
       {
         return false;
       }
@@ -234,6 +285,11 @@ namespace adaptive_json5::detail
       while (ok && (index < entry->length))
       {
         ok = push_mapped(state, c_uts46_mappings[entry->offset + index]);
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.241)
         ++index;
       }
       return ok;
@@ -255,9 +311,18 @@ namespace adaptive_json5::detail
     while (ok && (index < end))
     {
       ok = push_input(state, text.get(index));
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+      // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+      // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.242)
       ++index;
     }
-    if (!ok || !flush_label(state))
+    if (!ok)
+    {
+      return std::nullopt;
+    }
+    if (!flush_label(state))
     {
       return std::nullopt;
     }

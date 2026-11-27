@@ -299,6 +299,11 @@ namespace adaptive_json5::detail
       {
         return std::nullopt;
       }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+      // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+      // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.258)
       ++index;
     }
     order(buffer, size);
@@ -307,6 +312,11 @@ namespace adaptive_json5::detail
     while (index < composed)
     {
       label[index] = buffer[index];
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+      // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+      // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.259)
       ++index;
     }
     return composed;

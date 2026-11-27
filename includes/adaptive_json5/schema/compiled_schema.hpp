@@ -47,8 +47,9 @@ namespace adaptive_json5
    * @par Requirements
    * J5-069; ADR 0006 #53 section.
    * @note Supported: date-time, date, time, email, hostname, ipv4, ipv6, uri, uri-reference,
-   * json-pointer, relative-json-pointer, regex, iri, iri-reference and uri-template. hostname
-   * validates RFC 1123 labels and, for "xn--" labels, IDNA2008 A-labels (ADR 0006 issue #187).
+   * json-pointer, relative-json-pointer, regex, iri, iri-reference, uri-template, idn-hostname
+   * and idn-email. hostname validates RFC 1123 labels and, for "xn--" labels, IDNA2008
+   * A-labels; idn-hostname validates the UTS #46 ASCII form the same way (ADR 0006 issue #187).
    * Other names stay annotations.
    * @par ID SWU-SCHEMA-341
    */
