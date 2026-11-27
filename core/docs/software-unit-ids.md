@@ -38,7 +38,7 @@ library was checked to be byte-identical before and after.
 | LEXER | SWU-LEXER-074 | SWU-LEXER-075 |
 | MEMORY | SWU-MEMORY-081 | SWU-MEMORY-082 |
 | PARSER | SWU-PARSER-073 | SWU-PARSER-074 |
-| SCHEMA | SWU-SCHEMA-417 | SWU-SCHEMA-418 |
+| SCHEMA | SWU-SCHEMA-454 | SWU-SCHEMA-455 |
 | UNICODE | SWU-UNICODE-010 | SWU-UNICODE-011 |
 | VALUE | SWU-VALUE-221 | SWU-VALUE-222 |
 
@@ -934,6 +934,43 @@ Host-only command-line tool under `cli/` (P056–P059, ADR 0009); not part of th
 | SWU-SCHEMA-415 | used | `(anonymous)::is_bidi_domain(std::string_view)` | `core/src/schema/idna.cpp` | — |
 | SWU-SCHEMA-416 | used | `(anonymous)::last_class(const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
 | SWU-SCHEMA-417 | used | `(anonymous)::ends_well(bidi_class, bool)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-418 | used | `(anonymous)::is_varname(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-419 | used | `(anonymous)::is_varspec(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-420 | used | `(anonymous)::is_expression(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-421 | used | `(anonymous)::is_uri_template(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-422 | used | `(anonymous)::read_code_point(const decoded_string &, std::size_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-423 | used | `(anonymous)::is_ucschar(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-424 | used | `(anonymous)::is_iprivate(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-425 | used | `(anonymous)::iri_char(std::uint32_t, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-426 | used | `(anonymous)::iri_copy(const decoded_string &, pod_vector<char> &, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-427 | used | `(anonymous)::check_network_text(format_kind, std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-428 | used | `detail::idn_to_ascii(const pod_vector<std::uint32_t> &, std::size_t, std::size_t, ascii_host &)` | `core/src/schema/uts46.cpp` | `core/includes/schema/uts46.hpp` |
+| SWU-SCHEMA-429 | used | `(anonymous)::uts46_entry_of(std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-430 | used | `(anonymous)::put_char(host_conversion &, char)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-431 | used | `(anonymous)::ascii_char(std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-432 | used | `(anonymous)::is_ascii_label(const decomposed_label &, std::size_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-433 | used | `(anonymous)::put_ascii_label(host_conversion &, std::size_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-434 | used | `(anonymous)::put_a_label(host_conversion &, std::size_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-435 | used | `(anonymous)::flush_label(host_conversion &)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-436 | used | `(anonymous)::push_mapped(host_conversion &, std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-437 | used | `(anonymous)::push_input(host_conversion &, std::uint32_t)` | `core/src/schema/uts46.cpp` | — |
+| SWU-SCHEMA-438 | used | `detail::normalize_nfc(decomposed_label &, std::size_t)` | `core/src/schema/normalization.cpp` | `core/includes/schema/normalization.hpp` |
+| SWU-SCHEMA-439 | used | `detail::to_a_label(const std::array<std::uint32_t, c_max_label_code_points> &, std::size_t, a_label_text &)` | `core/src/schema/idna.cpp` | `core/includes/schema/idna.hpp` |
+| SWU-SCHEMA-440 | used | `(anonymous)::digit_char(std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-441 | used | `(anonymous)::put(punycode_encoder &, char)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-442 | used | `(anonymous)::basic_char(std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-443 | used | `(anonymous)::put_basic(punycode_encoder &, const label_buffer &, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-444 | used | `(anonymous)::next_at_least(const label_buffer &, std::size_t, std::uint32_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-445 | used | `(anonymous)::put_delta(punycode_encoder &)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-446 | used | `(anonymous)::encode_round(punycode_encoder &, const label_buffer &, std::size_t, std::size_t)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-447 | used | `(anonymous)::same_ignoring_case(std::string_view, std::string_view)` | `core/src/schema/idna.cpp` | — |
+| SWU-SCHEMA-448 | used | `(anonymous)::is_local_part(std::string_view)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-449 | used | `(anonymous)::decode_code_points(const decoded_string &, pod_vector<std::uint32_t> &)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-450 | used | `(anonymous)::is_idn_domain(const pod_vector<std::uint32_t> &, std::size_t, std::size_t, bool)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-451 | used | `(anonymous)::utf8_octets(std::uint32_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-452 | used | `(anonymous)::is_idn_local_part(const pod_vector<std::uint32_t> &, std::size_t)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-453 | used | `(anonymous)::is_idn_email(const pod_vector<std::uint32_t> &)` | `core/src/schema/format.cpp` | — |
+| SWU-SCHEMA-454 | used | `(anonymous)::check_idn(format_kind, const decoded_string &, const storage_callbacks &)` | `core/src/schema/format.cpp` | — |
 
 ## UNICODE
 

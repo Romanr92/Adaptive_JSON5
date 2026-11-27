@@ -11,10 +11,10 @@ the time of writing; the marker ID in the source is authoritative.
 
 | ID | Category | Lines |
 | --- | --- | --- |
-| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 225 |
+| DEV-101 | Rule 8.20.1, unsigned arithmetic that cannot wrap | 228 |
 | DEV-102 | Rule 7.0.3, character comparisons and code-unit values | 37 |
 | DEV-103 | Rule 5.13.4, empty-brace value-initialization and literals | 55 |
-| DEV-104 | Rule 15.0.1, special member functions | 45 |
+| DEV-104 | Rule 15.0.1, special member functions | 46 |
 | DEV-105 | Rule 9.5.1, counting loops | 21 |
 | DEV-106 | Rules 7.0.5 and 7.0.6, integral promotion and assignment | 22 |
 | DEV-107 | Rule 8.2.6 and related, object pointers in caller-provided storage | 14 |
@@ -31,7 +31,7 @@ the time of writing; the marker ID in the source is authoritative.
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/unsigned-operation-with-constant-operands-wraps` |
-| Lines | 225 |
+| Lines | 228 |
 | Status | Accepted by the owner 2026-11-25 (#44, #48, #53; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
@@ -271,6 +271,9 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-101.226 | `core/src/schema/unicode_property.cpp:247` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
 | DEV-101.227 | `core/src/schema/unicode_property.cpp:225` | `low = middle + 1U;` | 8.20.1 | Proposed |
 | DEV-101.228 | `core/src/schema/unicode_property.cpp:217` | `const std::size_t middle = low + ((high - low) / 2U);` | 8.20.1 | Proposed |
+| DEV-101.229 | `core/src/schema/format.cpp:953` | `const std::size_t next = index + 1U;` | 8.20.1 | Proposed |
+| DEV-101.230 | `core/src/schema/format.cpp:973` | `const std::uint32_t offset = ((high - 0xD800U) << 10U) | (second - 0xDC00U);` | 8.20.1 | Proposed |
+| DEV-101.231 | `core/src/schema/format.cpp:979` | `const std::uint32_t value = 0x10000U + offset;` | 8.20.1 | Proposed |
 
 ## DEV-102: Rule 7.0.3, character comparisons and code-unit values
 
@@ -411,7 +414,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | Field | Value |
 | --- | --- |
 | CodeQL queries | `cpp/misra/improperly-provided-special-member-functions-audit`, `cpp/misra/improperly-provided-special-member-functions`, `cpp/misra/implicit-declaration-of-copy-constructor-audit` |
-| Lines | 45 |
+| Lines | 46 |
 | Status | Accepted by the owner 2026-11-25 (#44, #48; #187 accepted 2026-11-27) |
 
 ### Why this rule is deviated instead of fixed
@@ -471,6 +474,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | DEV-104.43 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_decomposition` | 15.0.1 | Proposed |
 | DEV-104.44 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct unicode_composition` | 15.0.1 | Proposed |
 | DEV-104.45 | `core/includes/schema/unicode_properties.hpp` (generated) | `struct uts46_entry` | 15.0.1 | Proposed |
+| DEV-104.46 | `core/src/schema/format.cpp:926` | `struct code_point_read` | 15.0.1 | Proposed |
 
 ## DEV-105: Rule 9.5.1, counting loops
 
@@ -770,7 +774,7 @@ Unit tests, the schema fuzzer, the sanitizer runs and the allocation-failure and
 | ID | Location | Code | Rules | Status |
 | --- | --- | --- | --- | --- |
 | DEV-114.1 | `core/src/schema/exact_number.cpp:27` | `constexpr std::string_view c_signs{"+-"};` | 4.1.2 | Accepted |
-| DEV-114.2 | `core/src/schema/format.cpp:55` | `constexpr std::array<std::string_view, 13> c_format_names{{"", "date-time", "date", "tim...` | 4.1.2 | Accepted |
+| DEV-114.2 | `core/src/schema/format.cpp:96` | `constexpr std::array<std::string_view, 16> c_format_names{` | 4.1.2 | Accepted |
 | DEV-114.3 | `core/src/schema/format.cpp:45` | `constexpr std::string_view c_non_ascii{"\x7f"};` | 4.1.2 | Accepted |
 | DEV-114.4 | `core/src/schema/format.cpp:38` | `constexpr std::string_view c_printable{` | 4.1.2 | Accepted |
 | DEV-114.5 | `core/src/schema/format.cpp:35` | `constexpr std::string_view c_uri{` | 4.1.2 | Accepted |

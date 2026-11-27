@@ -4922,11 +4922,15 @@
         },
         {
           "files": ["core/includes/schema/idna.hpp", "core/src/schema/idna.cpp"],
-          "symbols": ["punycode_decode", "is_a_label", "has_ace_prefix", "satisfies_bidi_rule"]
+          "symbols": ["punycode_decode", "is_a_label", "has_ace_prefix", "satisfies_bidi_rule", "to_a_label"]
         },
         {
           "files": ["core/includes/schema/normalization.hpp", "core/src/schema/normalization.cpp"],
-          "symbols": ["is_nfc"]
+          "symbols": ["is_nfc", "normalize_nfc"]
+        },
+        {
+          "files": ["core/includes/schema/uts46.hpp", "core/src/schema/uts46.cpp"],
+          "symbols": ["idn_to_ascii"]
         }
       ],
       "tests": [
@@ -4941,15 +4945,18 @@
           "names": [
             "J5_069_FormatAssertion.ChecksTheSupportedSet",
             "J5_069_FormatOptions.UnsupportedAndNonApplicable",
-            "J5_069_FormatOptions.BudgetAndStorageFailures"
+            "J5_069_FormatOptions.BudgetAndStorageFailures",
+            "J5_069_FormatOptions.InternationalizedLimits"
           ]
         },
         {
           "file": "core/tests/schema/unicode_idna_tests.cpp",
           "names": [
             "P187_Punycode.DecodesAndRejects",
+            "P187_PunycodeEncode.EncodesCanonically",
             "P187_ALabels.FollowIdna2008",
             "P187_Nfc.MatchesUnicodeNormalization",
+            "P187_NfcNormalize.ProducesNfc",
             "P187_BidiRule.FollowsRfc5893"
           ]
         },

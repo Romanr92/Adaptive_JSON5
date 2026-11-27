@@ -226,6 +226,215 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief Punycode encoder state: the A-label so far and the RFC 3492 section 6.3 variables.
+     * @par Requirements
+     * J5-069; RFC 3492 section 6.3.
+     */
+    struct punycode_encoder
+    {
+        a_label_text text;
+        std::size_t size;
+        std::uint32_t n;
+        std::uint32_t delta;
+        std::uint32_t bias;
+        std::size_t handled;
+    };
+
+    /**
+     * @brief Punycode digit character of a value below c_base (a-z: 0-25, 0-9: 26-35).
+     * @par Requirements
+     * J5-069; RFC 3492 section 5.
+     * @par ID SWU-SCHEMA-440
+     */
+    char digit_char(std::uint32_t value) noexcept
+    {
+      constexpr std::string_view c_digit_chars{"abcdefghijklmnopqrstuvwxyz0123456789"};
+      return c_digit_chars[value];
+    }
+
+    /**
+     * @brief Append a character to the A-label; false when it is full.
+     * @par Requirements
+     * J5-069; RFC 1035 section 2.3.4.
+     * @par ID SWU-SCHEMA-441
+     */
+    bool put(punycode_encoder& encoder, char c) noexcept
+    {
+      if (encoder.size >= encoder.text.size())
+      {
+        return false;
+      }
+      encoder.text[encoder.size] = c;
+      ++encoder.size;
+      return true;
+    }
+
+    /**
+     * @brief Character of a basic code point that may appear in an A-label (lowercase letter,
+     * digit or hyphen), or nullopt.
+     * @par Requirements
+     * J5-069; RFC 5891 section 4.4.
+     * @par ID SWU-SCHEMA-442
+     */
+    std::optional<char> basic_char(std::uint32_t code_point) noexcept
+    {
+      if ((code_point >= 0x61U) && (code_point <= 0x7AU))
+      {
+        return digit_char(code_point - 0x61U);
+      }
+      if ((code_point >= 0x30U) && (code_point <= 0x39U))
+      {
+        return digit_char((code_point - 0x30U) + 26U);
+      }
+      if (code_point == c_hyphen)
+      {
+        return '-';
+      }
+      return std::nullopt;
+    }
+
+    /**
+     * @brief Append the basic code points, then the delimiter when there is one.
+     * @par Requirements
+     * J5-069; RFC 3492 section 6.3.
+     * @return The number of basic code points, or nullopt.
+     * @par ID SWU-SCHEMA-443
+     */
+    std::optional<std::size_t> put_basic(punycode_encoder& encoder, const label_buffer& label,
+                                         std::size_t count) noexcept
+    {
+      std::size_t basic = 0U;
+      std::size_t index = 0U;
+      while (index < count)
+      {
+        if (label[index] < c_initial_n)
+        {
+          const auto c = basic_char(label[index]);
+          if (!c.has_value() || !put(encoder, *c))
+          {
+            return std::nullopt;
+          }
+          ++basic;
+        }
+        ++index;
+      }
+      if ((basic != c_no_basic) && !put(encoder, '-'))
+      {
+        return std::nullopt;
+      }
+      return basic;
+    }
+
+    /**
+     * @brief Smallest code point of the label that is at least n.
+     * @par Requirements
+     * J5-069; RFC 3492 section 6.3.
+     * @par ID SWU-SCHEMA-444
+     */
+    std::uint32_t next_at_least(const label_buffer& label, std::size_t count, std::uint32_t n) noexcept
+    {
+      std::uint32_t smallest = c_max_value;
+      std::size_t index = 0U;
+      while (index < count)
+      {
+        if ((label[index] >= n) && (label[index] < smallest))
+        {
+          smallest = label[index];
+        }
+        ++index;
+      }
+      return smallest;
+    }
+
+    /**
+     * @brief Append delta as a generalized variable-length integer.
+     * @par Requirements
+     * J5-069; RFC 3492 section 6.3.
+     * @par ID SWU-SCHEMA-445
+     */
+    bool put_delta(punycode_encoder& encoder) noexcept
+    {
+      std::uint32_t q = encoder.delta;
+      std::uint32_t k = c_base;
+      for (;;)
+      {
+        const std::uint32_t t = threshold(k, encoder.bias);
+        if (q < t)
+        {
+          return put(encoder, digit_char(q));
+        }
+        if (!put(encoder, digit_char(t + ((q - t) % (c_base - t)))))
+        {
+          return false;
+        }
+        q = (q - t) / (c_base - t);
+        k += c_base;
+      }
+    }
+
+    /**
+     * @brief One round of the encoder: count the code points below n and encode those equal to n.
+     * @par Requirements
+     * J5-069; RFC 3492 section 6.3.
+     * @par ID SWU-SCHEMA-446
+     */
+    bool encode_round(punycode_encoder& encoder, const label_buffer& label, std::size_t count,
+                      std::size_t basic) noexcept
+    {
+      std::size_t index = 0U;
+      while (index < count)
+      {
+        if (label[index] < encoder.n)
+        {
+          ++encoder.delta;
+        }
+        else if (label[index] == encoder.n)
+        {
+          if (!put_delta(encoder))
+          {
+            return false;
+          }
+          const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);
+          encoder.bias = adapt(encoder.delta, points, encoder.handled == basic);
+          encoder.delta = 0U;
+          ++encoder.handled;
+        }
+        else
+        {
+          // A larger code point is encoded in a later round.
+        }
+        ++index;
+      }
+      return true;
+    }
+
+    /**
+     * @brief Report whether two ASCII labels are equal, ignoring the case of letters.
+     * @par Requirements
+     * J5-069; RFC 5890 section 2.3.2.1.
+     * @par ID SWU-SCHEMA-447
+     */
+    bool same_ignoring_case(std::string_view first, std::string_view second) noexcept
+    {
+      if (first.size() != second.size())
+      {
+        return false;
+      }
+      std::size_t index = 0U;
+      while (index < first.size())
+      {
+        const auto left = digit_value(first[index]);
+        const bool same = (first[index] == second[index]) || (left.has_value() && (left == digit_value(second[index])));
+        if (!same)
+        {
+          return false;
+        }
+        ++index;
+      }
+      return true;
+    }
+
+    /**
      * @brief Report whether a code point is a surrogate or beyond the Unicode range.
      * @par Requirements
      * J5-069; RFC 3492 section 6.2.
@@ -741,11 +950,48 @@ namespace adaptive_json5::detail
   {
     label_buffer decoded{};
     const auto count = punycode_decode(label.substr(c_ace_prefix_length), decoded);
-    if (!count.has_value() || (*count == 0U))
+    if (!count.has_value() || (*count == 0U) || !is_u_label(decoded, *count))
     {
       return false;
     }
-    return is_u_label(decoded, *count);
+    a_label_text encoded{};
+    const auto length = to_a_label(decoded, *count, encoded);
+    return length.has_value() && same_ignoring_case(label, std::string_view{encoded.data(), *length});
+  }
+
+  /**
+   * @brief Encode a label as an A-label.
+   * @par Requirements
+   * J5-069; RFC 3492 section 6.3; RFC 5891 section 4.4; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-439
+   */
+  std::optional<std::size_t> to_a_label(const label_buffer& label, std::size_t count, a_label_text& out) noexcept
+  {
+    punycode_encoder encoder{};
+    encoder.n = c_initial_n;
+    encoder.bias = c_initial_bias;
+    const bool prefixed = put(encoder, 'x') && put(encoder, 'n') && put(encoder, '-') && put(encoder, '-');
+    const auto basic = put_basic(encoder, label, count);
+    if (!prefixed || !basic.has_value())
+    {
+      return std::nullopt;
+    }
+    encoder.handled = *basic;
+    while (encoder.handled < count)
+    {
+      const std::uint32_t smallest = next_at_least(label, count, encoder.n);
+      const auto points = static_cast<std::uint32_t>(encoder.handled + 1U);
+      encoder.delta += (smallest - encoder.n) * points;
+      encoder.n = smallest;
+      if (!encode_round(encoder, label, count, *basic))
+      {
+        return std::nullopt;
+      }
+      ++encoder.delta;
+      ++encoder.n;
+    }
+    out = encoder.text;
+    return encoder.size;
   }
 
   /**

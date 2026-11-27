@@ -247,4 +247,106 @@ namespace
     {
       return std::string{param_info.param.name};
     });
+
+  /**
+   * @brief Encode code points with to_a_label; nullopt on failure.
+   * @par Requirements
+   * J5-069; RFC 3492 section 6.3.
+   */
+  std::optional<std::string> encode(const std::vector<std::uint32_t>& text)
+  {
+    std::array<std::uint32_t, c_max_label_code_points> label{};
+    std::size_t index = 0U;
+    for (const std::uint32_t code_point : text)
+    {
+      label[index] = code_point;
+      ++index;
+    }
+    a_label_text out{};
+    const auto length = to_a_label(label, text.size(), out);
+    if (!length.has_value())
+    {
+      return std::nullopt;
+    }
+    return std::string{out.data(), *length};
+  }
+
+  /* ================================ Test_P187_PunycodeEncode ================================ */
+  /*
+   * Arrange: U-labels with and without basic code points, the RFC 3492 sample labels of the
+   *          suite, the largest code point, labels whose A-label is too long and basic code points
+   *          that cannot appear in an A-label; A-labels that are not the canonical encoding.
+   * Act: Encode with to_a_label, and decode and re-encode through is_a_label.
+   * Expect: The RFC 3492 encodings; nullopt for the invalid inputs; non-canonical A-labels are
+   *         rejected and letter case is ignored (J5-069; RFC 3492; RFC 5891 section 5.4).
+   */
+  TEST(P187_PunycodeEncode, EncodesCanonically)
+  {
+    EXPECT_EQ(encode({'m', 0xFCU, 'n', 'c', 'h', 'e', 'n'}), std::optional<std::string>{"xn--mnchen-3ya"});
+    EXPECT_EQ(encode({0x4F8BU, 0x3048U}), std::optional<std::string>{"xn--r8jz45g"});
+    EXPECT_EQ(encode({0x10FFFFU}), std::optional<std::string>{"xn--dn32g"});
+    EXPECT_EQ(encode({}), std::optional<std::string>{"xn--"});
+    EXPECT_EQ(encode({'a', '-', '0'}), std::optional<std::string>{"xn--a-0-"});
+    const auto chinese = decode("ihqwcrb4cv8a8dqg056pqjye");
+    ASSERT_TRUE(chinese.has_value());
+    EXPECT_EQ(encode(*chinese), std::optional<std::string>{"xn--ihqwcrb4cv8a8dqg056pqjye"});
+    EXPECT_FALSE(encode(std::vector<std::uint32_t>(59U, 'a')).has_value());
+    EXPECT_EQ(encode(std::vector<std::uint32_t>(58U, 'a'))->size(), 63U);
+    std::vector<std::uint32_t> wide{};
+    for (std::uint32_t step = 0U; step < 40U; ++step)
+    {
+      wide.push_back(0x4E00U + (step * 0x100U));
+    }
+    EXPECT_FALSE(encode(wide).has_value());
+    EXPECT_FALSE(encode({'M', 0xFCU}).has_value());
+    EXPECT_FALSE(encode({'$', 0xFCU}).has_value());
+    EXPECT_FALSE(encode({0x7FU, 0xFCU}).has_value());
+    EXPECT_TRUE(is_a_label("XN--R8JZ45G"));
+    EXPECT_TRUE(is_a_label("XN--mnchen-3YA"));
+    EXPECT_FALSE(is_a_label("xn--MNCHEN-3ya"));
+    EXPECT_FALSE(is_a_label("xn---9uc"));
+  }
+
+  /**
+   * @brief Run normalize_nfc on a list of code points; nullopt when it does not fit.
+   * @par Requirements
+   * J5-069; Unicode UAX #15.
+   */
+  std::optional<std::vector<std::uint32_t>> normalized(const std::vector<std::uint32_t>& text)
+  {
+    decomposed_label label{};
+    std::size_t index = 0U;
+    for (const std::uint32_t code_point : text)
+    {
+      label[index] = code_point;
+      ++index;
+    }
+    const auto count = normalize_nfc(label, text.size());
+    if (!count.has_value())
+    {
+      return std::nullopt;
+    }
+    return std::vector<std::uint32_t>(label.begin(), label.begin() + static_cast<std::ptrdiff_t>(*count));
+  }
+
+  /* ================================= Test_P187_NfcNormalize ================================= */
+  /*
+   * Arrange: Decomposed letters, a singleton, non-starters out of order, conjoining jamo, an
+   *          empty label, the largest label that fits and one whose decomposition does not.
+   * Act: Normalize with normalize_nfc.
+   * Expect: The Unicode 17.0.0 NFC form; nullopt when the decomposition exceeds
+   *         c_max_decomposed_label (J5-069; UTS #46 section 4; UAX #15).
+   */
+  TEST(P187_NfcNormalize, ProducesNfc)
+  {
+    using points = std::vector<std::uint32_t>;
+    EXPECT_EQ(normalized({0x65U, 0x301U}), std::optional<points>{points{0xE9U}});
+    EXPECT_EQ(normalized({0x212BU}), std::optional<points>{points{0xC5U}});
+    EXPECT_EQ(normalized({0x61U, 0x316U, 0x301U}), (std::optional<points>{points{0xE1U, 0x316U}}));
+    EXPECT_EQ(normalized({0x1100U, 0x1161U, 0x11A8U}), std::optional<points>{points{0xAC01U}});
+    EXPECT_EQ(normalized({}), std::optional<points>{points{}});
+    const points repeated(63U, 0x1F82U);
+    EXPECT_EQ(normalized(repeated), std::optional<points>{repeated});
+    EXPECT_FALSE(normalized(points(64U, 0x1F82U)).has_value());
+  }
 } // namespace

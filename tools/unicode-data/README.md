@@ -34,10 +34,13 @@ explicitly. Generation does not implement the whitespace policy or classifiers.
 issue #187 section): General_Category and Script of every code point with their ECMA-262
 `\p{…}` names and aliases, Joining_Type, Virama (Canonical_Combining_Class 9), Bidi_Class,
 Canonical_Combining_Class, canonical decompositions, primary composites (without
-Full_Composition_Exclusion) and the IDNA2008 derived property. Inputs are the unchanged UCD 17.0.0 files `UnicodeData.txt`,
+Full_Composition_Exclusion), the IDNA2008 derived property and the UTS #46 mapping
+(nontransitional: deviation counts as valid) used by the `idn-hostname` and `idn-email`
+formats. Inputs are the unchanged UCD 17.0.0 files `UnicodeData.txt`,
 `PropertyValueAliases.txt`, `Scripts.txt`, `DerivedCoreProperties.txt`, `PropList.txt`,
 `DerivedNormalizationProps.txt`, `HangulSyllableType.txt` and
-`extracted/DerivedJoiningType.txt` and `extracted/DerivedBidiClass.txt`, pinned in
+`extracted/DerivedJoiningType.txt` and `extracted/DerivedBidiClass.txt`, and the unchanged
+UTS #46 17.0.0 `idna/IdnaMappingTable.txt`, pinned in
 [sources.json](sources.json).
 
 IANA publishes derived IDNA2008 tables only up to Unicode 12.0.0, so the generator computes

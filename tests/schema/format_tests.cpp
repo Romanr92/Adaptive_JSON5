@@ -198,7 +198,60 @@ namespace
       format_case{"json-pointer", R"("/~2")", false}, format_case{"json-pointer", R"("#/foo")", false},
       format_case{"relative-json-pointer", R"("1")", true},
       format_case{"relative-json-pointer", R"("0/foo/bar")", true},
-      format_case{"relative-json-pointer", R"("2#")", true},
+      format_case{"iri", R"("http://ƒøø.ßår/?∂éœ=πîx#πîüx")", true},
+      format_case{"iri", R"("http://example.com/\uD83D\uDE00")", true},
+      format_case{"iri", R"("http://example.com/?q=\uE000")", true},
+      format_case{"iri", R"("http://example.com/a?b?\uE000")", true},
+      format_case{"iri", R"("http://example.com/\uE000")", false},
+      format_case{"iri", R"("http://example.com/?q#\uE000")", false},
+      format_case{"iri", R"("http://example.com/?q=\uDBBF\uDFFE")", false},
+      format_case{"iri", R"("http://example.com/\uFDD0")", false},
+      format_case{"iri", R"("http://example.com/\u0085")", false},
+      format_case{"iri", R"("ht\u03C4p://example.com")", false}, format_case{"iri", R"("http://[::\u00E9]/")", false},
+      format_case{"iri", R"("http://example.com:\u00E9/")", false}, format_case{"iri", R"("/\u03C0")", false},
+      format_case{"iri", R"("http://example.com/[::1]")", false}, format_case{"iri-reference", R"("/\u03C0")", true},
+      format_case{"iri-reference", R"("./\u03C0:b")", true}, format_case{"iri-reference", R"("\u03C0:b")", false},
+      format_case{"iri-reference", R"("?q=\uDB80\uDC00")", true}, format_case{"iri-reference", R"("#\uE000")", false},
+      format_case{"iri-reference", R"("\uE000")", false}, format_case{"iri-reference", R"("#a\\b")", false},
+      format_case{"uri-template", R"("http://example.com/dictionary/{term:1}/{term}")", true},
+      format_case{"uri-template", R"("")", true}, format_case{"uri-template", R"("{term")", false},
+      format_case{"uri-template", R"("{}")", false}, format_case{"uri-template", R"("{a,,b}")", false},
+      format_case{"uri-template", R"("{v:0}")", false}, format_case{"uri-template", R"("{v:9999}")", true},
+      format_case{"uri-template", R"("{v:10000}")", false}, format_case{"uri-template", R"("{v:01}")", false},
+      format_case{"uri-template", R"("{:1}")", false}, format_case{"uri-template", R"("foo}bar")", false},
+      format_case{"uri-template", R"("a%41b")", true}, format_case{"uri-template", R"("a%4")", false},
+      format_case{"uri-template", R"("a\uE000b\uD83D\uDE00")", true}, format_case{"uri-template", R"("a b")", false},
+      format_case{"uri-template", R"("a\u007Fb")", false}, format_case{"uri-template", R"("a\"b")", false},
+      format_case{"uri-template", R"("a'b")", true}, format_case{"uri-template", R"("{+var}")", true},
+      format_case{"uri-template", R"("{|var}")", true}, format_case{"uri-template", R"("{var*}")", true},
+      format_case{"uri-template", R"("{var:1*}")", false}, format_case{"uri-template", R"("{a**}")", false},
+      format_case{"uri-template", R"("{a*b}")", false}, format_case{"uri-template", R"("{x,y}")", true},
+      format_case{"uri-template", R"("{.a.b}")", true}, format_case{"uri-template", R"("{a.}")", false},
+      format_case{"uri-template", R"("{.a}")", true}, format_case{"uri-template", R"("{..a}")", false},
+      format_case{"uri-template", R"("{a..b}")", false}, format_case{"uri-template", R"("{%41}")", true},
+      format_case{"uri-template", R"("{%GG}")", false}, format_case{"uri-template", R"("{a,}")", false},
+      format_case{"uri-template", R"("{var=def}")", false}, format_case{"uri-template", R"("{,+var}")", false},
+      format_case{"uri-template", R"("{\u00E9}")", false}, format_case{"uri-template", R"("{a{b}")", false},
+      format_case{"idn-hostname", R"("실례.테스트")", true}, format_case{"idn-hostname", R"("a​b")", true},
+      format_case{"idn-hostname", R"("１２３")", true}, format_case{"idn-hostname", R"("a。b．c｡d")", true},
+      format_case{"idn-hostname", R"("EXAMPLE.com")", true}, format_case{"idn-hostname", R"("café.com")", true},
+      format_case{"idn-hostname", R"("xn--NXASMQ6B")", true}, format_case{"idn-hostname", R"("ｘｎ--nxasmq6b")", true},
+      format_case{"idn-hostname", R"("⒈com")", false}, format_case{"idn-hostname", R"("a￿b")", false},
+      format_case{"idn-hostname", R"("a b")", false}, format_case{"idn-hostname", R"("a\u0001b")", false},
+      format_case{"idn-hostname", R"("xn---9uc")", false}, format_case{"idn-hostname", R"("aא")", false},
+      format_case{"idn-hostname", R"("٠١")", false}, format_case{"idn-hostname", R"("")", false},
+      format_case{"idn-hostname", R"(".")", false}, format_case{"idn-hostname", R"("a..b")", false},
+      format_case{"idn-hostname", R"("。a")", false}, format_case{"idn-hostname", R"("̀a")", false},
+      format_case{"idn-hostname", R"("l·a")", false}, format_case{"idn-email", R"("실례@실례.테스트")", true},
+      format_case{"idn-email", R"("δοκιμή@example.com")", true},
+      format_case{"idn-email", R"("\"δοκιμή\"@example.com")", true},
+      format_case{"idn-email", R"("\u0085@example.com")", true}, format_case{"idn-email", R"("𝕏@example.com")", true},
+      format_case{"idn-email", R"("joe@[IPv6:::1]")", true}, format_case{"idn-email", R"("joe@[127.0.0.1]")", true},
+      format_case{"idn-email", R"("joe@café.com")", true}, format_case{"idn-email", R"("user＠example.com")", false},
+      format_case{"idn-email", R"("δοκιμή@")", false}, format_case{"idn-email", R"("@example.com")", false},
+      format_case{"idn-email", R"("a b@example.com")", false}, format_case{"idn-email", R"("a@b@example.com")", false},
+      format_case{"idn-email", R"("δ.@example.com")", false}, format_case{"idn-email", R"("δ@-example.com")", false},
+      format_case{"idn-email", R"("δ@example..com")", false}, format_case{"relative-json-pointer", R"("2#")", true},
       format_case{"relative-json-pointer", R"("/foo/bar")", false},
       format_case{"relative-json-pointer", R"("-1/foo")", false},
       format_case{"relative-json-pointer", R"("01")", false}, format_case{"relative-json-pointer", R"("0##")", false},
@@ -231,7 +284,8 @@ namespace
   TEST(J5_069_FormatOptions, UnsupportedAndNonApplicable)
   {
     EXPECT_TRUE(run_format(R"({"format": "color"})", R"("not a color")", true).valid);
-    EXPECT_TRUE(run_format(R"({"format": "idn-email"})", R"("x")", true).valid);
+    EXPECT_TRUE(run_format(R"({"format": "idn-email"})", R"("x")", false).valid);
+    EXPECT_FALSE(run_format(R"({"format": "idn-email"})", R"("x")", true).valid);
     EXPECT_TRUE(run_format(R"({"format": "ipv4"})", "12", true).valid);
     EXPECT_TRUE(run_format(R"({"format": "date"})", R"({"a": 1})", true).valid);
     const format_outcome shape = run_format(R"({"format": 4})", "1", true);
@@ -241,13 +295,13 @@ namespace
               std::optional<schema_error_code>{schema_error_code::unsupported_option});
     EXPECT_TRUE(run_format(R"({"contentEncoding": "base64"})", R"("not base64!")", true).valid);
 
-    for (const char* name : {"date-time", "date", "time", "email", "hostname", "ipv4", "ipv6", "uri", "uri-reference",
-                             "json-pointer", "relative-json-pointer", "regex"})
+    for (const char* name :
+         {"date-time", "date", "time", "email", "hostname", "ipv4", "ipv6", "uri", "uri-reference", "json-pointer",
+          "relative-json-pointer", "regex", "iri", "iri-reference", "uri-template", "idn-email", "idn-hostname"})
     {
       EXPECT_TRUE(format_assertion_supported(name)) << name;
     }
-    for (const char* name :
-         {"", "color", "idn-email", "idn-hostname", "iri", "iri-reference", "uri-template", "Date", "date-times"})
+    for (const char* name : {"", "color", "Iri", "uri-templates", "idn_hostname", "Date", "date-times"})
     {
       EXPECT_FALSE(format_assertion_supported(name)) << name;
     }
@@ -270,7 +324,7 @@ namespace
     EXPECT_EQ(run_format(R"({"format": "regex"})", R"("(a|b)*c")", true, false, small).error,
               std::optional<schema_error_code>{schema_error_code::resource_limit});
 
-    for (const char* format : {"email", "regex", "json-pointer"})
+    for (const char* format : {"email", "regex", "json-pointer", "idn-email", "iri"})
     {
       const std::string schema = std::string{R"({"format": ")"} + format + R"("})";
       for (std::size_t fail_on = 1U;; ++fail_on)
@@ -286,5 +340,53 @@ namespace
         ASSERT_LT(fail_on, 100U);
       }
     }
+  }
+  /**
+   * @brief Wrap text as a JSON string instance.
+   * @par Requirements
+   * J5-069.
+   */
+  std::string quoted(const std::string& text)
+  {
+    return "\"" + text + "\"";
+  }
+
+  /**
+   * @brief Repeat text count times.
+   * @par Requirements
+   * J5-069.
+   */
+  std::string repeated(const std::string& text, std::size_t count)
+  {
+    std::string out{};
+    for (std::size_t index = 0U; index < count; ++index)
+    {
+      out += text;
+    }
+    return out;
+  }
+
+  /*
+   * Arrange: idn-hostname and idn-email values at and beyond the length limits: a 63-octet
+   *          A-label and a longer one, 253 and 255 ASCII octets, a label whose decomposition does
+   *          not fit, a mapped label longer than the label buffer, and local parts of 64 and 65
+   *          UTF-8 octets.
+   * Act: Validate with assert_format.
+   * Expect: Valid at the limits, invalid beyond them (J5-069; RFC 1035; RFC 5321; UTS #46).
+   */
+  TEST(J5_069_FormatOptions, InternationalizedLimits)
+  {
+    const std::string host = R"({"format": "idn-hostname"})";
+    const std::string mail = R"({"format": "idn-email"})";
+    EXPECT_TRUE(run_format(host, quoted(repeated("a", 63U)), true).valid);
+    EXPECT_FALSE(run_format(host, quoted(repeated("a", 64U)), true).valid);
+    EXPECT_TRUE(run_format(host, quoted(repeated("\\u00FC", 20U)), true).valid);
+    EXPECT_FALSE(run_format(host, quoted(repeated("\\u00FC", 60U)), true).valid);
+    EXPECT_TRUE(run_format(host, quoted(repeated("a.", 126U) + "a"), true).valid);
+    EXPECT_FALSE(run_format(host, quoted(repeated("a.", 127U) + "a"), true).valid);
+    EXPECT_FALSE(run_format(host, quoted(repeated("\\u1F82", 64U)), true).valid);
+    EXPECT_FALSE(run_format(host, quoted("a" + repeated("\\u0301", 260U)), true).valid);
+    EXPECT_TRUE(run_format(mail, quoted(repeated("\\u03B4", 32U) + "@example.com"), true).valid);
+    EXPECT_FALSE(run_format(mail, quoted(repeated("\\u03B4", 32U) + "a@example.com"), true).valid);
   }
 } // namespace

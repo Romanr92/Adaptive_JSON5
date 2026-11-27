@@ -17,6 +17,20 @@ namespace adaptive_json5::detail
   inline constexpr std::size_t c_max_label_code_points = 63U;
 
   /**
+   * @brief Longest label in octets (RFC 1035 section 2.3.4), the capacity of an A-label.
+   * @par Requirements
+   * J5-069; ADR 0006 (issue #187).
+   */
+  inline constexpr std::size_t c_max_label_octets = 63U;
+
+  /**
+   * @brief Characters of an A-label.
+   * @par Requirements
+   * J5-069.
+   */
+  using a_label_text = std::array<char, c_max_label_octets>;
+
+  /**
    * @brief Decode the Punycode part of an A-label (the text after "xn--").
    * @par Requirements
    * J5-069; RFC 3492 section 6.2; ADR 0006 (issue #187).
@@ -34,11 +48,23 @@ namespace adaptive_json5::detail
    * J5-069; RFC 5891 section 5.4; RFC 5892 section 3 and Appendix A; ADR 0006 (issue #187).
    * @return true when the Punycode decodes to a U-label that is in NFC and not all ASCII, has
    * no hyphen at either end or in positions 3 and 4, does not start with a combining mark,
-   * and whose code points are PVALID or satisfy their CONTEXTJ/CONTEXTO rule. The RFC 5893
-   * Bidi rule spans all labels and is checked by satisfies_bidi_rule.
+   * and whose code points are PVALID or satisfy their CONTEXTJ/CONTEXTO rule, and when the
+   * label is the canonical encoding of that U-label (to_a_label, ASCII case-insensitive). The
+   * RFC 5893 Bidi rule spans all labels and is checked by satisfies_bidi_rule.
    * @par ID SWU-SCHEMA-378
    */
   [[nodiscard]] bool is_a_label(std::string_view label) noexcept;
+
+  /**
+   * @brief Encode a label with Punycode as an A-label ("xn--", then RFC 3492 section 6.3).
+   * @par Requirements
+   * J5-069; RFC 3492 section 6.3; RFC 5891 section 4.4; ADR 0006 (issue #187).
+   * @return The length written to out, or nullopt when the A-label is longer than
+   * c_max_label_octets or a basic code point is not a lowercase letter, digit or hyphen.
+   * @par ID SWU-SCHEMA-439
+   */
+  [[nodiscard]] std::optional<std::size_t> to_a_label(const std::array<std::uint32_t, c_max_label_code_points>& label,
+                                                      std::size_t count, a_label_text& out) noexcept;
 
   /**
    * @brief Report whether a label starts with the ACE prefix "xn--" (ASCII case-insensitive).

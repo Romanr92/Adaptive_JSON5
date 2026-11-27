@@ -27,7 +27,8 @@ namespace adaptive_json5::detail
     constexpr std::size_t c_expansion = 4U; // Longest canonical decomposition of one code point.
     constexpr std::size_t c_pending_limit = 8U;
 
-    using normal_buffer = std::array<std::uint32_t, c_max_label_code_points * c_expansion>;
+    using normal_buffer = decomposed_label;
+    static_assert(c_max_decomposed_label == (c_max_label_code_points * c_expansion), "normalization capacity");
 
     /**
      * @brief Append a code point to buffer; false when full.
@@ -280,5 +281,34 @@ namespace adaptive_json5::detail
       ++index;
     }
     return true;
+  }
+  /**
+   * @brief Normalize a label to NFC in place.
+   * @par Requirements
+   * J5-069; UTS #46 section 4; Unicode UAX #15; ADR 0006 (issue #187).
+   * @par ID SWU-SCHEMA-438
+   */
+  std::optional<std::size_t> normalize_nfc(decomposed_label& label, std::size_t count) noexcept
+  {
+    normal_buffer buffer{};
+    std::size_t size = 0U;
+    std::size_t index = 0U;
+    while (index < count)
+    {
+      if (!decompose(buffer, size, label[index]))
+      {
+        return std::nullopt;
+      }
+      ++index;
+    }
+    order(buffer, size);
+    const std::size_t composed = compose(buffer, size);
+    index = 0U;
+    while (index < composed)
+    {
+      label[index] = buffer[index];
+      ++index;
+    }
+    return composed;
   }
 } // namespace adaptive_json5::detail

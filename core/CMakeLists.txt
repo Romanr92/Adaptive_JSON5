@@ -53,6 +53,7 @@ if(ADAPTIVE_JSON5_BUILD_SCHEMA)
         src/schema/schema_work.cpp
         src/schema/unicode_property.cpp
         src/schema/uri.cpp
+        src/schema/uts46.cpp
         src/schema/value_equality.cpp)
     add_library(AdaptiveJSON5::schema ALIAS adaptive_json5_schema)
     set_target_properties(adaptive_json5_schema PROPERTIES EXPORT_NAME schema)

@@ -11,6 +11,7 @@
 #include "schema/regex_program.hpp"
 #include "schema/schema_work.hpp"
 #include "schema/uri.hpp"
+#include "schema/uts46.hpp"
 
 #include <array>
 #include <cstddef>
@@ -93,9 +94,9 @@ namespace adaptive_json5::detail
     // MISRA justification: A namespace-scope constexpr std::string_view in an anonymous namespace is declared once;
     // it is not a static data member, so the redeclaration the query reports does not exist.
     // codeql::misra_deviation_next_line(DEV-114.2)
-    constexpr std::array<std::string_view, 13> c_format_names{{"", "date-time", "date", "time", "email", "hostname",
-                                                               "ipv4", "ipv6", "uri", "uri-reference", "json-pointer",
-                                                               "relative-json-pointer", "regex"}};
+    constexpr std::array<std::string_view, 18> c_format_names{
+      {"", "date-time", "date", "time", "email", "hostname", "ipv4", "ipv6", "uri", "uri-reference", "json-pointer",
+       "relative-json-pointer", "regex", "iri", "iri-reference", "uri-template", "idn-email", "idn-hostname"}};
 
     /**
      * @brief Report whether c is one of set.
@@ -539,6 +540,20 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief RFC 5321 local part: a dot-atom or a quoted string of at most c_max_local_part octets.
+     * @par Requirements
+     * J5-069; RFC 5321 sections 4.1.2 and 4.5.3.1.1.
+     * @par ID SWU-SCHEMA-448
+     */
+    bool is_local_part(std::string_view local) noexcept
+    {
+      const bool dot_atom = only(local, c_local) && !is_one_of(local.front(), ".") && !is_one_of(local.back(), ".") &&
+                            (local.find("..") == std::string_view::npos);
+      const bool quoted = dot_atom ? false : is_quoted_local(local);
+      return (local.size() <= c_max_local_part) && (dot_atom || quoted);
+    }
+
+    /**
      * @brief Email address: dot-atom or quoted local part, '@', domain (RFC 5321 section 4.1.2).
      * @par Requirements
      * J5-069; RFC 5321.
@@ -547,15 +562,7 @@ namespace adaptive_json5::detail
     bool is_email(std::string_view text) noexcept
     {
       const std::size_t at = text.rfind('@');
-      if (at == std::string_view::npos)
-      {
-        return false;
-      }
-      const std::string_view local = text.substr(0U, at);
-      const bool dot_atom = only(local, c_local) && !is_one_of(local.front(), ".") && !is_one_of(local.back(), ".") &&
-                            (local.find("..") == std::string_view::npos);
-      const bool quoted = dot_atom ? false : is_quoted_local(local);
-      if ((local.size() > c_max_local_part) || (!dot_atom && !quoted))
+      if ((at == std::string_view::npos) || !is_local_part(text.substr(0U, at)))
       {
         return false;
       }
@@ -767,6 +774,102 @@ namespace adaptive_json5::detail
     }
 
     /**
+     * @brief RFC 6570 varname: varchars (letters, digits, '_' and percent escapes) separated by
+     * single dots.
+     * @par Requirements
+     * J5-069; RFC 6570 section 2.3.
+     * @par ID SWU-SCHEMA-418
+     */
+    bool is_varname(std::string_view name) noexcept
+    {
+      constexpr std::string_view c_varname{"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_%."};
+      return only(name, c_varname) && valid_percent_escapes(name) && !is_one_of(name.front(), ".") &&
+             !is_one_of(name.back(), ".") && (name.find("..") == std::string_view::npos);
+    }
+
+    /**
+     * @brief RFC 6570 varspec: a varname with an optional prefix (":" and 1-9999 without a
+     * leading zero) or explode ("*") modifier.
+     * @par Requirements
+     * J5-069; RFC 6570 sections 2.3 and 2.4.
+     * @par ID SWU-SCHEMA-419
+     */
+    bool is_varspec(std::string_view spec) noexcept
+    {
+      constexpr std::size_t c_max_length_digits = 4U;
+      const std::size_t colon = spec.find(':');
+      if (colon != std::string_view::npos)
+      {
+        const std::string_view length = spec.substr(colon).substr(1U);
+        return is_varname(spec.substr(0U, colon)) && (length.size() <= c_max_length_digits) && only(length, c_digits) &&
+               !is_one_of(length.front(), "0");
+      }
+      const bool explode = !spec.empty() && is_one_of(spec.back(), "*");
+      return is_varname(explode ? spec.substr(0U, spec.rfind('*')) : spec);
+    }
+
+    /**
+     * @brief RFC 6570 expression body: an optional operator and a comma-separated variable list.
+     * @par Requirements
+     * J5-069; RFC 6570 section 2.2.
+     * @par ID SWU-SCHEMA-420
+     */
+    bool is_expression(std::string_view body) noexcept
+    {
+      // Level 2 and 3 operators, and the operators RFC 6570 reserves.
+      constexpr std::string_view c_operators{"+#./;?&=,!@|"};
+      std::string_view rest = (!body.empty() && is_one_of(body.front(), c_operators)) ? body.substr(1U) : body;
+      for (;;)
+      {
+        const std::size_t comma = rest.find(',');
+        if (!is_varspec(rest.substr(0U, comma)))
+        {
+          return false;
+        }
+        if (comma == std::string_view::npos)
+        {
+          return true;
+        }
+        rest = rest.substr(comma).substr(1U);
+      }
+    }
+
+    /**
+     * @brief RFC 6570 URI Template: literals (with valid percent escapes) and "{...}" expressions.
+     * The apostrophe is a literal character (an RFC 6570 erratum, as the test suite expects).
+     * @par Requirements
+     * J5-069; RFC 6570 section 2; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-421
+     */
+    bool is_uri_template(std::string_view text) noexcept
+    {
+      // RFC 6570 literals; an allowed non-ASCII character is '~' in the copy.
+      constexpr std::string_view c_template_literal{
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$&'()*+,-./:;=?@[]_~%"};
+      std::string_view rest = text;
+      for (;;)
+      {
+        const std::size_t open = rest.find('{');
+        const std::string_view literal = rest.substr(0U, open);
+        if ((literal.find_first_not_of(c_template_literal) != std::string_view::npos) ||
+            !valid_percent_escapes(literal))
+        {
+          return false;
+        }
+        if (open == std::string_view::npos)
+        {
+          return true;
+        }
+        const std::size_t close = rest.find('}', open);
+        if ((close == std::string_view::npos) || !is_expression(rest.substr(open, close - open).substr(1U)))
+        {
+          return false;
+        }
+        rest = rest.substr(close).substr(1U);
+      }
+    }
+
+    /**
      * @brief Return the printable ASCII character of a code unit, or c_non_ascii for every other
      * unit (control characters and non-ASCII), without using character values numerically.
      * @par Requirements
@@ -819,42 +922,365 @@ namespace adaptive_json5::detail
     }
 
     /**
-     * @brief Check the ASCII-only formats (every format except json-pointer and regex variants).
+     * @brief A code point read from UTF-16 text and the number of code units it occupies.
+     * @par Requirements
+     * J5-069.
+     */
+    // MISRA rule: RULE-15-0-1 cpp/misra/improperly-provided-special-member-functions-audit
+    // MISRA justification: Aggregates and owning types follow the rule of zero or declare exactly the move-only set
+    // they need; the implicitly provided members are the intended ones.
+    // codeql::misra_deviation_next_line(DEV-104.46)
+    struct code_point_read
+    {
+        std::uint32_t value;
+        std::size_t units;
+    };
+
+    /**
+     * @brief Read the code point at index; an unpaired surrogate is returned as itself.
+     * @par Requirements
+     * J5-069.
+     * @return The code point, or a storage failure.
+     * @par ID SWU-SCHEMA-422
+     */
+    result<code_point_read, schema_error> read_code_point(const decoded_string& text, std::size_t index) noexcept
+    {
+      using read_result = result<code_point_read, schema_error>;
+      const auto unit = text.unit_at(index);
+      if (!unit.has_value())
+      {
+        return read_result::failure(schema_error::from_storage(*unit.error_if()));
+      }
+      const std::uint32_t high = static_cast<std::uint32_t>(*unit.value_if());
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.229)
+      const std::size_t next = index + 1U;
+      if ((high < 0xD800U) || (high > 0xDBFFU) || (next >= text.size()))
+      {
+        return read_result::success(code_point_read{high, 1U});
+      }
+      const auto low = text.unit_at(next);
+      if (!low.has_value())
+      {
+        return read_result::failure(schema_error::from_storage(*low.error_if()));
+      }
+      const std::uint32_t second = static_cast<std::uint32_t>(*low.value_if());
+      if ((second < 0xDC00U) || (second > 0xDFFFU))
+      {
+        return read_result::success(code_point_read{high, 1U});
+      }
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.230)
+      const std::uint32_t offset = ((high - 0xD800U) << 10U) | (second - 0xDC00U);
+      // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+      // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the loop
+      // condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked before
+      // combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+      // codeql::misra_deviation_next_line(DEV-101.231)
+      const std::uint32_t value = 0x10000U + offset;
+      return read_result::success(code_point_read{value, 2U});
+    }
+
+    /**
+     * @brief Report whether code_point is an RFC 3987 ucschar.
+     * @par Requirements
+     * J5-069; RFC 3987 section 2.2.
+     * @par ID SWU-SCHEMA-423
+     */
+    bool is_ucschar(std::uint32_t code_point) noexcept
+    {
+      if ((code_point & 0xFFFFU) >= 0xFFFEU)
+      {
+        return false;
+      }
+      return ((code_point >= 0xA0U) && (code_point <= 0xD7FFU)) ||
+             ((code_point >= 0xF900U) && (code_point <= 0xFDCFU)) ||
+             ((code_point >= 0xFDF0U) && (code_point <= 0xFFEFU)) ||
+             ((code_point >= 0x10000U) && (code_point < 0xE0000U)) ||
+             ((code_point >= 0xE1000U) && (code_point < 0xF0000U));
+    }
+
+    /**
+     * @brief Report whether code_point is an RFC 3987 iprivate character.
+     * @par Requirements
+     * J5-069; RFC 3987 section 2.2.
+     * @par ID SWU-SCHEMA-424
+     */
+    bool is_iprivate(std::uint32_t code_point) noexcept
+    {
+      return ((code_point >= 0xE000U) && (code_point <= 0xF8FFU)) ||
+             ((code_point >= 0xF0000U) && ((code_point & 0xFFFFU) < 0xFFFEU));
+    }
+
+    /**
+     * @brief Return the copy character of a code point for the IRI formats: ASCII as itself,
+     * an allowed non-ASCII character as c_stand_in and every other character as c_non_ascii.
+     * @par Requirements
+     * J5-069; RFC 3987 section 2.2.
+     * @param private_allowed iprivate characters are allowed here (an IRI query, or a URI Template).
+     * @par ID SWU-SCHEMA-425
+     */
+    char iri_char(std::uint32_t code_point, bool private_allowed) noexcept
+    {
+      // Unreserved and a template literal, but not a scheme, hex-digit or port character.
+      constexpr std::string_view c_stand_in{"~"};
+      if (code_point < c_ascii_end)
+      {
+        return ascii_of(code_point);
+      }
+      const bool allowed = is_ucschar(code_point) || (private_allowed && is_iprivate(code_point));
+      return allowed ? c_stand_in[0U] : c_non_ascii[0U];
+    }
+
+    /**
+     * @brief Copy text for the IRI formats, one character per code point (see iri_char); iprivate
+     * characters are allowed in the query (after the first '?' and before '#') or, with
+     * private_anywhere, everywhere.
+     * @par Requirements
+     * J5-069; RFC 3987 section 2.2; RFC 6570 section 2.1.
+     * @return true, or a storage failure.
+     * @par ID SWU-SCHEMA-426
+     */
+    bool_result iri_copy(const decoded_string& text, pod_vector<char>& out, bool private_anywhere) noexcept
+    {
+      bool in_query = false;
+      bool in_fragment = false;
+      std::size_t index = 0U;
+      while (index < text.size())
+      {
+        const auto read = read_code_point(text, index);
+        if (!read.has_value())
+        {
+          return bool_result::failure(*read.error_if());
+        }
+        const code_point_read point = *read.value_if();
+        const char c = iri_char(point.value, private_anywhere || (in_query && !in_fragment));
+        in_fragment = in_fragment || is_one_of(c, "#");
+        in_query = in_query || (!in_fragment && is_one_of(c, "?"));
+        const auto pushed = out.push_back(c);
+        if (!pushed.has_value())
+        {
+          return bool_result::failure(*pushed.error_if());
+        }
+        // MISRA rule: RULE-8-20-1 cpp/misra/unsigned-operation-with-constant-operands-wraps
+        // MISRA justification: Index, offset, count and code-point arithmetic is bounded by a preceding check, the
+        // loop condition, a container size or the Unicode range (code points <= 0x10FFFF, surrogate halves checked
+        // before combining), so it cannot wrap; CodeQL does not follow these run-time bounds.
+        // codeql::misra_deviation_next_line(DEV-101.232)
+        index += point.units;
+      }
+      return bool_result::success(true);
+    }
+
+    /**
+     * @brief Decode text into code points (see read_code_point).
+     * @par Requirements
+     * J5-069.
+     * @return true, or a storage failure.
+     * @par ID SWU-SCHEMA-449
+     */
+    bool_result decode_code_points(const decoded_string& text, pod_vector<std::uint32_t>& out) noexcept
+    {
+      std::size_t index = 0U;
+      while (index < text.size())
+      {
+        const auto read = read_code_point(text, index);
+        if (!read.has_value())
+        {
+          return bool_result::failure(*read.error_if());
+        }
+        const code_point_read point = *read.value_if();
+        const auto pushed = out.push_back(point.value);
+        if (!pushed.has_value())
+        {
+          return bool_result::failure(*pushed.error_if());
+        }
+        index += point.units;
+      }
+      return bool_result::success(true);
+    }
+
+    /**
+     * @brief Internationalized host name of the code points [first, end): its UTS #46 ASCII form
+     * is a valid host name (format hostname: labels, A-labels, lengths and the Bidi rule) or,
+     * for mail, a mail domain (address literals included).
+     * @par Requirements
+     * J5-069; RFC 5890; RFC 5891; UTS #46; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-450
+     */
+    bool is_idn_domain(const pod_vector<std::uint32_t>& code_points, std::size_t first, std::size_t end,
+                       bool mail) noexcept
+    {
+      ascii_host host{};
+      const auto length = idn_to_ascii(code_points, first, end, host);
+      if (!length.has_value())
+      {
+        return false;
+      }
+      const std::string_view ascii{host.data(), *length};
+      return mail ? is_mail_domain(ascii) : is_hostname(ascii);
+    }
+
+    /**
+     * @brief Number of UTF-8 octets of a code point.
+     * @par Requirements
+     * J5-069; RFC 3629 section 3.
+     * @par ID SWU-SCHEMA-451
+     */
+    std::size_t utf8_octets(std::uint32_t code_point) noexcept
+    {
+      if (code_point < c_ascii_end)
+      {
+        return 1U;
+      }
+      if (code_point < 0x800U)
+      {
+        return 2U;
+      }
+      return (code_point < 0x10000U) ? 3U : 4U;
+    }
+
+    /**
+     * @brief RFC 6531 local part of the code points [0, at): every non-ASCII character is allowed
+     * in a dot-atom or a quoted string, and the local part has at most c_max_local_part UTF-8
+     * octets.
+     * @par Requirements
+     * J5-069; RFC 6531 section 3.3; RFC 5321 section 4.5.3.1.1.
+     * @par ID SWU-SCHEMA-452
+     */
+    bool is_idn_local_part(const pod_vector<std::uint32_t>& code_points, std::size_t at) noexcept
+    {
+      // atext and qtext in the copy; RFC 6531 allows every non-ASCII character in both.
+      constexpr std::string_view c_stand_in{"~"};
+      std::array<char, c_max_local_part> local{};
+      std::size_t octets = 0U;
+      std::size_t index = 0U;
+      while (index < at)
+      {
+        const std::uint32_t code_point = code_points.get(index);
+        octets += utf8_octets(code_point);
+        if (octets > c_max_local_part)
+        {
+          return false;
+        }
+        local[index] = (code_point < c_ascii_end) ? ascii_of(code_point) : c_stand_in[0U];
+        ++index;
+      }
+      return is_local_part(std::string_view{local.data(), at});
+    }
+
+    /**
+     * @brief RFC 6531 internationalized email address: a local part, the last '@' and an
+     * internationalized domain or address literal.
+     * @par Requirements
+     * J5-069; RFC 6531 section 3.3; ADR 0006 (issue #187).
+     * @par ID SWU-SCHEMA-453
+     */
+    bool is_idn_email(const pod_vector<std::uint32_t>& code_points) noexcept
+    {
+      constexpr std::uint32_t c_commercial_at = 0x40U;
+      std::size_t index = code_points.size();
+      while (index > 0U)
+      {
+        --index;
+        if (code_points.get(index) == c_commercial_at)
+        {
+          return is_idn_local_part(code_points, index) &&
+                 is_idn_domain(code_points, index + 1U, code_points.size(), true);
+        }
+      }
+      return false;
+    }
+
+    /**
+     * @brief Check idn-hostname and idn-email on the decoded code points.
+     * @par Requirements
+     * J5-069; RFC 5890; RFC 6531; ADR 0006 (issue #187).
+     * @return The verdict, or a storage failure.
+     * @par ID SWU-SCHEMA-454
+     */
+    bool_result check_idn(format_kind format, const decoded_string& text, const storage_callbacks& scratch) noexcept
+    {
+      pod_vector<std::uint32_t> code_points{scratch};
+      const auto decoded = decode_code_points(text, code_points);
+      if (!decoded.has_value())
+      {
+        return decoded;
+      }
+      const bool valid = (format == format_kind::idn_email) ? is_idn_email(code_points)
+                                                            : is_idn_domain(code_points, 0U, code_points.size(), false);
+      return bool_result::success(valid);
+    }
+
+    /**
+     * @brief Check the network formats (email, hostname, IP addresses, URIs, IRIs and URI
+     * Templates); none and regex are valid here (regex is checked before the copy).
+     * @par Requirements
+     * J5-069; RFC 3987; RFC 6570.
+     * @par ID SWU-SCHEMA-427
+     */
+    bool check_network_text(format_kind format, std::string_view text) noexcept
+    {
+      if (format == format_kind::email)
+      {
+        return is_email(text);
+      }
+      if (format == format_kind::hostname)
+      {
+        return is_hostname(text);
+      }
+      if (format == format_kind::ipv4)
+      {
+        return is_ipv4(text);
+      }
+      if (format == format_kind::ipv6)
+      {
+        return is_ipv6(text);
+      }
+      if (format == format_kind::uri_template)
+      {
+        return is_uri_template(text);
+      }
+      const bool absolute = (format == format_kind::uri) || (format == format_kind::iri);
+      const bool reference = (format == format_kind::uri_reference) || (format == format_kind::iri_reference);
+      return (absolute || reference) ? is_uri_reference(text, absolute) : true;
+    }
+
+    /**
+     * @brief Check the formats that work on a character copy (every format except regex).
      * @par Requirements
      * J5-069.
      * @par ID SWU-SCHEMA-339
      */
     bool check_text(format_kind format, std::string_view text) noexcept
     {
-      switch (format)
+      if (format == format_kind::date_time)
       {
-      case format_kind::date_time:
         return is_date_time(text);
-      case format_kind::date:
-        return is_date(text);
-      case format_kind::time:
-        return is_time(text);
-      case format_kind::email:
-        return is_email(text);
-      case format_kind::hostname:
-        return is_hostname(text);
-      case format_kind::ipv4:
-        return is_ipv4(text);
-      case format_kind::ipv6:
-        return is_ipv6(text);
-      case format_kind::uri:
-        return is_uri_reference(text, true);
-      case format_kind::uri_reference:
-        return is_uri_reference(text, false);
-      case format_kind::json_pointer:
-        return is_json_pointer(text);
-      case format_kind::relative_json_pointer:
-        return is_relative_json_pointer(text);
-      case format_kind::none:
-      case format_kind::regex:
-      default:
-        return true;
       }
+      if (format == format_kind::date)
+      {
+        return is_date(text);
+      }
+      if (format == format_kind::time)
+      {
+        return is_time(text);
+      }
+      if (format == format_kind::json_pointer)
+      {
+        return is_json_pointer(text);
+      }
+      if (format == format_kind::relative_json_pointer)
+      {
+        return is_relative_json_pointer(text);
+      }
+      return check_network_text(format, text);
     }
 
     /**
@@ -959,13 +1385,20 @@ namespace adaptive_json5::detail
     {
       return is_regex(text, work, scratch);
     }
+    if ((format == format_kind::idn_hostname) || (format == format_kind::idn_email))
+    {
+      return check_idn(format, text, scratch);
+    }
     pod_vector<char> copy{scratch};
-    const auto ascii = ascii_copy(text, copy);
+    const bool iri_like =
+      (format == format_kind::iri) || (format == format_kind::iri_reference) || (format == format_kind::uri_template);
+    const auto ascii = iri_like ? iri_copy(text, copy, format == format_kind::uri_template) : ascii_copy(text, copy);
     if (!ascii.has_value())
     {
       return ascii;
     }
-    const bool any_text = (format == format_kind::json_pointer) || (format == format_kind::relative_json_pointer);
+    const bool any_text =
+      iri_like || (format == format_kind::json_pointer) || (format == format_kind::relative_json_pointer);
     if (!*ascii.value_if() && !any_text)
     {
       return bool_result::success(false);

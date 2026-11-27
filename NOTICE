@@ -60,6 +60,6 @@ regeneration procedure are documented in tools/unicode-data/README.md.
 The optional schema library embeds generated Unicode 17.0.0 property tables
 (core/includes/schema/unicode_properties.hpp: General_Category, Script,
 Joining_Type, Virama, Bidi_Class, canonical combining classes, decompositions and
-composites, and the RFC 5892 IDNA2008 derived property) under the same
-Unicode License V3; the notice is embedded in that header. The IANA IDNA 12.0.0
+composites, the RFC 5892 IDNA2008 derived property, and the UTS #46 IDNA
+mapping from IdnaMappingTable.txt 17.0.0) under the same Unicode License V3; the notice is embedded in that header. The IANA IDNA 12.0.0
 table in tools/unicode-data is used only to test the generator.
